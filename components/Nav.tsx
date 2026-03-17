@@ -31,9 +31,9 @@ export default function Nav() {
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
           {[
-            { label: 'Services', href: '#services' },
-            { label: 'Fleet', href: '#fleet' },
-            { label: 'Routes', href: '#routes' },
+            { label: 'Services', href: '/services' },
+            { label: 'Fleet', href: '/fleet' },
+            { label: 'Routes', href: '/routes' },
             { label: 'Corporate', href: '/corporate' },
             { label: 'Contact', href: '/contact' },
           ].map((link) => (
@@ -45,7 +45,7 @@ export default function Nav() {
               {link.label}
             </a>
           ))}
-          <a href="#book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
+          <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
             Book now
           </a>
         </div>
@@ -66,9 +66,9 @@ export default function Nav() {
       {open && (
         <div className="md:hidden bg-anthracite-mid border-t border-anthracite-light px-6 py-6 flex flex-col gap-5">
           {[
-            { label: 'Services', href: '#services' },
-            { label: 'Fleet', href: '#fleet' },
-            { label: 'Routes', href: '#routes' },
+            { label: 'Services', href: '/services' },
+            { label: 'Fleet', href: '/fleet' },
+            { label: 'Routes', href: '/routes' },
             { label: 'Corporate', href: '/corporate' },
             { label: 'Contact', href: '/contact' },
           ].map((link) => (
@@ -81,7 +81,7 @@ export default function Nav() {
               {link.label}
             </a>
           ))}
-          <a href="#book" onClick={() => setOpen(false)} className="btn-primary text-center mt-2">
+          <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-2">
             Book now
           </a>
         </div>

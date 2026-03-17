@@ -12,7 +12,7 @@ export default function Footer() {
               <span className="display-italic">We handle the rest.</span>
             </h2>
           </div>
-          <a href="#book" className="btn-primary flex-shrink-0">
+          <a href="/book" className="btn-primary flex-shrink-0">
             Book now
           </a>
         </div>
@@ -37,10 +37,16 @@ export default function Footer() {
           <div>
             <p className="label mb-5">Services</p>
             <ul className="flex flex-col gap-3">
-              {['Airport Transfer', 'Intercity Routes', 'Corporate Accounts', 'VIP & Events', 'Group Transfer'].map((s) => (
-                <li key={s}>
-                  <a href="#book" className="body-text text-[11px] hover:text-offwhite transition-colors">
-                    {s}
+              {[
+                { label: 'Airport Transfer', href: '/services' },
+                { label: 'Intercity Routes', href: '/routes' },
+                { label: 'Corporate Accounts', href: '/corporate' },
+                { label: 'VIP & Events', href: '/services' },
+                { label: 'Group Transfer', href: '/services' },
+              ].map((s) => (
+                <li key={s.label}>
+                  <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors">
+                    {s.label}
                   </a>
                 </li>
               ))}
@@ -53,7 +59,7 @@ export default function Footer() {
             <ul className="flex flex-col gap-3">
               {['Prague → Vienna', 'Prague → Berlin', 'Prague → Munich', 'Prague → Budapest', 'Prague → Bratislava'].map((r) => (
                 <li key={r}>
-                  <a href="#book" className="body-text text-[11px] hover:text-offwhite transition-colors">
+                  <a href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors">
                     {r}
                   </a>
                 </li>
