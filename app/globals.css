@@ -1,26 +1,210 @@
 @import "tailwindcss";
+@source "../components/**/*.tsx";
+@source "../app/**/*.tsx";
+
+@theme {
+  --font-display: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Montserrat', 'Helvetica Neue', sans-serif;
+
+  --color-anthracite: #1C1C1E;
+  --color-anthracite-mid: #2A2A2D;
+  --color-anthracite-light: #3A3A3F;
+  --color-copper: #B87333;
+  --color-copper-light: #D4924A;
+  --color-copper-pale: #E8B87A;
+  --color-offwhite: #F5F2EE;
+  --color-warmgrey: #9A958F;
+
+  --letter-spacing-label: 0.25em;
+  --letter-spacing-nav: 0.18em;
+  --letter-spacing-wide: 0.12em;
+  --letter-spacing-logo: 0.75em;
+
+  --line-height-display: 1.1;
+  --line-height-heading: 1.25;
+  --line-height-relaxed: 1.8;
+
+  --animate-fade-up: fadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  --animate-fade-in: fadeIn 0.7s ease forwards;
+  --animate-line-grow: lineGrow 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes lineGrow {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
+  --font-montserrat: 'Montserrat', 'Helvetica Neue', sans-serif;
+
+  --anthracite: #1C1C1E;
+  --anthracite-mid: #2A2A2D;
+  --anthracite-light: #3A3A3F;
+  --copper: #B87333;
+  --copper-light: #D4924A;
+  --copper-pale: #E8B87A;
+  --offwhite: #F5F2EE;
+  --warmgrey: #9A958F;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--anthracite);
+  color: var(--offwhite);
+  font-family: var(--font-montserrat);
+}
+
+/* ── Copper accent line ────────────────────────────── */
+.copper-line {
+  display: block;
+  width: 40px;
+  height: 1px;
+  background: linear-gradient(90deg, var(--copper) 0%, var(--copper-pale) 60%, transparent 100%);
+}
+
+/* ── Section label ─────────────────────────────────── */
+.label {
+  font-family: var(--font-montserrat);
+  font-weight: 400;
+  font-size: 9px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--copper);
+}
+
+/* ── Display heading ───────────────────────────────── */
+.display {
+  font-family: var(--font-cormorant);
+  font-weight: 300;
+  line-height: 1.1;
+  color: var(--offwhite);
+}
+
+.display-italic {
+  font-style: italic;
+  color: var(--copper-pale);
+}
+
+/* ── Body text ─────────────────────────────────────── */
+.body-text {
+  font-family: var(--font-montserrat);
+  font-weight: 300;
+  font-size: 13px;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+  color: var(--warmgrey);
+}
+
+/* ── CTA button ────────────────────────────────────── */
+.btn-primary {
+  display: inline-block;
+  font-family: var(--font-montserrat);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--offwhite);
+  border: 1px solid var(--copper);
+  padding: 14px 32px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: transparent;
+  text-decoration: none;
+}
+
+.btn-primary:hover {
+  background: var(--copper);
+  color: var(--anthracite);
+}
+
+.btn-ghost {
+  display: inline-block;
+  font-family: var(--font-montserrat);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--warmgrey);
+  border: 1px solid var(--anthracite-light);
+  padding: 14px 32px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  background: transparent;
+  text-decoration: none;
+}
+
+.btn-ghost:hover {
+  border-color: var(--warmgrey);
+  color: var(--offwhite);
+}
+
+/* ── Wordmark ───────────────────────────────────────── */
+.wordmark {
+  font-family: var(--font-cormorant);
+  font-weight: 300;
+  letter-spacing: 0.6em;
+  line-height: 1;
+  font-size: 1.1rem;
+}
+
+.wordmark-presti { color: var(--offwhite); }
+.wordmark-go { color: var(--copper); }
+
+/* ── Animation helpers ─────────────────────────────── */
+.animate-on-load {
+  opacity: 0;
+  animation: fadeUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+.delay-600 { animation-delay: 0.6s; }
+.delay-700 { animation-delay: 0.7s; }
+.delay-800 { animation-delay: 0.8s; }
+
+/* ── LimoAnywhere iframe overrides ─────────────────── */
+#limoanywhere-frame {
+  border: none;
+  width: 100%;
+  min-height: 520px;
+  background: transparent;
+}
+
+/* ── Scrollbar ─────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--anthracite); }
+::-webkit-scrollbar-thumb { background: var(--anthracite-light); }
+::-webkit-scrollbar-thumb:hover { background: var(--copper); }
+
+/* ── Selection ─────────────────────────────────────── */
+::selection {
+  background: var(--copper);
+  color: var(--anthracite);
 }
