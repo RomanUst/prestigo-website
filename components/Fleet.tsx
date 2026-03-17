@@ -9,6 +9,7 @@ const vehicles = [
     features: ['Leather interior', 'Tinted windows', 'Climate control', 'Wi-Fi on request'],
     photo: '/e-class.png',
     photoAlt: 'Mercedes-Benz E-Class',
+    photoScale: 1.5,
   },
   {
     model: 'Mercedes-Benz S-Class',
@@ -18,6 +19,7 @@ const vehicles = [
     features: ['Executive rear seats', 'Ambient lighting', 'Champagne service', 'Privacy screen'],
     photo: '/s-class.png',
     photoAlt: 'Mercedes-Benz S-Class',
+    photoScale: 1.55,
   },
   {
     model: 'Mercedes-Benz V-Class',
@@ -27,6 +29,7 @@ const vehicles = [
     features: ['Facing seats', 'Extra luggage space', 'Conference seating', 'USB charging'],
     photo: '/v-class.png',
     photoAlt: 'Mercedes-Benz V-Class',
+    photoScale: 2.0,
   },
 ]
 
@@ -51,21 +54,28 @@ export default function Fleet() {
               className="border border-anthracite-light hover:border-copper/40 transition-colors overflow-hidden"
             >
               {/* Vehicle photo — transparent PNG on dark background */}
-              <div className="relative w-full h-48 flex items-end justify-center overflow-hidden px-4 pt-4">
+              <div className="relative w-full h-56 flex items-center justify-center overflow-hidden">
                 {/* Subtle glow under the car */}
                 <div
-                  className="absolute bottom-0 left-1/2 -translate-x-1/2 w-4/5 h-10 blur-2xl rounded-full opacity-20"
+                  className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4/5 h-8 blur-2xl rounded-full opacity-25"
                   style={{ background: 'var(--copper)' }}
                 />
-                <Image
-                  src={v.photo}
-                  alt={v.photoAlt}
-                  width={460}
-                  height={260}
-                  className="relative z-10 object-contain w-full h-full transition-transform duration-700 hover:scale-105 drop-shadow-2xl"
-                  sizes="(max-width: 768px) 100vw, 400px"
-                  loading="lazy"
-                />
+                {/* Wrapper sets CSS var so hover scale works without JS */}
+                <div
+                  className="w-full h-full car-image-wrap"
+                  style={{ '--s': v.photoScale, '--sh': v.photoScale * 1.06 } as React.CSSProperties}
+                >
+                  <Image
+                    src={v.photo}
+                    alt={v.photoAlt}
+                    width={460}
+                    height={260}
+                    className="w-full h-full object-contain drop-shadow-2xl"
+                    style={{ transform: `scale(var(--s))`, transition: 'transform 700ms ease' }}
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    loading="lazy"
+                  />
+                </div>
               </div>
 
               {/* Card content */}

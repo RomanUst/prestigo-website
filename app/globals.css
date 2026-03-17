@@ -241,3 +241,7 @@ body {
 .skip-link:focus {
   top: 1rem;
 }
+
+.car-image-wrap:hover img {
+  transform: scale(var(--sh)) !important;
+}
