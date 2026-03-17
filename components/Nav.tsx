@@ -35,6 +35,7 @@ export default function Nav() {
             { label: 'Fleet', href: '#fleet' },
             { label: 'Routes', href: '#routes' },
             { label: 'Corporate', href: '/corporate' },
+            { label: 'Contact', href: '/contact' },
           ].map((link) => (
             <a
               key={link.label}
@@ -69,6 +70,7 @@ export default function Nav() {
             { label: 'Fleet', href: '#fleet' },
             { label: 'Routes', href: '#routes' },
             { label: 'Corporate', href: '/corporate' },
+            { label: 'Contact', href: '/contact' },
           ].map((link) => (
             <a
               key={link.label}
