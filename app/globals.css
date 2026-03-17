@@ -208,3 +208,36 @@ body {
   background: var(--copper);
   color: var(--anthracite);
 }
+
+/* ── Focus visible ─────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 4px;
+}
+
+/* ── Reduced motion ────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .animate-on-load,
+  [class*="delay-"] {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+
+/* ── Skip to content ───────────────────────────────── */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 1rem;
+  z-index: 9999;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}

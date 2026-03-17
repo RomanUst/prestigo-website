@@ -27,6 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${cormorant.variable} ${montserrat.variable}`}>
+        <a href="#main-content" className="skip-link btn-primary">
+          Skip to content
+        </a>
         {children}
       </body>
     </html>
