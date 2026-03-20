@@ -1,3 +1,5 @@
+import HeroTypewriter from './HeroTypewriter'
+
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex flex-col justify-start bg-anthracite overflow-hidden">
@@ -34,9 +36,7 @@ export default function Hero() {
             <span className="copper-line animate-on-load delay-200 mb-8 block" />
 
             {/* Headline */}
-            <h1 className="display text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-300 mb-2">
-              Prague,
-            </h1>
+            <HeroTypewriter />
             <h1 className="display display-italic text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-400 mb-10">
               as it should be.
             </h1>
