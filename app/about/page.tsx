@@ -3,8 +3,14 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'About PRESTIGO — Prague\'s Premium Chauffeur Service',
+  title: "About PRESTIGO — Prague's Premium Chauffeur Service",
   description: 'PRESTIGO is Prague\'s only locally-rooted chauffeur service built to international luxury standards. Meet our team, learn our story, and understand why discerning travellers choose us.',
+  alternates: { canonical: '/about' },
+  openGraph: {
+    url: 'https://prestigo-site.vercel.app/about',
+    title: "About PRESTIGO — Prague's Premium Chauffeur Service",
+    description: "PRESTIGO is Prague's only locally-rooted chauffeur service built to international luxury standards. Meet our team, learn our story, and understand why discerning travellers choose us.",
+  },
 }
 
 const principles = [

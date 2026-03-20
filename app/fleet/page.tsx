@@ -6,6 +6,12 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Our Fleet — Mercedes Chauffeur Cars Prague | PRESTIGO',
   description: 'Travel in a Mercedes E-Class, S-Class or V-Class. PRESTIGO operates a modern, fully insured Mercedes fleet for executive transfers in Prague and across Central Europe.',
+  alternates: { canonical: '/fleet' },
+  openGraph: {
+    url: 'https://prestigo-site.vercel.app/fleet',
+    title: 'Our Fleet — Mercedes Chauffeur Cars Prague | PRESTIGO',
+    description: 'Travel in a Mercedes E-Class, S-Class or V-Class. PRESTIGO operates a modern, fully insured Mercedes fleet for executive transfers in Prague and across Central Europe.',
+  },
 }
 
 const vehicles = [

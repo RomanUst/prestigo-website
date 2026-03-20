@@ -6,6 +6,12 @@ import ContactForm from '@/components/ContactForm'
 export const metadata: Metadata = {
   title: 'Contact — PRESTIGO Premium Chauffeur Prague',
   description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
+  alternates: { canonical: '/contact' },
+  openGraph: {
+    url: 'https://prestigo-site.vercel.app/contact',
+    title: 'Contact — PRESTIGO Premium Chauffeur Prague',
+    description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
+  },
 }
 
 const WHATSAPP_NUMBER = '420000000000' // replace with real number

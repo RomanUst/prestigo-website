@@ -5,6 +5,12 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Chauffeur Services Prague — Airport, Intercity & Corporate | PRESTIGO',
   description: 'Premium chauffeur services in Prague: airport transfers, city-to-city routes, corporate accounts, VIP & events, city rides, group transfers. Fixed price, flight tracking, instant booking.',
+  alternates: { canonical: '/services' },
+  openGraph: {
+    url: 'https://prestigo-site.vercel.app/services',
+    title: 'Chauffeur Services Prague — Airport, Intercity & Corporate | PRESTIGO',
+    description: 'Premium chauffeur services in Prague: airport transfers, city-to-city routes, corporate accounts, VIP & events, city rides, group transfers. Fixed price, flight tracking, instant booking.',
+  },
 }
 
 const services = [

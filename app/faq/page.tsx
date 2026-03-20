@@ -5,6 +5,12 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'FAQ — PRESTIGO Prague Chauffeur Service | Prices, Booking & More',
   description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
+  alternates: { canonical: '/faq' },
+  openGraph: {
+    url: 'https://prestigo-site.vercel.app/faq',
+    title: 'FAQ — PRESTIGO Prague Chauffeur Service | Prices, Booking & More',
+    description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
+  },
 }
 
 const sections = [
@@ -117,9 +123,25 @@ const sections = [
   },
 ]
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    { '@type': 'Question', name: 'How do I book a PRESTIGO transfer?', acceptedAnswer: { '@type': 'Answer', text: 'Book online at prestigo-site.vercel.app/book. Select your route, vehicle, and date. Confirmation is instant — no waiting for a callback.' } },
+    { '@type': 'Question', name: 'Is the price fixed?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. The price shown at booking is the price you pay. No surge pricing. No hidden tolls. No extras unless you request them.' } },
+    { '@type': 'Question', name: 'What happens if my flight is delayed?', acceptedAnswer: { '@type': 'Answer', text: 'Your driver monitors your flight in real time. A delay costs you nothing extra — your driver adjusts automatically.' } },
+    { '@type': 'Question', name: 'Can I cancel my booking?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Free cancellation up to 1 hour before the scheduled pickup. Later cancellations may be subject to a fee.' } },
+    { '@type': 'Question', name: 'What cars do you use?', acceptedAnswer: { '@type': 'Answer', text: 'All PRESTIGO vehicles are late-model Mercedes-Benz: E-Class (sedan), S-Class (executive sedan), and V-Class (executive van). All are fully insured and maintained to the highest standard.' } },
+    { '@type': 'Question', name: 'Do you offer corporate accounts?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Corporate accounts include monthly invoicing, a dedicated account manager, and priority dispatch. Set up in 24 hours.' } },
+    { '@type': 'Question', name: 'Do you have child seats?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Child seats are available on request at the time of booking, at no extra charge.' } },
+    { '@type': 'Question', name: 'Do you charge extra for waiting time at the airport?', acceptedAnswer: { '@type': 'Answer', text: '60 minutes of free waiting is included for all airport pickups. We track your flight in real time.' } },
+  ],
+}
+
 export default function FaqPage() {
   return (
     <main id="main-content">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
       {/* Hero */}

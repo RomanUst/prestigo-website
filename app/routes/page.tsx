@@ -5,6 +5,12 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Prague to Vienna, Berlin, Munich & More — Intercity Chauffeur | PRESTIGO',
   description: 'Private chauffeur transfers from Prague to Vienna (from €290), Berlin (from €310), Munich (from €330), Budapest, Bratislava, Salzburg, Dresden. Fixed price, door-to-door.',
+  alternates: { canonical: '/routes' },
+  openGraph: {
+    url: 'https://prestigo-site.vercel.app/routes',
+    title: 'Prague to Vienna, Berlin, Munich & More — Intercity Chauffeur | PRESTIGO',
+    description: 'Private chauffeur transfers from Prague to Vienna (from €290), Berlin (from €310), Munich (from €330), Budapest, Bratislava, Salzburg, Dresden. Fixed price, door-to-door.',
+  },
 }
 
 const routes = [

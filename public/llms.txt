@@ -1,0 +1,66 @@
+# PRESTIGO — Premium Chauffeur Service Prague
+
+> Premium chauffeur and private transfer service in Prague, Czech Republic. Airport transfers, intercity routes, corporate accounts. Fixed prices, real-time flight tracking, meet & greet. Available 24/7.
+
+## Services
+
+- **Airport Transfer** — Door-to-door transfers to/from Prague Václav Havel Airport (PRG). Includes flight tracking, meet & greet at arrivals, name board. From €49.
+- **Intercity Routes** — Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava, Salzburg, Dresden and other Central European cities. Fixed price, door-to-door.
+- **Corporate Accounts** — Monthly invoicing, dedicated account manager, priority dispatch. For companies travelling regularly.
+- **VIP & Events** — Discreet executive transport for high-profile events, diplomatic travel, and special occasions.
+- **Prague City Rides** — Point-to-point transfers within Prague.
+- **Group Transfers** — Up to 7 passengers in Mercedes V-Class executive van.
+
+## Fleet
+
+All vehicles are Mercedes-Benz, late-model, fully insured, with pre-trip inspection before each journey.
+
+- **Mercedes E-Class** (Business Sedan) — 3 passengers + luggage, leather interior, climate control, Wi-Fi, chargers. From €49.
+- **Mercedes S-Class** (Executive Sedan) — 3 passengers, premium leather, massage seats, ambient lighting, champagne on request. From €89.
+- **Mercedes V-Class** (Executive Van) — Up to 7 passengers, captain seats, privacy screen, full luggage capacity. From €69.
+
+## Key Routes & Prices
+
+| Route | Distance | Duration | From |
+|-------|----------|----------|------|
+| Prague → Vienna | 330 km | ~3.5 h | €290 |
+| Prague → Berlin | 350 km | ~4 h | €310 |
+| Prague → Munich | 380 km | ~4.5 h | €330 |
+| Prague → Budapest | 530 km | ~6 h | €420 |
+| Prague → Bratislava | 330 km | ~3.5 h | €280 |
+| Prague → Salzburg | 410 km | ~5 h | €360 |
+| Prague → Dresden | 150 km | ~1.5 h | €180 |
+
+## Frequently Asked Questions
+
+**How do I book?** Book online at prestigo-site.vercel.app/book. Confirmation is instant.
+
+**Are prices fixed?** Yes. All prices are fixed at the time of booking. No surge pricing, no hidden fees, tolls included.
+
+**Do you track flights?** Yes. Chauffeurs monitor your flight in real time and adjust pickup time accordingly at no extra charge.
+
+**What is the cancellation policy?** Free cancellation up to 1 hour before pickup.
+
+**Do you provide child seats?** Yes. Child seats are available on request at no additional charge.
+
+**Do you offer corporate accounts?** Yes. Monthly invoicing, dedicated account manager, priority dispatch. Apply at prestigo-site.vercel.app/corporate.
+
+## Business Information
+
+- **Name:** PRESTIGO
+- **Type:** Premium chauffeur and private transfer service
+- **Location:** Prague, Czech Republic
+- **Service area:** Prague, Czech Republic, Central Europe
+- **Availability:** 24/7, 365 days a year
+- **Languages:** English, Czech
+
+## Pages
+
+- Homepage: https://prestigo-site.vercel.app
+- Services: https://prestigo-site.vercel.app/services
+- Fleet: https://prestigo-site.vercel.app/fleet
+- Routes: https://prestigo-site.vercel.app/routes
+- Corporate: https://prestigo-site.vercel.app/corporate
+- About: https://prestigo-site.vercel.app/about
+- FAQ: https://prestigo-site.vercel.app/faq
+- Contact: https://prestigo-site.vercel.app/contact
