@@ -7,9 +7,8 @@ const vehicles = [
     passengers: '3 pax',
     bags: '3 bags',
     features: ['Leather interior', 'Tinted windows', 'Climate control', 'Wi-Fi on request'],
-    photo: '/e-class.png',
-    photoAlt: 'Mercedes-Benz E-Class',
-    photoScale: 1.5,
+    photo: '/e-class-photo.png',
+    photoAlt: 'Mercedes-Benz E-Class — Prague chauffeur service',
   },
   {
     model: 'Mercedes-Benz S-Class',
@@ -17,9 +16,8 @@ const vehicles = [
     passengers: '3 pax',
     bags: '3 bags',
     features: ['Executive rear seats', 'Ambient lighting', 'Champagne service', 'Privacy screen'],
-    photo: '/s-class.png',
-    photoAlt: 'Mercedes-Benz S-Class',
-    photoScale: 1.55,
+    photo: '/s-class-photo.png',
+    photoAlt: 'Mercedes-Benz S-Class — Prague chauffeur service',
   },
   {
     model: 'Mercedes-Benz V-Class',
@@ -27,9 +25,8 @@ const vehicles = [
     passengers: '7 pax',
     bags: '7 bags',
     features: ['Facing seats', 'Extra luggage space', 'Conference seating', 'USB charging'],
-    photo: '/v-class.png',
-    photoAlt: 'Mercedes-Benz V-Class',
-    photoScale: 2.0,
+    photo: '/v-class-photo.png',
+    photoAlt: 'Mercedes-Benz V-Class — Prague chauffeur service',
   },
 ]
 
@@ -51,31 +48,19 @@ export default function Fleet() {
           {vehicles.map((v) => (
             <div
               key={v.model}
-              className="border border-anthracite-light hover:border-copper/40 transition-colors overflow-hidden"
+              className="group border border-anthracite-light hover:border-copper/40 transition-colors overflow-hidden"
             >
-              {/* Vehicle photo — transparent PNG on dark background */}
-              <div className="relative w-full h-56 flex items-center justify-center overflow-hidden">
-                {/* Subtle glow under the car */}
-                <div
-                  className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4/5 h-8 blur-2xl rounded-full opacity-25"
-                  style={{ background: 'var(--copper)' }}
+              {/* Vehicle photo — full-bleed photography */}
+              <div className="relative w-full h-56 overflow-hidden">
+                <Image
+                  src={v.photo}
+                  alt={v.photoAlt}
+                  width={460}
+                  height={260}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 768px) 100vw, 400px"
+                  loading="lazy"
                 />
-                {/* Wrapper sets CSS var so hover scale works without JS */}
-                <div
-                  className="w-full h-full car-image-wrap"
-                  style={{ '--s': v.photoScale, '--sh': v.photoScale * 1.06 } as React.CSSProperties}
-                >
-                  <Image
-                    src={v.photo}
-                    alt={v.photoAlt}
-                    width={460}
-                    height={260}
-                    className="w-full h-full object-contain drop-shadow-2xl"
-                    style={{ transform: `scale(var(--s))`, transition: 'transform 700ms ease' }}
-                    sizes="(max-width: 768px) 100vw, 400px"
-                    loading="lazy"
-                  />
-                </div>
               </div>
 
               {/* Card content */}

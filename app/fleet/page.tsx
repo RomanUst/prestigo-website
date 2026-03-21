@@ -22,9 +22,8 @@ const vehicles = [
     features: ['Leather interior', 'Climate control', 'Wi-Fi available', 'Chargers'],
     idealFor: 'Airport, city, solo business travel',
     price: 'From €49',
-    photo: '/e-class.png',
-    photoAlt: 'Mercedes-Benz E-Class',
-    photoScale: 1.5,
+    photo: '/e-class-photo.png',
+    photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
   },
   {
     model: 'Mercedes S-Class',
@@ -33,9 +32,8 @@ const vehicles = [
     features: ['Premium leather', 'Massage seats', 'Ambient lighting', 'Champagne on request'],
     idealFor: 'VIP, diplomatic, extended intercity',
     price: 'From €89',
-    photo: '/s-class.png',
-    photoAlt: 'Mercedes-Benz S-Class',
-    photoScale: 1.55,
+    photo: '/s-class-photo.png',
+    photoAlt: 'Mercedes-Benz S-Class — PRESTIGO chauffeur service Prague',
   },
   {
     model: 'Mercedes V-Class',
@@ -44,9 +42,8 @@ const vehicles = [
     features: ['7 seats', 'Full luggage capacity', 'Individual captain seats', 'Privacy screen'],
     idealFor: 'Groups, families, conference transfers',
     price: 'From €69',
-    photo: '/v-class.png',
-    photoAlt: 'Mercedes-Benz V-Class',
-    photoScale: 2.0,
+    photo: '/v-class-photo.png',
+    photoAlt: 'Mercedes-Benz V-Class — PRESTIGO chauffeur service Prague',
   },
 ]
 
@@ -86,25 +83,16 @@ export default function FleetPage() {
               className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 pb-16 ${i < vehicles.length - 1 ? 'border-b border-anthracite-light' : ''}`}
             >
               {/* Photo */}
-              <div className="relative h-64 md:h-80 flex items-center justify-center overflow-hidden bg-anthracite-mid border border-anthracite-light">
-                <div
-                  className="absolute bottom-2 left-1/2 -translate-x-1/2 w-4/5 h-8 blur-2xl rounded-full opacity-20"
-                  style={{ background: 'var(--copper)' }}
+              <div className="relative h-64 md:h-80 overflow-hidden border border-anthracite-light">
+                <Image
+                  src={v.photo}
+                  alt={v.photoAlt}
+                  width={600}
+                  height={340}
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority={i === 0}
                 />
-                <div
-                  className="w-full h-full car-image-wrap"
-                  style={{ '--s': v.photoScale, '--sh': v.photoScale * 1.05 } as React.CSSProperties}
-                >
-                  <Image
-                    src={v.photo}
-                    alt={v.photoAlt}
-                    width={600}
-                    height={340}
-                    className="w-full h-full object-contain drop-shadow-2xl"
-                    style={{ transform: `scale(var(--s))`, transition: 'transform 700ms ease' }}
-                    sizes="(max-width: 768px) 100vw, 50vw"
-                  />
-                </div>
               </div>
 
               {/* Info */}
