@@ -57,14 +57,17 @@ All sizes and weights extracted from `globals.css` and `STYLEGUIDE.md`. No new t
 | Role | Font | Size | Weight | Line Height | Letter Spacing | Color |
 |------|------|------|--------|-------------|----------------|-------|
 | Step heading ("Select your journey") | Cormorant Garamond | 28px | 300 | 1.25 | 0 | `var(--offwhite)` |
-| Field label | Montserrat | 9px | 400 | 1.5 | 0.4em | `var(--copper)` — use `.label` class |
-| Body / helper text | Montserrat | 13px | 300 | 1.8 | 0.03em | `var(--warmgrey)` — use `.body-text` class |
-| Tab / UI label | Montserrat | 9px | 400 | 1 | 0.35em | `var(--offwhite)` active / `var(--warmgrey)` inactive |
+| Field label / Tab / UI label / Button label / Progress step number | Montserrat | 9px | 400 | 1 | 0.35em | context-dependent — see notes below |
+| Body / helper text / Autocomplete suggestion | Montserrat | 13px | 300 | 1.8 | 0.03em | `var(--warmgrey)` — use `.body-text` class; matched substring weight 400, color `var(--copper)` |
 | Input value text | Montserrat | 14px | 300 | 1.5 | 0.02em | `var(--offwhite)` |
-| Button label (Next / Back) | Montserrat | 10px | 400 | 1 | 0.35em | Per `.btn-primary` / `.btn-ghost` |
-| Progress step number | Montserrat | 11px | 400 | 1 | 0.1em | `var(--anthracite)` on active circle, `var(--warmgrey)` on pending |
-| Autocomplete suggestion — matched | Montserrat | 13px | 400 | 1.5 | 0 | `var(--copper)` |
-| Autocomplete suggestion — rest | Montserrat | 13px | 300 | 1.5 | 0 | `var(--warmgrey)` |
+
+Notes on 9px usage:
+- Field label: letter-spacing 0.4em, `var(--copper)` — use `.label` class
+- Tab UI label: letter-spacing 0.35em, `var(--offwhite)` active / `var(--warmgrey)` inactive
+- Button label (Next / Back): letter-spacing 0.35em, per `.btn-primary` / `.btn-ghost`
+- Progress step number: letter-spacing 0.1em, `var(--anthracite)` on active circle / `var(--warmgrey)` on pending
+- Duration segment label: letter-spacing 0.2em, `var(--offwhite)` active / `var(--warmgrey)` inactive
+- Place type sub-label (e.g., "Airport") in autocomplete: letter-spacing 0.2em, `var(--warmgrey)`, uppercase, right-aligned
 
 Rules (source: STYLEGUIDE.md):
 - Never use bold (600+) for headings — lightness signals luxury
@@ -134,7 +137,7 @@ Components to build in this phase, with their visual specifications:
 
 ### AddressInput (Google Places Autocomplete)
 
-- Input field styling: background `var(--anthracite-mid)`, border `1px solid var(--anthracite-light)`, padding `14px 16px`
+- Input field styling: background `var(--anthracite-mid)`, border `1px solid var(--anthracite-light)`, padding `12px 16px`
 - Input text: Montserrat 14px, weight 300, `var(--offwhite)`
 - Placeholder: Montserrat 13px, weight 300, `var(--warmgrey)` at 60% opacity
 - Focus state: border-color `var(--copper)`, copper `:focus-visible` outline (already global)
@@ -144,7 +147,7 @@ Components to build in this phase, with their visual specifications:
 - Suggestion row hover: background `var(--anthracite-light)`
 - Matched substring: `var(--copper)`, weight 400
 - Non-matched text: `var(--warmgrey)`, weight 300
-- Place type sub-label (e.g., "Airport"): 10px, `var(--warmgrey)`, uppercase, letter-spacing 0.2em, shown right-aligned
+- Place type sub-label (e.g., "Airport"): 9px, `var(--warmgrey)`, uppercase, letter-spacing 0.2em, shown right-aligned
 - Debounce: 300ms before calling Places API (source: CONTEXT.md)
 - Minimum 2 characters before suggestions show (source: CONTEXT.md)
 
@@ -165,6 +168,7 @@ Components to build in this phase, with their visual specifications:
 - Hover: `var(--copper)`
 - Tap target: 32px × 32px minimum
 - Action: swaps origin ↔ destination values in Zustand store
+- `aria-label="Swap origin and destination"` on the button element
 
 ### Stepper (Passengers / Luggage)
 
@@ -178,7 +182,7 @@ Components to build in this phase, with their visual specifications:
 ### Duration Selector (Hourly only)
 
 - Segmented button group: `1h | 2h | 3h | 4h | 6h | 8h | 12h`
-- Font: Montserrat 10px, weight 400, letter-spacing 0.2em
+- Font: Montserrat 9px, weight 400, letter-spacing 0.2em
 - Each segment: 44px minimum height, equal width
 - Active: `var(--copper)` border bottom 2px, `var(--offwhite)` text
 - Inactive: `var(--warmgrey)` text, `var(--anthracite-light)` border on all sides
@@ -253,7 +257,7 @@ Components to build in this phase, with their visual specifications:
 
 - Trigger: user clicks Next with one or more required fields empty
 - Empty required field: border changes to `#C0392B` (destructive red), 1px solid
-- Error message below field: Montserrat 11px, weight 400, color `#C0392B`, margin-top 6px
+- Error message below field: Montserrat 13px, weight 400, color `#C0392B`, margin-top 8px
 - Error clears when field receives a valid value (on change, not on blur)
 - No toast notifications — all errors are inline
 
@@ -343,6 +347,7 @@ Phase 1 scoped requirements (full accessibility pass is Phase 6, source: UX-04, 
 - Address inputs: `aria-label` matching field label, `aria-autocomplete="list"`, `aria-expanded` on dropdown open
 - Autocomplete listbox: `role="listbox"`, each suggestion `role="option"`
 - Stepper buttons: `aria-label="Increase passengers"` / `aria-label="Decrease luggage"` etc.
+- Swap icon button: `aria-label="Swap origin and destination"`
 - Next button: `aria-disabled="true"` when disabled (not `disabled` attribute alone)
 - `:focus-visible` copper outline is already globally set — do not override
 - Keyboard: tab order flows top-to-bottom through all visible fields, then Next button
