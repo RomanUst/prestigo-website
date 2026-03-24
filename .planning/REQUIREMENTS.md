@@ -138,19 +138,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ARCH-01–03 | Phase 1 | Pending |
-| WIZD-01–06 | Phase 1 | Pending |
-| STEP1-01–07 | Phase 1 | Pending |
-| STEP2-01–03 | Phase 2 | Pending |
-| STEP3-01–05 | Phase 2 | Pending |
-| PRICE-01–06 | Phase 2 | Pending |
-| STEP4-01–03 | Phase 3 | Pending |
-| STEP5-01–04 | Phase 3 | Pending |
-| STEP6-01–06 | Phase 4 | Pending |
-| PAY-01–04 | Phase 4 | Pending |
-| BACK-01–05 | Phase 5 | Pending |
-| HOME-01–03 | Phase 6 | Pending |
-| UX-01–05 | Phase 6 | Pending |
+| ARCH-01–03 | Phase 1: Foundation & Trip Entry | Pending |
+| WIZD-01–06 | Phase 1: Foundation & Trip Entry | Pending |
+| STEP1-01–07 | Phase 1: Foundation & Trip Entry | Pending |
+| STEP2-01–03 | Phase 2: Pricing & Vehicle Selection | Pending |
+| STEP3-01–05 | Phase 2: Pricing & Vehicle Selection | Pending |
+| PRICE-01–06 | Phase 2: Pricing & Vehicle Selection | Pending |
+| STEP4-01–03 | Phase 3: Booking Details | Pending |
+| STEP5-01–04 | Phase 3: Booking Details | Pending |
+| STEP6-01–06 | Phase 4: Payment | Pending |
+| PAY-01–04 | Phase 4: Payment | Pending |
+| BACK-01–05 | Phase 5: Backend & Notifications | Pending |
+| HOME-01–03 | Phase 6: Homepage Widget & Polish | Pending |
+| UX-01–05 | Phase 6: Homepage Widget & Polish | Pending |
 
 **Coverage:**
 - v1 requirements: 53 total
@@ -159,4 +159,4 @@
 
 ---
 *Requirements defined: 2026-03-24*
-*Last updated: 2026-03-24 after initial definition*
+*Last updated: 2026-03-24 — traceability confirmed after roadmap creation*
