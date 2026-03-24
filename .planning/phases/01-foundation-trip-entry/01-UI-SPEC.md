@@ -42,10 +42,17 @@ Declared values (project uses a hybrid: style guide tokens + Tailwind multiples-
 | 2xl | 48px | Section top/bottom padding (mobile wizard body) |
 | 3xl | 64px | Page-level top padding below Nav on desktop |
 
-Exceptions:
+Named exception tokens (multiples of 4, outside standard set — intentional):
+
+| Token | Value | Justification |
+|-------|-------|---------------|
+| input-pad-v | 12px | Vertical padding for input fields and tabs; matches existing form rhythm from globals.css and btn-primary precedent; 8px is too tight, 16px is too loose for text inputs |
+| touch-target | 44px | Minimum touch target height per WCAG 2.5.5; closest standard value 48px would be oversize for text inputs and duration segments |
+| button-bar | 72px | Fixed mobile button bar height; 72px = 44px touch target + 16px vertical padding + 12px bottom safe area; accommodates iPhone home indicator |
+
+Other exceptions:
 - Page header top padding: `pt-32` (~128px) desktop, `pt-40` (~160px) — matches existing `/book` page header (source: `book/page.tsx`)
 - Content container: `max-w-7xl mx-auto px-6 md:px-12` — must match site-wide container (source: CONTEXT.md)
-- Touch targets (mobile): minimum 44px height for all interactive elements (stepper buttons, tab pills, Next/Back buttons)
 - Progress bar circle size: 32px diameter
 
 ---
@@ -68,6 +75,8 @@ Notes on 9px usage:
 - Progress step number: letter-spacing 0.1em, `var(--anthracite)` on active circle / `var(--warmgrey)` on pending
 - Duration segment label: letter-spacing 0.2em, `var(--offwhite)` active / `var(--warmgrey)` inactive
 - Place type sub-label (e.g., "Airport") in autocomplete: letter-spacing 0.2em, `var(--warmgrey)`, uppercase, right-aligned
+
+Note: 13px (passive copy) vs 14px (active input) — locked globals.css tokens; 14px signals "editable" context, 13px signals "informational" context. This intentional 1px distinction is not an error; it is a semantic size split baked into the design system.
 
 Rules (source: STYLEGUIDE.md):
 - Never use bold (600+) for headings — lightness signals luxury
@@ -133,7 +142,7 @@ Components to build in this phase, with their visual specifications:
 - Hover: `var(--offwhite)` text
 - Tab row: sticky within the wizard form header so it stays visible on scroll
 - Bottom border separator under entire row: `1px solid var(--anthracite-light)`
-- Padding: 12px top and bottom per tab, 16px horizontal per tab
+- Padding: 12px top and bottom per tab (input-pad-v token), 16px horizontal per tab
 
 ### AddressInput (Google Places Autocomplete)
 
@@ -143,7 +152,7 @@ Components to build in this phase, with their visual specifications:
 - Focus state: border-color `var(--copper)`, copper `:focus-visible` outline (already global)
 - Clear (×) button: appears when field has value, `var(--warmgrey)`, right-aligned inside field, 16px tap zone minimum
 - Autocomplete dropdown: background `var(--anthracite-mid)`, `1px solid var(--anthracite-light)` border, `z-index: 50`
-- Suggestion row: 44px minimum height, 16px horizontal padding
+- Suggestion row: 44px minimum height (touch-target token), 16px horizontal padding
 - Suggestion row hover: background `var(--anthracite-light)`
 - Matched substring: `var(--copper)`, weight 400
 - Non-matched text: `var(--warmgrey)`, weight 300
@@ -169,6 +178,7 @@ Components to build in this phase, with their visual specifications:
 - Tap target: 32px × 32px minimum
 - Action: swaps origin ↔ destination values in Zustand store
 - `aria-label="Swap origin and destination"` on the button element
+- Note: swap icon is self-explanatory by convention (up-down arrows between two address fields); no visible label required. The aria-label satisfies screen reader requirements without cluttering the visual UI.
 
 ### Stepper (Passengers / Luggage)
 
@@ -183,7 +193,7 @@ Components to build in this phase, with their visual specifications:
 
 - Segmented button group: `1h | 2h | 3h | 4h | 6h | 8h | 12h`
 - Font: Montserrat 9px, weight 400, letter-spacing 0.2em
-- Each segment: 44px minimum height, equal width
+- Each segment: 44px minimum height (touch-target token), equal width
 - Active: `var(--copper)` border bottom 2px, `var(--offwhite)` text
 - Inactive: `var(--warmgrey)` text, `var(--anthracite-light)` border on all sides
 - Group has outer border `1px solid var(--anthracite-light)`, no gap between segments
@@ -242,7 +252,7 @@ Components to build in this phase, with their visual specifications:
 - Step content is scrollable
 - Next / Back buttons fixed at bottom: `position: fixed; bottom: 0; left: 0; right: 0`
 - Fixed button bar background: `var(--anthracite)` with `border-top: 1px solid var(--anthracite-light)`
-- Button bar height: 72px, buttons full-width within 16px horizontal padding
+- Button bar height: 72px (button-bar token), buttons full-width within 16px horizontal padding
 
 ### Desktop Layout
 
@@ -323,6 +333,8 @@ Brand voice rules applied:
 - "Continue" not "Next Step!" — declarative, not exclamatory
 - "Please enter" not "You must enter" — warm, not demanding
 - "Auto-set for airport transfers" not "We set this for you!" — discreet
+
+Note: Single-word form ("Continue", "Back") is an intentional brand-voice decision — brevity over formality. Multi-word alternatives ("Next Step", "Go Back") were considered and rejected per STYLEGUIDE.md guidance on confident, discreet copy.
 
 ---
 
