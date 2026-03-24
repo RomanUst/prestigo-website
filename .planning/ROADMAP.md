@@ -31,7 +31,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can type in origin/destination fields and see Google Places Autocomplete suggestions
   4. User can click Back on any step and return to the previous step with all previously entered data intact
   5. User can click Next and it remains disabled until all required fields in the current step are filled
-**Plans**: TBD
+**Plans:** 5 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Install deps, define types, create Zustand store with sessionStorage
+- [ ] 01-02-PLAN.md — Wizard shell, ProgressBar, StepStub, /book page wiring
+- [ ] 01-03-PLAN.md — TripTypeTabs, Stepper, DurationSelector components
+- [ ] 01-04-PLAN.md — AddressInput (Google Places), Step1TripType assembly, validation
+- [ ] 01-05-PLAN.md — Build verification and human visual checkpoint
 
 ### Phase 2: Pricing & Vehicle Selection
 **Goal**: After entering a route, a user can select a pickup date/time and choose a vehicle class with a live price displayed
@@ -98,7 +105,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Trip Entry | 0/TBD | Not started | - |
+| 1. Foundation & Trip Entry | 0/5 | Planning complete | - |
 | 2. Pricing & Vehicle Selection | 0/TBD | Not started | - |
 | 3. Booking Details | 0/TBD | Not started | - |
 | 4. Payment | 0/TBD | Not started | - |
