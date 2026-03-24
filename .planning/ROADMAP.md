@@ -31,9 +31,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can type in origin/destination fields and see Google Places Autocomplete suggestions
   4. User can click Back on any step and return to the previous step with all previously entered data intact
   5. User can click Next and it remains disabled until all required fields in the current step are filled
-**Plans:** 5 plans
+**Plans:** 6 plans
 
 Plans:
+- [ ] 01-00-PLAN.md — Wave 0: Vitest + Testing Library infrastructure and test stubs
 - [ ] 01-01-PLAN.md — Install deps, define types, create Zustand store with sessionStorage
 - [ ] 01-02-PLAN.md — Wizard shell, ProgressBar, StepStub, /book page wiring
 - [ ] 01-03-PLAN.md — TripTypeTabs, Stepper, DurationSelector components
