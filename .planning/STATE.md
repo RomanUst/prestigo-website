@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 02-02-PLAN.md (Step2DateTime: calendar + time slots)"
-last_updated: "2026-03-25T22:12:01.207Z"
+stopped_at: Completed 02-03-PLAN.md (VehicleCard, PriceSummary, Step3Vehicle)
+last_updated: "2026-03-25T22:16:09.689Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 11
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -51,6 +51,7 @@ Plan: 2 of 5
 | Phase 02 P00 | 2 | 2 tasks | 5 files |
 | Phase 02-pricing-vehicle-selection P01 | 4 | 3 tasks | 7 files |
 | Phase 02-pricing-vehicle-selection P02 | 4 | 2 tasks | 3 files |
+| Phase 02-pricing-vehicle-selection P03 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -77,6 +78,8 @@ Recent decisions affecting current work:
 - [Phase 02-pricing-vehicle-selection]: All calculate-price error paths return quoteMode: true for graceful degradation
 - [Phase 02]: react-day-picker v9 styles prop uses UI enum string keys (root, day_button, caption_label etc) not v8 camelCase keys
 - [Phase 02]: Step2DateTime TimeSlotItem split into sub-component to enable per-ref scrollIntoView
+- [Phase 02-03]: VehicleCard uses <button> for accessibility (aria-pressed); padding 23/24 compensates border width change
+- [Phase 02-03]: PriceSummary mobile bar shows price only — no Continue button to avoid 56px+72px overlap with wizard shell bar
 
 ### Pending Todos
 
@@ -88,6 +91,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T22:12:01.202Z
-Stopped at: Completed 02-02-PLAN.md (Step2DateTime: calendar + time slots)
+Last session: 2026-03-25T22:16:09.683Z
+Stopped at: Completed 02-03-PLAN.md (VehicleCard, PriceSummary, Step3Vehicle)
 Resume file: None
