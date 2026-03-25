@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 02-00-PLAN.md (Phase 2 test stub scaffolding)
-last_updated: "2026-03-25T21:56:50.957Z"
+stopped_at: "Completed 02-01-PLAN.md (data layer: store extension, pricing module, API route)"
+last_updated: "2026-03-25T22:06:49.786Z"
 progress:
   total_phases: 6
   completed_phases: 1
   total_plans: 11
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Plan: 2 of 5
 | Phase 01-foundation-trip-entry P03 | 2 | 2 tasks | 3 files |
 | Phase 01 P04 | 2 | 2 tasks | 3 files |
 | Phase 02 P00 | 2 | 2 tasks | 5 files |
+| Phase 02-pricing-vehicle-selection P01 | 4 | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Recent decisions affecting current work:
 - [Phase 01]: @googlemaps/js-api-loader v2.0.2 uses functional API (setOptions + importLibrary) not deprecated Loader class — loader pattern updated in AddressInput
 - [Phase 01]: Step1TripType owns its own Continue button and validation — BookingWizard generic sticky bar wrapper excluded from DOM entirely on step 1 via currentStep > 1 guard
 - [Phase 02-00]: Test stub files use .ts for pure logic, .tsx for React component tests; stubs grouped by requirement ID in describe blocks for traceability
+- [Phase 02-pricing-vehicle-selection]: Rate tables server-side only in lib/pricing.ts — never imported by client components
+- [Phase 02-pricing-vehicle-selection]: GOOGLE_MAPS_API_KEY without NEXT_PUBLIC_ prefix — API key never reaches browser bundle via proxy route pattern
+- [Phase 02-pricing-vehicle-selection]: All calculate-price error paths return quoteMode: true for graceful degradation
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T22:59:05Z
-Stopped at: Completed 02-00-PLAN.md (Phase 2 test stub scaffolding)
-Resume file: .planning/phases/02-pricing-vehicle-selection/02-01-PLAN.md
+Last session: 2026-03-25T22:06:49.779Z
+Stopped at: Completed 02-01-PLAN.md (data layer: store extension, pricing module, API route)
+Resume file: None
