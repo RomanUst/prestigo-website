@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-03-25
+revised: 2026-03-25
 ---
 
 # Phase 2 — UI Design Contract
@@ -23,7 +24,7 @@ created: 2026-03-25
 | Component library | none (custom components, no Radix/shadcn) |
 | Icon library | none declared — use inline SVG or CSS symbols consistent with Phase 1 |
 | Font (display) | Cormorant Garamond, weight 300 (source: STYLEGUIDE.md) |
-| Font (body/UI) | Montserrat, weights 300/400/500 (source: STYLEGUIDE.md) |
+| Font (body/UI) | Montserrat, weights 400/500 (source: STYLEGUIDE.md) |
 
 > shadcn gate: `components.json` not found. Project uses a hand-crafted CSS token system.
 > shadcn initialization is not appropriate — the existing design system is the authority.
@@ -56,19 +57,23 @@ Exceptions:
 
 All values sourced from `globals.css` and `STYLEGUIDE.md`. Do not introduce new sizes.
 
+Two font families are in use. The 2-weight rule applies per font family:
+- Cormorant Garamond: 1 weight declared (300) — no violation.
+- Montserrat: exactly 2 weights declared (400, 500) — compliant.
+
 | Role | Font | Size | Weight | Line Height | Letter Spacing | Color |
 |------|------|------|--------|-------------|----------------|-------|
 | Step heading (e.g. "Select a vehicle") | Cormorant Garamond | 26px | 300 | 1.25 | 0 | `var(--offwhite)` |
-| Body / meta (card amenities, helper text) | Montserrat | 13px | 300 | 1.8 | 0.03em | `var(--warmgrey)` |
-| UI label (field label, section label) | Montserrat | 9px | 400 | 1.0 | 0.4em | `var(--copper)` — use `.label` class |
+| Body / meta (card amenities, helper text, time slots) | Montserrat | 13px | 400 | 1.8 | 0.03em | `var(--warmgrey)` |
+| UI label + button text (field labels, section labels, CTAs) | Montserrat | 10px | 400 | 1.0 | 0.4em | `var(--copper)` for labels / `var(--offwhite)` for primary buttons |
 | Price display (vehicle card price) | Montserrat | 20px | 500 | 1.2 | 0.03em | `var(--offwhite)` |
-| Button text | Montserrat | 10px | 400 | 1.0 | 0.35em | `var(--offwhite)` (primary) / `var(--warmgrey)` (ghost) |
 
 Rules:
 - Step headings use Cormorant Garamond weight 300 only — no bold.
-- Price number (20px / 500) is the only exception to the 2-weight rule — it needs visual hierarchy separation from body.
-- "Request a quote" fallback text: same slot as price number, 13px / 300 / warmgrey — not styled as price.
-- All labels: `text-transform: uppercase`. No exceptions.
+- Price number (20px / 500) is differentiated from body by both size and weight — 20px alone at weight 400 would read as body text at scale; 500 is required for hierarchy.
+- "Request a quote" fallback text: same slot as price number, 13px / 400 / warmgrey — not styled as price.
+- All labels: `text-transform: uppercase`. All button text: `text-transform: uppercase`. No exceptions.
+- Button text and field labels share the 10px / 400 / 0.4em letter-spacing slot — they are visually identical in size/weight, distinguished only by color and context.
 
 ---
 
@@ -114,13 +119,13 @@ Secondary semantic colors:
 - Today: subtle `var(--anthracite-light)` ring (1px).
 - Selected date: `background: var(--copper)`, `color: var(--anthracite)`, no border-radius (flat aesthetic consistent with brand).
 - Hover on valid dates: `background: var(--anthracite-mid)`, `color: var(--offwhite)`.
-- Month navigation arrows: `.btn-ghost` style — `var(--warmgrey)` color, `var(--anthracite-light)` border.
+- Month navigation arrows: `.btn-ghost` style — `var(--warmgrey)` color, `var(--anthracite-light)` border. Previous month arrow must have `aria-label="Previous month"`. Next month arrow must have `aria-label="Next month"`. These are icon-only controls; aria-labels are mandatory for screen-reader compliance.
 - For Daily Hire: second calendar row for return date appears below outbound calendar with a `.label` "RETURN DATE" separator. Same styling rules apply.
 
 ### TimePicker (Step 2)
 
 - Implementation: scrollable list of 15-minute slots (00:00–23:45).
-- Each row: 44px min-height, `padding: 0 16px`, `font-size: 13px`, Montserrat 300, `color: var(--warmgrey)`.
+- Each row: 44px min-height, `padding: 0 16px`, `font-size: 13px`, Montserrat 400, `color: var(--warmgrey)`.
 - Selected slot: `background: var(--anthracite-mid)`, `color: var(--offwhite)`, left copper bar `4px solid var(--copper)`.
 - Hover: `background: var(--anthracite-mid)`, `color: var(--offwhite)`.
 - Container: `max-height: 240px`, `overflow-y: auto`, thin scrollbar (matches `::-webkit-scrollbar` in globals.css).
@@ -136,9 +141,9 @@ Secondary semantic colors:
 - Card internal padding: `24px` all sides.
 - Card content order (top to bottom):
   1. Vehicle photo — full-width, `aspect-ratio: 16/9`, `object-fit: cover`.
-  2. Class name — 13px / Montserrat 400 / offwhite / `text-transform: uppercase` / `letter-spacing: 0.25em`.
-  3. Capacity row — passenger icon + count + luggage icon + count, 13px / warmgrey.
-  4. Price — 20px / Montserrat 500 / offwhite. Or "Request a quote" — 13px / 300 / warmgrey.
+  2. Class name — 10px / Montserrat 400 / offwhite / `text-transform: uppercase` / `letter-spacing: 0.4em`.
+  3. Capacity row — passenger icon + count + luggage icon + count, 13px / 400 / warmgrey.
+  4. Price — 20px / Montserrat 500 / offwhite. Or "Request a quote" — 13px / 400 / warmgrey.
 - No amenities list on card (deferred — 02-CONTEXT.md deferred section).
 - Transition on selection: `border-color 0.2s ease, background-color 0.2s ease`.
 
@@ -154,7 +159,7 @@ Secondary semantic colors:
 - Desktop: sticky right column within the step layout. `position: sticky`, `top: 24px`.
 - Mobile: fixed bottom bar. `position: fixed`, `bottom: 0`, `left: 0`, `right: 0`, `height: 56px`, `background: var(--anthracite-mid)`, `border-top: 1px solid var(--anthracite-light)`.
 - Desktop content: `.label` "YOUR JOURNEY" + origin → destination (truncated at 28 chars with ellipsis) + selected vehicle class name (or "—" if none selected) + base price (or "—").
-- Mobile content: total price on the left + "Next" `.btn-primary` on the right, same row.
+- Mobile content: total price on the left + "Continue" `.btn-primary` on the right, same row.
 - Transition: price number cross-fades on vehicle switch (opacity 0→1, 150ms).
 
 ---
@@ -189,6 +194,7 @@ Voice notes:
 - "Continue" not "Next" — warmer, less transactional.
 - "Select a vehicle to continue" not "Please choose a vehicle" — declarative, not pleading.
 - "Request a quote" not "Get a quote" or "Contact us" — service-first framing.
+- "Back" not "Back to Date & Time" — single-word navigation is consistent with STYLEGUIDE's discreet, unhurried voice. Multi-word labels ("Back to Vehicle") introduce transactional verbosity that contradicts brand tone. The step indicator already shows the user's position in the flow; the back label does not need to repeat it. This matches the single-word justification applied to "Continue."
 
 ---
 
@@ -293,4 +299,5 @@ Container: `max-w-7xl mx-auto px-6 md:px-12` — established in Phase 1.
 
 *Phase: 02-pricing-vehicle-selection*
 *UI-SPEC created: 2026-03-25*
+*UI-SPEC revised: 2026-03-25 — fixed typography violations (5→4 sizes, 3→2 Montserrat weights), added DatePicker aria-labels, justified "Back" copywriting*
 *Sources: 02-CONTEXT.md (decisions), globals.css (tokens), STYLEGUIDE.md (brand), REQUIREMENTS.md (STEP2-01–03, STEP3-01–05, PRICE-01–06)*
