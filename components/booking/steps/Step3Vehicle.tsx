@@ -70,6 +70,18 @@ export default function Step3Vehicle() {
     }
   }, []) // Empty deps — fetch once on mount only
 
+  const cards = VEHICLE_CONFIG.map((vc) => (
+    <VehicleCard
+      key={vc.key}
+      config={vc}
+      price={priceBreakdown?.[vc.key] ?? null}
+      isSelected={vehicleClass === vc.key}
+      isLoading={loading}
+      quoteMode={quoteMode}
+      onSelect={() => setVehicleClass(vc.key)}
+    />
+  ))
+
   return (
     <div>
       {/* Fetch error message */}
@@ -86,61 +98,27 @@ export default function Step3Vehicle() {
         </p>
       )}
 
-      {/* Desktop layout: 2-col grid (cards + summary) */}
+      {/* Desktop layout: 2-col grid (cards + sticky summary) */}
       <div
         className="hidden md:grid"
-        style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 32 }}
+        style={{ gridTemplateColumns: '1fr 320px', gap: 32 }}
       >
-        {/* Vehicle cards column */}
-        <div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 32,
-            }}
-          >
-            {VEHICLE_CONFIG.map((vc) => (
-              <VehicleCard
-                key={vc.key}
-                config={vc}
-                price={priceBreakdown?.[vc.key] ?? null}
-                isSelected={vehicleClass === vc.key}
-                isLoading={loading}
-                quoteMode={quoteMode}
-                onSelect={() => setVehicleClass(vc.key)}
-              />
-            ))}
-          </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
+          {cards}
         </div>
-
-        {/* Sticky price summary */}
-        <PriceSummary />
+        <PriceSummary desktopOnly />
       </div>
 
-      {/* Mobile layout: single column + fixed bottom bar */}
-      <div className="md:hidden" style={{ paddingBottom: 80 }}>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr',
-            gap: 24,
-          }}
-        >
-          {VEHICLE_CONFIG.map((vc) => (
-            <VehicleCard
-              key={vc.key}
-              config={vc}
-              price={priceBreakdown?.[vc.key] ?? null}
-              isSelected={vehicleClass === vc.key}
-              isLoading={loading}
-              quoteMode={quoteMode}
-              onSelect={() => setVehicleClass(vc.key)}
-            />
-          ))}
-        </div>
-        <PriceSummary />
+      {/* Mobile layout: single column, paddingBottom for fixed bar */}
+      <div
+        className="grid md:hidden"
+        style={{ gridTemplateColumns: '1fr', gap: 24, paddingBottom: 80 }}
+      >
+        {cards}
       </div>
+
+      {/* Mobile fixed bottom bar — rendered once, outside both layouts */}
+      <PriceSummary mobileOnly />
     </div>
   )
 }

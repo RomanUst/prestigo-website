@@ -6,7 +6,7 @@ function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + '...' : text
 }
 
-export default function PriceSummary() {
+export default function PriceSummary({ mobileOnly = false, desktopOnly = false }: { mobileOnly?: boolean; desktopOnly?: boolean }) {
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -113,7 +113,7 @@ export default function PriceSummary() {
   // Mobile fixed bottom bar
   const mobileBar = (
     <div
-      className="block md:hidden"
+      className="flex md:hidden"
       style={{
         position: 'fixed',
         bottom: 0,
@@ -123,7 +123,6 @@ export default function PriceSummary() {
         background: 'var(--anthracite-mid)',
         borderTop: '1px solid var(--anthracite-light)',
         padding: '0 16px',
-        display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         zIndex: 50,
@@ -156,8 +155,8 @@ export default function PriceSummary() {
 
   return (
     <>
-      {desktopPanel}
-      {mobileBar}
+      {!mobileOnly && desktopPanel}
+      {!desktopOnly && mobileBar}
     </>
   )
 }
