@@ -3,13 +3,15 @@
 import { useBookingStore } from '@/lib/booking-store'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
+import Step1TripType from './steps/Step1TripType'
 
 export default function BookingWizard() {
   const { currentStep, completedSteps, nextStep, prevStep } = useBookingStore()
 
   const renderStepContent = () => {
-    // Step 1 placeholder — Plan 04 will replace with Step1TripType
-    // Steps 2-6 render StepStub
+    if (currentStep === 1) {
+      return <Step1TripType />
+    }
     return <StepStub step={currentStep} />
   }
 
@@ -73,23 +75,28 @@ export default function BookingWizard() {
         {renderStepContent()}
       </div>
 
-      {/* Desktop button row — hidden on mobile */}
-      <div className="hidden md:flex justify-end gap-4 mt-8">
-        {buttons}
-      </div>
+      {/* Generic Back/Next button bar — only rendered for steps 2–6 (not step 1) */}
+      {currentStep > 1 && (
+        <>
+          {/* Desktop button row — hidden on mobile */}
+          <div className="hidden md:flex justify-end gap-4 mt-8">
+            {buttons}
+          </div>
 
-      {/* Mobile sticky button bar — hidden on desktop */}
-      <div
-        className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
-        style={{
-          backgroundColor: 'var(--anthracite)',
-          borderTop: '1px solid var(--anthracite-light)',
-          padding: '0 16px',
-          height: 72,
-        }}
-      >
-        {buttons}
-      </div>
+          {/* Mobile sticky button bar — hidden on desktop */}
+          <div
+            className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
+            style={{
+              backgroundColor: 'var(--anthracite)',
+              borderTop: '1px solid var(--anthracite-light)',
+              padding: '0 16px',
+              height: 72,
+            }}
+          >
+            {buttons}
+          </div>
+        </>
+      )}
     </div>
   )
 }
