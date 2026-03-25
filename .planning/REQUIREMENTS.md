@@ -22,13 +22,13 @@
 
 ### Step 1 — Trip Type & Route
 
-- [ ] **STEP1-01**: User can select trip type: One-way Transfer, Airport Pickup, Airport Dropoff, Hourly Hire, Daily Hire
+- [x] **STEP1-01**: User can select trip type: One-way Transfer, Airport Pickup, Airport Dropoff, Hourly Hire, Daily Hire
 - [ ] **STEP1-02**: User can enter origin address with Google Places Autocomplete
 - [ ] **STEP1-03**: User can enter destination address with Google Places Autocomplete
 - [ ] **STEP1-04**: For Airport Pickup/Dropoff, origin/destination auto-set to PRG airport coordinates (not Places result)
-- [ ] **STEP1-05**: User can select passenger count (1–8)
-- [ ] **STEP1-06**: User can select luggage count (0–8)
-- [ ] **STEP1-07**: For Hourly Hire, user selects duration in hours (1–12) instead of destination
+- [x] **STEP1-05**: User can select passenger count (1–8)
+- [x] **STEP1-06**: User can select luggage count (0–8)
+- [x] **STEP1-07**: For Hourly Hire, user selects duration in hours (1–12) instead of destination
 
 ### Step 2 — Date & Time
 
