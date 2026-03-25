@@ -4,9 +4,7 @@ import { useBookingStore } from '@/lib/booking-store'
 import type { TripType } from '@/types/booking'
 
 const TRIP_TYPES: { value: TripType; label: string }[] = [
-  { value: 'transfer', label: 'ONE-WAY' },
-  { value: 'airport_pickup', label: 'AIRPORT PICKUP' },
-  { value: 'airport_dropoff', label: 'AIRPORT DROPOFF' },
+  { value: 'transfer', label: 'TRANSFER' },
   { value: 'hourly', label: 'HOURLY' },
   { value: 'daily', label: 'DAILY' },
 ]

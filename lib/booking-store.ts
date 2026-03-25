@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
 import type { BookingStore, PlaceResult } from '@/types/booking'
-import { PRG_CONFIG } from '@/types/booking'
 
 export const useBookingStore = create<BookingStore>()(
   persist(
@@ -16,19 +15,7 @@ export const useBookingStore = create<BookingStore>()(
       completedSteps: new Set<number>(),
 
       setTripType: (type) => {
-        const updates: Partial<BookingStore> = { tripType: type }
-        const current = get()
-        if (type === 'airport_pickup') {
-          updates.destination = PRG_CONFIG as PlaceResult
-          if (current.origin?.placeId === PRG_CONFIG.placeId) updates.origin = null
-        } else if (type === 'airport_dropoff') {
-          updates.origin = PRG_CONFIG as PlaceResult
-          if (current.destination?.placeId === PRG_CONFIG.placeId) updates.destination = null
-        } else {
-          if (current.destination?.placeId === PRG_CONFIG.placeId) updates.destination = null
-          if (current.origin?.placeId === PRG_CONFIG.placeId) updates.origin = null
-        }
-        set(updates)
+        set({ tripType: type })
       },
       setOrigin: (place) => set({ origin: place }),
       setDestination: (place) => set({ destination: place }),

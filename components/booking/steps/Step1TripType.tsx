@@ -7,7 +7,6 @@ import AddressInput from '@/components/booking/AddressInput'
 import Stepper from '@/components/booking/Stepper'
 import DurationSelector from '@/components/booking/DurationSelector'
 import { useBookingStore } from '@/lib/booking-store'
-import { PRG_CONFIG } from '@/types/booking'
 
 export default function Step1TripType() {
   const tripType = useBookingStore((s) => s.tripType)
@@ -78,8 +77,6 @@ export default function Step1TripType() {
   }
 
   const showSwapIcon = tripType === 'transfer' || tripType === 'daily'
-  const isAirportDropoff = tripType === 'airport_dropoff'
-  const isAirportPickup = tripType === 'airport_pickup'
 
   // Continue button content (shared between desktop and mobile)
   const continueButton = (
@@ -108,11 +105,9 @@ export default function Step1TripType() {
         <AddressInput
           label="PICKUP LOCATION"
           placeholder="Enter pickup address"
-          value={isAirportDropoff ? PRG_CONFIG : origin}
+          value={origin}
           onSelect={handleOriginSelect}
           onClear={handleOriginClear}
-          readOnly={isAirportDropoff}
-          readOnlyIcon={isAirportDropoff}
           hasError={!!errors.origin}
           errorMessage={errors.origin}
           ariaLabel="Pickup location"
@@ -154,11 +149,9 @@ export default function Step1TripType() {
           <AddressInput
             label="DESTINATION"
             placeholder="Enter destination"
-            value={isAirportPickup ? PRG_CONFIG : destination}
+            value={destination}
             onSelect={handleDestinationSelect}
             onClear={handleDestinationClear}
-            readOnly={isAirportPickup}
-            readOnlyIcon={isAirportPickup}
             hasError={!!errors.destination}
             errorMessage={errors.destination}
             ariaLabel="Destination"

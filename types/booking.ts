@@ -1,4 +1,4 @@
-export type TripType = 'transfer' | 'airport_pickup' | 'airport_dropoff' | 'hourly' | 'daily'
+export type TripType = 'transfer' | 'hourly' | 'daily'
 
 export interface PlaceResult {
   address: string
