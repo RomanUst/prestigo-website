@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useId } from 'react'
 import { Plane, X } from 'lucide-react'
 import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
@@ -47,7 +47,8 @@ export default function AddressInput({
   const [mapsLoaded, setMapsLoaded] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
-  const listboxId = useRef(`address-listbox-${Math.random().toString(36).slice(2)}`)
+  const uid = useId()
+  const listboxId = useRef(`address-listbox-${uid.replace(/:/g, '')}`)
   const containerRef = useRef<HTMLDivElement>(null)
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
