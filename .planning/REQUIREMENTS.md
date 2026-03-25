@@ -13,12 +13,12 @@
 
 ### Wizard Shell
 
-- [ ] **WIZD-01**: BookingWizard component orchestrates 6-step flow with step routing
-- [ ] **WIZD-02**: ProgressBar shows current step number and completed steps
+- [x] **WIZD-01**: BookingWizard component orchestrates 6-step flow with step routing
+- [x] **WIZD-02**: ProgressBar shows current step number and completed steps
 - [ ] **WIZD-03**: "Next" button disabled until all required fields in current step are valid
-- [ ] **WIZD-04**: "Back" button navigates to previous step without losing data
-- [ ] **WIZD-05**: Step transitions animated (framer-motion fade/slide)
-- [ ] **WIZD-06**: Full wizard lives at /book page
+- [x] **WIZD-04**: "Back" button navigates to previous step without losing data
+- [x] **WIZD-05**: Step transitions animated (CSS stepFadeUp 0.3s, no framer-motion)
+- [x] **WIZD-06**: Full wizard lives at /book page
 
 ### Step 1 — Trip Type & Route
 
