@@ -32,17 +32,17 @@
 
 ### Step 2 — Date & Time
 
-- [ ] **STEP2-01**: User can select pickup date (calendar picker, no past dates)
-- [ ] **STEP2-02**: User can select pickup time (15-min increments)
-- [ ] **STEP2-03**: For Daily Hire, user selects return date
+- [x] **STEP2-01**: User can select pickup date (calendar picker, no past dates)
+- [x] **STEP2-02**: User can select pickup time (15-min increments)
+- [x] **STEP2-03**: For Daily Hire, user selects return date
 
 ### Step 3 — Vehicle Selection
 
-- [ ] **STEP3-01**: User sees 3 vehicle classes: Business, First Class, Business Van
-- [ ] **STEP3-02**: Each class shows: photo, class name, max passengers, luggage capacity, price
-- [ ] **STEP3-03**: Price is calculated and displayed live based on route + trip type
-- [ ] **STEP3-04**: PriceSummary panel updates in real-time when user changes vehicle class
-- [ ] **STEP3-05**: If route cannot be calculated, "Request a quote" fallback shown instead of price
+- [x] **STEP3-01**: User sees 3 vehicle classes: Business, First Class, Business Van
+- [x] **STEP3-02**: Each class shows: photo, class name, max passengers, luggage capacity, price
+- [x] **STEP3-03**: Price is calculated and displayed live based on route + trip type
+- [x] **STEP3-04**: PriceSummary panel updates in real-time when user changes vehicle class
+- [x] **STEP3-05**: If route cannot be calculated, "Request a quote" fallback shown instead of price
 
 ### Step 4 — Extras
 
@@ -68,12 +68,12 @@
 
 ### Pricing Engine
 
-- [ ] **PRICE-01**: Next.js API route `/api/calculate-price` proxies Google Routes API server-side
-- [ ] **PRICE-02**: Transfer price = distance_km × rate_per_km[vehicleClass]
-- [ ] **PRICE-03**: Hourly price = hours × hourly_rate[vehicleClass]
-- [ ] **PRICE-04**: Daily price = days × daily_rate[vehicleClass]
-- [ ] **PRICE-05**: Rate tables defined in server-side config (not hardcoded in UI)
-- [ ] **PRICE-06**: Google Maps API key never exposed to client
+- [x] **PRICE-01**: Next.js API route `/api/calculate-price` proxies Google Routes API server-side
+- [x] **PRICE-02**: Transfer price = distance_km × rate_per_km[vehicleClass]
+- [x] **PRICE-03**: Hourly price = hours × hourly_rate[vehicleClass]
+- [x] **PRICE-04**: Daily price = days × daily_rate[vehicleClass]
+- [x] **PRICE-05**: Rate tables defined in server-side config (not hardcoded in UI)
+- [x] **PRICE-06**: Google Maps API key never exposed to client
 
 ### Payment Integration
 
