@@ -51,7 +51,13 @@ Plans:
   3. When user switches between vehicle classes, the price panel updates in real time without a page reload
   4. For an unmappable route, the price panel shows "Request a quote" instead of a number
   5. The Google Maps API key is never visible in browser network requests from the client
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Store extension, pricing module, API route, shimmer CSS
+- [ ] 02-02-PLAN.md — Step2DateTime: react-day-picker calendar + time slot list
+- [ ] 02-03-PLAN.md — Step3Vehicle: VehicleCard grid + PriceSummary panel
+- [ ] 02-04-PLAN.md — BookingWizard wiring + visual verification checkpoint
 
 ### Phase 3: Booking Details
 **Goal**: A user can add optional extras and fill in passenger details, with fields validated inline as they type
@@ -107,7 +113,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
-| 2. Pricing & Vehicle Selection | 0/TBD | Not started | - |
+| 2. Pricing & Vehicle Selection | 0/4 | Not started | - |
 | 3. Booking Details | 0/TBD | Not started | - |
 | 4. Payment | 0/TBD | Not started | - |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
