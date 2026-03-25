@@ -47,13 +47,14 @@ Plans:
 **Requirements**: STEP2-01, STEP2-02, STEP2-03, STEP3-01, STEP3-02, STEP3-03, STEP3-04, STEP3-05, PRICE-01, PRICE-02, PRICE-03, PRICE-04, PRICE-05, PRICE-06
 **Success Criteria** (what must be TRUE):
   1. User can pick a date from a calendar (no past dates selectable) and a time in 15-minute increments
-  2. User sees 3 vehicle cards (Business, First Class, Business Van) each with photo, capacity, amenities, and a calculated price
+  2. User sees 3 vehicle cards (Business, First Class, Business Van) each with photo, capacity, and a calculated price
   3. When user switches between vehicle classes, the price panel updates in real time without a page reload
   4. For an unmappable route, the price panel shows "Request a quote" instead of a number
   5. The Google Maps API key is never visible in browser network requests from the client
-**Plans:** 4 plans
+**Plans:** 5 plans
 
 Plans:
+- [ ] 02-00-PLAN.md — Wave 0: test stubs for Phase 2 requirements
 - [ ] 02-01-PLAN.md — Store extension, pricing module, API route, shimmer CSS
 - [ ] 02-02-PLAN.md — Step2DateTime: react-day-picker calendar + time slot list
 - [ ] 02-03-PLAN.md — Step3Vehicle: VehicleCard grid + PriceSummary panel
@@ -113,7 +114,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
-| 2. Pricing & Vehicle Selection | 0/4 | Not started | - |
+| 2. Pricing & Vehicle Selection | 0/5 | Not started | - |
 | 3. Booking Details | 0/TBD | Not started | - |
 | 4. Payment | 0/TBD | Not started | - |
 | 5. Backend & Notifications | 0/TBD | Not started | - |

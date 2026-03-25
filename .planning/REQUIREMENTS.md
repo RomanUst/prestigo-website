@@ -39,7 +39,7 @@
 ### Step 3 — Vehicle Selection
 
 - [ ] **STEP3-01**: User sees 3 vehicle classes: Business, First Class, Business Van
-- [ ] **STEP3-02**: Each class shows: photo, max passengers, luggage capacity, amenities, price
+- [ ] **STEP3-02**: Each class shows: photo, class name, max passengers, luggage capacity, price
 - [ ] **STEP3-03**: Price is calculated and displayed live based on route + trip type
 - [ ] **STEP3-04**: PriceSummary panel updates in real-time when user changes vehicle class
 - [ ] **STEP3-05**: If route cannot be calculated, "Request a quote" fallback shown instead of price
