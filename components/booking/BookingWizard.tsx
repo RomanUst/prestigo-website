@@ -4,15 +4,46 @@ import { useBookingStore } from '@/lib/booking-store'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
 import Step1TripType from './steps/Step1TripType'
+import Step2DateTime from './steps/Step2DateTime'
+import Step3Vehicle from './steps/Step3Vehicle'
 
 export default function BookingWizard() {
   const { currentStep, completedSteps, nextStep, prevStep } = useBookingStore()
 
-  const renderStepContent = () => {
-    if (currentStep === 1) {
-      return <Step1TripType />
+  const tripType = useBookingStore((s) => s.tripType)
+  const pickupDate = useBookingStore((s) => s.pickupDate)
+  const pickupTime = useBookingStore((s) => s.pickupTime)
+  const returnDate = useBookingStore((s) => s.returnDate)
+  const vehicleClass = useBookingStore((s) => s.vehicleClass)
+
+  const canProceed = (() => {
+    switch (currentStep) {
+      case 1:
+        return true // Step 1 handles its own validation and Continue button
+      case 2:
+        return (
+          pickupDate !== null &&
+          pickupTime !== null &&
+          (tripType !== 'daily' || returnDate !== null)
+        )
+      case 3:
+        return vehicleClass !== null
+      default:
+        return true // Steps 4-6 will add their own validation later
     }
-    return <StepStub step={currentStep} />
+  })()
+
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 1:
+        return <Step1TripType />
+      case 2:
+        return <Step2DateTime />
+      case 3:
+        return <Step3Vehicle />
+      default:
+        return <StepStub step={currentStep} />
+    }
   }
 
   const buttons = (
@@ -30,6 +61,8 @@ export default function BookingWizard() {
         type="button"
         className="btn-primary"
         onClick={nextStep}
+        disabled={!canProceed}
+        style={!canProceed ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
       >
         Continue
       </button>
@@ -47,23 +80,27 @@ export default function BookingWizard() {
       {/* Step content */}
       <div
         key={currentStep}
-        className="animate-step-enter max-w-xl"
+        className={`animate-step-enter ${currentStep === 3 ? '' : 'max-w-xl'}`}
       >
-        {/* Step heading */}
-        {currentStep === 1 ? (
+        {/* Step heading — full treatment for steps 1-3 */}
+        {currentStep <= 3 ? (
           <div className="mb-8">
-            <p className="label mb-6">STEP 1 OF 6</p>
+            <p className="label mb-6">STEP {currentStep} OF 6</p>
             <span className="copper-line mb-6 block" />
             <h2
               style={{
                 fontFamily: 'var(--font-cormorant)',
                 fontWeight: 300,
-                fontSize: 28,
+                fontSize: currentStep === 1 ? 28 : 26,
                 lineHeight: 1.25,
                 color: 'var(--offwhite)',
               }}
             >
-              Select your journey
+              {currentStep === 1
+                ? 'Select your journey'
+                : currentStep === 2
+                ? 'Select your date & time'
+                : 'Choose your vehicle'}
             </h2>
           </div>
         ) : (
@@ -83,18 +120,20 @@ export default function BookingWizard() {
             {buttons}
           </div>
 
-          {/* Mobile sticky button bar — hidden on desktop */}
-          <div
-            className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
-            style={{
-              backgroundColor: 'var(--anthracite)',
-              borderTop: '1px solid var(--anthracite-light)',
-              padding: '0 16px',
-              height: 72,
-            }}
-          >
-            {buttons}
-          </div>
+          {/* Mobile sticky button bar — hidden on desktop, and hidden at Step 3 where PriceSummary takes over */}
+          {currentStep !== 3 && (
+            <div
+              className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
+              style={{
+                backgroundColor: 'var(--anthracite)',
+                borderTop: '1px solid var(--anthracite-light)',
+                padding: '0 16px',
+                height: 72,
+              }}
+            >
+              {buttons}
+            </div>
+          )}
         </>
       )}
     </div>

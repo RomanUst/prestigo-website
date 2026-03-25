@@ -185,20 +185,6 @@ export default function Step2DateTime() {
 
   return (
     <div>
-      {/* Step heading */}
-      <h2
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontWeight: 300,
-          fontSize: 26,
-          lineHeight: 1.25,
-          color: 'var(--offwhite)',
-          marginBottom: 24,
-        }}
-      >
-        Select your date &amp; time
-      </h2>
-
       {/* Layout: desktop flex-row, mobile flex-col */}
       <div
         className="md:flex-row flex-col"

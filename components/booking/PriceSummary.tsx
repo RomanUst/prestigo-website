@@ -14,6 +14,7 @@ export default function PriceSummary() {
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const quoteMode = useBookingStore((s) => s.quoteMode)
+  const nextStep = useBookingStore((s) => s.nextStep)
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
 
@@ -140,6 +141,16 @@ export default function PriceSummary() {
       >
         {priceDisplay()}
       </span>
+
+      <button
+        type="button"
+        className="btn-primary"
+        onClick={nextStep}
+        disabled={!vehicleClass}
+        style={!vehicleClass ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+      >
+        Continue
+      </button>
     </div>
   )
 
