@@ -51,7 +51,7 @@ Plans:
   3. When user switches between vehicle classes, the price panel updates in real time without a page reload
   4. For an unmappable route, the price panel shows "Request a quote" instead of a number
   5. The Google Maps API key is never visible in browser network requests from the client
-**Plans:** 1/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [ ] 02-00-PLAN.md — Wave 0: test stubs for Phase 2 requirements
@@ -114,7 +114,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
-| 2. Pricing & Vehicle Selection | 1/5 | In Progress|  |
+| 2. Pricing & Vehicle Selection | 3/5 | In Progress|  |
 | 3. Booking Details | 0/TBD | Not started | - |
 | 4. Payment | 0/TBD | Not started | - |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
