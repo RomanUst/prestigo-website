@@ -32,6 +32,20 @@ export interface Extras {
   extraLuggage: boolean
 }
 
+export interface VehicleConfig {
+  key: VehicleClass
+  label: string
+  maxPassengers: number
+  maxLuggage: number
+  image: string  // path relative to /public
+}
+
+export const VEHICLE_CONFIG: VehicleConfig[] = [
+  { key: 'business', label: 'Business', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/business.jpg' },
+  { key: 'first_class', label: 'First Class', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/first-class.jpg' },
+  { key: 'business_van', label: 'Business Van', maxPassengers: 7, maxLuggage: 7, image: '/vehicles/business-van.jpg' },
+]
+
 export interface BookingStore {
   // Step 1
   tripType: TripType
@@ -43,6 +57,15 @@ export interface BookingStore {
   // Navigation
   currentStep: number
   completedSteps: Set<number>
+  // Step 2
+  pickupDate: string | null        // ISO date 'YYYY-MM-DD'
+  pickupTime: string | null        // '08:15' format
+  returnDate: string | null        // Daily Hire only
+  // Step 3
+  vehicleClass: VehicleClass | null
+  distanceKm: number | null        // cached from API response
+  priceBreakdown: Record<VehicleClass, PriceBreakdown> | null
+  quoteMode: boolean               // true when route cannot be priced
   // Actions
   setTripType: (type: TripType) => void
   setOrigin: (place: PlaceResult | null) => void
@@ -53,6 +76,13 @@ export interface BookingStore {
   nextStep: () => void
   prevStep: () => void
   swapOriginDestination: () => void
+  setPickupDate: (date: string | null) => void
+  setPickupTime: (time: string | null) => void
+  setReturnDate: (date: string | null) => void
+  setVehicleClass: (v: VehicleClass | null) => void
+  setDistanceKm: (km: number | null) => void
+  setPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
+  setQuoteMode: (q: boolean) => void
 }
 
 export const PRG_CONFIG = {

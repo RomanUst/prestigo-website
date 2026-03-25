@@ -13,6 +13,13 @@ export const useBookingStore = create<BookingStore>()(
       luggage: 0,
       currentStep: 1,
       completedSteps: new Set<number>(),
+      pickupDate: null,
+      pickupTime: null,
+      returnDate: null,
+      vehicleClass: null,
+      distanceKm: null,
+      priceBreakdown: null,
+      quoteMode: false,
 
       setTripType: (type) => {
         set({ tripType: type })
@@ -32,6 +39,13 @@ export const useBookingStore = create<BookingStore>()(
         const { origin, destination } = get()
         set({ origin: destination, destination: origin })
       },
+      setPickupDate: (date) => set({ pickupDate: date }),
+      setPickupTime: (time) => set({ pickupTime: time }),
+      setReturnDate: (date) => set({ returnDate: date }),
+      setVehicleClass: (v) => set({ vehicleClass: v }),
+      setDistanceKm: (km) => set({ distanceKm: km }),
+      setPriceBreakdown: (p) => set({ priceBreakdown: p }),
+      setQuoteMode: (q) => set({ quoteMode: q }),
     }),
     {
       name: 'prestigo-booking',
@@ -45,6 +59,13 @@ export const useBookingStore = create<BookingStore>()(
         luggage: state.luggage,
         currentStep: state.currentStep,
         completedSteps: [...state.completedSteps],
+        pickupDate: state.pickupDate,
+        pickupTime: state.pickupTime,
+        returnDate: state.returnDate,
+        vehicleClass: state.vehicleClass,
+        distanceKm: state.distanceKm,
+        priceBreakdown: state.priceBreakdown,
+        quoteMode: state.quoteMode,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
