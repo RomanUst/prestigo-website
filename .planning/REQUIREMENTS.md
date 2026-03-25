@@ -15,7 +15,7 @@
 
 - [x] **WIZD-01**: BookingWizard component orchestrates 6-step flow with step routing
 - [x] **WIZD-02**: ProgressBar shows current step number and completed steps
-- [ ] **WIZD-03**: "Next" button disabled until all required fields in current step are valid
+- [x] **WIZD-03**: "Next" button disabled until all required fields in current step are valid
 - [x] **WIZD-04**: "Back" button navigates to previous step without losing data
 - [x] **WIZD-05**: Step transitions animated (CSS stepFadeUp 0.3s, no framer-motion)
 - [x] **WIZD-06**: Full wizard lives at /book page
@@ -23,9 +23,9 @@
 ### Step 1 — Trip Type & Route
 
 - [x] **STEP1-01**: User can select trip type: One-way Transfer, Airport Pickup, Airport Dropoff, Hourly Hire, Daily Hire
-- [ ] **STEP1-02**: User can enter origin address with Google Places Autocomplete
-- [ ] **STEP1-03**: User can enter destination address with Google Places Autocomplete
-- [ ] **STEP1-04**: For Airport Pickup/Dropoff, origin/destination auto-set to PRG airport coordinates (not Places result)
+- [x] **STEP1-02**: User can enter origin address with Google Places Autocomplete
+- [x] **STEP1-03**: User can enter destination address with Google Places Autocomplete
+- [x] **STEP1-04**: For Airport Pickup/Dropoff, origin/destination auto-set to PRG airport coordinates (not Places result)
 - [x] **STEP1-05**: User can select passenger count (1–8)
 - [x] **STEP1-06**: User can select luggage count (0–8)
 - [x] **STEP1-07**: For Hourly Hire, user selects duration in hours (1–12) instead of destination

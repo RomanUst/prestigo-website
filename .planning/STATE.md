@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 01-03-PLAN.md
-last_updated: "2026-03-25T05:47:14.943Z"
+stopped_at: Completed 01-04-PLAN.md
+last_updated: "2026-03-25T05:53:31.365Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 3 of 6
 
 *Updated after each plan completion*
 | Phase 01-foundation-trip-entry P03 | 2 | 2 tasks | 3 files |
+| Phase 01 P04 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,8 @@ Recent decisions affecting current work:
 - [Phase 01]: TripTypeTabs hover via onMouseEnter/Leave to keep all styles inline
 - [Phase 01-03]: Stepper uses aria-disabled not native disabled to preserve copper focus-visible
 - [Phase 01-03]: Active tab/segment pattern: copper bottom border only, no filled background (consistent across TripTypeTabs and DurationSelector)
+- [Phase 01]: @googlemaps/js-api-loader v2.0.2 uses functional API (setOptions + importLibrary) not deprecated Loader class — loader pattern updated in AddressInput
+- [Phase 01]: Step1TripType owns its own Continue button and validation — BookingWizard generic sticky bar wrapper excluded from DOM entirely on step 1 via currentStep > 1 guard
 
 ### Pending Todos
 
@@ -76,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T05:47:14.939Z
-Stopped at: Completed 01-03-PLAN.md
+Last session: 2026-03-25T05:53:31.361Z
+Stopped at: Completed 01-04-PLAN.md
 Resume file: None
