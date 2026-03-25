@@ -189,6 +189,26 @@ body {
 .delay-700 { animation-delay: 0.7s; }
 .delay-800 { animation-delay: 0.8s; }
 
+/* -- Price loading skeleton (booking wizard Step 3) -- */
+@keyframes shimmer {
+  0%   { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+.skeleton-shimmer {
+  width: 80px;
+  height: 20px;
+  background: linear-gradient(
+    90deg,
+    var(--anthracite-mid) 0px,
+    var(--copper-pale) 40px,
+    var(--anthracite-mid) 80px
+  );
+  background-size: 200px 100%;
+  animation: shimmer 1.2s infinite linear;
+  border-radius: 2px;
+}
+
 /* -- Step entry animation (booking wizard) -- */
 @keyframes stepFadeUp {
   from { opacity: 0; transform: translateY(24px); }
@@ -204,6 +224,11 @@ body {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+  }
+
+  .skeleton-shimmer {
+    animation: none !important;
+    background: var(--anthracite-mid);
   }
 }
 
