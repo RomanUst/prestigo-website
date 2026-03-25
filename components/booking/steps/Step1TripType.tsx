@@ -88,11 +88,9 @@ export default function Step1TripType() {
       className="btn-primary"
       onClick={handleNext}
       aria-disabled={!isValid}
-      disabled={!isValid}
       style={{
         opacity: isValid ? 1 : 0.4,
         cursor: isValid ? 'pointer' : 'not-allowed',
-        pointerEvents: isValid ? 'auto' : 'none',
       }}
     >
       Continue
