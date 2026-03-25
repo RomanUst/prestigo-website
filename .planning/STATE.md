@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 1 UI-SPEC approved
-last_updated: "2026-03-24T20:06:03.203Z"
-last_activity: 2026-03-24 — Roadmap created, 53 requirements mapped across 6 phases
+status: unknown
+stopped_at: Completed 01-01-PLAN.md
+last_updated: "2026-03-25T05:35:28.491Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 6
+  completed_plans: 2
 ---
 
 # Project State
@@ -21,35 +19,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 1 — Foundation & Trip Entry
+**Current focus:** Phase 01 — foundation-trip-entry
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation & Trip Entry)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-24 — Roadmap created, 53 requirements mapped across 6 phases
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 01 (foundation-trip-entry) — EXECUTING
+Plan: 2 of 6
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 2 (01-00, 01-01)
+- Average duration: ~6 min
+- Total execution time: 0.2 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-foundation-trip-entry | 2/6 | 11 min | ~6 min |
 
 **Recent Trend:**
 
-- Last 5 plans: -
-- Trend: -
+- Last 5 plans: 01-00 (7min), 01-01 (4min)
+- Trend: Fast execution
 
 *Updated after each plan completion*
 
@@ -63,6 +57,8 @@ Recent decisions affecting current work:
 - All pricing server-side via Next.js API route (protects Google Maps key, keeps PaymentIntent amount consistent with shown price)
 - Stripe webhook as source of truth — Notion save and emails triggered by webhook, not client redirect
 - Airport addresses use hardcoded PRG coordinates, not Places API result
+- [Phase 01]: PRG_CONFIG defined in types/booking.ts to avoid circular imports with booking-store.ts
+- [Phase 01]: Set<number> completedSteps serialized to number[] for sessionStorage via partialize, restored in onRehydrateStorage
 
 ### Pending Todos
 
@@ -74,6 +70,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-24T20:06:03.197Z
-Stopped at: Phase 1 UI-SPEC approved
-Resume file: .planning/phases/01-foundation-trip-entry/01-UI-SPEC.md
+Last session: 2026-03-25T05:35:28.485Z
+Stopped at: Completed 01-01-PLAN.md
+Resume file: None

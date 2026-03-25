@@ -7,9 +7,9 @@
 
 ### Foundation & Architecture
 
-- [ ] **ARCH-01**: Zustand store holds all wizard state with TypeScript types (BookingData, TripType, VehicleClass)
-- [ ] **ARCH-02**: Wizard state persists to sessionStorage — survives page refresh at any step
-- [ ] **ARCH-03**: Booking data types defined: TripType, VehicleClass, PassengerDetails, PriceBreakdown, Extras
+- [x] **ARCH-01**: Zustand store holds all wizard state with TypeScript types (BookingData, TripType, VehicleClass)
+- [x] **ARCH-02**: Wizard state persists to sessionStorage — survives page refresh at any step
+- [x] **ARCH-03**: Booking data types defined: TripType, VehicleClass, PassengerDetails, PriceBreakdown, Extras
 
 ### Wizard Shell
 
