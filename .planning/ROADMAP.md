@@ -13,7 +13,7 @@ Six phases deliver a complete multi-step booking wizard for rideprestige.com. Th
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [ ] **Phase 1: Foundation & Trip Entry** - Zustand store, types, wizard shell, Step 1 (trip type + route)
-- [ ] **Phase 2: Pricing & Vehicle Selection** - Google Routes API pricing engine, Steps 2-3 (date/time + vehicle)
+- [x] **Phase 2: Pricing & Vehicle Selection** - Google Routes API pricing engine, Steps 2-3 (date/time + vehicle)
 - [ ] **Phase 3: Booking Details** - Steps 4-5 (extras + passenger details) with inline validation
 - [ ] **Phase 4: Payment** - Stripe integration, Step 6, confirmation page
 - [ ] **Phase 5: Backend & Notifications** - Stripe webhook, Notion save, confirmation and manager emails
@@ -45,20 +45,21 @@ Plans:
 **Goal**: After entering a route, a user can select a pickup date/time and choose a vehicle class with a live price displayed
 **Depends on**: Phase 1
 **Requirements**: STEP2-01, STEP2-02, STEP2-03, STEP3-01, STEP3-02, STEP3-03, STEP3-04, STEP3-05, PRICE-01, PRICE-02, PRICE-03, PRICE-04, PRICE-05, PRICE-06
+**Status**: COMPLETE — verified 2026-03-26
 **Success Criteria** (what must be TRUE):
   1. User can pick a date from a calendar (no past dates selectable) and a time in 15-minute increments
   2. User sees 3 vehicle cards (Business, First Class, Business Van) each with photo, capacity, and a calculated price
   3. When user switches between vehicle classes, the price panel updates in real time without a page reload
   4. For an unmappable route, the price panel shows "Request a quote" instead of a number
   5. The Google Maps API key is never visible in browser network requests from the client
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans executed
 
 Plans:
-- [ ] 02-00-PLAN.md — Wave 0: test stubs for Phase 2 requirements
-- [ ] 02-01-PLAN.md — Store extension, pricing module, API route, shimmer CSS
-- [ ] 02-02-PLAN.md — Step2DateTime: react-day-picker calendar + time slot list
-- [ ] 02-03-PLAN.md — Step3Vehicle: VehicleCard grid + PriceSummary panel
-- [ ] 02-04-PLAN.md — BookingWizard wiring + visual verification checkpoint
+- [x] 02-00-PLAN.md — Wave 0: test stubs for Phase 2 requirements
+- [x] 02-01-PLAN.md — Store extension, pricing module, API route, shimmer CSS
+- [x] 02-02-PLAN.md — Step2DateTime: react-day-picker calendar + time slot list
+- [x] 02-03-PLAN.md — Step3Vehicle: VehicleCard grid + PriceSummary panel
+- [x] 02-04-PLAN.md — BookingWizard wiring + visual verification checkpoint
 
 ### Phase 3: Booking Details
 **Goal**: A user can add optional extras and fill in passenger details, with fields validated inline as they type
@@ -114,7 +115,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
-| 2. Pricing & Vehicle Selection | 4/5 | In Progress|  |
+| 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
 | 3. Booking Details | 0/TBD | Not started | - |
 | 4. Payment | 0/TBD | Not started | - |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
