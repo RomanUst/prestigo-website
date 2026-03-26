@@ -187,8 +187,8 @@ export default function Step2DateTime() {
     <div>
       {/* Layout: desktop flex-row, mobile flex-col */}
       <div
-        className="md:flex-row flex-col"
-        style={{ display: 'flex', flexDirection: 'column', gap: 32 }}
+        className="flex flex-col md:flex-row"
+        style={{ gap: 32 }}
       >
         {/* Left: Calendar section (~60% on desktop) */}
         <div className="md:w-[60%] w-full">
