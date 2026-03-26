@@ -70,7 +70,13 @@ Plans:
   2. User fills First Name, Last Name, Email, Phone and sees validation errors appear on blur (not on submit)
   3. For airport rides, a Flight Number field appears and is required before Next is enabled
   4. User can type a special request of up to 500 characters with no form submission errors
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Wave 0: test stubs for Phase 3 requirements
+- [ ] 03-02-PLAN.md — Store extension, extras config, Step4Extras component, PriceSummary extras
+- [ ] 03-03-PLAN.md — Step5Passenger form with validation, BookingWizard wiring
+- [ ] 03-04-PLAN.md — Build verification and human visual checkpoint
 
 ### Phase 4: Payment
 **Goal**: A user can review their full booking summary and pay with a card, reaching a confirmation page on success
@@ -116,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
 | 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
-| 3. Booking Details | 0/TBD | Not started | - |
+| 3. Booking Details | 0/4 | Not started | - |
 | 4. Payment | 0/TBD | Not started | - |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
 | 6. Homepage Widget & Polish | 0/TBD | Not started | - |
