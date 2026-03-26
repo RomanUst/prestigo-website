@@ -35,7 +35,7 @@ Exception: `#C0392B` for validation error states (established pattern from `Addr
 
 ## Spacing Scale
 
-Declared values (multiples of 4 where possible; brand guide uses 6/12/24/48/80 — mapped to nearest standard):
+Declared values (multiples of 4 only):
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -49,9 +49,9 @@ Declared values (multiples of 4 where possible; brand guide uses 6/12/24/48/80 �
 
 Exceptions:
 - Input padding vertical: 12px (established `AddressInput.tsx` pattern — `padding: '12px 16px'`)
-- Extra toggle card padding: 23px when selected (2px border), 24px when unselected (1px border) — established `VehicleCard.tsx` compensation pattern
+- Extra toggle card padding: 24px in both selected and unselected states. Selected state uses `outline: 2px solid var(--copper); outline-offset: -2px` instead of border-width change — avoids layout shift without padding compensation.
 - Mobile sticky bar height: 56px fixed (PriceSummary mobile bar — established Phase 2 pattern)
-- Touch targets (buttons): minimum 44px height on mobile
+- Touch targets (buttons): minimum 48px height on mobile (above Apple HIG 44px minimum; aligns with 4-point grid)
 - Label margin-bottom: 8px before input fields (established `AddressInput.tsx` pattern)
 
 Source: `STYLEGUIDE.md` spacing table, `prestigo/app/globals.css`, `VehicleCard.tsx` border compensation pattern
@@ -60,21 +60,23 @@ Source: `STYLEGUIDE.md` spacing table, `prestigo/app/globals.css`, `VehicleCard.
 
 ## Typography
 
-Phase 3 uses four type roles. All text elements must use `var(--font-montserrat)` or `var(--font-cormorant)` — never a raw font-family string.
+Phase 3 uses exactly four type roles and exactly two font weights. All text elements must use `var(--font-montserrat)` or `var(--font-cormorant)` — never a raw font-family string.
+
+**Font weights in use: 300 (light) and 400 (regular). No other weights permitted in Phase 3.**
 
 | Role | Font | Size | Weight | Line Height | Letter Spacing | Color |
 |------|------|------|--------|-------------|----------------|-------|
 | Step heading (h2) | Cormorant Garamond | 26px | 300 | 1.25 | 0 | `var(--offwhite)` |
-| Body / input value | Montserrat | 14px | 300 | 1.8 | 0.03em | `var(--offwhite)` |
-| Label (section, field) | Montserrat | 9px | 400 | — | 0.4em (uppercase) | `var(--copper)` |
-| Caption / meta | Montserrat | 10px | 300 | — | 0.03em | `var(--warmgrey)` |
+| Price display (PriceSummary total) | Montserrat | 20px | 400 | — | 0.03em | `var(--offwhite)` |
+| Body / input value / error / meta | Montserrat | 14px | 300 | 1.8 | 0.03em | `var(--offwhite)` |
+| Label / caption / counter | Montserrat | 10px | 400 | — | 0.4em (uppercase) | `var(--copper)` |
 
 Additional rules:
 - All `.label` elements: `text-transform: uppercase`, `letter-spacing: 0.4em` — use the `.label` CSS class
-- Price display (PriceSummary): 20px / weight 500 / `var(--offwhite)` when vehicle selected; 13px / weight 400 / `var(--warmgrey)` when no selection
-- Error messages: 13px / weight 400 / `#C0392B`, `margin-top: 8px`
-- Character counter (textarea): 10px / weight 300 / `var(--warmgrey)`, right-aligned
-- Extra price increment label: 13px / weight 300 / `var(--warmgrey)` — e.g. "+€15"
+- Error messages: 14px / weight 300 / `#C0392B`, `margin-top: 8px` (uses body size — no separate error size)
+- Extra price increment label (e.g. "+€15"): 14px / weight 300 / `var(--warmgrey)` (uses body size)
+- Character counter (textarea, e.g. "42/500"): 10px / weight 400 / `var(--warmgrey)`, right-aligned (uses label/caption size)
+- PriceSummary "no vehicle selected" placeholder: 14px / weight 300 / `var(--warmgrey)`
 - CTA button text: 10px / weight 400 / letter-spacing 0.35em / uppercase — use `.btn-primary` CSS class
 - Never use bold or heavy weights for headings — lightness signals luxury (STYLEGUIDE rule)
 
@@ -92,7 +94,7 @@ Source: `STYLEGUIDE.md` type scale, `prestigo/app/globals.css`, `AddressInput.ts
 | Destructive | `#C0392B` | Inline validation error text and input border only |
 
 Accent (`var(--copper)`) reserved for:
-1. Selected extra toggle card border (2px solid — selected state)
+1. Selected extra toggle card outline (`outline: 2px solid var(--copper); outline-offset: -2px` — selected state)
 2. Step label text ("STEP 4 OF 6", "STEP 5 OF 6") via `.label` class
 3. Copper accent line (`<span className="copper-line">`) above step heading
 4. Continue button hover background (`.btn-primary:hover`)
@@ -100,7 +102,8 @@ Accent (`var(--copper)`) reserved for:
 6. Field label color is `var(--copper)` via `.label` class
 
 Borders:
-- Unselected extra toggle card: `1px solid var(--anthracite-light)` (`#3A3A3F`)
+- Unselected extra toggle card: `1px solid var(--anthracite-light)` (`#3A3A3F`); no outline
+- Selected extra toggle card: `1px solid var(--anthracite-light)` (border unchanged); `outline: 2px solid var(--copper); outline-offset: -2px`
 - Input fields default border: `1px solid var(--anthracite-light)`
 - Input fields error border: `1px solid #C0392B`
 - Dividers: `1px solid var(--anthracite-light)`
@@ -118,11 +121,11 @@ Three toggle cards in a vertical list (mobile) or 1–3 column grid (desktop, if
 
 Each extra toggle card:
 - `<button type="button" aria-pressed={boolean}>` — accessible toggle, never a checkbox
-- Selected state: `border: 2px solid var(--copper)`, `padding: 23px` (compensates border width), `background: var(--anthracite-mid)`
-- Unselected state: `border: 1px solid var(--anthracite-light)`, `padding: 24px`, `background: var(--anthracite-mid)`
+- Selected state: `outline: 2px solid var(--copper); outline-offset: -2px`, `border: 1px solid var(--anthracite-light)`, `padding: 24px`, `background: var(--anthracite-mid)`
+- Unselected state: `border: 1px solid var(--anthracite-light)`, `outline: none`, `padding: 24px`, `background: var(--anthracite-mid)`
 - `border-radius: 4px`
-- Content layout: extra name (body 14px / `var(--offwhite)`) + price increment (13px / `var(--warmgrey)`) + optional description line (10px / `var(--warmgrey)`)
-- Transition: `transition: border-color 0.2s ease, padding 0.0s` (instant padding to avoid jank)
+- Content layout: extra name (body 14px / weight 300 / `var(--offwhite)`) + price increment (14px / weight 300 / `var(--warmgrey)`) + optional description line (10px / weight 400 / `var(--warmgrey)`)
+- Transition: `transition: outline-color 0.2s ease` (no layout shift; padding is constant at 24px)
 
 Extras defined:
 | Key | Display Name | Price | Description |
@@ -148,14 +151,14 @@ Each field structure:
 ```
 <p className="label" style={{ marginBottom: '8px' }}>FIELD NAME</p>
 <input style={{ background: var(--anthracite-mid), border: 1px solid [normal|error], padding: 12px 16px, ... }} />
-<p style={{ color: '#C0392B', fontSize: 13, marginTop: 8 }}>{error message}</p>  {/* only when error */}
+<p style={{ color: '#C0392B', fontSize: 14, marginTop: 8 }}>{error message}</p>  {/* only when error */}
 ```
 
 Validation errors appear on blur only (not on submit, not on keystroke). Source: REQUIREMENTS.md STEP5-04.
 
 Airport detection: `origin?.placeId === PRG_CONFIG.placeId || destination?.placeId === PRG_CONFIG.placeId` — renders Flight Number field conditionally.
 
-Textarea character counter: right-aligned below textarea, `{n}/500` in 10px / `var(--warmgrey)`.
+Textarea character counter: right-aligned below textarea, `{n}/500` in 10px / weight 400 / `var(--warmgrey)`.
 
 ### PriceSummary — Extras Extension
 
@@ -164,8 +167,8 @@ PriceSummary reads `extras` from Zustand store and computes `extrasTotal` locall
 At Step 4+: PriceSummary mobile bar Continue button hidden (reads `currentStep` from store — only visible at Step 3). Wizard shell generic mobile bar takes over for Steps 4 and 5.
 
 Desktop panel extension: after price line, show extras breakdown if any are selected:
-- Each selected extra: `{Extra Name} +€{price}` in 13px / `var(--warmgrey)`
-- Total line: `var(--offwhite)` with 20px / weight 500
+- Each selected extra: `{Extra Name} +€{price}` in 14px / weight 300 / `var(--warmgrey)`
+- Total line: `var(--offwhite)` with 20px / weight 400
 
 ### BookingWizard — Step Headings Extension
 
@@ -186,9 +189,9 @@ Source: `BookingWizard.tsx` heading block pattern, `03-RESEARCH.md` BookingWizar
 ### Extra Toggle Card
 | State | Visual |
 |-------|--------|
-| Default (unselected) | `1px solid var(--anthracite-light)`, padding 24px |
-| Selected | `2px solid var(--copper)`, padding 23px |
-| Focus-visible | `outline: 2px solid var(--copper); outline-offset: 4px` |
+| Default (unselected) | `1px solid var(--anthracite-light)`, no outline, padding 24px |
+| Selected | `1px solid var(--anthracite-light)`, `outline: 2px solid var(--copper); outline-offset: -2px`, padding 24px |
+| Focus-visible | `outline: 2px solid var(--copper); outline-offset: 4px` (overrides selected outline for focus) |
 | Hover (unselected) | `border-color: var(--warmgrey)` |
 
 ### Input Field
@@ -214,7 +217,7 @@ Source: `BookingWizard.tsx` heading block pattern, `03-RESEARCH.md` BookingWizar
 |---------|-----------|------|
 | Step entry | `.animate-step-enter` | `stepFadeUp 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards` — existing class |
 | Price update (PriceSummary) | `key` prop change | `fadeIn 0.15s ease forwards` — existing pattern |
-| Extra toggle selection | CSS `transition: border-color 0.2s ease` | No layout shift; padding change is instant |
+| Extra toggle selection | CSS `transition: outline-color 0.2s ease` | No layout shift; padding is constant at 24px |
 | All animations | Respect `prefers-reduced-motion` | `@media (prefers-reduced-motion: reduce)` block already in `globals.css` |
 
 Source: `prestigo/app/globals.css` keyframes, `PriceSummary.tsx` fadeIn pattern
@@ -318,7 +321,7 @@ No third-party component registries are used in Phase 3. All components are hand
 | Typography scale (sizes, weights, line heights) | `STYLEGUIDE.md` type scale table |
 | Spacing values | `STYLEGUIDE.md` spacing tokens |
 | Input field pattern (border, padding, bg, error color) | `prestigo/components/booking/AddressInput.tsx` |
-| Extra toggle card pattern (border swap, padding compensation) | `prestigo/components/booking/VehicleCard.tsx` |
+| Extra toggle card pattern (outline swap, constant padding) | `prestigo/components/booking/VehicleCard.tsx` + checker revision 2026-03-26 |
 | PriceSummary price display (font size, color, animation) | `prestigo/components/booking/PriceSummary.tsx` |
 | Step heading pattern (label + copper-line + h2) | `prestigo/components/booking/BookingWizard.tsx` |
 | Mobile sticky bar heights and z-index | Phase 2 decisions in `STATE.md` |
@@ -328,6 +331,9 @@ No third-party component registries are used in Phase 3. All components are hand
 | Brand voice and copy rules | `STYLEGUIDE.md` brand voice section |
 | Animations (stepFadeUp, fadeIn) | `prestigo/app/globals.css` |
 | Accessibility patterns (aria-pressed, aria-disabled) | Phase 1/2 decisions in `STATE.md` |
+| Typography consolidation (4 sizes, 2 weights) | checker revision 2026-03-26 — removed 13px (→14px), merged 9px into 10px, dropped weight 500 (→400) |
+| Spacing fix: outline replaces border for toggle selection | checker revision 2026-03-26 — eliminates 23px compensation; padding constant at 24px |
+| Touch target minimum raised to 48px | checker revision 2026-03-26 — 44px replaced with nearest 4-point multiple |
 
 ---
 
