@@ -70,7 +70,7 @@ Plans:
   2. User fills First Name, Last Name, Email, Phone and sees validation errors appear on blur (not on submit)
   3. For airport rides, a Flight Number field appears and is required before Next is enabled
   4. User can type a special request of up to 500 characters with no form submission errors
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [ ] 03-01-PLAN.md — Wave 0: test stubs for Phase 3 requirements
@@ -122,7 +122,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 |-------|----------------|--------|-----------|
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
 | 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
-| 3. Booking Details | 1/4 | In Progress|  |
+| 3. Booking Details | 2/4 | In Progress|  |
 | 4. Payment | 0/TBD | Not started | - |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
 | 6. Homepage Widget & Polish | 0/TBD | Not started | - |
