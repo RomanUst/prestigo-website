@@ -14,7 +14,9 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 
 ### Validated
 
-(None yet — ship to validate)
+- [x] Optional extras: child seat, meet & greet, extra luggage — Validated in Phase 3: booking-details
+- [x] Flight number field for airport rides (no live flight API in v1) — Validated in Phase 3: booking-details
+- [x] Inline field validation (on blur, not on submit) — Validated in Phase 3: booking-details
 
 ### Active
 
@@ -75,4 +77,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 | Live Google Maps pricing with quote fallback | Best UX for known routes, graceful degradation for edge cases | — Pending |
 
 ---
-*Last updated: 2026-03-24 after initialization*
+*Last updated: 2026-03-27 — Phase 3 (booking-details) complete: Steps 4-5 built and verified*
