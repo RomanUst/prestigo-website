@@ -1,11 +1,14 @@
 'use client'
 
 import { useBookingStore } from '@/lib/booking-store'
+import { PRG_CONFIG } from '@/types/booking'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
 import Step1TripType from './steps/Step1TripType'
 import Step2DateTime from './steps/Step2DateTime'
 import Step3Vehicle from './steps/Step3Vehicle'
+import Step4Extras from './steps/Step4Extras'
+import Step5Passenger from './steps/Step5Passenger'
 
 export default function BookingWizard() {
   const { currentStep, completedSteps, nextStep, prevStep } = useBookingStore()
@@ -15,6 +18,13 @@ export default function BookingWizard() {
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
+  const origin = useBookingStore((s) => s.origin)
+  const destination = useBookingStore((s) => s.destination)
+  const passengerDetails = useBookingStore((s) => s.passengerDetails)
+
+  const isAirportRide =
+    origin?.placeId === PRG_CONFIG.placeId ||
+    destination?.placeId === PRG_CONFIG.placeId
 
   const canProceed = (() => {
     switch (currentStep) {
@@ -28,8 +38,18 @@ export default function BookingWizard() {
         )
       case 3:
         return vehicleClass !== null
+      case 4:
+        return true // Step 4 extras are all optional — always can proceed
+      case 5:
+        return (
+          !!passengerDetails?.firstName &&
+          !!passengerDetails?.lastName &&
+          !!passengerDetails?.email &&
+          !!passengerDetails?.phone &&
+          (!isAirportRide || !!passengerDetails?.flightNumber)
+        )
       default:
-        return true // Steps 4-6 will add their own validation later
+        return true // Step 6 will add its own validation later
     }
   })()
 
@@ -41,6 +61,10 @@ export default function BookingWizard() {
         return <Step2DateTime />
       case 3:
         return <Step3Vehicle />
+      case 4:
+        return <Step4Extras />
+      case 5:
+        return <Step5Passenger />
       default:
         return <StepStub step={currentStep} />
     }
@@ -82,8 +106,8 @@ export default function BookingWizard() {
         key={currentStep}
         className={`animate-step-enter ${currentStep === 3 ? '' : 'max-w-xl'}`}
       >
-        {/* Step heading — full treatment for steps 1-3 */}
-        {currentStep <= 3 ? (
+        {/* Step heading — full treatment for steps 1-5 */}
+        {currentStep <= 5 ? (
           <div className="mb-8">
             <p className="label mb-6">STEP {currentStep} OF 6</p>
             <span className="copper-line mb-6 block" />
@@ -100,7 +124,11 @@ export default function BookingWizard() {
                 ? 'Select your journey'
                 : currentStep === 2
                 ? 'Select your date & time'
-                : 'Choose your vehicle'}
+                : currentStep === 3
+                ? 'Choose your vehicle'
+                : currentStep === 4
+                ? 'Add extras'
+                : 'Passenger details'}
             </h2>
           </div>
         ) : (
