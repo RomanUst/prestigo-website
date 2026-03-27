@@ -46,16 +46,16 @@
 
 ### Step 4 — Extras
 
-- [ ] **STEP4-01**: User can add extras: Child Seat, Meet & Greet (sign with name), Extra Luggage
-- [ ] **STEP4-02**: Each extra shows its price increment
-- [ ] **STEP4-03**: PriceSummary updates to include selected extras
+- [x] **STEP4-01**: User can add extras: Child Seat, Meet & Greet (sign with name), Extra Luggage
+- [x] **STEP4-02**: Each extra shows its price increment
+- [x] **STEP4-03**: PriceSummary updates to include selected extras
 
 ### Step 5 — Passenger Details
 
-- [ ] **STEP5-01**: User fills: First Name, Last Name, Email, Phone (required)
-- [ ] **STEP5-02**: For airport rides: Flight Number field (required), Terminal (optional)
-- [ ] **STEP5-03**: Special Requests / Notes field (optional, max 500 chars)
-- [ ] **STEP5-04**: All fields validated inline on blur (not on submit)
+- [x] **STEP5-01**: User fills: First Name, Last Name, Email, Phone (required)
+- [x] **STEP5-02**: For airport rides: Flight Number field (required), Terminal (optional)
+- [x] **STEP5-03**: Special Requests / Notes field (optional, max 500 chars)
+- [x] **STEP5-04**: All fields validated inline on blur (not on submit)
 
 ### Step 6 — Payment
 
