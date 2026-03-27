@@ -22,4 +22,11 @@ describe('PriceSummary', () => {
   describe('STEP3-05: Quote mode', () => {
     it.todo('shows "Request a quote" instead of price in quoteMode')
   })
+
+  describe('STEP4-03: PriceSummary extras total', () => {
+    it.todo('desktop panel displays base + extras total when extras are selected')
+    it.todo('mobile bar displays base + extras total when extras are selected')
+    it.todo('shows extras line items in desktop panel for each selected extra')
+    it.todo('total updates when extras are toggled on and off')
+  })
 })
