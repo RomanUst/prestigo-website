@@ -66,6 +66,10 @@ export interface BookingStore {
   distanceKm: number | null        // cached from API response
   priceBreakdown: Record<VehicleClass, PriceBreakdown> | null
   quoteMode: boolean               // true when route cannot be priced
+  // Step 4
+  extras: Extras
+  // Step 5
+  passengerDetails: PassengerDetails | null
   // Actions
   setTripType: (type: TripType) => void
   setOrigin: (place: PlaceResult | null) => void
@@ -83,6 +87,9 @@ export interface BookingStore {
   setDistanceKm: (km: number | null) => void
   setPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
   setQuoteMode: (q: boolean) => void
+  setExtras: (e: Extras) => void
+  toggleExtra: (key: keyof Extras) => void
+  setPassengerDetails: (d: PassengerDetails) => void
 }
 
 export const PRG_CONFIG = {

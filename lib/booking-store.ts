@@ -20,6 +20,8 @@ export const useBookingStore = create<BookingStore>()(
       distanceKm: null,
       priceBreakdown: null,
       quoteMode: false,
+      extras: { childSeat: false, meetAndGreet: false, extraLuggage: false },
+      passengerDetails: null,
 
       setTripType: (type) => {
         set({ tripType: type })
@@ -46,6 +48,11 @@ export const useBookingStore = create<BookingStore>()(
       setDistanceKm: (km) => set({ distanceKm: km }),
       setPriceBreakdown: (p) => set({ priceBreakdown: p }),
       setQuoteMode: (q) => set({ quoteMode: q }),
+      setExtras: (e) => set({ extras: e }),
+      toggleExtra: (key) => set((s) => ({
+        extras: { ...s.extras, [key]: !s.extras[key] }
+      })),
+      setPassengerDetails: (d) => set({ passengerDetails: d }),
     }),
     {
       name: 'prestigo-booking',
@@ -66,6 +73,8 @@ export const useBookingStore = create<BookingStore>()(
         distanceKm: state.distanceKm,
         priceBreakdown: state.priceBreakdown,
         quoteMode: state.quoteMode,
+        extras: state.extras,
+        passengerDetails: state.passengerDetails,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
