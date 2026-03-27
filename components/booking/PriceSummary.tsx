@@ -1,6 +1,8 @@
 'use client'
 
 import { useBookingStore } from '@/lib/booking-store'
+import { EXTRAS_CONFIG, computeExtrasTotal } from '@/lib/extras'
+import type { Extras } from '@/types/booking'
 
 function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + '...' : text
@@ -15,8 +17,11 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const quoteMode = useBookingStore((s) => s.quoteMode)
   const nextStep = useBookingStore((s) => s.nextStep)
+  const extras = useBookingStore((s) => s.extras)
+  const currentStep = useBookingStore((s) => s.currentStep)
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
+  const extrasTotal = computeExtrasTotal(extras)
 
   const vehicleLabels: Record<string, string> = {
     business: 'Business',
@@ -37,7 +42,8 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
     if (!vehicleClass) return '\u2014'
     if (quoteMode) return 'Request a quote'
     if (!selectedPrice) return '\u2014'
-    return `\u20AC${selectedPrice.total}`
+    const displayTotal = selectedPrice.base + extrasTotal
+    return `\u20AC${displayTotal}`
   }
 
   const isQuoteOrNoPrice = !vehicleClass || quoteMode || !selectedPrice
@@ -93,14 +99,27 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         {vehicleClass ? vehicleLabels[vehicleClass] : '\u2014'}
       </span>
 
+      {/* Extras breakdown */}
+      {extrasTotal > 0 && (
+        <div style={{ marginBottom: 12 }}>
+          {EXTRAS_CONFIG.map(({ key, label, price }) =>
+            extras[key as keyof Extras] ? (
+              <p key={key} style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.8 }}>
+                {label} +&euro;{price}
+              </p>
+            ) : null
+          )}
+        </div>
+      )}
+
       {/* Price with cross-fade */}
       <span
-        key={vehicleClass ?? 'none'}
+        key={`${vehicleClass ?? 'none'}-${extrasTotal}`}
         style={{
           display: 'block',
           animation: 'fadeIn 0.15s ease forwards',
           fontSize: isQuoteOrNoPrice ? 13 : 20,
-          fontWeight: isQuoteOrNoPrice ? 400 : 500,
+          fontWeight: isQuoteOrNoPrice ? 400 : 400,
           color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
           fontFamily: 'var(--font-montserrat)',
         }}
@@ -129,11 +148,11 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
       }}
     >
       <span
-        key={vehicleClass ?? 'none'}
+        key={`${vehicleClass ?? 'none'}-${extrasTotal}`}
         style={{
           animation: 'fadeIn 0.15s ease forwards',
           fontSize: isQuoteOrNoPrice ? 13 : 20,
-          fontWeight: isQuoteOrNoPrice ? 400 : 500,
+          fontWeight: isQuoteOrNoPrice ? 400 : 400,
           color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
           fontFamily: 'var(--font-montserrat)',
         }}
@@ -141,15 +160,17 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         {priceDisplay()}
       </span>
 
-      <button
-        type="button"
-        className="btn-primary"
-        onClick={nextStep}
-        disabled={!vehicleClass}
-        style={!vehicleClass ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
-      >
-        Continue
-      </button>
+      {currentStep === 3 && (
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={nextStep}
+          disabled={!vehicleClass}
+          style={!vehicleClass ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+        >
+          Continue
+        </button>
+      )}
     </div>
   )
 
