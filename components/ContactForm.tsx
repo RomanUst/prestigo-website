@@ -112,7 +112,7 @@ export default function ContactForm({ whatsappNumber }: { whatsappNumber: string
             type="tel"
             value={form.phone}
             onChange={set('phone')}
-            placeholder="+420 000 000 000"
+            placeholder="+420 725 986 855"
             className={inputClass}
           />
         </div>

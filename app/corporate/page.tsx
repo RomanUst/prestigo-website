@@ -6,7 +6,7 @@ import Footer from '@/components/Footer'
 
 type FormState = 'idle' | 'sending' | 'success'
 
-const WHATSAPP_NUMBER = '420000000000'
+const WHATSAPP_NUMBER = '420725986855'
 
 export default function CorporatePage() {
   const [form, setForm] = useState({ company: '', name: '', email: '', trips: '', notes: '' })

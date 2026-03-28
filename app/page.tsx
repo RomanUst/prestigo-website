@@ -32,8 +32,8 @@ const localBusinessSchema = {
   description:
     'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
   url: 'https://prestigo-site.vercel.app',
-  telephone: '+420000000000',
-  email: 'info@prestigo.com',
+  telephone: '+420725986855',
+  email: 'info@rideprestigo.com',
   priceRange: '€€€',
   currenciesAccepted: 'CZK, EUR',
   paymentAccepted: 'Cash, Credit Card',

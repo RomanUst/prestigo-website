@@ -72,13 +72,18 @@ export default function Footer() {
             <p className="label mb-5">Contact</p>
             <ul className="flex flex-col gap-3">
               <li>
-                <a href="tel:+420000000000" className="body-text text-[11px] hover:text-offwhite transition-colors">
-                  +420 000 000 000
+                <a href="tel:+420725986855" className="body-text text-[11px] hover:text-offwhite transition-colors">
+                  +420 725 986 855
                 </a>
               </li>
               <li>
-                <a href="mailto:info@prestigo.com" className="body-text text-[11px] hover:text-offwhite transition-colors">
-                  info@prestigo.com
+                <a href="https://wa.me/420725986855" target="_blank" rel="noopener noreferrer" className="body-text text-[11px] hover:text-[#25D366] transition-colors">
+                  WhatsApp
+                </a>
+              </li>
+              <li>
+                <a href="mailto:info@rideprestigo.com" className="body-text text-[11px] hover:text-offwhite transition-colors">
+                  info@rideprestigo.com
                 </a>
               </li>
               <li>

@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
 }
 
-const WHATSAPP_NUMBER = '420000000000' // replace with real number
+const WHATSAPP_NUMBER = '420725986855'
 
 export default function ContactPage() {
   return (
@@ -72,14 +72,14 @@ export default function ContactPage() {
             <div className="flex flex-col gap-6">
               <div>
                 <p className="label mb-3">Phone</p>
-                <a href="tel:+420000000000" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
-                  +420 000 000 000
+                <a href="tel:+420725986855" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
+                  +420 725 986 855
                 </a>
               </div>
               <div>
                 <p className="label mb-3">Email</p>
-                <a href="mailto:info@prestigo.com" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
-                  info@prestigo.com
+                <a href="mailto:info@rideprestigo.com" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
+                  info@rideprestigo.com
                 </a>
               </div>
               <div>

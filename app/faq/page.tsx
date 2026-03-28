@@ -23,7 +23,7 @@ const sections = [
       },
       {
         q: 'How far in advance do I need to book?',
-        a: 'We recommend booking at least 4 hours in advance. For same-day bookings, call directly on +420 XXX XXX XXX.',
+        a: 'We recommend booking at least 4 hours in advance. For same-day bookings, call directly on +420 725 986 855.',
       },
       {
         q: 'Can I book for someone else?',
@@ -189,6 +189,12 @@ export default function FaqPage() {
             <a href="/contact" className="btn-primary">Contact Us</a>
             <a href="/book" className="btn-ghost">Book a Transfer</a>
           </div>
+          <p className="font-body font-light text-[12px] text-warmgrey mt-6">
+            Or email us at{' '}
+            <a href="mailto:info@rideprestigo.com" className="hover:text-offwhite transition-colors">
+              info@rideprestigo.com
+            </a>
+          </p>
         </div>
       </section>
 
