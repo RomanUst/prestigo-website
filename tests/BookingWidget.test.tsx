@@ -31,7 +31,6 @@ vi.mock('@/components/booking/AddressInput', () => ({
     placeholder: string
     onClear: () => void
     hasError?: boolean
-    ariaLabel: string
   }) => {
     // Capture the onSelect callback so tests can call it
     capturedOnSelect.set(ariaLabel, onSelect)

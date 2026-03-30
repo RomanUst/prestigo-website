@@ -1,9 +1,8 @@
 'use client'
 
-export default function BookingSection() {
-  // Replace this URL with your actual LimoAnywhere booking URL
-  const LIMOANYWHERE_URL = 'https://booking.limoanywhere.com/your-company-id'
+import BookingWidget from '@/components/booking/BookingWidget'
 
+export default function BookingSection() {
   return (
     <section id="book" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -45,41 +44,11 @@ export default function BookingSection() {
             </ul>
           </div>
 
-          {/* Right — LimoAnywhere iframe */}
+          {/* Right — Booking widget */}
           <div className="lg:col-span-3">
-            <div className="border border-anthracite-light bg-anthracite p-1">
-              <iframe
-                id="limoanywhere-frame"
-                src={LIMOANYWHERE_URL}
-                title="Book a transfer — PRESTIGO"
-                style={{
-                  width: '100%',
-                  minHeight: '520px',
-                  border: 'none',
-                  background: 'transparent',
-                }}
-                loading="lazy"
-              />
+            <div className="border border-anthracite-light bg-anthracite p-6 md:p-8">
+              <BookingWidget />
             </div>
-
-            {/* Placeholder shown until LimoAnywhere URL is set */}
-            {LIMOANYWHERE_URL.includes('your-company-id') && (
-              <div
-                className="border border-anthracite-light bg-anthracite p-12 flex flex-col items-center justify-center text-center gap-4"
-                style={{ minHeight: '520px' }}
-              >
-                <p className="label">Booking form</p>
-                <span className="copper-line" />
-                <p className="font-display font-light text-2xl text-offwhite">
-                  LimoAnywhere
-                </p>
-                <p className="body-text max-w-xs">
-                  Replace <code className="text-copper text-[11px]">LIMOANYWHERE_URL</code> in{' '}
-                  <code className="text-copper text-[11px]">BookingSection.tsx</code> with your
-                  actual booking URL.
-                </p>
-              </div>
-            )}
           </div>
         </div>
       </div>
