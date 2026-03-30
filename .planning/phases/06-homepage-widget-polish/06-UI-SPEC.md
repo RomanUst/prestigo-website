@@ -33,7 +33,7 @@ No shadcn gate applies — project uses a hand-crafted CSS token system via CSS 
 
 ## Spacing Scale
 
-Declared values (multiples of 4 where practical; project uses a luxury spacing vocabulary):
+Declared values (multiples of 4 only — grid contract):
 
 | Token | Value | Usage |
 |-------|-------|-------|
@@ -45,12 +45,21 @@ Declared values (multiples of 4 where practical; project uses a luxury spacing v
 | 2xl | 48px | Section vertical padding (mobile) |
 | 3xl | 64px | Page-level section breaks |
 
-Exceptions:
+Spacing exceptions (grid-conformant only):
 - Widget panel: `p-6` (24px) mobile / `p-8` (32px) desktop — sourced from CONTEXT.md decision
 - Touch targets for icon-only buttons (swap, stepper ±, clear ×): minimum 44px × 44px — UX-04/UX-05 accessibility requirement
-- `.btn-primary` button padding: 14px top/bottom, 32px left/right — defined in globals.css, do not change
 
-Source: STYLEGUIDE.md section 6 (Spacing), globals.css `.btn-primary`, CONTEXT.md (widget panel styling decision)
+### Preserved CSS Artifacts — Do Not Modify
+
+The following values exist in `globals.css` and must be preserved exactly as written. They are **not** spacing tokens and must not be listed in or compared against the token grid above.
+
+| Selector | Property | Existing Value | Instruction |
+|----------|----------|----------------|-------------|
+| `.btn-primary` | padding | `14px 32px` | Do not change — defined in globals.css, outside token grid |
+
+These values pre-date this phase contract. Executor must not alter them. They are recorded here for discoverability only.
+
+Source: globals.css `.btn-primary`
 
 ---
 
@@ -62,6 +71,8 @@ Source: STYLEGUIDE.md section 6 (Spacing), globals.css `.btn-primary`, CONTEXT.m
 | Label / field label | Montserrat | 9px | 400 (regular) | 1.2 | 0.4em | `var(--copper)` #B87333 |
 | UI / nav / button | Montserrat | 10px | 400 (regular) | 1.2 | 0.35em | `var(--offwhite)` #F5F2EE |
 | Section heading | Cormorant Garamond | 36–44px | 300 (light) | 1.1 | 0 | `var(--offwhite)` #F5F2EE |
+
+**Note — 9px label vs 10px UI/button:** The 1px difference between the label size (9px) and the UI/button size (10px) is intentional. Labels (`.label` class) are subordinate identifiers rendered at reduced scale to maintain visual hierarchy without competing with interactive elements. Executor must not "correct" this to a larger gap or unify the two sizes.
 
 Typography rules (from STYLEGUIDE.md):
 - All labels and buttons: `text-transform: uppercase`
@@ -101,6 +112,14 @@ Accent (`var(--copper)`) reserved for:
 Copper must NOT be used as a background color or fill for non-interactive surfaces.
 
 Source: STYLEGUIDE.md section 2 (Do/Don't), globals.css `:root`, CONTEXT.md (widget panel border/background decision)
+
+---
+
+## Visual Anchor
+
+**Primary visual anchor:** The "Book Now" `.btn-primary` CTA button at the base of the widget panel.
+
+It is the only copper-bordered, high-contrast interactive element in the widget. All other widget fields (address inputs, date/time, trip type tabs) are subordinate to it in visual weight. Nothing in the widget should compete with the CTA for prominence. The left-column trust signals and the copper decorative line (`copper-line`) serve as supporting context, not competing focal points.
 
 ---
 
