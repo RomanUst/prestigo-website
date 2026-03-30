@@ -31,8 +31,8 @@ export default function Stepper({ label, value, min, max, onChange }: StepperPro
           aria-label={`Decrease ${label.toLowerCase()}`}
           aria-disabled={atMin}
           style={{
-            width: '32px',
-            height: '32px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -53,7 +53,7 @@ export default function Stepper({ label, value, min, max, onChange }: StepperPro
             fontSize: '14px',
             fontWeight: 300,
             color: 'var(--warmgrey)',
-            minWidth: '32px',
+            minWidth: '36px',
             textAlign: 'center',
           }}
         >
@@ -66,8 +66,8 @@ export default function Stepper({ label, value, min, max, onChange }: StepperPro
           aria-label={`Increase ${label.toLowerCase()}`}
           aria-disabled={atMax}
           style={{
-            width: '32px',
-            height: '32px',
+            width: '44px',
+            height: '44px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
