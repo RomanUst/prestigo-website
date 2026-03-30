@@ -31,6 +31,9 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
   - Submit Resend DNS records for `rideprestige.com` (starts 24–48h propagation clock)
   - Deploy to Vercel and confirm production build succeeds
   - **Covers:** DB-01, DB-02, ENV-01, ENV-02, ENV-03
+  - **Plans:** 2 plans
+    - [ ] 07-01-PLAN.md — Create migration file, complete .env.example, clean supabase.ts
+    - [ ] 07-02-PLAN.md — Run migration in Supabase, set Vercel env vars, verify deployment, submit Resend DNS
 
 - [ ] **Phase 8: Stripe + Health Check + Maps Keys**
   - Build `/api/health` Route Handler with per-service probes (Supabase, Stripe, Resend)
@@ -47,6 +50,41 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
   - Send test emails to Gmail and Outlook, confirm inbox delivery (not spam)
   - **Covers:** EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04
 
+## Phase Details
+
+### Phase 7: Foundation — Supabase Schema + Env Vars + Deploy
+**Goal**: Production infrastructure is ready — Supabase schema migrated, all env vars set in Vercel, and a successful production deployment confirms the build works end-to-end
+**Depends on**: Phase 6
+**Requirements**: DB-01, DB-02, ENV-01, ENV-02, ENV-03
+**Plans:** 2 plans
+**Success Criteria** (what must be TRUE):
+  1. `supabase/migrations/0001_create_bookings.sql` exists with full bookings schema extracted from `lib/supabase.ts`
+  2. Bookings table exists in production Supabase and accepts inserts without error
+  3. `.env.example` documents all 8 required environment variables with descriptions
+  4. All 8 env vars set in Vercel Production scope (live keys not scoped to Preview or Development)
+  5. Production Vercel deployment succeeds with all env vars set
+  6. Resend DNS records submitted (starts 24–48h propagation clock)
+
+### Phase 8: Stripe + Health Check + Maps Keys
+**Goal**: All live service integrations are wired, tested, and confirmed working — Stripe webhook active, health endpoint green, Maps keys properly restricted
+**Depends on**: Phase 7
+**Requirements**: STRP-01, STRP-02, STRP-03, MAPS-01, MAPS-02
+**Success Criteria** (what must be TRUE):
+  1. `/api/health` returns 200 with all service checks passing in production
+  2. Stripe live-mode webhook registered at production URL, `STRIPE_WEBHOOK_SECRET` set in Vercel
+  3. Google Maps server-side key has API restriction only (no HTTP referrer)
+  4. Google Maps client-side key restricted to `rideprestige.com/*`
+
+### Phase 9: Resend Domain Verification + Email Sign-Off
+**Goal**: Emails are delivered to inbox from the verified domain — booking confirmation and manager alert both land correctly
+**Depends on**: Phase 7
+**Requirements**: EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04
+**Success Criteria** (what must be TRUE):
+  1. `rideprestige.com` domain verified in Resend Dashboard (SPF + DKIM propagated)
+  2. `from` address in `lib/email.ts` updated to verified domain
+  3. Client confirmation email delivered to inbox (not spam) from verified domain
+  4. Manager alert email delivered to inbox (not spam) from verified domain
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -57,6 +95,6 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
 | 4. Payment | v1.0 | 4/4 | Complete | 2026-03-30 |
 | 5. Backend & Notifications | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 6. Homepage Widget & Polish | v1.0 | 3/3 | Complete | 2026-03-30 |
-| 7. Foundation — Supabase + Env + Deploy | v1.1 | 0/? | Pending | — |
+| 7. Foundation — Supabase + Env + Deploy | v1.1 | 0/2 | Planned | — |
 | 8. Stripe + Health Check + Maps Keys | v1.1 | 0/? | Pending | — |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 0/? | Pending | — |
