@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-30T16:46:23.550Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-30T17:28:40.687Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 25
+  completed_plans: 23
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 05 — backend-notifications
+**Current focus:** Phase 06 — homepage-widget-polish
 
 ## Current Position
 
-Phase: 05 (backend-notifications) — EXECUTING
+Phase: 06 (homepage-widget-polish) — EXECUTING
 Plan: 1 of 3
 
 ## Performance Metrics
@@ -64,6 +64,7 @@ Plan: 1 of 3
 | Phase 05-backend-notifications P01 | 7min | 2 tasks | 4 files |
 | Phase 05-backend-notifications P02 | 8 | 1 tasks | 1 files |
 | Phase 05-backend-notifications P03 | 5min | 2 tasks | 4 files |
+| Phase 06-homepage-widget-polish P06-01 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -119,6 +120,9 @@ Recent decisions affecting current work:
 - [Phase 05-backend-notifications]: Template string HTML email (no React Email) — zero extra deps, all send functions non-fatal (try/catch, never throw)
 - [Phase 05-backend-notifications]: Webhook email calls wrapped individually in try/catch at route level — defense in depth beyond email.ts internal catching
 - [Phase 05-backend-notifications]: vi.hoisted() pattern required for Stripe constructor mock when new Stripe() is called at module load time
+- [Phase 06-homepage-widget-polish]: BookingWidget uses local state for origin/destination/date/time, writes to Zustand only on CTA click
+- [Phase 06-homepage-widget-polish]: capturedOnSelect Map pattern mocks AddressInput in tests to enable address selection simulation without Google Places
+- [Phase 06-homepage-widget-polish]: todayStr via useEffect prevents SSR hydration mismatch on date input min attribute
 
 ### Pending Todos
 
@@ -130,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T16:46:23.543Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-homepage-widget-polish/06-CONTEXT.md
+Last session: 2026-03-30T17:28:40.679Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None

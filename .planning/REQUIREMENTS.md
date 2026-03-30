@@ -92,9 +92,9 @@
 
 ### Homepage Widget
 
-- [ ] **HOME-01**: Mini booking widget embedded on homepage
-- [ ] **HOME-02**: Widget contains: trip type selector + origin/destination (or hours for hourly) + date/time + CTA button
-- [ ] **HOME-03**: CTA "Get a Quote" / "Book Now" carries filled data to /book wizard (Step 2 or Step 3)
+- [x] **HOME-01**: Mini booking widget embedded on homepage
+- [x] **HOME-02**: Widget contains: trip type selector + origin/destination (or hours for hourly) + date/time + CTA button
+- [x] **HOME-03**: CTA "Get a Quote" / "Book Now" carries filled data to /book wizard (Step 2 or Step 3)
 
 ### UX & Accessibility
 
