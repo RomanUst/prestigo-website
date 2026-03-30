@@ -100,7 +100,7 @@ Plans:
   3. Manager receives a new-booking alert email with all booking details within seconds of payment
   4. If the Supabase API fails on first attempt, it retries up to 3 times before the booking is considered lost
   5. The /book/confirmation page displays a booking reference that matches the Supabase record
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 05-01-PLAN.md — Supabase client, saveBooking with retry, fix Step6Payment metadata
@@ -129,5 +129,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
 | 3. Booking Details | 2/4 | In Progress|  |
 | 4. Payment | 4/4 | Complete   | 2026-03-30 |
-| 5. Backend & Notifications | 0/3 | Not started | - |
+| 5. Backend & Notifications | 2/3 | In Progress|  |
 | 6. Homepage Widget & Polish | 0/TBD | Not started | - |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 5 context gathered
-last_updated: "2026-03-30T15:38:11.024Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-30T16:17:58.625Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 22
+  completed_plans: 20
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 04 — payment
+**Current focus:** Phase 05 — backend-notifications
 
 ## Current Position
 
-Phase: 04 (payment) — EXECUTING
-Plan: 1 of 4
+Phase: 05 (backend-notifications) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -61,6 +61,7 @@ Plan: 1 of 4
 | Phase 04-payment P01 | 2min | 2 tasks | 3 files |
 | Phase 04-payment P04-02 | 4min | 2 tasks | 4 files |
 | Phase 04-payment P04-03 | 3 | 1 tasks | 1 files |
+| Phase 05-backend-notifications P01 | 7min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Recent decisions affecting current work:
 - [Phase 04-payment]: handleNext in BookingWizard is async — intercepts step 5 in quoteMode for /api/submit-quote, falls through to nextStep() otherwise
 - [Phase 04-payment]: BookingWizard Back/Next bar guard: currentStep > 1 && currentStep < 6 — Step6Payment owns its own Pay button
 - [Phase 04-payment]: Confirmation page is standalone full-page route (not inside BookingWizard shell) — no wizard chrome; useRef snapshot captures store state before resetBooking
+- [Phase 05-backend-notifications]: Supabase client factory per-request (not singleton) to avoid cross-request auth state leakage
+- [Phase 05-backend-notifications]: payment_intent_id UNIQUE + ignoreDuplicates: true — Stripe retry dedup at DB level via upsert
+- [Phase 05-backend-notifications]: specialRequests truncated to 490 chars in Step6Payment to stay within Stripe 500-char metadata limit
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:38:11.017Z
-Stopped at: Phase 5 context gathered
-Resume file: .planning/phases/05-backend-notifications/05-CONTEXT.md
+Last session: 2026-03-30T16:17:58.619Z
+Stopped at: Completed 05-01-PLAN.md
+Resume file: None
