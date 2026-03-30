@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
 milestone: v1.0
-milestone_name: milestone
+milestone_name: MVP
 status: shipped
-stopped_at: "v1.0 shipped — Phase 5+6 pushed to RomanUst/prestigo-website main (9 commits, 2026-03-30)"
-last_updated: "2026-03-30T18:30:00.000Z"
+stopped_at: Completed 06-03-PLAN.md — Phase 6 sign-off, v1.0 milestone reached
+last_updated: "2026-03-30T19:47:02.321Z"
 progress:
   total_phases: 6
   completed_phases: 6
@@ -16,10 +16,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-24)
+See: .planning/PROJECT.md (updated 2026-03-30 after v1.0 milestone)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 06 — COMPLETE. All 6 phases done. Project at v1.0 milestone.
+**Current focus:** v1.0 MVP shipped. Planning next milestone with `/gsd:new-milestone`.
 
 ## Current Position
 

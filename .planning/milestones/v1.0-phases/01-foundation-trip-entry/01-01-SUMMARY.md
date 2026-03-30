@@ -119,6 +119,16 @@ Replace `YOUR_KEY_HERE` in `prestigo/.env.local` with a valid Google Maps API ke
 - Run vitest with Node v22: `PATH="/Users/romanustyugov/.nvm/versions/node/v22.22.1/bin:$PATH" npx vitest run`
 - 01-02 (TripTypeTabs component) can now import `TripType` from `@/types/booking` and `useBookingStore` from `@/lib/booking-store`
 
+## Self-Check: PASSED
+
+- FOUND: prestigo/types/booking.ts
+- FOUND: prestigo/lib/booking-store.ts
+- FOUND: prestigo/.env.example
+- FOUND: .planning/phases/01-foundation-trip-entry/01-01-SUMMARY.md
+- FOUND: commit 925d5ef (chore - Task 1)
+- FOUND: commit be9c70e (feat - Task 2)
+- TypeScript: tsc --noEmit exits 0
+
 ---
 *Phase: 01-foundation-trip-entry*
 *Completed: 2026-03-25*

@@ -2,9 +2,9 @@
 
 ## What This Is
 
-Custom multi-step booking wizard for rideprestige.com — a premium chauffeur service based in Prague. Clients can book one-way transfers, airport rides, hourly, or daily hire directly on the site, see a live price estimate, and pay online via Stripe.
+Custom multi-step booking wizard for rideprestige.com — a premium chauffeur service based in Prague. Clients can book one-way transfers, airport rides (pickup and dropoff), hourly hire, or daily hire directly on the site. They select a vehicle class with a live price, add optional extras, fill in passenger details, and pay online via Stripe — all without leaving the site.
 
-Built inside the existing Next.js + Tailwind CSS project (`prestigo/`), matching the PRESTIGO brand: anthracite background, copper accent, Cormorant Garamond + Montserrat typography.
+Built inside the existing Next.js + Tailwind CSS project (`prestigo/`), matching the PRESTIGO brand: anthracite background, copper accent, Cormorant Garamond + Montserrat typography. A mini booking widget on the homepage lets users pre-fill key fields and jump into the wizard.
 
 ## Core Value
 
@@ -14,49 +14,60 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 
 ### Validated
 
-- [x] Optional extras: child seat, meet & greet, extra luggage — Validated in Phase 3: booking-details
-- [x] Flight number field for airport rides (no live flight API in v1) — Validated in Phase 3: booking-details
-- [x] Inline field validation (on blur, not on submit) — Validated in Phase 3: booking-details
+- ✓ Zustand store with sessionStorage persistence — v1.0
+- ✓ 6-step wizard shell with progress bar and animated transitions — v1.0
+- ✓ Step 1: trip type selector (5 types), Google Places Autocomplete, PRG airport auto-fill — v1.0
+- ✓ Step 2: date picker (no past dates) + 15-min time slots — v1.0
+- ✓ Step 3: vehicle selection (Business, First Class, Business Van) with live price — v1.0
+- ✓ Google Routes API pricing engine server-side, API key never exposed — v1.0
+- ✓ "Request a quote" fallback for unmapped routes — v1.0
+- ✓ Step 4: optional extras (child seat, meet & greet, extra luggage) with price increments — v1.0
+- ✓ Step 5: passenger details with inline Zod validation on blur — v1.0
+- ✓ Flight number field for airport rides (no live flight API) — v1.0
+- ✓ Step 6: Stripe PaymentIntent, double-charge protection, inline error recovery — v1.0
+- ✓ Confirmation page at /book/confirmation with booking reference + ICS calendar download — v1.0
+- ✓ Supabase persistence with 3-retry backoff + Stripe webhook as source of truth — v1.0
+- ✓ Client confirmation email + manager alert email via Resend — v1.0
+- ✓ BookingWidget on homepage (replaced LimoAnywhere iframe) — v1.0
+- ✓ Fully responsive at 375px, WCAG touch targets 44px, keyboard navigation — v1.0
 
 ### Active
 
-- [ ] Mini booking widget embedded on the homepage (trip type selector + key fields)
-- [ ] Full multi-step booking wizard at `/book` (Step 1: Type + Route → Step 2: Date/Time → Step 3: Vehicle → Step 4: Extras → Step 5: Passenger details → Step 6: Payment)
-- [ ] 4 trip types: One-way transfer, Airport pickup, Airport dropoff, Hourly hire, Daily/multi-day
-- [ ] Live price calculation via Google Maps Routes API (distance × rate per km per class)
-- [ ] Fallback to "Request a quote" for unmapped routes
-- [ ] Google Places Autocomplete for address fields
-- [ ] Flight number field for airport rides (no live flight API in v1)
-- [ ] 3 vehicle classes: Business, First Class, Business Van — with photos, capacity, features
-- [ ] Optional extras: child seat, meet & greet, extra luggage
-- [ ] Stripe online payment (full amount at booking)
-- [ ] Email confirmation to client (booking summary)
-- [ ] Email notification to manager (new booking alert)
-- [ ] Booking saved to Notion database via Notion API
-- [ ] Booking saved to own DB via Next.js API routes
-- [ ] Form state persisted across steps (no data loss on back navigation)
-- [ ] Inline field validation (on blur, not on submit)
-- [ ] Progress bar showing current step
-- [ ] Fully responsive — mobile-first (375px+)
-- [ ] EN only
+*(Fresh requirements defined in next milestone — run `/gsd:new-milestone`)*
 
 ### Out of Scope
 
 - Multi-language support (CS/RU/DE) — deferred to v2
-- Real-time flight tracking API — not needed for v1, flight number collected only
+- Real-time flight tracking API — flight number collected only, no live lookup
 - User accounts / booking history — deferred to v2
 - SMS confirmation — email sufficient for v1
 - Partial payment / deposit — full Stripe payment only
 - Real-time availability calendar — manual confirmation flow
+- Promo / discount codes — revenue optimization, v2
+- Multi-stop routes — edge case, v2
 
 ## Context
 
-- **Existing project:** `prestigo/` — Next.js 14+ App Router, TypeScript, Tailwind CSS, Vercel deployment
-- **Existing `/book` page:** already exists, will be replaced/upgraded with the wizard
-- **Brand palette:** anthracite `#1C1C1E`, copper `#B87333`, off-white `#F5F2EE`, warm grey `#9A958F`
-- **Fonts:** Cormorant Garamond (display headings), Montserrat (body/labels)
-- **Target audience:** business travellers, premium clients — high expectation for polish
-- **Reference UX patterns:** almasyf.cz 3-step wizard, blacklane.com homepage widget, driveczech.com 4-step progress
+- **Shipped:** v1.0 MVP on 2026-03-30 — 6 phases, 25 plans, 82 files, 17,244 insertions, ~360K LOC TypeScript
+- **Repository:** RomanUst/prestigo-website (main branch)
+- **Tech stack:** Next.js 14+ App Router, TypeScript, Tailwind CSS, Zustand, Zod, Stripe Elements, Supabase, Resend, Google Maps Platform
+- **Deployment:** Vercel (serverless)
+- **32/32 tests passing** (Vitest + Testing Library)
+- **Known gaps:** Supabase/Resend env vars (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, MANAGER_EMAIL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET) need to be set in Vercel for live operation
+
+## Key Decisions
+
+| Decision | Rationale | Outcome |
+|----------|-----------|---------|
+| Custom form instead of LimoAnywhere iframe | Full design control, no vendor lock-in, matches brand exactly | ✓ Good — iframe fully removed, widget verified production-ready |
+| Wizard pattern (multi-step) over single page | Reduces cognitive load, allows live price reveal after route+vehicle | ✓ Good — UX flow verified with human sign-off |
+| Stripe full payment at booking | Simpler flow, premium clients expect instant confirmation | ✓ Good — double-charge guard and error recovery in place |
+| Mini widget on homepage + full wizard on /book | Serves "quick start" and "detailed booking" user needs | ✓ Good — widget data carries into wizard at Step 2/3 |
+| Live Google Maps pricing with quote fallback | Best UX for known routes, graceful degradation for edge cases | ✓ Good — quoteMode verified working |
+| Stripe webhook as source of truth | Booking saved and emails sent only after confirmed payment | ✓ Good — avoids double-saves on client retries |
+| Supabase over Notion for booking persistence | Structured relational data, UNIQUE constraint for dedup | ✓ Good — payment_intent_id UNIQUE prevents replay saves |
+| Rate tables server-side only (lib/pricing.ts) | Pricing logic never reaches browser bundle | ✓ Good — API key protection verified |
+| sessionStorage for wizard state via Zustand partialize | Survives page refresh; clears on browser close | ✓ Good — tested at all steps |
 
 ## Constraints
 
@@ -64,17 +75,7 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Deployment:** Vercel — serverless functions only (no long-running processes)
 - **Payment:** Stripe only — no other gateways in v1
 - **Maps:** Google Maps Platform (Places Autocomplete + Routes API)
-- **Notifications:** Resend or similar transactional email service
-
-## Key Decisions
-
-| Decision | Rationale | Outcome |
-|----------|-----------|---------|
-| Custom form instead of LimoAnywhere iframe | Full design control, no vendor lock-in, matches brand exactly | — Pending |
-| Wizard pattern (multi-step) over single page | Reduces cognitive load, allows live price reveal after route+vehicle selected | — Pending |
-| Stripe full payment at booking | Simpler flow, premium clients expect instant confirmation | — Pending |
-| Mini widget on homepage + full wizard on /book | Serves both "quick start" and "detailed booking" user needs | — Pending |
-| Live Google Maps pricing with quote fallback | Best UX for known routes, graceful degradation for edge cases | — Pending |
+- **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-03-27 — Phase 3 (booking-details) complete: Steps 4-5 built and verified*
+*Last updated: 2026-03-30 after v1.0 milestone*
