@@ -223,7 +223,10 @@ export default function AddressInput({
           type="text"
           value={inputValue}
           onChange={handleInputChange}
-          onFocus={handleFocus}
+          onFocus={(e) => {
+            handleFocus()
+            e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })
+          }}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}

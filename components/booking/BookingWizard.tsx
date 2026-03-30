@@ -195,6 +195,7 @@ export default function BookingWizard() {
                 backgroundColor: 'var(--anthracite)',
                 borderTop: '1px solid var(--anthracite-light)',
                 padding: '0 16px',
+                paddingBottom: 'env(safe-area-inset-bottom)',
                 height: 72,
               }}
             >

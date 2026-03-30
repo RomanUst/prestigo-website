@@ -145,6 +145,7 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         background: 'var(--anthracite-mid)',
         borderTop: '1px solid var(--anthracite-light)',
         padding: '0 16px',
+        paddingBottom: 'env(safe-area-inset-bottom)',
         alignItems: 'center',
         justifyContent: 'space-between',
         zIndex: 50,

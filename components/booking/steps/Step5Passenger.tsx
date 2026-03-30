@@ -73,6 +73,7 @@ export default function Step5Passenger() {
             {...register('firstName')}
             aria-required="true"
             aria-describedby={errors.firstName ? 'firstName-error' : undefined}
+            onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
             style={{
               width: '100%',
               background: 'var(--anthracite-mid)',
@@ -100,6 +101,7 @@ export default function Step5Passenger() {
             {...register('lastName')}
             aria-required="true"
             aria-describedby={errors.lastName ? 'lastName-error' : undefined}
+            onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
             style={{
               width: '100%',
               background: 'var(--anthracite-mid)',
@@ -129,6 +131,7 @@ export default function Step5Passenger() {
           {...register('email')}
           aria-required="true"
           aria-describedby={errors.email ? 'email-error' : undefined}
+          onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
@@ -157,6 +160,7 @@ export default function Step5Passenger() {
           {...register('phone')}
           aria-required="true"
           aria-describedby={errors.phone ? 'phone-error' : undefined}
+          onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
@@ -187,6 +191,7 @@ export default function Step5Passenger() {
               {...register('flightNumber')}
               aria-required={isAirportRide}
               aria-describedby={errors.flightNumber ? 'flightNumber-error' : undefined}
+              onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
               placeholder="e.g. BA256"
               style={{
                 width: '100%',
@@ -214,6 +219,7 @@ export default function Step5Passenger() {
               type="text"
               {...register('terminal')}
               aria-describedby={errors.terminal ? 'terminal-error' : undefined}
+              onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
               style={{
                 width: '100%',
                 background: 'var(--anthracite-mid)',
@@ -244,6 +250,7 @@ export default function Step5Passenger() {
           placeholder="Any special requirements for your journey"
           maxLength={500}
           rows={4}
+          onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
