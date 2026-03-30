@@ -123,6 +123,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
 | 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
 | 3. Booking Details | 2/4 | In Progress|  |
-| 4. Payment | 0/TBD | Not started | - |
+| 4. Payment | 1/4 | In Progress|  |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
 | 6. Homepage Widget & Polish | 0/TBD | Not started | - |

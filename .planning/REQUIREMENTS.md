@@ -59,12 +59,12 @@
 
 ### Step 6 — Payment
 
-- [ ] **STEP6-01**: Full booking summary shown before card input (route, vehicle, date, total)
-- [ ] **STEP6-02**: Stripe Elements card input rendered (card number, expiry, CVC)
-- [ ] **STEP6-03**: "Pay" button creates Stripe PaymentIntent and confirms payment
-- [ ] **STEP6-04**: Pay button disabled immediately on click (no double-charge)
-- [ ] **STEP6-05**: Payment error displayed inline with retry option (no data loss)
-- [ ] **STEP6-06**: On successful payment, user redirected to /book/confirmation
+- [x] **STEP6-01**: Full booking summary shown before card input (route, vehicle, date, total)
+- [x] **STEP6-02**: Stripe Elements card input rendered (card number, expiry, CVC)
+- [x] **STEP6-03**: "Pay" button creates Stripe PaymentIntent and confirms payment
+- [x] **STEP6-04**: Pay button disabled immediately on click (no double-charge)
+- [x] **STEP6-05**: Payment error displayed inline with retry option (no data loss)
+- [x] **STEP6-06**: On successful payment, user redirected to /book/confirmation
 
 ### Pricing Engine
 
@@ -77,10 +77,10 @@
 
 ### Payment Integration
 
-- [ ] **PAY-01**: Stripe PaymentIntent created server-side with calculated amount
-- [ ] **PAY-02**: Stripe secret key never sent to client (only publishable key)
-- [ ] **PAY-03**: Stripe webhook `/api/webhooks/stripe` handles `payment_intent.succeeded`
-- [ ] **PAY-04**: Booking saved (Notion + log) only after webhook confirmation
+- [x] **PAY-01**: Stripe PaymentIntent created server-side with calculated amount
+- [x] **PAY-02**: Stripe secret key never sent to client (only publishable key)
+- [x] **PAY-03**: Stripe webhook `/api/webhooks/stripe` handles `payment_intent.succeeded`
+- [x] **PAY-04**: Booking saved (Notion + log) only after webhook confirmation
 
 ### Backend & Notifications
 

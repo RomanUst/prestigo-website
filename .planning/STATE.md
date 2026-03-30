@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 03-03-PLAN.md
-last_updated: "2026-03-27T06:29:18.901Z"
+stopped_at: Completed 04-payment 04-00-PLAN.md
+last_updated: "2026-03-30T15:07:14.500Z"
 progress:
   total_phases: 6
   completed_phases: 3
-  total_plans: 15
-  completed_plans: 15
+  total_plans: 19
+  completed_plans: 16
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 03 — booking-details
+**Current focus:** Phase 04 — payment
 
 ## Current Position
 
-Phase: 03 (booking-details) — EXECUTING
-Plan: 3 of 4
+Phase: 04 (payment) — EXECUTING
+Plan: 1 of 4
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: 3 of 4
 | Phase 03-booking-details P01 | 4min | 2 tasks | 3 files |
 | Phase 03-booking-details P02 | 2 | 2 tasks | 5 files |
 | Phase 03 P03 | 2min | 2 tasks | 2 files |
+| Phase 04-payment P04-00 | 4min | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -97,6 +98,9 @@ Recent decisions affecting current work:
 - [Phase 03-booking-details]: Mobile bar Continue button guarded by currentStep === 3 to prevent double-bar overlap at steps 4+
 - [Phase 03]: Zod schema factory function pattern for runtime conditional required fields (flightNumber airport gate)
 - [Phase 03]: canProceed case 5 reads passengerDetails from store — watch+useEffect syncs on keystroke so store is always current
+- [Phase 04-payment]: paymentIntentClientSecret and bookingReference excluded from partialize — sensitive payment data must not persist to sessionStorage
+- [Phase 04-payment]: CZK_TO_EUR_RATE fixed at 0.04 in lib/currency.ts; czkToEur uses Math.round for whole euro amounts
+- [Phase 04-payment]: setup.ts keeps .ts extension; Stripe mock uses React.createElement instead of JSX
 
 ### Pending Todos
 
@@ -108,6 +112,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-27T06:10:19.297Z
-Stopped at: Completed 03-03-PLAN.md
+Last session: 2026-03-30T15:07:14.496Z
+Stopped at: Completed 04-payment 04-00-PLAN.md
 Resume file: None
