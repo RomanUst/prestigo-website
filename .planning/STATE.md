@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-payment 04-00-PLAN.md
-last_updated: "2026-03-30T15:07:14.500Z"
+stopped_at: Completed 04-payment 04-01-PLAN.md
+last_updated: "2026-03-30T15:11:08.495Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 19
-  completed_plans: 16
+  completed_plans: 17
 ---
 
 # Project State
@@ -58,6 +58,7 @@ Plan: 1 of 4
 | Phase 03-booking-details P02 | 2 | 2 tasks | 5 files |
 | Phase 03 P03 | 2min | 2 tasks | 2 files |
 | Phase 04-payment P04-00 | 4min | 2 tasks | 9 files |
+| Phase 04-payment P01 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -101,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase 04-payment]: paymentIntentClientSecret and bookingReference excluded from partialize — sensitive payment data must not persist to sessionStorage
 - [Phase 04-payment]: CZK_TO_EUR_RATE fixed at 0.04 in lib/currency.ts; czkToEur uses Math.round for whole euro amounts
 - [Phase 04-payment]: setup.ts keeps .ts extension; Stripe mock uses React.createElement instead of JSX
+- [Phase 04-payment]: Webhook route uses request.text() raw body — request.json() would break constructEvent signature verification
+- [Phase 04-payment]: submit-quote is Phase 4 stub only — Phase 5 adds Notion save and manager alert email
 
 ### Pending Todos
 
@@ -112,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:07:14.496Z
-Stopped at: Completed 04-payment 04-00-PLAN.md
+Last session: 2026-03-30T15:11:08.490Z
+Stopped at: Completed 04-payment 04-01-PLAN.md
 Resume file: None
