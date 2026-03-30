@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: complete
-stopped_at: Completed 06-03-PLAN.md — Phase 6 sign-off, v1.0 milestone reached
-last_updated: "2026-03-30T18:14:57.218Z"
+status: shipped
+stopped_at: "v1.0 shipped — Phase 5+6 pushed to RomanUst/prestigo-website main (9 commits, 2026-03-30)"
+last_updated: "2026-03-30T18:30:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 6
