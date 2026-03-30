@@ -2,6 +2,7 @@
 
 import { useBookingStore } from '@/lib/booking-store'
 import { PRG_CONFIG } from '@/types/booking'
+import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
 import Step1TripType from './steps/Step1TripType'
@@ -9,9 +10,12 @@ import Step2DateTime from './steps/Step2DateTime'
 import Step3Vehicle from './steps/Step3Vehicle'
 import Step4Extras from './steps/Step4Extras'
 import Step5Passenger from './steps/Step5Passenger'
+import Step6Payment from './steps/Step6Payment'
 
 export default function BookingWizard() {
   const { currentStep, completedSteps, nextStep, prevStep } = useBookingStore()
+  const router = useRouter()
+  const quoteMode = useBookingStore((s) => s.quoteMode)
 
   const tripType = useBookingStore((s) => s.tripType)
   const pickupDate = useBookingStore((s) => s.pickupDate)
@@ -65,9 +69,42 @@ export default function BookingWizard() {
         return <Step4Extras />
       case 5:
         return <Step5Passenger />
+      case 6:
+        return <Step6Payment />
       default:
         return <StepStub step={currentStep} />
     }
+  }
+
+  const handleNext = async () => {
+    if (currentStep === 5 && quoteMode) {
+      // Quote mode: skip payment, submit quote, go to confirmation
+      try {
+        const store = useBookingStore.getState()
+        const res = await fetch('/api/submit-quote', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            tripType: store.tripType,
+            origin: store.origin?.address,
+            destination: store.destination?.address,
+            pickupDate: store.pickupDate,
+            pickupTime: store.pickupTime,
+            vehicleClass: store.vehicleClass,
+            passengers: store.passengers,
+            extras: store.extras,
+            passengerDetails: store.passengerDetails,
+          }),
+        })
+        const data = await res.json()
+        router.push(`/book/confirmation?type=quote&ref=${data.quoteReference}`)
+      } catch {
+        // On error, still navigate with a fallback reference
+        router.push('/book/confirmation?type=quote&ref=QR-error')
+      }
+      return
+    }
+    nextStep()
   }
 
   const buttons = (
@@ -84,7 +121,7 @@ export default function BookingWizard() {
       <button
         type="button"
         className="btn-primary"
-        onClick={nextStep}
+        onClick={handleNext}
         disabled={!canProceed}
         style={!canProceed ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
       >
@@ -104,10 +141,10 @@ export default function BookingWizard() {
       {/* Step content */}
       <div
         key={currentStep}
-        className={`animate-step-enter ${currentStep === 3 ? '' : 'max-w-xl'}`}
+        className={`animate-step-enter ${currentStep === 3 || currentStep === 6 ? '' : 'max-w-xl'}`}
       >
-        {/* Step heading — full treatment for steps 1-5 */}
-        {currentStep <= 5 ? (
+        {/* Step heading — full treatment for steps 1-6 */}
+        {currentStep <= 6 ? (
           <div className="mb-8">
             <p className="label mb-6">STEP {currentStep} OF 6</p>
             <span className="copper-line mb-6 block" />
@@ -128,7 +165,9 @@ export default function BookingWizard() {
                 ? 'Choose your vehicle'
                 : currentStep === 4
                 ? 'Add extras'
-                : 'Passenger details'}
+                : currentStep === 5
+                ? 'Passenger details'
+                : 'Payment'}
             </h2>
           </div>
         ) : (
@@ -140,8 +179,8 @@ export default function BookingWizard() {
         {renderStepContent()}
       </div>
 
-      {/* Generic Back/Next button bar — only rendered for steps 2–6 (not step 1) */}
-      {currentStep > 1 && (
+      {/* Generic Back/Next button bar — only rendered for steps 2–5 (not step 1 or step 6) */}
+      {currentStep > 1 && currentStep < 6 && (
         <>
           {/* Desktop button row — hidden on mobile */}
           <div className="hidden md:flex justify-end gap-4 mt-8">

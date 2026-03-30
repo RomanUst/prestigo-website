@@ -20,6 +20,9 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
   const extras = useBookingStore((s) => s.extras)
   const currentStep = useBookingStore((s) => s.currentStep)
 
+  // Hide PriceSummary entirely at Step 6 (payment page has its own summary)
+  if (currentStep === 6) return null
+
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
 
