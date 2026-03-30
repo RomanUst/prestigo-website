@@ -31,9 +31,19 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ BookingWidget on homepage (replaced LimoAnywhere iframe) — v1.0
 - ✓ Fully responsive at 375px, WCAG touch targets 44px, keyboard navigation — v1.0
 
-### Active
+## Current Milestone: v1.1 Go Live
 
-*(Fresh requirements defined in next milestone — run `/gsd:new-milestone`)*
+**Goal:** Connect all external services (Supabase, Stripe, Resend, Google Maps) and deploy a smoke-tested production site that accepts real bookings end-to-end.
+
+**Target features:**
+- Supabase bookings table created with correct schema
+- All 8 environment variables set in Vercel
+- Stripe webhook endpoint registered and verified
+- Resend sending domain verified and emails confirmed deliverable
+- Health check endpoint for live integration verification
+- End-to-end smoke test confirming a booking can complete in production
+
+### Active
 
 ### Out of Scope
 
@@ -78,4 +88,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-03-30 after v1.0 milestone*
+*Last updated: 2026-03-30 after v1.1 milestone start*
