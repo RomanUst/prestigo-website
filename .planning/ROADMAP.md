@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 2: Pricing & Vehicle Selection** - Google Routes API pricing engine, Steps 2-3 (date/time + vehicle)
 - [ ] **Phase 3: Booking Details** - Steps 4-5 (extras + passenger details) with inline validation
 - [x] **Phase 4: Payment** - Stripe integration, Step 6, confirmation page (completed 2026-03-30)
-- [ ] **Phase 5: Backend & Notifications** - Stripe webhook, Notion save, confirmation and manager emails
+- [ ] **Phase 5: Backend & Notifications** - Stripe webhook, Supabase save, confirmation and manager emails
 - [ ] **Phase 6: Homepage Widget & Polish** - Mini booking widget, mobile QA, accessibility
 
 ## Phase Details
@@ -91,16 +91,21 @@ Plans:
 **Plans**: TBD
 
 ### Phase 5: Backend & Notifications
-**Goal**: Every confirmed payment reliably triggers a Notion record, a client confirmation email, and a manager alert email
+**Goal**: Every confirmed payment reliably triggers a Supabase record, a client confirmation email, and a manager alert email
 **Depends on**: Phase 4
 **Requirements**: BACK-01, BACK-02, BACK-03, BACK-04, BACK-05
 **Success Criteria** (what must be TRUE):
-  1. After a successful Stripe payment, a new row appears in the Notion bookings database with complete booking details
+  1. After a successful Stripe payment, a new row appears in the Supabase bookings table with complete booking details
   2. Client receives a confirmation email with booking summary within seconds of payment
   3. Manager receives a new-booking alert email with all booking details within seconds of payment
-  4. If the Notion API fails on first attempt, it retries up to 3 times before the booking is considered lost
-  5. The /book/confirmation page displays a booking reference that matches the Notion record
-**Plans**: TBD
+  4. If the Supabase API fails on first attempt, it retries up to 3 times before the booking is considered lost
+  5. The /book/confirmation page displays a booking reference that matches the Supabase record
+**Plans:** 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Supabase client, saveBooking with retry, fix Step6Payment metadata
+- [ ] 05-02-PLAN.md — Email module: branded client confirmation, manager alert, emergency fallback
+- [ ] 05-03-PLAN.md — Wire webhook + submit-quote routes, write tests
 
 ### Phase 6: Homepage Widget & Polish
 **Goal**: A mini booking widget on the homepage lets users pre-fill key fields and jump into the wizard, and the full flow works flawlessly on mobile
@@ -124,5 +129,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
 | 3. Booking Details | 2/4 | In Progress|  |
 | 4. Payment | 4/4 | Complete   | 2026-03-30 |
-| 5. Backend & Notifications | 0/TBD | Not started | - |
+| 5. Backend & Notifications | 0/3 | Not started | - |
 | 6. Homepage Widget & Polish | 0/TBD | Not started | - |
