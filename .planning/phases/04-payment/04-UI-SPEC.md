@@ -54,16 +54,28 @@ Source: `STYLEGUIDE.md` spacing table, existing `Step5Passenger.tsx` (padding: `
 
 ## Typography
 
+4-size scale — no exceptions within this phase:
+
 | Role | Font | Size | Weight | Line Height | Letter Spacing | Color |
 |------|------|------|--------|-------------|----------------|-------|
-| Body | Montserrat | 13px | 300 | 1.8 | 0.03em | `var(--warmgrey)` `#9A958F` |
-| Input text | Montserrat | 14px | 300 | 1.5 | 0 | `var(--offwhite)` `#F5F2EE` |
-| Label | Montserrat | 9px | 400 | 1 | 0.4em | `var(--copper)` `#B87333` |
-| Section heading / price | Montserrat | 20px | 400 | 1.2 | 0 | `var(--offwhite)` `#F5F2EE` |
-| Display / confirmation heading | Cormorant Garamond | 26–36px | 300 | 1.1 | 0 | `var(--offwhite)` `#F5F2EE` |
-| Button | Montserrat | 10px | 400 | 1 | 0.35em | `var(--offwhite)` `#F5F2EE` |
-| Caption / meta | Montserrat | 10px | 400 | 1 | 0.4em | `var(--warmgrey)` `#9A958F` |
-| Error message | Montserrat | 14px | 300 | 1.5 | 0 | `#C0392B` |
+| Label / Button / Caption / Meta | Montserrat | 10px | 400 | 1 | 0.35–0.4em | varies (see notes) |
+| Body / Input text / Error message | Montserrat | 14px | 300 | 1.5 | 0 | varies (see notes) |
+| Section heading / Price | Montserrat | 20px | 400 | 1.2 | 0 | `var(--offwhite)` `#F5F2EE` |
+| Display / Confirmation heading | Cormorant Garamond | 32px | 300 | 1.1 | 0 | `var(--offwhite)` `#F5F2EE` |
+
+Color assignments per role:
+- Label text: `var(--copper)` `#B87333`
+- Button text: `var(--offwhite)` `#F5F2EE`
+- Caption / meta text: `var(--warmgrey)` `#9A958F`
+- Body copy: `var(--warmgrey)` `#9A958F`
+- Input text (user-entered value): `var(--offwhite)` `#F5F2EE`
+- Error message: `#C0392B`
+
+Letter spacing per role:
+- Label: 0.4em
+- Button: 0.35em
+- Caption / meta: 0.4em
+- Body / Input / Error: 0 (no tracking)
 
 Rules:
 - All labels: `text-transform: uppercase` — this is a brand constant, no exceptions
@@ -127,7 +139,7 @@ Stripe Appearance API tokens (use CSS custom property values):
     },
     '.Label': {
       fontFamily: "'Montserrat', 'Helvetica Neue', sans-serif",
-      fontSize: '9px',
+      fontSize: '10px',
       fontWeight: '400',
       letterSpacing: '0.4em',
       textTransform: 'uppercase',
@@ -156,12 +168,12 @@ Source: `04-CONTEXT.md` Stripe Integration section, `globals.css` `:root` tokens
   5. Pay button (`.btn-primary`, full width on mobile, auto width on desktop)
 - Booking summary block content order:
   1. "YOUR JOURNEY" label (`.label` class, copper)
-  2. Route: origin → destination (or `N hours` for Hourly) — 13px warmgrey
-  3. Date + time — 13px warmgrey
-  4. Vehicle class + passenger count — 13px warmgrey
+  2. Route: origin → destination (or `N hours` for Hourly) — 14px warmgrey
+  3. Date + time — 14px warmgrey
+  4. Vehicle class + passenger count — 14px warmgrey
   5. Extras list (each extra on its own line with `+CZK X` suffix) — shown only if extras selected
   6. Divider
-  7. Total in CZK (20px offwhite, weight 400) + EUR equivalent below it (13px warmgrey)
+  7. Total in CZK (20px offwhite, weight 400) + EUR equivalent below it (14px warmgrey)
 - Currency format: `CZK 2,450` primary (large), `(€98)` secondary (small, below or inline)
 - Pay button label includes amount: `PAY CZK 2,450` (uppercase, letter-spaced per `.btn-primary`)
 
@@ -175,7 +187,7 @@ Source: `04-CONTEXT.md` Stripe Integration section, `globals.css` `:root` tokens
   2. PRESTIGO wordmark (`.wordmark`) — links back to homepage
   3. Small vertical gap (32px)
   4. Confirmation status label (`.label`): "BOOKING CONFIRMED" or "QUOTE REQUEST SENT"
-  5. Booking reference — display size (Cormorant Garamond 26–36px, weight 300, offwhite), e.g. `PRG-20260330-0042`
+  5. Booking reference — display size (Cormorant Garamond 32px, weight 300, offwhite), e.g. `PRG-20260330-0042`
   6. Booking summary card (`var(--anthracite-mid)` background, `border-radius: 4px`, padding 24px)
   7. Divider
   8. Action buttons row: "Print / Save PDF" + "Add to Calendar" + "Contact Us" (all `.btn-ghost`)
