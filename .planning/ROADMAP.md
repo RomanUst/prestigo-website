@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 1: Foundation & Trip Entry** - Zustand store, types, wizard shell, Step 1 (trip type + route)
 - [x] **Phase 2: Pricing & Vehicle Selection** - Google Routes API pricing engine, Steps 2-3 (date/time + vehicle)
 - [ ] **Phase 3: Booking Details** - Steps 4-5 (extras + passenger details) with inline validation
-- [ ] **Phase 4: Payment** - Stripe integration, Step 6, confirmation page
+- [x] **Phase 4: Payment** - Stripe integration, Step 6, confirmation page (completed 2026-03-30)
 - [ ] **Phase 5: Backend & Notifications** - Stripe webhook, Notion save, confirmation and manager emails
 - [ ] **Phase 6: Homepage Widget & Polish** - Mini booking widget, mobile QA, accessibility
 
@@ -123,6 +123,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Foundation & Trip Entry | 5/6 | In Progress|  |
 | 2. Pricing & Vehicle Selection | 5/5 | Complete | 2026-03-26 |
 | 3. Booking Details | 2/4 | In Progress|  |
-| 4. Payment | 3/4 | In Progress|  |
+| 4. Payment | 4/4 | Complete   | 2026-03-30 |
 | 5. Backend & Notifications | 0/TBD | Not started | - |
 | 6. Homepage Widget & Polish | 0/TBD | Not started | - |

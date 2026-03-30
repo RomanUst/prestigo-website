@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-payment 04-02-PLAN.md
-last_updated: "2026-03-30T15:17:12.468Z"
+stopped_at: "Completed 04-payment 04-03-PLAN.md (awaiting checkpoint:human-verify)"
+last_updated: "2026-03-30T15:22:07.294Z"
 progress:
   total_phases: 6
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 19
-  completed_plans: 18
+  completed_plans: 19
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Plan: 1 of 4
 | Phase 04-payment P04-00 | 4min | 2 tasks | 9 files |
 | Phase 04-payment P01 | 2min | 2 tasks | 3 files |
 | Phase 04-payment P04-02 | 4min | 2 tasks | 4 files |
+| Phase 04-payment P04-03 | 3 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -108,6 +109,7 @@ Recent decisions affecting current work:
 - [Phase 04-payment]: Step6Payment uses local state for clientSecret (not Zustand) to avoid re-render cascade when secret arrives
 - [Phase 04-payment]: handleNext in BookingWizard is async — intercepts step 5 in quoteMode for /api/submit-quote, falls through to nextStep() otherwise
 - [Phase 04-payment]: BookingWizard Back/Next bar guard: currentStep > 1 && currentStep < 6 — Step6Payment owns its own Pay button
+- [Phase 04-payment]: Confirmation page is standalone full-page route (not inside BookingWizard shell) — no wizard chrome; useRef snapshot captures store state before resetBooking
 
 ### Pending Todos
 
@@ -119,6 +121,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:17:12.463Z
-Stopped at: Completed 04-payment 04-02-PLAN.md
+Last session: 2026-03-30T15:22:07.285Z
+Stopped at: Completed 04-payment 04-03-PLAN.md (awaiting checkpoint:human-verify)
 Resume file: None
