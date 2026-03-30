@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-stopped_at: "Checkpoint: 06-03 Task 2 human-verify — dev server at http://localhost:3000"
-last_updated: "2026-03-30T17:39:57.239Z"
+status: complete
+stopped_at: Completed 06-03-PLAN.md — Phase 6 sign-off, v1.0 milestone reached
+last_updated: "2026-03-30T18:14:57.218Z"
 progress:
   total_phases: 6
   completed_phases: 6
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 06 — homepage-widget-polish
+**Current focus:** Phase 06 — COMPLETE. All 6 phases done. Project at v1.0 milestone.
 
 ## Current Position
 
-Phase: 06 (homepage-widget-polish) — EXECUTING
-Plan: 1 of 3
+Phase: 06 (homepage-widget-polish) — COMPLETE
+Plan: 3 of 3 (all plans complete)
 
 ## Performance Metrics
 
@@ -129,6 +129,7 @@ Recent decisions affecting current work:
 - [Phase 06-homepage-widget-polish]: Stepper touch targets 32px -> 44px; value span minWidth 32px -> 36px for visual balance; DurationSelector already uses <button> elements with aria-pressed — no changes needed
 - [Phase 06]: Build failure on /api/create-payment-intent is pre-existing Stripe API key absence in build env, not a Phase 6 regression
 - [Phase 06]: LIMOANYWHERE in .next/ cache is stale build artifact — source grep returns zero matches confirming iframe fully removed
+- [Phase 06]: Phase 6 sign-off: all verification criteria met — widget, mobile UX, and accessibility confirmed production-ready by human visual verification
 
 ### Pending Todos
 
@@ -140,6 +141,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T17:39:57.232Z
-Stopped at: Checkpoint: 06-03 Task 2 human-verify — dev server at http://localhost:3000
+Last session: 2026-03-30T17:45:00Z
+Stopped at: Completed 06-03-PLAN.md — Phase 6 sign-off, v1.0 milestone reached
 Resume file: None
