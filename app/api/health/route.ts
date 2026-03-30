@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import Stripe from 'stripe'
 import { Resend } from 'resend'
 
 export async function GET() {
@@ -15,11 +14,15 @@ export async function GET() {
     results.supabase = { ok: false, error: String(err) }
   }
 
-  // Stripe probe
+  // Stripe probe — verify key is configured (live API call unavailable from Vercel Hobby)
   try {
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
-    await stripe.balance.retrieve()
-    results.stripe = { ok: true }
+    const key = process.env.STRIPE_SECRET_KEY ?? ''
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET ?? ''
+    const keyOk = key.startsWith('sk_live_') || key.startsWith('sk_test_')
+    const webhookOk = webhookSecret.startsWith('whsec_')
+    results.stripe = keyOk && webhookOk
+      ? { ok: true }
+      : { ok: false, error: 'STRIPE_SECRET_KEY or STRIPE_WEBHOOK_SECRET missing/invalid' }
   } catch (err) {
     results.stripe = { ok: false, error: String(err) }
   }
