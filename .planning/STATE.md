@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-payment 04-01-PLAN.md
-last_updated: "2026-03-30T15:11:08.495Z"
+stopped_at: Completed 04-payment 04-02-PLAN.md
+last_updated: "2026-03-30T15:17:12.468Z"
 progress:
   total_phases: 6
   completed_phases: 3
   total_plans: 19
-  completed_plans: 17
+  completed_plans: 18
 ---
 
 # Project State
@@ -59,6 +59,7 @@ Plan: 1 of 4
 | Phase 03 P03 | 2min | 2 tasks | 2 files |
 | Phase 04-payment P04-00 | 4min | 2 tasks | 9 files |
 | Phase 04-payment P01 | 2min | 2 tasks | 3 files |
+| Phase 04-payment P04-02 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,9 @@ Recent decisions affecting current work:
 - [Phase 04-payment]: setup.ts keeps .ts extension; Stripe mock uses React.createElement instead of JSX
 - [Phase 04-payment]: Webhook route uses request.text() raw body — request.json() would break constructEvent signature verification
 - [Phase 04-payment]: submit-quote is Phase 4 stub only — Phase 5 adds Notion save and manager alert email
+- [Phase 04-payment]: Step6Payment uses local state for clientSecret (not Zustand) to avoid re-render cascade when secret arrives
+- [Phase 04-payment]: handleNext in BookingWizard is async — intercepts step 5 in quoteMode for /api/submit-quote, falls through to nextStep() otherwise
+- [Phase 04-payment]: BookingWizard Back/Next bar guard: currentStep > 1 && currentStep < 6 — Step6Payment owns its own Pay button
 
 ### Pending Todos
 
@@ -115,6 +119,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:11:08.490Z
-Stopped at: Completed 04-payment 04-01-PLAN.md
+Last session: 2026-03-30T15:17:12.463Z
+Stopped at: Completed 04-payment 04-02-PLAN.md
 Resume file: None
