@@ -117,9 +117,13 @@ export default function Step6Payment() {
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
+  const hours = useBookingStore((s) => s.hours)
+  const passengers = useBookingStore((s) => s.passengers)
+  const luggage = useBookingStore((s) => s.luggage)
   const pickupDate = useBookingStore((s) => s.pickupDate)
   const pickupTime = useBookingStore((s) => s.pickupTime)
-  const passengers = useBookingStore((s) => s.passengers)
+  const returnDate = useBookingStore((s) => s.returnDate)
+  const distanceKm = useBookingStore((s) => s.distanceKm)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
 
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -141,13 +145,31 @@ export default function Step6Payment() {
             amountCZK: totalAmount,
             bookingData: {
               tripType,
-              vehicleClass,
-              origin: origin?.address ?? '',
-              destination: destination?.address ?? '',
+              vehicleClass: vehicleClass ?? '',
+              originAddress: origin?.address ?? '',
+              originLat: origin?.lat != null ? String(origin.lat) : '',
+              originLng: origin?.lng != null ? String(origin.lng) : '',
+              destinationAddress: destination?.address ?? '',
+              destinationLat: destination?.lat != null ? String(destination.lat) : '',
+              destinationLng: destination?.lng != null ? String(destination.lng) : '',
+              hours: String(hours),
+              passengers: String(passengers),
+              luggage: String(luggage),
               pickupDate: pickupDate ?? '',
               pickupTime: pickupTime ?? '',
-              passengers: String(passengers),
+              returnDate: returnDate ?? '',
+              distanceKm: distanceKm != null ? String(distanceKm) : '',
+              amountCzk: String(totalAmount),
+              extraChildSeat: String(extras.childSeat),
+              extraMeetGreet: String(extras.meetAndGreet),
+              extraLuggage: String(extras.extraLuggage),
+              firstName: passengerDetails?.firstName ?? '',
+              lastName: passengerDetails?.lastName ?? '',
               email: passengerDetails?.email ?? '',
+              phone: passengerDetails?.phone ?? '',
+              flightNumber: passengerDetails?.flightNumber ?? '',
+              terminal: passengerDetails?.terminal ?? '',
+              specialRequests: (passengerDetails?.specialRequests ?? '').slice(0, 490),
             },
           }),
         })
