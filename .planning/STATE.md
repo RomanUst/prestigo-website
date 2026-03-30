@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 05-backend-notifications-05-02-PLAN.md
-last_updated: "2026-03-30T16:18:20.332Z"
+stopped_at: Completed 05-backend-notifications-05-03-PLAN.md
+last_updated: "2026-03-30T16:27:56.642Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 22
-  completed_plans: 21
+  completed_plans: 22
 ---
 
 # Project State
@@ -63,6 +63,7 @@ Plan: 1 of 3
 | Phase 04-payment P04-03 | 3 | 1 tasks | 1 files |
 | Phase 05-backend-notifications P01 | 7min | 2 tasks | 4 files |
 | Phase 05-backend-notifications P02 | 8 | 1 tasks | 1 files |
+| Phase 05-backend-notifications P03 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,8 @@ Recent decisions affecting current work:
 - [Phase 05-backend-notifications]: payment_intent_id UNIQUE + ignoreDuplicates: true — Stripe retry dedup at DB level via upsert
 - [Phase 05-backend-notifications]: specialRequests truncated to 490 chars in Step6Payment to stay within Stripe 500-char metadata limit
 - [Phase 05-backend-notifications]: Template string HTML email (no React Email) — zero extra deps, all send functions non-fatal (try/catch, never throw)
+- [Phase 05-backend-notifications]: Webhook email calls wrapped individually in try/catch at route level — defense in depth beyond email.ts internal catching
+- [Phase 05-backend-notifications]: vi.hoisted() pattern required for Stripe constructor mock when new Stripe() is called at module load time
 
 ### Pending Todos
 
@@ -127,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T16:18:20.326Z
-Stopped at: Completed 05-backend-notifications-05-02-PLAN.md
+Last session: 2026-03-30T16:27:56.634Z
+Stopped at: Completed 05-backend-notifications-05-03-PLAN.md
 Resume file: None

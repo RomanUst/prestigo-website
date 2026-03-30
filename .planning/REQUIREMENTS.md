@@ -88,7 +88,7 @@
 - [x] **BACK-02**: Confirmation email sent to client (booking summary, ride details)
 - [x] **BACK-03**: Notification email sent to manager (new booking alert with all details)
 - [x] **BACK-04**: Notion API calls wrapped in retry logic (3 retries, exponential backoff)
-- [ ] **BACK-05**: Confirmation page at /book/confirmation shows booking reference
+- [x] **BACK-05**: Confirmation page at /book/confirmation shows booking reference
 
 ### Homepage Widget
 
