@@ -116,12 +116,17 @@ Plans:
   2. Clicking the CTA carries the widget's data into the /book wizard, landing the user at Step 2 or Step 3 with fields pre-filled
   3. The full booking flow is usable on a 375px mobile screen — CTA buttons remain visible above the keyboard at every step
   4. All interactive elements (buttons, inputs, selects) are reachable by keyboard in correct tab order
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md — BookingWidget component + BookingSection integration (HOME-01, HOME-02, HOME-03)
+- [ ] 06-02-PLAN.md — Mobile safe-area-inset, scrollIntoView, aria-labels, touch targets (UX-01--05)
+- [ ] 06-03-PLAN.md — Build verification + visual/functional human checkpoint
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -130,4 +135,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Booking Details | 2/4 | In Progress|  |
 | 4. Payment | 4/4 | Complete   | 2026-03-30 |
 | 5. Backend & Notifications | 3/3 | Complete   | 2026-03-30 |
-| 6. Homepage Widget & Polish | 0/TBD | Not started | - |
+| 6. Homepage Widget & Polish | 0/3 | Not started | - |
