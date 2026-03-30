@@ -73,10 +73,18 @@ export async function POST(request: Request) {
     }
 
     // 4. Send client confirmation email (non-fatal)
-    await sendClientConfirmation(emailData)
+    try {
+      await sendClientConfirmation(emailData)
+    } catch (err) {
+      console.error('sendClientConfirmation unexpected error:', err)
+    }
 
     // 5. Send manager alert email (non-fatal)
-    await sendManagerAlert(emailData)
+    try {
+      await sendManagerAlert(emailData)
+    } catch (err) {
+      console.error('sendManagerAlert unexpected error:', err)
+    }
   }
 
   return NextResponse.json({ received: true })
