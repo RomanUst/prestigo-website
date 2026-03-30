@@ -75,13 +75,14 @@ Project-wide (source: STYLEGUIDE.md, globals.css):
 
 Email-specific typography (inline styles, email-safe fallbacks required):
 
+4 sizes, 2 weights:
+
 | Role | Size | Weight | Font Stack |
 |------|------|--------|------------|
-| Email heading | 28px | 400 | 'Montserrat', Arial, sans-serif |
-| Booking reference | 22px | 600 | 'Montserrat', Arial, sans-serif |
-| Section label | 9px | 400 | 'Montserrat', Arial, sans-serif |
-| Body text | 14px | 300 | 'Montserrat', Arial, sans-serif |
-| Caption / meta | 11px | 300 | 'Montserrat', Arial, sans-serif |
+| Email heading | 28px | 400 (Regular) | 'Montserrat', Arial, sans-serif |
+| Booking reference | 22px | 600 (SemiBold) | 'Montserrat', Arial, sans-serif |
+| Body text | 14px | 400 (Regular) | 'Montserrat', Arial, sans-serif |
+| Section label / caption / meta | 9px | 400 (Regular) | 'Montserrat', Arial, sans-serif |
 
 Note: Cormorant Garamond is NOT used in email — web font loading is unreliable across email clients. Montserrat with Arial fallback is the email-safe choice.
 
@@ -171,16 +172,18 @@ None in Phase 5. No destructive UI actions are implemented this phase.
 
 These are the visual blocks that compose the HTML confirmation email:
 
+Primary visual anchor: Booking reference box
+
 | Block | Description |
 |-------|-------------|
 | Header bar | 2px copper gradient line at top (`linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%)`) |
-| Logo wordmark | "PRESTI" in Off-White + "GO" in Copper, Montserrat 300, letter-spacing 0.6em |
+| Logo wordmark | "PRESTI" in Off-White + "GO" in Copper, Montserrat 400, letter-spacing 0.6em |
 | Confirmed heading | "Your booking is confirmed." — Montserrat 28px weight 400, Off-White |
 | Booking reference box | Anthracite Mid background, copper border-left 3px, reference in Montserrat 22px 600 Copper |
-| Trip summary table | Two-column: label (Warm Grey, uppercase, 9px) / value (Off-White, 13px) |
+| Trip summary table | Two-column: label (Warm Grey, uppercase, 9px) / value (Off-White, 14px) |
 | Extras list | Bulleted list of selected extras with CZK prices — omitted entirely if no extras |
 | Total line | Bold line: "TOTAL PAID" label + CZK amount + EUR equivalent in parentheses |
-| Add to Calendar | Ghost button — border 1px Copper, text Copper, Montserrat 10px uppercase |
+| Add to Calendar | Ghost button — border 1px Copper, text Copper, Montserrat 9px uppercase |
 | Support contact | Warm Grey text, manager email + phone placeholder |
 | Footer | PRESTIGO wordmark small, tagline "PRESTIGE IN EVERY MILE", footer copper line |
 
