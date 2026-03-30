@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-30T17:34:08.205Z"
+stopped_at: "Checkpoint: 06-03 Task 2 human-verify — dev server at http://localhost:3000"
+last_updated: "2026-03-30T17:39:57.239Z"
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 25
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Project State
@@ -66,6 +66,7 @@ Plan: 1 of 3
 | Phase 05-backend-notifications P03 | 5min | 2 tasks | 4 files |
 | Phase 06-homepage-widget-polish P06-01 | 5min | 2 tasks | 3 files |
 | Phase 06-homepage-widget-polish P06-02 | 3min | 2 tasks | 6 files |
+| Phase 06-homepage-widget-polish P06-03 | 5min | 1 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -126,6 +127,8 @@ Recent decisions affecting current work:
 - [Phase 06-homepage-widget-polish]: todayStr via useEffect prevents SSR hydration mismatch on date input min attribute
 - [Phase 06-homepage-widget-polish]: scrollIntoView added directly inside AddressInput's input onFocus — no prop needed, applies automatically to all AddressInput instances
 - [Phase 06-homepage-widget-polish]: Stepper touch targets 32px -> 44px; value span minWidth 32px -> 36px for visual balance; DurationSelector already uses <button> elements with aria-pressed — no changes needed
+- [Phase 06]: Build failure on /api/create-payment-intent is pre-existing Stripe API key absence in build env, not a Phase 6 regression
+- [Phase 06]: LIMOANYWHERE in .next/ cache is stale build artifact — source grep returns zero matches confirming iframe fully removed
 
 ### Pending Todos
 
@@ -137,6 +140,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T17:34:08.198Z
-Stopped at: Completed 06-02-PLAN.md
+Last session: 2026-03-30T17:39:57.232Z
+Stopped at: Checkpoint: 06-03 Task 2 human-verify — dev server at http://localhost:3000
 Resume file: None

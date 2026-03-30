@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 3: Booking Details** - Steps 4-5 (extras + passenger details) with inline validation
 - [x] **Phase 4: Payment** - Stripe integration, Step 6, confirmation page (completed 2026-03-30)
 - [x] **Phase 5: Backend & Notifications** - Stripe webhook, Supabase save, confirmation and manager emails (completed 2026-03-30)
-- [ ] **Phase 6: Homepage Widget & Polish** - Mini booking widget, mobile QA, accessibility
+- [x] **Phase 6: Homepage Widget & Polish** - Mini booking widget, mobile QA, accessibility (completed 2026-03-30)
 
 ## Phase Details
 
@@ -116,7 +116,7 @@ Plans:
   2. Clicking the CTA carries the widget's data into the /book wizard, landing the user at Step 2 or Step 3 with fields pre-filled
   3. The full booking flow is usable on a 375px mobile screen — CTA buttons remain visible above the keyboard at every step
   4. All interactive elements (buttons, inputs, selects) are reachable by keyboard in correct tab order
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] 06-01-PLAN.md — BookingWidget component + BookingSection integration (HOME-01, HOME-02, HOME-03)
@@ -135,4 +135,4 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Booking Details | 2/4 | In Progress|  |
 | 4. Payment | 4/4 | Complete   | 2026-03-30 |
 | 5. Backend & Notifications | 3/3 | Complete   | 2026-03-30 |
-| 6. Homepage Widget & Polish | 2/3 | In Progress|  |
+| 6. Homepage Widget & Polish | 3/3 | Complete   | 2026-03-30 |
