@@ -56,7 +56,7 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Goal**: Production infrastructure is ready — Supabase schema migrated, all env vars set in Vercel, and a successful production deployment confirms the build works end-to-end
 **Depends on**: Phase 6
 **Requirements**: DB-01, DB-02, ENV-01, ENV-02, ENV-03
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 **Success Criteria** (what must be TRUE):
   1. `supabase/migrations/0001_create_bookings.sql` exists with full bookings schema extracted from `lib/supabase.ts`
   2. Bookings table exists in production Supabase and accepts inserts without error
@@ -95,6 +95,6 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
 | 4. Payment | v1.0 | 4/4 | Complete | 2026-03-30 |
 | 5. Backend & Notifications | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 6. Homepage Widget & Polish | v1.0 | 3/3 | Complete | 2026-03-30 |
-| 7. Foundation — Supabase + Env + Deploy | v1.1 | 0/2 | Planned | — |
+| 7. Foundation — Supabase + Env + Deploy | 1/2 | In Progress|  | — |
 | 8. Stripe + Health Check + Maps Keys | v1.1 | 0/? | Pending | — |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 0/? | Pending | — |
