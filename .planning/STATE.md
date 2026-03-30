@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-30T17:28:40.687Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-30T17:34:08.205Z"
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 25
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -65,6 +65,7 @@ Plan: 1 of 3
 | Phase 05-backend-notifications P02 | 8 | 1 tasks | 1 files |
 | Phase 05-backend-notifications P03 | 5min | 2 tasks | 4 files |
 | Phase 06-homepage-widget-polish P06-01 | 5min | 2 tasks | 3 files |
+| Phase 06-homepage-widget-polish P06-02 | 3min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,8 @@ Recent decisions affecting current work:
 - [Phase 06-homepage-widget-polish]: BookingWidget uses local state for origin/destination/date/time, writes to Zustand only on CTA click
 - [Phase 06-homepage-widget-polish]: capturedOnSelect Map pattern mocks AddressInput in tests to enable address selection simulation without Google Places
 - [Phase 06-homepage-widget-polish]: todayStr via useEffect prevents SSR hydration mismatch on date input min attribute
+- [Phase 06-homepage-widget-polish]: scrollIntoView added directly inside AddressInput's input onFocus — no prop needed, applies automatically to all AddressInput instances
+- [Phase 06-homepage-widget-polish]: Stepper touch targets 32px -> 44px; value span minWidth 32px -> 36px for visual balance; DurationSelector already uses <button> elements with aria-pressed — no changes needed
 
 ### Pending Todos
 
@@ -134,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T17:28:40.679Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-30T17:34:08.198Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None

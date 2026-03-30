@@ -98,11 +98,11 @@
 
 ### UX & Accessibility
 
-- [ ] **UX-01**: Fully responsive — mobile-first, tested at 375px and 390px
-- [ ] **UX-02**: PriceSummary sticky on desktop (right column), fixed bottom bar on mobile
-- [ ] **UX-03**: CTA buttons sticky/fixed on mobile so they're always visible above keyboard
-- [ ] **UX-04**: aria-label, role attributes on interactive elements
-- [ ] **UX-05**: Keyboard navigation works through all steps (tab order correct)
+- [x] **UX-01**: Fully responsive — mobile-first, tested at 375px and 390px
+- [x] **UX-02**: PriceSummary sticky on desktop (right column), fixed bottom bar on mobile
+- [x] **UX-03**: CTA buttons sticky/fixed on mobile so they're always visible above keyboard
+- [x] **UX-04**: aria-label, role attributes on interactive elements
+- [x] **UX-05**: Keyboard navigation works through all steps (tab order correct)
 
 ## v2 Requirements
 
