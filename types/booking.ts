@@ -90,6 +90,12 @@ export interface BookingStore {
   setExtras: (e: Extras) => void
   toggleExtra: (key: keyof Extras) => void
   setPassengerDetails: (d: PassengerDetails) => void
+  // Step 6 / Payment
+  paymentIntentClientSecret: string | null
+  bookingReference: string | null
+  setPaymentIntentClientSecret: (s: string | null) => void
+  setBookingReference: (ref: string | null) => void
+  resetBooking: () => void
 }
 
 export const PRG_CONFIG = {

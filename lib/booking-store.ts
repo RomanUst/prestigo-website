@@ -22,6 +22,8 @@ export const useBookingStore = create<BookingStore>()(
       quoteMode: false,
       extras: { childSeat: false, meetAndGreet: false, extraLuggage: false },
       passengerDetails: null,
+      paymentIntentClientSecret: null,
+      bookingReference: null,
 
       setTripType: (type) => {
         set({ tripType: type })
@@ -53,6 +55,29 @@ export const useBookingStore = create<BookingStore>()(
         extras: { ...s.extras, [key]: !s.extras[key] }
       })),
       setPassengerDetails: (d) => set({ passengerDetails: d }),
+      setPaymentIntentClientSecret: (s) => set({ paymentIntentClientSecret: s }),
+      setBookingReference: (ref) => set({ bookingReference: ref }),
+      resetBooking: () => set({
+        tripType: 'transfer',
+        origin: null,
+        destination: null,
+        hours: 2,
+        passengers: 1,
+        luggage: 0,
+        currentStep: 1,
+        completedSteps: new Set<number>(),
+        pickupDate: null,
+        pickupTime: null,
+        returnDate: null,
+        vehicleClass: null,
+        distanceKm: null,
+        priceBreakdown: null,
+        quoteMode: false,
+        extras: { childSeat: false, meetAndGreet: false, extraLuggage: false },
+        passengerDetails: null,
+        paymentIntentClientSecret: null,
+        bookingReference: null,
+      }),
     }),
     {
       name: 'prestigo-booking',
