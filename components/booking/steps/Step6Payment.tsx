@@ -82,7 +82,7 @@ function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProp
 
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement options={{ layout: 'tabs', paymentMethodOrder: ['apple_pay', 'google_pay', 'card'], wallets: { applePay: 'auto', googlePay: 'auto' }, link: { display: 'never' } }} />
+      <PaymentElement options={{ layout: 'tabs', paymentMethodOrder: ['apple_pay', 'google_pay', 'card'], wallets: { applePay: 'auto', googlePay: 'auto' } }} />
 
       {errorMessage && (
         <p
