@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Go Live
 status: executing
-last_updated: "2026-03-30T20:52:02Z"
+last_updated: "2026-03-31T06:42:21Z"
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -22,11 +22,11 @@ See: .planning/PROJECT.md (updated 2026-03-30 after v1.1 milestone start)
 
 ## Current Position
 
-Phase: 07 (foundation-supabase-schema-env-vars-deploy) — EXECUTING
-Plan: 2 of 2
+Phase: 07 (foundation-supabase-schema-env-vars-deploy) — COMPLETE
+Plan: 2 of 2 (all plans complete)
 
-Last session: 2026-03-30T20:52:02Z
-Stopped at: Completed 07-01-PLAN.md
+Last session: 2026-03-31T06:42:21Z
+Stopped at: Completed 07-02-PLAN.md
 
 ## Accumulated Context
 
@@ -38,6 +38,11 @@ Decisions from v1.0 are logged in PROJECT.md Key Decisions table.
 - Migration placed at repo root supabase/migrations/ (not inside prestigo/) — standard Supabase CLI location
 - No IF NOT EXISTS, no BEGIN/COMMIT wrapper in migration SQL — per locked research phase decision
 - STRIPE_WEBHOOK_SECRET included in .env.example with Phase 8 note (documents future requirement)
+
+**Phase 07, Plan 02:**
+- STRIPE_WEBHOOK_SECRET intentionally not set in Vercel — deferred to Phase 8 after live webhook endpoint registration
+- Bookings table found already present in Supabase (33 cols verified); DB-02 satisfied without re-running migration
+- Resend DNS propagation clock started 2026-03-31; full email send verification deferred to Phase 9
 
 ### Pending Todos
 

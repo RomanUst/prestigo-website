@@ -14,13 +14,13 @@ See archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
 ### Database
 
 - [x] **DB-01**: SQL migration file exists at `supabase/migrations/0001_create_bookings.sql` with full bookings schema extracted from `lib/supabase.ts`
-- [ ] **DB-02**: Bookings table created in production Supabase project and accepts inserts without error
+- [x] **DB-02**: Bookings table created in production Supabase project and accepts inserts without error
 
 ### Environment
 
 - [x] **ENV-01**: `.env.example` documents all 8 required environment variables with descriptions and source instructions (currently documents only 1 of 8)
-- [ ] **ENV-02**: All 8 env vars set in Vercel with Production scope only (live keys must not be scoped to Preview or Development)
-- [ ] **ENV-03**: Production deployment on Vercel succeeds with all env vars set
+- [x] **ENV-02**: All 8 env vars set in Vercel with Production scope only (live keys must not be scoped to Preview or Development)
+- [x] **ENV-03**: Production deployment on Vercel succeeds with all env vars set
 
 ### Stripe
 
@@ -71,10 +71,10 @@ See archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | DB-01 | Phase 7 | Complete |
-| DB-02 | Phase 7 | Pending |
+| DB-02 | Phase 7 | Complete |
 | ENV-01 | Phase 7 | Complete |
-| ENV-02 | Phase 7 | Pending |
-| ENV-03 | Phase 7 | Pending |
+| ENV-02 | Phase 7 | Complete |
+| ENV-03 | Phase 7 | Complete |
 | STRP-01 | Phase 8 | Pending |
 | STRP-02 | Phase 8 | Pending |
 | STRP-03 | Phase 8 | Pending |
