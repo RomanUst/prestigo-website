@@ -53,6 +53,9 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
   - Update `from` address in `lib/email.ts` to use verified domain
   - Send test emails to Gmail and Outlook, confirm inbox delivery (not spam)
   - **Covers:** EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04
+  - **Plans:** 2 plans
+    - [ ] 09-01-PLAN.md — Verify Resend domain DNS, fix domain typo in email.ts
+    - [ ] 09-02-PLAN.md — Deploy domain fix, email delivery sign-off
 
 ## Phase Details
 
@@ -88,8 +91,12 @@ Plans:
 **Goal**: Emails are delivered to inbox from the verified domain — booking confirmation and manager alert both land correctly
 **Depends on**: Phase 7
 **Requirements**: EMAIL-01, EMAIL-02, EMAIL-03, EMAIL-04
+**Plans:** 0/2 plans executed
+Plans:
+- [ ] 09-01-PLAN.md — Verify Resend domain DNS, fix domain typo in email.ts
+- [ ] 09-02-PLAN.md — Deploy domain fix, email delivery sign-off
 **Success Criteria** (what must be TRUE):
-  1. `rideprestige.com` domain verified in Resend Dashboard (SPF + DKIM propagated)
+  1. `rideprestigo.com` domain verified in Resend Dashboard (SPF + DKIM propagated)
   2. `from` address in `lib/email.ts` updated to verified domain
   3. Client confirmation email delivered to inbox (not spam) from verified domain
   4. Manager alert email delivered to inbox (not spam) from verified domain
@@ -106,4 +113,4 @@ Plans:
 | 6. Homepage Widget & Polish | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 7. Foundation — Supabase + Env + Deploy | 1/2 | In Progress|  | — |
 | 8. Stripe + Health Check + Maps Keys | 2/3 | In Progress|  | — |
-| 9. Resend Domain + Email Sign-Off | v1.1 | 0/? | Pending | — |
+| 9. Resend Domain + Email Sign-Off | v1.1 | 0/2 | Planned | — |
