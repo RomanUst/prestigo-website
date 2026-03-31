@@ -56,7 +56,8 @@ export async function POST(req: Request) {
     })
 
     if (!res.ok) {
-      console.error('Google Routes API error:', res.status)
+      const errBody = await res.text()
+      console.error('Google Routes API error:', res.status, errBody)
       return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
     }
 
