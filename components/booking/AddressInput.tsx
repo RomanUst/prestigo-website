@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useId } from 'react'
 import { Plane, X } from 'lucide-react'
-import usePlacesAutocomplete, { getGeocode, getLatLng } from 'use-places-autocomplete'
+import usePlacesAutocomplete, { getDetails } from 'use-places-autocomplete'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import type { PlaceResult } from '@/types/booking'
 
@@ -101,11 +101,14 @@ export default function AddressInput({
       setShowSuggestions(false)
       setActiveIndex(-1)
       try {
-        const results = await getGeocode({ address: description })
-        const { lat, lng } = getLatLng(results[0])
-        onSelect({ address: description, placeId, lat, lng })
+        const details = await getDetails({ placeId, fields: ['geometry'] })
+        if (details && typeof details !== 'string' && details.geometry?.location) {
+          const lat = details.geometry.location.lat()
+          const lng = details.geometry.location.lng()
+          onSelect({ address: description, placeId, lat, lng })
+        }
       } catch (error) {
-        console.error('Geocode error:', error)
+        console.error('Place details error:', error)
       }
     },
     [setValue, clearSuggestions, onSelect]
