@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Go Live
 status: unknown
-stopped_at: Completed 08-03-PLAN.md
-last_updated: "2026-03-31T09:36:40.099Z"
+stopped_at: Completed 08-02-PLAN.md
+last_updated: "2026-03-31T13:52:24.869Z"
 progress:
   total_phases: 3
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 5
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -25,7 +25,7 @@ See: .planning/PROJECT.md (updated 2026-03-30 after v1.1 milestone start)
 
 Phase: 08 (stripe-health-check-maps-keys) — EXECUTING
 Plan: 3 of 3 — COMPLETE
-Stopped at: Completed 08-03-PLAN.md
+Stopped at: Completed 08-02-PLAN.md
 
 ## Accumulated Context
 
@@ -47,6 +47,8 @@ Decisions from v1.0 are logged in PROJECT.md Key Decisions table.
 - [Phase 08]: Resend constructor mock in vitest requires function keyword (not arrow) for new keyword support; vi.clearAllMocks() requires restoring Resend constructor in beforeEach
 - [Phase 08]: Google Maps server-side key (GOOGLE_MAPS_API_KEY) has Application restrictions = None — required because Vercel serverless functions send no Referer header; HTTP referrer restriction causes REQUEST_DENIED
 - [Phase 08]: Google Maps client-side key (NEXT_PUBLIC_GOOGLE_MAPS_API_KEY) restricted to https://rideprestige.com/* — prevents unauthorized usage; https:// scheme prefix required by Google
+- [Phase 08-02]: Production domain is rideprestigo.com (not rideprestige.com) — PLAN.md contained a typo; correct domain confirmed during 08-02 verification
+- [Phase 08-02]: STRIPE_WEBHOOK_SECRET and HEALTH_SECRET scoped to Vercel Production only; redeploy mandatory after env var changes
 
 ### Pending Todos
 
