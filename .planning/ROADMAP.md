@@ -43,6 +43,10 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
   - Verify Google Maps client-side key is restricted to `rideprestige.com/*`
   - Confirm `/api/health` returns all-green
   - **Covers:** STRP-01, STRP-02, STRP-03, MAPS-01, MAPS-02
+  - **Plans:** 3 plans
+    - [ ] 08-01-PLAN.md — Create health endpoint unit tests (Wave 0)
+    - [ ] 08-02-PLAN.md — Register Stripe webhook, set env vars, verify health endpoint
+    - [ ] 08-03-PLAN.md — Verify Google Maps API key restrictions
 
 - [ ] **Phase 9: Resend Domain Verification + Email Sign-Off**
   - Confirm DNS records propagated and domain verified in Resend Dashboard
@@ -69,6 +73,11 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Goal**: All live service integrations are wired, tested, and confirmed working — Stripe webhook active, health endpoint green, Maps keys properly restricted
 **Depends on**: Phase 7
 **Requirements**: STRP-01, STRP-02, STRP-03, MAPS-01, MAPS-02
+**Plans:** 3 plans
+Plans:
+- [ ] 08-01-PLAN.md — Create health endpoint unit tests (Wave 0)
+- [ ] 08-02-PLAN.md — Register Stripe webhook, set env vars, verify health endpoint
+- [ ] 08-03-PLAN.md — Verify Google Maps API key restrictions
 **Success Criteria** (what must be TRUE):
   1. `/api/health` returns 200 with all service checks passing in production
   2. Stripe live-mode webhook registered at production URL, `STRIPE_WEBHOOK_SECRET` set in Vercel
@@ -96,5 +105,5 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
 | 5. Backend & Notifications | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 6. Homepage Widget & Polish | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 7. Foundation — Supabase + Env + Deploy | 1/2 | In Progress|  | — |
-| 8. Stripe + Health Check + Maps Keys | v1.1 | 0/? | Pending | — |
+| 8. Stripe + Health Check + Maps Keys | v1.1 | 0/3 | Planned | — |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 0/? | Pending | — |
