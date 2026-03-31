@@ -2,7 +2,6 @@ import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 
-// TODO: verify rideprestige.com domain in Resend before go-live. Use onboarding@resend.dev for dev testing.
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
@@ -228,7 +227,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       <!-- Support contact -->
       <div style="padding: 24px 32px; color: #9A958F; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at roman@rideprestige.com or +420 XXX XXX XXX</div>
+        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at roman@rideprestigo.com or +420 XXX XXX XXX</div>
       </div>
 
       <!-- Footer -->
@@ -250,9 +249,9 @@ export async function sendClientConfirmation(data: BookingEmailData): Promise<vo
   const html = buildConfirmationHtml(data)
   try {
     const { error } = await resend.emails.send({
-      from: 'PRESTIGO Bookings <bookings@rideprestige.com>',
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.email],
-      replyTo: 'roman@rideprestige.com',
+      replyTo: 'roman@rideprestigo.com',
       subject: `Your PRESTIGO booking is confirmed — ${data.bookingReference}`,
       html,
     })
@@ -293,9 +292,9 @@ Total: CZK ${data.amountCzk}`
 
   try {
     const { error } = await resend.emails.send({
-      from: 'PRESTIGO Bookings <bookings@rideprestige.com>',
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [process.env.MANAGER_EMAIL!],
-      replyTo: 'roman@rideprestige.com',
+      replyTo: 'roman@rideprestigo.com',
       subject: `New booking: ${data.bookingReference} — ${data.firstName} ${data.lastName}`,
       text,
     })
@@ -314,7 +313,7 @@ export async function sendEmergencyAlert(
 
   try {
     const { error } = await resend.emails.send({
-      from: 'PRESTIGO System <bookings@rideprestige.com>',
+      from: 'PRESTIGO System <bookings@rideprestigo.com>',
       to: [process.env.MANAGER_EMAIL!],
       replyTo: process.env.MANAGER_EMAIL!,
       subject: `ALERT: Supabase save failed — ${bookingReference}`,
