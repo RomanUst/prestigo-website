@@ -51,6 +51,7 @@ export default function AddressInput({
   const listboxId = useRef(`address-listbox-${uid.replace(/:/g, '')}`)
   const containerRef = useRef<HTMLDivElement>(null)
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevValueRef = useRef(value)
 
   const {
     ready,
@@ -73,14 +74,15 @@ export default function AddressInput({
     })
   }, [init])
 
-  // Sync inputValue with external value changes (e.g., on clear or airport auto-fill)
+  // Sync inputValue when parent explicitly clears the value (null transition)
   useEffect(() => {
-    if (value === null && inputValue !== '') {
+    if (prevValueRef.current !== null && value === null) {
       setValue('', false)
       clearSuggestions()
       setShowSuggestions(false)
     }
-  }, [value, inputValue, setValue, clearSuggestions])
+    prevValueRef.current = value
+  }, [value, setValue, clearSuggestions])
 
   // Show suggestions when status is OK and input has 2+ chars
   useEffect(() => {
