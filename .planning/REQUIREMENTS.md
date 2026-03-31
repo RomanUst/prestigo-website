@@ -34,8 +34,8 @@ See archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
 - [ ] **EMAIL-02**: `from` address in `lib/email.ts` updated to use verified domain (not `onboarding@resend.dev`)
 - [ ] **EMAIL-03**: Client confirmation email is delivered to inbox (not spam) from verified domain
 - [ ] **EMAIL-04**: Manager alert email is delivered to inbox (not spam) from verified domain
-- [ ] **MAPS-01**: Google Maps server-side key (`GOOGLE_MAPS_API_KEY`) confirmed with API restriction only — no HTTP referrer restriction (prevents `REQUEST_DENIED` on `/api/calculate-price`)
-- [ ] **MAPS-02**: Google Maps client-side key (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`) restricted to production domain referrer (`rideprestige.com/*`)
+- [x] **MAPS-01**: Google Maps server-side key (`GOOGLE_MAPS_API_KEY`) confirmed with API restriction only — no HTTP referrer restriction (prevents `REQUEST_DENIED` on `/api/calculate-price`)
+- [x] **MAPS-02**: Google Maps client-side key (`NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`) restricted to production domain referrer (`rideprestige.com/*`)
 
 ## v2 Requirements
 
@@ -82,8 +82,8 @@ See archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
 | EMAIL-02 | Phase 9 | Pending |
 | EMAIL-03 | Phase 9 | Pending |
 | EMAIL-04 | Phase 9 | Pending |
-| MAPS-01 | Phase 8 | Pending |
-| MAPS-02 | Phase 8 | Pending |
+| MAPS-01 | Phase 8 | Complete |
+| MAPS-02 | Phase 8 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 14 total

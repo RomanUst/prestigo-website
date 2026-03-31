@@ -73,7 +73,7 @@ See full details: `.planning/milestones/v1.0-ROADMAP.md`
 **Goal**: All live service integrations are wired, tested, and confirmed working — Stripe webhook active, health endpoint green, Maps keys properly restricted
 **Depends on**: Phase 7
 **Requirements**: STRP-01, STRP-02, STRP-03, MAPS-01, MAPS-02
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 Plans:
 - [ ] 08-01-PLAN.md — Create health endpoint unit tests (Wave 0)
 - [ ] 08-02-PLAN.md — Register Stripe webhook, set env vars, verify health endpoint
@@ -105,5 +105,5 @@ Plans:
 | 5. Backend & Notifications | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 6. Homepage Widget & Polish | v1.0 | 3/3 | Complete | 2026-03-30 |
 | 7. Foundation — Supabase + Env + Deploy | 1/2 | In Progress|  | — |
-| 8. Stripe + Health Check + Maps Keys | 1/3 | In Progress|  | — |
+| 8. Stripe + Health Check + Maps Keys | 2/3 | In Progress|  | — |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 0/? | Pending | — |
