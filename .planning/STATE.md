@@ -3,13 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Go Live
 status: unknown
-stopped_at: Completed 07-02-PLAN.md
-last_updated: "2026-03-31T06:44:18.235Z"
+last_updated: "2026-03-31T09:29:01.269Z"
 progress:
   total_phases: 3
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,15 +18,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30 after v1.1 milestone start)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 07 — foundation-supabase-schema-env-vars-deploy
+**Current focus:** Phase 08 — stripe-health-check-maps-keys
 
 ## Current Position
 
-Phase: 07 (foundation-supabase-schema-env-vars-deploy) — COMPLETE
-Plan: 2 of 2 (all plans complete)
-
-Last session: 2026-03-31T06:42:21Z
-Stopped at: Completed 07-02-PLAN.md
+Phase: 08 (stripe-health-check-maps-keys) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -46,6 +42,7 @@ Decisions from v1.0 are logged in PROJECT.md Key Decisions table.
 - STRIPE_WEBHOOK_SECRET intentionally not set in Vercel — deferred to Phase 8 after live webhook endpoint registration
 - Bookings table found already present in Supabase (33 cols verified); DB-02 satisfied without re-running migration
 - Resend DNS propagation clock started 2026-03-31; full email send verification deferred to Phase 9
+- [Phase 08]: Resend constructor mock in vitest requires function keyword (not arrow) for new keyword support; vi.clearAllMocks() requires restoring Resend constructor in beforeEach
 
 ### Pending Todos
 

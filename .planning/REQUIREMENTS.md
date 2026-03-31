@@ -26,7 +26,7 @@ See archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
 
 - [ ] **STRP-01**: Stripe live-mode webhook endpoint registered in Stripe Dashboard at production URL (`/api/webhooks/stripe`) listening to `payment_intent.succeeded`
 - [ ] **STRP-02**: `STRIPE_WEBHOOK_SECRET` set in Vercel with production signing secret and redeployed
-- [ ] **STRP-03**: `/api/health` endpoint live at production URL, returning 200 with all service checks passing
+- [x] **STRP-03**: `/api/health` endpoint live at production URL, returning 200 with all service checks passing
 
 ### Email & Google Maps
 
@@ -77,7 +77,7 @@ See archive: `.planning/milestones/v1.0-REQUIREMENTS.md`
 | ENV-03 | Phase 7 | Complete |
 | STRP-01 | Phase 8 | Pending |
 | STRP-02 | Phase 8 | Pending |
-| STRP-03 | Phase 8 | Pending |
+| STRP-03 | Phase 8 | Complete |
 | EMAIL-01 | Phase 9 | Pending |
 | EMAIL-02 | Phase 9 | Pending |
 | EMAIL-03 | Phase 9 | Pending |
