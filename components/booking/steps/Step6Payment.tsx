@@ -77,7 +77,7 @@ function PaymentForm({ totalAmount, bookingRef }: PaymentFormProps) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement />
+      <PaymentElement options={{ layout: 'tabs', paymentMethodOrder: ['apple_pay', 'google_pay', 'card'], wallets: { applePay: 'auto', googlePay: 'auto' }, link: { display: 'never' } }} />
 
       {errorMessage && (
         <p
@@ -192,7 +192,16 @@ export default function Step6Payment() {
   }, [totalAmount])
 
   const options = useMemo(
-    () => (clientSecret ? { clientSecret, appearance } : null),
+    () =>
+      clientSecret
+        ? {
+            clientSecret,
+            appearance,
+            paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
+            wallets: { applePay: 'auto' as const, googlePay: 'auto' as const },
+            fields: { billingDetails: { address: 'never' as const } },
+          }
+        : null,
     [clientSecret]
   )
 
