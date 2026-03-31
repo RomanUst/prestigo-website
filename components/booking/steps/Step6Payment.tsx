@@ -55,7 +55,7 @@ function PaymentForm({ totalAmount, bookingRef }: PaymentFormProps) {
     setIsProcessing(true)
     setErrorMessage(null)
 
-    const { error } = await stripe.confirmPayment({
+    const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
         return_url: `${window.location.origin}/book/confirmation?ref=${bookingRef}`,
@@ -70,8 +70,9 @@ function PaymentForm({ totalAmount, bookingRef }: PaymentFormProps) {
           : 'Something went wrong. Your booking details are saved — please try again.'
       )
       setIsProcessing(false)
+    } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+      window.location.href = `${window.location.origin}/book/confirmation?ref=${bookingRef}`
     }
-    // On success: browser redirects automatically via return_url
   }
 
   return (
