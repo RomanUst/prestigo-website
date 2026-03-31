@@ -62,8 +62,10 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json()
+    console.log('Google Routes API response:', JSON.stringify(data))
     const distanceMeters = data?.routes?.[0]?.distanceMeters
     if (!distanceMeters) {
+      console.error('No distanceMeters in response, routes:', JSON.stringify(data?.routes))
       return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
     }
 
