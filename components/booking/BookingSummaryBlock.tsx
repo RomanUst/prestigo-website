@@ -2,7 +2,7 @@
 
 import { useBookingStore } from '@/lib/booking-store'
 import { EXTRAS_CONFIG, computeExtrasTotal } from '@/lib/extras'
-import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
+import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import type { Extras } from '@/types/booking'
 
 const vehicleLabels: Record<string, string> = {
@@ -11,7 +11,11 @@ const vehicleLabels: Record<string, string> = {
   business_van: 'Business Van',
 }
 
-export default function BookingSummaryBlock() {
+interface Props {
+  selectedCurrency?: 'eur' | 'czk'
+}
+
+export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props) {
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -25,7 +29,8 @@ export default function BookingSummaryBlock() {
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
-  const totalAmount = selectedPrice ? selectedPrice.base + extrasTotal : 0
+  const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
+  const totalCzk = eurToCzk(totalEur)
 
   const routeText =
     tripType === 'hourly'
@@ -37,6 +42,14 @@ export default function BookingSummaryBlock() {
       : '\u2014'
 
   const selectedExtras = EXTRAS_CONFIG.filter(({ key }) => extras[key as keyof Extras])
+
+  const primaryAmount = selectedCurrency === 'czk'
+    ? (totalCzk > 0 ? formatCZK(totalCzk) : '\u2014')
+    : (totalEur > 0 ? formatEUR(totalEur) : '\u2014')
+
+  const secondaryAmount = selectedCurrency === 'czk'
+    ? (totalEur > 0 ? formatEUR(totalEur) : '')
+    : (totalCzk > 0 ? formatCZK(totalCzk) : '')
 
   return (
     <div
@@ -107,7 +120,7 @@ export default function BookingSummaryBlock() {
                 lineHeight: 1.5,
               }}
             >
-              {label} +CZK {price}
+              {label} +{formatEUR(price)}
             </p>
           ))}
         </div>
@@ -121,7 +134,7 @@ export default function BookingSummaryBlock() {
         }}
       />
 
-      {/* Total in CZK */}
+      {/* Primary total */}
       <p
         style={{
           fontSize: 20,
@@ -131,20 +144,22 @@ export default function BookingSummaryBlock() {
           marginBottom: 4,
         }}
       >
-        {totalAmount > 0 ? formatCZK(totalAmount) : '\u2014'}
+        {primaryAmount}
       </p>
 
-      {/* EUR equivalent */}
-      <p
-        style={{
-          fontSize: 14,
-          fontWeight: 300,
-          color: 'var(--warmgrey)',
-          fontFamily: 'var(--font-montserrat)',
-        }}
-      >
-        {totalAmount > 0 ? `(${formatEUR(czkToEur(totalAmount))})` : ''}
-      </p>
+      {/* Secondary total */}
+      {secondaryAmount && (
+        <p
+          style={{
+            fontSize: 14,
+            fontWeight: 300,
+            color: 'var(--warmgrey)',
+            fontFamily: 'var(--font-montserrat)',
+          }}
+        >
+          {secondaryAmount}
+        </p>
+      )}
     </div>
   )
 }

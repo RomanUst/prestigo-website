@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { czkToEur } from '@/lib/currency'
+import { czkToEur, eurToCzk } from '@/lib/currency'
 
 export function createSupabaseServiceClient() {
   return createClient(
@@ -60,8 +60,8 @@ export function buildBookingRow(
     return_date: meta.returnDate || null,
     vehicle_class: meta.vehicleClass,
     distance_km: meta.distanceKm ? parseFloat(meta.distanceKm) : null,
-    amount_czk: parseInt(meta.amountCzk) || 0,
-    amount_eur: meta.amountCzk ? czkToEur(parseInt(meta.amountCzk)) : null,
+    amount_czk: meta.amountCzk ? parseInt(meta.amountCzk) : (meta.amountEur ? eurToCzk(parseFloat(meta.amountEur)) : 0),
+    amount_eur: meta.amountEur ? parseFloat(meta.amountEur) : (meta.amountCzk ? czkToEur(parseInt(meta.amountCzk)) : null),
     extra_child_seat: meta.extraChildSeat === 'true',
     extra_meet_greet: meta.extraMeetGreet === 'true',
     extra_luggage: meta.extraLuggage === 'true',

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { calculatePrice, dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
 import { computeExtrasTotal } from '@/lib/extras'
+import { eurToCzk } from '@/lib/currency'
 import type { TripType, VehicleClass } from '@/types/booking'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
@@ -26,6 +27,7 @@ export async function POST(req: Request) {
 
     const tripType = bookingData.tripType as TripType
     const vehicleClass = bookingData.vehicleClass as VehicleClass
+    const paymentCurrency = bookingData.currency === 'czk' ? 'czk' : 'eur'
 
     if (!TRIP_TYPES.includes(tripType)) {
       return NextResponse.json({ error: 'Invalid tripType' }, { status: 400 })
@@ -51,22 +53,31 @@ export async function POST(req: Request) {
       meetAndGreet: bookingData.extraMeetGreet === 'true',
       extraLuggage: bookingData.extraLuggage === 'true',
     })
-    const amountCZK = basePrice.base + extrasTotal
 
-    if (amountCZK <= 0) {
+    const totalEur = basePrice.base + extrasTotal
+    const totalCzk = eurToCzk(totalEur)
+
+    if (totalEur <= 0) {
       return NextResponse.json({ error: 'Computed amount must be positive' }, { status: 400 })
     }
 
     const bookingReference = generateBookingReference()
 
-    console.error('DEBUG payment-intent: vehicleClass=', vehicleClass, 'distanceKm=', distanceKm, 'amountCZK=', amountCZK)
+    // Stripe amount in smallest currency unit: euro-cents for EUR, halers for CZK
+    const stripeAmount = paymentCurrency === 'eur'
+      ? Math.round(totalEur * 100)
+      : Math.round(totalCzk * 100)
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amountCZK * 100),
-      currency: 'czk',
+      amount: stripeAmount,
+      currency: paymentCurrency,
       automatic_payment_methods: { enabled: true },
-      // Override any client-provided amountCzk with the server-computed value
-      metadata: { bookingReference, ...bookingData, amountCzk: String(amountCZK) },
+      metadata: {
+        bookingReference,
+        ...bookingData,
+        amountEur: String(totalEur),
+        amountCzk: String(totalCzk),
+      },
     })
 
     return NextResponse.json({

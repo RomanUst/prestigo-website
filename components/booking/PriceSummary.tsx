@@ -2,6 +2,7 @@
 
 import { useBookingStore } from '@/lib/booking-store'
 import { EXTRAS_CONFIG, computeExtrasTotal } from '@/lib/extras'
+import { eurToCzk, formatCZK } from '@/lib/currency'
 import type { Extras } from '@/types/booking'
 
 function truncate(text: string, max: number): string {
@@ -41,12 +42,18 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
       ? truncate(origin.address, 28)
       : '\u2014'
 
+  const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
+
   const priceDisplay = () => {
     if (!vehicleClass) return '\u2014'
     if (quoteMode) return 'Request a quote'
     if (!selectedPrice) return '\u2014'
-    const displayTotal = selectedPrice.base + extrasTotal
-    return `\u20AC${displayTotal}`
+    return `\u20AC${totalEur}`
+  }
+
+  const czkDisplay = () => {
+    if (!vehicleClass || quoteMode || !selectedPrice) return null
+    return formatCZK(eurToCzk(totalEur))
   }
 
   const isQuoteOrNoPrice = !vehicleClass || quoteMode || !selectedPrice
@@ -122,13 +129,27 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
           display: 'block',
           animation: 'fadeIn 0.15s ease forwards',
           fontSize: isQuoteOrNoPrice ? 13 : 20,
-          fontWeight: isQuoteOrNoPrice ? 400 : 400,
+          fontWeight: 400,
           color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
           fontFamily: 'var(--font-montserrat)',
         }}
       >
         {priceDisplay()}
       </span>
+      {czkDisplay() && (
+        <span
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 300,
+            color: 'var(--warmgrey)',
+            fontFamily: 'var(--font-montserrat)',
+            marginTop: 2,
+          }}
+        >
+          {czkDisplay()}
+        </span>
+      )}
     </div>
   )
 
@@ -151,18 +172,32 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         zIndex: 50,
       }}
     >
-      <span
-        key={`${vehicleClass ?? 'none'}-${extrasTotal}`}
-        style={{
-          animation: 'fadeIn 0.15s ease forwards',
-          fontSize: isQuoteOrNoPrice ? 13 : 20,
-          fontWeight: isQuoteOrNoPrice ? 400 : 400,
-          color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
-          fontFamily: 'var(--font-montserrat)',
-        }}
-      >
-        {priceDisplay()}
-      </span>
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <span
+          key={`${vehicleClass ?? 'none'}-${extrasTotal}`}
+          style={{
+            animation: 'fadeIn 0.15s ease forwards',
+            fontSize: isQuoteOrNoPrice ? 13 : 20,
+            fontWeight: 400,
+            color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
+            fontFamily: 'var(--font-montserrat)',
+          }}
+        >
+          {priceDisplay()}
+        </span>
+        {czkDisplay() && (
+          <span
+            style={{
+              fontSize: 11,
+              fontWeight: 300,
+              color: 'var(--warmgrey)',
+              fontFamily: 'var(--font-montserrat)',
+            }}
+          >
+            {czkDisplay()}
+          </span>
+        )}
+      </div>
 
       {currentStep === 3 && (
         <button

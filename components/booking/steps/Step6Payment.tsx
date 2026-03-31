@@ -5,7 +5,7 @@ import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
-import { formatCZK } from '@/lib/currency'
+import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import BookingSummaryBlock from '../BookingSummaryBlock'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
@@ -38,15 +38,20 @@ const appearance = {
 }
 
 interface PaymentFormProps {
-  totalAmount: number
+  totalEur: number
+  selectedCurrency: 'eur' | 'czk'
   bookingRef: string
 }
 
-function PaymentForm({ totalAmount, bookingRef }: PaymentFormProps) {
+function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const payLabel = selectedCurrency === 'czk'
+    ? `PAY ${formatCZK(eurToCzk(totalEur))}`
+    : `PAY ${formatEUR(totalEur)}`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,7 +110,7 @@ function PaymentForm({ totalAmount, bookingRef }: PaymentFormProps) {
           ...(isProcessing || !stripe ? { opacity: 0.4, cursor: 'not-allowed' } : {}),
         }}
       >
-        {`PAY ${formatCZK(totalAmount)}`}
+        {payLabel}
       </button>
     </form>
   )
@@ -127,16 +132,19 @@ export default function Step6Payment() {
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
 
+  const [selectedCurrency, setSelectedCurrency] = useState<'eur' | 'czk'>('eur')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingRef, setBookingRef] = useState<string>('')
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
-  const totalAmount = selectedPrice ? selectedPrice.base + extrasTotal : 0
+  const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
 
   useEffect(() => {
-    if (totalAmount <= 0) return
+    if (totalEur <= 0) return
+
+    setClientSecret(null)
 
     const fetchPaymentIntent = async () => {
       try {
@@ -170,6 +178,7 @@ export default function Step6Payment() {
               flightNumber: passengerDetails?.flightNumber ?? '',
               terminal: passengerDetails?.terminal ?? '',
               specialRequests: (passengerDetails?.specialRequests ?? '').slice(0, 490),
+              currency: selectedCurrency,
             },
           }),
         })
@@ -189,7 +198,7 @@ export default function Step6Payment() {
 
     fetchPaymentIntent()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalAmount])
+  }, [totalEur, selectedCurrency])
 
   const options = useMemo(
     () =>
@@ -207,16 +216,50 @@ export default function Step6Payment() {
 
   return (
     <div className="max-w-[560px] mx-auto">
-      <BookingSummaryBlock />
+      <BookingSummaryBlock selectedCurrency={selectedCurrency} />
 
       <div style={{ borderTop: '1px solid var(--anthracite-light)', margin: '32px 0' }} />
+
+      {/* Currency selector */}
+      <div style={{ marginBottom: 32 }}>
+        <span className="label" style={{ display: 'block', marginBottom: 12 }}>
+          PAY IN
+        </span>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {(['eur', 'czk'] as const).map((cur) => (
+            <button
+              key={cur}
+              type="button"
+              onClick={() => setSelectedCurrency(cur)}
+              style={{
+                padding: '8px 20px',
+                fontSize: 10,
+                fontWeight: 400,
+                letterSpacing: '0.3em',
+                textTransform: 'uppercase',
+                fontFamily: 'var(--font-montserrat)',
+                background: 'transparent',
+                border: selectedCurrency === cur
+                  ? '1px solid var(--copper)'
+                  : '1px solid var(--anthracite-light)',
+                color: selectedCurrency === cur ? 'var(--offwhite)' : 'var(--warmgrey)',
+                borderRadius: 4,
+                cursor: 'pointer',
+                transition: 'border-color 0.2s ease, color 0.2s ease',
+              }}
+            >
+              {cur === 'eur' ? 'EUR — €' : 'CZK — Kč'}
+            </button>
+          ))}
+        </div>
+      </div>
 
       <span className="label">SECURE PAYMENT</span>
 
       <div style={{ marginTop: 24 }}>
         {options ? (
           <Elements stripe={stripePromise} options={options}>
-            <PaymentForm totalAmount={totalAmount} bookingRef={bookingRef} />
+            <PaymentForm totalEur={totalEur} selectedCurrency={selectedCurrency} bookingRef={bookingRef} />
           </Elements>
         ) : paymentError ? (
           <p

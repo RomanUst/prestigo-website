@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import type { VehicleConfig, PriceBreakdown } from '@/types/booking'
+import { eurToCzk, formatCZK } from '@/lib/currency'
 
 interface VehicleCardProps {
   config: VehicleConfig
@@ -123,7 +124,7 @@ export default function VehicleCard({
       </div>
 
       {/* Price slot — minHeight prevents layout shift */}
-      <div style={{ minHeight: 28, display: 'flex', alignItems: 'center' }}>
+      <div style={{ minHeight: 44, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         {isLoading ? (
           <div className="skeleton-shimmer" />
         ) : quoteMode ? (
@@ -131,17 +132,30 @@ export default function VehicleCard({
             Request a quote
           </span>
         ) : price ? (
-          <span
-            style={{
-              fontSize: 20,
-              fontWeight: 500,
-              color: 'var(--offwhite)',
-              letterSpacing: '0.03em',
-              fontFamily: 'var(--font-montserrat)',
-            }}
-          >
-            &euro;{price.total}
-          </span>
+          <>
+            <span
+              style={{
+                fontSize: 20,
+                fontWeight: 500,
+                color: 'var(--offwhite)',
+                letterSpacing: '0.03em',
+                fontFamily: 'var(--font-montserrat)',
+              }}
+            >
+              &euro;{price.total}
+            </span>
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 300,
+                color: 'var(--warmgrey)',
+                fontFamily: 'var(--font-montserrat)',
+                marginTop: 2,
+              }}
+            >
+              {formatCZK(eurToCzk(price.total))}
+            </span>
+          </>
         ) : null}
       </div>
     </button>

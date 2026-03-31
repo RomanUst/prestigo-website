@@ -288,7 +288,7 @@ Luggage: ${data.luggage}
 Flight Number: ${data.flightNumber || 'N/A'}
 Extras: ${extrasText}
 Special Requests: ${data.specialRequests || 'None'}
-Total: CZK ${data.amountCzk}`
+Total: €${czkToEur(data.amountCzk)} (${data.amountCzk.toLocaleString('cs-CZ')} Kč)`
 
   try {
     const { error } = await resend.emails.send({
