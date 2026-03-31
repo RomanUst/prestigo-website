@@ -128,6 +128,7 @@ export default function Step6Payment() {
 
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingRef, setBookingRef] = useState<string>('')
+  const [paymentError, setPaymentError] = useState<string | null>(null)
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
@@ -142,7 +143,6 @@ export default function Step6Payment() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            amountCZK: totalAmount,
             bookingData: {
               tripType,
               vehicleClass: vehicleClass ?? '',
@@ -159,7 +159,6 @@ export default function Step6Payment() {
               pickupTime: pickupTime ?? '',
               returnDate: returnDate ?? '',
               distanceKm: distanceKm != null ? String(distanceKm) : '',
-              amountCzk: String(totalAmount),
               extraChildSeat: String(extras.childSeat),
               extraMeetGreet: String(extras.meetAndGreet),
               extraLuggage: String(extras.extraLuggage),
@@ -174,10 +173,16 @@ export default function Step6Payment() {
           }),
         })
         const data = await res.json()
+        if (!res.ok || data.error) {
+          console.error('create-payment-intent error:', data.error)
+          setPaymentError(data.error || 'Failed to initialise payment')
+          return
+        }
         setClientSecret(data.clientSecret)
         setBookingRef(data.bookingReference)
-      } catch {
-        // Silent failure — clientSecret stays null, user sees loading state
+      } catch (err) {
+        console.error('create-payment-intent fetch error:', err)
+        setPaymentError('Network error — please refresh and try again')
       }
     }
 
@@ -203,6 +208,17 @@ export default function Step6Payment() {
           <Elements stripe={stripePromise} options={options}>
             <PaymentForm totalAmount={totalAmount} bookingRef={bookingRef} />
           </Elements>
+        ) : paymentError ? (
+          <p
+            style={{
+              fontSize: 14,
+              fontWeight: 300,
+              color: '#C0392B',
+              fontFamily: 'var(--font-montserrat)',
+            }}
+          >
+            {paymentError}
+          </p>
         ) : (
           <p
             style={{
