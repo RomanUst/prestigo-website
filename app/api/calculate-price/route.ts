@@ -31,7 +31,9 @@ export async function POST(req: Request) {
     }
 
     // Transfer types: need Google Routes API for distance
+    console.error('DEBUG origin:', JSON.stringify(origin), 'destination:', JSON.stringify(destination))
     if (!origin || !destination) {
+      console.error('DEBUG: missing origin or destination')
       return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
     }
 
@@ -62,7 +64,7 @@ export async function POST(req: Request) {
     }
 
     const data = await res.json()
-    console.log('Google Routes API response:', JSON.stringify(data))
+    console.error('DEBUG Routes API response:', JSON.stringify(data))
     const distanceMeters = data?.routes?.[0]?.distanceMeters
     if (!distanceMeters) {
       console.error('No distanceMeters in response, routes:', JSON.stringify(data?.routes))
