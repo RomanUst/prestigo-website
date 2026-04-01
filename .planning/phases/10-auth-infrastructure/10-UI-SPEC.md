@@ -35,7 +35,7 @@ No admin routes, no login page, no dashboard layout, and no visible changes to t
 | Component library | none (custom CSS classes) | globals.css |
 | Icon library | not yet declared (deferred to Phase 13+) | — |
 | Font — Display | Cormorant Garamond (Google Fonts), weight 300 | STYLEGUIDE.md §3 |
-| Font — Body/UI | Montserrat (Google Fonts), weights 300/400/500 | STYLEGUIDE.md §3 |
+| Font — Body/UI | Montserrat (Google Fonts), weights 300/400 | globals.css |
 | CSS architecture | Tailwind CSS v4 `@theme` tokens + CSS custom properties | globals.css |
 
 shadcn gate result: Not applicable. The project uses a hand-crafted premium design system already in production. shadcn initialization would conflict with existing Tailwind v4 `@theme` token structure.
@@ -54,12 +54,17 @@ The project uses a non-standard spacing scale (source: STYLEGUIDE.md §6). Do no
 | `--space-lg` | 48px | Section padding |
 | `--space-xl` | 80px | Page horizontal margins |
 
-Additional functional values (from globals.css `btn-primary`):
+Additional functional values (from globals.css):
 
-| Usage | Value |
-|-------|-------|
-| Button vertical padding | 14px |
-| Button horizontal padding | 32px |
+| Usage | Value | Source |
+|-------|-------|--------|
+| Button vertical padding | 14px | globals.css:L132 (`.btn-primary`) |
+| Button horizontal padding | 32px | globals.css:L132 (`.btn-primary`) |
+
+**Production-locked exceptions (cannot change without breaking existing UI):**
+
+- `--space-xs` = 6px: Not a multiple of 4. Production-locked by STYLEGUIDE.md §6 (spacing table, row 1). This value is established brand spec. Changing it would require a coordinated style guide + codebase update across all phases.
+- Button vertical padding = 14px: Not a multiple of 4. Production-locked by `globals.css:L132` (`.btn-primary { padding: 14px 32px }`). The 14px value produces the correct optical weight for the 10px/0.35em uppercase button label at the brand's luxury scale. Changing it would alter the established CTA proportions across all booking wizard steps and marketing pages.
 
 Exceptions: 44px minimum touch target for interactive elements on mobile. Not yet implemented in booking wizard; Phase 13 must honour this when building admin login form.
 
@@ -67,21 +72,24 @@ Exceptions: 44px minimum touch target for interactive elements on mobile. Not ye
 
 ## Typography
 
-All values from STYLEGUIDE.md §3 and globals.css. Phase 10 adds no new type styles.
+All values from globals.css production classes. Phase 10 adds no new type styles.
+
+Declared sizes: 4 (10px, 11px, 13px, 26px/48px display family). Declared weights: 2 (300, 400).
 
 | Role | Font | Size | Weight | Letter-spacing | Line Height | Colour |
 |------|------|------|--------|----------------|-------------|--------|
+| Label / UI small | Montserrat | 10px | 400 | 0.35–0.4em, uppercase | — | `#B87333` (Copper) for labels; `#F5F2EE` for CTA button text |
+| Navigation / UI | Montserrat | 11px | 300 | 0.18em | — | `#F5F2EE` (Off-White) |
 | Body text | Montserrat | 13px | 300 | 0.03em | 1.8 | `#9A958F` (Warm Grey) |
-| Navigation / UI labels | Montserrat | 11px | 300–500 | 0.18em | — | `#F5F2EE` (Off-White) |
-| Section label | Montserrat | 9px | 400 | 0.4em, uppercase | — | `#B87333` (Copper) |
-| Section heading | Cormorant Garamond | 26px | 300 | 0 | 1.25 | `#F5F2EE` (Off-White) |
-| Page title / Display | Cormorant Garamond | 48px | 300 | 0 | 1.1 | `#F5F2EE` (Off-White) |
+| Heading / Display | Cormorant Garamond | 26px (section) / 48px (page) | 300 | 0 | 1.25 (heading) / 1.1 (display) | `#F5F2EE` (Off-White) |
 
-Rules:
-- Labels and metadata: always `text-transform: uppercase`
-- Italic emphasis in display text: `color: #E8B87A` (Copper Pale)
-- Never use bold weights for headlines (weight 300 signals luxury)
-- CTA button text: Montserrat 10px, weight 400, letter-spacing 0.35em, uppercase
+Notes:
+- "Label / UI small" consolidates the section label (9–10px, weight 400, letter-spacing 0.4em) and CTA button text (10px, weight 400, letter-spacing 0.35em) into one size tier. Both are 10px and weight 400 in globals.css (`.label` at `globals.css:L93`, `.btn-primary` at `globals.css:L127`). The 9px value in STYLEGUIDE.md §3 is a range; the implemented value in globals.css is 10px.
+- Weight 500 appears in STYLEGUIDE.md §6 button spec but is not used in the implemented globals.css `.btn-primary` rule (weight 400 at `globals.css:L126`). Weight 500 is deferred to Phase 13+ if a distinct medium-weight UI element is introduced.
+- Heading / Display is one font family (Cormorant Garamond) at two size steps (26px, 48px). Declared as one row because weight, tracking, and colour are identical.
+- Italic emphasis in display text: `color: #E8B87A` (Copper Pale), `font-style: italic`.
+- All labels and metadata: `text-transform: uppercase`.
+- Never use bold weights for headlines (weight 300 signals luxury brand positioning).
 
 ---
 
