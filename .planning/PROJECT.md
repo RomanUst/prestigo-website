@@ -41,6 +41,17 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 
 ### Active
 
+## Current Milestone: v1.2 Operator Dashboard
+
+**Goal:** Give the operator full control over pricing, coverage zones, and booking visibility through a protected admin dashboard.
+
+**Target features:**
+- Supabase Auth-protected `/admin` area (email+password, role-based)
+- Pricing editor: base rates per vehicle class, extras surcharges, airport fee, night/holiday coefficients
+- Coverage zones: draw polygons on Google Maps, store in Supabase, drive "Request a quote" fallback in booking wizard
+- Bookings list: filterable table of all orders with statuses
+- Statistics: revenue, booking count, period breakdown
+
 ### Out of Scope
 
 - Multi-language support (CS/RU/DE) — deferred to v2
@@ -94,4 +105,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-01 after v1.1 milestone*
+*Last updated: 2026-04-01 — Milestone v1.2 started*
