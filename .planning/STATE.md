@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: in-progress
-stopped_at: "Phase 11 complete — ready to start Phase 12 (Core Booking Flow Update)"
-last_updated: "2026-04-01T23:00:00.000Z"
+status: unknown
+stopped_at: Phase 11 complete — Phase 12 (Core Booking Flow Update) is next
+last_updated: "2026-04-01T22:00:03.711Z"
 progress:
   total_phases: 7
   completed_phases: 2

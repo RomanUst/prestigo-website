@@ -20,7 +20,7 @@
 - [ ] **PRICING-02**: Operator can edit extras surcharges (child seat, meet & greet, extra luggage)
 - [ ] **PRICING-03**: Operator can edit the airport fee (flat surcharge for airport pickup/dropoff)
 - [ ] **PRICING-04**: Operator can edit the night coefficient and holiday coefficient (multipliers applied at price calculation time)
-- [ ] **PRICING-05**: Booking wizard's `/api/calculate-price` reads rates from `pricing_config` Supabase table (not hardcoded `lib/pricing.ts` constants)
+- [x] **PRICING-05**: Booking wizard's `/api/calculate-price` reads rates from `pricing_config` Supabase table (not hardcoded `lib/pricing.ts` constants)
 - [ ] **PRICING-06**: Pricing changes are live immediately — next booking wizard load reflects the updated rates
 
 ### Coverage Zones
@@ -28,7 +28,7 @@
 - [ ] **ZONES-01**: Operator can draw a polygon on an interactive Google Maps canvas
 - [ ] **ZONES-02**: Operator can assign a name to a drawn zone and save it (stored as GeoJSON in `coverage_zones` table)
 - [ ] **ZONES-03**: Operator can toggle a zone active or inactive without deleting it
-- [ ] **ZONES-04**: When booking wizard calls `/api/calculate-price`, if pickup or destination falls outside all active zones, the response returns `quoteMode: true` (existing "Request a quote" flow activates)
+- [x] **ZONES-04**: When booking wizard calls `/api/calculate-price`, if pickup or destination falls outside all active zones, the response returns `quoteMode: true` (existing "Request a quote" flow activates)
 - [ ] **ZONES-05**: When no zones are defined, no booking is blocked (graceful default — zone check is skipped)
 
 ### Bookings
@@ -99,12 +99,12 @@ Which phases cover which requirements.
 | PRICING-02 | Phase 16 | Pending |
 | PRICING-03 | Phase 16 | Pending |
 | PRICING-04 | Phase 16 | Pending |
-| PRICING-05 | Phase 12 | Pending |
+| PRICING-05 | Phase 12 | Complete |
 | PRICING-06 | Phase 14 | Pending |
 | ZONES-01 | Phase 16 | Pending |
 | ZONES-02 | Phase 16 | Pending |
 | ZONES-03 | Phase 16 | Pending |
-| ZONES-04 | Phase 12 | Pending |
+| ZONES-04 | Phase 12 | Complete |
 | ZONES-05 | Phase 12 | Pending |
 | BOOKINGS-01 | Phase 16 | Pending |
 | BOOKINGS-02 | Phase 16 | Pending |
