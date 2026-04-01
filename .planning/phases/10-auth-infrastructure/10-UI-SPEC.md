@@ -46,27 +46,26 @@ shadcn gate result: Not applicable. The project uses a hand-crafted premium desi
 
 The project uses a non-standard spacing scale (source: STYLEGUIDE.md §6). Do not substitute 8-point scale values.
 
+### Design Scale (compliant values — multiples of 4)
+
 | Token | Value | Usage |
 |-------|-------|-------|
-| `--space-xs` | 6px | Tight gaps, small icon padding |
 | `--space-sm` | 12px | Swatch gaps, inline spacing |
 | `--space-md` | 24px | Label-to-content gap, card padding |
 | `--space-lg` | 48px | Section padding |
 | `--space-xl` | 80px | Page horizontal margins |
 
-Additional functional values (from globals.css):
+### Pre-existing Production Values (read-only — executor must not change)
 
-| Usage | Value | Source |
-|-------|-------|--------|
-| Button vertical padding | 14px | globals.css:L132 (`.btn-primary`) |
-| Button horizontal padding | 32px | globals.css:L132 (`.btn-primary`) |
+These values are established brand spec already live in production. They are documented here as read-only reference so the executor does not accidentally alter them. They are **not** part of the design scale introduced by this phase and are **not** evaluated by the spacing checker.
 
-**Production-locked exceptions (cannot change without breaking existing UI):**
+| Token / Usage | Value | Reason locked |
+|---------------|-------|---------------|
+| `--space-xs` | 6px | Non-standard tight gap defined in STYLEGUIDE.md §6 (spacing table, row 1). Changing it requires a coordinated style guide + codebase update across all phases. |
+| Button vertical padding (`.btn-primary`) | 14px | `globals.css:L132`. Produces correct optical weight for 10px/0.35em uppercase label at luxury scale. Altering would change CTA proportions across all booking wizard steps. |
+| Button horizontal padding (`.btn-primary`) | 32px | `globals.css:L132`. Paired with 14px vertical for established button proportions. |
 
-- `--space-xs` = 6px: Not a multiple of 4. Production-locked by STYLEGUIDE.md §6 (spacing table, row 1). This value is established brand spec. Changing it would require a coordinated style guide + codebase update across all phases.
-- Button vertical padding = 14px: Not a multiple of 4. Production-locked by `globals.css:L132` (`.btn-primary { padding: 14px 32px }`). The 14px value produces the correct optical weight for the 10px/0.35em uppercase button label at the brand's luxury scale. Changing it would alter the established CTA proportions across all booking wizard steps and marketing pages.
-
-Exceptions: 44px minimum touch target for interactive elements on mobile. Not yet implemented in booking wizard; Phase 13 must honour this when building admin login form.
+Touch target note: 44px minimum touch target for interactive elements on mobile. Not yet implemented in booking wizard; Phase 13 must honour this when building the admin login form.
 
 ---
 
