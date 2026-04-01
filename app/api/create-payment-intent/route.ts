@@ -5,7 +5,10 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import type { TripType, VehicleClass } from '@/types/booking'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  httpClient: Stripe.createFetchHttpClient(),
+  maxNetworkRetries: 0,
+})
 
 const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily']
 
