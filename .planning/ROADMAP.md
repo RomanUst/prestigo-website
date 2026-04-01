@@ -63,13 +63,18 @@ Plans:
 **Goal:** Apply two new Supabase migrations: `pricing_config` table (seeded from current `lib/pricing.ts` constants) and `coverage_zones` table (empty). Both tables have RLS enabled with public-read policy.
 
 **Dependencies:** Phase 10 (Supabase client patterns established)
-**Requirements covered:** PRICING-05 (schema prerequisite), ZONES-04 (schema prerequisite)
+**Requirements:** [PRICING-05, ZONES-04]
 **Risk:** Low — additive schema changes, existing `bookings` table untouched
 
 **Key deliverables:**
-- `supabase/migrations/0002_create_pricing_config.sql` — table + RLS + seed (business: 2.80/km, first_class: 4.20/km, business_van: 3.50/km + confirm exact values with operator before seeding)
+- `supabase/migrations/0002_create_pricing_config.sql` — pricing_config + pricing_globals tables + RLS + seed
 - `supabase/migrations/0003_create_coverage_zones.sql` — table + RLS, empty
 - Verification: `pricing_config` rows match current `lib/pricing.ts` hardcoded constants exactly
+
+**Plans:** 1 plan
+
+Plans:
+- [ ] 11-01-PLAN.md — Write migration SQL files (pricing_config + pricing_globals + coverage_zones) and apply via Supabase CLI
 
 ---
 
@@ -175,7 +180,7 @@ Plans:
 | 8. Stripe + Health Check + Maps Keys | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
-| 11. Database Schema | v1.2 | 0/? | Pending | — |
+| 11. Database Schema | v1.2 | 0/1 | Planned | — |
 | 12. Core Booking Flow Update | v1.2 | 0/? | Pending | — |
 | 13. Admin Auth + Login UI | v1.2 | 0/? | Pending | — |
 | 14. Admin API Routes | v1.2 | 0/? | Pending | — |
