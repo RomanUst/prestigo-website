@@ -18,13 +18,13 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
+    <section id="how-it-works" aria-labelledby="how-it-works-heading" className="bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <div className="mb-14">
           <p className="label mb-6">How it works</p>
           <span className="copper-line mb-8 block" />
-          <h2 className="display text-[36px] md:text-[44px]">
+          <h2 id="how-it-works-heading" className="display text-[36px] md:text-[44px]">
             Three steps.<br />
             <span className="display-italic">Zero surprises.</span>
           </h2>

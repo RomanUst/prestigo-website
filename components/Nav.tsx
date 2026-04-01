@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { usePathname } from 'next/navigation'
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  const pathname = usePathname()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40)
@@ -40,7 +42,11 @@ export default function Nav() {
             <a
               key={link.label}
               href={link.href}
-              className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey hover:text-offwhite transition-colors"
+              className={`font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
+                pathname === link.href
+                  ? 'text-offwhite'
+                  : 'text-warmgrey hover:text-offwhite'
+              }`}
             >
               {link.label}
             </a>
@@ -52,9 +58,10 @@ export default function Nav() {
 
         {/* Mobile burger */}
         <button
-          className="md:hidden flex flex-col gap-[5px] p-2"
+          className="md:hidden flex flex-col justify-center gap-[5px] p-3 -mr-1 min-h-[44px] min-w-[44px]"
           onClick={() => setOpen(!open)}
           aria-label="Menu"
+          aria-expanded={open}
         >
           <span className={`w-5 h-px bg-offwhite transition-all ${open ? 'rotate-45 translate-y-[6px]' : ''}`} />
           <span className={`w-5 h-px bg-offwhite transition-all ${open ? 'opacity-0' : ''}`} />
@@ -63,29 +70,36 @@ export default function Nav() {
       </div>
 
       {/* Mobile menu */}
-      {open && (
-        <div className="md:hidden bg-anthracite-mid border-t border-anthracite-light px-6 py-6 flex flex-col gap-5">
-          {[
-            { label: 'Services', href: '/services' },
-            { label: 'Fleet', href: '/fleet' },
-            { label: 'Routes', href: '/routes' },
-            { label: 'Corporate', href: '/corporate' },
-            { label: 'Contact', href: '/contact' },
-          ].map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className="font-body font-light text-[11px] tracking-[0.2em] uppercase text-warmgrey hover:text-offwhite transition-colors"
-            >
-              {link.label}
-            </a>
-          ))}
-          <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-2">
-            Book now
+      <div
+        id="mobile-menu"
+        className={`md:hidden bg-anthracite-mid border-anthracite-light px-6 flex flex-col gap-5 overflow-hidden transition-all duration-300 ease-out ${
+          open ? 'max-h-96 py-6 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
+        }`}
+      >
+        {[
+          { label: 'Services', href: '/services' },
+          { label: 'Fleet', href: '/fleet' },
+          { label: 'Routes', href: '/routes' },
+          { label: 'Corporate', href: '/corporate' },
+          { label: 'Contact', href: '/contact' },
+        ].map((link) => (
+          <a
+            key={link.label}
+            href={link.href}
+            onClick={() => setOpen(false)}
+            className={`font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors ${
+              pathname === link.href
+                ? 'text-offwhite'
+                : 'text-warmgrey hover:text-offwhite'
+            }`}
+          >
+            {link.label}
           </a>
-        </div>
-      )}
+        ))}
+        <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-2">
+          Book now
+        </a>
+      </div>
     </nav>
   )
 }

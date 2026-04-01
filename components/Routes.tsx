@@ -9,13 +9,13 @@ const routes = [
 
 export default function Routes() {
   return (
-    <section id="routes" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
+    <section id="routes" aria-labelledby="routes-heading" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <div className="mb-14">
           <p className="label mb-6">Intercity routes</p>
           <span className="copper-line mb-8 block" />
-          <h2 className="display text-[36px] md:text-[44px]">
+          <h2 id="routes-heading" className="display text-[36px] md:text-[44px]">
             Central Europe,<br />
             <span className="display-italic">at your pace.</span>
           </h2>
@@ -45,7 +45,7 @@ export default function Routes() {
                 </p>
                 <a
                   href="#book"
-                  className="font-body font-light text-[9px] tracking-[0.2em] uppercase text-warmgrey hover:text-offwhite transition-colors mt-1 block"
+                  className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey hover:text-offwhite transition-colors mt-1 block py-1"
                 >
                   Book →
                 </a>

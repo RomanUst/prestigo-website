@@ -47,6 +47,8 @@ function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProp
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [elementReady, setElementReady] = useState(false)
+  const [elementError, setElementError] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const payLabel = selectedCurrency === 'czk'
@@ -80,9 +82,30 @@ function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProp
     }
   }
 
+  const isDisabled = isProcessing || !stripe || !elementReady
+
   return (
     <form onSubmit={handleSubmit}>
-      <PaymentElement options={{ layout: 'tabs', paymentMethodOrder: ['apple_pay', 'google_pay', 'card'], wallets: { applePay: 'auto', googlePay: 'auto' } }} />
+      <PaymentElement
+        options={{ layout: 'tabs', paymentMethodOrder: ['apple_pay', 'google_pay', 'card'], wallets: { applePay: 'auto', googlePay: 'auto' } }}
+        onReady={() => setElementReady(true)}
+        onLoadError={(e) => setElementError((e as { error?: { message?: string } })?.error?.message ?? 'Payment form failed to load. Please refresh and try again.')}
+      />
+
+      {elementError && (
+        <p
+          style={{
+            color: '#C0392B',
+            fontSize: 14,
+            fontWeight: 300,
+            fontFamily: 'var(--font-montserrat)',
+            marginTop: 8,
+            lineHeight: 1.5,
+          }}
+        >
+          {elementError}
+        </p>
+      )}
 
       {errorMessage && (
         <p
@@ -102,15 +125,15 @@ function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProp
       <button
         type="submit"
         className="btn-primary"
-        disabled={isProcessing || !stripe}
-        aria-disabled={isProcessing || !stripe}
+        disabled={isDisabled}
+        aria-disabled={isDisabled}
         style={{
           width: '100%',
           marginTop: 24,
-          ...(isProcessing || !stripe ? { opacity: 0.4, cursor: 'not-allowed' } : {}),
+          ...(isDisabled ? { opacity: 0.4, cursor: 'not-allowed' } : {}),
         }}
       >
-        {payLabel}
+        {!elementReady && !elementError ? 'Loading...' : payLabel}
       </button>
     </form>
   )

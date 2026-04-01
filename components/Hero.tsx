@@ -3,14 +3,15 @@ import HeroTypewriter from './HeroTypewriter'
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col justify-start overflow-hidden">
+    <section className="relative min-h-dvh flex flex-col justify-start overflow-hidden">
 
       {/* Full-screen background photo */}
       <Image
         src="/photohero.png"
-        alt="Prestigo chauffeur service"
+        alt="Prestigo premium chauffeur — Prague airport transfer"
         fill
         priority
+        sizes="100vw"
         style={{ objectFit: 'cover', objectPosition: 'center' }}
       />
 
@@ -50,9 +51,9 @@ export default function Hero() {
 
             {/* Headline */}
             <HeroTypewriter />
-            <h1 className="display display-italic text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-400 mb-10">
+            <p className="display display-italic text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-400 mb-10">
               as it should be.
-            </h1>
+            </p>
 
             {/* Subhead */}
             <p className="body-text max-w-sm animate-on-load delay-500 mb-12">
@@ -106,7 +107,7 @@ export default function Hero() {
 
         {/* Scroll hint */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-on-load delay-800">
-          <span className="label" style={{ fontSize: '8px', color: 'var(--anthracite-light)' }}>
+          <span className="label" style={{ fontSize: '9px', color: 'var(--warmgrey)' }}>
             Scroll
           </span>
           <div className="w-px h-8 bg-gradient-to-b from-anthracite-light to-transparent" />

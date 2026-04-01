@@ -2,7 +2,12 @@ import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { Resend } from 'resend'
 
-export async function GET() {
+export async function GET(request: Request) {
+  const expected = process.env.HEALTH_SECRET
+  if (!expected || request.headers.get('authorization') !== `Bearer ${expected}`) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const results: Record<string, { ok: boolean; error?: string }> = {}
 
   // Supabase probe

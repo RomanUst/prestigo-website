@@ -13,8 +13,18 @@ const words = [
 export default function HeroTypewriter() {
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(true)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setReducedMotion(mq.matches)
+    const onChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  useEffect(() => {
+    if (reducedMotion) return
     const interval = setInterval(() => {
       setVisible(false)
       setTimeout(() => {
@@ -23,7 +33,7 @@ export default function HeroTypewriter() {
       }, 350)
     }, 2500)
     return () => clearInterval(interval)
-  }, [])
+  }, [reducedMotion])
 
   return (
     <h1 className="display text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-300 mb-2">
@@ -31,9 +41,9 @@ export default function HeroTypewriter() {
         style={{
           color: 'var(--copper)',
           display: 'inline-block',
-          transition: 'opacity 0.35s ease, transform 0.35s ease',
+          transition: reducedMotion ? 'none' : 'opacity 0.35s ease, transform 0.35s ease',
           opacity: visible ? 1 : 0,
-          transform: visible ? 'translateY(0px)' : 'translateY(-10px)',
+          transform: reducedMotion || visible ? 'translateY(0px)' : 'translateY(-10px)',
         }}
       >
         {words[index]}

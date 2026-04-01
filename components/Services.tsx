@@ -39,13 +39,13 @@ const services = [
 
 export default function Services() {
   return (
-    <section id="services" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
+    <section id="services" aria-labelledby="services-heading" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <div className="mb-14">
           <p className="label mb-6">Our services</p>
           <span className="copper-line mb-8 block" />
-          <h2 className="display text-[36px] md:text-[44px]">
+          <h2 id="services-heading" className="display text-[36px] md:text-[44px]">
             Every journey,<br />
             <span className="display-italic">covered.</span>
           </h2>
@@ -64,7 +64,7 @@ export default function Services() {
               <p className="body-text mb-5">{s.body}</p>
               <span
                 className="font-body font-light text-[10px] tracking-[0.2em] uppercase"
-                style={{ color: 'var(--anthracite-light)' }}
+                style={{ color: 'var(--warmgrey)' }}
               >
                 {s.detail}
               </span>
