@@ -1,12 +1,25 @@
+import Image from 'next/image'
 import HeroTypewriter from './HeroTypewriter'
 
 export default function Hero() {
   return (
-    <section className="relative min-h-screen flex flex-col justify-start bg-anthracite overflow-hidden">
+    <section className="relative min-h-screen flex flex-col justify-start overflow-hidden">
+
+      {/* Full-screen background photo */}
+      <Image
+        src="/photohero.png"
+        alt="Prestigo chauffeur service"
+        fill
+        priority
+        style={{ objectFit: 'cover', objectPosition: 'center' }}
+      />
+
+      {/* Dark overlay — ensures text legibility */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(18,17,16,0.85) 40%, rgba(18,17,16,0.4) 100%)' }} />
 
       {/* Background texture — subtle grain */}
       <div
-        className="absolute inset-0 opacity-[0.03]"
+        className="absolute inset-0 opacity-[0.04]"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
           backgroundSize: '200px',
@@ -58,7 +71,7 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right — stat cards */}
+          {/* Right — stat cards + quote */}
           <div className="hidden lg:flex flex-col gap-4 items-end animate-on-load delay-700">
 
             {/* Stats */}
@@ -70,6 +83,7 @@ export default function Hero() {
                 <div
                   key={stat.label}
                   className="border border-anthracite-light bg-anthracite-mid px-6 py-5 min-w-[120px]"
+                  style={{ background: 'rgba(28,27,25,0.75)', backdropFilter: 'blur(8px)' }}
                 >
                   <p className="font-display font-light text-2xl text-offwhite mb-1 tracking-wide">
                     {stat.number}
