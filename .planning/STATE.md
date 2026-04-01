@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: unknown
-stopped_at: Phase 11 context gathered
-last_updated: "2026-04-01T21:36:25.836Z"
+status: in-progress
+stopped_at: "Phase 11-01, stopped at Task 2 checkpoint (human-action: Supabase CLI setup and db push)"
+last_updated: "2026-04-01T22:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 1
+  total_plans: 2
   completed_plans: 1
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 10 — auth-infrastructure
+**Current focus:** Phase 11 — database-schema
 
 ## Current Position
 
-Phase: 10 (auth-infrastructure) — COMPLETE
-Plan: 1 of 1 — COMPLETE
+Phase: 11 (database-schema) — IN PROGRESS
+Plan: 11-01 — stopped at Task 2 checkpoint (1 of 2 tasks complete)
 
 ## Accumulated Context
 
@@ -51,4 +51,4 @@ None.
 
 ### Last session
 
-Stopped at: Phase 11 context gathered
+Stopped at: Phase 11-01 Task 2 checkpoint — awaiting Supabase CLI setup and db push by operator
