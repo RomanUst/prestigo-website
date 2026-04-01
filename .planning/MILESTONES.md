@@ -1,5 +1,23 @@
 # Milestones
 
+## v1.1 Go Live (Shipped: 2026-04-01)
+
+**Phases:** 3 (Phases 7–9) · **Plans:** 7 · **Timeline:** 2 days (2026-03-30 → 2026-04-01)
+**Files changed:** 31 · **Insertions:** 5,021
+
+**Key accomplishments:**
+
+1. Supabase bookings table live in production — 33-column schema migration extracted to `supabase/migrations/0001_create_bookings.sql`, all 8 env vars documented in `.env.example`
+2. All 8 environment variables set in Vercel (Production scope only) — `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `MANAGER_EMAIL`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `GOOGLE_MAPS_API_KEY`, `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY`
+3. `/api/health` endpoint live — returns 200 with per-service probes (Supabase, Stripe, Resend); 6 unit tests passing; Stripe live-mode webhook registered at `rideprestigo.com/api/webhooks/stripe`
+4. Google Maps two-key pattern verified — server key unrestricted (Vercel Route Handlers send no Referer), client key restricted to `https://rideprestige.com/*`
+5. Resend domain `rideprestigo.com` verified (SPF + DKIM propagated); `rideprestige.com` typo fixed across all 6 occurrences in `lib/email.ts`
+6. End-to-end email delivery confirmed — client confirmation and manager alert both land in inbox (not spam) from `bookings@rideprestigo.com`; Stripe fetch client fix resolves Vercel Hobby connectivity issue
+
+**Archive:** `.planning/milestones/v1.1-ROADMAP.md`, `.planning/milestones/v1.1-REQUIREMENTS.md`
+
+---
+
 ## v1.0 MVP (Shipped: 2026-03-30)
 
 **Phases:** 6 (Phases 1–6) · **Plans:** 25 · **Timeline:** 6 days (2026-03-24 → 2026-03-30)

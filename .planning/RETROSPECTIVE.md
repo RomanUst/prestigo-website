@@ -48,6 +48,48 @@
 
 ---
 
+## Milestone: v1.1 — Go Live
+
+**Shipped:** 2026-04-01
+**Phases:** 3 (7–9) | **Plans:** 7 | **Timeline:** 2 days (2026-03-30 → 2026-04-01)
+
+### What Was Built
+- Supabase bookings table live in production — 33-column SQL migration at `supabase/migrations/0001_create_bookings.sql`; all 8 env vars documented in `.env.example` and set in Vercel Production scope
+- `/api/health` endpoint with per-service probes for Supabase, Stripe, and Resend — 6 unit tests passing; serves as single integration health gate
+- Stripe live-mode webhook registered at `rideprestigo.com/api/webhooks/stripe`; `STRIPE_WEBHOOK_SECRET` scoped to Production only; Stripe fetch client fix for Vercel Hobby
+- Google Maps two-key pattern verified — server key unrestricted (Vercel sends no Referer), client key restricted to production domain
+- Resend domain `rideprestigo.com` verified (SPF + DKIM); domain typo (`rideprestige.com`) fixed across all 6 occurrences in `lib/email.ts`; both transactional emails confirmed inbox delivery
+
+### What Worked
+- **Health endpoint as integration gate** — having `/api/health` probe all three services in one call provided a single verification step after each Vercel deployment rather than testing each service separately
+- **Phase 9 summary captured blockers resolved mid-execution** — Stripe SDK connectivity issue and wrong webhook endpoint were discovered during email testing but documented in Plan 02 summary, maintaining a clean audit trail
+- **`printf` over `echo` for CLI secret injection** — discovered via trailing `\n` bug; prevented webhook signature failures that would have been hard to diagnose in production
+- **Production domain correction** — catching `rideprestige.com` vs `rideprestigo.com` in Phase 8 prevented silent failures in email delivery and Stripe webhook registration
+
+### What Was Inefficient
+- REQUIREMENTS.md EMAIL-01 through EMAIL-04 were not updated to `[x]` after Phase 9 completed — required manual note at milestone close
+- Stripe env vars were re-set multiple times due to trailing newline issue — could be avoided by documenting the `printf` pattern upfront in env var setup instructions
+- Stripe webhook was initially created pointing to wrong domain — happened because PLAN.md contained `rideprestige.com` typo carried forward from before domain correction in Phase 8
+
+### Patterns Established
+- **`printf` for Vercel CLI secret injection** — `printf "value" | vercel env add KEY production` (no trailing newline); `echo` silently corrupts secrets
+- **Stripe fetch client on Vercel Hobby** — `Stripe.createFetchHttpClient()` + `maxNetworkRetries: 0` required; Node http module incompatible with Vercel Hobby serverless runtime
+- **Resend constructor mock (function keyword)** — `vi.mock('resend', () => ({ Resend: vi.fn(function() { return stub }) }))` — arrow functions cannot be called with `new`; requires `vi.clearAllMocks()` + re-implementing in `beforeEach`
+- **Google Maps key separation rule** — server key must have Application restrictions = None (Vercel serverless sends no Referer); client key restricted to `https://production-domain/*` with explicit scheme prefix
+
+### Key Lessons
+1. Capture production domain name definitively at project start — a typo that exists in plans and config silently propagates across external service registrations (Stripe, Resend, Vercel) and is expensive to unwind
+2. Always use `printf` (not `echo`) when piping secrets into Vercel CLI — trailing newlines cause webhook signature verification failures that manifest as mysterious 400 errors
+3. `/api/health` with per-service probes pays for itself immediately — single curl confirms the entire integration stack after deploy without navigating three separate dashboards
+4. Stripe on Vercel Hobby requires `createFetchHttpClient()` — document this constraint in the tech stack notes to avoid re-discovering it
+
+### Cost Observations
+- Model mix: ~100% Sonnet 4.6
+- Sessions: ~5 sessions across 2 days
+- Notable: majority of v1.1 work was human dashboard configuration (Stripe, Vercel, Resend, Google Cloud Console) with Claude providing task scaffolding and code fixes; fast turnaround
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -55,14 +97,18 @@
 | Milestone | Phases | Plans | Key Change |
 |-----------|--------|-------|------------|
 | v1.0 MVP | 6 | 25 | First milestone — baseline established |
+| v1.1 Go Live | 3 | 7 | Primarily external dashboard config; health endpoint as integration gate |
 
 ### Cumulative Quality
 
 | Milestone | Tests | Zero-Dep Additions |
 |-----------|-------|--------------------|
 | v1.0 | 32 passing | 0 (used existing stack) |
+| v1.1 | 32 passing (+6 health tests) | 0 (same stack) |
 
 ### Top Lessons (Verified Across Milestones)
 
 1. Webhook-as-source-of-truth eliminates double-save bugs in payment flows
 2. Server-side-first for API keys prevents late-stage security refactoring
+3. Production domain must be pinned definitively at project start — typos in plans propagate to external service registrations
+4. Use `printf` not `echo` when injecting secrets via CLI — trailing newlines cause signature verification failures
