@@ -1,382 +1,754 @@
-# Pitfalls Research — v1.1 Go Live: Supabase + Stripe + Resend + Google Maps on Vercel
+# Pitfalls Research — v1.2 Operator Dashboard
 
-**Domain:** Next.js App Router — connecting production services for a live booking/payment flow
-**Researched:** 2026-03-30
-**Confidence:** HIGH (all critical findings verified against official docs and multiple community sources)
+**Domain:** Adding Supabase Auth, polygon zones editor, Supabase config table, and admin dashboard to an existing Next.js 14 App Router + Supabase production booking site.
+**Researched:** 2026-04-01
+**Confidence:** HIGH (all critical findings verified against official Supabase docs, Next.js docs, and multiple community sources)
 
----
-
-## Critical Pitfalls
-
-### Pitfall 1: Stripe Webhook Secret Mismatch (Test vs. Live Mode)
-
-**What goes wrong:**
-The webhook signing secret used in `STRIPE_WEBHOOK_SECRET` is the test-mode secret (`whsec_test_...`), but the registered endpoint in the Stripe Dashboard is a live-mode endpoint. Stripe sends the event with a live-mode signature; `constructEvent()` fails to verify it and returns 400. No booking is saved, no email is sent. The client sees their payment succeeded but receives nothing.
-
-**Why it happens:**
-Stripe has completely separate dashboards for test and live mode. The signing secret shown when you click "Reveal secret" is mode-specific. Developers copy the secret while in test mode, then switch to live mode to register the production endpoint — but forget to re-copy the live secret.
-
-**How to avoid:**
-1. Switch Stripe Dashboard to **Live mode** before registering the production webhook endpoint.
-2. Copy the signing secret only after creating the live endpoint.
-3. Set `STRIPE_WEBHOOK_SECRET` in Vercel scoped to **Production environment only** — not Preview.
-4. Add a startup log: `console.log('STRIPE_WEBHOOK_SECRET prefix:', process.env.STRIPE_WEBHOOK_SECRET?.slice(0, 12))` to confirm the right key loads.
-
-**Warning signs:**
-- Stripe Dashboard shows events delivered but with HTTP 400 response.
-- Webhook logs show `"No signatures found matching the expected signature for payload"`.
-- Test mode events process correctly; live mode events all fail.
-
-**Phase to address:** Phase 1 — Stripe Live Mode Setup (webhook registration)
+> This document covers ONLY new pitfalls introduced by v1.2 features.
+> v1.1 pitfalls (Stripe webhook, Resend domain, Google Maps key types, Vercel env scoping) are documented in the archived milestone and remain valid — do not re-do that work.
 
 ---
 
-### Pitfall 2: Vercel Env Var Scope Set to All Environments Instead of Production-Only
+## Area 1: Supabase Auth Middleware — Next.js 14 App Router
+
+### Pitfall 1A: Infinite Redirect Loop Because Cookies Are Written to Only One Side
+
+**Risk level:** CRITICAL
 
 **What goes wrong:**
-A live Stripe secret key (`sk_live_...`) or live webhook secret is set in Vercel with all three scopes checked (Production, Preview, Development). A developer opens a Preview deployment for a PR review and triggers a test booking. The preview deployment uses the live Stripe key, charges a real card, and saves a real booking. Alternatively, the live Stripe key leaks into a preview URL that is shared publicly.
+The user signs in successfully. `signInWithPassword` resolves, the session is created client-side. But when the user navigates to `/admin`, the middleware runs, finds no valid session cookie in the request, and redirects to `/login`. The user is now in an infinite loop: login → redirect to `/admin` → middleware finds no cookie → redirect to `/login`.
+
+The loop is not always obvious from the browser — it may manifest as the `/admin` page never loading, or as a blank page with no error. Supabase does not throw; it silently returns no session.
 
 **Why it happens:**
-Vercel's UI defaults to checking all three environment scopes when you add a variable. Developers accept the default without thinking.
+The middleware must write the refreshed session token to **both** the request object (so Server Components see it) and the response object (so the browser stores it). A common mistake is updating only `response.cookies` but not `request.cookies`, or vice versa. When the response cookie is not set, the browser never stores the JWT and the next request arrives without credentials.
 
-**How to avoid:**
-- `STRIPE_SECRET_KEY` (live): Production scope only.
-- `STRIPE_WEBHOOK_SECRET` (live endpoint secret): Production scope only.
-- `SUPABASE_SERVICE_ROLE_KEY` (production project): Production scope only.
-- `RESEND_API_KEY` (production key): Production scope only.
-- Test-mode equivalents for all four: Preview + Development scopes only.
-- After setting variables, redeploy from the Vercel Dashboard (not just `vercel --prod` CLI) to ensure scope is applied correctly. A known Vercel bug causes preview env vars to appear in production when deploying via CLI without a dashboard redeploy.
+**Prevention:**
+Follow the exact two-pass pattern from the official `@supabase/ssr` docs:
 
-**Warning signs:**
-- Live bookings appearing when testing on a Preview URL.
-- `VERCEL_ENV` shows `preview` in production logs.
-- Stripe Dashboard shows live charges from non-production activity.
-
-**Phase to address:** Phase 1 — Environment Variable Configuration
-
----
-
-### Pitfall 3: Supabase Table Not Created Before First Webhook Fires
-
-**What goes wrong:**
-The `bookings` table schema exists only as a SQL comment in `lib/supabase.ts`. If the table is never executed against the actual Supabase project, the first real `payment_intent.succeeded` webhook fires, `saveBooking()` throws, the 3-retry backoff exhausts, and the emergency alert email is sent to the manager instead of a proper confirmation. The booking is lost from the database.
-
-**Why it happens:**
-The schema is documentation-style (a SQL comment block), not a migration file. There is no migration runner. It is easy to forget to manually execute the `CREATE TABLE` statement in the Supabase SQL Editor before go-live.
-
-**How to avoid:**
-- Execute the full `CREATE TABLE bookings (...)` statement in the Supabase SQL Editor **before** registering the Stripe live webhook.
-- Verify the table exists: run `SELECT COUNT(*) FROM bookings` in the SQL Editor — should return 0, not an error.
-- Verify the `UNIQUE` constraint on `payment_intent_id` is present: run `\d bookings` or check the Table Editor constraints tab.
-- Add a health check endpoint (`/api/health`) that attempts a `SELECT 1 FROM bookings LIMIT 1` and returns 200/503 accordingly.
-
-**Warning signs:**
-- Emergency alert email received from manager on first smoke test booking.
-- Supabase logs show `relation "bookings" does not exist`.
-- `saveBooking()` throws on the very first call.
-
-**Phase to address:** Phase 1 — Supabase Schema Setup
-
----
-
-### Pitfall 4: Supabase Service Role Client Initialized with SSR/Cookie Context
-
-**What goes wrong:**
-If the Supabase client used in the webhook route is initialized using the SSR helper (`@supabase/ssr` or `createServerClient` with cookie handling), a user JWT from the request cookies can override the service role key in the `Authorization` header. The client then operates as an anonymous or authenticated user rather than service role, and RLS blocks the `INSERT` silently — returning an empty result rather than an error in some configurations.
-
-**Why it happens:**
-The SSR Supabase client is designed to inject the user session from cookies into the Authorization header, overriding the `apikey`. This is correct behavior for user-facing routes, but catastrophic for the webhook route which must write as service role.
-
-**How to avoid:**
-The existing `createSupabaseServiceClient()` in `lib/supabase.ts` correctly uses `createClient()` directly with `persistSession: false` and `autoRefreshToken: false` — this is the right pattern. Do not refactor this to use `@supabase/ssr` patterns. Keep the service client isolated.
-
-Verify the client config is not changed during the go-live phase by confirming:
 ```typescript
-auth: {
-  persistSession: false,
-  autoRefreshToken: false,
-  detectSessionInUrl: false,
+// utils/supabase/middleware.ts
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+
+export async function updateSession(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request });
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookiesToSet) => {
+          // Pass 1: update the request so Server Components see the refreshed token
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          // Re-create the response with the updated request
+          supabaseResponse = NextResponse.next({ request });
+          // Pass 2: set the cookie on the response so the browser stores it
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  // MUST call getUser() here — this triggers the refresh cycle
+  await supabase.auth.getUser();
+  return supabaseResponse;
 }
 ```
 
 **Warning signs:**
-- `saveBooking()` returns no error but the booking does not appear in the `bookings` table.
-- Supabase logs show RLS policy violations for `INSERT`.
-- The issue only appears in production (not locally), suggesting an environment difference.
+- Login form submits, no error, but `/admin` never loads.
+- Browser DevTools Network tab shows a chain of 302 redirects between `/admin` and `/login`.
+- `document.cookie` in the browser console is empty after successful login.
+- Works in local dev (where cookies may persist differently) but breaks in production.
 
-**Phase to address:** Phase 1 — Supabase Setup (verify client initialization before connecting)
+**Phase to address:** Phase 1 — Auth Setup (middleware implementation)
 
 ---
 
-### Pitfall 5: PostgREST Schema Cache Stale After Table Creation
+### Pitfall 1B: `getSession()` Used in Middleware Instead of `getClaims()` or `getUser()`
+
+**Risk level:** HIGH
 
 **What goes wrong:**
-The `bookings` table is created in Supabase SQL Editor, but the PostgREST schema cache does not update immediately. The first `INSERT` via `supabase-js` silently ignores columns that PostgREST does not yet know about, inserting `NULL` into those fields. If any of those columns have `NOT NULL` constraints (e.g., `booking_reference`, `trip_type`, `pickup_date`, `vehicle_class`, `amount_czk`), the insert fails with a `not-null constraint violation`.
+`supabase.auth.getSession()` is used in middleware to check whether a user is authenticated. The check passes even for tampered or expired tokens because `getSession()` reads from the cookie as-is without verifying the JWT signature. An attacker who can fabricate a valid-looking (but expired or revoked) cookie can bypass admin route protection.
 
 **Why it happens:**
-PostgREST caches the database schema and receives reload signals via Postgres NOTIFY. Under certain conditions (queue issues, cold starts), the signal is delayed. Table creation in the SQL Editor does not always trigger an immediate cache reload.
+`getSession()` is the most visible auth method in older Supabase tutorials and the v1.x `@supabase/auth-helpers-nextjs` documentation. It appears to work — it returns a session object — but it does not cryptographically verify the token server-side.
 
-**How to avoid:**
-After creating the table, wait 60 seconds, then run a test insert via the Supabase JS SDK (not the SQL Editor — which bypasses RLS and PostgREST). If the insert fails with column errors, run this SQL to force a cache reload:
-```sql
-NOTIFY pgrst, 'reload schema';
+**Prevention:**
+Use `getClaims()` for route protection. It validates the JWT signature against the project's published public keys (JWKS endpoint), usually without a network round-trip once the keys are cached. Use `getUser()` if you need to verify the user is not banned/deleted at the Supabase Auth level (slower — always hits the Auth server).
+
+```typescript
+// In a Server Component or Route Handler protecting /admin:
+const { data, error } = await supabase.auth.getClaims();
+if (error || !data) redirect("/login");
 ```
-Then retry. Verify all required columns accept values before registering the live webhook.
+
+Do NOT use `getSession()` anywhere in server-side code (middleware, Server Components, Route Handlers). The Supabase docs state explicitly: "Never trust `supabase.auth.getSession()` inside server code — it isn't guaranteed to revalidate the Auth token."
 
 **Warning signs:**
-- Insert errors mentioning `null value in column` for columns you are providing.
-- Inserts succeed in the SQL Editor but fail via the SDK.
-- Error only appears immediately after table creation, then resolves after a few minutes.
+- Auth check passes for a cookie that was manually modified in DevTools.
+- Session appears valid after the user's Supabase account is deleted.
+- No errors in development, but Supabase Dashboard shows the token is expired.
 
-**Phase to address:** Phase 1 — Supabase Schema Setup (verification step after table creation)
+**Phase to address:** Phase 1 — Auth Setup (route protection logic)
 
 ---
 
-### Pitfall 6: Google Maps Client-Side API Key Blocked in Production by Referrer Restrictions
+### Pitfall 1C: `middleware.ts` Placed in Wrong Directory
+
+**Risk level:** MEDIUM
 
 **What goes wrong:**
-The `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` is restricted by HTTP referrer in Google Cloud Console. The referrer list includes `localhost` and the development domain but not the production domain (e.g., `rideprestige.com/*`). In production, the Places Autocomplete widget fails silently or shows a `RefererNotAllowedMapError` in the browser console. The address fields render but no suggestions appear. Users cannot complete Step 1.
+The project uses a `src/` directory layout. `middleware.ts` is placed at the project root (`/middleware.ts`) instead of `/src/middleware.ts`. Next.js silently ignores the root-level file when using the `src/` convention. No middleware runs. All `/admin` routes are publicly accessible — no redirect to login.
 
 **Why it happens:**
-API key restrictions set up during development only cover localhost. Production domain is never added because the developer assumes the test configuration carries over. The error only appears after the production deploy.
+Most Supabase and Next.js examples in the wild show `middleware.ts` at the root, because those examples don't use `src/`. The project structure is `prestigo/src/app/...`, so the middleware must live at `prestigo/src/middleware.ts`.
 
-**How to avoid:**
-Before go-live, add all required referrer patterns to the client-side Maps key in Google Cloud Console:
-- `https://rideprestige.com/*`
-- `https://www.rideprestige.com/*`
-- `https://*.vercel.app/*` (for preview deployments — optional, disable after stable launch)
-
-Allow 5 minutes for propagation after saving. Test Places Autocomplete on the production URL before considering go-live complete.
+**Prevention:**
+Confirm the project's directory layout before placing the file. If `app/` lives inside `src/`, then `middleware.ts` must also live inside `src/`. After placing it, verify it runs by adding a `console.log('middleware hit:', request.nextUrl.pathname)` and loading any page in dev mode — the log must appear in the terminal.
 
 **Warning signs:**
-- `RefererNotAllowedMapError` in browser console on production.
-- Address autocomplete field visible but no dropdown suggestions appear.
-- Works on localhost, breaks on production URL.
+- `/admin` routes render without redirect when not authenticated.
+- No middleware-related logs in the Vercel function logs.
+- Changes to middleware code have no effect.
 
-**Phase to address:** Phase 2 — Google Maps API Key Configuration
+**Phase to address:** Phase 1 — Auth Setup (file placement verification)
 
 ---
 
-### Pitfall 7: Server-Side Routes API Key Has HTTP Referrer Restriction (Wrong Type)
+### Pitfall 1D: CDN-Cached Response Contains Another User's Session Cookie
+
+**Risk level:** HIGH (edge case, but catastrophic when hit)
 
 **What goes wrong:**
-The server-side Google Routes API key (used in `/api/calculate-price`) has an HTTP referrer restriction. Server-side calls do not send a `Referer` header, so Google rejects every pricing request with `REQUEST_DENIED`. The price calculation endpoint returns an error, forcing all bookings into quote mode. Users cannot see prices and cannot pay.
+When `@supabase/ssr` refreshes a session token server-side, it writes the updated JWT to the response via a `Set-Cookie` header. If Vercel Edge or another CDN caches that response and serves it to a different user, the second user's browser stores the first user's JWT. The second user is now signed in as the first user's admin account.
 
 **Why it happens:**
-Google Maps has two restriction types: HTTP referrer (for client-side/browser use) and IP address (for server-side use). Using the wrong type for server-side calls is a documented gotcha. The project uses one key for client-side Places and a separate key for server-side Routes — if the server key has a referrer restriction copied from the client key setup, it will fail.
+Pages that require authentication must not be cached by any CDN. Without explicit cache-control directives, Next.js may allow a response containing a `Set-Cookie` header to be served from edge cache.
 
-**How to avoid:**
-- The server-side Routes API key must have either **no restriction** or an **IP address restriction** — never an HTTP referrer restriction.
-- On Vercel, outbound requests come from dynamic IP addresses, so IP restriction is impractical. Use no application restriction on the server-side key, but restrict it by **API** (Routes API only) so it cannot be used for other services.
-- Verify by calling `/api/calculate-price` from the production URL with a known route and confirming a numeric price is returned.
+**Prevention:**
+Mark all auth-sensitive pages as non-cacheable. In Next.js App Router, add this to any page or layout inside `/admin`:
+
+```typescript
+export const dynamic = "force-dynamic";
+```
+
+As of `@supabase/ssr` v0.10.0, the library automatically passes `Cache-Control: no-store`, `Expires: 0`, and `Pragma: no-cache` to the `setAll` cookie callback when a refresh occurs. Ensure your `setAll` implementation applies these headers to the response — the pattern from Pitfall 1A does this correctly via `supabaseResponse = NextResponse.next({ request })`.
 
 **Warning signs:**
-- All routes return quote mode in production.
-- `calculate-price` endpoint logs `REQUEST_DENIED` from Google.
-- Works in local development (where server-side calls may have a consistent IP).
+- Two different admin sessions appear to share data or see each other's state.
+- Supabase Auth logs show a session being used from two different IP addresses simultaneously.
+- Vercel Analytics shows identical response content being served for auth-protected routes.
 
-**Phase to address:** Phase 2 — Google Maps API Key Configuration
+**Phase to address:** Phase 1 — Auth Setup (cache headers verification)
 
 ---
 
-### Pitfall 8: Resend "From" Address Uses Unverified Domain
+### Pitfall 1E: Service Role Client Accidentally Initialized with SSR Cookies in Admin Route Handlers
+
+**Risk level:** HIGH**
 
 **What goes wrong:**
-The sending domain `rideprestige.com` is not verified in Resend. Emails are sent using `bookings@rideprestige.com` as the From address but the domain has no SPF/DKIM records configured. All client confirmation emails and manager alerts go directly to spam — or worse, Resend rejects the send entirely with a 403 error. The client receives no confirmation after paying.
+This pitfall already exists and was documented for v1.1 (Pitfall 4 in the archived research). It becomes relevant again in v1.2 because new Route Handlers will be added for the admin dashboard. If any admin Route Handler uses `createServerClient` from `@supabase/ssr` where a service-role client is needed (e.g., to write pricing config or update booking status), the user's JWT from cookies overrides the service role key and RLS blocks the write silently.
 
-**Why it happens:**
-Resend allows sending from `onboarding@resend.dev` during development without domain verification. Developers test with that address, it works, and they deploy to production without completing the domain verification step. The DNS records (DKIM CNAME, SPF TXT, DMARC TXT) are never added to the domain registrar/DNS provider.
+**Prevention:**
+Maintain the existing separation: `createSupabaseServiceClient()` in `lib/supabase.ts` uses `createClient()` directly with `persistSession: false, autoRefreshToken: false, detectSessionInUrl: false`. Never refactor this to an SSR client. New admin Route Handlers that need elevated database access must import from `lib/supabase.ts`, not from `utils/supabase/server.ts`.
 
-**How to avoid:**
-1. Add `rideprestige.com` to Resend Domains dashboard.
-2. Add all Resend-provided DNS records to the DNS provider (MX, CNAME for DKIM, TXT for SPF).
-3. Wait for verification (typically 15 minutes; up to 48 hours).
-4. Confirm all records show green in Resend dashboard.
-5. Send a test email from Resend to both a Gmail and an Outlook address — check spam folders.
-6. Only then update the `from` address in `lib/email.ts` from any placeholder to `bookings@rideprestige.com`.
-
-**Warning signs:**
-- Resend API returns `403: The domain is not verified`.
-- Client confirmation emails arrive in spam.
-- Resend Dashboard shows emails delivered but recipients cannot find them in inbox.
-- DMARC report shows SPF/DKIM failures.
-
-**Phase to address:** Phase 3 — Resend Domain Verification
+**Phase to address:** All phases that add new Route Handlers for admin operations.
 
 ---
 
-### Pitfall 9: Stripe Webhook Endpoint URL Points to Wrong Environment
+## Area 2: GeoJSON Polygon Storage in Supabase
+
+### Pitfall 2A: PostGIS Extension Not Enabled — Columns Silently Reject Geometry Types
+
+**Risk level:** CRITICAL
 
 **What goes wrong:**
-The live-mode Stripe webhook endpoint is registered pointing at a Vercel Preview URL (e.g., `https://prestigo-git-feature-branch.vercel.app/api/webhooks/stripe`) instead of the production URL (`https://rideprestige.com/api/webhooks/stripe`). All live payment events are delivered to the preview deployment. The production site never receives them. Bookings are never saved, emails are never sent.
+A `coverage_zones` table is created with a column intended to store polygon geometry. PostGIS is not enabled on the Supabase project. The column is created as `TEXT` or `JSONB` as a workaround. Later, spatial queries (`ST_Contains`, `ST_Intersects`) cannot be run against text/JSONB data. The booking wizard's zone-containment check (is the pickup point inside a defined zone?) must be done in application code with a polygon-in-point algorithm instead of a single SQL query, adding complexity and fragility.
 
-**Why it happens:**
-The webhook endpoint is registered during development using the current deployment URL. When the production domain is configured, no one updates the webhook endpoint URL in the Stripe Dashboard.
+Alternatively, if the developer creates the column as `geometry(Polygon, 4326)` before enabling PostGIS, the `CREATE TABLE` statement fails with `type "geometry" does not exist`.
 
-**How to avoid:**
-- Register the webhook endpoint in Stripe **live mode** using the final production domain: `https://rideprestige.com/api/webhooks/stripe`.
-- After registration, use Stripe Dashboard → "Send test webhook" to verify the production endpoint returns 200.
-- Keep one endpoint per mode: one test endpoint pointing to a stable preview/local URL; one live endpoint pointing to the production domain only.
+**Prevention:**
+Enable PostGIS in the Supabase Dashboard before creating the table: Database → Extensions → search "postgis" → enable. Then create the `coverage_zones` table with a `geometry(Polygon, 4326)` column. Add a spatial GiST index immediately:
+
+```sql
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+CREATE TABLE coverage_zones (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL,
+  polygon geometry(Polygon, 4326) NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX coverage_zones_polygon_idx ON coverage_zones USING GIST (polygon);
+```
 
 **Warning signs:**
-- Stripe Dashboard shows events as "Delivered" but no bookings appear in Supabase.
-- The delivered URL in event logs is a non-production Vercel URL.
-- Production webhook endpoint shows 0 delivered events.
+- `CREATE TABLE` fails with `type "geometry" does not exist`.
+- Zone containment checks require loading all polygon coordinates into memory in the application.
+- No `postgis` entry visible in the Supabase Dashboard under Extensions.
 
-**Phase to address:** Phase 1 — Stripe Live Mode Setup
+**Phase to address:** Phase 2 — Coverage Zones (database schema step)
 
 ---
 
-### Pitfall 10: Vercel Deployment Protection Blocking Stripe Webhook Requests
+### Pitfall 2B: PostGIS Returns Hex-Encoded WKB, Not GeoJSON
+
+**Risk level:** HIGH
 
 **What goes wrong:**
-Vercel's deployment protection (password protection or Vercel Authentication on Preview deployments) intercepts the incoming POST from Stripe and returns a 401/302 instead of forwarding to the webhook handler. Stripe receives a non-200 response and retries — up to 78 hours later. During that time, no bookings are saved.
+The coverage zones are stored correctly as PostGIS geometry. When queried via `supabase-js` (which calls the PostgREST API), the polygon column returns a hex-encoded Well-Known Binary (WKB) string like `0103000020E6100000...` instead of a GeoJSON object. The frontend map renderer (vis.gl `<Polygon>`) expects GeoJSON coordinates, not WKB. The polygon cannot be rendered.
 
 **Why it happens:**
-Deployment protection is sometimes enabled project-wide, including production. Stripe's webhook sender does not support authentication challenges — it just follows HTTP responses. A 302 redirect to a login page causes Stripe to abandon the request.
+PostgREST serializes `geometry` columns as WKB hex by default. This is standard behavior — it is not a bug.
 
-**How to avoid:**
-- Confirm Vercel deployment protection is disabled for the production deployment (or bypassed for the `/api/webhooks/stripe` path if protection is needed elsewhere).
-- After registering the live webhook, use Stripe CLI: `stripe trigger payment_intent.succeeded` pointing to the production URL and verify a 200 response.
+**Prevention:**
+Use `ST_AsGeoJSON()` in a database view or a Postgres function to return the polygon as GeoJSON:
+
+```sql
+CREATE OR REPLACE VIEW coverage_zones_geojson AS
+SELECT
+  id,
+  name,
+  ST_AsGeoJSON(polygon)::json AS polygon,
+  created_at
+FROM coverage_zones;
+```
+
+Then query the view instead of the table directly:
+
+```typescript
+const { data } = await supabase
+  .from("coverage_zones_geojson")
+  .select("id, name, polygon");
+```
+
+For inserts, use `ST_GeomFromGeoJSON()` to convert incoming GeoJSON back to geometry:
+
+```sql
+INSERT INTO coverage_zones (name, polygon)
+VALUES ($1, ST_GeomFromGeoJSON($2));
+```
 
 **Warning signs:**
-- Stripe webhook logs show `HTTP 401` or `HTTP 302` from the endpoint.
-- The endpoint works with curl from a terminal but not from Stripe.
+- Frontend map receives a hex string where it expects `{ type: "Polygon", coordinates: [...] }`.
+- Polygon column value in Supabase Table Editor shows a long hex string.
+- `vis.gl/react-google-maps` `<Polygon>` throws a type error or renders nothing.
 
-**Phase to address:** Phase 1 — Stripe Live Mode Setup (smoke test verification)
-
----
-
-## Technical Debt Patterns
-
-| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
-|----------|-------------------|----------------|-----------------|
-| Keeping same API key for all environments (test + live) | No need to manage multiple keys | Live charges during PR previews; impossible to audit which env caused a charge | Never — always use environment-scoped keys |
-| Using `onboarding@resend.dev` as From address permanently | Emails work in dev without DNS setup | All production emails land in spam; domain reputation never built | Development only — must switch before go-live |
-| Single Google Maps API key (no restriction) | Works everywhere, no config needed | Exposed client-side in browser; potential billing abuse if key scraped | Never in production — restrict by referrer for client-side key |
-| Skipping health check endpoint | Saves one file | No way to verify all services are connected without triggering a real booking | Acceptable for MVP only if smoke test is thorough |
-| Not setting DMARC record for Resend domain | One fewer DNS record | Emails may be rejected by strict receivers; no visibility into spoofing | Acceptable for initial launch; add within 30 days |
+**Phase to address:** Phase 2 — Coverage Zones (data layer)
 
 ---
 
-## Integration Gotchas
+### Pitfall 2C: terra-draw Outputs Coordinates as [lng, lat] — Google Maps Expects [lat, lng]
 
-| Integration | Common Mistake | Correct Approach |
-|-------------|----------------|-----------------|
-| Stripe webhooks | Copy signing secret while in test mode, use in production | Switch to live mode in Dashboard first; copy live endpoint secret |
-| Stripe webhooks | Register endpoint with a Vercel preview URL | Register with final production domain (`rideprestige.com`) |
-| Stripe webhooks | Parse body as JSON before `constructEvent()` | Use `await request.text()` — already implemented correctly in `route.ts` |
-| Supabase | Run schema verification in SQL Editor (bypasses RLS/PostgREST) | Verify inserts via the SDK in a health check or smoke test |
-| Supabase | Use SSR client helper in webhook route | Use `createClient()` directly with `persistSession: false` — already correct |
-| Resend | Leave `from` as `onboarding@resend.dev` in production | Add and verify `rideprestige.com` in Resend Domains; update `from` in `lib/email.ts` |
-| Google Maps (client) | Add `localhost` referrer only | Add production domain patterns before go-live: `https://rideprestige.com/*` |
-| Google Maps (server) | Restrict server-side Routes API key by HTTP referrer | Use no application restriction or IP restriction; restrict by API (Routes API only) |
-| Vercel env vars | Check all three scopes for sensitive vars | Scope live keys to Production only; use separate test keys for Preview |
+**Risk level:** HIGH
 
----
+**What goes wrong:**
+terra-draw follows the GeoJSON spec and outputs coordinates in `[longitude, latitude]` order. PostGIS also uses `[longitude, latitude]` by convention (EPSG:4326). However, many Google Maps APIs (including the Maps JavaScript API `Polygon` constructor and `vis.gl/react-google-maps` `<Polygon>` paths) expect coordinates as `{ lat, lng }` objects or `[latitude, longitude]` pairs. If coordinates are passed in the wrong order, polygons render in the ocean near the Null Island (0°N, 0°E).
 
-## Performance Traps
+**Prevention:**
+Establish a clear conversion boundary in code. Store and retrieve in GeoJSON `[lng, lat]` order (PostGIS native). Convert to `{ lat, lng }` objects only at the final rendering step in the React component:
 
-| Trap | Symptoms | Prevention | When It Breaks |
-|------|----------|------------|----------------|
-| Webhook handler doing too much synchronously | Vercel function timeout (10s on Hobby, longer on Pro); Stripe retries and sends duplicate events | The current implementation is sequential (save → email → email); if Supabase is slow on cold start, this can exceed limits | Under load or Supabase cold start — not a concern at v1.1 scale, monitor at 50+ bookings/day |
-| Resend sending both emails sequentially | Adds latency to webhook response time | Already implemented as fire-and-forget with individual try/catch; no blocking issue | Not a problem — emails are non-fatal and sequential sends are fine at this scale |
-| Google Maps pricing called on every route change | Excessive API calls during address input | Already server-side in `/api/calculate-price` — called only on explicit "calculate" trigger, not on keypress | Not a problem at current architecture |
+```typescript
+// GeoJSON coordinates [lng, lat] → Google Maps { lat, lng }
+function geoJsonToGooglePath(
+  coordinates: [number, number][]
+): google.maps.LatLngLiteral[] {
+  return coordinates.map(([lng, lat]) => ({ lat, lng }));
+}
+```
 
----
+Never convert mid-pipeline. Write a unit test for this function — this class of bug is invisible until you look at the map.
 
-## Security Mistakes
+**Warning signs:**
+- Polygon appears to render but is located in the ocean or at coordinates near (0, 0).
+- Polygon coordinates printed in logs have plausible-looking numbers but the wrong sign or order.
+- Coverage zone containment check always returns false for points in Prague.
 
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| `SUPABASE_SERVICE_ROLE_KEY` scoped to Preview/Development in Vercel | Service role key available in preview deployments; could be extracted from logs or error messages | Production scope only in Vercel settings |
-| `STRIPE_SECRET_KEY` (live) used in a PR preview | Real charges from test workflows; impossible to reverse | Production scope only; use `sk_test_...` for Preview scope |
-| Google Maps client key unrestricted or with wildcard `*` referrer | Key scraped from browser DevTools; used for billing abuse by bots | Add specific production domain referrers only; set billing alert in Google Cloud Console |
-| Stripe webhook endpoint returning full error details in 400 response body | Leaks internal implementation details | Current implementation returns generic `Webhook Error: ${message}` — acceptable; avoid returning raw stack traces |
-| Resend API key with full access (all permissions) | If key leaks, attacker can read email logs, delete domains | Create a key with `Sending Access` only, optionally restricted to `rideprestige.com` domain |
+**Phase to address:** Phase 2 — Coverage Zones (coordinate handling)
 
 ---
 
-## UX Pitfalls
+### Pitfall 2D: Missing Spatial Index Causes Full-Table Scans on Zone Containment Check
 
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Client pays but receives no confirmation email (Resend domain not verified) | Client panics, contacts manager, loses trust | Verify Resend domain and test email delivery before enabling Stripe live mode |
-| Address autocomplete broken in production (Maps key referrer wrong) | User cannot complete Step 1; abandons booking | Test Places Autocomplete on production URL before go-live |
-| Booking confirmation page shows but Supabase save failed | Manager has no record of the booking; no-show risk | Emergency alert email is already implemented; ensure manager email is set correctly in `MANAGER_EMAIL` env var |
-| Stripe live mode charges a real card during smoke test | Tester charged real money | Use Stripe test card `4242 4242 4242 4242` — works even in live mode for verification; immediately refund any accidental live charges from Stripe Dashboard |
+**Risk level:** MEDIUM (low impact now, grows with data)
 
----
+**What goes wrong:**
+The booking wizard calls a server-side API to check if a pickup or dropoff point is within any defined coverage zone. Without a spatial GiST index on the `polygon` column, PostgreSQL performs a sequential scan of every polygon in the table for every price-calculation request. At a small number of zones this is imperceptible, but it is still wrong practice and will degrade as zones are added.
 
-## "Looks Done But Isn't" Checklist
+**Prevention:**
+The index is included in Pitfall 2A's schema. If the table was created without it, add it:
 
-- [ ] **Stripe webhook:** Endpoint registered in **live mode**, not test mode — verify by checking the Stripe Dashboard mode toggle
-- [ ] **Stripe webhook:** Signing secret copied from the live endpoint (not the CLI `whsec_...` from `stripe listen`)
-- [ ] **Stripe webhook:** Endpoint URL is `rideprestige.com` production domain, not a Vercel preview URL
-- [ ] **Supabase table:** `CREATE TABLE bookings` executed in the actual production Supabase project — not just the local dev project
-- [ ] **Supabase table:** `UNIQUE` constraint on `payment_intent_id` present — prevents duplicate inserts on webhook retries
-- [ ] **Supabase env vars:** `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY` are from the **production** Supabase project, not a dev/staging project
-- [ ] **Resend domain:** `rideprestige.com` shows all green DNS records in Resend Domains dashboard
-- [ ] **Resend `from` address:** Updated from any placeholder to `bookings@rideprestige.com` (or equivalent verified address) in `lib/email.ts`
-- [ ] **Resend test:** Client confirmation email received in Gmail inbox (not spam); manager alert received at `MANAGER_EMAIL`
-- [ ] **Google Maps client key:** Production domain `rideprestige.com/*` added to HTTP referrer allowlist
-- [ ] **Google Maps server key:** No HTTP referrer restriction — only API restriction (Routes API)
-- [ ] **Vercel env vars:** All 6 production secrets scoped to Production environment only — not Preview or Development
-- [ ] **Vercel env vars:** Redeployed from Vercel Dashboard after setting variables (not just via CLI)
-- [ ] **Health check:** `/api/health` returns 200 with all services reachable (or equivalent manual smoke test)
-- [ ] **End-to-end smoke test:** One full booking completed on production URL using Stripe test card `4242 4242 4242 4242` — booking appears in Supabase, both emails received
+```sql
+CREATE INDEX coverage_zones_polygon_idx ON coverage_zones USING GIST (polygon);
+```
+
+The zone containment query in the booking wizard API route:
+
+```sql
+SELECT id, name FROM coverage_zones
+WHERE ST_Contains(polygon, ST_GeomFromText('POINT(14.4378 50.0755)', 4326));
+```
+
+**Phase to address:** Phase 2 — Coverage Zones (schema, added to creation migration)
 
 ---
 
-## Recovery Strategies
+## Area 3: Pricing Logic Migration — Hardcoded File to Supabase Table
 
-| Pitfall | Recovery Cost | Recovery Steps |
-|---------|---------------|----------------|
-| Wrong Stripe webhook secret | LOW | Update `STRIPE_WEBHOOK_SECRET` in Vercel → redeploy → Stripe will retry failed events automatically within 72 hours; manually replay any specific missed events from Stripe Dashboard |
-| Supabase table not created | MEDIUM | Create table, verify schema; check emergency alert emails sent during the window for booking data; manually insert any confirmed paid bookings from Stripe payment records |
-| Resend domain not verified, emails delivered to spam | LOW | Complete domain verification in Resend; Resend does not retry — manually send confirmation emails to affected clients using Resend Dashboard or direct email |
-| Google Maps key blocked in production | LOW | Add production domain to referrer list in Google Cloud Console; propagates in ~5 minutes; no data loss |
-| Env var scoped incorrectly (live key in preview) | LOW | Update scope in Vercel; redeploy affected environments; audit Stripe live mode for any test-triggered charges and refund |
-| Stripe endpoint pointing to wrong URL | MEDIUM | Update webhook endpoint URL in Stripe Dashboard → Stripe retries queued events; may need to manually replay if retry window expired; check for any paid-but-not-saved bookings |
+### Pitfall 3A: Big-Bang Cutover Breaks Live Bookings During Deployment
+
+**Risk level:** CRITICAL
+
+**What goes wrong:**
+The existing `lib/pricing.ts` is deleted and the pricing API route is rewritten to fetch from a new Supabase `pricing_config` table in a single deployment. Between the moment the old code is removed and the moment the new Supabase table is seeded with data, any price-calculation request returns nothing. The booking wizard receives an empty or null price and either shows `NaN` to the user or falls back to quote mode for all routes — breaking the core booking flow for real customers during the deployment window.
+
+**Why it happens:**
+Treating the migration as a one-step swap rather than a gradual handover.
+
+**Prevention:**
+Use a three-phase dual-read migration — do not delete `lib/pricing.ts` until Phase 3 is complete:
+
+**Phase 1 — Add the table, seed it:**
+Create the `pricing_config` table in Supabase. Seed it with the exact values currently in `lib/pricing.ts`. Verify the seed data is correct before touching application code.
+
+**Phase 2 — Deploy with fallback:**
+Update the pricing API route to attempt a Supabase fetch first, falling back to the hardcoded values in `lib/pricing.ts` if the database returns empty or errors:
+
+```typescript
+async function getPricingConfig(): Promise<PricingConfig> {
+  try {
+    const { data, error } = await supabase
+      .from("pricing_config")
+      .select("*")
+      .single();
+    if (error || !data) throw error;
+    return data;
+  } catch {
+    // Fallback to hardcoded values — never silently remove this until DB is confirmed stable
+    return HARDCODED_PRICING;
+  }
+}
+```
+
+**Phase 3 — Remove fallback (next milestone or after verification):**
+After confirming the database-driven pricing works correctly in production for several real bookings, remove the fallback and delete `lib/pricing.ts`.
+
+**Warning signs:**
+- Booking wizard shows `NaN` or `undefined` prices after deployment.
+- All routes enter quote mode simultaneously.
+- Supabase logs show `pricing_config` table exists but has zero rows.
+
+**Phase to address:** Phase 3 — Pricing Editor (migration step)
+
+---
+
+### Pitfall 3B: Pricing Config Cached Aggressively — Operator Edits Not Reflected Immediately
+
+**Risk level:** MEDIUM
+
+**What goes wrong:**
+The pricing API route is a Next.js Route Handler that fetches from Supabase. Without explicit cache control, Next.js 14 App Router may cache the response at the edge (depending on how `fetch` is used inside Route Handlers). The operator updates a base rate in the admin dashboard, saves it, and then tests a booking — but sees the old price because the cached response is still being served. The operator believes the editor is broken.
+
+**Why it happens:**
+Next.js 14 extended `fetch` with cache semantics. Route Handlers that use `fetch` internally may opt into caching unintentionally. Supabase's JS client (`supabase-js`) uses `fetch` internally.
+
+**Prevention:**
+Mark the pricing config fetch as non-cacheable, or use `cache: "no-store"` when calling the Supabase REST endpoint directly. In App Router Route Handlers, add:
+
+```typescript
+export const dynamic = "force-dynamic";
+```
+
+at the top of the `/api/calculate-price/route.ts` file. This ensures every request to the pricing route fetches fresh data from Supabase. For better performance on a high-traffic route, implement a short in-memory cache (30–60 seconds) with explicit invalidation on admin writes — but this is optional at v1.2 scale.
+
+**Warning signs:**
+- Operator saves a new base rate in the pricing editor but booking wizard shows the old price.
+- Price updates appear after ~5 minutes (consistent with Vercel's default edge cache TTL).
+- Clearing browser cache or making the request from a different device shows the new price.
+
+**Phase to address:** Phase 3 — Pricing Editor (cache headers on the pricing API route)
+
+---
+
+### Pitfall 3C: Pricing Config Table Has No RLS — Any Authenticated User Can Write Rates
+
+**Risk level:** HIGH
+
+**What goes wrong:**
+A `pricing_config` table is created and RLS is enabled. An `authenticated` role SELECT policy is added so the pricing API can read rates. But no explicit restriction prevents any authenticated Supabase user from updating the table. Since the project will have only one admin, this seems harmless — but if the admin auth account is ever compromised (or if the anon key is used to auth in a test), any authenticated session can overwrite pricing for all future bookings.
+
+**Prevention:**
+Use the role-check pattern on write operations. The admin user should have a custom claim (e.g., `app_role: 'admin'`) set via a Supabase database function or manually in Supabase Dashboard user metadata. Write policies check this claim:
+
+```sql
+-- Allow anyone authenticated to read pricing (pricing API needs this)
+CREATE POLICY "pricing_config_select" ON pricing_config
+  FOR SELECT TO authenticated USING (true);
+
+-- Only admin role can modify pricing
+CREATE POLICY "pricing_config_admin_write" ON pricing_config
+  FOR ALL TO authenticated
+  USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin')
+  WITH CHECK (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
+```
+
+Use `app_metadata` (not `user_metadata`) for the role claim — `user_metadata` can be modified by the end user and must never be trusted in security policies.
+
+**Warning signs:**
+- Any authenticated user can UPDATE `pricing_config` rows via the Supabase client without an explicit permission error.
+- Supabase Table Editor shows the policy configuration allows writes from the `authenticated` role without a role check.
+
+**Phase to address:** Phase 3 — Pricing Editor (RLS policies)
+
+---
+
+## Area 4: Admin-Only RLS — Bookings Table and Admin Tables
+
+### Pitfall 4A: RLS Disabled by Default — New Tables Are Publicly Readable
+
+**Risk level:** CRITICAL
+
+**What goes wrong:**
+Any new table created without explicitly enabling RLS is fully readable and writable by the `anon` role (i.e., any request using the public anon key — including every visitor to the booking site). A `bookings` table without RLS means anyone can execute `supabase.from('bookings').select('*')` from the browser and retrieve all customer names, emails, phone numbers, flight numbers, and payment amounts. GDPR violation with immediate exposure.
+
+The existing `bookings` table from v1.1 may already have RLS enabled — verify this before adding the bookings list to the admin dashboard, as the admin dashboard will need read access.
+
+**Prevention:**
+Enable RLS on every table at creation time:
+
+```sql
+ALTER TABLE coverage_zones ENABLE ROW LEVEL SECURITY;
+ALTER TABLE pricing_config ENABLE ROW LEVEL SECURITY;
+```
+
+For the admin dashboard, never add a public SELECT policy on `bookings`. Add an admin-only policy:
+
+```sql
+-- Admin can read all bookings
+CREATE POLICY "bookings_admin_select" ON bookings
+  FOR SELECT TO authenticated
+  USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
+
+-- Webhook service role still writes (service role bypasses RLS — no policy needed)
+```
+
+Audit all tables in the Supabase Dashboard → Authentication → Policies. Any table showing "No policies" after RLS is enabled is locked to all access (deny-all). Any table showing "RLS disabled" is fully public.
+
+**Warning signs:**
+- `supabase.from('bookings').select('count()')` returns a count from an unauthenticated browser session.
+- Supabase Dashboard shows a table with "RLS: disabled" in the Table Editor.
+- A browser DevTools Network tab shows booking data returned from a direct Supabase REST call on the public site.
+
+**Phase to address:** Phase 1 — Auth Setup (RLS audit of existing tables); all subsequent phases for new tables.
+
+---
+
+### Pitfall 4B: `anon` Key Mistakenly Treated as a Security Boundary
+
+**Risk level:** HIGH
+
+**What goes wrong:**
+The Supabase `anon` key is visible in every browser request (it is embedded in `NEXT_PUBLIC_SUPABASE_ANON_KEY`). If a developer assumes "the anon key is secret so the data is protected," they do not enable RLS and do not write policies. All tables using the anon key — with RLS disabled — are accessible to anyone who inspects the network tab.
+
+This is documented as the cause of a January 2025 mass data exposure incident (CVE-2025-48757) where 170+ Lovable-generated apps exposed their databases.
+
+**Prevention:**
+The `anon` key is designed to be public and is expected to appear in browser network requests. Security is enforced entirely through RLS policies, not through key secrecy. Treat the anon key as if it were already public — because it is.
+
+Verify: open the booking site in a private browser window and run the following in DevTools console. If it returns data, RLS is not protecting the table:
+
+```javascript
+const { createClient } = supabase; // loaded from CDN for testing
+const c = createClient('YOUR_SUPABASE_URL', 'YOUR_ANON_KEY');
+const { data } = await c.from('bookings').select('*').limit(5);
+console.log(data); // Must be null or error, never rows
+```
+
+**Phase to address:** Phase 1 — Auth Setup (security model clarification)
+
+---
+
+### Pitfall 4C: Database Views Bypass RLS — Admin Views Expose Data Publicly
+
+**Risk level:** HIGH
+
+**What goes wrong:**
+A database view is created to simplify admin queries (e.g., `booking_stats_view` joining `bookings` with aggregate functions). The underlying `bookings` table has correct RLS policies. But the view is created with `SECURITY DEFINER` (Postgres default for views) and bypasses RLS — meaning any anon user can query the view and see aggregated booking data.
+
+**Why it happens:**
+PostgreSQL creates views with `security definer` by default. The view runs as the view creator (usually the `postgres` superuser), bypassing the row-level policies of the underlying tables.
+
+**Prevention:**
+On Supabase (which uses Postgres 15+), add `WITH (security_invoker = true)` to any view that accesses sensitive tables:
+
+```sql
+CREATE OR REPLACE VIEW booking_stats_view
+  WITH (security_invoker = true)
+AS
+SELECT
+  COUNT(*) AS total_bookings,
+  SUM(amount_czk) AS total_revenue
+FROM bookings;
+```
+
+With `security_invoker = true`, the view respects the RLS policies of the `bookings` table for whoever is calling the view — including the `anon` role.
+
+Alternatively, place views in a non-public schema (`private` or `admin_schema`) and revoke `anon` and `authenticated` role access from that schema.
+
+**Warning signs:**
+- An unauthenticated request to the view returns data even though the underlying table is RLS-protected.
+- `\d+ view_name` in Supabase SQL Editor shows `security_definer` in the view definition.
+
+**Phase to address:** Phase 4 — Statistics (any views created for stats queries)
+
+---
+
+### Pitfall 4D: Enabling RLS Without Policies Locks Out the Admin Dashboard
+
+**Risk level:** MEDIUM
+
+**What goes wrong:**
+RLS is enabled on the `bookings` table (correct). No SELECT policy is added for the admin role. The admin dashboard's bookings list page returns no rows — not an error, just an empty table. The developer thinks the query is broken and spends time debugging the frontend before realizing the database is returning nothing due to the implicit deny-all.
+
+**Why it happens:**
+RLS with no policies means "deny all access to all roles." It is a common misconception that enabling RLS alone is sufficient and that data will still be readable by admins.
+
+**Prevention:**
+After enabling RLS on any table, immediately add the necessary policies in the same migration. Do not deploy a "enable RLS, add policies later" state. Test the admin query before shipping by running it with an authenticated admin JWT via the Supabase REST API.
+
+**Warning signs:**
+- Admin dashboard bookings list is empty after correct RLS setup.
+- No query errors — `supabase-js` returns `{ data: [], error: null }`.
+- Direct SQL query in Supabase SQL Editor (which runs as `postgres` superuser, bypassing RLS) returns rows correctly.
+
+**Phase to address:** All phases that add new tables.
+
+---
+
+## Area 5: Dynamic Import of terra-draw in Next.js (SSR)
+
+### Pitfall 5A: `"use client"` Alone Does Not Prevent terra-draw SSR Errors
+
+**Risk level:** CRITICAL
+
+**What goes wrong:**
+The zones editor component is marked `"use client"`. The developer assumes this prevents SSR execution. terra-draw and its adapters (e.g., `TerraDrawGoogleMapsAdapter`) access `window`, `document`, and canvas/WebGL APIs at module load time. When the module is imported in a `"use client"` component, Next.js still processes the import on the server during the initial render — just to build the module graph. terra-draw's top-level code accesses `window` during this import phase, throwing `ReferenceError: window is not defined` and crashing the server render.
+
+**Why it happens:**
+`"use client"` marks the boundary between Server and Client component trees, but it does not mean "never execute on the server." Next.js still imports and tree-shakes `"use client"` modules during the build and initial SSR pass. The actual `window` check happens at runtime, which fails on the server.
+
+**Prevention:**
+Isolate all terra-draw usage into a dedicated component and use `next/dynamic` with `ssr: false`. Do not import terra-draw anywhere that is not wrapped in a dynamic import:
+
+```typescript
+// app/admin/zones/page.tsx (or wherever the editor lives)
+import dynamic from "next/dynamic";
+
+const ZonesEditor = dynamic(
+  () => import("@/components/admin/ZonesEditor"),
+  {
+    ssr: false,
+    loading: () => <div className="h-96 bg-neutral-800 animate-pulse rounded" />,
+  }
+);
+
+export default function ZonesPage() {
+  return <ZonesEditor />;
+}
+```
+
+The `ZonesEditor` component itself can be `"use client"` and import terra-draw normally — the `dynamic` wrapper with `ssr: false` ensures it never runs on the server.
+
+**Warning signs:**
+- `ReferenceError: window is not defined` in Vercel build logs or server error overlay.
+- The error references a file inside `node_modules/terra-draw/` in the stack trace.
+- The zones editor page crashes the entire server render, showing a 500 error.
+
+**Phase to address:** Phase 2 — Coverage Zones (zones editor component)
+
+---
+
+### Pitfall 5B: terra-draw Instance Initialized Outside `useEffect` — Crashes on Re-render
+
+**Risk level:** HIGH
+
+**What goes wrong:**
+The terra-draw instance is initialized at module scope or directly in the component body (not inside `useEffect`). When the component re-renders (e.g., due to a parent state update), terra-draw tries to re-attach to the same DOM node, throwing an error because the previous instance is still attached. Or the terra-draw instance is never cleaned up when the component unmounts, causing memory leaks and ghost event listeners that interfere with the next mount.
+
+**Prevention:**
+Initialize terra-draw inside `useEffect` with a proper cleanup:
+
+```typescript
+useEffect(() => {
+  if (!mapRef.current) return;
+
+  const draw = new TerraDraw({
+    adapter: new TerraDrawGoogleMapsAdapter({ map: mapRef.current }),
+    modes: [new TerraDrawPolygonMode()],
+  });
+
+  draw.start();
+
+  draw.on("finish", (id) => {
+    const snapshot = draw.getSnapshot();
+    onPolygonDrawn(snapshot);
+  });
+
+  return () => {
+    draw.stop();
+  };
+}, [mapRef.current]); // Re-run only when the map ref changes
+```
+
+**Warning signs:**
+- `Cannot read properties of null (reading 'addEventListener')` errors in the browser console.
+- Drawing tools appear to work but drawn polygons disappear on re-render.
+- Memory usage grows continuously as the user navigates between admin pages.
+
+**Phase to address:** Phase 2 — Coverage Zones (terra-draw initialization pattern)
+
+---
+
+### Pitfall 5C: `useMemo` Wrapping `dynamic()` — Causes Unnecessary Re-mounts
+
+**Risk level:** LOW
+
+**What goes wrong:**
+Some Next.js examples (for react-leaflet in particular) recommend wrapping `dynamic()` inside `useMemo` to prevent the component from being re-created on every parent render. While this prevents the reference from changing, it is usually not needed for `ssr: false` dynamic imports — and using `useMemo` with an empty dependency array inside a Server Component context causes a React error.
+
+**Prevention:**
+For the zones editor, call `dynamic()` at module scope (outside the component), not inside `useMemo`. Module-scope `dynamic()` calls are stable across renders by definition:
+
+```typescript
+// At module scope — not inside a component or hook
+const ZonesEditor = dynamic(() => import("@/components/admin/ZonesEditor"), {
+  ssr: false,
+});
+```
+
+Only use `useMemo(() => dynamic(...), [])` if the dynamic target must vary based on props — which is not the case here.
+
+**Phase to address:** Phase 2 — Coverage Zones (dynamic import placement)
+
+---
+
+## Cross-Cutting Pitfalls
+
+### Pitfall 6A: Admin Route Not in Middleware Matcher — Protection Silently Skipped
+
+**Risk level:** CRITICAL
+
+**What goes wrong:**
+The middleware file is correctly implemented, but the `matcher` in the `config` export does not include the `/admin` path. Middleware never runs for `/admin` requests. All admin pages are publicly accessible without authentication.
+
+**Prevention:**
+The matcher must explicitly include `/admin` and all its sub-paths:
+
+```typescript
+export const config = {
+  matcher: [
+    // Standard Next.js assets exclusion
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
+};
+```
+
+This regex matches all paths except static assets and Next.js internals, which includes `/admin`. Alternatively, be explicit:
+
+```typescript
+matcher: ["/admin", "/admin/:path*"]
+```
+
+After deploying, verify by loading `/admin` in a private browsing window without logging in — it must redirect to `/login`.
+
+**Warning signs:**
+- `/admin` loads without authentication in a logged-out browser.
+- Middleware logs show no requests for the `/admin` path.
+- `console.log` inside the middleware function never fires for admin routes.
+
+**Phase to address:** Phase 1 — Auth Setup (middleware config)
+
+---
+
+### Pitfall 6B: New Admin Env Vars Not Added to Vercel Production Scope
+
+**Risk level:** HIGH
+
+**What goes wrong:**
+Auth-related env vars (e.g., `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` if not already set, or a new `ADMIN_EMAIL` for the seeded admin account) are set locally in `.env.local` but not added to Vercel. The admin login page renders, the user submits credentials, and `signInWithPassword` silently fails because the Supabase client is initialized with `undefined` URL/key. The error message is often misleading ("invalid login credentials") rather than indicating a misconfigured client.
+
+**Prevention:**
+After identifying every new env var required for v1.2, add each to Vercel before the first production deployment. For v1.2, the candidates are:
+- `NEXT_PUBLIC_SUPABASE_URL` — already set in v1.1, verify it is present
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — already set in v1.1, verify it is present
+- Any new server-side vars scoped to Production only
+
+Verify by calling `/api/health` after deployment and checking the Supabase probe result.
+
+**Phase to address:** Phase 1 — Auth Setup (env var checklist)
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
-| Pitfall | Prevention Phase | Verification |
-|---------|------------------|--------------|
-| Stripe secret mismatch (test vs. live) | Phase 1 — Stripe Live Mode Setup | Stripe Dashboard shows endpoint in live mode; signing secret prefix is `whsec_` from live endpoint page |
-| Vercel env var scope wrong | Phase 1 — Environment Variable Configuration | Vercel Settings → Environment Variables — each live key has only Production checked |
-| Supabase table not created | Phase 1 — Supabase Schema Setup | `SELECT COUNT(*) FROM bookings` returns 0 in Supabase SQL Editor |
-| Supabase SSR client override | Phase 1 — Supabase Setup | Code review: `createSupabaseServiceClient()` uses `createClient()` directly, not SSR helper |
-| PostgREST schema cache stale | Phase 1 — Supabase Schema Setup | Test insert via SDK in health check or smoke test — not SQL Editor |
-| Google Maps client key referrer | Phase 2 — Google Maps Configuration | Places Autocomplete returns suggestions on production URL |
-| Google Maps server key type | Phase 2 — Google Maps Configuration | `/api/calculate-price` returns numeric price on production (not quote fallback) |
-| Resend domain unverified | Phase 3 — Resend Domain Verification | Resend Domains dashboard shows all green; test email in inbox not spam |
-| Resend `from` address placeholder | Phase 3 — Resend Domain Verification | `from` field in confirmation email shows `bookings@rideprestige.com` |
-| Stripe endpoint URL wrong | Phase 1 — Stripe Live Mode Setup | Stripe Dashboard endpoint URL matches production domain exactly |
-| Vercel deployment protection | Phase 1 — Stripe Live Mode Setup | Stripe "Send test webhook" returns 200 from production endpoint |
+| Pitfall | Risk | Prevention Phase | Verification |
+|---------|------|-----------------|--------------|
+| Infinite redirect loop (cookie not written to both sides) | CRITICAL | Phase 1 — Auth: middleware implementation | Login → redirect to `/admin` works without loop |
+| `getSession()` in server code instead of `getClaims()` | HIGH | Phase 1 — Auth: route protection logic | Code review: no `getSession()` calls in server files |
+| `middleware.ts` in wrong directory | MEDIUM | Phase 1 — Auth: file placement | Middleware log appears in dev terminal |
+| CDN-cached response with session cookie | HIGH | Phase 1 — Auth: cache headers | `force-dynamic` on all admin layouts |
+| Service role client using SSR cookies | HIGH | All phases with admin Route Handlers | Code review: admin writes use `createSupabaseServiceClient()` |
+| PostGIS not enabled before creating geometry column | CRITICAL | Phase 2 — Zones: schema migration | `SELECT postgis_version()` returns version, not error |
+| PostGIS returns WKB hex instead of GeoJSON | HIGH | Phase 2 — Zones: data layer | Querying view returns `{ type: "Polygon", coordinates: [...] }` |
+| Coordinate order mismatch terra-draw vs Google Maps | HIGH | Phase 2 — Zones: coordinate conversion | Prague polygon renders over Prague on map |
+| Missing spatial index | MEDIUM | Phase 2 — Zones: schema migration | Index visible in Supabase Table Editor |
+| Big-bang pricing cutover breaks live bookings | CRITICAL | Phase 3 — Pricing: migration plan | Fallback deployed before `pricing_config` seeded |
+| Pricing response cached — edits not immediate | MEDIUM | Phase 3 — Pricing: API route | `force-dynamic` on `/api/calculate-price` |
+| Pricing config table writable by any authenticated user | HIGH | Phase 3 — Pricing: RLS policies | Non-admin authenticated user cannot INSERT/UPDATE |
+| RLS disabled on new tables | CRITICAL | All phases with new tables | Anon request returns no rows (not data) |
+| `anon` key treated as security boundary | HIGH | Phase 1 — Auth: security audit | DevTools console test returns no booking data |
+| Database views bypass RLS | HIGH | Phase 4 — Stats: view creation | View created with `security_invoker = true` |
+| RLS enabled but no policies — deny all | MEDIUM | All phases with new tables | Admin dashboard shows data, not empty table |
+| terra-draw SSR crash — `window is not defined` | CRITICAL | Phase 2 — Zones: component setup | Build succeeds without SSR errors |
+| terra-draw initialized outside `useEffect` | HIGH | Phase 2 — Zones: initialization | No re-render errors; cleanup on unmount verified |
+| Admin route not in middleware matcher | CRITICAL | Phase 1 — Auth: middleware config | Unauthenticated request to `/admin` redirects to `/login` |
+| Admin env vars missing from Vercel | HIGH | Phase 1 — Auth: env var checklist | `/api/health` returns 200 with Supabase probe green |
 
 ---
 
 ## Sources
 
-- [Stripe: Resolve webhook signature verification errors](https://docs.stripe.com/webhooks/signature) — official docs
-- [Stripe: Receive events in your webhook endpoint](https://docs.stripe.com/webhooks) — official docs
-- [Next.js App Router + Stripe Webhook Signature Verification](https://kitson-broadhurst.medium.com/next-js-app-router-stripe-webhook-signature-verification-ea9d59f3593f) — MEDIUM confidence (verified against Stripe official docs)
-- [Vercel: Environment Variables](https://vercel.com/docs/environment-variables) — official docs
-- [Supabase: Why is my service role key getting RLS errors?](https://supabase.com/docs/guides/troubleshooting/why-is-my-service-role-key-client-getting-rls-errors-or-not-returning-data-7_1K9z) — official docs
-- [Supabase: Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security) — official docs
-- [Supabase: PostgREST not recognizing new columns](https://supabase.com/docs/guides/troubleshooting/postgrest-not-recognizing-new-columns-or-functions-bd75f5) — official docs
-- [Google Maps Platform: Security best practices](https://developers.google.com/maps/api-security-best-practices) — official docs
-- [Google Maps Platform: Best practices — Restricting API keys](https://mapsplatform.google.com/resources/blog/google-maps-platform-best-practices-restricting-api-keys/) — official blog
-- [Resend: Why your emails are going to spam](https://resend.com/blog/why-your-emails-are-going-to-spam) — official blog
-- [Resend: Implementing DMARC](https://resend.com/docs/dashboard/domains/dmarc) — official docs
-- [Resend: What if my domain is not verifying?](https://resend.com/docs/knowledge-base/what-if-my-domain-is-not-verifying) — official docs
-- [Debugging Stripe Webhook Signature Verification Errors in Production](https://dev.to/nerdincode/debugging-stripe-webhook-signature-verification-errors-in-production-1h7c) — MEDIUM confidence
-- [The Webhook Failure Modes Nobody Warns You About](https://dev.to/jamesbrown/the-webhook-failure-modes-nobody-warns-you-about-346m) — MEDIUM confidence
+- [Supabase: Setting up Server-Side Auth for Next.js](https://supabase.com/docs/guides/auth/server-side/nextjs) — official docs (HIGH confidence)
+- [Supabase: Creating a Supabase client for SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client) — official docs (HIGH confidence)
+- [Supabase: Advanced Auth guide (cookie dual-write pattern)](https://supabase.com/docs/guides/auth/server-side/advanced-guide) — official docs (HIGH confidence)
+- [Supabase: getClaims reference](https://supabase.com/docs/reference/javascript/auth-getclaims) — official docs (HIGH confidence)
+- [Supabase: Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security) — official docs (HIGH confidence)
+- [Supabase: RLS Performance and Best Practices](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — official docs (HIGH confidence)
+- [Supabase: Column Level Security](https://supabase.com/docs/guides/database/postgres/column-level-security) — official docs (HIGH confidence)
+- [Supabase: Securing your API](https://supabase.com/docs/guides/api/securing-your-api) — official docs (HIGH confidence)
+- [Supabase: PostGIS geo queries](https://supabase.com/docs/guides/database/extensions/postgis) — official docs (HIGH confidence)
+- [Supabase: Migrate from auth-helpers to SSR package](https://supabase.com/docs/guides/troubleshooting/how-to-migrate-from-supabase-auth-helpers-to-ssr-package-5NRunM) — official docs (HIGH confidence)
+- [Supabase: Database Migrations](https://supabase.com/docs/guides/deployment/database-migrations) — official docs (HIGH confidence)
+- [Next.js: Lazy Loading guide](https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading) — official docs (HIGH confidence)
+- [GitHub: supabase-js issue — cookies not set in App Router](https://github.com/supabase/supabase-js/issues/1396) — community report (MEDIUM confidence, corroborates official docs)
+- [GitHub: next.js discussion — cookies() should be awaited with Turbopack](https://github.com/vercel/next.js/discussions/81445) — community report (MEDIUM confidence)
+- [GitHub: react-leaflet issue — window is not defined in Next.js 15](https://github.com/PaulLeCam/react-leaflet/issues/1152) — community report (MEDIUM confidence)
+- [Medium: How Missing RLS in Supabase Can Expose User Data (Mar 2026)](https://medium.com/@Gakusen/how-missing-row-level-security-in-supabase-can-expose-user-data-599dcab749f3) — MEDIUM confidence
+- [Geospatial Polygons: Full-Stack Guide with PostGIS, Node.js](https://medium.com/@KilgortTrout/geospatial-polygons-a-full-stack-guide-with-postgis-node-js-and-react-da55ab0e7fdd) — MEDIUM confidence
+- [PlaceKit: Making React-Leaflet work with Next.js](https://placekit.io/blog/articles/making-react-leaflet-work-with-nextjs-493i) — MEDIUM confidence (general SSR pattern, applicable to terra-draw)
 
 ---
 
-*Pitfalls research for: Next.js App Router go-live — Supabase + Stripe + Resend + Google Maps on Vercel*
-*Researched: 2026-03-30*
+*Pitfalls research for: v1.2 Operator Dashboard — Supabase Auth + GeoJSON Zones + Pricing Config + Admin RLS + terra-draw on Next.js 14 App Router*
+*Researched: 2026-04-01*

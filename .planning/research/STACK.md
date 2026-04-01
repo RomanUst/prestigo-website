@@ -1,230 +1,151 @@
-# Stack Research — Prestigo v1.1 Go Live
+# Stack Research — Prestigo v1.2 Operator Dashboard
 
-**Domain:** Service connections for existing Next.js 16 + Vercel app
-**Researched:** 2026-03-30
-**Confidence:** HIGH (all core claims verified against official docs)
+**Domain:** Operator Dashboard — admin auth, geo-zones editor, pricing config, bookings table, statistics charts
+**Researched:** 2026-04-01
+**Confidence:** HIGH (all versions verified via `npm view` 2026-04-01; deprecation timelines from official sources)
 
----
-
-## Context
-
-This is a subsequent-milestone stack file. The existing app (Next.js 16.1.7, React 19.2.3, App Router) already has full implementations of Supabase, Stripe, Resend, and Google Maps. All client code is written and tested. The v1.1 milestone is exclusively about connecting external services and verifying the production integration — not about adding new runtime libraries.
-
-**Existing production packages (already in package.json):**
-| Package | Version |
-|---------|---------|
-| next | 16.1.7 |
-| react | 19.2.3 |
-| stripe | ^21.0.1 |
-| @stripe/react-stripe-js | ^6.0.0 |
-| @stripe/stripe-js | ^9.0.0 |
-| @supabase/supabase-js | ^2.101.0 |
-| resend | ^6.9.4 |
-| @googlemaps/js-api-loader | ^2.0.2 |
-
-**Do not bump these versions during go-live.** Any version change is a new risk surface that requires retesting.
+> This document covers ONLY net-new additions to the existing stack.
+> Validated capabilities already in production — Next.js 16.1.7, React 19.2.3, TypeScript, Tailwind CSS 4,
+> Supabase (`@supabase/supabase-js` ^2.101.0), Stripe, Resend, Google Maps (`@googlemaps/js-api-loader` ^2.0.2),
+> Zustand, Zod, React Hook Form — are NOT re-researched here.
 
 ---
 
-## Recommended Stack Additions
+## Recommended Stack — Net New Additions
 
 ### Core Technologies
 
-No new runtime dependencies are needed. The go-live work is configuration and tooling only.
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `@supabase/ssr` | 0.10.0 | Supabase Auth in Next.js App Router — middleware session refresh, `createServerClient`, `createBrowserClient` | The only current official package for Supabase Auth in App Router. Replaces the deprecated `@supabase/auth-helpers-nextjs`. Exports `createBrowserClient` (Client Components) and `createServerClient` (Server Components, middleware, Route Handlers). Peer dep satisfied by the existing `@supabase/supabase-js` ^2.101.0 — no conflict. |
+| `@vis.gl/react-google-maps` | 1.8.2 | React components and hooks for Google Maps — `<APIProvider>`, `<Map>`, `<Polygon>`, `useMapsLibrary`, `useMap` | Google-sponsored React wrapper (OpenJS Foundation). Coexists safely with the existing `@googlemaps/js-api-loader` — both use Google's singleton dynamic import API; the script is loaded exactly once. Required for rendering editable polygon overlays on the zones editor. React 19 compatible. |
+| `terra-draw` | 1.27.0 | Interactive polygon drawing — create, edit vertices, delete, output GeoJSON | Google's `DrawingManager` was deprecated August 2025 and will be removed in May 2026. Terra Draw is Google's own recommended replacement — the official Google Maps docs link directly to a Terra Draw example. The vis.gl team confirmed migration to Terra Draw in their repo. Outputs standard GeoJSON. Works with `@vis.gl/react-google-maps` via `OverlayView`. Must NOT use `useMapsLibrary('drawing')` — it will throw at runtime after May 2026. |
+| `recharts` | 3.8.1 | SVG charts — revenue line chart and booking-count bar chart on the stats page | React-native, TypeScript-first, 1M+ weekly downloads. The de-facto standard for 2026 Next.js admin dashboards. Theming maps directly to Tailwind CSS color tokens via `stroke`/`fill` props — no external CSS to import. No conflict with existing packages. |
+| `@tanstack/react-table` | 8.21.3 | Headless data table — bookings list with sorting, filtering, server-side pagination | Headless, 10–15 kb, zero runtime dependencies beyond React. Full control over markup — renders with existing Tailwind CSS classes and PRESTIGO design tokens. Supports server-side pagination (fetch one page from Supabase, pass array to `useReactTable`). React 19 compatible. Industry standard in 2026 Next.js admin stacks. |
 
 ### Supporting Libraries
 
-No new npm packages are needed. The health check endpoint is a plain Next.js Route Handler — zero dependencies.
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `@supabase/ssr` | 0.10.0 | Three Supabase client factory functions: browser, server, middleware | Every `/admin` route and the `middleware.ts` file |
+| `@vis.gl/react-google-maps` | 1.8.2 | Map container + polygon rendering | `/admin/zones` page only |
+| `terra-draw` | 1.27.0 | Interactive drawing controls | `/admin/zones` editor only — lazy-import so the ~200 kb library never enters the customer-facing booking bundle |
+| `recharts` | 3.8.1 | `<LineChart>`, `<BarChart>`, `<Tooltip>`, `<Legend>` | `/admin/stats` page only |
+| `@tanstack/react-table` | 8.21.3 | `useReactTable`, column definitions, pagination state | `/admin/bookings` page only |
+
+### Pricing Editor
+
+No new library needed. The pricing configuration editor reuses the existing stack:
+- `react-hook-form` + `@hookform/resolvers` + `zod` for form state and validation (already installed)
+- Supabase Server Action (`upsert`) to persist to a `pricing_config` table (JSONB column)
+- Tailwind CSS for layout — a straightforward labeled-input grid
+
+Reaching for a JSON schema form library or a dynamic config UI library would add complexity with no benefit for a fixed-shape pricing schema.
 
 ### Development Tools
 
-These are local developer tools (not npm packages), used only during the go-live process. Do not add them to package.json.
-
-| Tool | Version | Purpose | Install |
-|------|---------|---------|---------|
-| Stripe CLI | v1.40.0 (current as of 2026-03-30) | Webhook local testing during smoke test | `brew install stripe/stripe-cli/stripe` (macOS) |
-| Vercel CLI | Latest | Env var management, deployment trigger | `npm i -g vercel` |
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| Supabase Dashboard — Auth | Create the single admin user manually | Dashboard → Authentication → Users → Invite user. Disable email confirmation for the admin account. No public sign-up route needed. |
+| Supabase SQL Editor | Create `pricing_config` and `zones` tables | Follow existing pattern in `prestigo/supabase/migrations/`. `pricing_config`: `id`, `data JSONB`, `updated_at`. `zones`: `id`, `name TEXT`, `coordinates JSONB`, `created_at`. |
 
 ---
 
 ## Installation
 
 ```bash
-# No new npm dependencies needed for go-live.
-# Dev tooling only (not in package.json):
+# Auth (needed for all /admin routes)
+npm install @supabase/ssr
 
-# Stripe CLI (macOS)
-brew install stripe/stripe-cli/stripe
-stripe login
+# Maps + polygon drawing (zones editor only)
+npm install @vis.gl/react-google-maps terra-draw
 
-# Vercel CLI
-npm i -g vercel
-vercel login
-vercel link
+# Charts (stats page only)
+npm install recharts
+
+# Data table (bookings list only)
+npm install @tanstack/react-table
 ```
 
----
-
-## Environment Variables
-
-All 8 env vars must be set in Vercel Dashboard > Settings > Environment Variables (Production scope).
-
-| Variable | Source | Notes |
-|----------|--------|-------|
-| `SUPABASE_URL` | Supabase Dashboard > Settings > API | Project URL (not anon key URL) |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard > Settings > API | Service role key — bypasses RLS — server-side only, never `NEXT_PUBLIC_` prefix |
-| `STRIPE_SECRET_KEY` | Stripe Dashboard > Developers > API Keys (live mode) | Starts with `sk_live_` |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard > Developers > API Keys (live mode) | Starts with `pk_live_` — `NEXT_PUBLIC_` prefix is correct here, this is browser-safe |
-| `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard > Developers > Webhooks > endpoint detail | Starts with `whsec_` — obtained AFTER registering the production endpoint |
-| `RESEND_API_KEY` | Resend Dashboard > API Keys | Starts with `re_` |
-| `MANAGER_EMAIL` | Manual | Email address for manager alerts and emergency fallback |
-| `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` | Google Cloud Console > APIs & Services > Credentials | Restrict by HTTP referrer to `rideprestige.com/*` |
-
-**Vercel CLI commands for setting vars:**
-```bash
-vercel env add SUPABASE_URL production
-vercel env add SUPABASE_SERVICE_ROLE_KEY production
-vercel env add STRIPE_SECRET_KEY production
-vercel env add NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY production
-vercel env add STRIPE_WEBHOOK_SECRET production
-vercel env add RESEND_API_KEY production
-vercel env add MANAGER_EMAIL production
-vercel env add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY production
-
-# Verify
-vercel env ls
-```
-
-After adding any env var, redeploy for it to take effect: `vercel --prod` or push a commit.
-
----
-
-## Service Setup Procedures
-
-### Supabase: Table Creation
-
-The `bookings` table SQL is already written in `lib/supabase.ts` as a comment block. Run it directly in Supabase Dashboard > SQL Editor — no CLI or migration tooling needed for a single-table v1.1.
-
-**Critical:** The table is created with the SQL Editor (not Table Editor UI), so RLS is NOT auto-enabled. You must explicitly run:
-```sql
-ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
-```
-
-The app uses the Service Role Key exclusively (server-side webhook handler only), which bypasses RLS. Enabling RLS with no policies means the `anon` role (browser) has zero access — which is correct for this app. The service role key bypasses RLS regardless of policies.
-
-Do not use the Supabase CLI or migration files for v1.1. A single SQL script run manually is appropriate for a single table on a single environment.
-
-### Stripe: Webhook Registration
-
-The webhook endpoint URL is: `https://rideprestige.com/api/webhooks/stripe`
-
-**Production registration is via Stripe Dashboard only — not Stripe CLI.**
-
-The Stripe CLI `stripe listen` command is for local development forwarding (sandbox events only). It does not register production endpoints.
-
-Steps:
-1. Stripe Dashboard > Developers > Webhooks > Create event destination
-2. Set URL to `https://rideprestige.com/api/webhooks/stripe`
-3. Select event: `payment_intent.succeeded` (only this event — minimal scope)
-4. Copy the signing secret (`whsec_...`) — this is unique to this endpoint
-5. Set `STRIPE_WEBHOOK_SECRET` in Vercel with this value
-
-Local smoke-test workflow (before production):
-```bash
-stripe login
-stripe listen --forward-to localhost:3000/api/webhooks/stripe
-# In another terminal:
-stripe trigger payment_intent.succeeded
-```
-
-### Resend: Domain Verification
-
-Domain to verify: `rideprestige.com`
-
-Steps:
-1. Resend Dashboard > Domains > Add Domain > enter `rideprestige.com`
-2. Resend generates the required DNS records (SPF TXT + DKIM TXT + MX for bounce processing)
-3. Add all records to the DNS registrar for `rideprestige.com`
-4. Click "Verify DNS Records" in Resend Dashboard
-5. Propagation takes up to 24 hours (Resend checks for up to 72 hours)
-6. Status progresses: `pending` → `verified`
-
-The `from` address in `lib/email.ts` is already set to `bookings@rideprestige.com`. This will only work after the domain is verified. Until verified, use `onboarding@resend.dev` as a temporary `from` address for smoke testing.
-
-**No CLI tool exists for Resend domain verification.** It is dashboard-only with a REST API as an alternative.
-
-### Google Maps: API Key Restriction
-
-The `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` must be restricted before go-live:
-1. Google Cloud Console > APIs & Services > Credentials
-2. Select the key > Application restrictions > HTTP referrers
-3. Add: `rideprestige.com/*` and `www.rideprestige.com/*`
-4. API restrictions: Places API + Routes API only (Routes API covers Distance Matrix)
-5. Set a budget alert at $50/month in Google Cloud Console > Billing > Budgets
-
-### Health Check Endpoint
-
-A `GET /api/health` Route Handler must be created at `app/api/health/route.ts`. It should verify all 4 external services by performing real (minimal) API calls:
-- Supabase: list 0 rows from `bookings` table (confirms credentials + table exists)
-- Stripe: retrieve account details (confirms live key works)
-- Resend: list domains (confirms API key + domain verified status)
-- Google Maps: not tested in health check (client-side key, test via browser smoke test)
-
-Response: JSON `{ status: "ok", services: { supabase: "ok", stripe: "ok", resend: "ok" } }` with HTTP 200, or appropriate error on any failure.
-
-This is a plain Next.js Route Handler — no new dependencies.
+No dev-only dependencies. All four are runtime packages.
 
 ---
 
 ## Alternatives Considered
 
-| Our Approach | Alternative | Why Not |
-|-------------|-------------|---------|
-| Supabase SQL Editor for table creation | Supabase CLI + migration files | Over-engineered for single table on single environment; CLI setup adds friction with no benefit at v1.1 scale |
-| Stripe Dashboard webhook registration | Stripe CLI `stripe webhooks create` | CLI `stripe listen` is local-only; production endpoints must be registered in Dashboard |
-| Vercel Dashboard + Vercel CLI for env vars | dotenvx encrypted .env files | dotenvx adds complexity for a solo project; Vercel's built-in env management is sufficient and simpler |
-| Manual DNS entry for Resend | Resend REST API domain management | Dashboard walkthrough is the intended path; API is equivalent but adds no value here |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| `@supabase/ssr` | `@supabase/auth-helpers-nextjs` | Never for new code — it is deprecated and receives no further updates |
+| `terra-draw` | `useMapsLibrary('drawing')` / DrawingManager | Never — it will be removed from the Maps JS API in May 2026 and is already firing deprecation warnings |
+| `terra-draw` | Custom mouse-event polygon drawing | Only if terra-draw's polygon-with-holes limitation is a blocker. v1.2 zones are simple convex/concave polygons — not a concern. |
+| `@vis.gl/react-google-maps` | `@react-google-maps/api` (tomchentw) | If the project predated vis.gl and migrating is costly. For new code, tomchentw is largely unmaintained. |
+| `@vis.gl/react-google-maps` | `@googlemaps/react-wrapper` | Never for new code — Google archived this package; vis.gl is the official successor. |
+| `recharts` | Tremor | If you want pre-styled KPI cards, filters, and 35+ dashboard components out of the box. Tremor is built on Recharts + Radix UI — overkill when only 2 chart types are needed and the brand diverges from Tremor's design system. |
+| `recharts` | Chart.js + react-chartjs-2 | If canvas rendering performance matters (tens of thousands of data points). Admin stats have at most hundreds of rows — SVG rendering is fine and TypeScript support is stronger in Recharts. |
+| `@tanstack/react-table` | AG Grid Community | If the table needs Excel-like features, virtual scrolling of 100k+ rows, or enterprise column grouping. Bookings list for a single-operator service will not reach that scale in v1. AG Grid is 200 kb+. |
+| No new library (pricing editor) | `react-jsonschema-form` / Formik + JSON schema | Only if pricing config shape is unknown at build time. The shape is fully known — typed Zod schema on top of existing react-hook-form is simpler, safer, and already in the project. |
 
 ---
 
-## What NOT to Add
+## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Any new npm runtime dependency | v1.1 is infrastructure-only; new deps create new test surface | Existing packages cover all needs |
-| `dotenvx` or `dotenv-vault` | Unnecessary complexity for Vercel deployment; Vercel natively handles encrypted env vars | Vercel Dashboard env management |
-| Supabase CLI (`supabase` npm package) | Overkill for single-table creation; requires Docker for local dev setup | Supabase Dashboard SQL Editor |
-| `@vercel/postgres` or `prisma` | App already uses Supabase; adding a second DB layer creates confusion | `@supabase/supabase-js` (already installed) |
-| `stripe-webhook-middleware` or similar | App already implements `stripe.webhooks.constructEvent` correctly in the webhook route | Existing `lib/webhooks/stripe/route.ts` implementation |
+| `@supabase/auth-helpers-nextjs` | Deprecated; not maintained | `@supabase/ssr` 0.10.0 |
+| `google.maps.drawing.DrawingManager` (via `useMapsLibrary('drawing')`) | Deprecated August 2025, removed May 2026 — runtime failure guaranteed | `terra-draw` 1.27.0 |
+| `supabase.auth.getSession()` in middleware or Server Components | Returns unverified cookie data — spoofable by the client; does not call the Auth server | `supabase.auth.getUser()` — makes a network call to verify the token on every request |
+| `next-auth` / `Auth.js` | Adds OAuth providers, JWT configuration, and a callbacks layer not needed for a single email+password admin account | Supabase Auth + `@supabase/ssr` — already in the stack, simpler, cohesive |
+| Tremor | Pulls in Radix UI as a transitive dependency; opinionated design diverges from PRESTIGO copper/anthracite brand; Tremor is itself a wrapper over Recharts | `recharts` directly |
+| `@googlemaps/react-wrapper` | Archived by Google | `@vis.gl/react-google-maps` |
+
+---
+
+## Stack Patterns by Variant
+
+**For polygon storage — if spatial queries are needed later (e.g. "is this pickup point inside any coverage zone?"):**
+- Enable PostGIS on Supabase (available on all plans at no extra cost)
+- Store zones as `geography(Polygon, 4326)` instead of JSONB
+- Query: `SELECT id FROM zones WHERE ST_Contains(coordinates::geometry, ST_Point($lng, $lat))`
+- Terra Draw outputs GeoJSON — convert with `ST_GeomFromGeoJSON()`
+- This is a v2 concern; v1.2 point-in-polygon check can run client-side with a ray-casting helper or `@turf/boolean-point-in-polygon`
+
+**For polygon storage — v1.2 scope (simple client-side check):**
+- Store as JSONB: `[{ lat: number, lng: number }]`
+- Point-in-polygon check in the booking wizard: small utility function, no library needed
+- Migrating to PostGIS later only requires a column type change and one query update
+
+**For auth — if multi-operator support is added in v2:**
+- Add `role TEXT` to `auth.users.raw_user_meta_data` or a `profiles` table joined to `auth.users`
+- Check `user.user_metadata.role === 'admin'` in middleware after `getUser()`
+- v1.2 requires none of this — single user, any authenticated session is the admin session
 
 ---
 
 ## Version Compatibility
 
-All existing packages are currently compatible with Next.js 16.1.7 / React 19:
-
-| Package | Version in use | Compatibility status |
-|---------|---------------|---------------------|
-| stripe | ^21.0.1 | Compatible — Stripe Node SDK v21 supports Node 18+ (Vercel uses Node 20) |
-| @supabase/supabase-js | ^2.101.0 | Compatible — no known issues with Next.js 16 |
-| resend | ^6.9.4 | Compatible — SDK is framework-agnostic |
-| @stripe/react-stripe-js | ^6.0.0 | Compatible with React 19 |
+| Package | Version | Compatible With | Notes |
+|---------|---------|-----------------|-------|
+| `@supabase/ssr` | 0.10.0 | `@supabase/supabase-js` ^2.101.0 | Peer dep already satisfied |
+| `@supabase/ssr` | 0.10.0 | Next.js 16.1.7 App Router | Designed for App Router; middleware pattern tested |
+| `@vis.gl/react-google-maps` | 1.8.2 | React 19.2.3 | React 19 confirmed supported |
+| `@vis.gl/react-google-maps` | 1.8.2 | `@googlemaps/js-api-loader` ^2.0.2 | Safe coexistence — both use the singleton dynamic import API |
+| `terra-draw` | 1.27.0 | `@vis.gl/react-google-maps` 1.8.2 | Integration via `OverlayView`; official example at visgl.github.io/react-google-maps/examples/terra-draw |
+| `recharts` | 3.8.1 | React 19.2.3 | React 19 supported |
+| `@tanstack/react-table` | 8.21.3 | React 19.2.3 | React 19 supported; no peer dep conflicts |
 
 ---
 
 ## Sources
 
-- [Stripe CLI Releases](https://github.com/stripe/stripe-cli/releases) — v1.40.0 confirmed current (2026-03-30); HIGH confidence
-- [Stripe Webhooks Docs](https://docs.stripe.com/webhooks) — production endpoint registration via Dashboard confirmed; HIGH confidence
-- [Stripe CLI Use Guide](https://docs.stripe.com/stripe-cli/use-cli) — `stripe listen` is sandbox/local only, not production; HIGH confidence
-- [Resend Domain Management](https://resend.com/docs/dashboard/domains/introduction) — SPF + DKIM + MX records required, dashboard-only verification flow; HIGH confidence
-- [Vercel CLI Env Docs](https://vercel.com/docs/cli/env) — `vercel env add <NAME> production` command pattern; HIGH confidence
-- [Vercel Environment Variables](https://vercel.com/docs/environment-variables) — sensitive env vars, redeploy required after changes; HIGH confidence
-- [Supabase RLS Guide](https://supabase.com/docs/guides/database/postgres/row-level-security) — SQL Editor does not auto-enable RLS, service role bypasses RLS; HIGH confidence
-- [Next.js App Router Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers) — health check as `app/api/health/route.ts` GET handler; HIGH confidence
-- [Stripe Go-Live Checklist (Vercel KB)](https://vercel.com/kb/guide/getting-started-with-nextjs-typescript-stripe) — env var naming, `NEXT_PUBLIC_` prefix rules; HIGH confidence
+- [Supabase — Setting up Server-Side Auth for Next.js](https://supabase.com/docs/guides/auth/server-side/nextjs) — `@supabase/ssr` pattern, `getUser()` vs `getSession()` security requirement; HIGH confidence
+- [vis.gl/react-google-maps — Drawing deprecation discussion #825](https://github.com/visgl/react-google-maps/discussions/825) — DrawingManager removed May 2026, Terra Draw as migration path; HIGH confidence
+- [Google Maps Docs — Draw on a map using Terra Draw](https://developers.google.com/maps/documentation/javascript/examples/map-drawing-terradraw) — official Google endorsement of Terra Draw; HIGH confidence
+- [vis.gl/react-google-maps — Polygons discussion #636](https://github.com/visgl/react-google-maps/discussions/636) — `<Polygon>` component and manual drawing patterns; HIGH confidence
+- [vis.gl/react-google-maps homepage](https://visgl.github.io/react-google-maps/) — React 19 support, coexistence with js-api-loader; HIGH confidence
+- Versions verified 2026-04-01 via `npm view`: `@vis.gl/react-google-maps@1.8.2`, `terra-draw@1.27.0`, `@supabase/ssr@0.10.0`, `@tanstack/react-table@8.21.3`, `recharts@3.8.1`
+- [Syncfusion — Top 5 React Chart Libraries 2026](https://www.syncfusion.com/blogs/post/top-5-react-chart-libraries) — Recharts recommendation rationale; MEDIUM confidence (community source, consistent with npm download data)
 
 ---
 
-*Stack research for: Prestigo v1.1 Go Live — service connections*
-*Researched: 2026-03-30*
+*Stack research for: Prestigo v1.2 Operator Dashboard*
+*Researched: 2026-04-01*

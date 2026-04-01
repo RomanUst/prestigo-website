@@ -2,7 +2,7 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: defining-requirements
+status: roadmap-defined
 last_updated: "2026-04-01"
 progress:
   total_phases: 0
