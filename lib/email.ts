@@ -227,7 +227,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       <!-- Support contact -->
       <div style="padding: 24px 32px; color: #9A958F; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at roman@rideprestigo.com or +420 XXX XXX XXX</div>
+        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
       </div>
 
       <!-- Footer -->
