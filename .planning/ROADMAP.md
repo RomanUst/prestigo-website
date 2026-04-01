@@ -52,6 +52,11 @@ See full details: `.planning/milestones/v1.1-ROADMAP.md`
 - `middleware.ts` at project root
 - Regression test: booking wizard end-to-end still works
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 10-01-PLAN.md — Auth infrastructure: install @supabase/ssr, env vars, lib/supabase/server.ts, lib/supabase/middleware.ts, root middleware.ts, regression gate
+
 ---
 
 ### Phase 11: Database Schema
