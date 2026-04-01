@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: in-progress
-stopped_at: "Phase 11-01, stopped at Task 2 checkpoint (human-action: Supabase CLI setup and db push)"
-last_updated: "2026-04-01T22:00:00.000Z"
+stopped_at: "Phase 11 complete — ready to start Phase 12 (Core Booking Flow Update)"
+last_updated: "2026-04-01T23:00:00.000Z"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 ## Current Position
 
-Phase: 11 (database-schema) — IN PROGRESS
-Plan: 11-01 — stopped at Task 2 checkpoint (1 of 2 tasks complete)
+Phase: 11 (database-schema) — COMPLETE
+Plan: 11-01 — complete (2/2 tasks done)
 
 ## Accumulated Context
 
@@ -51,4 +51,11 @@ None.
 
 ### Last session
 
-Stopped at: Phase 11-01 Task 2 checkpoint — awaiting Supabase CLI setup and db push by operator
+Stopped at: Phase 11 complete — Phase 12 (Core Booking Flow Update) is next
+
+### Key Decisions (Phase 11)
+
+- Migrations applied via Supabase MCP (not CLI) — functionally equivalent, no CLI auth setup needed
+- pricing_globals singleton enforced via CHECK (id = 1) constraint — prevents accidental duplicate row
+- coverage_zones seeded empty — operator draws zones via admin UI in Phase 16
+- airport_fee=0, night_coefficient=1.0, holiday_coefficient=1.0 — zero/unity defaults preserve current pricing behavior exactly

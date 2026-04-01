@@ -71,10 +71,10 @@ Plans:
 - `supabase/migrations/0003_create_coverage_zones.sql` — table + RLS, empty
 - Verification: `pricing_config` rows match current `lib/pricing.ts` hardcoded constants exactly
 
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 
 Plans:
-- [ ] 11-01-PLAN.md — Write migration SQL files (pricing_config + pricing_globals + coverage_zones) and apply via Supabase CLI [Task 1 done, stopped at Task 2 human-action checkpoint]
+- [x] 11-01-PLAN.md — Write migration SQL files (pricing_config + pricing_globals + coverage_zones) and apply via Supabase MCP — completed 2026-04-01
 
 ---
 
@@ -180,7 +180,7 @@ Plans:
 | 8. Stripe + Health Check + Maps Keys | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
-| 11. Database Schema | v1.2 | 0/1 (1 task done, awaiting checkpoint) | In Progress | — |
+| 11. Database Schema | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 12. Core Booking Flow Update | v1.2 | 0/? | Pending | — |
 | 13. Admin Auth + Login UI | v1.2 | 0/? | Pending | — |
 | 14. Admin API Routes | v1.2 | 0/? | Pending | — |
