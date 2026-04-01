@@ -174,7 +174,7 @@ Plans:
 | 7. Foundation — Supabase + Env + Deploy | v1.1 | 2/2 | Complete | 2026-03-31 |
 | 8. Stripe + Health Check + Maps Keys | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 2/2 | Complete | 2026-04-01 |
-| 10. Auth Infrastructure | 1/1 | Complete   | 2026-04-01 | — |
+| 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
 | 11. Database Schema | v1.2 | 0/? | Pending | — |
 | 12. Core Booking Flow Update | v1.2 | 0/? | Pending | — |
 | 13. Admin Auth + Login UI | v1.2 | 0/? | Pending | — |
