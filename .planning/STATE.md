@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Completed 14-02-PLAN.md — Admin zones CRUD + paginated bookings GET with Zod validation and unit tests
-last_updated: "2026-04-02T08:57:38.535Z"
+stopped_at: Completed 15-01-PLAN.md — UI-SPEC.md and VALIDATION.md approved
+last_updated: "2026-04-02T10:30:17.229Z"
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 6
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 14 — admin-api-routes (COMPLETE)
+**Current focus:** Phase 16 — admin-ui-implementation
 
 ## Current Position
 
-Phase: 14 (admin-api-routes) — COMPLETE
-Plan: 2 of 2 (all plans complete)
+Phase: 15 (ui-design-contract) — COMPLETE
+Plan: 1 of 1 (all complete)
 
 ## Accumulated Context
 
@@ -71,6 +71,12 @@ None.
 - limit clamped to 1-100 with Math.min/Math.max — prevents runaway queries while allowing flexible page sizes
 - TDD test UUIDs must be valid RFC 4122 format — zoneToggleSchema uses z.string().uuid() which enforces this
 
+### Key Decisions (Phase 15 — Plan 01)
+
+- Sign-out button font consolidates 12px->11px (label category), not 13px — typography mapping table had a bug; labels/uppercase elements are 11px, not body size 13px
+- AdminSidebar 20px logo font is a locked legacy exception — 4-size typography contract ({11, 13, 28, 32}px) applies to Phase 16 new components only
+- All 17 requirements (PRICING-01-04, ZONES-01-03, BOOKINGS-01-05, STATS-01-05) verified traceable to UI-SPEC.md sections before approval
+
 ### Key Decisions (Phase 14 — Plan 01)
 
 - Admin auth guard checks user.app_metadata.is_admin (not user_metadata) — server-set field, cannot be spoofed by clients
@@ -81,7 +87,7 @@ None.
 
 ### Last session
 
-Stopped at: Completed 14-02-PLAN.md — Admin zones CRUD + paginated bookings GET with Zod validation and unit tests
+Stopped at: Completed 15-01-PLAN.md — UI-SPEC.md and VALIDATION.md approved
 
 ### Key Decisions (Phase 12 — Plan 02)
 

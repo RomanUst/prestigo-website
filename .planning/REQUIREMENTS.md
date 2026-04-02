@@ -16,16 +16,16 @@
 
 ### Pricing
 
-- [ ] **PRICING-01**: Operator can edit base rates per vehicle class (Business, First Class, Business Van): `rate_per_km`, `hourly_rate`, `daily_rate`
-- [ ] **PRICING-02**: Operator can edit extras surcharges (child seat, meet & greet, extra luggage)
-- [ ] **PRICING-03**: Operator can edit the airport fee (flat surcharge for airport pickup/dropoff)
-- [ ] **PRICING-04**: Operator can edit the night coefficient and holiday coefficient (multipliers applied at price calculation time)
+- [x] **PRICING-01**: Operator can edit base rates per vehicle class (Business, First Class, Business Van): `rate_per_km`, `hourly_rate`, `daily_rate`
+- [x] **PRICING-02**: Operator can edit extras surcharges (child seat, meet & greet, extra luggage)
+- [x] **PRICING-03**: Operator can edit the airport fee (flat surcharge for airport pickup/dropoff)
+- [x] **PRICING-04**: Operator can edit the night coefficient and holiday coefficient (multipliers applied at price calculation time)
 - [x] **PRICING-05**: Booking wizard's `/api/calculate-price` reads rates from `pricing_config` Supabase table (not hardcoded `lib/pricing.ts` constants)
 - [x] **PRICING-06**: Pricing changes are live immediately — next booking wizard load reflects the updated rates
 
 ### Coverage Zones
 
-- [ ] **ZONES-01**: Operator can draw a polygon on an interactive Google Maps canvas
+- [x] **ZONES-01**: Operator can draw a polygon on an interactive Google Maps canvas
 - [x] **ZONES-02**: Operator can assign a name to a drawn zone and save it (stored as GeoJSON in `coverage_zones` table)
 - [x] **ZONES-03**: Operator can toggle a zone active or inactive without deleting it
 - [x] **ZONES-04**: When booking wizard calls `/api/calculate-price`, if pickup or destination falls outside all active zones, the response returns `quoteMode: true` (existing "Request a quote" flow activates)
@@ -34,18 +34,18 @@
 ### Bookings
 
 - [x] **BOOKINGS-01**: Operator sees a paginated table of all bookings (most recent first)
-- [ ] **BOOKINGS-02**: Table can be filtered by pickup date range
-- [ ] **BOOKINGS-03**: Table can be filtered by trip type (one-way, airport pickup, airport dropoff, hourly, daily)
-- [ ] **BOOKINGS-04**: Table has search by client name or booking reference
-- [ ] **BOOKINGS-05**: Clicking a row expands full booking detail (extras, special requests, flight number, coordinates, payment intent ID)
+- [x] **BOOKINGS-02**: Table can be filtered by pickup date range
+- [x] **BOOKINGS-03**: Table can be filtered by trip type (one-way, airport pickup, airport dropoff, hourly, daily)
+- [x] **BOOKINGS-04**: Table has search by client name or booking reference
+- [x] **BOOKINGS-05**: Clicking a row expands full booking detail (extras, special requests, flight number, coordinates, payment intent ID)
 
 ### Statistics
 
-- [ ] **STATS-01**: Dashboard shows total revenue (CZK) for the current month and previous month
-- [ ] **STATS-02**: Dashboard shows booking count for today, this week, this month
-- [ ] **STATS-03**: Revenue breakdown by vehicle class (pie or bar chart)
-- [ ] **STATS-04**: Revenue breakdown by trip type
-- [ ] **STATS-05**: 12-month revenue bar chart (monthly totals)
+- [x] **STATS-01**: Dashboard shows total revenue (CZK) for the current month and previous month
+- [x] **STATS-02**: Dashboard shows booking count for today, this week, this month
+- [x] **STATS-03**: Revenue breakdown by vehicle class (pie or bar chart)
+- [x] **STATS-04**: Revenue breakdown by trip type
+- [x] **STATS-05**: 12-month revenue bar chart (monthly totals)
 
 ---
 
@@ -95,27 +95,27 @@ Which phases cover which requirements.
 | AUTH-02 | Phase 13 | Complete |
 | AUTH-03 | Phase 13 | Complete |
 | AUTH-04 | Phase 13 | Complete |
-| PRICING-01 | Phase 16 | Pending |
-| PRICING-02 | Phase 16 | Pending |
-| PRICING-03 | Phase 16 | Pending |
-| PRICING-04 | Phase 16 | Pending |
+| PRICING-01 | Phase 16 | Complete |
+| PRICING-02 | Phase 16 | Complete |
+| PRICING-03 | Phase 16 | Complete |
+| PRICING-04 | Phase 16 | Complete |
 | PRICING-05 | Phase 12 | Complete |
 | PRICING-06 | Phase 14 | Complete |
-| ZONES-01 | Phase 16 | Pending |
+| ZONES-01 | Phase 16 | Complete |
 | ZONES-02 | Phase 16 | Complete |
 | ZONES-03 | Phase 16 | Complete |
 | ZONES-04 | Phase 12 | Complete |
 | ZONES-05 | Phase 12 | Complete |
 | BOOKINGS-01 | Phase 16 | Complete |
-| BOOKINGS-02 | Phase 16 | Pending |
-| BOOKINGS-03 | Phase 16 | Pending |
-| BOOKINGS-04 | Phase 16 | Pending |
-| BOOKINGS-05 | Phase 16 | Pending |
-| STATS-01 | Phase 16 | Pending |
-| STATS-02 | Phase 16 | Pending |
-| STATS-03 | Phase 16 | Pending |
-| STATS-04 | Phase 16 | Pending |
-| STATS-05 | Phase 16 | Pending |
+| BOOKINGS-02 | Phase 16 | Complete |
+| BOOKINGS-03 | Phase 16 | Complete |
+| BOOKINGS-04 | Phase 16 | Complete |
+| BOOKINGS-05 | Phase 16 | Complete |
+| STATS-01 | Phase 16 | Complete |
+| STATS-02 | Phase 16 | Complete |
+| STATS-03 | Phase 16 | Complete |
+| STATS-04 | Phase 16 | Complete |
+| STATS-05 | Phase 16 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 25 total
