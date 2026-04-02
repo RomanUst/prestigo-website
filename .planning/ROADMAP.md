@@ -124,7 +124,7 @@ Plans:
 ---
 
 ### Phase 14: Admin API Routes
-**Goal:** Build all three admin API route handlers: pricing (GET + PUT with cache bust), zones (GET + POST + DELETE), bookings (GET paginated). All routes verify session via `getUser()`. No UI yet — verify with curl/Postman.
+**Goal:** Build all three admin API route handlers: pricing (GET + PUT with cache bust), zones (GET + POST + DELETE + PATCH), bookings (GET paginated). All routes verify session via `getUser()`. No UI yet — verify with curl/Postman.
 
 **Dependencies:** Phase 11 (tables exist), Phase 13 (auth guard pattern established)
 **Requirements covered:** PRICING-06, ZONES-02, ZONES-03, BOOKINGS-01 (backend)
@@ -132,10 +132,16 @@ Plans:
 
 **Key deliverables:**
 - `/api/admin/pricing/route.ts` — `GET` returns current config; `PUT` validates + upserts + calls `revalidateTag('pricing-config')`
-- `/api/admin/zones/route.ts` — `GET` all zones; `POST` create (Zod validate GeoJSON); `DELETE` by id; all verify `is_admin`
+- `/api/admin/zones/route.ts` — `GET` all zones; `POST` create (Zod validate GeoJSON); `DELETE` by id; `PATCH` toggle active; all verify `is_admin`
 - `/api/admin/bookings/route.ts` — `GET` paginated with date range, trip type, search query params
 - All routes: `401` for unauthenticated; `403` for authenticated non-admin
 - Verification: curl tests for each endpoint (auth + data correctness)
+
+**Plans:** 2 plans
+
+Plans:
+- [ ] 14-01-PLAN.md — Admin pricing route (GET + PUT with cache bust) + unit tests
+- [ ] 14-02-PLAN.md — Admin zones route (GET/POST/DELETE/PATCH) + bookings route (GET paginated) + unit tests
 
 ---
 
@@ -195,6 +201,6 @@ Plans:
 | 11. Database Schema | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 12. Core Booking Flow Update | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
-| 14. Admin API Routes | v1.2 | 0/? | Pending | — |
+| 14. Admin API Routes | v1.2 | 0/2 | Pending | — |
 | 15. UI Design Contract | v1.2 | 0/? | Pending | — |
 | 16. Admin UI Pages | v1.2 | 0/? | Pending | — |
