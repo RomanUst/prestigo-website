@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-04-02
+revised: 2026-04-02
 ---
 
 # Phase 15 — UI Design Contract
@@ -96,19 +97,26 @@ Based on 8-point grid. All values multiples of 4. Sourced from `design-system/MA
 | Token | Value | Usage in Admin |
 |-------|-------|----------------|
 | xs | 4px | Icon-to-text gaps, status badge dot margin |
-| sm | 8px | Gap between filter chips, table cell internal padding |
+| sm | 8px | Gap between filter chips, table cell internal padding, StatusBadge gap between dot and text |
 | md | 16px | Nav item padding (vertical), section gap between cards |
 | lg | 24px | Card internal padding (confirmed from AdminSidebar header: `padding: '24px 20px'`) |
 | xl | 32px | Main content area padding (confirmed from layout.tsx: `padding: '32px'`) |
 | 2xl | 48px | Gap between major page sections (KPI row → chart) |
 | 3xl | 64px | Not used in admin — desktop-only, no hero sections |
 
-**Exceptions:**
-- Status badge: `3px 8px` padding (not on scale — narrow pill requires custom value)
+**Exceptions and legacy values:**
+
+| Value | Context | Justification |
+|-------|---------|---------------|
+| `padding: '10px 20px'` (nav item) | AdminSidebar.tsx nav item | Locked legacy exception — confirmed from built source code. Not alterable in Phase 16. |
+| `padding: '24px 20px'` (sidebar header) | AdminSidebar.tsx | Confirmed built source — locked. |
+| `padding: '8px 0'` (sign out button) | AdminSidebar.tsx | Confirmed built source — locked. |
+
+**Standard spec values (Phase 16 new components):**
+
+- Status badge padding: `4px 8px` (tight pill — 4px top/bottom on scale)
 - Table row height: 44px minimum (touch target compliance for row click)
-- Nav item: `padding: '10px 20px'` (confirmed from AdminSidebar.tsx source)
-- Sidebar header: `padding: '24px 20px'` (confirmed)
-- Sign out button: `padding: '8px 0'` (confirmed)
+- "Admin" sublabel `margin-top`: `4px`
 
 ---
 
@@ -116,21 +124,29 @@ Based on 8-point grid. All values multiples of 4. Sourced from `design-system/MA
 
 Sourced from `design-system/MASTER.md §3` and confirmed from `app/admin/(dashboard)/page.tsx`.
 
+**Declared sizes: 4 — 11px | 13px | 28px | 32px**
+
 | Role | Font | Size | Weight | Letter-spacing | Line Height | Color | Usage |
 |------|------|------|--------|----------------|-------------|-------|-------|
 | Page Title | Cormorant Garamond | 28px | 400 | 0.08em | 1.2 | `var(--offwhite)` | Admin page `<h1>` — confirmed from page.tsx |
-| Body / Table Cell | Montserrat | 14px | 400 | 0 | 1.5 | `var(--offwhite)` | Table cell content, form descriptions |
-| UI / Nav | Montserrat | 13px | 400 | 0.08em | 1 | `var(--warmgrey)` | Nav items — confirmed from AdminSidebar.tsx |
-| Label / Column Header | Montserrat | 9px | 400 | 0.4em | 1 | `var(--copper)` | Section labels, table column headers, KPICard label — uppercase |
-| Caption / Meta | Montserrat | 10px | 400 | 0.25em | 1.4 | `var(--warmgrey)` | AdminSidebar "Admin" sublabel, pagination counts, badge text |
 | KPICard Value | Cormorant Garamond | 32px | 300 | 0 | 1 | `var(--offwhite)` | Large metric numbers |
-| Sign Out / Small Action | Montserrat | 12px | 400 | 0.12em | 1 | `var(--warmgrey)` | Confirmed from AdminSidebar.tsx |
+| Body / Table Cell / Nav / UI | Montserrat | 13px | 400 | 0.08em | 1.5 | `var(--offwhite)` / `var(--warmgrey)` | Table cell content, form descriptions, nav items, form row labels, search input, zone name text |
+| Label / Caption / Meta / Small Action | Montserrat | 11px | 400 | 0.3em | 1.4 | `var(--copper)` / `var(--warmgrey)` | Section labels, table column headers, chart titles, KPICard label (uppercase), sidebar sublabel, pagination counts, badge text, sign out button, chart axis, legend, PricingForm field labels, button labels (uppercase) |
 
 **Typography rules:**
 - `font-weight: 300` on all Cormorant Garamond display text
-- All labels and column headers: `text-transform: uppercase`
+- All labels, column headers, button labels, and section titles: `text-transform: uppercase`
 - Body minimum: 13px (never lower — iOS auto-zoom threshold)
-- Monospace exception: `payment_intent_id` and `booking_reference` use `font-family: monospace, monospace` at 12px
+- Monospace exception: `payment_intent_id` and `booking_reference` use `font-family: monospace, monospace` at 13px
+
+**Size mapping — what was changed in this revision:**
+
+| Previous size | Consolidated to | Affected elements |
+|--------------|----------------|-------------------|
+| 9px | 11px | Section labels, column headers, chart titles, KPICard label |
+| 10px | 11px | Sidebar sublabel, pagination buttons, chart axis, chart legend, PricingForm field labels, draw toolbar buttons |
+| 12px | 13px | Sign out button, monospace `booking_reference` / `payment_intent_id` |
+| 14px | 13px | Table cell body text, form descriptions |
 
 ---
 
@@ -171,6 +187,15 @@ Confirmed from `app/admin/(dashboard)/layout.tsx` — values are locked.
 
 Confirmed from `app/admin/(dashboard)/page.tsx`. All 4 new admin pages use this exact pattern.
 
+### Focal Points (per primary screen)
+
+| Page | Primary visual anchor |
+|------|-----------------------|
+| `/admin/stats` | KPICard row — the 32px Cormorant CZK revenue value draws the eye first; copper label above reinforces hierarchy |
+| `/admin/bookings` | BookingsTable — the `booking_reference` copper text and client name column at 13px offwhite anchor the data grid |
+| `/admin/pricing` | Save button row — copper-bordered CTA is the only interactive terminus on a form-only page |
+| `/admin/zones` | ZoneMap canvas — the dark map tile area occupies `flex: 1` and is the dominant element; zone list panel is secondary |
+
 ---
 
 ## Component Inventory
@@ -189,13 +214,13 @@ Source: `prestigo/components/admin/AdminSidebar.tsx`
 | Header padding | `24px 20px` | Confirmed |
 | Header border-bottom | `1px solid var(--anthracite-light)` | Confirmed |
 | Logo font | `var(--font-cormorant)`, 20px, `var(--offwhite)`, letter-spacing 0.12em | Confirmed |
-| "Admin" sublabel | 10px, `var(--warmgrey)`, letter-spacing 0.25em, uppercase, margin-top 2px | Confirmed |
+| "Admin" sublabel | 11px, `var(--warmgrey)`, letter-spacing 0.25em, uppercase, margin-top 4px | Confirmed source; margin-top updated to 4px (on-scale) |
 | Nav padding | `16px 0` | Confirmed |
-| Nav item padding | `10px 20px` | Confirmed |
+| Nav item padding | `10px 20px` | Locked legacy — confirmed from built source code (see Spacing exceptions) |
 | Nav item font | 13px, `var(--warmgrey)`, letter-spacing 0.08em | Confirmed |
 | Footer padding | `16px 20px` | Confirmed |
 | Footer border-top | `1px solid var(--anthracite-light)` | Confirmed |
-| Sign out button | 12px, `var(--warmgrey)`, letter-spacing 0.12em, uppercase, padding `8px 0` | Confirmed |
+| Sign out button | 11px, `var(--warmgrey)`, letter-spacing 0.12em, uppercase, padding `8px 0` | Confirmed source; size updated to 11px per typography consolidation |
 
 **Phase 16 additions to AdminSidebar (do not implement in spec — document only):**
 
@@ -213,9 +238,9 @@ Used for: zone active/inactive state. NOT used for booking status (no status col
 
 | Property | Value |
 |----------|-------|
-| Display | `inline-flex`, `align-items: center`, `gap: 6px` |
-| Padding | `3px 8px` |
-| Font | Montserrat, 10px, weight 400, `text-transform: uppercase`, `letter-spacing: 0.08em` |
+| Display | `inline-flex`, `align-items: center`, `gap: 8px` |
+| Padding | `4px 8px` |
+| Font | Montserrat, 11px, weight 400, `text-transform: uppercase`, `letter-spacing: 0.08em` |
 | Border-radius | 2px |
 | Icon | 6px dot — `width: 6px; height: 6px; border-radius: 50%` — color matches text color |
 
@@ -256,7 +281,7 @@ Used on: `/admin/stats` (4 cards), `/admin/bookings` (2 summary cards).
 
 | Part | Spec |
 |------|------|
-| Label | Montserrat 9px, weight 400, `text-transform: uppercase`, `letter-spacing: 0.4em`, `color: var(--copper)` |
+| Label | Montserrat 11px, weight 400, `text-transform: uppercase`, `letter-spacing: 0.4em`, `color: var(--copper)` |
 | Value | Cormorant Garamond 32px, weight 300, `color: var(--offwhite)` |
 | Sub-label | Montserrat 11px, weight 400, `color: var(--warmgrey)` |
 
@@ -306,12 +331,12 @@ Library: `@tanstack/react-table` (Phase 16 install).
 
 | Column | Header | Width | Alignment | Notes |
 |--------|--------|-------|-----------|-------|
-| `booking_reference` | `REF` | 120px | left | Monospace, 12px, `color: var(--copper)` |
+| `booking_reference` | `REF` | 120px | left | Monospace, 13px, `color: var(--copper)` |
 | `pickup_date` + `pickup_time` | `PICKUP` | 140px | left | Combined: "2026-04-15 · 09:00" |
-| `client_first_name` + `client_last_name` | `CLIENT` | 180px | left | Full name, 14px, `var(--offwhite)` |
+| `client_first_name` + `client_last_name` | `CLIENT` | 180px | left | Full name, 13px, `var(--offwhite)` |
 | `trip_type` | `TYPE` | 100px | left | Rendered as inline label chip (no color — text only) |
 | `vehicle_class` | `VEHICLE` | 120px | left | Display: "Business" / "First Class" / "Business Van" |
-| `amount_czk` | `AMOUNT` | 100px | right | `{n} CZK`, 14px, `var(--offwhite)` |
+| `amount_czk` | `AMOUNT` | 100px | right | `{n} CZK`, 13px, `var(--offwhite)` |
 | expand toggle | — | 48px | center | Lucide `ChevronDown` / `ChevronUp`, 16px, `var(--warmgrey)` |
 
 **No status column** — booking status workflow is deferred to v2 (BOOKINGS-V2-01).
@@ -322,7 +347,7 @@ Library: `@tanstack/react-table` (Phase 16 install).
 |----------|-------|
 | Background | `var(--anthracite)` |
 | Border-bottom | `1px solid var(--anthracite-light)` |
-| Font | Montserrat 9px, weight 400, uppercase, letter-spacing 0.4em, `var(--warmgrey)` |
+| Font | Montserrat 11px, weight 400, uppercase, letter-spacing 0.4em, `var(--warmgrey)` |
 | Height | 40px |
 | Cell padding | `0 12px` |
 
@@ -356,7 +381,7 @@ Two-column grid layout for detail fields:
 | `terminal` | Terminal | Value or `—` |
 | `return_date` | Return | Value or `—` |
 | `special_requests` | Notes | Full text or `—` |
-| `payment_intent_id` | Payment ID | Monospace 11px, truncated to 24 chars + `…` |
+| `payment_intent_id` | Payment ID | Monospace 13px, truncated to 24 chars + `…` |
 
 #### Pagination Controls
 
@@ -365,7 +390,7 @@ Sits below the table, right-aligned.
 | Element | Spec |
 |---------|------|
 | "Showing N–M of total" | Montserrat 11px, `var(--warmgrey)` |
-| Previous button | Ghost button: `border: 1px solid var(--anthracite-light)`, Montserrat 10px uppercase letter-spacing 0.2em, `var(--warmgrey)` text, `padding: 6px 16px`, border-radius 2px |
+| Previous button | Ghost button: `border: 1px solid var(--anthracite-light)`, Montserrat 11px uppercase letter-spacing 0.2em, `var(--warmgrey)` text, `padding: 8px 16px`, border-radius 2px |
 | Page indicator | Montserrat 11px, `var(--warmgrey)` — "Page 1 of 12" |
 | Next button | Same as Previous |
 | Disabled state | `opacity: 0.4`, `cursor: not-allowed` |
@@ -419,7 +444,7 @@ Used on: `/admin/bookings` filter bar.
 | Padding | `0 12px` |
 | Font | Montserrat 13px, weight 400, `var(--offwhite)` |
 | Placeholder | `var(--warmgrey)` — "Search client or reference…" |
-| Icon | Lucide `Search` 14px, `var(--warmgrey)`, left-inset 12px (padding-left 36px on input) |
+| Icon | Lucide `Search` 13px, `var(--warmgrey)`, left-inset 12px (padding-left 36px on input) |
 | Transition | border-color 150ms ease |
 
 ---
@@ -443,14 +468,14 @@ Table layout (CSS grid: `grid-template-columns: 160px 1fr 1fr 1fr`):
 | `hourly_rate` | Numeric input, width 100px, right-aligned value |
 | `daily_rate` | Numeric input, width 100px, right-aligned value |
 
-Column headers: Montserrat 9px, uppercase, letter-spacing 0.4em, `var(--warmgrey)`.
+Column headers: Montserrat 11px, uppercase, letter-spacing 0.4em, `var(--warmgrey)`.
 
 Vehicle class row labels:
 - `business` → "Business"
 - `first_class` → "First Class"
 - `business_van` → "Business Van"
 
-Column header suffixes (shown below header text, 9px warmgrey):
+Column header suffixes (shown below header text, 11px warmgrey):
 - `rate_per_km` → "EUR / km"
 - `hourly_rate` → "EUR / h"
 - `daily_rate` → "EUR / day"
@@ -467,7 +492,7 @@ Column header suffixes (shown below header text, 9px warmgrey):
 | Color | `var(--offwhite)` |
 | Font | Montserrat 13px, weight 400 |
 | Text-align | right |
-| Padding | `6px 10px` |
+| Padding | `8px 8px` |
 | `type` | `number` |
 | `step` | `0.01` |
 | `min` | `0` |
@@ -485,7 +510,7 @@ Same card container style as Section A. Two-column grid layout.
 | `extra_meet_greet` | Meet & Greet | EUR / booking | 2 |
 | `extra_luggage` | Extra Luggage | EUR / booking | 2 |
 
-Each field: label (Montserrat 10px, uppercase, letter-spacing 0.3em, `var(--warmgrey)`) above input. Suffix shown inline after input in `var(--warmgrey)` 11px.
+Each field: label (Montserrat 11px, uppercase, letter-spacing 0.3em, `var(--warmgrey)`) above input. Suffix shown inline after input in `var(--warmgrey)` 11px.
 
 #### Save Button
 
@@ -493,8 +518,8 @@ Each field: label (Montserrat 10px, uppercase, letter-spacing 0.3em, `var(--warm
 Border: 1px solid var(--copper)
 Color: var(--offwhite)
 Background: transparent
-Padding: 14px 32px
-Font: Montserrat 10px, weight 400, uppercase, letter-spacing 0.35em
+Padding: 16px 32px
+Font: Montserrat 11px, weight 400, uppercase, letter-spacing 0.35em
 Border-radius: 0 (flat)
 Hover: background fills var(--copper), color: var(--anthracite)
 Transition: background 300ms ease, color 300ms ease
@@ -541,15 +566,15 @@ Used on: `/admin/zones`.
 
 | State | Elements |
 |-------|---------|
-| Default (no draw active) | Single button: "Draw Zone" — ghost style `border: 1px solid var(--anthracite-light)`, Montserrat 10px uppercase, `var(--warmgrey)`, `padding: 8px 16px`, `border-radius: 2px`, `background: var(--anthracite)` |
-| Draw active | "Draw Zone" button hidden; "Cancel" button — same style but `border-color: var(--copper)`, text `var(--offwhite)` |
+| Default (no draw active) | Single button: `DRAW ZONE` — ghost style `border: 1px solid var(--anthracite-light)`, Montserrat 11px uppercase, `var(--warmgrey)`, `padding: 8px 16px`, `border-radius: 2px`, `background: var(--anthracite)` |
+| Draw active | `DRAW ZONE` button hidden; `STOP DRAWING` button — same style but `border-color: var(--copper)`, text `var(--offwhite)` |
 
 **Save Zone Prompt (appears after polygon is closed):**
 
 Inline below map (not a modal):
 - Text input: "Zone name" placeholder, full-width, same numeric input style
 - Save button: primary CTA style (copper border)
-- Cancel link: Montserrat 11px, `var(--warmgrey)`, underline on hover
+- Cancel link: Montserrat 11px, `var(--warmgrey)`, underline on hover — label: "Discard zone"
 
 **Zone List Panel (280px right column):**
 
@@ -568,7 +593,7 @@ Inline below map (not a modal):
 | StatusBadge | `variant="active"` or `variant="inactive"` |
 | Active toggle | Custom switch: 36px × 20px; copper (`var(--copper)`) when active, `var(--anthracite-light)` when inactive; thumb is 16px circle, `var(--offwhite)`; transition 150ms |
 | Delete icon | Lucide `Trash2` 16px, `var(--warmgrey)`, hover `#f87171`, `cursor: pointer` |
-| Row padding | `10px 0`, `border-bottom: 1px solid var(--anthracite-light)` |
+| Row padding | `8px 0`, `border-bottom: 1px solid var(--anthracite-light)` |
 | Last row | No border-bottom |
 
 **Delete confirmation:** Inline — clicking Trash2 shows a brief confirm row: "Delete this zone? [Yes] [No]" in 11px Montserrat. No modal dialog.
@@ -597,14 +622,14 @@ Library: `recharts` (Phase 16 install). Uses `ResponsiveContainer` for fluid wid
 | Card container | Same card style as KPICard |
 | Background | transparent (inherits card bg) |
 | Grid lines | `stroke: var(--anthracite-light)` = `#3A3A3F`, `strokeDasharray: "3 3"` |
-| Axis text | Montserrat 10px, `fill: var(--warmgrey)` = `#9A958F` |
+| Axis text | Montserrat 11px, `fill: var(--warmgrey)` = `#9A958F` |
 | Tooltip background | `var(--anthracite)` `#1C1C1E` |
 | Tooltip border | `1px solid var(--anthracite-light)` |
 | Tooltip text | Montserrat 11px, `var(--offwhite)` |
 | Bar border-radius | `[2, 2, 0, 0]` (top corners only) |
 | Chart height | 280px |
 | Chart card padding | 24px |
-| Chart title | Section label style: Montserrat 9px, uppercase, letter-spacing 0.4em, `var(--copper)`, `margin-bottom: 16px` |
+| Chart title | Section label style: Montserrat 11px, uppercase, letter-spacing 0.4em, `var(--copper)`, `margin-bottom: 16px` |
 
 **Chart 1 — 12-Month Revenue Bar Chart (full width):**
 
@@ -626,7 +651,7 @@ Library: `recharts` (Phase 16 install). Uses `ResponsiveContainer` for fluid wid
 | Bar series 1 | `business` → `fill: var(--copper)` `#B87333` |
 | Bar series 2 | `first_class` → `fill: var(--copper-light)` `#D4924A` |
 | Bar series 3 | `business_van` → `fill: var(--copper-pale)` `#E8B87A` |
-| Legend | Montserrat 10px, `var(--warmgrey)`, inline dots matching fill colors |
+| Legend | Montserrat 11px, `var(--warmgrey)`, inline dots matching fill colors |
 | Title copy | `REVENUE BY CLASS` |
 
 **Chart 3 — Revenue by Trip Type:**
@@ -709,7 +734,9 @@ Charts 2 and 3 placed in a two-column grid row below Chart 1.
 |---------|------|
 | Primary CTA — pricing save | `SAVE PRICING` |
 | Primary CTA — zone save | `SAVE ZONE` |
-| Primary CTA — draw zone | `DRAW ZONE` |
+| Primary CTA — draw zone (toolbar default) | `DRAW ZONE` |
+| Draw cancel — stop active polygon drawing | `STOP DRAWING` |
+| Save zone prompt cancel link | `Discard zone` |
 | Success — pricing saved | `Pricing saved.` |
 | Success — zone saved | `Zone saved.` |
 | Error — save failed | `Save failed. Try again.` |
@@ -802,6 +829,9 @@ No shadcn and no third-party component registries are used. All admin components
 | `next/link` skipped | Phase 16 must upgrade `<a>` → `next/link` in AdminSidebar | Plain `<a href>` in new components |
 | `font-weight: 600+` on Cormorant | Destroys luxury lightness | Bold Cormorant in any admin heading |
 | CZK vs EUR confusion | `amount_czk` column is CZK; display as CZK | Showing EUR for stored booking amounts |
+| Font sizes outside 11px / 13px / 28px / 32px | Typography contract allows exactly 4 sizes | Any `fontSize` value not in {11, 13, 28, 32}px |
+| Non-multiple-of-4 spacing in new components | Spacing scale is 4px-based | Any padding/margin/gap not in {4, 8, 16, 24, 32, 48, 64}px (legacy AdminSidebar nav padding is the sole documented exception) |
+| Generic button labels | Copywriting contract requires verb + noun | `"Cancel"` as a standalone label — use `"STOP DRAWING"` or `"Discard zone"` |
 
 ---
 
