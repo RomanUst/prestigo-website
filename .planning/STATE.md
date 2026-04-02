@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: unknown
-stopped_at: Completed 16-01-PLAN.md — packages installed, StatusBadge/KPICard created, AdminSidebar upgraded
-last_updated: "2026-04-02T11:17:00.000Z"
+status: executing
+stopped_at: Completed 16-02-PLAN.md — PricingForm component and pricing page shell
+last_updated: "2026-04-02T11:25:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 14
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 ## Current Position
 
 Phase: 16 (admin-ui-pages) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 
 ## Accumulated Context
 
@@ -85,6 +85,12 @@ None.
 - pricing_globals upsert uses { onConflict: 'id' } for singleton row enforcement
 - Promise.all for parallel GET reads and parallel PUT upserts
 
+### Key Decisions (Phase 16 — Plan 02)
+
+- registerNumeric helper merges react-hook-form onBlur with custom focus state — avoids TS2783 duplicate prop error when spreading register result
+- valueAsNumber: true on all numeric inputs via registerNumeric — ensures number type submitted to Zod schema (not string)
+- Server Component fetches initialData → passes to 'use client' PricingForm — established pattern for all admin editor pages
+
 ### Key Decisions (Phase 16 — Plan 01)
 
 - Pre-existing TypeScript build error in pricing route (revalidateTag signature change in Next.js 16) is out of scope — deferred
@@ -93,7 +99,7 @@ None.
 
 ### Last session
 
-Stopped at: Completed 16-01-PLAN.md — packages installed, StatusBadge/KPICard created, AdminSidebar upgraded
+Stopped at: Completed 16-02-PLAN.md — PricingForm component and pricing page shell
 
 ### Key Decisions (Phase 12 — Plan 02)
 
