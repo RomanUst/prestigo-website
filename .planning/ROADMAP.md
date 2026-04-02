@@ -118,8 +118,8 @@ Plans:
 **Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 13-01-PLAN.md — Redirect logic in updateSession() + login page with Server Actions
-- [ ] 13-02-PLAN.md — Admin dashboard layout (route group), AdminSidebar, sign-out + end-to-end verification
+- [x] 13-01-PLAN.md — Redirect logic in updateSession() + login page with Server Actions — completed 2026-04-02
+- [x] 13-02-PLAN.md — Admin dashboard layout (route group), AdminSidebar, sign-out + end-to-end verification — completed 2026-04-02
 
 ---
 
@@ -191,10 +191,10 @@ Plans:
 | 7. Foundation — Supabase + Env + Deploy | v1.1 | 2/2 | Complete | 2026-03-31 |
 | 8. Stripe + Health Check + Maps Keys | v1.1 | 3/3 | Complete | 2026-03-31 |
 | 9. Resend Domain + Email Sign-Off | v1.1 | 2/2 | Complete | 2026-04-01 |
-| 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
-| 11. Database Schema | v1.2 | Complete    | 2026-04-01 | 2026-04-01 |
-| 12. Core Booking Flow Update | v1.2 | Complete    | 2026-04-02 | 2026-04-02 |
-| 13. Admin Auth + Login UI | 2/2 | Complete   | 2026-04-02 | — |
+| 10. Auth Infrastructure | v1.2 | 1/1 | Complete | 2026-04-01 |
+| 11. Database Schema | v1.2 | 1/1 | Complete | 2026-04-01 |
+| 12. Core Booking Flow Update | v1.2 | 2/2 | Complete | 2026-04-02 |
+| 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 14. Admin API Routes | v1.2 | 0/? | Pending | — |
 | 15. UI Design Contract | v1.2 | 0/? | Pending | — |
 | 16. Admin UI Pages | v1.2 | 0/? | Pending | — |
