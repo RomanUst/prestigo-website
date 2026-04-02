@@ -66,6 +66,11 @@
   }
 }
 
+html,
+body {
+  overflow-x: clip;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
@@ -76,7 +81,6 @@ body {
   background-color: var(--anthracite);
   color: var(--offwhite);
   font-family: var(--font-montserrat);
-  overflow-x: hidden;
 }
 
 /* ── Copper accent line ────────────────────────────── */
