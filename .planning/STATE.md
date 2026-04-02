@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Phase 11 complete — Phase 12 (Core Booking Flow Update) is next
-last_updated: "2026-04-01T22:00:03.711Z"
+stopped_at: Completed 12-01-PLAN.md — pricing data layer implemented
+last_updated: "2026-04-02T06:35:59.849Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 11 — database-schema
+**Current focus:** Phase 12 — core-booking-flow-update
 
 ## Current Position
 
-Phase: 11 (database-schema) — COMPLETE
-Plan: 11-01 — complete (2/2 tasks done)
+Phase: 12 (core-booking-flow-update) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -51,7 +51,14 @@ None.
 
 ### Last session
 
-Stopped at: Phase 11 complete — Phase 12 (Core Booking Flow Update) is next
+Stopped at: Completed 12-01-PLAN.md — pricing data layer implemented
+
+### Key Decisions (Phase 12 — Plan 01)
+
+- Rates interface uses Record<string, number> (not Record<VehicleClass, number>) — DB returns plain strings, not VehicleClass union
+- Internal rate constants (RATE_PER_KM etc.) kept in pricing.ts as seed reference docs but not exported
+- unstable_cache key ['pricing-config'] matches tag — enables targeted revalidation from Phase 14 admin PUT route
+- Supabase NUMERIC columns return strings — Number() cast required in getPricingConfig to prevent arithmetic bugs
 
 ### Key Decisions (Phase 11)
 

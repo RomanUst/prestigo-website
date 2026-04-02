@@ -21,7 +21,7 @@
 - [ ] **PRICING-03**: Operator can edit the airport fee (flat surcharge for airport pickup/dropoff)
 - [ ] **PRICING-04**: Operator can edit the night coefficient and holiday coefficient (multipliers applied at price calculation time)
 - [x] **PRICING-05**: Booking wizard's `/api/calculate-price` reads rates from `pricing_config` Supabase table (not hardcoded `lib/pricing.ts` constants)
-- [ ] **PRICING-06**: Pricing changes are live immediately — next booking wizard load reflects the updated rates
+- [x] **PRICING-06**: Pricing changes are live immediately — next booking wizard load reflects the updated rates
 
 ### Coverage Zones
 
@@ -100,7 +100,7 @@ Which phases cover which requirements.
 | PRICING-03 | Phase 16 | Pending |
 | PRICING-04 | Phase 16 | Pending |
 | PRICING-05 | Phase 12 | Complete |
-| PRICING-06 | Phase 14 | Pending |
+| PRICING-06 | Phase 14 | Complete |
 | ZONES-01 | Phase 16 | Pending |
 | ZONES-02 | Phase 16 | Pending |
 | ZONES-03 | Phase 16 | Pending |
