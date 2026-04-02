@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Completed 16-05-PLAN.md — Stats dashboard with recharts charts
-last_updated: "2026-04-02T15:15:18.892Z"
+stopped_at: Completed 17-02-PLAN.md — Wire globals into booking wizard
+last_updated: "2026-04-02T17:45:00Z"
 progress:
   total_phases: 8
   completed_phases: 7
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 ## Current Position
 
-Phase: 17 (pricing-globals-integration) — EXECUTING
-Plan: 1 of 2
+Phase: 17 (pricing-globals-integration) — COMPLETE
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -121,7 +121,14 @@ None.
 
 ### Last session
 
-Stopped at: Completed 16-05-PLAN.md — Stats dashboard with recharts charts
+Stopped at: Completed 17-02-PLAN.md — Wire globals into booking wizard
+
+### Key Decisions (Phase 17 — Plan 02)
+
+- Holiday coefficient deferred — no time-of-day/date detection mechanism exists; isHoliday logic must be added in a future plan
+- computeExtrasTotal accepts optional prices param (backward-compatible) — allows DB prices to override hardcoded EXTRAS_PRICES without breaking existing callers
+- applyGlobals() wraps all three buildPriceMap() call sites in calculate-price route — airport fee and night coefficient applied consistently across hourly/daily/transfer
+- z.record() requires 2 args in current Zod — fixed z.record(z.unknown()) → z.record(z.string(), z.unknown()) to unblock build
 
 ### Key Decisions (Phase 12 — Plan 02)
 
