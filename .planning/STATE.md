@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: unknown
-stopped_at: Completed 17-02-PLAN.md — Wire globals into booking wizard
-last_updated: "2026-04-02T17:45:00Z"
+status: complete
+stopped_at: Phase 17 complete — all v1.2 requirements satisfied
+last_updated: "2026-04-02T17:50:00Z"
 progress:
   total_phases: 8
-  completed_phases: 7
-  total_plans: 14
-  completed_plans: 14
+  completed_phases: 8
+  total_plans: 16
+  completed_plans: 16
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 17 — pricing-globals-integration
+**Current focus:** Milestone v1.2 — COMPLETE ✅
 
 ## Current Position
 
 Phase: 17 (pricing-globals-integration) — COMPLETE
-Plan: 2 of 2
+Plan: 2 of 2 — all phases done, milestone shipped
 
 ## Accumulated Context
 

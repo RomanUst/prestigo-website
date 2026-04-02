@@ -214,11 +214,11 @@ Plans:
 - `npm run build` passes with no TypeScript errors
 - Smoke test: PUT new airport_fee → next calculate-price call with isAirport:true reflects new value
 
-**Plans:** 0/2 plans
+**Plans:** 2/2 plans complete
 
 Plans:
-- [ ] 17-01-PLAN.md — Fix revalidateTag + extend getPricingConfig() with pricing_globals type and query
-- [ ] 17-02-PLAN.md — Wire globals into /api/calculate-price and verify end-to-end price calculation
+- [x] 17-01-PLAN.md — Fix revalidateTag + extend getPricingConfig() with pricing_globals type and query — completed 2026-04-02
+- [x] 17-02-PLAN.md — Wire globals into /api/calculate-price and verify end-to-end price calculation — completed 2026-04-02
 
 ---
 
@@ -242,4 +242,4 @@ Plans:
 | 14. Admin API Routes | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 15. UI Design Contract | v1.2 | 1/1 | Complete | 2026-04-02 |
 | 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
-| 17. Pricing Globals Integration | v1.2 | 0/2 | Pending | — |
+| 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |

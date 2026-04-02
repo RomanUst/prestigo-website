@@ -1,8 +1,8 @@
 ---
 phase: 17
 slug: pricing-globals-integration
-status: draft
-nyquist_compliant: false
+status: approved
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-04-02
 ---
@@ -38,11 +38,11 @@ created: 2026-04-02
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 17-01-T1 | 01 | 1 | PRICING-06 | build | `cd prestigo && npx tsc --noEmit` | ✅ | ⬜ pending |
-| 17-01-T2 | 01 | 1 | PRICING-03, PRICING-04 | unit | `cd prestigo && npx vitest run tests/pricing.test.ts` | ✅ | ⬜ pending |
-| 17-02-T1 | 02 | 2 | PRICING-03 | unit | `cd prestigo && npx vitest run tests/pricing.test.ts` | ✅ | ⬜ pending |
-| 17-02-T2 | 02 | 2 | PRICING-03, PRICING-04 | unit | `cd prestigo && npx vitest run tests/pricing.test.ts` | ✅ | ⬜ pending |
-| 17-02-T3 | 02 | 2 | PRICING-03 | unit | `cd prestigo && npx vitest run tests/admin-pricing.test.ts` | ✅ | ⬜ pending |
+| 17-01-T1 | 01 | 1 | PRICING-06 | build | `cd prestigo && npx tsc --noEmit` | ✅ | ✅ green |
+| 17-01-T2 | 01 | 1 | PRICING-03, PRICING-04 | unit | `cd prestigo && npx vitest run tests/pricing.test.ts` | ✅ | ✅ green |
+| 17-02-T1 | 02 | 2 | PRICING-03 | unit | `cd prestigo && npx vitest run tests/pricing.test.ts` | ✅ | ✅ green |
+| 17-02-T2 | 02 | 2 | PRICING-03, PRICING-04 | unit | `cd prestigo && npx vitest run tests/pricing.test.ts` | ✅ | ✅ green |
+| 17-02-T3 | 02 | 2 | PRICING-03 | unit | `cd prestigo && npx vitest run tests/admin-pricing.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -74,4 +74,4 @@ Existing infrastructure covers all phase requirements.
 - [ ] Feedback latency < 15s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-04-02 — all tasks green, 21/21 tests passing, build clean
