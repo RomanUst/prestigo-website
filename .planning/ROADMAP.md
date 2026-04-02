@@ -93,6 +93,12 @@ Plans:
 - Smoke test B: `quoteMode: true` when origin outside a test zone
 - Smoke test C: `quoteMode: false` when no zones are defined
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — Data layer: unit tests + pricing-config.ts DB loader + refactor pricing.ts to accept rates param
+- [ ] 12-02-PLAN.md — Route wiring: modify route.ts to use DB rates + Turf.js zone check + smoke test verification
+
 ---
 
 ### Phase 13: Admin Auth + Login UI
@@ -181,7 +187,7 @@ Plans:
 | 9. Resend Domain + Email Sign-Off | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
 | 11. Database Schema | v1.2 | Complete    | 2026-04-01 | 2026-04-01 |
-| 12. Core Booking Flow Update | v1.2 | 0/? | Pending | — |
+| 12. Core Booking Flow Update | v1.2 | 0/2 | Pending | — |
 | 13. Admin Auth + Login UI | v1.2 | 0/? | Pending | — |
 | 14. Admin API Routes | v1.2 | 0/? | Pending | — |
 | 15. UI Design Contract | v1.2 | 0/? | Pending | — |
