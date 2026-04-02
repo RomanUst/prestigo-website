@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Completed 13-01-PLAN.md — admin auth gate + login page done, ready for 13-02
-last_updated: "2026-04-02T07:49:14.761Z"
+stopped_at: Completed 13-02-PLAN.md Task 1 — admin dashboard layout + AdminSidebar done. Awaiting human verification (Task 2 checkpoint).
+last_updated: "2026-04-02T07:53:27.452Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 13 — admin-auth-login-ui
+**Current focus:** Phase 13 complete — awaiting human verification of full auth flow
 
 ## Current Position
 
-Phase: 13 (admin-auth-login-ui) — EXECUTING
-Plan: 2 of 2
+Phase: 13 (admin-auth-login-ui) — AWAITING HUMAN VERIFY
+Plan: 2 of 2 (Task 1 done, Task 2 = checkpoint:human-verify)
 
 ## Accumulated Context
 
@@ -57,9 +57,15 @@ None.
 - revalidatePath('/', 'layout') in signOut clears router cache after session invalidation
 - Login page uses root layout only — not inside (dashboard) route group
 
+### Key Decisions (Phase 13 — Plan 02)
+
+- AdminSidebar marked 'use client' for form action interactivity; layout.tsx stays Server Component for getUser() auth guard
+- Route group (dashboard) pattern excludes /admin/login from layout guard cleanly — Next.js native, no config needed
+- Plain <a> tags in sidebar (not next/link) — admin-only nav, Phase 15/16 can upgrade to Link for prefetching
+
 ### Last session
 
-Stopped at: Completed 13-01-PLAN.md — admin auth gate + login page done, ready for 13-02
+Stopped at: Completed 13-02-PLAN.md Task 1 — admin dashboard layout + AdminSidebar done. Awaiting human verification (Task 2 checkpoint).
 
 ### Key Decisions (Phase 12 — Plan 02)
 
