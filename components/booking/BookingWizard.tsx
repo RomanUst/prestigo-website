@@ -18,6 +18,15 @@ export default function BookingWizard() {
   const router = useRouter()
   const quoteMode = useBookingStore((s) => s.quoteMode)
 
+  // On mount: reset to step 1 unless arriving via homepage widget deeplink
+  useEffect(() => {
+    const isDeeplink = sessionStorage.getItem('booking_deeplink') === '1'
+    sessionStorage.removeItem('booking_deeplink')
+    if (!isDeeplink && useBookingStore.getState().currentStep > 1) {
+      useBookingStore.setState({ currentStep: 1, completedSteps: new Set() })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Scroll to top of booking section on step change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' })

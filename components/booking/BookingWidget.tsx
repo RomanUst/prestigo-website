@@ -54,6 +54,8 @@ export default function BookingWidget() {
       completedSteps: new Set([1, 2]),
     })
 
+    // Mark this as a widget deeplink so BookingWizard doesn't reset to step 1
+    sessionStorage.setItem('booking_deeplink', '1')
     router.push('/book')
   }
 
