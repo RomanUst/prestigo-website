@@ -1,5 +1,15 @@
 # Milestones
 
+## v1.2 Operator Dashboard (Shipped: 2026-04-02)
+
+**Phases completed:** 8 phases, 16 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v1.1 Go Live (Shipped: 2026-04-01)
 
 **Phases:** 3 (Phases 7–9) · **Plans:** 7 · **Timeline:** 2 days (2026-03-30 → 2026-04-01)

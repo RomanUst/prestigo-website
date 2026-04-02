@@ -1,12 +1,12 @@
-# Prestigo — Booking Form
+# Prestigo — Booking Wizard + Operator Dashboard
 
 ## What This Is
 
-Custom multi-step booking wizard for rideprestigo.com — a premium chauffeur service based in Prague. Clients can book one-way transfers, airport rides (pickup and dropoff), hourly hire, or daily hire directly on the site. They select a vehicle class with a live price, add optional extras, fill in passenger details, and pay online via Stripe — all without leaving the site.
+Custom multi-step booking wizard for rideprestigo.com — a premium chauffeur service based in Prague — with a full operator dashboard for pricing, coverage zones, and booking management.
 
-Built inside the existing Next.js + Tailwind CSS project (`prestigo/`), matching the PRESTIGO brand: anthracite background, copper accent, Cormorant Garamond + Montserrat typography. A mini booking widget on the homepage lets users pre-fill key fields and jump into the wizard.
+Clients book one-way transfers, airport rides, hourly or daily hire directly on the site: selecting a vehicle class with a live price, adding optional extras, filling in passenger details, and paying online via Stripe. The operator controls all pricing (base rates per vehicle class, airport fee, night/holiday coefficients, extras surcharges) via a protected `/admin` dashboard, draws coverage zones on Google Maps to define the service area, and monitors all bookings and revenue in real time.
 
-**Current state:** Live in production at rideprestigo.com, accepting real bookings end-to-end.
+**Current state:** v1.2 Operator Dashboard shipped 2026-04-02. Live at rideprestigo.com.
 
 ## Core Value
 
@@ -45,18 +45,14 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ Admin dashboard layout with server-side `getUser()` double-guard, `AdminSidebar` with nav + sign-out — v1.2 (Phase 13)
 - ✓ Admin API routes: GET/PUT `/api/admin/pricing` (Zod validation, cache bust), GET/POST/DELETE/PATCH `/api/admin/zones`, GET `/api/admin/bookings` (paginated, filterable) — v1.2 (Phase 14)
 
+  - ✓ Supabase Auth-protected `/admin` area (email+password, `is_admin` app_metadata gate) — v1.2 (Phase 13)
+  - ✓ Admin pricing editor: base rates, extras, airport fee, night/holiday coefficients — all changes live immediately — v1.2 (Phases 14, 16, 17)
+  - ✓ Coverage zone editor: draw polygons on Google Maps, store GeoJSON in Supabase, drive quoteMode in booking wizard — v1.2 (Phases 12, 14, 16)
+  - ✓ Bookings table with pagination, filters (date, trip type), search, expandable rows — v1.2 (Phase 16)
+  - ✓ Stats dashboard with revenue charts (12-month) and KPI cards — v1.2 (Phase 16)
+  - ✓ Airport fee coordinate-based detection (resilient to placeId mismatches) — v1.2 (Phase 17)
+
 ### Active
-
-## Current Milestone: v1.2 Operator Dashboard
-
-**Goal:** Give the operator full control over pricing, coverage zones, and booking visibility through a protected admin dashboard.
-
-**Target features:**
-- Supabase Auth-protected `/admin` area (email+password, role-based)
-- Pricing editor: base rates per vehicle class, extras surcharges, airport fee, night/holiday coefficients
-- Coverage zones: draw polygons on Google Maps, store in Supabase, drive "Request a quote" fallback in booking wizard
-- Bookings list: filterable table of all orders with statuses
-- Statistics: revenue, booking count, period breakdown
 
 ### Out of Scope
 
@@ -75,14 +71,15 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 
 ## Context
 
+- **Shipped:** v1.2 Operator Dashboard on 2026-04-02 — 8 phases (10-17), 16 plans, 66 files changed, 14,012 insertions
 - **Shipped:** v1.1 Go Live on 2026-04-01 — 3 phases (7-9), 7 plans, 31 files, 5,021 insertions
-- **Previously shipped:** v1.0 MVP on 2026-03-30 — 6 phases, 25 plans, 82 files, 17,244 insertions, ~360K LOC TypeScript
+- **Shipped:** v1.0 MVP on 2026-03-30 — 6 phases, 25 plans, 82 files, 17,244 insertions
 - **Repository:** RomanUst/prestigo-website (main branch)
-- **Tech stack:** Next.js 14+ App Router, TypeScript, Tailwind CSS, Zustand, Zod, Stripe Elements, Supabase, Resend, Google Maps Platform
+- **Tech stack:** Next.js 14+ App Router, TypeScript, Tailwind CSS, Zustand, Zod, Stripe Elements, Supabase, Resend, Google Maps Platform, Recharts, TanStack Table, Terra Draw
 - **Deployment:** Vercel (serverless, Hobby plan)
-- **32/32 tests passing** (Vitest + Testing Library)
-- **Production domain:** rideprestigo.com (note: rideprestige.com typo was corrected in v1.1)
-- **Known tech debt:** Stripe env vars currently set to test mode keys (`sk_test_`, `pk_test_`) — must swap to live keys before accepting real payments; Stripe webhook created in test mode
+- **~11,890 LOC TypeScript** | **25/25 tests passing** (Vitest)
+- **Production domain:** rideprestigo.com
+- **Known tech debt:** Stripe env vars still test mode keys — must swap live before scaling; Nyquist sign-off pattern not consistently applied across v1.2 phases
 
 ## Key Decisions
 
@@ -101,6 +98,11 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 | printf over echo for Vercel CLI env var injection | echo adds trailing \n, breaking webhook signature verification | ✓ Good — critical pattern for secret injection via CLI |
 | Google Maps server key with no HTTP referrer restriction | Vercel serverless Route Handlers send no Referer header | ✓ Good — prevents REQUEST_DENIED on /api/calculate-price |
 | Two separate Google Maps keys (server + client) | Server key needs unrestricted; client key restricted to domain | ✓ Good — security + functionality balance |
+| DB-driven pricing with no cache (plain async fn) | `unstable_cache` tag busting unreliable in Next.js 16; always-fresh is simpler | ✓ Good — admin pricing changes reflect instantly |
+| Airport detection by coordinates, not placeId | Google Places API can return different placeIds for the same location | ✓ Good — resolves airport_fee not applying in production |
+| priceBreakdown not persisted in sessionStorage | Persisted breakdown caused stale prices when globals changed in admin | ✓ Good — Step 3 always fetches fresh |
+| terra-draw with `next/dynamic ssr:false` | terra-draw uses browser APIs incompatible with SSR | ✓ Good — two-layer SSR bypass pattern established |
+| `signInWithPassword` Server Actions + `useActionState` | Avoids client-side secret exposure; follows @supabase/ssr pattern | ✓ Good — no infinite redirect loop |
 
 ## Constraints
 
@@ -111,4 +113,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-02 — Phase 12 complete: DB-driven pricing + coverage zone enforcement live*
+*Last updated: 2026-04-02 after v1.2 milestone — Operator Dashboard shipped*

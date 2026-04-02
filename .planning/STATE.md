@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: complete
-stopped_at: Phase 17 complete — all v1.2 requirements satisfied
-last_updated: "2026-04-02T17:50:00Z"
+status: unknown
+stopped_at: Completed 17-02-PLAN.md — Wire globals into booking wizard
+last_updated: "2026-04-02T17:48:22.473Z"
 progress:
   total_phases: 8
   completed_phases: 8

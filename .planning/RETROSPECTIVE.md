@@ -90,6 +90,55 @@
 
 ---
 
+## Milestone: v1.2 — Operator Dashboard
+
+**Shipped:** 2026-04-02
+**Phases:** 8 (10–17) | **Plans:** 16 | **Timeline:** 2 days (2026-04-01 → 2026-04-02)
+
+### What Was Built
+- Supabase Auth-protected `/admin` area with email+password login, server-side double-guard, session middleware, sign-out
+- `pricing_config` + `pricing_globals` + `coverage_zones` Supabase tables with RLS; DB-driven pricing replacing all hardcoded constants
+- Admin pricing editor (react-hook-form + zod) — base rates per vehicle class + globals (airport fee, night/holiday coefficients, extras); changes live immediately
+- Coverage zone editor — terra-draw polygon drawing on Google Maps (`@vis.gl/react-google-maps`), GeoJSON stored in Supabase, drives `quoteMode: true` in booking wizard when outside zones
+- Bookings table — TanStack Table with paginated API, filter chips (date, trip type), debounced search, expandable rows, KPI cards
+- Stats dashboard — 8-parallel Supabase aggregations, Recharts bar charts (12-month revenue + groupings), KPI cards
+- Airport fee coordinate-based detection in `/api/calculate-price` — resilient to Google Places placeId mismatch
+
+### What Worked
+- **DB-first pricing schema design** — defining `pricing_globals` as a singleton row from the start kept the pricing API clean and backwards-compatible
+- **terra-draw two-layer SSR bypass** — `ZoneMap ('use client')` wrapping `ZoneMapInner` via `next/dynamic(ssr:false)` solved SSR incompatibility without touching the page Server Component; discovered and documented once, no rework
+- **Plan structure for Phase 16** — splitting 5 sub-plans (UI primitives → pricing → zones → bookings → stats) let each plan ship independently; stale priceBreakdown bug discovered and fixed in the same session
+- **Gap closure phase pattern** — when v1.2 audit found PRICING-03/04 unimplemented, creating Phase 17 as an explicit gap closure phase kept the main execution clean and the gap addressable without re-opening earlier phases
+
+### What Was Inefficient
+- **Airport fee placeId fragility** — the initial implementation used `PRG_CONFIG.placeId` to detect airport rides; Google Places API returned a different placeId, so airport_fee never applied. Required two debug sessions and an architecture shift to coordinate-based detection
+- **`unstable_cache` + `revalidateTag` mismatch** — Next.js 16 changed `revalidateTag` signature AND the `'max'` profile arg only clears `use cache` directive entries (not `unstable_cache`). Removed the cache entirely rather than fighting the new API
+- **Stale `priceBreakdown` in sessionStorage** — `if (!priceBreakdown) { fetch() }` guard in Step3Vehicle caused pricing to show stale data across sessions. Should never cache computed pricing server results on the client
+- **Phase 17 needed as gap closure** — PRICING-03/04 were listed as Phase 16 requirements but never actually wired; a more thorough Phase 14/16 integration test would have surfaced this during execution rather than at audit time
+- **AddressInput first-character deletion** — `onClear()` triggered a useEffect that wiped the input text the user just typed; required a ref flag to distinguish typing-triggered clears from external clears
+
+### Patterns Established
+- **Coordinate-based airport detection** — use lat/lng proximity (~3km radius) instead of placeId comparison; placeIds are version-dependent and fragile
+- **No client-side caching for computed prices** — never persist `priceBreakdown` in sessionStorage; always fetch fresh on Step 3 mount; pricing globals can change in admin at any time
+- **`isTypingClearRef` pattern for AddressInput** — when `onClear()` is called from within `handleInputChange`, set a ref flag before calling it; the sync `useEffect` checks this flag before clearing input text
+- **terra-draw div.id must be set programmatically before adapter init** — `mapDiv.id = 'tdmap-' + Date.now()` prevents `querySelector` null crash
+- **Gap closure phases as first-class roadmap entries** — when an audit finds a gap, create a named phase (e.g., "Phase 17: Pricing Globals Integration (Gap Closure)") rather than reopening an existing phase
+- **`drawRef.current` cross-boundary wiring** — for terra-draw with React: declare `drawRef` in outer component, pass to draw layer child, assign in `draw.on('ready')` callback
+
+### Key Lessons
+1. Never use a Google Places `placeId` for business logic — it can change between API versions. Use coordinates instead
+2. Never persist computed/derived data (like `priceBreakdown`) in sessionStorage — only persist user inputs; derived state must always be computed fresh
+3. When an effect clears state based on a prop going null, always distinguish between "user action caused it" vs "external clear" using a ref flag
+4. Test the full admin→booking-wizard data flow (e.g., change airport_fee → check price in wizard) before marking pricing requirements complete — integration gaps only surface end-to-end
+5. `unstable_cache` in Next.js 16 is not reliably busted by `revalidateTag` with the `'max'` profile — for admin-controlled data that must update immediately, use plain async functions with no caching
+
+### Cost Observations
+- Model mix: ~100% Sonnet 4.6
+- Sessions: ~6 sessions across 2 days
+- Notable: most complex milestone so far (8 phases, 16 plans, 14,012 insertions); terra-draw SSR and pricing bug required the most back-and-forth; gap closure phase added same-day
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -98,6 +147,7 @@
 |-----------|--------|-------|------------|
 | v1.0 MVP | 6 | 25 | First milestone — baseline established |
 | v1.1 Go Live | 3 | 7 | Primarily external dashboard config; health endpoint as integration gate |
+| v1.2 Operator Dashboard | 8 | 16 | First full-stack admin; Gap closure phase pattern introduced; coordinate-based airport detection |
 
 ### Cumulative Quality
 
@@ -105,6 +155,7 @@
 |-----------|-------|--------------------|
 | v1.0 | 32 passing | 0 (used existing stack) |
 | v1.1 | 32 passing (+6 health tests) | 0 (same stack) |
+| v1.2 | 25 passing (vitest) | 5 new packages: recharts, tanstack-table, terra-draw, vis.gl/react-google-maps, @supabase/ssr |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -112,3 +163,5 @@
 2. Server-side-first for API keys prevents late-stage security refactoring
 3. Production domain must be pinned definitively at project start — typos in plans propagate to external service registrations
 4. Use `printf` not `echo` when injecting secrets via CLI — trailing newlines cause signature verification failures
+5. Never use external IDs (placeIds, object references) for business logic — use stable identifiers like coordinates
+6. Never persist computed state in sessionStorage — only user inputs; derived data must always be recomputed fresh
