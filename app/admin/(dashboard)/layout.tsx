@@ -14,6 +14,10 @@ export default async function AdminDashboardLayout({
     redirect('/admin/login')
   }
 
+  if (!user.app_metadata?.is_admin) {
+    redirect('/')
+  }
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
       <AdminSidebar />

@@ -17,7 +17,7 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app',
+    url: 'https://rideprestigo.com',
     title: 'PRESTIGO — Premium Chauffeur Service Prague',
     description:
       'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
@@ -27,11 +27,11 @@ export const metadata: Metadata = {
 const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': ['LocalBusiness', 'TaxiService'],
-  '@id': 'https://prestigo-site.vercel.app/#business',
+  '@id': 'https://rideprestigo.com/#business',
   name: 'PRESTIGO',
   description:
     'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
-  url: 'https://prestigo-site.vercel.app',
+  url: 'https://rideprestigo.com',
   telephone: '+420725986855',
   email: 'info@rideprestigo.com',
   priceRange: '€€€',
@@ -64,13 +64,13 @@ const localBusinessSchema = {
 const websiteSchema = {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
-  '@id': 'https://prestigo-site.vercel.app/#website',
+  '@id': 'https://rideprestigo.com/#website',
   name: 'PRESTIGO',
-  url: 'https://prestigo-site.vercel.app',
+  url: 'https://rideprestigo.com',
   inLanguage: 'en',
   publisher: {
     '@type': 'LocalBusiness',
-    '@id': 'https://prestigo-site.vercel.app/#business',
+    '@id': 'https://rideprestigo.com/#business',
   },
 }
 

@@ -6,26 +6,6 @@ export interface Rates {
   dailyRate: Record<string, number>
 }
 
-const RATE_PER_KM: Record<VehicleClass, number> = {
-  business: 2.80,
-  first_class: 4.20,
-  business_van: 3.50,
-}
-
-const HOURLY_RATE: Record<VehicleClass, number> = {
-  business: 55,
-  first_class: 85,
-  business_van: 70,
-}
-
-const DAILY_RATE: Record<VehicleClass, number> = {
-  business: 320,
-  first_class: 480,
-  business_van: 400,
-}
-
-// TODO: set production rates — these are placeholders
-
 export const VEHICLE_CLASSES: VehicleClass[] = ['business', 'first_class', 'business_van']
 
 export function calculatePrice(

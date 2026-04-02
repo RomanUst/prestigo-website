@@ -1,7 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { revalidateTag } from 'next/cache'
 import { z } from 'zod'
 
 async function getAdminUser() {
@@ -76,8 +75,6 @@ export async function PUT(request: Request) {
   if (configResult.error || globalsResult.error) {
     return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   }
-
-  revalidateTag('pricing-config', 'max')
 
   return NextResponse.json({ ok: true })
 }

@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { buildPriceMap, dateDiffDays } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { createSupabaseServiceClient } from '@/lib/supabase'
@@ -58,6 +59,21 @@ function isOutsideAllZones(
 }
 
 export async function POST(req: Request) {
+  const { allowed, remaining, limit } = checkRateLimit('/api/calculate-price', getClientIp(req))
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': '60',
+          'X-RateLimit-Limit': String(limit),
+          'X-RateLimit-Remaining': '0',
+        },
+      }
+    )
+  }
+
   try {
     const body = await req.json()
     const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, isAirport } = body as {

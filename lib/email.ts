@@ -31,6 +31,16 @@ export interface BookingEmailData {
   specialRequests?: string
 }
 
+/** Escape user-supplied strings before embedding in HTML */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 function formatVehicleLabel(vehicleClass: string): string {
   if (vehicleClass === 'first_class') return 'First Class'
   if (vehicleClass === 'business_van') return 'Business Van'
@@ -54,9 +64,15 @@ function buildGoogleCalendarUrl(data: BookingEmailData): string {
   const [hour, minute] = data.pickupTime.split(':')
   const start = `${year}${month}${day}T${hour}${minute}00`
 
-  // End = start + 1 hour
-  const endHour = String(Number(hour) + 1).padStart(2, '0')
-  const end = `${year}${month}${day}T${endHour}${minute}00`
+  // End = start + 1 hour — use Date arithmetic to handle midnight rollover correctly
+  const startDate = new Date(`${year}-${month}-${day}T${hour}:${minute}:00`)
+  const endDate = new Date(startDate.getTime() + 60 * 60 * 1000)
+  const endYear = String(endDate.getFullYear())
+  const endMonth = String(endDate.getMonth() + 1).padStart(2, '0')
+  const endDay = String(endDate.getDate()).padStart(2, '0')
+  const endHour = String(endDate.getHours()).padStart(2, '0')
+  const endMin = String(endDate.getMinutes()).padStart(2, '0')
+  const end = `${endYear}${endMonth}${endDay}T${endHour}${endMin}00`
 
   const enc = encodeURIComponent
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${enc(title)}&dates=${start}/${end}&details=${enc(details)}&location=${enc(location)}`
@@ -120,7 +136,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
     rideDetailsRows.push(`
       <tr>
         <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Flight Number</td>
-        <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${data.flightNumber}</td>
+        <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.flightNumber)}</td>
       </tr>
     `)
   }
@@ -129,7 +145,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
     rideDetailsRows.push(`
       <tr>
         <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Terminal</td>
-        <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${data.terminal}</td>
+        <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.terminal)}</td>
       </tr>
     `)
   }
@@ -138,7 +154,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
     rideDetailsRows.push(`
       <tr>
         <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Special Requests</td>
-        <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${data.specialRequests}</td>
+        <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.specialRequests)}</td>
       </tr>
     `)
   }
@@ -190,7 +206,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
-            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${data.originAddress} &rarr; ${data.destinationAddress}</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}</td>
           </tr>
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>

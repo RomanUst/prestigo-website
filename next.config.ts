@@ -9,6 +9,47 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff",
+          },
+          {
+            key: "Referrer-Policy",
+            value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()",
+          },
+          {
+            key: "Content-Security-Policy",
+            value: [
+              "default-src 'self'",
+              // Next.js inline scripts and GA init script
+              "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://js.stripe.com",
+              // Stripe iframe, Google fonts frames
+              "frame-src https://js.stripe.com https://hooks.stripe.com",
+              // Inline styles from Next.js + Stripe elements
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "img-src 'self' data: https://images.unsplash.com",
+              // API calls: Stripe, GA, Supabase, Google APIs
+              `connect-src 'self' https://api.stripe.com https://www.google-analytics.com https://*.supabase.co https://routes.googleapis.com`,
+            ].join("; "),
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

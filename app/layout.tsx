@@ -3,7 +3,7 @@ import { Cormorant_Garamond, Montserrat } from 'next/font/google'
 import Script from 'next/script'
 import './globals.css'
 
-const GA_ID = 'G-SX98ZT7YRN'
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? 'G-SX98ZT7YRN'
 
 const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
@@ -19,7 +19,7 @@ const montserrat = Montserrat({
 })
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://prestigo-site.vercel.app'),
+  metadataBase: new URL('https://rideprestigo.com'),
   title: {
     default: 'PRESTIGO — Premium Chauffeur Service Prague',
     template: '%s | PRESTIGO',

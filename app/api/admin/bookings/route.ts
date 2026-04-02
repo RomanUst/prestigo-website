@@ -34,9 +34,14 @@ export async function GET(request: Request) {
   if (endDate) query = query.lte('pickup_date', endDate)
   if (tripType) query = query.eq('trip_type', tripType)
   if (search) {
-    query = query.or(
-      `client_first_name.ilike.%${search}%,client_last_name.ilike.%${search}%,booking_reference.ilike.%${search}%`
-    )
+    // Strip characters that have structural meaning in PostgREST filter expressions
+    // before interpolating into the .or() string.
+    const safeSearch = search.replace(/[^a-zA-Z0-9 \-]/g, '').slice(0, 100)
+    if (safeSearch) {
+      query = query.or(
+        `client_first_name.ilike.%${safeSearch}%,client_last_name.ilike.%${safeSearch}%,booking_reference.ilike.%${safeSearch}%`
+      )
+    }
   }
 
   query = query.range(page * limit, page * limit + limit - 1)
