@@ -17,7 +17,7 @@ const geojsonFeatureSchema = z.object({
     type: z.literal('Polygon'),
     coordinates: z.array(z.array(z.array(z.number()).length(2))).min(1),
   }),
-  properties: z.record(z.unknown()).optional().nullable(),
+  properties: z.record(z.string(), z.unknown()).optional().nullable(),
 })
 
 const zoneCreateSchema = z.object({

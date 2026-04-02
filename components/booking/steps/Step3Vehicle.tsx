@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
-import { VEHICLE_CONFIG } from '@/types/booking'
+import { VEHICLE_CONFIG, PRG_CONFIG } from '@/types/booking'
 import VehicleCard from '@/components/booking/VehicleCard'
 import PriceSummary from '@/components/booking/PriceSummary'
 
@@ -14,6 +14,7 @@ export default function Step3Vehicle() {
   const destination = useBookingStore((s) => s.destination)
   const hours = useBookingStore((s) => s.hours)
   const pickupDate = useBookingStore((s) => s.pickupDate)
+  const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
@@ -40,6 +41,8 @@ export default function Step3Vehicle() {
             hours,
             pickupDate,
             returnDate,
+            pickupTime,
+            isAirport: !!(origin?.placeId === PRG_CONFIG.placeId || destination?.placeId === PRG_CONFIG.placeId),
           }),
         })
         const data = await res.json()

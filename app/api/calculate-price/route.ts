@@ -5,6 +5,30 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import { point } from '@turf/helpers'
 import type { TripType } from '@/types/booking'
+import type { PricingGlobals } from '@/lib/pricing-config'
+
+function isNightTime(time: string | null): boolean {
+  if (!time) return false
+  const hour = parseInt(time.split(':')[0], 10)
+  return hour >= 22 || hour < 6
+}
+
+function applyGlobals(
+  prices: Record<string, { base: number; extras: number; total: number; currency: string }>,
+  globals: PricingGlobals,
+  isAirport: boolean,
+  isNight: boolean,
+): Record<string, { base: number; extras: number; total: number; currency: string }> {
+  const coefficient = isNight ? globals.nightCoefficient : 1.0
+  // isHoliday deferred — no detection mechanism exists yet
+  return Object.fromEntries(
+    Object.entries(prices).map(([vc, breakdown]) => {
+      let adjustedBase = Math.round(breakdown.base * coefficient)
+      if (isAirport) adjustedBase += globals.airportFee
+      return [vc, { ...breakdown, base: adjustedBase, total: adjustedBase }]
+    })
+  )
+}
 
 function isOutsideAllZones(
   lat: number,
@@ -22,14 +46,17 @@ function isOutsideAllZones(
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const { origin, destination, tripType, hours, pickupDate, returnDate } = body as {
+    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, isAirport } = body as {
       origin: { lat: number; lng: number } | null
       destination: { lat: number; lng: number } | null
       tripType: TripType
       hours: number
       pickupDate: string | null
       returnDate: string | null
+      pickupTime: string | null
+      isAirport: boolean
     }
+    const airportFlag = isAirport === true
 
     // Load rates from DB (cached with tag 'pricing-config')
     let rates
@@ -43,7 +70,8 @@ export async function POST(req: Request) {
     // Hourly: no distance needed, no zone check
     if (tripType === 'hourly') {
       const prices = buildPriceMap('hourly', null, hours || 2, 0, rates)
-      return NextResponse.json({ prices, distanceKm: null, quoteMode: false })
+      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime))
+      return NextResponse.json({ prices: adjusted, distanceKm: null, quoteMode: false })
     }
 
     // Daily: no distance needed, no zone check
@@ -53,7 +81,8 @@ export async function POST(req: Request) {
       }
       const days = dateDiffDays(pickupDate, returnDate)
       const prices = buildPriceMap('daily', null, 0, days, rates)
-      return NextResponse.json({ prices, distanceKm: null, quoteMode: false })
+      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime))
+      return NextResponse.json({ prices: adjusted, distanceKm: null, quoteMode: false })
     }
 
     // Transfer types: need origin + destination
@@ -112,7 +141,8 @@ export async function POST(req: Request) {
 
     const distanceKm = distanceMeters / 1000
     const prices = buildPriceMap('transfer', distanceKm, 0, 0, rates)
-    return NextResponse.json({ prices, distanceKm, quoteMode: false })
+    const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime))
+    return NextResponse.json({ prices: adjusted, distanceKm, quoteMode: false })
   } catch (error) {
     console.error('calculate-price error:', error)
     return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })

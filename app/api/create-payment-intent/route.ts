@@ -60,13 +60,28 @@ export async function POST(req: Request) {
     }
 
     const basePrice = calculatePrice(tripType, vehicleClass, distanceKm, hours, days, rates)
-    const extrasTotal = computeExtrasTotal({
-      childSeat: bookingData.extraChildSeat === 'true',
-      meetAndGreet: bookingData.extraMeetGreet === 'true',
-      extraLuggage: bookingData.extraLuggage === 'true',
-    })
+    const extrasTotal = computeExtrasTotal(
+      {
+        childSeat: bookingData.extraChildSeat === 'true',
+        meetAndGreet: bookingData.extraMeetGreet === 'true',
+        extraLuggage: bookingData.extraLuggage === 'true',
+      },
+      {
+        childSeat: rates.globals.extraChildSeat,
+        meetAndGreet: rates.globals.extraMeetGreet,
+        extraLuggage: rates.globals.extraLuggage,
+      }
+    )
 
-    const totalEur = basePrice.base + extrasTotal
+    let adjustedBase = basePrice.base
+    const isAirport = bookingData.isAirport === 'true'
+    const pickupTime = bookingData.pickupTime || null
+    const isNight = pickupTime ? (() => { const h = parseInt(pickupTime.split(':')[0], 10); return h >= 22 || h < 6 })() : false
+    const coefficient = isNight ? rates.globals.nightCoefficient : 1.0
+    adjustedBase = Math.round(adjustedBase * coefficient)
+    if (isAirport) adjustedBase += rates.globals.airportFee
+
+    const totalEur = adjustedBase + extrasTotal
     const totalCzk = eurToCzk(totalEur)
 
     if (totalEur <= 0) {
