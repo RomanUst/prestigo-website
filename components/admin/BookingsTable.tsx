@@ -1,4 +1,5 @@
 'use client'
+import React from 'react'
 import {
   useReactTable,
   getCoreRowModel,
@@ -463,9 +464,8 @@ export default function BookingsTable() {
               </tr>
             ) : (
               table.getRowModel().rows.map(row => (
-                <>
+                <React.Fragment key={row.id}>
                   <tr
-                    key={row.id}
                     onClick={() => row.toggleExpanded()}
                     onMouseEnter={() => setHoveredRow(row.id)}
                     onMouseLeave={() => setHoveredRow(null)}
@@ -552,7 +552,7 @@ export default function BookingsTable() {
                       </td>
                     </tr>
                   )}
-                </>
+                </React.Fragment>
               ))
             )}
           </tbody>
