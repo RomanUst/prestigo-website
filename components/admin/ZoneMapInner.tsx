@@ -62,10 +62,15 @@ function DrawLayer({ drawRef, onPolygonComplete }: DrawLayerProps) {
       }
     })
 
-    draw.start()
+    const startListener = google.maps.event.addListenerOnce(map, 'tilesloaded', () => {
+      draw.start()
+    })
 
     return () => {
-      draw.stop()
+      google.maps.event.removeListener(startListener)
+      if (drawRef.current) {
+        draw.stop()
+      }
     }
   }, [map, drawRef, onPolygonComplete])
 
