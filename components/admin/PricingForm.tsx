@@ -99,6 +99,22 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
     }
   }
 
+  // Returns register props merged with focus/blur handlers that set focus border
+  function registerNumeric(
+    name: Parameters<typeof register>[0],
+    inputId: string
+  ) {
+    const registeredProps = register(name, { valueAsNumber: true })
+    return {
+      ...registeredProps,
+      onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+        setFocusedInput(null)
+        void registeredProps.onBlur(e)
+      },
+      onFocus: () => setFocusedInput(inputId),
+    }
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       {/* Section A — Vehicle Class Rates */}
@@ -161,9 +177,7 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
                 step="0.01"
                 min="0"
                 style={getInputStyle(`config-${index}-rate_per_km`)}
-                onFocus={() => setFocusedInput(`config-${index}-rate_per_km`)}
-                onBlur={() => setFocusedInput(null)}
-                {...register(`config.${index}.rate_per_km`, { valueAsNumber: true })}
+                {...registerNumeric(`config.${index}.rate_per_km`, `config-${index}-rate_per_km`)}
               />
             </div>
             <div>
@@ -172,9 +186,7 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
                 step="0.01"
                 min="0"
                 style={getInputStyle(`config-${index}-hourly_rate`)}
-                onFocus={() => setFocusedInput(`config-${index}-hourly_rate`)}
-                onBlur={() => setFocusedInput(null)}
-                {...register(`config.${index}.hourly_rate`, { valueAsNumber: true })}
+                {...registerNumeric(`config.${index}.hourly_rate`, `config-${index}-hourly_rate`)}
               />
             </div>
             <div>
@@ -183,9 +195,7 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
                 step="0.01"
                 min="0"
                 style={getInputStyle(`config-${index}-daily_rate`)}
-                onFocus={() => setFocusedInput(`config-${index}-daily_rate`)}
-                onBlur={() => setFocusedInput(null)}
-                {...register(`config.${index}.daily_rate`, { valueAsNumber: true })}
+                {...registerNumeric(`config.${index}.daily_rate`, `config-${index}-daily_rate`)}
               />
             </div>
           </div>
@@ -221,9 +231,7 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
                   step="0.01"
                   min="0"
                   style={getInputStyle(`globals-${key}`)}
-                  onFocus={() => setFocusedInput(`globals-${key}`)}
-                  onBlur={() => setFocusedInput(null)}
-                  {...register(`globals.${key}`, { valueAsNumber: true })}
+                  {...registerNumeric(`globals.${key}`, `globals-${key}`)}
                 />
                 <span
                   style={{
