@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: in_progress
-stopped_at: Completed 13-02-PLAN.md — both tasks done, human verification approved. Phase 13 complete.
-last_updated: "2026-04-02T08:30:00Z"
+status: unknown
+stopped_at: Completed 14-01-PLAN.md — Admin pricing GET + PUT route with Zod validation and cache busting.
+last_updated: "2026-04-02T08:24:39Z"
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 13 complete — full auth loop verified end-to-end. Next: Phase 14 (admin API routes) or Phase 15 (admin UI polish)
+**Current focus:** Phase 14 — admin-api-routes
 
 ## Current Position
 
-Phase: 13 (admin-auth-login-ui) — COMPLETE
-Plan: 2 of 2 (both tasks done — human verification approved 2026-04-02)
+Phase: 14 (admin-api-routes) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -63,9 +63,17 @@ None.
 - Route group (dashboard) pattern excludes /admin/login from layout guard cleanly — Next.js native, no config needed
 - Plain <a> tags in sidebar (not next/link) — admin-only nav, Phase 15/16 can upgrade to Link for prefetching
 
+### Key Decisions (Phase 14 — Plan 01)
+
+- Admin auth guard checks user.app_metadata.is_admin (not user_metadata) — server-set field, cannot be spoofed by clients
+- createSupabaseServiceClient() (service role) used for all DB writes — bypasses RLS for admin mutations
+- revalidateTag('pricing-config') tag string exactly matches unstable_cache tag in lib/pricing-config.ts (hyphen not underscore)
+- pricing_globals upsert uses { onConflict: 'id' } for singleton row enforcement
+- Promise.all for parallel GET reads and parallel PUT upserts
+
 ### Last session
 
-Stopped at: Completed 13-02-PLAN.md — Task 2 human-verify checkpoint approved. Phase 13 fully complete.
+Stopped at: Completed 14-01-PLAN.md — Admin pricing GET + PUT route with Zod validation and cache busting.
 
 ### Key Decisions (Phase 12 — Plan 02)
 

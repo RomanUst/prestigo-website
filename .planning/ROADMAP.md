@@ -137,7 +137,7 @@ Plans:
 - All routes: `401` for unauthenticated; `403` for authenticated non-admin
 - Verification: curl tests for each endpoint (auth + data correctness)
 
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 14-01-PLAN.md — Admin pricing route (GET + PUT with cache bust) + unit tests
@@ -201,6 +201,6 @@ Plans:
 | 11. Database Schema | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 12. Core Booking Flow Update | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
-| 14. Admin API Routes | v1.2 | 0/2 | Pending | — |
+| 14. Admin API Routes | 1/2 | In Progress|  | — |
 | 15. UI Design Contract | v1.2 | 0/? | Pending | — |
 | 16. Admin UI Pages | v1.2 | 0/? | Pending | — |
