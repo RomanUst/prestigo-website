@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
 stopped_at: Completed 14-02-PLAN.md — Admin zones CRUD + paginated bookings GET with Zod validation and unit tests
-last_updated: "2026-04-02T08:33:05.731Z"
+last_updated: "2026-04-02T08:57:38.535Z"
 progress:
   total_phases: 7
   completed_phases: 5
