@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { calculatePrice, dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
+import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import type { TripType, VehicleClass } from '@/types/booking'
@@ -50,7 +51,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Invalid distanceKm for transfer' }, { status: 400 })
     }
 
-    const basePrice = calculatePrice(tripType, vehicleClass, distanceKm, hours, days)
+    let rates
+    try {
+      rates = await getPricingConfig()
+    } catch (err) {
+      console.error('Failed to load pricing config:', err)
+      return NextResponse.json({ error: 'Pricing configuration unavailable' }, { status: 503 })
+    }
+
+    const basePrice = calculatePrice(tripType, vehicleClass, distanceKm, hours, days, rates)
     const extrasTotal = computeExtrasTotal({
       childSeat: bookingData.extraChildSeat === 'true',
       meetAndGreet: bookingData.extraMeetGreet === 'true',
