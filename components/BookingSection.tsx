@@ -46,7 +46,7 @@ export default function BookingSection() {
 
           {/* Right — Booking widget */}
           <div className="lg:col-span-3">
-            <div className="border border-anthracite-light bg-anthracite p-6 md:p-8">
+            <div className="border border-anthracite-light bg-anthracite p-3 sm:p-6 md:p-8">
               <BookingWidget />
             </div>
           </div>

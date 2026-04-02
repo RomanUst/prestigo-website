@@ -69,7 +69,11 @@ export default function BookingWidget() {
     colorScheme: 'dark',
     width: '100%',
     minWidth: 0,
+    maxWidth: '100%',
     boxSizing: 'border-box',
+    display: 'block',
+    WebkitAppearance: 'none',
+    appearance: 'none',
   }
 
   const hasError = Object.keys(errors).length > 0
@@ -124,7 +128,7 @@ export default function BookingWidget() {
         {/* Date / Time row */}
         <div
           className="flex flex-col md:flex-row"
-          style={{ gap: '24px' }}
+          style={{ gap: '24px', overflow: 'hidden' }}
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <label
