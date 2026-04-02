@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Completed 12-02-PLAN.md — Phase 12 fully complete, ready for Phase 13
-last_updated: "2026-04-02T07:17:11.811Z"
+stopped_at: Completed 13-01-PLAN.md — admin auth gate + login page done, ready for 13-02
+last_updated: "2026-04-02T07:49:14.761Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 12 — core-booking-flow-update
+**Current focus:** Phase 13 — admin-auth-login-ui
 
 ## Current Position
 
-Phase: 12 (core-booking-flow-update) — COMPLETE
-Plan: 2 of 2 (all complete)
+Phase: 13 (admin-auth-login-ui) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -49,9 +49,17 @@ None.
 - **NEXT_PUBLIC_SUPABASE_ANON_KEY:** Placeholder value in .env.local — must retrieve real anon key from Supabase Dashboard before Phase 13 auth UI works.
 - **Pre-existing TS error:** tests/health.test.ts:95 Mock type mismatch — pre-existing, out of scope, does not affect build or test runtime.
 
+### Key Decisions (Phase 13 — Plan 01)
+
+- redirect() called outside try/catch in signIn — Next.js throws NEXT_REDIRECT internally, catch would swallow it
+- pathname !== '/admin/login' exclusion in middleware prevents infinite redirect loop
+- getUser() used (not getSession()) — validates JWT with Supabase auth server
+- revalidatePath('/', 'layout') in signOut clears router cache after session invalidation
+- Login page uses root layout only — not inside (dashboard) route group
+
 ### Last session
 
-Stopped at: Completed 12-02-PLAN.md — Phase 12 fully complete, ready for Phase 13
+Stopped at: Completed 13-01-PLAN.md — admin auth gate + login page done, ready for 13-02
 
 ### Key Decisions (Phase 12 — Plan 02)
 

@@ -10,8 +10,8 @@
 ### Authentication
 
 - [x] **AUTH-01**: Unauthenticated requests to `/admin/*` are redirected to `/admin/login`
-- [ ] **AUTH-02**: Operator can sign in with email + password at `/admin/login`
-- [ ] **AUTH-03**: Authenticated session persists across browser refresh (HTTP-only Supabase cookie)
+- [x] **AUTH-02**: Operator can sign in with email + password at `/admin/login`
+- [x] **AUTH-03**: Authenticated session persists across browser refresh (HTTP-only Supabase cookie)
 - [ ] **AUTH-04**: Operator can sign out and be redirected to `/admin/login`
 
 ### Pricing
@@ -92,8 +92,8 @@ Which phases cover which requirements.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | AUTH-01 | Phase 10 | Complete |
-| AUTH-02 | Phase 13 | Pending |
-| AUTH-03 | Phase 13 | Pending |
+| AUTH-02 | Phase 13 | Complete |
+| AUTH-03 | Phase 13 | Complete |
 | AUTH-04 | Phase 13 | Pending |
 | PRICING-01 | Phase 16 | Pending |
 | PRICING-02 | Phase 16 | Pending |
