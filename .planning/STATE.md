@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Completed 14-01-PLAN.md — Admin pricing GET + PUT route with Zod validation and cache busting.
-last_updated: "2026-04-02T08:24:39Z"
+stopped_at: Completed 14-02-PLAN.md — Admin zones CRUD + paginated bookings GET with Zod validation and unit tests
+last_updated: "2026-04-02T08:33:05.731Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 14 — admin-api-routes
+**Current focus:** Phase 14 — admin-api-routes (COMPLETE)
 
 ## Current Position
 
-Phase: 14 (admin-api-routes) — EXECUTING
-Plan: 2 of 2
+Phase: 14 (admin-api-routes) — COMPLETE
+Plan: 2 of 2 (all plans complete)
 
 ## Accumulated Context
 
@@ -63,6 +63,14 @@ None.
 - Route group (dashboard) pattern excludes /admin/login from layout guard cleanly — Next.js native, no config needed
 - Plain <a> tags in sidebar (not next/link) — admin-only nav, Phase 15/16 can upgrade to Link for prefetching
 
+### Key Decisions (Phase 14 — Plan 02)
+
+- Zod z.literal('Polygon') enforces GeoJSON geometry type at schema level — prevents non-polygon shapes from being stored as coverage zones
+- Bookings query applies all conditional filters before .range() — ensures pagination operates on the filtered result set
+- pickup_date text column uses lexicographic .gte/.lte for date range — safe because ISO YYYY-MM-DD format sorts correctly
+- limit clamped to 1-100 with Math.min/Math.max — prevents runaway queries while allowing flexible page sizes
+- TDD test UUIDs must be valid RFC 4122 format — zoneToggleSchema uses z.string().uuid() which enforces this
+
 ### Key Decisions (Phase 14 — Plan 01)
 
 - Admin auth guard checks user.app_metadata.is_admin (not user_metadata) — server-set field, cannot be spoofed by clients
@@ -73,7 +81,7 @@ None.
 
 ### Last session
 
-Stopped at: Completed 14-01-PLAN.md — Admin pricing GET + PUT route with Zod validation and cache busting.
+Stopped at: Completed 14-02-PLAN.md — Admin zones CRUD + paginated bookings GET with Zod validation and unit tests
 
 ### Key Decisions (Phase 12 — Plan 02)
 

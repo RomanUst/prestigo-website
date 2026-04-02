@@ -26,14 +26,14 @@
 ### Coverage Zones
 
 - [ ] **ZONES-01**: Operator can draw a polygon on an interactive Google Maps canvas
-- [ ] **ZONES-02**: Operator can assign a name to a drawn zone and save it (stored as GeoJSON in `coverage_zones` table)
-- [ ] **ZONES-03**: Operator can toggle a zone active or inactive without deleting it
+- [x] **ZONES-02**: Operator can assign a name to a drawn zone and save it (stored as GeoJSON in `coverage_zones` table)
+- [x] **ZONES-03**: Operator can toggle a zone active or inactive without deleting it
 - [x] **ZONES-04**: When booking wizard calls `/api/calculate-price`, if pickup or destination falls outside all active zones, the response returns `quoteMode: true` (existing "Request a quote" flow activates)
 - [x] **ZONES-05**: When no zones are defined, no booking is blocked (graceful default — zone check is skipped)
 
 ### Bookings
 
-- [ ] **BOOKINGS-01**: Operator sees a paginated table of all bookings (most recent first)
+- [x] **BOOKINGS-01**: Operator sees a paginated table of all bookings (most recent first)
 - [ ] **BOOKINGS-02**: Table can be filtered by pickup date range
 - [ ] **BOOKINGS-03**: Table can be filtered by trip type (one-way, airport pickup, airport dropoff, hourly, daily)
 - [ ] **BOOKINGS-04**: Table has search by client name or booking reference
@@ -102,11 +102,11 @@ Which phases cover which requirements.
 | PRICING-05 | Phase 12 | Complete |
 | PRICING-06 | Phase 14 | Complete |
 | ZONES-01 | Phase 16 | Pending |
-| ZONES-02 | Phase 16 | Pending |
-| ZONES-03 | Phase 16 | Pending |
+| ZONES-02 | Phase 16 | Complete |
+| ZONES-03 | Phase 16 | Complete |
 | ZONES-04 | Phase 12 | Complete |
 | ZONES-05 | Phase 12 | Complete |
-| BOOKINGS-01 | Phase 16 | Pending |
+| BOOKINGS-01 | Phase 16 | Complete |
 | BOOKINGS-02 | Phase 16 | Pending |
 | BOOKINGS-03 | Phase 16 | Pending |
 | BOOKINGS-04 | Phase 16 | Pending |
