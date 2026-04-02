@@ -25,9 +25,24 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Session refresh only — no redirect logic in Phase 10.
-  // Phase 13 adds redirect logic here.
-  await supabase.auth.getUser()
+  // IMPORTANT: getUser() validates JWT with auth server — never use getSession()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  const { pathname } = request.nextUrl
+
+  // Unauthenticated → redirect to login (exclude /admin/login to prevent infinite loop)
+  if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/admin/login'
+    return NextResponse.redirect(url)
+  }
+
+  // Authenticated on login page → redirect to /admin
+  if (pathname === '/admin/login' && user) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/admin'
+    return NextResponse.redirect(url)
+  }
 
   return response
 }
