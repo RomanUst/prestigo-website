@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1–6 (shipped 2026-03-30)
 - ✅ **v1.1 Go Live** — Phases 7–9 (shipped 2026-04-01)
-- 🚧 **v1.2 Operator Dashboard** — Phases 10–16 (in progress)
+- 🚧 **v1.2 Operator Dashboard** — Phases 10–17 (in progress)
 
 ## Phases
 
@@ -188,7 +188,7 @@ Plans:
 - `app/admin/stats/page.tsx` — recharts bar chart (12-month revenue) + KPI cards row
 - Verification: all pages render and mutate correctly; zone save activates quoteMode in booking wizard; pricing change reflected in next price calculation
 
-**Plans:** 4/5 plans executed
+**Plans:** 5/5 plans complete
 
 Plans:
 - [x] 16-01-PLAN.md — Install packages, create StatusBadge + KPICard shared components, upgrade AdminSidebar — completed 2026-04-02
@@ -196,6 +196,29 @@ Plans:
 - [ ] 16-03-PLAN.md — Zones page (ZoneMapInner + ZoneMap SSR wrapper + page)
 - [ ] 16-04-PLAN.md — Bookings page (BookingsTable + page with KPI cards)
 - [ ] 16-05-PLAN.md — Stats page (stats API route + StatsChart components + page)
+
+---
+
+### Phase 17: Pricing Globals Integration (Gap Closure)
+**Goal:** Wire `pricing_globals` table into the booking wizard's price calculation path. Fix `revalidateTag()` Next.js 16 build error. After this phase, operator changes to airport fee, night/holiday coefficients, and extra fees are immediately reflected in the booking wizard — completing PRICING-03 and PRICING-04.
+
+**Dependencies:** Phase 12 (pricing-config.ts and calculate-price route), Phase 14 (PUT /api/admin/pricing writes globals)
+**Requirements covered:** PRICING-03, PRICING-04
+**Gap closure:** Closes audit gaps from v1.2-MILESTONE-AUDIT.md
+**Risk:** Medium — modifies live pricing calculation; must verify no regression on vehicle class rates
+
+**Key deliverables:**
+- Fix `revalidateTag('pricing-config')` call in `app/api/admin/pricing/route.ts` (Next.js 16 signature)
+- Extend `PricingRates` type + `getPricingConfig()` to also fetch `pricing_globals` (airport_fee, night_coefficient, holiday_coefficient, extra fees)
+- Update `/api/calculate-price/route.ts` to apply airport_fee, night/holiday coefficients, and extras from DB instead of hardcoded values
+- `npm run build` passes with no TypeScript errors
+- Smoke test: PUT new airport_fee → next calculate-price call with isAirport:true reflects new value
+
+**Plans:** 0/2 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — Fix revalidateTag + extend getPricingConfig() with pricing_globals type and query
+- [ ] 17-02-PLAN.md — Wire globals into /api/calculate-price and verify end-to-end price calculation
 
 ---
 
@@ -218,4 +241,5 @@ Plans:
 | 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 14. Admin API Routes | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 15. UI Design Contract | v1.2 | 1/1 | Complete | 2026-04-02 |
-| 16. Admin UI Pages | 4/5 | In Progress|  | — |
+| 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
+| 17. Pricing Globals Integration | v1.2 | 0/2 | Pending | — |

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: executing
-stopped_at: Completed 16-04-PLAN.md — Bookings admin page with TanStack Table
-last_updated: "2026-04-02T11:40:58.820Z"
+status: unknown
+stopped_at: Completed 16-05-PLAN.md — Stats dashboard with recharts charts
+last_updated: "2026-04-02T15:15:18.892Z"
 progress:
-  total_phases: 7
-  completed_phases: 6
+  total_phases: 8
+  completed_phases: 7
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 16 — admin-ui-pages
+**Current focus:** Phase 17 — pricing-globals-integration
 
 ## Current Position
 
-Phase: 16 (admin-ui-pages) — EXECUTING
-Plan: 5 of 5
+Phase: 17 (pricing-globals-integration) — EXECUTING
+Plan: 1 of 2
 
 ## Accumulated Context
 
@@ -97,6 +97,14 @@ None.
 - Active nav detection uses pathname.startsWith(item.href) — allows sub-routes to highlight parent nav item
 - AdminSidebar 20px logo font is locked legacy exception per Phase 15 decision — unchanged
 
+### Key Decisions (Phase 16 — Plan 05)
+
+- recharts v3 Tooltip formatter takes ValueType not number — use typeof guard instead of type annotation for type safety
+- 12-month revenue array always has 12 entries — getLast12Months() builds ordered labels, missing months filled with revenue: 0
+- Grouped chart data uses single [{name:'Revenue', key1: n, key2: n}] row — recharts reads all Bar dataKeys from same object
+- 8 parallel Supabase queries via Promise.all for counts, revenue, breakdowns, and 12-month trend data
+- Stats page uses 'use client' + fetch on mount — consistent with bookings/pricing page pattern
+
 ### Key Decisions (Phase 16 — Plan 04)
 
 - bookings page uses 'use client' for KPI state fetching on mount — simpler than parallel server-side fetch or separate KPI API endpoint
@@ -113,7 +121,7 @@ None.
 
 ### Last session
 
-Stopped at: Completed 16-04-PLAN.md — Bookings admin page with TanStack Table
+Stopped at: Completed 16-05-PLAN.md — Stats dashboard with recharts charts
 
 ### Key Decisions (Phase 12 — Plan 02)
 

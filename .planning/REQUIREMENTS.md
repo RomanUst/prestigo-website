@@ -18,8 +18,8 @@
 
 - [x] **PRICING-01**: Operator can edit base rates per vehicle class (Business, First Class, Business Van): `rate_per_km`, `hourly_rate`, `daily_rate`
 - [x] **PRICING-02**: Operator can edit extras surcharges (child seat, meet & greet, extra luggage)
-- [x] **PRICING-03**: Operator can edit the airport fee (flat surcharge for airport pickup/dropoff)
-- [x] **PRICING-04**: Operator can edit the night coefficient and holiday coefficient (multipliers applied at price calculation time)
+- [ ] **PRICING-03**: Operator can edit the airport fee (flat surcharge for airport pickup/dropoff)
+- [ ] **PRICING-04**: Operator can edit the night coefficient and holiday coefficient (multipliers applied at price calculation time)
 - [x] **PRICING-05**: Booking wizard's `/api/calculate-price` reads rates from `pricing_config` Supabase table (not hardcoded `lib/pricing.ts` constants)
 - [x] **PRICING-06**: Pricing changes are live immediately — next booking wizard load reflects the updated rates
 
@@ -97,8 +97,8 @@ Which phases cover which requirements.
 | AUTH-04 | Phase 13 | Complete |
 | PRICING-01 | Phase 16 | Complete |
 | PRICING-02 | Phase 16 | Complete |
-| PRICING-03 | Phase 16 | Complete |
-| PRICING-04 | Phase 16 | Complete |
+| PRICING-03 | Phase 17 | Pending |
+| PRICING-04 | Phase 17 | Pending |
 | PRICING-05 | Phase 12 | Complete |
 | PRICING-06 | Phase 14 | Complete |
 | ZONES-01 | Phase 16 | Complete |
@@ -121,6 +121,7 @@ Which phases cover which requirements.
 - v1.2 requirements: 25 total
 - Mapped to phases: 25
 - Unmapped: 0 ✓
+- Pending (gap closure): 2 (PRICING-03, PRICING-04 → Phase 17)
 
 ---
 *Requirements defined: 2026-04-01*
