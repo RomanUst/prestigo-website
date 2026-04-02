@@ -71,6 +71,13 @@ body {
   overflow-x: clip;
 }
 
+/* Prevent iOS Safari auto-zoom on input focus (triggers when font-size < 16px) */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
