@@ -95,9 +95,10 @@ export const useBookingStore = create<BookingStore>()(
         pickupTime: state.pickupTime,
         returnDate: state.returnDate,
         vehicleClass: state.vehicleClass,
-        distanceKm: state.distanceKm,
-        priceBreakdown: state.priceBreakdown,
-        quoteMode: state.quoteMode,
+        // distanceKm, priceBreakdown, quoteMode intentionally NOT persisted —
+        // prices are always re-fetched on Step 3 mount so admin changes reflect
+        // immediately. Persisting stale breakdowns caused airport_fee / night
+        // coefficient updates to be ignored.
         extras: state.extras,
         passengerDetails: state.passengerDetails,
       }),

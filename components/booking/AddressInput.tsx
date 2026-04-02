@@ -52,6 +52,8 @@ export default function AddressInput({
   const containerRef = useRef<HTMLDivElement>(null)
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevValueRef = useRef(value)
+  // Tracks whether value→null transition was triggered by user typing (vs external clear)
+  const isTypingClearRef = useRef(false)
 
   const {
     ready,
@@ -74,13 +76,16 @@ export default function AddressInput({
     })
   }, [init])
 
-  // Sync inputValue when parent explicitly clears the value (null transition)
+  // Sync inputValue when parent explicitly clears the value (null transition).
+  // Skip clearing the text when the transition was caused by user typing —
+  // in that case we want to keep what they just typed, not wipe it.
   useEffect(() => {
-    if (prevValueRef.current !== null && value === null) {
+    if (prevValueRef.current !== null && value === null && !isTypingClearRef.current) {
       setValue('', false)
       clearSuggestions()
       setShowSuggestions(false)
     }
+    isTypingClearRef.current = false
     prevValueRef.current = value
   }, [value, setValue, clearSuggestions])
 
@@ -117,8 +122,10 @@ export default function AddressInput({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value
     setValue(text)
-    // If user modifies text after a selection, clear the parent's value
+    // If user modifies text after a selection, clear the parent's value.
+    // Set the flag so the sync effect doesn't wipe the text they just typed.
     if (value !== null) {
+      isTypingClearRef.current = true
       onClear()
     }
   }

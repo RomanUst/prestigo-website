@@ -197,7 +197,7 @@ export default function ZoneMapInner() {
             position: 'relative',
           }}
         >
-          <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY!}>
+          <APIProvider apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!}>
             <Map
               defaultCenter={{ lat: 50.0755, lng: 14.4378 }}
               defaultZoom={11}

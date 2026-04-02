@@ -62,12 +62,10 @@ export default function Step3Vehicle() {
         if (!cancelled) setLoading(false)
       }
     }
-    // Only fetch if we don't already have prices (e.g., navigating back to Step 3)
-    if (!priceBreakdown) {
-      fetchPrice()
-    } else {
-      setLoading(false)
-    }
+    // Always fetch fresh prices on mount — pricing globals (airport_fee, night
+    // coefficient, etc.) can change in admin at any time, so never use stale
+    // persisted breakdown from a previous session.
+    fetchPrice()
     return () => {
       cancelled = true
     }

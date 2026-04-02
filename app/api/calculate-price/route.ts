@@ -13,6 +13,20 @@ function isNightTime(time: string | null): boolean {
   return hour >= 22 || hour < 6
 }
 
+// Prague Václav Havel Airport coordinates
+const PRG_LAT = 50.1008
+const PRG_LNG = 14.26
+// ~3 km radius (degree tolerance)
+const PRG_RADIUS_DEG = 0.027
+
+function isNearAirport(pt: { lat: number; lng: number } | null | undefined): boolean {
+  if (!pt) return false
+  return (
+    Math.abs(pt.lat - PRG_LAT) < PRG_RADIUS_DEG &&
+    Math.abs(pt.lng - PRG_LNG) < PRG_RADIUS_DEG
+  )
+}
+
 function applyGlobals(
   prices: Record<string, { base: number; extras: number; total: number; currency: string }>,
   globals: PricingGlobals,
@@ -56,7 +70,9 @@ export async function POST(req: Request) {
       pickupTime: string | null
       isAirport: boolean
     }
-    const airportFlag = isAirport === true
+    // Detect airport server-side by coordinates (not by client-provided placeId,
+    // which can mismatch between Places API versions).
+    const airportFlag = isNearAirport(origin) || isNearAirport(destination) || isAirport === true
 
     // Load rates from DB (cached with tag 'pricing-config')
     let rates
