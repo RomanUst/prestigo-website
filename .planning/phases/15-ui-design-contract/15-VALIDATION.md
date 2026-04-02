@@ -1,9 +1,9 @@
 ---
 phase: 15
 slug: ui-design-contract
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-04-02
 ---
 
@@ -38,10 +38,10 @@ created: 2026-04-02
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 15-01-01 | 01 | 1 | PRICING-01–04 | manual | `grep "PricingForm" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ❌ W0 | ⬜ pending |
-| 15-01-02 | 01 | 1 | ZONES-01–03 | manual | `grep "ZoneMap" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ❌ W0 | ⬜ pending |
-| 15-01-03 | 01 | 1 | BOOKINGS-01–05 | manual | `grep "BookingsTable" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ❌ W0 | ⬜ pending |
-| 15-01-04 | 01 | 1 | STATS-01–05 | manual | `grep "StatsChart" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ❌ W0 | ⬜ pending |
+| 15-01-01 | 01 | 1 | PRICING-01–04 | manual | `grep "PricingForm" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ✅ | ✅ green |
+| 15-01-02 | 01 | 1 | ZONES-01–03 | manual | `grep "ZoneMap" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ✅ | ✅ green |
+| 15-01-03 | 01 | 1 | BOOKINGS-01–05 | manual | `grep "BookingsTable" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ✅ | ✅ green |
+| 15-01-04 | 01 | 1 | STATS-01–05 | manual | `grep "StatsChart" .planning/phases/15-ui-design-contract/*-UI-SPEC.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -75,11 +75,11 @@ created: 2026-04-02
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — 2026-04-02
