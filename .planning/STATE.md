@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: executing
-stopped_at: Completed 16-02-PLAN.md — PricingForm component and pricing page shell
-last_updated: "2026-04-02T11:25:00.000Z"
+stopped_at: Completed 16-03-PLAN.md — Zones admin page with Google Maps + terra-draw polygon drawing
+last_updated: "2026-04-02T11:33:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 ## Current Position
 
 Phase: 16 (admin-ui-pages) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 
 ## Accumulated Context
 
@@ -97,9 +97,16 @@ None.
 - Active nav detection uses pathname.startsWith(item.href) — allows sub-routes to highlight parent nav item
 - AdminSidebar 20px logo font is locked legacy exception per Phase 15 decision — unchanged
 
+### Key Decisions (Phase 16 — Plan 03)
+
+- drawRef declared in outer ZoneMapInner component and passed to DrawLayer child — cross-boundary wiring avoids silent button failure (terra-draw ready event Pitfall 2)
+- ZoneMap.tsx must be 'use client' because next/dynamic with ssr:false is only allowed in Client Components — zones page remains Server Component
+- terra-draw FeatureId type is string|number — draw.on('finish') callback uses loose equality (==) for snapshot.find to match either type
+- div ID assigned via mapDiv.id before adapter init — @vis.gl/react-google-maps places id on parent, not on map.getDiv() element
+
 ### Last session
 
-Stopped at: Completed 16-02-PLAN.md — PricingForm component and pricing page shell
+Stopped at: Completed 16-03-PLAN.md — Zones admin page with Google Maps + terra-draw polygon drawing
 
 ### Key Decisions (Phase 12 — Plan 02)
 

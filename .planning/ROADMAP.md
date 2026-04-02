@@ -188,7 +188,7 @@ Plans:
 - `app/admin/stats/page.tsx` — recharts bar chart (12-month revenue) + KPI cards row
 - Verification: all pages render and mutate correctly; zone save activates quoteMode in booking wizard; pricing change reflected in next price calculation
 
-**Plans:** 2/5 plans executed
+**Plans:** 3/5 plans executed
 
 Plans:
 - [x] 16-01-PLAN.md — Install packages, create StatusBadge + KPICard shared components, upgrade AdminSidebar — completed 2026-04-02
@@ -218,4 +218,4 @@ Plans:
 | 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 14. Admin API Routes | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 15. UI Design Contract | v1.2 | 1/1 | Complete | 2026-04-02 |
-| 16. Admin UI Pages | v1.2 | 2/5 | In Progress | — |
+| 16. Admin UI Pages | 3/5 | In Progress|  | — |
