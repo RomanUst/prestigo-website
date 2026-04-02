@@ -35,7 +35,7 @@ See full details: `.planning/milestones/v1.1-ROADMAP.md`
 
 ---
 
-## v1.2 Operator Dashboard (Phases 10–15)
+## v1.2 Operator Dashboard (Phases 10–16)
 
 ### Phase 10: Auth Infrastructure
 **Goal:** Install `@supabase/ssr`, create `lib/supabase/server.ts` + `lib/supabase/middleware.ts`, add `middleware.ts` at project root (session refresh only, no redirect logic yet), add env vars. Booking wizard must be fully regression-free after this phase.
@@ -170,22 +170,32 @@ Plans:
 ---
 
 ### Phase 16: Admin UI Pages
-**Goal:** Build all four admin UI pages per UI-SPEC.md. Install remaining packages (`@vis.gl/react-google-maps`, `terra-draw`, `recharts`, `@tanstack/react-table`). Wire each page to its API route.
+**Goal:** Build all four admin UI pages per UI-SPEC.md. Install remaining packages (`@vis.gl/react-google-maps`, `terra-draw`, `terra-draw-google-maps-adapter`, `recharts`, `@tanstack/react-table`). Wire each page to its API route. Create `/api/admin/stats` aggregation endpoint.
 
 **Dependencies:** Phase 14 (all admin API routes working), Phase 15 (UI-SPEC.md approved), Phase 13 (admin layout exists)
 **Requirements covered:** PRICING-01–04, ZONES-01–03, BOOKINGS-01–05, STATS-01–05
 **Risk:** High — terra-draw SSR must use `next/dynamic` with `ssr: false`; most complex phase
 
 **Key deliverables:**
-- `npm install @vis.gl/react-google-maps terra-draw recharts @tanstack/react-table`
+- `npm install @vis.gl/react-google-maps terra-draw terra-draw-google-maps-adapter recharts @tanstack/react-table`
 - `components/admin/PricingForm.tsx` — react-hook-form + zod; per-vehicle class rows; save → `PUT /api/admin/pricing`
 - `app/admin/pricing/page.tsx` — loads config; renders `PricingForm`
 - `components/admin/ZoneMap.tsx` — `next/dynamic` with `ssr: false`; `@vis.gl/react-google-maps` + terra-draw; polygon → `POST /api/admin/zones`; zone list with active toggle + delete
 - `app/admin/zones/page.tsx` — zone manager
 - `components/admin/BookingsTable.tsx` — `@tanstack/react-table`; filter chips (status + date + trip type); expandable rows; status badges per UI-SPEC
 - `app/admin/bookings/page.tsx` — bookings table with KPI summary cards (today's count, this week revenue)
+- `app/api/admin/stats/route.ts` — aggregation endpoint for counts, revenue, breakdowns, 12-month trend
 - `app/admin/stats/page.tsx` — recharts bar chart (12-month revenue) + KPI cards row
 - Verification: all pages render and mutate correctly; zone save activates quoteMode in booking wizard; pricing change reflected in next price calculation
+
+**Plans:** 5 plans
+
+Plans:
+- [ ] 16-01-PLAN.md — Install packages, create StatusBadge + KPICard shared components, upgrade AdminSidebar
+- [ ] 16-02-PLAN.md — Pricing page (PricingForm + page shell)
+- [ ] 16-03-PLAN.md — Zones page (ZoneMapInner + ZoneMap SSR wrapper + page)
+- [ ] 16-04-PLAN.md — Bookings page (BookingsTable + page with KPI cards)
+- [ ] 16-05-PLAN.md — Stats page (stats API route + StatsChart components + page)
 
 ---
 
@@ -207,5 +217,5 @@ Plans:
 | 12. Core Booking Flow Update | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 14. Admin API Routes | v1.2 | 2/2 | Complete | 2026-04-02 |
-| 15. UI Design Contract | 1/1 | Complete   | 2026-04-02 | — |
-| 16. Admin UI Pages | v1.2 | 0/? | Pending | — |
+| 15. UI Design Contract | v1.2 | 1/1 | Complete | 2026-04-02 |
+| 16. Admin UI Pages | v1.2 | 0/5 | In Progress | — |
