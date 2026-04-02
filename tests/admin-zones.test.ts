@@ -158,11 +158,11 @@ describe('/api/admin/zones', () => {
       supabaseServiceStub.from.mockReturnValue({ delete: deleteFn })
 
       const res = await DELETE(
-        makeRequest('DELETE', 'http://localhost/api/admin/zones?id=test-uuid-123')
+        makeRequest('DELETE', 'http://localhost/api/admin/zones?id=a1b2c3d4-e5f6-7890-abcd-ef1234567890')
       )
       expect(res.status).toBe(200)
       expect(deleteFn).toHaveBeenCalled()
-      expect(eqFn).toHaveBeenCalledWith('id', 'test-uuid-123')
+      expect(eqFn).toHaveBeenCalledWith('id', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890')
     })
   })
 
@@ -172,12 +172,13 @@ describe('/api/admin/zones', () => {
       const updateFn = vi.fn().mockReturnValue({ eq: eqFn })
       supabaseServiceStub.from.mockReturnValue({ update: updateFn })
 
+      const validUuid = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
       const res = await PATCH(
-        makeRequest('PATCH', undefined, { id: 'zone-uuid-456', active: false })
+        makeRequest('PATCH', undefined, { id: validUuid, active: false })
       )
       expect(res.status).toBe(200)
       expect(updateFn).toHaveBeenCalledWith({ active: false })
-      expect(eqFn).toHaveBeenCalledWith('id', 'zone-uuid-456')
+      expect(eqFn).toHaveBeenCalledWith('id', validUuid)
     })
   })
 })
