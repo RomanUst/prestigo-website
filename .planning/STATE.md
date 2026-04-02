@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: unknown
-stopped_at: Completed 15-01-PLAN.md — UI-SPEC.md and VALIDATION.md approved
-last_updated: "2026-04-02T10:30:17.229Z"
+stopped_at: Completed 16-01-PLAN.md — packages installed, StatusBadge/KPICard created, AdminSidebar upgraded
+last_updated: "2026-04-02T11:17:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 14
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 16 — admin-ui-implementation
+**Current focus:** Phase 16 — admin-ui-pages
 
 ## Current Position
 
-Phase: 15 (ui-design-contract) — COMPLETE
-Plan: 1 of 1 (all complete)
+Phase: 16 (admin-ui-pages) — EXECUTING
+Plan: 2 of 5
 
 ## Accumulated Context
 
@@ -85,9 +85,15 @@ None.
 - pricing_globals upsert uses { onConflict: 'id' } for singleton row enforcement
 - Promise.all for parallel GET reads and parallel PUT upserts
 
+### Key Decisions (Phase 16 — Plan 01)
+
+- Pre-existing TypeScript build error in pricing route (revalidateTag signature change in Next.js 16) is out of scope — deferred
+- Active nav detection uses pathname.startsWith(item.href) — allows sub-routes to highlight parent nav item
+- AdminSidebar 20px logo font is locked legacy exception per Phase 15 decision — unchanged
+
 ### Last session
 
-Stopped at: Completed 15-01-PLAN.md — UI-SPEC.md and VALIDATION.md approved
+Stopped at: Completed 16-01-PLAN.md — packages installed, StatusBadge/KPICard created, AdminSidebar upgraded
 
 ### Key Decisions (Phase 12 — Plan 02)
 
