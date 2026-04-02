@@ -162,10 +162,10 @@ Plans:
 - Component inventory: AdminSidebar, StatusBadge, KPICard, BookingsTable, PricingForm, ZoneMap, StatsChart, FilterChips
 - Responsive breakpoints for desktop-first admin (min 1024px)
 
-**Plans:** 1/1 plans complete
+**Plans:** 1/1 plans complete — completed 2026-04-02
 
 Plans:
-- [ ] 15-01-PLAN.md — Validate UI-SPEC.md against source-of-truth files and finalize as approved design contract
+- [x] 15-01-PLAN.md — Validate UI-SPEC.md against source-of-truth files and finalize as approved design contract — completed 2026-04-02
 
 ---
 
