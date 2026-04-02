@@ -26,10 +26,10 @@ export const useBookingStore = create<BookingStore>()(
       bookingReference: null,
 
       setTripType: (type) => {
-        set({ tripType: type })
+        set({ tripType: type, priceBreakdown: null, distanceKm: null, quoteMode: false })
       },
-      setOrigin: (place) => set({ origin: place }),
-      setDestination: (place) => set({ destination: place }),
+      setOrigin: (place) => set({ origin: place, priceBreakdown: null, distanceKm: null, quoteMode: false }),
+      setDestination: (place) => set({ destination: place, priceBreakdown: null, distanceKm: null, quoteMode: false }),
       setHours: (h) => set({ hours: h }),
       setPassengers: (n) => set({ passengers: Math.max(1, Math.min(8, n)) }),
       setLuggage: (n) => set({ luggage: Math.max(0, Math.min(8, n)) }),
