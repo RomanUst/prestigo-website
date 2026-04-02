@@ -141,6 +141,7 @@ export default function BookingWidget() {
               type="date"
               value={date}
               min={todayStr}
+              onClick={(e) => { try { (e.currentTarget as HTMLInputElement).showPicker() } catch { /* unsupported */ } }}
               onChange={(e) => {
                 setDate(e.target.value)
                 setErrors((prev) => {
@@ -165,7 +166,8 @@ export default function BookingWidget() {
             <input
               type="time"
               value={time}
-              step={900}
+              step={300}
+              onClick={(e) => { try { (e.currentTarget as HTMLInputElement).showPicker() } catch { /* unsupported */ } }}
               onChange={(e) => {
                 setTime(e.target.value)
                 setErrors((prev) => {

@@ -4,10 +4,10 @@ import { useEffect, useRef } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 
-// 96 time slots at 15-minute increments covering 00:00–23:45
-const TIME_SLOTS: string[] = Array.from({ length: 96 }, (_, i) => {
-  const h = Math.floor(i / 4).toString().padStart(2, '0')
-  const m = ((i % 4) * 15).toString().padStart(2, '0')
+// 288 time slots at 5-minute increments covering 00:00–23:55
+const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
+  const h = Math.floor(i / 12).toString().padStart(2, '0')
+  const m = ((i % 12) * 5).toString().padStart(2, '0')
   return `${h}:${m}`
 })
 
