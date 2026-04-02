@@ -76,6 +76,7 @@ body {
   background-color: var(--anthracite);
   color: var(--offwhite);
   font-family: var(--font-montserrat);
+  overflow-x: hidden;
 }
 
 /* ── Copper accent line ────────────────────────────── */

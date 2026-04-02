@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
 import { PRG_CONFIG } from '@/types/booking'
 import { useRouter } from 'next/navigation'
@@ -16,6 +17,11 @@ export default function BookingWizard() {
   const { currentStep, completedSteps, nextStep, prevStep } = useBookingStore()
   const router = useRouter()
   const quoteMode = useBookingStore((s) => s.quoteMode)
+
+  // Scroll to top of booking section on step change
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [currentStep])
 
   const tripType = useBookingStore((s) => s.tripType)
   const pickupDate = useBookingStore((s) => s.pickupDate)
