@@ -43,6 +43,7 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ Supabase Auth email+password login gate for `/admin/*` with middleware redirect — v1.2 (Phase 13)
 - ✓ `signIn`/`signOut` Server Actions, login page with `useActionState`, inline error display — v1.2 (Phase 13)
 - ✓ Admin dashboard layout with server-side `getUser()` double-guard, `AdminSidebar` with nav + sign-out — v1.2 (Phase 13)
+- ✓ Admin API routes: GET/PUT `/api/admin/pricing` (Zod validation, cache bust), GET/POST/DELETE/PATCH `/api/admin/zones`, GET `/api/admin/bookings` (paginated, filterable) — v1.2 (Phase 14)
 
 ### Active
 
