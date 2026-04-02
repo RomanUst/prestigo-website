@@ -77,7 +77,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   }
 
-  revalidateTag('pricing-config')
+  revalidateTag('pricing-config', 'max')
 
   return NextResponse.json({ ok: true })
 }
