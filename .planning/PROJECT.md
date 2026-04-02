@@ -38,6 +38,8 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ Stripe live-mode webhook registered at production URL — v1.1
 - ✓ Google Maps two-key separation (server unrestricted, client domain-restricted) — v1.1
 - ✓ Resend domain `rideprestigo.com` verified (SPF + DKIM), emails to inbox confirmed — v1.1
+- ✓ DB-driven pricing via `pricing_config` table, `unstable_cache` with tag `pricing-config` — v1.2 (Phase 12)
+- ✓ Turf.js coverage zone enforcement for transfer trips (`coverage_zones` table, `quoteMode: true` when outside) — v1.2 (Phase 12)
 
 ### Active
 
@@ -105,4 +107,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-01 — Milestone v1.2 started*
+*Last updated: 2026-04-02 — Phase 12 complete: DB-driven pricing + coverage zone enforcement live*
