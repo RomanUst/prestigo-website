@@ -162,6 +162,11 @@ Plans:
 - Component inventory: AdminSidebar, StatusBadge, KPICard, BookingsTable, PricingForm, ZoneMap, StatsChart, FilterChips
 - Responsive breakpoints for desktop-first admin (min 1024px)
 
+**Plans:** 1 plan
+
+Plans:
+- [ ] 15-01-PLAN.md — Validate UI-SPEC.md against source-of-truth files and finalize as approved design contract
+
 ---
 
 ### Phase 16: Admin UI Pages
@@ -201,6 +206,6 @@ Plans:
 | 11. Database Schema | v1.2 | 1/1 | Complete | 2026-04-01 |
 | 12. Core Booking Flow Update | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 13. Admin Auth + Login UI | v1.2 | 2/2 | Complete | 2026-04-02 |
-| 14. Admin API Routes | 2/2 | Complete    | 2026-04-02 | — |
-| 15. UI Design Contract | v1.2 | 0/? | Pending | — |
+| 14. Admin API Routes | v1.2 | 2/2 | Complete | 2026-04-02 |
+| 15. UI Design Contract | v1.2 | 0/1 | In Progress | — |
 | 16. Admin UI Pages | v1.2 | 0/? | Pending | — |
