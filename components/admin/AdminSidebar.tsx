@@ -1,5 +1,7 @@
 'use client'
 
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { signOut } from '@/app/admin/login/actions'
 
 const navItems = [
@@ -10,6 +12,8 @@ const navItems = [
 ]
 
 export default function AdminSidebar() {
+  const pathname = usePathname()
+
   return (
     <aside
       style={{
@@ -41,11 +45,11 @@ export default function AdminSidebar() {
         <span
           style={{
             display: 'block',
-            fontSize: '10px',
+            fontSize: '11px',
             color: 'var(--warmgrey)',
             letterSpacing: '0.25em',
             textTransform: 'uppercase',
-            marginTop: '2px',
+            marginTop: '4px',
           }}
         >
           Admin
@@ -54,23 +58,29 @@ export default function AdminSidebar() {
 
       <nav style={{ flex: 1, padding: '16px 0' }}>
         <ul style={{ listStyle: 'none', margin: 0, padding: 0 }}>
-          {navItems.map((item) => (
-            <li key={item.href}>
-              <a
-                href={item.href}
-                style={{
-                  display: 'block',
-                  padding: '10px 20px',
-                  fontSize: '13px',
-                  color: 'var(--warmgrey)',
-                  textDecoration: 'none',
-                  letterSpacing: '0.08em',
-                }}
-              >
-                {item.label}
-              </a>
-            </li>
-          ))}
+          {navItems.map((item) => {
+            const isActive = pathname.startsWith(item.href)
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  style={{
+                    display: 'block',
+                    padding: '10px 20px',
+                    fontSize: '13px',
+                    color: isActive ? 'var(--offwhite)' : 'var(--warmgrey)',
+                    textDecoration: 'none',
+                    letterSpacing: '0.08em',
+                    borderLeft: isActive ? '3px solid var(--copper)' : '3px solid transparent',
+                    paddingLeft: isActive ? '17px' : '20px',
+                    transition: 'color 150ms ease',
+                  }}
+                >
+                  {item.label}
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </nav>
 
@@ -87,7 +97,7 @@ export default function AdminSidebar() {
               background: 'none',
               border: 'none',
               color: 'var(--warmgrey)',
-              fontSize: '12px',
+              fontSize: '11px',
               fontFamily: 'var(--font-montserrat)',
               letterSpacing: '0.12em',
               textTransform: 'uppercase',
