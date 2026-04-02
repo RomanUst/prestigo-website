@@ -51,9 +51,11 @@ function DrawLayer({ drawRef, onPolygonComplete }: DrawLayerProps) {
     })
 
     // Listen for finish event to capture completed polygon
-    draw.on('finish', (id: string) => {
+    // FeatureId can be string | number — use loose equality for find
+    draw.on('finish', (id) => {
       const snapshot = draw.getSnapshot()
-      const feature = snapshot.find((f) => f.id === id)
+      // eslint-disable-next-line eqeqeq
+      const feature = snapshot.find((f) => f.id == id)
       if (feature && feature.geometry.type === 'Polygon') {
         onPolygonComplete(feature.geometry.coordinates as number[][][])
         draw.clear()
