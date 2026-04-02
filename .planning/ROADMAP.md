@@ -115,6 +115,12 @@ Plans:
 - Redirect logic in `lib/supabase/middleware.ts`: `/admin/*` (not login) + no session → `/admin/login`; login + session → `/admin`
 - Verification: unauthenticated GET `/admin/pricing` → redirect to `/admin/login` → login → redirect to `/admin`
 
+**Plans:** 2 plans
+
+Plans:
+- [ ] 13-01-PLAN.md — Redirect logic in updateSession() + login page with Server Actions
+- [ ] 13-02-PLAN.md — Admin dashboard layout (route group), AdminSidebar, sign-out + end-to-end verification
+
 ---
 
 ### Phase 14: Admin API Routes
@@ -188,7 +194,7 @@ Plans:
 | 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
 | 11. Database Schema | v1.2 | Complete    | 2026-04-01 | 2026-04-01 |
 | 12. Core Booking Flow Update | v1.2 | Complete    | 2026-04-02 | 2026-04-02 |
-| 13. Admin Auth + Login UI | v1.2 | 0/? | Pending | — |
+| 13. Admin Auth + Login UI | v1.2 | 0/2 | Pending | — |
 | 14. Admin API Routes | v1.2 | 0/? | Pending | — |
 | 15. UI Design Contract | v1.2 | 0/? | Pending | — |
 | 16. Admin UI Pages | v1.2 | 0/? | Pending | — |
