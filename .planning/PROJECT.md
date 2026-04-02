@@ -40,6 +40,9 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ Resend domain `rideprestigo.com` verified (SPF + DKIM), emails to inbox confirmed — v1.1
 - ✓ DB-driven pricing via `pricing_config` table, `unstable_cache` with tag `pricing-config` — v1.2 (Phase 12)
 - ✓ Turf.js coverage zone enforcement for transfer trips (`coverage_zones` table, `quoteMode: true` when outside) — v1.2 (Phase 12)
+- ✓ Supabase Auth email+password login gate for `/admin/*` with middleware redirect — v1.2 (Phase 13)
+- ✓ `signIn`/`signOut` Server Actions, login page with `useActionState`, inline error display — v1.2 (Phase 13)
+- ✓ Admin dashboard layout with server-side `getUser()` double-guard, `AdminSidebar` with nav + sign-out — v1.2 (Phase 13)
 
 ### Active
 
