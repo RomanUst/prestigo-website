@@ -68,6 +68,8 @@ export default function BookingWidget() {
     outline: 'none',
     colorScheme: 'dark',
     width: '100%',
+    minWidth: 0,
+    boxSizing: 'border-box',
   }
 
   const hasError = Object.keys(errors).length > 0
@@ -124,7 +126,7 @@ export default function BookingWidget() {
           className="flex flex-col md:flex-row"
           style={{ gap: '24px' }}
         >
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label
               className="label"
               style={{ display: 'block', marginBottom: '8px' }}
@@ -149,7 +151,7 @@ export default function BookingWidget() {
               }}
             />
           </div>
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label
               className="label"
               style={{ display: 'block', marginBottom: '8px' }}
