@@ -73,7 +73,7 @@ Each task was committed atomically:
 1. **Task 1: Create ZoneMapInner component with terra-draw integration** - `8e2290d` (feat)
 2. **Task 2: Create ZoneMap SSR wrapper and zones page** - `33a889f` (feat)
 
-**Plan metadata:** (see final commit below)
+**Plan metadata:** `2b23314` (docs: complete plan)
 
 ## Files Created/Modified
 - `prestigo/components/admin/ZoneMapInner.tsx` - Browser-only map component with terra-draw drawing, zone list panel with StatusBadge/toggle/delete, save prompt, empty state

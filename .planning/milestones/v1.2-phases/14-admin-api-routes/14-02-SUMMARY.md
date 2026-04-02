@@ -122,6 +122,15 @@ None — no external service configuration required.
 - `/api/admin/bookings` ready for Phase 16 bookings list UI (paginated table with date/type/search filters)
 - All admin routes follow consistent auth guard pattern — Phase 16 can assume 401/403 responses for unauthenticated/non-admin access
 
+## Self-Check: PASSED
+
+- prestigo/app/api/admin/zones/route.ts: FOUND
+- prestigo/app/api/admin/bookings/route.ts: FOUND
+- prestigo/tests/admin-zones.test.ts: FOUND
+- prestigo/tests/admin-bookings.test.ts: FOUND
+- .planning/phases/14-admin-api-routes/14-02-SUMMARY.md: FOUND
+- Task commits ea16db5, 55be77e, d6e2caf: ALL FOUND in prestigo repo
+
 ---
 *Phase: 14-admin-api-routes*
 *Completed: 2026-04-02*
