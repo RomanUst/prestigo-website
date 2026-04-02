@@ -187,7 +187,7 @@ Plans:
 | 9. Resend Domain + Email Sign-Off | v1.1 | 2/2 | Complete | 2026-04-01 |
 | 10. Auth Infrastructure | 1/1 | Complete    | 2026-04-01 | — |
 | 11. Database Schema | v1.2 | Complete    | 2026-04-01 | 2026-04-01 |
-| 12. Core Booking Flow Update | v1.2 | 2/2 | Complete | 2026-04-02 |
+| 12. Core Booking Flow Update | v1.2 | Complete    | 2026-04-02 | 2026-04-02 |
 | 13. Admin Auth + Login UI | v1.2 | 0/? | Pending | — |
 | 14. Admin API Routes | v1.2 | 0/? | Pending | — |
 | 15. UI Design Contract | v1.2 | 0/? | Pending | — |
