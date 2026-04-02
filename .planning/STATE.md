@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
-status: unknown
-stopped_at: "Checkpoint: Task 2 smoke test — awaiting human verification of 12-02"
-last_updated: "2026-04-02T06:40:07.047Z"
+status: complete
+stopped_at: "Phase 12 complete — all 2 plans done"
+last_updated: "2026-04-02T09:00:00.000Z"
 progress:
   total_phases: 7
   completed_phases: 3
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 
 ## Current Position
 
-Phase: 12 (core-booking-flow-update) — EXECUTING
-Plan: 2 of 2
+Phase: 12 (core-booking-flow-update) — COMPLETE
+Plan: 2 of 2 (all complete)
 
 ## Accumulated Context
 
@@ -51,7 +51,14 @@ None.
 
 ### Last session
 
-Stopped at: Checkpoint: Task 2 smoke test — awaiting human verification of 12-02
+Stopped at: Completed 12-02-PLAN.md — Phase 12 fully complete, ready for Phase 13
+
+### Key Decisions (Phase 12 — Plan 02)
+
+- isOutsideAllZones inlined in route.ts (not extracted to lib/) — single use, co-located with zone query
+- Zone check placed after origin/destination null check but before Google Routes API call — avoids unnecessary API calls when zone fails
+- DB error in getPricingConfig() returns quoteMode: true (not HTTP 500) — graceful degradation keeps UX intact
+- create-payment-intent also wired to DB rates (deviation fix) — prevents price mismatch between price calc and payment intent
 
 ### Key Decisions (Phase 12 — Plan 01)
 

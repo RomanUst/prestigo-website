@@ -39,49 +39,109 @@ decisions:
   - "DB error in getPricingConfig() returns quoteMode: true (not HTTP 500) — graceful degradation keeps UX intact"
 
 metrics:
-  duration: "2m 0s"
+  duration: "~30m"
   completed: "2026-04-02"
-  tasks_completed: 1
+  tasks_completed: 2
   files_changed: 2
 ---
 
 # Phase 12 Plan 02: Route Handler DB Wiring + Zone Check Summary
 
-Wired the `/api/calculate-price` endpoint to read pricing rates from the Supabase `pricing_config` table (cached) and added Turf.js geographic zone enforcement for transfer trips.
+**Wired `/api/calculate-price` to DB-backed pricing via `getPricingConfig()` and added Turf.js geographic zone enforcement for transfer trips — smoke tested against live seed values (Business 165 EUR/3h, FC 255, Van 210 hourly; Business 640, FC 960, Van 800 for 2-day daily).**
 
-## What Was Built
+## Performance
 
-**app/api/calculate-price/route.ts (modified):** The route handler now calls `getPricingConfig()` at the start of every request, loading cached DB rates. All three `buildPriceMap()` calls (hourly, daily, transfer) receive `rates` as the last argument. A new `isOutsideAllZones()` helper uses `@turf/boolean-point-in-polygon` to check whether origin or destination falls outside all active coverage zones — if so, `quoteMode: true` is returned instead of prices. The zone check only fires for transfer trips (hourly and daily return before reaching it). DB errors in `getPricingConfig()` are caught and return `quoteMode: true` (graceful degradation). DEBUG `console.error` statements from the original were removed.
+- **Duration:** ~30 min
+- **Started:** 2026-04-02
+- **Completed:** 2026-04-02
+- **Tasks:** 2 (Task 1: auto TDD, Task 2: checkpoint:human-verify — approved)
+- **Files modified:** 2
 
-**tests/calculate-price.test.ts (implemented):** Five real tests replaced the `it.todo` stubs. The test file inlines the same `isOutsideAllZones` logic as the route handler and defines a Prague polygon fixture. Tests cover: point inside zone, point outside zone, empty zones array (ZONES-05), point inside one of multiple zones, point outside all multiple zones. The API route `it.todo` tests were converted to `it.skip` since they require a running Next.js server.
+## Accomplishments
+
+- Route handler reads pricing rates from Supabase `pricing_config` table via cached `getPricingConfig()` — no more hardcoded constants in the live pricing path
+- Turf.js geographic zone enforcement added: transfer trips with origin/destination outside all active `coverage_zones` return `quoteMode: true`; hourly and daily trips skip zone check entirely
+- Smoke test approved: prices match pre-migration seed values across all trip types; zone check correctly skipped when `coverage_zones` table is empty
+
+## Task Commits
+
+Each task was committed atomically:
+
+1. **Task 1 (RED):** `9b088c0` — test(12-02): add zone check tests for isOutsideAllZones helper
+2. **Task 1 (GREEN):** `dce5c40` — feat(12-02): wire route.ts to DB rates and add Turf.js zone check
+3. **Task 1 fix — create-payment-intent:** `11c7e5e` — fix(12-02): wire create-payment-intent to getPricingConfig
+
+**Plan metadata:** `37f89cd` — docs(12-02): complete route handler DB wiring + zone check (checkpoint)
+
+## Files Created/Modified
+
+- `prestigo/app/api/calculate-price/route.ts` — DB rates injection via getPricingConfig(), isOutsideAllZones() helper, zone query, DEBUG log removal
+- `prestigo/tests/calculate-price.test.ts` — 5 real isOutsideAllZones tests replacing it.todo stubs
+- `prestigo/app/api/create-payment-intent/route.ts` — also wired to getPricingConfig() (deviation fix)
+
+## Decisions Made
+
+- `isOutsideAllZones` inlined in route.ts (not extracted to lib/) — single use, co-located with zone query
+- Zone check placed after origin/destination null check but before Google Routes API call — avoids unnecessary API calls when zone fails
+- DB error in `getPricingConfig()` returns `quoteMode: true` (not HTTP 500) — graceful degradation keeps UX intact
+- `create-payment-intent` also wired to DB rates as a deviation fix (Rule 1 — bug: it still used hardcoded constants)
 
 ## Deviations from Plan
 
-None - plan executed exactly as written.
+### Auto-fixed Issues
 
-## Commits
+**1. [Rule 1 - Bug] Wired create-payment-intent to getPricingConfig()**
+- **Found during:** Task 1 execution
+- **Issue:** `prestigo/app/api/create-payment-intent/route.ts` still imported hardcoded `RATE_PER_KM` constants after route.ts was switched to DB-loaded rates. Would have caused price mismatch between price calculation and payment intent.
+- **Fix:** Replaced hardcoded constant imports with `getPricingConfig()` call and passed `rates` to `buildPriceMap()`
+- **Files modified:** `prestigo/app/api/create-payment-intent/route.ts`
+- **Verification:** Tests pass; smoke test confirmed consistent pricing
+- **Committed in:** `11c7e5e`
 
-| Task | Commit | Description |
-|------|--------|-------------|
-| Task 1 (RED) | 9b088c0 | test(12-02): add zone check tests for isOutsideAllZones helper |
-| Task 1 (GREEN) | dce5c40 | feat(12-02): wire route.ts to DB rates and add Turf.js zone check |
+---
 
-## Checkpoint Status
+**Total deviations:** 1 auto-fixed (Rule 1 — bug)
+**Impact on plan:** Fix was necessary for data consistency between the two pricing API routes. No scope creep.
 
-Task 2 (Smoke test live endpoint) is a `checkpoint:human-verify` gate — awaiting human verification.
+## Issues Encountered
+
+None beyond the auto-fixed deviation above.
+
+## Smoke Test Results (Task 2 — Human Approved)
+
+Human verification confirmed:
+- Business hourly: 165 EUR/3h — matches seed
+- First Class hourly: 255 EUR/3h — matches seed
+- Business Van hourly: 210 EUR/3h — matches seed
+- Business daily (2-day): 640 EUR — matches seed
+- First Class daily (2-day): 960 EUR — matches seed
+- Business Van daily (2-day): 800 EUR — matches seed
+- Zone check: skipped correctly when `coverage_zones` is empty (quoteMode: false)
+- Transfer without Google Maps API key: quoteMode: true (same-as-before behavior)
+
+## User Setup Required
+
+None — no external service configuration required.
+
+## Next Phase Readiness
+
+- Phase 12 complete: booking wizard pricing is fully DB-driven and zone-aware
+- Phase 13 (Admin Auth + Login UI) can begin — core flow is stable
+- When `coverage_zones` are populated via Phase 16 admin UI, zone enforcement will activate automatically
+- No blockers
 
 ## Self-Check
 
 ### Files exist
-- `/Users/romanustyugov/Desktop/Prestigo/prestigo/app/api/calculate-price/route.ts` — FOUND (modified)
-- `/Users/romanustyugov/Desktop/Prestigo/prestigo/tests/calculate-price.test.ts` — FOUND (modified)
-
-### Commits exist
-- 9b088c0 — FOUND
-- dce5c40 — FOUND
+- `prestigo/app/api/calculate-price/route.ts` — FOUND (modified)
+- `prestigo/tests/calculate-price.test.ts` — FOUND (modified)
+- `prestigo/app/api/create-payment-intent/route.ts` — FOUND (modified)
 
 ### Test results
-- `npx vitest run tests/calculate-price.test.ts` — 5 passed, 10 skipped
-- `npx vitest run` — 57/57 passed (full suite, no regressions)
+- `npx vitest run` — 57 passed, 10 skipped (full suite, no regressions) — 2026-04-02
 
 ## Self-Check: PASSED
+
+---
+*Phase: 12-core-booking-flow-update*
+*Completed: 2026-04-02*

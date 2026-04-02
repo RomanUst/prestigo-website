@@ -29,7 +29,7 @@
 - [ ] **ZONES-02**: Operator can assign a name to a drawn zone and save it (stored as GeoJSON in `coverage_zones` table)
 - [ ] **ZONES-03**: Operator can toggle a zone active or inactive without deleting it
 - [x] **ZONES-04**: When booking wizard calls `/api/calculate-price`, if pickup or destination falls outside all active zones, the response returns `quoteMode: true` (existing "Request a quote" flow activates)
-- [ ] **ZONES-05**: When no zones are defined, no booking is blocked (graceful default — zone check is skipped)
+- [x] **ZONES-05**: When no zones are defined, no booking is blocked (graceful default — zone check is skipped)
 
 ### Bookings
 
@@ -105,7 +105,7 @@ Which phases cover which requirements.
 | ZONES-02 | Phase 16 | Pending |
 | ZONES-03 | Phase 16 | Pending |
 | ZONES-04 | Phase 12 | Complete |
-| ZONES-05 | Phase 12 | Pending |
+| ZONES-05 | Phase 12 | Complete |
 | BOOKINGS-01 | Phase 16 | Pending |
 | BOOKINGS-02 | Phase 16 | Pending |
 | BOOKINGS-03 | Phase 16 | Pending |
