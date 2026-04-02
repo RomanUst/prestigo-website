@@ -184,7 +184,7 @@ describe('/api/admin/pricing', () => {
       }))
 
       await PUT(makeRequest('PUT', validPutBody))
-      expect(revalidateTagMock).toHaveBeenCalledWith('pricing-config')
+      expect(revalidateTagMock).toHaveBeenCalledWith('pricing-config', 'max')
     })
 
     it('returns 500 when DB upsert returns error', async () => {
