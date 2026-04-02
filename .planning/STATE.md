@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Operator Dashboard
 status: executing
-stopped_at: Completed 16-03-PLAN.md — Zones admin page with Google Maps + terra-draw polygon drawing
-last_updated: "2026-04-02T11:33:00.000Z"
+stopped_at: Completed 16-04-PLAN.md — Bookings admin page with TanStack Table
+last_updated: "2026-04-02T11:40:58.820Z"
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 14
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-01 — Milestone v1.2 started)
 ## Current Position
 
 Phase: 16 (admin-ui-pages) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 
 ## Accumulated Context
 
@@ -97,6 +97,13 @@ None.
 - Active nav detection uses pathname.startsWith(item.href) — allows sub-routes to highlight parent nav item
 - AdminSidebar 20px logo font is locked legacy exception per Phase 15 decision — unchanged
 
+### Key Decisions (Phase 16 — Plan 04)
+
+- bookings page uses 'use client' for KPI state fetching on mount — simpler than parallel server-side fetch or separate KPI API endpoint
+- Search debounced 300ms via useRef timeout with separate debouncedSearch state — prevents stale closure issues
+- CZK formatted via Intl.NumberFormat('cs-CZ') — locale-correct space thousands separator (e.g., "42 800")
+- payment_intent_id truncated to 24 chars + '...' in expanded row — readability in narrow table cell
+
 ### Key Decisions (Phase 16 — Plan 03)
 
 - drawRef declared in outer ZoneMapInner component and passed to DrawLayer child — cross-boundary wiring avoids silent button failure (terra-draw ready event Pitfall 2)
@@ -106,7 +113,7 @@ None.
 
 ### Last session
 
-Stopped at: Completed 16-03-PLAN.md — Zones admin page with Google Maps + terra-draw polygon drawing
+Stopped at: Completed 16-04-PLAN.md — Bookings admin page with TanStack Table
 
 ### Key Decisions (Phase 12 — Plan 02)
 
