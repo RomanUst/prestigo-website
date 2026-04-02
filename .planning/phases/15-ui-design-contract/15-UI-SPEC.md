@@ -138,6 +138,7 @@ Sourced from `design-system/MASTER.md §3` and confirmed from `app/admin/(dashbo
 - All labels, column headers, button labels, and section titles: `text-transform: uppercase`
 - Body minimum: 13px (never lower — iOS auto-zoom threshold)
 - Monospace exception: `payment_intent_id` and `booking_reference` use `font-family: monospace, monospace` at 13px
+- **Locked legacy exception — do not change in Phase 16:** AdminSidebar logo (`PRESTIGO` wordmark) uses Cormorant Garamond at 20px — this is a pre-existing locked value, not subject to the 4-size typography contract
 
 **Size mapping — what was changed in this revision:**
 
@@ -145,7 +146,8 @@ Sourced from `design-system/MASTER.md §3` and confirmed from `app/admin/(dashbo
 |--------------|----------------|-------------------|
 | 9px | 11px | Section labels, column headers, chart titles, KPICard label |
 | 10px | 11px | Sidebar sublabel, pagination buttons, chart axis, chart legend, PricingForm field labels, draw toolbar buttons |
-| 12px | 13px | Sign out button, monospace `booking_reference` / `payment_intent_id` |
+| 12px | 11px | Sign out button |
+| 12px | 13px | Monospace `booking_reference` / `payment_intent_id` |
 | 14px | 13px | Table cell body text, form descriptions |
 
 ---
