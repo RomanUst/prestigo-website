@@ -3,8 +3,7 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { buildPriceMap, dateDiffDays } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
-import { point } from '@turf/helpers'
+import { isInAnyZone } from '@/lib/zones'
 import type { TripType } from '@/types/booking'
 import type { PricingGlobals } from '@/lib/pricing-config'
 
@@ -42,19 +41,6 @@ function applyGlobals(
       if (isAirport) adjustedBase += globals.airportFee
       return [vc, { ...breakdown, base: adjustedBase, total: adjustedBase }]
     })
-  )
-}
-
-function isOutsideAllZones(
-  lat: number,
-  lng: number,
-  zones: Array<{ geojson: unknown }>
-): boolean {
-  if (zones.length === 0) return false
-  // GeoJSON coordinate order: [longitude, latitude]
-  const pt = point([lng, lat])
-  return !zones.some(zone =>
-    booleanPointInPolygon(pt, zone.geojson as Parameters<typeof booleanPointInPolygon>[1])
   )
 }
 
@@ -130,9 +116,9 @@ export async function POST(req: Request) {
       .eq('active', true)
 
     if (zones && zones.length > 0) {
-      const originOutside = isOutsideAllZones(origin.lat, origin.lng, zones)
-      const destOutside = isOutsideAllZones(destination.lat, destination.lng, zones)
-      if (originOutside || destOutside) {
+      const originInZone = isInAnyZone(origin.lat, origin.lng, zones)
+      const destInZone = isInAnyZone(destination.lat, destination.lng, zones)
+      if (!originInZone && !destInZone) {
         return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
       }
     }
