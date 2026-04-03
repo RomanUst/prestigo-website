@@ -7,6 +7,7 @@ export type PricingGlobals = {
   extraChildSeat: number
   extraMeetGreet: number
   extraLuggage: number
+  holidayDates: string[]
 }
 
 export type PricingRates = {
@@ -14,6 +15,7 @@ export type PricingRates = {
   hourlyRate: Record<string, number>
   dailyRate: Record<string, number>
   globals: PricingGlobals
+  minFare: Record<string, number>
 }
 
 // No caching — always fetch fresh from DB so admin pricing changes are
@@ -27,10 +29,10 @@ export async function getPricingConfig(): Promise<PricingRates> {
   ] = await Promise.all([
     supabase
       .from('pricing_config')
-      .select('vehicle_class, rate_per_km, hourly_rate, daily_rate'),
+      .select('vehicle_class, rate_per_km, hourly_rate, daily_rate, min_fare'),
     supabase
       .from('pricing_globals')
-      .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_meet_greet, extra_luggage')
+      .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_meet_greet, extra_luggage, holiday_dates')
       .eq('id', 1)
       .single(),
   ])
@@ -48,6 +50,8 @@ export async function getPricingConfig(): Promise<PricingRates> {
     ratePerKm: Object.fromEntries(data.map(r => [r.vehicle_class, Number(r.rate_per_km)])),
     hourlyRate: Object.fromEntries(data.map(r => [r.vehicle_class, Number(r.hourly_rate)])),
     dailyRate:  Object.fromEntries(data.map(r => [r.vehicle_class, Number(r.daily_rate)])),
+    // NUMERIC returned as string by Supabase — must Number() cast
+    minFare: Object.fromEntries(data.map(r => [r.vehicle_class, Number(r.min_fare)])),
     globals: {
       airportFee:          Number(globals.airport_fee),
       nightCoefficient:    Number(globals.night_coefficient),
@@ -55,6 +59,8 @@ export async function getPricingConfig(): Promise<PricingRates> {
       extraChildSeat:      Number(globals.extra_child_seat),
       extraMeetGreet:      Number(globals.extra_meet_greet),
       extraLuggage:        Number(globals.extra_luggage),
+      // JSONB auto-parsed by Supabase client — no JSON.parse needed
+      holidayDates:        globals.holiday_dates as string[] ?? [],
     },
   }
 }

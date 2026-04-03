@@ -7,6 +7,12 @@ import { isInAnyZone } from '@/lib/zones'
 import type { TripType } from '@/types/booking'
 import type { PricingGlobals } from '@/lib/pricing-config'
 
+export function isHolidayDate(pickupDate: string | null, holidayDates: string[]): boolean {
+  if (!pickupDate || holidayDates.length === 0) return false
+  const dateSet = new Set(holidayDates)
+  return dateSet.has(pickupDate)
+}
+
 function isNightTime(time: string | null): boolean {
   if (!time) return false
   const hour = parseInt(time.split(':')[0], 10)
@@ -27,18 +33,21 @@ function isNearAirport(pt: { lat: number; lng: number } | null | undefined): boo
   )
 }
 
-function applyGlobals(
+export function applyGlobals(
   prices: Record<string, { base: number; extras: number; total: number; currency: string }>,
   globals: PricingGlobals,
   isAirport: boolean,
   isNight: boolean,
+  isHoliday: boolean,
+  minFare: Record<string, number>,
 ): Record<string, { base: number; extras: number; total: number; currency: string }> {
-  const coefficient = isNight ? globals.nightCoefficient : 1.0
-  // isHoliday deferred — no detection mechanism exists yet
+  // Night takes precedence over holiday — explicit business rule
+  const coefficient = isNight ? globals.nightCoefficient : isHoliday ? globals.holidayCoefficient : 1.0
   return Object.fromEntries(
     Object.entries(prices).map(([vc, breakdown]) => {
       let adjustedBase = Math.round(breakdown.base * coefficient)
       if (isAirport) adjustedBase += globals.airportFee
+      adjustedBase = Math.max(adjustedBase, minFare[vc] ?? 0)
       return [vc, { ...breakdown, base: adjustedBase, total: adjustedBase }]
     })
   )
@@ -85,10 +94,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
     }
 
+    const isHoliday = isHolidayDate(pickupDate, rates.globals.holidayDates)
+
     // Hourly: no distance needed, no zone check
     if (tripType === 'hourly') {
       const prices = buildPriceMap('hourly', null, hours || 2, 0, rates)
-      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime))
+      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
       return NextResponse.json({ prices: adjusted, distanceKm: null, quoteMode: false })
     }
 
@@ -99,7 +110,7 @@ export async function POST(req: Request) {
       }
       const days = dateDiffDays(pickupDate, returnDate)
       const prices = buildPriceMap('daily', null, 0, days, rates)
-      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime))
+      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
       return NextResponse.json({ prices: adjusted, distanceKm: null, quoteMode: false })
     }
 
@@ -159,7 +170,7 @@ export async function POST(req: Request) {
 
     const distanceKm = distanceMeters / 1000
     const prices = buildPriceMap('transfer', distanceKm, 0, 0, rates)
-    const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime))
+    const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
     return NextResponse.json({ prices: adjusted, distanceKm, quoteMode: false })
   } catch (error) {
     console.error('calculate-price error:', error)

@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest'
 import { calculatePrice, buildPriceMap, dateDiffDays } from '@/lib/pricing'
 import type { Rates } from '@/lib/pricing'
+import { isHolidayDate, applyGlobals } from '@/app/api/calculate-price/route'
+import type { PricingGlobals } from '@/lib/pricing-config'
 
 const testRates: Rates = {
   ratePerKm: { business: 2.80, first_class: 4.20, business_van: 3.50 },
@@ -64,6 +66,70 @@ describe('pricing module', () => {
 
     it('dateDiffDays calculates correct day difference', () => {
       expect(dateDiffDays('2026-01-01', '2026-01-03')).toBe(2)
+    })
+  })
+
+  describe('PRICING-07: Holiday date detection', () => {
+    it('returns true when pickupDate matches a holiday date', () => {
+      expect(isHolidayDate('2026-12-25', ['2026-12-25'])).toBe(true)
+    })
+
+    it('returns false when pickupDate does not match any holiday date', () => {
+      expect(isHolidayDate('2026-12-26', ['2026-12-25'])).toBe(false)
+    })
+
+    it('returns false when pickupDate is null', () => {
+      expect(isHolidayDate(null, ['2026-12-25'])).toBe(false)
+    })
+
+    it('returns false when holidayDates array is empty', () => {
+      expect(isHolidayDate('2026-12-25', [])).toBe(false)
+    })
+  })
+
+  const testGlobals: PricingGlobals = {
+    airportFee: 0,
+    nightCoefficient: 1.2,
+    holidayCoefficient: 1.5,
+    extraChildSeat: 0,
+    extraMeetGreet: 0,
+    extraLuggage: 0,
+    holidayDates: [],
+  }
+
+  const testPrices = { business: { base: 28, extras: 0, total: 28, currency: 'EUR' } }
+
+  describe('PRICING-07: Holiday coefficient in applyGlobals', () => {
+    it('multiplies base by holidayCoefficient when isHoliday=true and isNight=false', () => {
+      const result = applyGlobals(testPrices, testGlobals, false, false, true, {})
+      expect(result.business.base).toBe(42) // 28 * 1.5 = 42
+    })
+
+    it('uses nightCoefficient (not holiday) when both isNight and isHoliday are true', () => {
+      const result = applyGlobals(testPrices, testGlobals, false, true, true, {})
+      expect(result.business.base).toBe(34) // 28 * 1.2 = 33.6 -> Math.round = 34
+    })
+
+    it('applies no coefficient when isHoliday=false and isNight=false', () => {
+      const result = applyGlobals(testPrices, testGlobals, false, false, false, {})
+      expect(result.business.base).toBe(28)
+    })
+  })
+
+  describe('PRICING-08: Minimum fare enforcement', () => {
+    it('raises base to minFare floor when calculated base is below floor', () => {
+      const result = applyGlobals(testPrices, testGlobals, false, false, false, { business: 50 })
+      expect(result.business.base).toBe(50)
+    })
+
+    it('leaves base unchanged when calculated base exceeds minFare', () => {
+      const result = applyGlobals(testPrices, testGlobals, false, false, false, { business: 20 })
+      expect(result.business.base).toBe(28)
+    })
+
+    it('leaves base unchanged when minFare object is empty', () => {
+      const result = applyGlobals(testPrices, testGlobals, false, false, false, {})
+      expect(result.business.base).toBe(28)
     })
   })
 
