@@ -121,7 +121,11 @@ Plans:
   2. A trip with pickup on a configured holiday date has the `holiday_coefficient` applied at price calculation time — the client sees the correct holiday-adjusted total
   3. Operator can set a minimum fare for each vehicle class in the admin pricing editor
   4. A short trip whose calculated distance price falls below the minimum fare for the selected vehicle class is displayed and charged at the minimum fare, not the calculated price
-**Plans**: TBD
+**Plans:** 2 plans
+
+Plans:
+- [ ] 21-01-PLAN.md — Migration + types + isHolidayDate helper + applyGlobals update + admin API schema extension + tests
+- [ ] 21-02-PLAN.md — PricingForm UI: MIN FARE column + HOLIDAY DATES card + human verification
 
 ### Phase 22: Mobile Admin + Promo Code System
 **Goal**: Admin panel is fully usable on a 375px mobile screen and the end-to-end promo code system is live (admin creates codes, clients apply them, server validates atomically before charge)
@@ -159,7 +163,7 @@ Plans:
 | 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
 | 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
-| 19. Booking Status Workflow + Operator Notes | 2/2 | Complete   | 2026-04-03 | - |
-| 20. Manual Booking + Cancellation with Refund | 2/3 | Complete    | 2026-04-03 | - |
-| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/TBD | Not started | - |
+| 19. Booking Status Workflow + Operator Notes | v1.3 | 2/2 | Complete | 2026-04-03 |
+| 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
+| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/2 | Not started | - |
 | 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
