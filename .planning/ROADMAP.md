@@ -58,7 +58,7 @@ See full details: `.planning/milestones/v1.2-ROADMAP.md`
 
 - [x] **Phase 18: Schema Foundation + Zone Logic Fix** - DB migrations for v1.3 columns and tables; zone pricing logic corrected to OR-logic (completed 2026-04-03)
 - [x] **Phase 19: Booking Status Workflow + Operator Notes** - Operator can move bookings through lifecycle states and annotate jobs (completed 2026-04-03)
-- [ ] **Phase 20: Manual Booking + Cancellation with Refund** - Phone orders captured in admin; operator can cancel with optional Stripe refund
+- [x] **Phase 20: Manual Booking + Cancellation with Refund** - Phone orders captured in admin; operator can cancel with optional Stripe refund (completed 2026-04-03)
 - [ ] **Phase 21: Pricing Enhancements — Holiday Dates + Minimum Fare** - Holiday coefficient auto-applied by date; minimum fare floor enforced per vehicle class
 - [ ] **Phase 22: Mobile Admin + Promo Code System** - Admin panel works at 375px; full promo code system end-to-end
 
@@ -105,12 +105,12 @@ Plans:
   3. After cancellation, the booking status updates to cancelled and the Stripe refund is visible in the Stripe Dashboard
   4. Attempting to cancel a manual booking shows a "Cancel" option only — no refund prompt appears
   5. Attempting to cancel an already-cancelled or completed booking is blocked by the server
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
-- [ ] 20-01-PLAN.md — Manual booking POST API + ManualBookingForm modal + booking reference extraction + MANUAL badge
-- [ ] 20-02-PLAN.md — Cancel endpoint with Stripe refund + charge.refunded webhook + CancellationModal UI
-- [ ] 20-03-PLAN.md — Human verification of manual booking and cancellation flows
+- [x] 20-01-PLAN.md — Manual booking POST API + ManualBookingForm modal + booking reference extraction + MANUAL badge
+- [x] 20-02-PLAN.md — Cancel endpoint with Stripe refund + charge.refunded webhook + CancellationModal UI
+- [x] 20-03-PLAN.md — Human verification of manual booking and cancellation flows (partial approval)
 
 ### Phase 21: Pricing Enhancements — Holiday Dates + Minimum Fare
 **Goal**: Holiday coefficient is automatically applied to trips on configured dates and no trip is priced below the per-vehicle-class minimum fare

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: Completed 20-02-PLAN.md
-last_updated: "2026-04-03T15:53:00Z"
+stopped_at: Completed 20-03-PLAN.md
+last_updated: "2026-04-03T16:15:00Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 ## Current Position
 
-Phase: 20 (manual-booking-cancellation-with-refund) — EXECUTING
-Plan: 2 of 3
+Phase: 20 (manual-booking-cancellation-with-refund) — COMPLETE
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Recent decisions affecting v1.3:
 - [Phase 20-02]: Cancel endpoint uses module-level stripe constant (not lazy factory) — required for vi.mock interception at import time in tests
 - [Phase 20-02]: Stripe refund issued BEFORE DB update — if refund succeeds but DB fails, logs orphaned refund_id for manual recovery
 - [Phase 20-02]: charge.refunded webhook updates booking status to cancelled by matching payment_intent_id
+- [Phase 20-03]: Phase 20 accepted with partial verification — Stripe-paid cancel path and charge.refunded webhook tested by unit tests only; no Stripe-paid bookings available in dev at verification time
 
 ### Pending Todos
 
@@ -71,10 +72,10 @@ None.
 
 - **Stripe test mode:** All Stripe env vars currently set to test mode keys (`sk_test_`, `pk_test_`). Must swap to live keys before accepting real payments.
 - **Stripe v22.0.0:** Released 2026-04-03 with breaking changes — stay pinned to `^21.0.1` for v1.3; schedule upgrade immediately after v1.3 ships.
-- **Phase 20 (refund flow):** `charge.refunded` webhook handler needed so Stripe Dashboard refunds also update local booking status. Design deduplication logic (idempotent UPSERT) before coding Phase 20.
+- **Phase 20 (refund flow — done):** `charge.refunded` webhook handler implemented in 20-02. Full end-to-end test of Stripe-paid cancel + webhook deferred to staging; unit tests pass.
 
 ## Session Continuity
 
-Last session: 2026-04-03T15:53:00Z
-Stopped at: Completed 20-02-PLAN.md
+Last session: 2026-04-03T16:15:00Z
+Stopped at: Completed 20-03-PLAN.md (Phase 20 complete)
 Resume file: None
