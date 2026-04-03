@@ -48,7 +48,7 @@ For Phase 21 specifically:
 | Grid gap in Section B (globals) | 16px | Matches existing `gap: '16px'` in globals grid |
 | Holiday date row gap | 8px | Between each date pill/row in the list |
 | Add date row gap (input + button) | 8px | Between date input and + button |
-| Label-to-input gap | 6px (`marginBottom: '6px'`) | Matches existing GLOBALS_FIELDS label margin in PricingForm.tsx |
+| Label-to-input gap | 8px (`marginBottom: '8px'`) | Standard for all new elements added in Phase 21. Note: existing GLOBALS_FIELDS labels in PricingForm.tsx use `6px` — that divergence is accepted for pre-existing elements only; `8px` is the enforced standard for any new label added in this phase. |
 | Min-fare input width | 100px | Matches existing `inputBaseStyle.width` in PricingForm.tsx |
 | Date input width | 160px | Wider than numeric inputs to accommodate date format |
 | Holiday section max-list height | none | No scroll limit — operator will have fewer than ~20 holiday dates |
@@ -104,6 +104,18 @@ border-radius: 2px
 ```
 
 Source: STYLEGUIDE.md section 2 Colour Palette; PricingForm.tsx `cardStyle` and `inputBaseStyle` constants; Phase 20 UI-SPEC color contract.
+
+---
+
+## Focal Point
+
+The admin pricing form has two visual anchors:
+
+1. **Primary anchor — "SAVE PRICING" button:** The copper-bordered ghost CTA at the bottom of the form is the dominant action target. It is the only element that transitions to a copper fill on hover, drawing the operator's eye downward to confirm and submit all changes.
+
+2. **Secondary anchor — "+ ADD DATE" button in Section D:** The copper-bordered ghost button in the new holiday dates section is the primary call-to-action within Section D. It shares the same ghost-to-fill hover pattern as "SAVE PRICING" but is scoped to the date management interaction, making it the focal point of Section D specifically.
+
+No other interactive elements use the copper border treatment. All other inputs use `var(--anthracite-light)` borders at rest and `var(--copper)` only on focus — ensuring visual hierarchy is preserved.
 
 ---
 
