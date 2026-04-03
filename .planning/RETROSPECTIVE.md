@@ -139,6 +139,57 @@
 
 ---
 
+## Milestone: v1.3 — Pricing & Booking Management
+
+**Shipped:** 2026-04-03
+**Phases:** 5 (18–22) | **Plans:** 13 | **Timeline:** 1 day (2026-04-03)
+**Files changed:** 52 | **Insertions:** 10,198
+
+### What Was Built
+- `lib/zones.ts` `isInAnyZone` helper — OR-logic zone pricing fix with 4-case TDD test matrix
+- V1.3 schema foundation — `bookings.status` FSM column, `operator_notes`, `booking_source`; `promo_codes` table; `holiday_dates` JSONB on `pricing_globals`
+- Booking lifecycle FSM — server-side PATCH with FSM validation; optimistic status UI; 800ms debounced operator notes auto-save
+- Manual booking creation (phone orders) + cancel endpoint with Stripe-first refund; `CancellationModal` with refund-warning and manual-only variants
+- Holiday date coefficient (O(1) Set lookup) + per-class minimum fare floor; admin `PricingForm` extended with MIN FARE column and HOLIDAY DATES card
+- End-to-end promo code system — admin CRUD + atomic `claim_promo_code` Supabase RPC + `PromoInput` in Step6Payment; server recomputes discount independently
+- Admin panel mobilized at 375px — hamburger sidebar with overlay, 44px touch targets, `BookingsTable` card layout below 768px
+
+### What Worked
+- **TDD-first for the zone logic fix** — writing the 4-case test matrix (both-in, outside-all, OR-logic, empty-array) before touching production code confirmed the bug and the fix with zero ambiguity
+- **FSM as module-level Record constant** — defining the transition map once as `const VALID_TRANSITIONS: Record<string, string[]>` and importing it on both server (PATCH endpoint) and client (dropdown options) gave a single source of truth with no duplication
+- **Cancel-before-DB pattern** — issuing the Stripe refund first, updating DB only on success, made the failure mode explicit (orphaned refund logged with ID) and recoverable rather than silent
+- **Soft validate + atomic RPC split** — separating the public `GET /api/validate-promo` (UX feedback, no side effects) from the atomic `claim_promo_code` RPC in `create-payment-intent` made both concerns clean; no locking on the client path
+- **All 5 phases shipped in one calendar day** — evidence that the research → plan → execute → verify pipeline is now well-oiled for this codebase
+- **Visual verification catching the hamburger bug** — the inline `display: flex` vs Tailwind `md:hidden` conflict was a zero-test bug; the preview screenshot step caught it before commit
+
+### What Was Inefficient
+- **Partial verification on Phase 20** — no Stripe-paid bookings in dev at verification time; cancel + `charge.refunded` webhook path tested only by unit tests; this is a known gap documented in the SUMMARY but remains unconfirmed end-to-end in prod
+- **ROADMAP.md plan checkboxes** — Phase 19, 21, 22 plan checkboxes were still `[ ]` in ROADMAP.md at milestone close (tools archive the live ROADMAP which had stale state); required manual fix in archive
+
+### Patterns Established
+- **`isInAnyZone` helper in `lib/zones.ts`** — all zone containment checks import from this single module; prevents duplicated Turf.js logic across routes and tests
+- **FSM transition map pattern** — `const VALID_TRANSITIONS: Record<string, string[]> = { pending: ['confirmed', 'cancelled'], ... }` at module level; replicated client-side for dropdown rendering (O(1) lookup)
+- **Cancel-before-DB for Stripe refunds** — refund API call first; DB update only on success; log `refund_id` on DB failure for manual recovery; never update DB before confirming Stripe accepted the refund
+- **Soft validate + atomic claim split for promo codes** — `GET /api/validate-promo` (public, no side effects, UX-only) + `claim_promo_code` RPC inside `create-payment-intent` (atomic UPDATE with usage limit guard); server ignores client-provided discount amount
+- **Promo state not in sessionStorage** — `promoCode`/`promoDiscount` in Zustand store without `partialize`; cleared on page close; prevents stale discount leakage across booking sessions
+- **Fixed sidebar requires body offset** — `position: fixed` sidebar requires `md:ml-[280px]` on `<main>`; never use `flex` layout to push content with a fixed element
+- **Inline style wins over Tailwind** — when using conditional inline styles alongside Tailwind responsive classes (`md:hidden`), inline style always wins at runtime; use class-only approach or ensure inline style is removed before the responsive breakpoint
+
+### Key Lessons
+1. TDD the fix before touching production for any logic bug — 4 test cases written first confirmed the zone OR-logic bug definitively
+2. FSM transition tables as a module-level constant eliminate duplication between server validation and client UX (dropdown options); import once, use everywhere
+3. Stripe refund sequencing must be "refund first, then DB" — reversing this creates an unrecoverable state where the booking is marked cancelled but the client still paid
+4. Atomic DB operations (UPDATE … WHERE current_uses < max_uses RETURNING id) are the correct primitive for race-safe claim patterns; application-level locks are fragile
+5. Visual preview steps catch CSS specificity bugs that have zero test coverage — inline styles silently override Tailwind responsive utilities
+6. Phase 20 partial verification is a known gap — Stripe-paid cancel and `charge.refunded` webhook need staging/production validation with a real payment before marking fully verified
+
+### Cost Observations
+- Model mix: ~100% Sonnet 4.6
+- Sessions: ~5 sessions (all on 2026-04-03)
+- Notable: 13 plans across 5 phases in one day — fastest milestone yet; pattern is established enough that research sessions are shorter and execution is more direct
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -148,14 +199,16 @@
 | v1.0 MVP | 6 | 25 | First milestone — baseline established |
 | v1.1 Go Live | 3 | 7 | Primarily external dashboard config; health endpoint as integration gate |
 | v1.2 Operator Dashboard | 8 | 16 | First full-stack admin; Gap closure phase pattern introduced; coordinate-based airport detection |
+| v1.3 Pricing & Booking Mgmt | 5 | 13 | All 5 phases in 1 day; TDD-first for bug fix; FSM + atomic RPC patterns established |
 
 ### Cumulative Quality
 
-| Milestone | Tests | Zero-Dep Additions |
-|-----------|-------|--------------------|
-| v1.0 | 32 passing | 0 (used existing stack) |
-| v1.1 | 32 passing (+6 health tests) | 0 (same stack) |
-| v1.2 | 25 passing (vitest) | 5 new packages: recharts, tanstack-table, terra-draw, vis.gl/react-google-maps, @supabase/ssr |
+| Milestone | Tests | Notable Additions |
+|-----------|-------|-------------------|
+| v1.0 | 32 passing | Baseline |
+| v1.1 | 32 passing (+6 health tests) | No new packages |
+| v1.2 | 25 passing (vitest) | 5 packages: recharts, tanstack-table, terra-draw, vis.gl/react-google-maps, @supabase/ssr |
+| v1.3 | 46+ passing (+21 in Phase 22 alone) | No new packages; atomic Supabase RPC pattern |
 
 ### Top Lessons (Verified Across Milestones)
 
@@ -165,3 +218,7 @@
 4. Use `printf` not `echo` when injecting secrets via CLI — trailing newlines cause signature verification failures
 5. Never use external IDs (placeIds, object references) for business logic — use stable identifiers like coordinates
 6. Never persist computed state in sessionStorage — only user inputs; derived data must always be recomputed fresh
+7. TDD the fix before touching production for any logic bug — test matrix written first confirms the bug AND the fix
+8. Stripe refund sequencing: refund first, DB update on success — reversing creates unrecoverable state
+9. Atomic DB operations (`UPDATE … WHERE guard RETURNING id`) are the correct primitive for race-safe claim patterns
+10. Visual preview steps catch CSS specificity bugs with zero test coverage — inline styles silently override Tailwind responsive utilities

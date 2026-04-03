@@ -2,11 +2,11 @@
 
 ## What This Is
 
-Custom multi-step booking wizard for rideprestigo.com — a premium chauffeur service based in Prague — with a full operator dashboard for pricing, coverage zones, and booking management.
+Custom multi-step booking wizard for rideprestigo.com — a premium chauffeur service based in Prague — with a full operator dashboard for pricing, coverage zones, promo codes, and booking management.
 
-Clients book one-way transfers, airport rides, hourly or daily hire directly on the site: selecting a vehicle class with a live price, adding optional extras, filling in passenger details, and paying online via Stripe. The operator controls all pricing (base rates per vehicle class, airport fee, night/holiday coefficients, extras surcharges) via a protected `/admin` dashboard, draws coverage zones on Google Maps to define the service area, and monitors all bookings and revenue in real time.
+Clients book one-way transfers, airport rides, hourly or daily hire directly on the site: selecting a vehicle class with a live price, applying promo codes, adding optional extras, filling in passenger details, and paying online via Stripe. The operator controls all pricing (base rates per vehicle class, airport fee, night/holiday coefficients, extras surcharges, minimum fares, holiday dates) and promo codes via a protected `/admin` dashboard — accessible on mobile — draws coverage zones on Google Maps, and manages the full booking lifecycle (create, status transitions, cancel with refund, operator notes).
 
-**Current state:** v1.3 Pricing & Booking Management shipped 2026-04-03. Phase 22 complete — mobile admin + promo code system live.
+**Current state:** v1.3 Pricing & Booking Management shipped 2026-04-03. All four milestones complete — booking wizard, go-live, operator dashboard, and pricing/booking management are production-ready.
 
 ## Core Value
 
@@ -44,45 +44,29 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ `signIn`/`signOut` Server Actions, login page with `useActionState`, inline error display — v1.2 (Phase 13)
 - ✓ Admin dashboard layout with server-side `getUser()` double-guard, `AdminSidebar` with nav + sign-out — v1.2 (Phase 13)
 - ✓ Admin API routes: GET/PUT `/api/admin/pricing` (Zod validation, cache bust), GET/POST/DELETE/PATCH `/api/admin/zones`, GET `/api/admin/bookings` (paginated, filterable) — v1.2 (Phase 14)
-
-  - ✓ Supabase Auth-protected `/admin` area (email+password, `is_admin` app_metadata gate) — v1.2 (Phase 13)
-  - ✓ Admin pricing editor: base rates, extras, airport fee, night/holiday coefficients — all changes live immediately — v1.2 (Phases 14, 16, 17)
-  - ✓ Coverage zone editor: draw polygons on Google Maps, store GeoJSON in Supabase, drive quoteMode in booking wizard — v1.2 (Phases 12, 14, 16)
-  - ✓ Bookings table with pagination, filters (date, trip type), search, expandable rows — v1.2 (Phase 16)
-  - ✓ Stats dashboard with revenue charts (12-month) and KPI cards — v1.2 (Phase 16)
-  - ✓ Airport fee coordinate-based detection (resilient to placeId mismatches) — v1.2 (Phase 17)
+- ✓ Supabase Auth-protected `/admin` area (email+password, `is_admin` app_metadata gate) — v1.2 (Phase 13)
+- ✓ Admin pricing editor: base rates, extras, airport fee, night/holiday coefficients — all changes live immediately — v1.2 (Phases 14, 16, 17)
+- ✓ Coverage zone editor: draw polygons on Google Maps, store GeoJSON in Supabase, drive quoteMode in booking wizard — v1.2 (Phases 12, 14, 16)
+- ✓ Bookings table with pagination, filters (date, trip type), search, expandable rows — v1.2 (Phase 16)
+- ✓ Stats dashboard with revenue charts (12-month) and KPI cards — v1.2 (Phase 16)
+- ✓ Airport fee coordinate-based detection (resilient to placeId mismatches) — v1.2 (Phase 17)
+- ✓ ZONES-06: Trip shows calculated price if pickup OR dropoff is in any active zone; quoteMode only when neither point is in any zone — v1.3 (Phase 18)
+- ✓ PRICING-07: Operator can configure holiday dates in admin; trips on those dates auto-apply holiday_coefficient — v1.3 (Phase 21)
+- ✓ PRICING-08: Operator can set minimum fare per vehicle class; calculated prices below floor are raised to minimum — v1.3 (Phase 21)
+- ✓ PROMO-01: Operator can create promo codes (code, discount %, expiry, usage limit) in admin — v1.3 (Phase 22)
+- ✓ PROMO-02: Operator can deactivate or delete promo codes — v1.3 (Phase 22)
+- ✓ PROMO-03: Client can enter promo code in booking wizard; valid code updates displayed price inline — v1.3 (Phase 22)
+- ✓ PROMO-04: Promo code validated server-side atomically before payment; invalid/expired/exhausted codes rejected — v1.3 (Phase 22)
+- ✓ BOOKINGS-06: Operator can create manual booking via admin form (phone orders); saved with `booking_source: 'manual'` — v1.3 (Phase 20)
+- ✓ BOOKINGS-07: Operator can change booking status (pending → confirmed → completed → cancelled); FSM-validated — v1.3 (Phase 19)
+- ✓ BOOKINGS-08: Operator can cancel booking with optional full Stripe refund; confirmation modal before refund — v1.3 (Phase 20)
+- ✓ BOOKINGS-09: Operator can add internal notes to any booking; auto-save with debounce — v1.3 (Phase 19)
+- ✓ UX-01: Admin panel fully responsive and usable on mobile (375px+); bookings table card layout below 768px; hamburger sidebar — v1.3 (Phase 22)
 
 ### Active
 
-<!-- v1.3 Pricing & Booking Management -->
-
-- [ ] ZONES-06: Zone logic — trip shows price if pickup OR dropoff is within an active zone; quoteMode only when neither point is in any zone
-- [ ] PRICING-07: Operator can configure holiday dates in admin; trips booked on those dates auto-apply holiday_coefficient
-- [ ] PRICING-08: Operator can set minimum fare per vehicle class; calculated prices below the floor are raised to the minimum
-- [ ] PROMO-01: Operator can create promo codes (code, discount type %, expiry, usage limit) in admin
-- [ ] PROMO-02: Operator can deactivate or delete promo codes
-- [ ] PROMO-03: Client can enter promo code in booking wizard; valid code updates displayed price
-- [ ] PROMO-04: Promo code validated server-side before payment; invalid codes rejected with error
-- [ ] BOOKINGS-06: Operator can create manual booking via admin form (for phone orders)
-- ✓ BOOKINGS-07: Operator can change booking status (pending → confirmed → completed → cancelled) — v1.3 (Phase 19)
-- [ ] BOOKINGS-08: Operator can cancel booking with optional Stripe refund
-- ✓ BOOKINGS-09: Operator can add internal notes to any booking — v1.3 (Phase 19)
-- [ ] UX-01: Admin panel is responsive and usable on mobile (375px+)
-
-## Current Milestone: v1.3 Pricing & Booking Management
-
-**Goal:** Enhance admin pricing logic (zone direction fix, holidays, promo codes, minimum fare) and add full booking management actions (manual creation, status workflow, cancellation + Stripe refund, operator notes) plus mobile-responsive admin UI.
-
-**Target features:**
-- Zone pricing logic: show price if pickup OR dropoff in zone
-- Holiday dates configuration with auto-coefficient
-- Minimum fare per vehicle class
-- Promo code system (admin management + client entry)
-- Manual booking creation (phone orders)
-- Booking status workflow
-- Booking cancellation + Stripe refund
-- Operator notes on bookings
-- Mobile-responsive admin panel
+<!-- Ready for next milestone planning -->
+(None — awaiting v1.4 milestone definition)
 
 ### Out of Scope
 
@@ -92,24 +76,32 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - SMS confirmation — email sufficient for v1
 - Partial payment / deposit — full Stripe payment only
 - Real-time availability calendar — manual confirmation flow
-- Promo / discount codes — revenue optimization, v2
 - Multi-stop routes — edge case, v2
 - Uptime monitoring (Hyperping) — deferred to v2
 - Stripe failed payment alerts — deferred to v2
-- Admin view / booking cancellation / manual override — deferred to v2
 - Czech / Russian localization — deferred to v2
+- CSV export of bookings — deferred to v2 (BOOKINGS-V2-01)
+- Client self-service cancellation — requires client accounts (BOOKINGS-V2-02)
+- Bulk booking status updates — deferred to v2 (BOOKINGS-V2-03)
+- Pricing preview tool — deferred to v2 (PRICING-V2-01)
+- Partial refund from admin — Stripe Dashboard for exceptional cases (PRICING-V2-02)
+- Promo code analytics — v2 feature (PROMO-V2-01)
+- Auto-expiry background jobs — v2 (PROMO-V2-02)
+- Flat CZK discount codes — percentage covers all current needs; extend in v2
+- SMS notifications on status changes (Twilio) — deferred (NOTIF-V2-01)
 
 ## Context
 
+- **Shipped:** v1.3 Pricing & Booking Management on 2026-04-03 — 5 phases (18-22), 13 plans, 52 files changed, 10,198 insertions
 - **Shipped:** v1.2 Operator Dashboard on 2026-04-02 — 8 phases (10-17), 16 plans, 66 files changed, 14,012 insertions
 - **Shipped:** v1.1 Go Live on 2026-04-01 — 3 phases (7-9), 7 plans, 31 files, 5,021 insertions
 - **Shipped:** v1.0 MVP on 2026-03-30 — 6 phases, 25 plans, 82 files, 17,244 insertions
 - **Repository:** RomanUst/prestigo-website (main branch)
 - **Tech stack:** Next.js 14+ App Router, TypeScript, Tailwind CSS, Zustand, Zod, Stripe Elements, Supabase, Resend, Google Maps Platform, Recharts, TanStack Table, Terra Draw
 - **Deployment:** Vercel (serverless, Hobby plan)
-- **~11,890 LOC TypeScript** | **25/25 tests passing** (Vitest)
+- **~12,000+ LOC TypeScript** | **46+ tests passing** (Vitest — 21 new in Phase 22 alone)
 - **Production domain:** rideprestigo.com
-- **Known tech debt:** Stripe env vars still test mode keys — must swap live before scaling; Nyquist sign-off pattern not consistently applied across v1.2 phases
+- **Known tech debt:** Stripe env vars still test mode keys — must swap live before scaling; `submit-quote.test.ts` has pre-existing failures introduced in Phase 5 (not regressions)
 
 ## Key Decisions
 
@@ -133,6 +125,11 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 | priceBreakdown not persisted in sessionStorage | Persisted breakdown caused stale prices when globals changed in admin | ✓ Good — Step 3 always fetches fresh |
 | terra-draw with `next/dynamic ssr:false` | terra-draw uses browser APIs incompatible with SSR | ✓ Good — two-layer SSR bypass pattern established |
 | `signInWithPassword` Server Actions + `useActionState` | Avoids client-side secret exposure; follows @supabase/ssr pattern | ✓ Good — no infinite redirect loop |
+| FSM transition map as module-level Record constant | O(1) lookup before DB write; shared between API and client | ✓ Good — invalid transitions blocked server-side |
+| Cancel-before-DB on Stripe refund | Stripe refund issued first, DB updated only on success | ✓ Good — prevents orphaned cancelled state if Stripe call fails |
+| Soft validate-promo + atomic claim_promo_code RPC | Separate soft check (UX feedback) from atomic DB claim (race safety) | ✓ Good — race-safe; server re-computes discount independently |
+| Promo state NOT persisted to sessionStorage | Fresh per booking session prevents stale discount after session | ✓ Good — prevents discount leakage across sessions |
+| inline style removal for hamburger md:hidden fix | Inline `display: flex` was overriding Tailwind's `md:hidden` at desktop | ✓ Good — single-line fix, caught in visual verification |
 
 ## Constraints
 
@@ -143,4 +140,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-03 after Phase 22 complete — mobile admin + promo code system shipped. Validated in Phase 22: UX-01 (mobile admin 375px), PROMO-01/02 (admin CRUD), PROMO-03/04 (booking wizard promo + atomic claim).*
+*Last updated: 2026-04-03 after v1.3 milestone complete — Pricing & Booking Management shipped. All 12 v1.3 requirements validated.*

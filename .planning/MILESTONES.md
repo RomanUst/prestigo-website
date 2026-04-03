@@ -1,12 +1,38 @@
 # Milestones
 
-## v1.2 Operator Dashboard (Shipped: 2026-04-02)
+## v1.3 Pricing & Booking Management (Shipped: 2026-04-03)
 
-**Phases completed:** 8 phases, 16 plans, 0 tasks
+**Phases:** 5 (Phases 18–22) · **Plans:** 13 · **Timeline:** 1 day (2026-04-03)
+**Files changed:** 52 · **Insertions:** 10,198
 
 **Key accomplishments:**
 
-- (none recorded)
+1. Zone pricing OR-logic corrected — `lib/zones.ts` `isInAnyZone` helper with TDD 4-case test matrix; trips now get calculated price when pickup OR dropoff is in any active zone
+2. V1.3 schema foundation — `bookings.status` FSM column, `operator_notes`, `booking_source`; `promo_codes` table; `holiday_dates` JSONB on `pricing_globals`
+3. Booking lifecycle FSM — PATCH endpoint with server-side FSM validation; status transition dropdown with optimistic UI; operator notes with 800ms debounced auto-save
+4. Manual booking creation for phone orders + cancel endpoint with Stripe-first refund pattern; `CancellationModal` with variant A (refund warning) and B (manual cancel)
+5. Holiday date coefficient (O(1) Set lookup) + per-class minimum fare floor added to pricing engine; admin `PricingForm` extended with MIN FARE column and HOLIDAY DATES card
+6. End-to-end promo code system — admin CRUD + atomic `claim_promo_code` Supabase RPC + `PromoInput` UI in Step6Payment; server re-computes discounted price independently
+7. Admin panel fully mobilized at 375px — hamburger sidebar with overlay, 44px touch targets, `BookingsTable` card layout below 768px; fixed inline-style/Tailwind conflict bug
+
+**Archive:** `.planning/milestones/v1.3-ROADMAP.md`, `.planning/milestones/v1.3-REQUIREMENTS.md`
+
+---
+
+## v1.2 Operator Dashboard (Shipped: 2026-04-02)
+
+**Phases:** 8 (Phases 10–17) · **Plans:** 16 · **Timeline:** 1 day (2026-04-01 → 2026-04-02)
+**Files changed:** 66 · **Insertions:** 14,012
+
+**Key accomplishments:**
+
+1. Supabase Auth email+password login gate for `/admin/*` — middleware redirect, `signIn`/`signOut` Server Actions, `is_admin` app_metadata double-guard
+2. Admin API routes — GET/PUT `/api/admin/pricing` (Zod validation, cache bust), GET/POST/DELETE/PATCH `/api/admin/zones`, paginated + filterable GET `/api/admin/bookings`
+3. DB-driven pricing via `pricing_config` table with instant cache invalidation; Turf.js coverage zone enforcement (`quoteMode: true` when outside zones)
+4. Admin pricing editor — base rates per vehicle class, extras, airport fee, night/holiday coefficients; all changes live immediately
+5. Coverage zone editor — draw polygons on Google Maps, store GeoJSON in Supabase, drive `quoteMode` in booking wizard
+6. Bookings table with pagination, filters (date, trip type), search, expandable rows; stats dashboard with 12-month revenue chart and KPI cards
+7. Airport fee detection switched to coordinates (not placeId) — resolves airport_fee not applying in production due to placeId mismatches
 
 ---
 
