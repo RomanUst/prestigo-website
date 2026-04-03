@@ -112,9 +112,20 @@ export default function BookingsTable() {
   const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
   const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
+  const [isMobile, setIsMobile] = useState(false)
+  const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
+
   const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
   const [cancelling, setCancelling] = useState(false)
   const [cancelError, setCancelError] = useState<string | null>(null)
+
+  // Mobile detection
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
 
   // Reset cancel state when modal opens/closes
   useEffect(() => {
@@ -550,8 +561,246 @@ export default function BookingsTable() {
         })}
       </div>
 
-      {/* Table */}
-      <div style={{
+      {/* Mobile card layout */}
+      {!isMobile ? null : (
+        <div className="md:hidden" data-testid="mobile-cards">
+          {loading ? (
+            <div style={{
+              padding: '32px',
+              textAlign: 'center',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '13px',
+              color: 'var(--warmgrey)',
+            }}>Loading...</div>
+          ) : bookings.length === 0 ? (
+            <div style={{
+              padding: '32px',
+              textAlign: 'center',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '13px',
+              color: 'var(--warmgrey)',
+            }}>
+              <div>No bookings found.</div>
+              <div style={{ marginTop: '8px' }}>Adjust your filters or check back later.</div>
+            </div>
+          ) : (
+            bookings.map((booking) => {
+              const isExpanded = !!expandedCards[booking.id]
+              const transitions = VALID_TRANSITIONS[booking.status] ?? []
+              return (
+                <div
+                  key={booking.id}
+                  style={{
+                    backgroundColor: '#2A2A2D',
+                    border: '1px solid #3A3A3F',
+                    borderRadius: 8,
+                    padding: 16,
+                    marginBottom: 12,
+                  }}
+                  onClick={() => setExpandedCards(prev => ({ ...prev, [booking.id]: !prev[booking.id] }))}
+                >
+                  {/* Top row: ref + status */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <span style={{
+                      fontFamily: 'monospace',
+                      fontSize: '13px',
+                      color: booking.booking_source === 'manual' ? '#E8B87A' : 'var(--copper)',
+                    }}>
+                      {booking.booking_reference}
+                      {booking.booking_source === 'manual' && (
+                        <span style={{
+                          marginLeft: '8px',
+                          background: '#2a2a1a',
+                          color: '#E8B87A',
+                          border: '1px solid rgba(184,115,51,0.25)',
+                          fontSize: '11px',
+                          textTransform: 'uppercase' as const,
+                          letterSpacing: '0.08em',
+                          padding: '2px 6px',
+                          borderRadius: '2px',
+                        }}>MANUAL</span>
+                      )}
+                    </span>
+                    <StatusBadge
+                      variant={booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
+                      label={STATUS_LABELS[booking.status] ?? booking.status}
+                    />
+                  </div>
+
+                  {/* Client name */}
+                  <div style={{
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '13px',
+                    color: 'var(--offwhite)',
+                    marginBottom: 4,
+                  }}>
+                    {booking.client_first_name} {booking.client_last_name}
+                  </div>
+
+                  {/* Pickup + vehicle */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '11px',
+                    color: 'var(--warmgrey)',
+                    marginBottom: 4,
+                  }}>
+                    <span>{booking.pickup_date} · {booking.pickup_time}</span>
+                    <span>{vehicleClassMap[booking.vehicle_class] ?? booking.vehicle_class}</span>
+                  </div>
+
+                  {/* Amount */}
+                  <div style={{
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '13px',
+                    color: 'var(--offwhite)',
+                    textAlign: 'right' as const,
+                    marginBottom: 8,
+                  }}>
+                    {booking.amount_czk} CZK
+                  </div>
+
+                  {/* Status transitions */}
+                  {transitions.length > 0 && (
+                    <div style={{ display: 'flex', gap: 8, marginBottom: 8 }} onClick={e => e.stopPropagation()}>
+                      {transitions.map(s => (
+                        <button
+                          key={s}
+                          disabled={!!statusUpdating[booking.id]}
+                          onClick={() => handleStatusChange(booking.id, s)}
+                          style={{
+                            minHeight: 44,
+                            minWidth: 44,
+                            flex: 1,
+                            background: 'transparent',
+                            border: '1px solid var(--anthracite-light)',
+                            borderRadius: '2px',
+                            color: 'var(--offwhite)',
+                            fontFamily: 'var(--font-montserrat)',
+                            fontSize: '11px',
+                            letterSpacing: '0.1em',
+                            textTransform: 'uppercase' as const,
+                            cursor: statusUpdating[booking.id] ? 'not-allowed' : 'pointer',
+                            opacity: statusUpdating[booking.id] ? 0.5 : 1,
+                          }}
+                        >
+                          {statusUpdating[booking.id] ? '...' : STATUS_LABELS[s]}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Expanded details */}
+                  {isExpanded && (
+                    <div style={{ marginTop: 12, borderTop: '1px solid #3A3A3F', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 12 }}>
+                        <DetailField label="ORIGIN" value={booking.origin_address} />
+                        <DetailField label="DESTINATION" value={booking.destination_address} />
+                        <DetailField label="EMAIL" value={booking.client_email} />
+                        <DetailField label="PHONE" value={booking.client_phone} />
+                        {booking.flight_number && <DetailField label="FLIGHT" value={booking.flight_number} />}
+                        {booking.terminal && <DetailField label="TERMINAL" value={booking.terminal} />}
+                        {booking.special_requests && <DetailField label="REQUESTS" value={booking.special_requests} />}
+                        <DetailField
+                          label="CHILD SEAT"
+                          value={booking.extra_child_seat ? <StatusBadge variant="active" label="Yes" /> : '—'}
+                        />
+                        <DetailField
+                          label="MEET & GREET"
+                          value={booking.extra_meet_greet ? <StatusBadge variant="active" label="Yes" /> : '—'}
+                        />
+                        <DetailField
+                          label="EXTRA LUGGAGE"
+                          value={booking.extra_luggage ? <StatusBadge variant="active" label="Yes" /> : '—'}
+                        />
+                      </div>
+
+                      {/* Operator notes */}
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{
+                          fontFamily: 'var(--font-montserrat)',
+                          fontSize: '11px',
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.3em',
+                          color: 'var(--warmgrey)',
+                          marginBottom: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '8px',
+                        }}>
+                          Operator Notes
+                          {notesSaving[booking.id] === 'saving' && (
+                            <span style={{ color: 'var(--copper)', fontSize: '10px' }}>Saving...</span>
+                          )}
+                          {notesSaving[booking.id] === 'saved' && (
+                            <span style={{ color: '#4ade80', fontSize: '10px' }}>Saved</span>
+                          )}
+                          {notesSaving[booking.id] === 'error' && (
+                            <span style={{ color: '#f87171', fontSize: '10px' }}>Error saving</span>
+                          )}
+                        </div>
+                        <textarea
+                          value={localNotes[booking.id] ?? booking.operator_notes ?? ''}
+                          onChange={(e) => handleNotesChange(booking.id, e.target.value)}
+                          onBlur={() => handleNotesBlur(booking.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          maxLength={2000}
+                          placeholder="Add internal notes..."
+                          rows={3}
+                          style={{
+                            width: '100%',
+                            background: 'var(--anthracite-mid)',
+                            border: '1px solid var(--anthracite-light)',
+                            borderRadius: '2px',
+                            padding: '8px 12px',
+                            fontFamily: 'var(--font-montserrat)',
+                            fontSize: '13px',
+                            color: 'var(--offwhite)',
+                            resize: 'vertical',
+                            outline: 'none',
+                            boxSizing: 'border-box' as const,
+                          }}
+                          onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
+                        />
+                      </div>
+
+                      {/* Cancel button */}
+                      {(booking.status === 'pending' || booking.status === 'confirmed') && (
+                        <div style={{ marginTop: 12 }}>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); setPendingCancel(booking) }}
+                            style={{
+                              border: '1px solid var(--anthracite-light)',
+                              background: 'transparent',
+                              color: 'var(--warmgrey)',
+                              fontFamily: 'var(--font-montserrat)',
+                              fontSize: '11px',
+                              fontWeight: 500,
+                              letterSpacing: '3px',
+                              textTransform: 'uppercase' as const,
+                              padding: '0 24px',
+                              minHeight: 44,
+                              borderRadius: '2px',
+                              cursor: 'pointer',
+                              width: '100%',
+                            }}
+                          >
+                            Cancel Booking
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })
+          )}
+        </div>
+      )}
+
+      {/* Table (desktop) */}
+      <div className="hidden md:block" data-testid="desktop-table" style={{
         width: '100%',
         border: '1px solid var(--anthracite-light)',
         borderRadius: '4px',
