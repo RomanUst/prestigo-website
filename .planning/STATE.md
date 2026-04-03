@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: Completed 20-01-PLAN.md
-last_updated: "2026-04-03T15:52:32.914Z"
+stopped_at: Completed 20-02-PLAN.md
+last_updated: "2026-04-03T15:53:00Z"
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 ## Current Position
 
 Phase: 20 (manual-booking-cancellation-with-refund) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -59,6 +59,9 @@ Recent decisions affecting v1.3:
 - [Phase 20]: generateBookingReference extracted to shared lib/booking-reference.ts
 - [Phase 20]: Cancel endpoint uses lazy getStripe() factory for Vitest compatibility (no static method calls at module load)
 - [Phase 20]: booking_source 'online' | 'manual' field in Booking interface — MANUAL amber badge in REF column of BookingsTable
+- [Phase 20-02]: Cancel endpoint uses module-level stripe constant (not lazy factory) — required for vi.mock interception at import time in tests
+- [Phase 20-02]: Stripe refund issued BEFORE DB update — if refund succeeds but DB fails, logs orphaned refund_id for manual recovery
+- [Phase 20-02]: charge.refunded webhook updates booking status to cancelled by matching payment_intent_id
 
 ### Pending Todos
 
@@ -72,6 +75,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T15:52:32.908Z
-Stopped at: Completed 20-01-PLAN.md
+Last session: 2026-04-03T15:53:00Z
+Stopped at: Completed 20-02-PLAN.md
 Resume file: None
