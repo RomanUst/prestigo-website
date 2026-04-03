@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
-status: in-progress
-stopped_at: Completed 19-02-PLAN.md (all tasks complete — human verification approved)
-last_updated: "2026-04-03T12:10:00Z"
+status: unknown
+stopped_at: Completed 20-01-PLAN.md
+last_updated: "2026-04-03T15:52:32.914Z"
 progress:
   total_phases: 5
-  completed_phases: 1
-  total_plans: 4
+  completed_phases: 2
+  total_plans: 7
   completed_plans: 5
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 19 — booking-status-workflow-operator-notes
+**Current focus:** Phase 20 — manual-booking-cancellation-with-refund
 
 ## Current Position
 
-Phase: 19 (booking-status-workflow-operator-notes) — COMPLETE
-Plan: 2 of 2 (COMPLETE — human verification approved 2026-04-03)
+Phase: 20 (manual-booking-cancellation-with-refund) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -56,6 +56,9 @@ Recent decisions affecting v1.3:
 - [Phase 19-02]: Optimistic update for status changes — mutate local state immediately, no re-fetch after PATCH success
 - [Phase 19-02]: alert() for status update failures in admin — single-operator v1.3, no toast infrastructure needed
 - [Phase 19-02]: localNotes seeded from fetched data only when booking not in local edit state — preserves in-flight edits on re-fetch
+- [Phase 20]: generateBookingReference extracted to shared lib/booking-reference.ts
+- [Phase 20]: Cancel endpoint uses lazy getStripe() factory for Vitest compatibility (no static method calls at module load)
+- [Phase 20]: booking_source 'online' | 'manual' field in Booking interface — MANUAL amber badge in REF column of BookingsTable
 
 ### Pending Todos
 
@@ -69,6 +72,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T12:10:00Z
-Stopped at: Completed 19-02-PLAN.md (all tasks complete, human verification approved)
+Last session: 2026-04-03T15:52:32.908Z
+Stopped at: Completed 20-01-PLAN.md
 Resume file: None
