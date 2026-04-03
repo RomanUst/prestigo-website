@@ -1,171 +1,179 @@
 # Project Research Summary
 
-**Project:** Prestigo v1.1 — Production Go-Live
-**Domain:** Service integration — Next.js chauffeur booking app connecting live Supabase, Stripe, Resend, and Google Maps
-**Researched:** 2026-03-30
+**Project:** Prestigo v1.3 — Pricing & Booking Management
+**Domain:** Premium chauffeur booking platform — additive feature expansion on existing Next.js 16 / Supabase / Stripe production system
+**Researched:** 2026-04-03
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Prestigo v1.1 is not a feature development milestone — it is a production service-connection milestone. The Next.js 16 app, all API routes, and all business logic are 100% complete and tested (32 passing Vitest tests). The only gap is that four external services (Supabase, Stripe, Resend, Google Maps) have never been connected in a live production environment. No new code is needed beyond a health check endpoint and a SQL migration file; everything else is configuration, credential management, and DNS propagation.
+Prestigo v1.3 extends a mature, production-grade chauffeur booking system rather than building from scratch. The existing stack (Next.js 16 App Router, Supabase, Stripe, TanStack Table, Tailwind CSS 4) already covers every v1.3 requirement — no new npm packages are needed. The four feature areas (booking management with status workflow, promo codes, pricing enhancements, and mobile admin) are all implementable with patterns already proven in the codebase.
 
-The recommended approach is a strict dependency-ordered execution: create the Supabase table first, then set all Vercel environment variables (minus the Stripe webhook secret), then build and deploy the health check endpoint, then register the Stripe webhook (which yields the final env var), then verify Resend domain DNS, and finally run an end-to-end smoke test. The critical constraint is that the Stripe webhook signing secret cannot be obtained until the webhook endpoint is registered in live mode in the Stripe Dashboard — this creates a deliberate ordering requirement that is easy to get wrong.
+The recommended approach is to prioritize the `bookings` table schema migration first, since the `status` column is a hard prerequisite for three of the four booking management features (status workflow, cancellation/refund, and manual booking creation). After that foundation, the pricing enhancements (zone OR-logic fix, holiday dates, minimum fare) can be built in any order as they are self-contained. The promo code system is the most complex feature, spanning three surfaces (admin CRUD, client wizard, server payment flow), and must be built as an integrated unit rather than incrementally.
 
-The dominant risk category is misconfiguration, not code bugs. Eleven specific pitfalls have been identified — the most dangerous involve using test-mode Stripe credentials in production (silent 400 failures), scoping live API keys to all Vercel environments instead of production-only (live charges from PR previews), and the Supabase table not existing when the first real webhook fires (booking data lost to emergency fallback email). All pitfalls are preventable with the verification checklist in PITFALLS.md before smoke testing.
-
----
+The critical risks are all well-documented and preventable: a promo code race condition (two users simultaneously exhausting a single-use code) must be solved with an atomic Postgres UPDATE rather than a read-then-write pattern; manual bookings with no `payment_intent_id` must be guarded against the refund flow; and the zone OR-logic fix requires explicit unit tests for all four pickup/dropoff combinations before deploying, as a naming confusion in the existing helper function (`isOutsideAllZones`) makes the correct boolean logic non-obvious.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new runtime npm dependencies are needed for v1.1. The existing packages (Next.js 16.1.7, React 19.2.3, stripe ^21.0.1, @supabase/supabase-js ^2.101.0, resend ^6.9.4, @googlemaps/js-api-loader ^2.0.2) cover all requirements and must not be version-bumped during go-live. Version changes introduce new test surface without delivering go-live value.
+The existing stack is the complete v1.3 stack. No new dependencies are warranted. The Stripe SDK (`stripe` ^21.0.1) supports `stripe.refunds.create()` as-is; `react-day-picker` already supports multi-select mode for the holiday date picker admin UI; `@tanstack/react-table` supports responsive column hiding via `meta.className`; and Zod + react-hook-form cover all new form validation needs. The only notable external event is the release of `stripe` v22.0.0 on 2026-04-03 with breaking changes — the project must stay pinned to `^21.0.1` for the duration of v1.3 and schedule the upgrade separately.
 
-Two local developer tools are needed (not npm packages): Stripe CLI v1.40.0 for local webhook smoke testing, and Vercel CLI for env var management. Both are install-and-use — no project configuration required.
+**Core technologies (v1.3 delta only):**
 
-**Core technologies:**
-- **Next.js 16.1.7 / App Router:** All API routes already implemented — health check added as a plain GET Route Handler with `force-dynamic`
-- **Stripe SDK ^21.0.1:** PaymentIntents + webhook signature verification already coded; go-live requires Dashboard webhook registration (live mode only)
-- **@supabase/supabase-js ^2.101.0:** Service role client already coded with correct `persistSession: false` config; go-live requires table creation via SQL Editor
-- **Resend ^6.9.4:** Email templates and send functions already coded; go-live requires domain verification (SPF + DKIM + MX DNS records for rideprestige.com)
-- **@googlemaps/js-api-loader ^2.0.2:** Client-side Places Autocomplete already coded; go-live requires HTTP referrer restriction + server key restriction type verification
-- **Vercel CLI:** Environment variable management — all 8 vars must be scoped to Production only
+- `stripe` ^21.0.1: `stripe.refunds.create({ payment_intent })` — already installed, no upgrade needed
+- `@supabase/supabase-js` ^2.101.0: new `promo_codes` table, atomic `UPDATE ... RETURNING` pattern for race-safe usage increment
+- `@tanstack/react-table` ^8.21.3: `meta.className` + Tailwind responsive classes for mobile admin tables
+- `react-day-picker` ^9.14.0: `mode="multiple"` for holiday date multi-select in admin
+- `zod` + `react-hook-form`: promo code admin CRUD forms and manual booking creation form
+
+**What not to add:** No promo code npm libraries (custom Supabase table is simpler and gives full control), no headless UI library for mobile sidebar (two lines of `useState` + Tailwind transitions), no `date-fns` as a direct dependency (already available via `react-day-picker` peer dep), no `ag-grid` (TanStack Table with pagination is sufficient for this operator's booking volume).
 
 ### Expected Features
 
-All application features shipped in v1.0. The v1.1 feature set is purely operational.
+**Must have (v1.3 Core — table stakes for a production booking management system):**
+- ZONES-06: Zone OR-logic fix — price shown if pickup OR dropoff is in any active zone (current AND-logic suppresses valid bookings)
+- BOOKINGS-07: Booking status workflow (pending → confirmed → completed → cancelled) with server-side transition guard
+- BOOKINGS-08: Cancellation with optional full Stripe refund from admin panel, confirmation modal required
+- BOOKINGS-06: Manual booking creation for phone orders (no Stripe payment, `payment_intent_id` nullable)
+- BOOKINGS-09: Operator notes textarea on booking detail, auto-saves on blur
+- PRICING-07: Holiday dates configuration — calendar admin UI + auto-apply `holiday_coefficient` at price calculation
+- PRICING-08: Minimum fare per vehicle class — extend `pricing_config` + enforce in `lib/pricing.ts`
+- UX-01: Mobile-responsive admin panel (single 768px breakpoint; card layout below; hamburger sidebar)
 
-**Must have (table stakes — P1):**
-- Supabase `bookings` table created with correct schema (without this, the first real webhook destroys booking data)
-- All 8 environment variables set in Vercel with correct production scope (missing any = runtime crash or live charges from previews)
-- Stripe webhook endpoint registered at `https://rideprestige.com/api/webhooks/stripe` in live mode (without this, no Supabase saves and no emails)
-- Resend domain `rideprestige.com` verified with SPF/DKIM/MX DNS records (without this, emails go to spam or Resend rejects sends with 403)
-- Health check endpoint at `/api/health` with per-service status probes (prerequisite for smoke test verification)
-- End-to-end smoke test with Stripe test card on production URL (only proof the full chain works)
+**Should have (v1.3 Secondary — differentiators worth shipping in this milestone):**
+- PROMO-01/02: Admin CRUD for promo codes (create with code string, discount %, expiry, usage limit; deactivate/delete)
+- PROMO-03/04: Client promo entry in wizard (progressive disclosure "Have a promo code?" link) + server-side atomic validation before Stripe charge
 
-**Should have (P2):**
-- `.env.example` updated with all 8 variables and source instructions (currently documents only 1 of 8)
-- Per-service boolean probes in health check (faster debugging vs. checking 4 dashboards separately)
-
-**Defer (v2+):**
-- Uptime monitoring service (Datadog, Hyperping) — add after first real booking confirms pipeline
-- Supabase CLI migration files — relevant only if schema evolves frequently
-- RLS policies on bookings table — relevant only if client-side queries are added
-- Staging environment — relevant only if deployment frequency increases
+**Defer to v2+:**
+- Client self-service cancellation (requires client accounts — large scope change)
+- SMS notifications on status change (Twilio integration cost/complexity; email is sufficient for Prague luxury market)
+- Partial refund with custom amount (accounting ambiguity; operators use Stripe Dashboard for exceptional cases)
+- Bulk booking status updates (single-booking review is the right premium-service norm)
+- Promo code analytics and auto-expiry background jobs
 
 ### Architecture Approach
 
-The v1.1 architecture adds exactly three artifacts to the existing codebase: a SQL migration file extracted from the comment block in `lib/supabase.ts`, an updated `.env.example`, and a new `app/api/health/route.ts` Route Handler. No existing routes, libraries, or data flows change. The health check reuses `createSupabaseServiceClient()` from `lib/supabase.ts` directly — no duplication of client initialization. The entire booking flow (wizard to PaymentIntent to webhook to Supabase upsert to Resend emails) is unchanged.
+The v1.3 architecture follows the established v1.2 admin pattern: new API routes live under `/api/admin/[feature]/`, protected by the existing `getAdminUser()` guard. New admin pages extend `/app/admin/`. Database changes are additive migrations — a new `promo_codes` table, new columns (`status`, `operator_notes`, `booking_source`, `payment_intent_id` made nullable) on `bookings`, and new fields in the `pricing_config` JSONB. Holiday dates are best stored as a new key in `pricing_config` JSONB for v1.3 scope (no per-date metadata needed). The `bookings` table schema migration (adding `status`) is the single most dependency-heavy change and must land first.
 
-**Major components:**
-1. `supabase/migrations/0001_create_bookings.sql` — runnable DDL extracted from `lib/supabase.ts` comment; one-time manual execution in Supabase SQL Editor; schema contract with `buildBookingRow()`
-2. `app/api/health/route.ts` — new GET handler with `force-dynamic`; probes Supabase (SELECT 1), Stripe (list PaymentIntents), and Resend (list domains); returns `{ ok, timestamp, checks: { env, supabase, stripe, resend } }`
-3. `.env.example` (updated) — documents all 8 required variables with source instructions and security annotations (NEXT_PUBLIC_ prefix rules)
-4. Stripe Dashboard webhook registration — manual configuration step; yields the production `STRIPE_WEBHOOK_SECRET` that cannot be obtained any other way
+**Major components (new or modified for v1.3):**
+
+1. `/api/admin/bookings/[id]/refund` (POST) — server-side Stripe refund endpoint with status guard and typed error handling
+2. `/api/admin/bookings/[id]` (PATCH) — status update with server-enforced transition state machine
+3. `/api/admin/bookings/new` + `/api/promo/validate` — manual booking creation and promo validation endpoints
+4. `promo_codes` Supabase table — with atomic `UPDATE ... WHERE current_uses < max_uses RETURNING id` pattern
+5. `BookingsTable` (modified) — TanStack Table with responsive `meta.className` column collapse and status badge + action UI
+6. Admin sidebar — hamburger toggle on mobile via `useState` + Tailwind `translate-x` transitions
 
 ### Critical Pitfalls
 
-1. **Stripe webhook secret mismatch (test vs. live mode)** — switch Stripe Dashboard to live mode before registering the production endpoint; copy the signing secret only from the live endpoint registration screen; scope `STRIPE_WEBHOOK_SECRET` to Production environment only in Vercel
-2. **Vercel env var scope set to all environments** — live keys (`sk_live_`, `whsec_`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`) must be scoped to Production only; defaulting to all three scopes causes live Stripe charges from PR preview deployments
-3. **Supabase table not created before first webhook fires** — the schema exists only as a comment in source code; execute `CREATE TABLE bookings` in Supabase SQL Editor before registering the live Stripe webhook; verify with `SELECT COUNT(*) FROM bookings` returning 0 (not an error)
-4. **PostgREST schema cache stale after table creation** — wait 60 seconds after table creation; run `NOTIFY pgrst, 'reload schema'` if health check inserts fail with null-constraint errors immediately after creation
-5. **Google Maps API key restriction type mismatch** — client-side key (`NEXT_PUBLIC_`) must use HTTP referrer restriction (`rideprestige.com/*`); server-side key for `/api/calculate-price` must use API restriction only (no HTTP referrer — Vercel has dynamic egress IPs, so a referrer restriction causes `REQUEST_DENIED` on every price calculation)
+1. **Promo code race condition (over-redemption)** — Two concurrent users with a single-use code both pass a read-check before either increments; solution is a single atomic `UPDATE promo_codes SET current_uses = current_uses + 1 WHERE ... AND current_uses < max_uses RETURNING id`; perform this increment at PaymentIntent creation, not at client-side validation. Phase: PROMO-04.
 
----
+2. **Refunding a manual booking with null payment_intent_id** — Manual bookings (phone orders) have no Stripe payment; passing `payment_intent: null` to Stripe throws. Guard the refund route: if `payment_intent_id IS NULL`, skip Stripe entirely and only update status. The admin UI must hide "Cancel + Refund" for manual bookings and show "Cancel" only. Phase: BOOKINGS-06 + BOOKINGS-08 must coordinate.
+
+3. **Zone logic regression when fixing ZONES-06** — The existing helper is named `isOutsideAllZones` (returns `true` when outside). Applying OR-logic with a double-negated name causes developers to invert the condition incorrectly. Rename to `isInAnyZone`, write four explicit unit tests (pickup-in/dropoff-out, pickup-out/dropoff-in, both-in, both-out) before touching production. Phase: ZONES-06.
+
+4. **Holiday date timezone midnight bug** — Comparing `new Date(pickupDate).toISOString().slice(0,10)` converts local Prague time to UTC, causing midnight bookings (00:00–01:00 CET) to compare against the previous UTC date. Solution: compare `pickupDate` string (local date as entered by user) directly against the holiday list — never UTC-convert a date-only string. Follow the existing `dateDiffDays` pattern in `lib/pricing.ts`. Phase: PRICING-07.
+
+5. **Price mismatch — client sees discounted price, server charges full** — If the applied promo code is not passed in `bookingData` to `/api/create-payment-intent`, the server creates the PaymentIntent at full price. Server must independently re-validate the promo code and recompute the total; never trust a client-provided amount. Phases: PROMO-03 and PROMO-04 must ship as a single coordinated change.
 
 ## Implications for Roadmap
 
-Based on the dependency graph in FEATURES.md and the pitfall-to-phase mapping in PITFALLS.md, four phases are appropriate. The phases follow a strict dependency chain — each phase is a prerequisite for the next.
+Based on combined research, the recommended phase structure is five phases ordered by schema dependencies, then feature complexity, then surface area.
 
-### Phase 1: Foundation — Supabase Schema + Env Vars + Deploy
+### Phase 1: Schema Foundation + Zone Logic Fix
 
-**Rationale:** Everything else depends on the Supabase table existing and env vars being set. The Stripe webhook secret is the only env var that cannot be set yet (it does not exist until Phase 2), but all 7 others must be in Vercel before deployment. DNS records for Resend should also be submitted now to allow propagation time while Phases 2 and 3 proceed.
-**Delivers:** Production Supabase schema, complete Vercel env var configuration (7 of 8), SQL migration file, updated `.env.example`, deployed production build at rideprestige.com, Resend DNS records submitted
-**Addresses:** Supabase table creation (P1), env var documentation (P2), Vercel Production-scope configuration (P1)
-**Avoids:** Pitfall 3 (table not created before first webhook), Pitfall 2 (env vars scoped to all environments), Pitfall 4 (PostgREST cache — verify immediately after table creation)
+**Rationale:** The `bookings.status` column is a hard prerequisite for Phases 2 and 3 — it must land before any status UI, cancellation flow, or manual booking creation. The zone OR-logic fix (ZONES-06) is zero-dependency, zero-schema, and highest operator value per unit of effort — it belongs in Phase 1 to unblock correct pricing for the most common trip patterns. Landing both together means Phase 2 can begin immediately.
+**Delivers:** Production-correct zone pricing; `status`, `operator_notes`, `booking_source` columns on `bookings`; `promo_codes` table created (empty); `payment_intent_id` made nullable; `holiday_dates` added to `pricing_config` JSONB schema.
+**Addresses:** ZONES-06, schema prerequisites for BOOKINGS-06/07/08/09, PROMO-01 through PROMO-04, PRICING-07.
+**Avoids:** Zone logic regression (write 4-case unit test suite before deploying ZONES-06 fix).
 
-### Phase 2: Stripe + Health Check Verification
+### Phase 2: Booking Status Workflow + Operator Notes
 
-**Rationale:** The production URL must exist (from Phase 1 deploy) before registering the Stripe webhook. The health check must be deployed before the smoke test. The signing secret obtained here completes the env var set (8 of 8).
-**Delivers:** Live Stripe webhook registered at `rideprestige.com`, `STRIPE_WEBHOOK_SECRET` set in Vercel and redeployed, health check endpoint live and returning all-green, Google Maps key restrictions verified
-**Addresses:** Stripe webhook registration (P1), `/api/health` endpoint (P1)
-**Avoids:** Pitfall 1 (test-mode secret in production), Pitfall 9 (endpoint URL pointing to wrong environment), Pitfall 10 (Vercel deployment protection blocking Stripe), Pitfall 6 and 7 (Google Maps referrer and key type)
+**Rationale:** With the `status` column in place, this phase adds the complete status management surface: status badge in the bookings table, transition dropdown (showing only valid next states), status-change emails via Resend, and the operator notes inline textarea. These are the table stakes every premium operator expects before considering the system production-ready.
+**Delivers:** Admin can move bookings through the full lifecycle; clients receive confirmation and cancellation emails; operators can annotate every job.
+**Addresses:** BOOKINGS-07, BOOKINGS-09.
+**Avoids:** Invalid status transitions (enforce state machine in PATCH endpoint: `pending → confirmed|cancelled`, `confirmed → completed|cancelled`, terminal states for `completed` and `cancelled`).
 
-### Phase 3: Resend Domain Verification
+### Phase 3: Manual Booking + Cancellation with Refund
 
-**Rationale:** DNS propagation takes up to 48 hours and is the longest lead-time task in the milestone. DNS records were submitted in Phase 1 to allow propagation. Phase 3 is the confirmation step — verify all records are green in Resend Dashboard, send test emails to Gmail and Outlook inboxes to confirm not-spam delivery, and confirm `from` address in `lib/email.ts` matches the verified domain.
-**Delivers:** `rideprestige.com` verified in Resend with SPF/DKIM/MX records; client confirmation and manager alert emails deliverable to inbox
-**Addresses:** Resend domain verification (P1)
-**Avoids:** Pitfall 8 (unverified domain causing 403 or spam delivery)
+**Rationale:** Both features depend on the `status` column (Phase 1) and share the same critical null-`payment_intent_id` edge case — they must be designed together even if built sequentially. Manual booking creation must decide the `booking_source` column value; the refund route must check that column. Building them in the same phase prevents the null-PI pitfall from falling through the cracks.
+**Delivers:** Phone orders captured in the system at `/admin/bookings/new`; operator can cancel any booking with one-click Stripe refund from admin; refund modal prevents accidental double-click with confirmation step.
+**Addresses:** BOOKINGS-06, BOOKINGS-08.
+**Avoids:** Refunding null `payment_intent_id` (coordinate guard logic in both routes); refunding already-refunded PI (status guard: only `confirmed|pending` are eligible); add `charge.refunded` webhook handler for Stripe Dashboard refund sync.
 
-### Phase 4: Smoke Test + Go-Live Sign-Off
+### Phase 4: Pricing Enhancements (Holiday Dates + Minimum Fare)
 
-**Rationale:** All dependencies (Supabase table, env vars, webhook, health check, Resend) must be complete before a meaningful end-to-end test is possible. The smoke test is the final gate.
-**Delivers:** Verified production booking pipeline — confirmed Supabase row written, confirmed client confirmation email in inbox, confirmed manager alert email, confirmed Stripe PaymentIntent visible in live mode dashboard
-**Addresses:** End-to-end smoke test (P1)
-**Avoids:** All pitfalls — the "Looks Done But Isn't" checklist in PITFALLS.md serves as the Phase 4 gate before declaring go-live complete
+**Rationale:** Both pricing features are independent of booking management changes. Holiday dates extend the existing pricing engine with a date-matching lookup; minimum fare adds floor logic after distance calculation. Both are isolated to `lib/pricing.ts` and `pricing_config`. Grouping them together minimises context switches and keeps the pricing engine stable for Phase 5 (promo codes, which also modify the price calculation path).
+**Delivers:** Holiday coefficient auto-applied based on configured calendar dates; short trips priced at minimum fare floor; operator controls both from the admin pricing editor.
+**Addresses:** PRICING-07, PRICING-08.
+**Avoids:** Holiday timezone midnight bug (compare `pickupDate` string directly, never UTC-convert; follow existing `dateDiffDays` pattern).
+
+### Phase 5: Mobile-Responsive Admin + Promo Code System
+
+**Rationale:** Mobile admin (UX-01) is purely presentational — no API or schema changes — and is least likely to introduce regressions. Promo codes are the highest-complexity feature (three surfaces, atomic DB pattern, wizard integration, PaymentIntent amount adjustment) and should be last to benefit from stable foundational code. Both are grouped here because mobile testing naturally accompanies all other UI work completed in Phases 2–4.
+**Delivers:** Admin usable at 375px (hamburger sidebar, card-layout bookings table below 768px, 44px touch targets); full promo code system end-to-end (admin CRUD, client wizard entry, server-side atomic validation, PaymentIntent amount adjustment).
+**Addresses:** UX-01, PROMO-01, PROMO-02, PROMO-03, PROMO-04.
+**Avoids:** Promo race condition (atomic UPDATE pattern in PROMO-04); price mismatch (promo code wired through Zustand store to create-payment-intent, server re-validates independently); mobile horizontal overflow (test at 375px in Chrome DevTools before sign-off).
 
 ### Phase Ordering Rationale
 
-- The Stripe webhook signing secret creates a hard dependency: Phase 1 (deploy) must precede Phase 2 (webhook registration). This ordering is non-negotiable.
-- Resend DNS propagation is the longest lead-time task (up to 48 hours) — DNS records should be submitted during Phase 1 even though verification confirmation lands in Phase 3. This parallelism is the only way to avoid Resend becoming the critical path.
-- The health check must be deployed (Phase 2) before the smoke test (Phase 4) — it is both a differentiator feature and a smoke-test prerequisite.
-- Google Maps key restriction verification is a Phase 2 concern because the production URL must exist to test client-side Places Autocomplete and to confirm the server-side Routes API key type.
+- Schema migrations must precede all feature work that reads or writes new columns; `status` is the most-depended-on change (affects 4 features).
+- ZONES-06 is placed in Phase 1 because it is a zero-risk, high-value change that operators will notice immediately and that validates the pricing engine before riskier changes touch it.
+- Manual booking and refund are paired (Phase 3) because the null-`payment_intent_id` edge case spans both; designing them separately risks the pitfall.
+- Pricing enhancements (Phase 4) are isolated before promo codes (Phase 5) because promo codes also modify the price calculation path — a stable pricing engine reduces integration risk.
+- Mobile admin is deferred to the final phase because it is additive and non-breaking; it also benefits from testing against all admin UI surfaces completed in earlier phases.
 
 ### Research Flags
 
-No phase requires a `/gsd:research-phase` deep dive. All required procedures are fully documented across the four research files.
+Phases needing deeper research or careful design before implementation:
+- **Phase 3 (Refund flow):** The interaction between admin-initiated refunds and Stripe-initiated refunds (via Dashboard) requires adding a `charge.refunded` webhook handler. The exact deduplication logic (idempotent UPSERT) warrants a brief design step before coding.
+- **Phase 5 (Promo codes — PROMO-04):** The atomic PostgreSQL UPDATE pattern is well-understood, but wiring the promo code through the Zustand store, PaymentIntent creation, and webhook handler (for usage count sync) is a multi-step integration that benefits from a written data-flow plan before coding begins.
 
-Phases with well-documented patterns (skip deeper research):
-- **Phase 1:** Supabase SQL Editor table creation and Vercel env var management are straightforward; all commands documented in STACK.md
-- **Phase 2:** Health check Route Handler pattern is standard Next.js App Router; Stripe webhook registration is a dashboard walkthrough documented in STACK.md and ARCHITECTURE.md
-- **Phase 3:** Resend domain verification is a dashboard walkthrough; DNS record types are specified in STACK.md
-- **Phase 4:** Smoke test procedure is deterministic — Stripe test card `4242 4242 4242 4242`, verify Supabase row, verify two emails; checklist is in PITFALLS.md
-
----
+Phases with standard, well-documented patterns (can skip research-phase):
+- **Phase 1 (Schema migrations):** Standard Supabase `ALTER TABLE` migrations following existing `supabase/migrations/` conventions.
+- **Phase 2 (Status workflow UI):** TanStack Table badge + dropdown pattern; Resend email trigger on status change — both follow established codebase patterns.
+- **Phase 4 (Pricing enhancements):** Extend existing `pricing_config` JSONB and `lib/pricing.ts`; patterns fully established in v1.2.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All claims verified against official docs; no new dependencies; existing versions confirmed compatible with Next.js 16/React 19 |
-| Features | HIGH | Feature set derived directly from codebase analysis (`process.env.*` scan across all API routes) + official service docs |
-| Architecture | HIGH | Three new artifacts are minimal and well-defined; existing code architecture unchanged; all integration points verified against source |
-| Pitfalls | HIGH | 10 of 11 pitfalls verified against official Stripe/Supabase/Resend/Google/Vercel docs; 3 MEDIUM-confidence sources corroborated by official docs |
+| Stack | HIGH | All packages verified against official docs and GitHub releases on 2026-04-03; no new dependencies required |
+| Features | HIGH | Existing system codebase analyzed directly; competitor feature set verified against QuanticaLabs, Moovs, LimoAnywhere; race condition risk backed by HackerOne disclosures |
+| Architecture | HIGH | v1.2 architecture is production-confirmed; v1.3 additions follow established patterns from official Supabase SSR, Next.js App Router, and Stripe docs |
+| Pitfalls | HIGH | Critical pitfalls (race condition, null PI, zone naming confusion, timezone bug) all verified against first-party sources (codebase analysis + official API docs) |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Resend DNS propagation timing:** The 24-48 hour window is variable. If propagation takes the full 48 hours, Resend becomes the critical path for go-live. Mitigate by submitting DNS records during Phase 1 before any other step.
-- **Google Maps server-side key restriction type:** PITFALLS.md identifies a risk that the server-side Routes API key may have an HTTP referrer restriction set during development. Verify the restriction type in Google Cloud Console during Phase 2 — if wrong, `/api/calculate-price` silently forces all bookings into quote mode with no obvious error.
-- **Vercel deployment protection status:** Check Vercel project settings before registering the Stripe webhook. If deployment protection is enabled project-wide, it will intercept incoming POST requests from Stripe and return 401/302, causing all webhooks to fail silently from Stripe's perspective.
-
----
+- **`charge.refunded` webhook handler:** PITFALLS.md flags that admin-initiated refunds must be mirrored by a webhook handler so Stripe Dashboard refunds also update local status. The exact deduplication implementation is not specified — design this before Phase 3.
+- **Stripe v22.0.0 upgrade path:** Documented in STACK.md; not blocking v1.3 but must be scheduled as a follow-on task immediately after v1.3 ships to avoid accumulating technical debt.
+- **`date-fns` import risk:** `date-fns` is available as a `react-day-picker` peer dep, not a direct dependency. If `react-day-picker` ever changes its peer dep relationship, direct `date-fns` imports break silently. Use native `Date.toISOString().slice(0, 10)` for the holiday date comparison to eliminate this latent risk entirely.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Stripe Webhooks Docs](https://docs.stripe.com/webhooks) — production endpoint registration, signing secrets, live vs. test mode distinction
-- [Stripe CLI Use Guide](https://docs.stripe.com/stripe-cli/use-cli) — `stripe listen` is local-only, not production
-- [Stripe: Resolve webhook signature verification errors](https://docs.stripe.com/webhooks/signature) — test vs. live secret mismatch behavior
-- [Resend Domain Management](https://resend.com/docs/dashboard/domains/introduction) — SPF/DKIM/MX requirements, verification workflow
-- [Resend: DMARC](https://resend.com/docs/dashboard/domains/dmarc) — DMARC as optional but recommended follow-up
-- [Vercel CLI Env Docs](https://vercel.com/docs/cli/env) — `vercel env add` command pattern
-- [Vercel Environment Variables](https://vercel.com/docs/environment-variables) — scope management, redeploy requirement
-- [Supabase RLS Guide](https://supabase.com/docs/guides/database/postgres/row-level-security) — service role bypass behavior, SQL Editor does not auto-enable RLS
-- [Supabase: PostgREST schema cache](https://supabase.com/docs/guides/troubleshooting/postgrest-not-recognizing-new-columns-or-functions-bd75f5) — `NOTIFY pgrst, 'reload schema'` procedure
-- [Supabase: Service role RLS errors](https://supabase.com/docs/guides/troubleshooting/why-is-my-service-role-key-client-getting-rls-errors-or-not-returning-data-7_1K9z) — SSR client override pitfall
-- [Google Maps Platform: Security best practices](https://developers.google.com/maps/api-security-best-practices) — HTTP referrer vs. IP restriction distinction
-- [Next.js App Router Route Handlers](https://nextjs.org/docs/app/getting-started/route-handlers) — `force-dynamic` caching behavior
-- Codebase analysis: `lib/supabase.ts`, `lib/email.ts`, `app/api/webhooks/stripe/route.ts`, `app/api/create-payment-intent/route.ts` — ground truth for feature inventory and env var list
+- Stripe Refunds API (official docs) — `stripe.refunds.create()` signature, `charge_already_refunded` error, `charge.refunded` webhook event
+- stripe-node v22.0.0 Release Notes (GitHub) — breaking changes; async/await pattern unaffected
+- Supabase `@supabase/ssr` official docs — `createServerClient`, `updateSession` middleware pattern
+- Next.js App Router official docs — middleware, Server Components, Route Handlers
+- TanStack Table v8 official docs — `meta.className` column visibility, manual pagination
+- react-day-picker v9 official docs — `mode="multiple"` multi-select
+- PostgreSQL JSON Types docs — JSONB for holiday dates storage
+- Prestigo codebase (first-party) — `calculate-price/route.ts` zone logic, `lib/pricing.ts` `dateDiffDays` pattern, `lib/pricing-config.ts` cache pattern
 
 ### Secondary (MEDIUM confidence)
-- [Next.js health check pattern](https://hyperping.com/blog/nextjs-health-check-endpoint) — consistent with App Router docs
-- [Next.js App Router + Stripe Webhook integration](https://blog.stackademic.com/integrating-stripe-payment-elements-with-next-js-14-app-router-webhooks-typescript-4d6eb7710c40) — verified against official Stripe docs
-- [Debugging Stripe Webhook Signature Verification Errors](https://dev.to/nerdincode/debugging-stripe-webhook-signature-verification-errors-in-production-1h7c) — corroborates official Stripe signature docs
+- QuanticaLabs Chauffeur Booking System — competitor feature set reference (status workflow, manual booking, holiday pricing)
+- Moovs / LimoAnywhere — competitor feature set reference
+- TanStack Table GitHub discussions #3259 — responsive column collapse community pattern
+- DEV Community — TanStack Table responsive collapse implementation walkthrough
+- Voucherify / Econsultancy — promo code UX best practices (progressive disclosure, inline validation)
+
+### Tertiary (LOW confidence)
+- Gitnux — chauffeur software market context (aggregator; used for market framing only)
 
 ---
-
-*Research completed: 2026-03-30*
+*Research completed: 2026-04-03*
 *Ready for roadmap: yes*

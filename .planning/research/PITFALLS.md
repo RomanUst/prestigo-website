@@ -1,754 +1,405 @@
-# Pitfalls Research — v1.2 Operator Dashboard
+# Pitfalls Research — v1.3 Pricing & Booking Management
 
-**Domain:** Adding Supabase Auth, polygon zones editor, Supabase config table, and admin dashboard to an existing Next.js 14 App Router + Supabase production booking site.
-**Researched:** 2026-04-01
-**Confidence:** HIGH (all critical findings verified against official Supabase docs, Next.js docs, and multiple community sources)
+**Domain:** Adding Stripe refunds, promo codes, zone logic fix, holiday dates, manual bookings, status workflow, and mobile admin UI to an existing Next.js 14 App Router + Supabase + Stripe chauffeur booking app.
+**Researched:** 2026-04-03
+**Confidence:** HIGH (Stripe refund behavior verified against official API docs; PostgreSQL race condition prevention verified against multiple authoritative sources; timezone behavior verified; zone logic derived from existing `calculate-price/route.ts` code analysis)
 
-> This document covers ONLY new pitfalls introduced by v1.2 features.
-> v1.1 pitfalls (Stripe webhook, Resend domain, Google Maps key types, Vercel env scoping) are documented in the archived milestone and remain valid — do not re-do that work.
+> This document covers ONLY new pitfalls introduced by v1.3 features.
+> v1.1 pitfalls (Stripe webhook, Resend domain, Google Maps key types, Vercel env scoping) and v1.2 pitfalls (Supabase Auth middleware loop, terra-draw SSR, pricing cache invalidation, zone geojson coordinate order) remain valid — do not re-do that work.
 
 ---
 
-## Area 1: Supabase Auth Middleware — Next.js 14 App Router
+## Critical Pitfalls
 
-### Pitfall 1A: Infinite Redirect Loop Because Cookies Are Written to Only One Side
-
-**Risk level:** CRITICAL
+### Pitfall 1: Refunding an Already-Refunded PaymentIntent Without a Guard
 
 **What goes wrong:**
-The user signs in successfully. `signInWithPassword` resolves, the session is created client-side. But when the user navigates to `/admin`, the middleware runs, finds no valid session cookie in the request, and redirects to `/login`. The user is now in an infinite loop: login → redirect to `/admin` → middleware finds no cookie → redirect to `/login`.
-
-The loop is not always obvious from the browser — it may manifest as the `/admin` page never loading, or as a blank page with no error. Supabase does not throw; it silently returns no session.
+The operator clicks "Cancel + Refund" on a booking that was already refunded (e.g., by a previous admin action or directly in the Stripe dashboard). The API route calls `stripe.refunds.create({ payment_intent: booking.payment_intent_id })`. Stripe throws an error: "This PaymentIntent has already been fully refunded." The admin UI shows an unhandled 500, the booking status in Supabase is not updated, and the operator is confused about the true state.
 
 **Why it happens:**
-The middleware must write the refreshed session token to **both** the request object (so Server Components see it) and the response object (so the browser stores it). A common mistake is updating only `response.cookies` but not `request.cookies`, or vice versa. When the response cookie is not set, the browser never stores the JWT and the next request arrives without credentials.
+The existing webhook handler stores `payment_intent_id` in every booking row. When the refund route is added, developers reach for the simplest possible call — pass the PI id, get a refund — without checking the current Stripe object state first. Stripe does not silently no-op a duplicate refund; it throws an `StripeInvalidRequestError` with code `charge_already_refunded`.
 
-**Prevention:**
-Follow the exact two-pass pattern from the official `@supabase/ssr` docs:
+**How to avoid:**
+Before calling `stripe.refunds.create`, check the booking's `status` column in Supabase. Enforce a server-side guard: only bookings with status `confirmed` or `pending` are eligible for refund. Additionally, check the local `status` before hitting Stripe — do not rely on Stripe's error as your only guard. If the booking already has `status = 'cancelled'` or `status = 'refunded'`, return a 409 Conflict to the client immediately, without calling Stripe.
+
+Always wrap `stripe.refunds.create` in a try/catch and handle `StripeInvalidRequestError` explicitly: map it to a user-readable message rather than a raw 500.
 
 ```typescript
-// utils/supabase/middleware.ts
-import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
-
-export async function updateSession(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request });
-
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
-          // Pass 1: update the request so Server Components see the refreshed token
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
-          // Re-create the response with the updated request
-          supabaseResponse = NextResponse.next({ request });
-          // Pass 2: set the cookie on the response so the browser stores it
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          );
-        },
-      },
-    }
-  );
-
-  // MUST call getUser() here — this triggers the refresh cycle
-  await supabase.auth.getUser();
-  return supabaseResponse;
+// Correct pattern
+if (!['confirmed', 'pending'].includes(booking.status)) {
+  return NextResponse.json({ error: 'Booking is not eligible for refund' }, { status: 409 })
 }
-```
-
-**Warning signs:**
-- Login form submits, no error, but `/admin` never loads.
-- Browser DevTools Network tab shows a chain of 302 redirects between `/admin` and `/login`.
-- `document.cookie` in the browser console is empty after successful login.
-- Works in local dev (where cookies may persist differently) but breaks in production.
-
-**Phase to address:** Phase 1 — Auth Setup (middleware implementation)
-
----
-
-### Pitfall 1B: `getSession()` Used in Middleware Instead of `getClaims()` or `getUser()`
-
-**Risk level:** HIGH
-
-**What goes wrong:**
-`supabase.auth.getSession()` is used in middleware to check whether a user is authenticated. The check passes even for tampered or expired tokens because `getSession()` reads from the cookie as-is without verifying the JWT signature. An attacker who can fabricate a valid-looking (but expired or revoked) cookie can bypass admin route protection.
-
-**Why it happens:**
-`getSession()` is the most visible auth method in older Supabase tutorials and the v1.x `@supabase/auth-helpers-nextjs` documentation. It appears to work — it returns a session object — but it does not cryptographically verify the token server-side.
-
-**Prevention:**
-Use `getClaims()` for route protection. It validates the JWT signature against the project's published public keys (JWKS endpoint), usually without a network round-trip once the keys are cached. Use `getUser()` if you need to verify the user is not banned/deleted at the Supabase Auth level (slower — always hits the Auth server).
-
-```typescript
-// In a Server Component or Route Handler protecting /admin:
-const { data, error } = await supabase.auth.getClaims();
-if (error || !data) redirect("/login");
-```
-
-Do NOT use `getSession()` anywhere in server-side code (middleware, Server Components, Route Handlers). The Supabase docs state explicitly: "Never trust `supabase.auth.getSession()` inside server code — it isn't guaranteed to revalidate the Auth token."
-
-**Warning signs:**
-- Auth check passes for a cookie that was manually modified in DevTools.
-- Session appears valid after the user's Supabase account is deleted.
-- No errors in development, but Supabase Dashboard shows the token is expired.
-
-**Phase to address:** Phase 1 — Auth Setup (route protection logic)
-
----
-
-### Pitfall 1C: `middleware.ts` Placed in Wrong Directory
-
-**Risk level:** MEDIUM
-
-**What goes wrong:**
-The project uses a `src/` directory layout. `middleware.ts` is placed at the project root (`/middleware.ts`) instead of `/src/middleware.ts`. Next.js silently ignores the root-level file when using the `src/` convention. No middleware runs. All `/admin` routes are publicly accessible — no redirect to login.
-
-**Why it happens:**
-Most Supabase and Next.js examples in the wild show `middleware.ts` at the root, because those examples don't use `src/`. The project structure is `prestigo/src/app/...`, so the middleware must live at `prestigo/src/middleware.ts`.
-
-**Prevention:**
-Confirm the project's directory layout before placing the file. If `app/` lives inside `src/`, then `middleware.ts` must also live inside `src/`. After placing it, verify it runs by adding a `console.log('middleware hit:', request.nextUrl.pathname)` and loading any page in dev mode — the log must appear in the terminal.
-
-**Warning signs:**
-- `/admin` routes render without redirect when not authenticated.
-- No middleware-related logs in the Vercel function logs.
-- Changes to middleware code have no effect.
-
-**Phase to address:** Phase 1 — Auth Setup (file placement verification)
-
----
-
-### Pitfall 1D: CDN-Cached Response Contains Another User's Session Cookie
-
-**Risk level:** HIGH (edge case, but catastrophic when hit)
-
-**What goes wrong:**
-When `@supabase/ssr` refreshes a session token server-side, it writes the updated JWT to the response via a `Set-Cookie` header. If Vercel Edge or another CDN caches that response and serves it to a different user, the second user's browser stores the first user's JWT. The second user is now signed in as the first user's admin account.
-
-**Why it happens:**
-Pages that require authentication must not be cached by any CDN. Without explicit cache-control directives, Next.js may allow a response containing a `Set-Cookie` header to be served from edge cache.
-
-**Prevention:**
-Mark all auth-sensitive pages as non-cacheable. In Next.js App Router, add this to any page or layout inside `/admin`:
-
-```typescript
-export const dynamic = "force-dynamic";
-```
-
-As of `@supabase/ssr` v0.10.0, the library automatically passes `Cache-Control: no-store`, `Expires: 0`, and `Pragma: no-cache` to the `setAll` cookie callback when a refresh occurs. Ensure your `setAll` implementation applies these headers to the response — the pattern from Pitfall 1A does this correctly via `supabaseResponse = NextResponse.next({ request })`.
-
-**Warning signs:**
-- Two different admin sessions appear to share data or see each other's state.
-- Supabase Auth logs show a session being used from two different IP addresses simultaneously.
-- Vercel Analytics shows identical response content being served for auth-protected routes.
-
-**Phase to address:** Phase 1 — Auth Setup (cache headers verification)
-
----
-
-### Pitfall 1E: Service Role Client Accidentally Initialized with SSR Cookies in Admin Route Handlers
-
-**Risk level:** HIGH**
-
-**What goes wrong:**
-This pitfall already exists and was documented for v1.1 (Pitfall 4 in the archived research). It becomes relevant again in v1.2 because new Route Handlers will be added for the admin dashboard. If any admin Route Handler uses `createServerClient` from `@supabase/ssr` where a service-role client is needed (e.g., to write pricing config or update booking status), the user's JWT from cookies overrides the service role key and RLS blocks the write silently.
-
-**Prevention:**
-Maintain the existing separation: `createSupabaseServiceClient()` in `lib/supabase.ts` uses `createClient()` directly with `persistSession: false, autoRefreshToken: false, detectSessionInUrl: false`. Never refactor this to an SSR client. New admin Route Handlers that need elevated database access must import from `lib/supabase.ts`, not from `utils/supabase/server.ts`.
-
-**Phase to address:** All phases that add new Route Handlers for admin operations.
-
----
-
-## Area 2: GeoJSON Polygon Storage in Supabase
-
-### Pitfall 2A: PostGIS Extension Not Enabled — Columns Silently Reject Geometry Types
-
-**Risk level:** CRITICAL
-
-**What goes wrong:**
-A `coverage_zones` table is created with a column intended to store polygon geometry. PostGIS is not enabled on the Supabase project. The column is created as `TEXT` or `JSONB` as a workaround. Later, spatial queries (`ST_Contains`, `ST_Intersects`) cannot be run against text/JSONB data. The booking wizard's zone-containment check (is the pickup point inside a defined zone?) must be done in application code with a polygon-in-point algorithm instead of a single SQL query, adding complexity and fragility.
-
-Alternatively, if the developer creates the column as `geometry(Polygon, 4326)` before enabling PostGIS, the `CREATE TABLE` statement fails with `type "geometry" does not exist`.
-
-**Prevention:**
-Enable PostGIS in the Supabase Dashboard before creating the table: Database → Extensions → search "postgis" → enable. Then create the `coverage_zones` table with a `geometry(Polygon, 4326)` column. Add a spatial GiST index immediately:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS postgis;
-
-CREATE TABLE coverage_zones (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name TEXT NOT NULL,
-  polygon geometry(Polygon, 4326) NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE INDEX coverage_zones_polygon_idx ON coverage_zones USING GIST (polygon);
-```
-
-**Warning signs:**
-- `CREATE TABLE` fails with `type "geometry" does not exist`.
-- Zone containment checks require loading all polygon coordinates into memory in the application.
-- No `postgis` entry visible in the Supabase Dashboard under Extensions.
-
-**Phase to address:** Phase 2 — Coverage Zones (database schema step)
-
----
-
-### Pitfall 2B: PostGIS Returns Hex-Encoded WKB, Not GeoJSON
-
-**Risk level:** HIGH
-
-**What goes wrong:**
-The coverage zones are stored correctly as PostGIS geometry. When queried via `supabase-js` (which calls the PostgREST API), the polygon column returns a hex-encoded Well-Known Binary (WKB) string like `0103000020E6100000...` instead of a GeoJSON object. The frontend map renderer (vis.gl `<Polygon>`) expects GeoJSON coordinates, not WKB. The polygon cannot be rendered.
-
-**Why it happens:**
-PostgREST serializes `geometry` columns as WKB hex by default. This is standard behavior — it is not a bug.
-
-**Prevention:**
-Use `ST_AsGeoJSON()` in a database view or a Postgres function to return the polygon as GeoJSON:
-
-```sql
-CREATE OR REPLACE VIEW coverage_zones_geojson AS
-SELECT
-  id,
-  name,
-  ST_AsGeoJSON(polygon)::json AS polygon,
-  created_at
-FROM coverage_zones;
-```
-
-Then query the view instead of the table directly:
-
-```typescript
-const { data } = await supabase
-  .from("coverage_zones_geojson")
-  .select("id, name, polygon");
-```
-
-For inserts, use `ST_GeomFromGeoJSON()` to convert incoming GeoJSON back to geometry:
-
-```sql
-INSERT INTO coverage_zones (name, polygon)
-VALUES ($1, ST_GeomFromGeoJSON($2));
-```
-
-**Warning signs:**
-- Frontend map receives a hex string where it expects `{ type: "Polygon", coordinates: [...] }`.
-- Polygon column value in Supabase Table Editor shows a long hex string.
-- `vis.gl/react-google-maps` `<Polygon>` throws a type error or renders nothing.
-
-**Phase to address:** Phase 2 — Coverage Zones (data layer)
-
----
-
-### Pitfall 2C: terra-draw Outputs Coordinates as [lng, lat] — Google Maps Expects [lat, lng]
-
-**Risk level:** HIGH
-
-**What goes wrong:**
-terra-draw follows the GeoJSON spec and outputs coordinates in `[longitude, latitude]` order. PostGIS also uses `[longitude, latitude]` by convention (EPSG:4326). However, many Google Maps APIs (including the Maps JavaScript API `Polygon` constructor and `vis.gl/react-google-maps` `<Polygon>` paths) expect coordinates as `{ lat, lng }` objects or `[latitude, longitude]` pairs. If coordinates are passed in the wrong order, polygons render in the ocean near the Null Island (0°N, 0°E).
-
-**Prevention:**
-Establish a clear conversion boundary in code. Store and retrieve in GeoJSON `[lng, lat]` order (PostGIS native). Convert to `{ lat, lng }` objects only at the final rendering step in the React component:
-
-```typescript
-// GeoJSON coordinates [lng, lat] → Google Maps { lat, lng }
-function geoJsonToGooglePath(
-  coordinates: [number, number][]
-): google.maps.LatLngLiteral[] {
-  return coordinates.map(([lng, lat]) => ({ lat, lng }));
-}
-```
-
-Never convert mid-pipeline. Write a unit test for this function — this class of bug is invisible until you look at the map.
-
-**Warning signs:**
-- Polygon appears to render but is located in the ocean or at coordinates near (0, 0).
-- Polygon coordinates printed in logs have plausible-looking numbers but the wrong sign or order.
-- Coverage zone containment check always returns false for points in Prague.
-
-**Phase to address:** Phase 2 — Coverage Zones (coordinate handling)
-
----
-
-### Pitfall 2D: Missing Spatial Index Causes Full-Table Scans on Zone Containment Check
-
-**Risk level:** MEDIUM (low impact now, grows with data)
-
-**What goes wrong:**
-The booking wizard calls a server-side API to check if a pickup or dropoff point is within any defined coverage zone. Without a spatial GiST index on the `polygon` column, PostgreSQL performs a sequential scan of every polygon in the table for every price-calculation request. At a small number of zones this is imperceptible, but it is still wrong practice and will degrade as zones are added.
-
-**Prevention:**
-The index is included in Pitfall 2A's schema. If the table was created without it, add it:
-
-```sql
-CREATE INDEX coverage_zones_polygon_idx ON coverage_zones USING GIST (polygon);
-```
-
-The zone containment query in the booking wizard API route:
-
-```sql
-SELECT id, name FROM coverage_zones
-WHERE ST_Contains(polygon, ST_GeomFromText('POINT(14.4378 50.0755)', 4326));
-```
-
-**Phase to address:** Phase 2 — Coverage Zones (schema, added to creation migration)
-
----
-
-## Area 3: Pricing Logic Migration — Hardcoded File to Supabase Table
-
-### Pitfall 3A: Big-Bang Cutover Breaks Live Bookings During Deployment
-
-**Risk level:** CRITICAL
-
-**What goes wrong:**
-The existing `lib/pricing.ts` is deleted and the pricing API route is rewritten to fetch from a new Supabase `pricing_config` table in a single deployment. Between the moment the old code is removed and the moment the new Supabase table is seeded with data, any price-calculation request returns nothing. The booking wizard receives an empty or null price and either shows `NaN` to the user or falls back to quote mode for all routes — breaking the core booking flow for real customers during the deployment window.
-
-**Why it happens:**
-Treating the migration as a one-step swap rather than a gradual handover.
-
-**Prevention:**
-Use a three-phase dual-read migration — do not delete `lib/pricing.ts` until Phase 3 is complete:
-
-**Phase 1 — Add the table, seed it:**
-Create the `pricing_config` table in Supabase. Seed it with the exact values currently in `lib/pricing.ts`. Verify the seed data is correct before touching application code.
-
-**Phase 2 — Deploy with fallback:**
-Update the pricing API route to attempt a Supabase fetch first, falling back to the hardcoded values in `lib/pricing.ts` if the database returns empty or errors:
-
-```typescript
-async function getPricingConfig(): Promise<PricingConfig> {
-  try {
-    const { data, error } = await supabase
-      .from("pricing_config")
-      .select("*")
-      .single();
-    if (error || !data) throw error;
-    return data;
-  } catch {
-    // Fallback to hardcoded values — never silently remove this until DB is confirmed stable
-    return HARDCODED_PRICING;
+try {
+  const refund = await stripe.refunds.create({ payment_intent: booking.payment_intent_id })
+  // update Supabase status to 'cancelled'
+} catch (err) {
+  if (err instanceof Stripe.errors.StripeInvalidRequestError) {
+    return NextResponse.json({ error: err.message }, { status: 400 })
   }
+  throw err
 }
 ```
 
-**Phase 3 — Remove fallback (next milestone or after verification):**
-After confirming the database-driven pricing works correctly in production for several real bookings, remove the fallback and delete `lib/pricing.ts`.
-
 **Warning signs:**
-- Booking wizard shows `NaN` or `undefined` prices after deployment.
-- All routes enter quote mode simultaneously.
-- Supabase logs show `pricing_config` table exists but has zero rows.
+- Admin sees 500 errors in Vercel logs with message "This PaymentIntent has already been fully refunded"
+- Booking status stuck at `confirmed` after a manual Stripe dashboard refund
 
-**Phase to address:** Phase 3 — Pricing Editor (migration step)
+**Phase to address:** Booking cancellation + refund phase (BOOKINGS-08)
 
 ---
 
-### Pitfall 3B: Pricing Config Cached Aggressively — Operator Edits Not Reflected Immediately
-
-**Risk level:** MEDIUM
+### Pitfall 2: Refunding a Manual Booking That Has No payment_intent_id
 
 **What goes wrong:**
-The pricing API route is a Next.js Route Handler that fetches from Supabase. Without explicit cache control, Next.js 14 App Router may cache the response at the edge (depending on how `fetch` is used inside Route Handlers). The operator updates a base rate in the admin dashboard, saves it, and then tests a booking — but sees the old price because the cached response is still being served. The operator believes the editor is broken.
+Manual bookings created by the operator (BOOKINGS-06, phone orders) have no Stripe payment — `payment_intent_id` is NULL. When the operator later tries to cancel + refund a manual booking, the refund API route passes `payment_intent: null` to Stripe, which throws. Alternatively, the UI allows "Refund" for manual bookings when it should only offer "Cancel."
 
 **Why it happens:**
-Next.js 14 extended `fetch` with cache semantics. Route Handlers that use `fetch` internally may opt into caching unintentionally. Supabase's JS client (`supabase-js`) uses `fetch` internally.
+The refund action is built generically for all bookings. The code assumes every booking has a `payment_intent_id`. Manual bookings intentionally lack one.
 
-**Prevention:**
-Mark the pricing config fetch as non-cacheable, or use `cache: "no-store"` when calling the Supabase REST endpoint directly. In App Router Route Handlers, add:
+**How to avoid:**
+Distinguish manual bookings from Stripe-paid bookings by checking `payment_intent_id IS NULL` (or a dedicated `booking_source: 'manual' | 'stripe'` column). In the admin UI, show "Cancel" (no refund) for manual bookings and "Cancel + Refund" only for Stripe-paid bookings. The server-side route must also guard: if `payment_intent_id` is NULL, skip the Stripe call entirely and only update the booking status.
+
+**Warning signs:**
+- Stripe errors with "No such PaymentIntent: null" in Vercel logs
+- Admin tries to refund a phone-order booking
+
+**Phase to address:** Manual booking creation (BOOKINGS-06) + booking cancellation (BOOKINGS-08) — must coordinate the `payment_intent_id` null case across both phases
+
+---
+
+### Pitfall 3: Promo Code Race Condition — Over-Redemption Past Usage Limit
+
+**What goes wrong:**
+A promo code has `max_uses = 10` and `current_uses = 9`. Two clients simultaneously submit the checkout (both at Step 6, both call `/api/create-payment-intent` with the promo code). Both server instances read `current_uses = 9`, both conclude the code is still valid, both create PaymentIntents with the discounted amount, and both increment to 10. The code is redeemed 11 times total.
+
+This vulnerability is documented in the wild: Stripe's own HackerOne bug reports include a race condition on promotion code redemption limits (HackerOne report #1717650).
+
+**Why it happens:**
+The naive implementation does: (1) SELECT the promo code row, (2) check `current_uses < max_uses`, (3) UPDATE `current_uses = current_uses + 1`. Steps 1–3 are not atomic. Two concurrent requests both pass step 2 before either reaches step 3.
+
+**How to avoid:**
+Use an atomic UPDATE with a WHERE guard instead of a read-then-write pattern:
+
+```sql
+-- Atomic: only succeeds if the limit is not yet reached
+UPDATE promo_codes
+SET current_uses = current_uses + 1
+WHERE code = $1
+  AND is_active = true
+  AND (max_uses IS NULL OR current_uses < max_uses)
+  AND (expires_at IS NULL OR expires_at > NOW())
+RETURNING id, discount_type, discount_value;
+```
+
+If 0 rows are returned, the code is invalid or exhausted — reject the request. This single statement is atomic at all PostgreSQL isolation levels. Do NOT use a SELECT followed by an UPDATE — the gap between them is the race window.
+
+This increment should happen inside `create-payment-intent`, not at the promo-code validation step. Validate first (read-only check for user feedback), but only commit the increment when the PaymentIntent is created.
+
+**Warning signs:**
+- `current_uses` exceeds `max_uses` in the database
+- High-demand promo campaigns with concurrent users
+- Load testing reveals codes redeemed more than max_uses
+
+**Phase to address:** Promo code system — server validation and PaymentIntent creation (PROMO-04)
+
+---
+
+### Pitfall 4: Price Mismatch — Client Displays Discounted Price, Server Charges Full Price
+
+**What goes wrong:**
+The client applies a promo code in Step 4 or Step 6 of the wizard. The displayed price is updated. But when Step 6 calls `/api/create-payment-intent`, the promo code is not included in the request body (forgotten, or the Zustand store doesn't pass it). The PaymentIntent is created at full price. The client pays more than shown. This is a serious trust violation with premium clients.
+
+**Why it happens:**
+The wizard Zustand store in Prestigo holds wizard step data. If the promo code field is added to the UI but not wired into the `bookingData` object passed to `create-payment-intent`, the server never sees it. The discounted amount shown to the user is calculated client-side only — the PaymentIntent reflects the unmodified server calculation.
+
+**How to avoid:**
+- The promo code must be stored in the Zustand wizard store and included in `bookingData` sent to `create-payment-intent`.
+- The server must re-apply the discount during PaymentIntent creation and embed the discount details in Stripe metadata.
+- Never trust a client-provided amount. The server must independently recalculate: fetch the promo code from DB, verify it's valid, compute discounted total, create PaymentIntent with that amount.
+- Add an assertion in the server: `if (requestedAmount !== computedAmount) log warning and use computedAmount`.
+
+**Warning signs:**
+- Stripe Dashboard shows PaymentIntent amounts inconsistent with what clients report paying
+- Client emails asking why they were charged more than the displayed price
+
+**Phase to address:** Promo code client integration (PROMO-03) and server validation (PROMO-04) — must implement as a single coordinated change
+
+---
+
+### Pitfall 5: Zone Logic Regression — ZONES-06 Fix Breaks Existing Quote Mode
+
+**What goes wrong:**
+The current zone check in `calculate-price/route.ts` (lines 132–138) returns `quoteMode: true` if `originOutside || destOutside`. The v1.3 requirement (ZONES-06) inverts this: show a price if pickup OR dropoff is within a zone; only go to quoteMode if NEITHER point is in any zone.
+
+A naive search-and-replace of `||` to `&&` in the zone check:
 
 ```typescript
-export const dynamic = "force-dynamic";
+// WRONG — accidentally allows trips entirely outside all zones
+if (originOutside && destOutside) { return quoteMode }
 ```
 
-at the top of the `/api/calculate-price/route.ts` file. This ensures every request to the pricing route fetches fresh data from Supabase. For better performance on a high-traffic route, implement a short in-memory cache (30–60 seconds) with explicit invalidation on admin writes — but this is optional at v1.2 scale.
-
-**Warning signs:**
-- Operator saves a new base rate in the pricing editor but booking wizard shows the old price.
-- Price updates appear after ~5 minutes (consistent with Vercel's default edge cache TTL).
-- Clearing browser cache or making the request from a different device shows the new price.
-
-**Phase to address:** Phase 3 — Pricing Editor (cache headers on the pricing API route)
-
----
-
-### Pitfall 3C: Pricing Config Table Has No RLS — Any Authenticated User Can Write Rates
-
-**Risk level:** HIGH
-
-**What goes wrong:**
-A `pricing_config` table is created and RLS is enabled. An `authenticated` role SELECT policy is added so the pricing API can read rates. But no explicit restriction prevents any authenticated Supabase user from updating the table. Since the project will have only one admin, this seems harmless — but if the admin auth account is ever compromised (or if the anon key is used to auth in a test), any authenticated session can overwrite pricing for all future bookings.
-
-**Prevention:**
-Use the role-check pattern on write operations. The admin user should have a custom claim (e.g., `app_role: 'admin'`) set via a Supabase database function or manually in Supabase Dashboard user metadata. Write policies check this claim:
-
-```sql
--- Allow anyone authenticated to read pricing (pricing API needs this)
-CREATE POLICY "pricing_config_select" ON pricing_config
-  FOR SELECT TO authenticated USING (true);
-
--- Only admin role can modify pricing
-CREATE POLICY "pricing_config_admin_write" ON pricing_config
-  FOR ALL TO authenticated
-  USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin')
-  WITH CHECK (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
-```
-
-Use `app_metadata` (not `user_metadata`) for the role claim — `user_metadata` can be modified by the end user and must never be trusted in security policies.
-
-**Warning signs:**
-- Any authenticated user can UPDATE `pricing_config` rows via the Supabase client without an explicit permission error.
-- Supabase Table Editor shows the policy configuration allows writes from the `authenticated` role without a role check.
-
-**Phase to address:** Phase 3 — Pricing Editor (RLS policies)
-
----
-
-## Area 4: Admin-Only RLS — Bookings Table and Admin Tables
-
-### Pitfall 4A: RLS Disabled by Default — New Tables Are Publicly Readable
-
-**Risk level:** CRITICAL
-
-**What goes wrong:**
-Any new table created without explicitly enabling RLS is fully readable and writable by the `anon` role (i.e., any request using the public anon key — including every visitor to the booking site). A `bookings` table without RLS means anyone can execute `supabase.from('bookings').select('*')` from the browser and retrieve all customer names, emails, phone numbers, flight numbers, and payment amounts. GDPR violation with immediate exposure.
-
-The existing `bookings` table from v1.1 may already have RLS enabled — verify this before adding the bookings list to the admin dashboard, as the admin dashboard will need read access.
-
-**Prevention:**
-Enable RLS on every table at creation time:
-
-```sql
-ALTER TABLE coverage_zones ENABLE ROW LEVEL SECURITY;
-ALTER TABLE pricing_config ENABLE ROW LEVEL SECURITY;
-```
-
-For the admin dashboard, never add a public SELECT policy on `bookings`. Add an admin-only policy:
-
-```sql
--- Admin can read all bookings
-CREATE POLICY "bookings_admin_select" ON bookings
-  FOR SELECT TO authenticated
-  USING (auth.jwt() -> 'app_metadata' ->> 'role' = 'admin');
-
--- Webhook service role still writes (service role bypasses RLS — no policy needed)
-```
-
-Audit all tables in the Supabase Dashboard → Authentication → Policies. Any table showing "No policies" after RLS is enabled is locked to all access (deny-all). Any table showing "RLS disabled" is fully public.
-
-**Warning signs:**
-- `supabase.from('bookings').select('count()')` returns a count from an unauthenticated browser session.
-- Supabase Dashboard shows a table with "RLS: disabled" in the Table Editor.
-- A browser DevTools Network tab shows booking data returned from a direct Supabase REST call on the public site.
-
-**Phase to address:** Phase 1 — Auth Setup (RLS audit of existing tables); all subsequent phases for new tables.
-
----
-
-### Pitfall 4B: `anon` Key Mistakenly Treated as a Security Boundary
-
-**Risk level:** HIGH
-
-**What goes wrong:**
-The Supabase `anon` key is visible in every browser request (it is embedded in `NEXT_PUBLIC_SUPABASE_ANON_KEY`). If a developer assumes "the anon key is secret so the data is protected," they do not enable RLS and do not write policies. All tables using the anon key — with RLS disabled — are accessible to anyone who inspects the network tab.
-
-This is documented as the cause of a January 2025 mass data exposure incident (CVE-2025-48757) where 170+ Lovable-generated apps exposed their databases.
-
-**Prevention:**
-The `anon` key is designed to be public and is expected to appear in browser network requests. Security is enforced entirely through RLS policies, not through key secrecy. Treat the anon key as if it were already public — because it is.
-
-Verify: open the booking site in a private browser window and run the following in DevTools console. If it returns data, RLS is not protecting the table:
-
-```javascript
-const { createClient } = supabase; // loaded from CDN for testing
-const c = createClient('YOUR_SUPABASE_URL', 'YOUR_ANON_KEY');
-const { data } = await c.from('bookings').select('*').limit(5);
-console.log(data); // Must be null or error, never rows
-```
-
-**Phase to address:** Phase 1 — Auth Setup (security model clarification)
-
----
-
-### Pitfall 4C: Database Views Bypass RLS — Admin Views Expose Data Publicly
-
-**Risk level:** HIGH
-
-**What goes wrong:**
-A database view is created to simplify admin queries (e.g., `booking_stats_view` joining `bookings` with aggregate functions). The underlying `bookings` table has correct RLS policies. But the view is created with `SECURITY DEFINER` (Postgres default for views) and bypasses RLS — meaning any anon user can query the view and see aggregated booking data.
-
-**Why it happens:**
-PostgreSQL creates views with `security definer` by default. The view runs as the view creator (usually the `postgres` superuser), bypassing the row-level policies of the underlying tables.
-
-**Prevention:**
-On Supabase (which uses Postgres 15+), add `WITH (security_invoker = true)` to any view that accesses sensitive tables:
-
-```sql
-CREATE OR REPLACE VIEW booking_stats_view
-  WITH (security_invoker = true)
-AS
-SELECT
-  COUNT(*) AS total_bookings,
-  SUM(amount_czk) AS total_revenue
-FROM bookings;
-```
-
-With `security_invoker = true`, the view respects the RLS policies of the `bookings` table for whoever is calling the view — including the `anon` role.
-
-Alternatively, place views in a non-public schema (`private` or `admin_schema`) and revoke `anon` and `authenticated` role access from that schema.
-
-**Warning signs:**
-- An unauthenticated request to the view returns data even though the underlying table is RLS-protected.
-- `\d+ view_name` in Supabase SQL Editor shows `security_definer` in the view definition.
-
-**Phase to address:** Phase 4 — Statistics (any views created for stats queries)
-
----
-
-### Pitfall 4D: Enabling RLS Without Policies Locks Out the Admin Dashboard
-
-**Risk level:** MEDIUM
-
-**What goes wrong:**
-RLS is enabled on the `bookings` table (correct). No SELECT policy is added for the admin role. The admin dashboard's bookings list page returns no rows — not an error, just an empty table. The developer thinks the query is broken and spends time debugging the frontend before realizing the database is returning nothing due to the implicit deny-all.
-
-**Why it happens:**
-RLS with no policies means "deny all access to all roles." It is a common misconception that enabling RLS alone is sufficient and that data will still be readable by admins.
-
-**Prevention:**
-After enabling RLS on any table, immediately add the necessary policies in the same migration. Do not deploy a "enable RLS, add policies later" state. Test the admin query before shipping by running it with an authenticated admin JWT via the Supabase REST API.
-
-**Warning signs:**
-- Admin dashboard bookings list is empty after correct RLS setup.
-- No query errors — `supabase-js` returns `{ data: [], error: null }`.
-- Direct SQL query in Supabase SQL Editor (which runs as `postgres` superuser, bypassing RLS) returns rows correctly.
-
-**Phase to address:** All phases that add new tables.
-
----
-
-## Area 5: Dynamic Import of terra-draw in Next.js (SSR)
-
-### Pitfall 5A: `"use client"` Alone Does Not Prevent terra-draw SSR Errors
-
-**Risk level:** CRITICAL
-
-**What goes wrong:**
-The zones editor component is marked `"use client"`. The developer assumes this prevents SSR execution. terra-draw and its adapters (e.g., `TerraDrawGoogleMapsAdapter`) access `window`, `document`, and canvas/WebGL APIs at module load time. When the module is imported in a `"use client"` component, Next.js still processes the import on the server during the initial render — just to build the module graph. terra-draw's top-level code accesses `window` during this import phase, throwing `ReferenceError: window is not defined` and crashing the server render.
-
-**Why it happens:**
-`"use client"` marks the boundary between Server and Client component trees, but it does not mean "never execute on the server." Next.js still imports and tree-shakes `"use client"` modules during the build and initial SSR pass. The actual `window` check happens at runtime, which fails on the server.
-
-**Prevention:**
-Isolate all terra-draw usage into a dedicated component and use `next/dynamic` with `ssr: false`. Do not import terra-draw anywhere that is not wrapped in a dynamic import:
+...looks correct in isolation but the variable names are `isOutsideAllZones` return values. The logic must be:
 
 ```typescript
-// app/admin/zones/page.tsx (or wherever the editor lives)
-import dynamic from "next/dynamic";
+// CORRECT — quoteMode only when BOTH points are outside all zones
+const originInAnyZone = !isOutsideAllZones(origin.lat, origin.lng, zones)
+const destInAnyZone   = !isOutsideAllZones(destination.lat, destination.lng, zones)
+if (!originInAnyZone && !destInAnyZone) { return quoteMode }
+```
 
-const ZonesEditor = dynamic(
-  () => import("@/components/admin/ZonesEditor"),
-  {
-    ssr: false,
-    loading: () => <div className="h-96 bg-neutral-800 animate-pulse rounded" />,
-  }
-);
+The confusion arises from the negated naming. Getting this wrong causes previously-working routes to fall into quoteMode (breaking paid bookings) or previously-quoteModed routes to show prices (booking trips the operator cannot service).
 
-export default function ZonesPage() {
-  return <ZonesEditor />;
+**Why it happens:**
+The existing function is named `isOutsideAllZones` — it returns `true` when the point is OUTSIDE. Developers mentally invert the logic incorrectly when applying the new OR rule.
+
+**How to avoid:**
+Rename to a positive-assertion function `isInAnyZone` to avoid double-negation confusion:
+
+```typescript
+function isInAnyZone(lat: number, lng: number, zones: Zone[]): boolean {
+  if (zones.length === 0) return false
+  const pt = point([lng, lat])
+  return zones.some(zone => booleanPointInPolygon(pt, zone.geojson))
+}
+// quoteMode = neither pickup nor dropoff is in any zone
+const quoteMode = !isInAnyZone(origin.lat, origin.lng, zones) &&
+                  !isInAnyZone(destination.lat, destination.lng, zones)
+```
+
+Write explicit unit tests for all four zone cases before touching production code:
+1. Pickup inside zone, dropoff outside → price shown
+2. Pickup outside zone, dropoff inside → price shown
+3. Both inside zone → price shown
+4. Both outside zone → quoteMode
+
+**Warning signs:**
+- Existing routes that currently show prices suddenly enter quoteMode after the deploy
+- Routes between two Prague locations show quoteMode when Prague zone is active
+
+**Phase to address:** Zone logic fix phase (ZONES-06) — must include regression tests
+
+---
+
+### Pitfall 6: Holiday Date Timezone Bug — Prague Date vs UTC Date
+
+**What goes wrong:**
+The operator configures "2026-12-25" (Christmas Day CET) in the holiday dates admin panel. The date is stored as a plain date string `2026-12-25` in Supabase. When a client books a midnight trip on Dec 25 at 00:30 CET, the server converts the pickup datetime to UTC: 00:30 CET = 23:30 UTC on Dec 24. The server compares `2026-12-24` (UTC date) against the holiday list `['2026-12-25']` — no match. The holiday coefficient is not applied.
+
+This is the inverse problem too: a trip booked at 23:30 CET on Dec 25 = 22:30 UTC on Dec 25 — this DOES match and correctly applies the coefficient. But the midnight edge case fails silently with no error.
+
+Prague operates on CET (UTC+1) in winter and CEST (UTC+2) in summer. The DST transition itself (last Sunday of March, last Sunday of October) can also cause off-by-one day errors.
+
+**Why it happens:**
+JavaScript `new Date()` in a Node.js serverless environment (Vercel) operates in UTC. `new Date().toISOString().slice(0, 10)` gives the UTC date, not the Prague local date. Supabase also stores timestamps in UTC. Operators think in local time; the system computes in UTC.
+
+**How to avoid:**
+When checking if a pickup date is a holiday, derive the local Prague date from the pickup datetime, not from UTC:
+
+```typescript
+import { toZonedTime, format } from 'date-fns-tz'
+
+function getLocalDateString(pickupDate: string, pickupTime: string): string {
+  // pickupDate is 'YYYY-MM-DD', pickupTime is 'HH:MM' — treat as Prague local
+  const localDatetime = new Date(`${pickupDate}T${pickupTime}:00`)
+  // This is already a local wall-clock time from the user's perspective
+  // Prague stores dates as local dates — compare directly
+  return pickupDate // The date the operator set IS already local
 }
 ```
 
-The `ZonesEditor` component itself can be `"use client"` and import terra-draw normally — the `dynamic` wrapper with `ssr: false` ensures it never runs on the server.
+Actually simpler: since `pickupDate` and `pickupTime` are stored as the local Prague time that the client entered (the wizard date picker is unaware of timezone), the server should compare `pickupDate` string directly against the holiday dates list — NOT convert to UTC first. The pitfall appears when code does `new Date(pickupDate).toISOString().slice(0, 10)` which is safe for dates but dangerous for datetimes near midnight.
+
+Do NOT use `new Date(pickupDate + 'T' + pickupTime + 'Z')` (forcing UTC) — this misinterprets local times. The existing `dateDiffDays` function in `lib/pricing.ts` correctly appends `T00:00:00` (no Z) to treat dates as local — follow this exact same pattern for holiday comparison.
 
 **Warning signs:**
-- `ReferenceError: window is not defined` in Vercel build logs or server error overlay.
-- The error references a file inside `node_modules/terra-draw/` in the stack trace.
-- The zones editor page crashes the entire server render, showing a 500 error.
+- Holiday coefficient not applied for bookings with `pickupTime` between 00:00–01:00 or 22:00–23:59
+- Complaints around Christmas/New Year bookings where prices seem wrong
 
-**Phase to address:** Phase 2 — Coverage Zones (zones editor component)
+**Phase to address:** Holiday dates configuration (PRICING-07)
 
 ---
 
-### Pitfall 5B: terra-draw Instance Initialized Outside `useEffect` — Crashes on Re-render
-
-**Risk level:** HIGH
+### Pitfall 7: Manual Booking — Status Confusion with Webhook-Saved Bookings
 
 **What goes wrong:**
-The terra-draw instance is initialized at module scope or directly in the component body (not inside `useEffect`). When the component re-renders (e.g., due to a parent state update), terra-draw tries to re-attach to the same DOM node, throwing an error because the previous instance is still attached. Or the terra-draw instance is never cleaned up when the component unmounts, causing memory leaks and ghost event listeners that interfere with the next mount.
+Webhook-saved bookings are created with `status = 'confirmed'` (set in the webhook handler after `payment_intent.succeeded`). Manual bookings created by the operator for phone orders have no payment and no webhook. If the manual booking is saved with `status = 'confirmed'`, it looks identical to a paid online booking in the admin bookings table. There is no way to distinguish "confirmed by Stripe payment" from "confirmed by operator assertion."
 
-**Prevention:**
-Initialize terra-draw inside `useEffect` with a proper cleanup:
+A related risk: if the manual booking accidentally gets a `payment_intent_id` from a stale form state (wizard leftover in the store), then the operator's "cancel + refund" action tries to refund a PaymentIntent that doesn't belong to this booking.
+
+**Why it happens:**
+Reusing the same `status` values and `booking_type` without a dedicated field to track booking origin. The Supabase `bookings` table has `booking_type: 'confirmed' | 'quote'` (from `buildBookingRow`) — but this does not capture the manual creation path.
+
+**How to avoid:**
+Introduce a `booking_source` column (or use `payment_intent_id IS NULL` as a reliable proxy) to distinguish:
+- `booking_source = 'online'` — created via Stripe webhook
+- `booking_source = 'manual'` — created by operator via admin form
+
+Initial status for manual bookings should be `'confirmed'` (operator explicitly confirms the booking exists) but the admin UI must show the source badge and disable the "Refund" action for manual bookings.
+
+Never populate `payment_intent_id` for manual bookings — it must be NULL. Validate this server-side: the manual booking creation API route must not accept a `payment_intent_id` parameter.
+
+Clear the Zustand booking wizard store state before showing the admin manual booking form — they share no state.
+
+**Warning signs:**
+- All bookings look identical in the table regardless of how they were created
+- Operator accidentally tries to refund a phone order
+
+**Phase to address:** Manual booking creation (BOOKINGS-06)
+
+---
+
+### Pitfall 8: Booking Status Workflow — Invalid Transitions Not Guarded
+
+**What goes wrong:**
+The operator can change status from any value to any value. A booking in `completed` status gets moved back to `pending`. A `cancelled` booking gets moved back to `confirmed` and then the client is charged again. Or a `cancelled` booking that was already refunded in Stripe gets moved to `completed` — triggering confusion if emails are sent on status change.
+
+**Why it happens:**
+The PATCH endpoint for status change only validates that the new status is a valid enum value — it doesn't enforce that the transition is legal.
+
+**How to avoid:**
+Enforce a state machine at the server side. Valid transitions:
+
+```
+pending    → confirmed | cancelled
+confirmed  → completed | cancelled
+completed  → (no transitions — terminal state)
+cancelled  → (no transitions — terminal state)
+```
 
 ```typescript
-useEffect(() => {
-  if (!mapRef.current) return;
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  pending:   ['confirmed', 'cancelled'],
+  confirmed: ['completed', 'cancelled'],
+  completed: [],
+  cancelled: [],
+}
 
-  const draw = new TerraDraw({
-    adapter: new TerraDrawGoogleMapsAdapter({ map: mapRef.current }),
-    modes: [new TerraDrawPolygonMode()],
-  });
-
-  draw.start();
-
-  draw.on("finish", (id) => {
-    const snapshot = draw.getSnapshot();
-    onPolygonDrawn(snapshot);
-  });
-
-  return () => {
-    draw.stop();
-  };
-}, [mapRef.current]); // Re-run only when the map ref changes
+if (!VALID_TRANSITIONS[currentStatus]?.includes(newStatus)) {
+  return NextResponse.json({ error: `Invalid status transition: ${currentStatus} → ${newStatus}` }, { status: 422 })
+}
 ```
 
 **Warning signs:**
-- `Cannot read properties of null (reading 'addEventListener')` errors in the browser console.
-- Drawing tools appear to work but drawn polygons disappear on re-render.
-- Memory usage grows continuously as the user navigates between admin pages.
+- Bookings with `status = 'completed'` appearing with a later `status = 'pending'` in audit logs
+- Duplicate refund attempts on cancelled bookings that were reopened
 
-**Phase to address:** Phase 2 — Coverage Zones (terra-draw initialization pattern)
-
----
-
-### Pitfall 5C: `useMemo` Wrapping `dynamic()` — Causes Unnecessary Re-mounts
-
-**Risk level:** LOW
-
-**What goes wrong:**
-Some Next.js examples (for react-leaflet in particular) recommend wrapping `dynamic()` inside `useMemo` to prevent the component from being re-created on every parent render. While this prevents the reference from changing, it is usually not needed for `ssr: false` dynamic imports — and using `useMemo` with an empty dependency array inside a Server Component context causes a React error.
-
-**Prevention:**
-For the zones editor, call `dynamic()` at module scope (outside the component), not inside `useMemo`. Module-scope `dynamic()` calls are stable across renders by definition:
-
-```typescript
-// At module scope — not inside a component or hook
-const ZonesEditor = dynamic(() => import("@/components/admin/ZonesEditor"), {
-  ssr: false,
-});
-```
-
-Only use `useMemo(() => dynamic(...), [])` if the dynamic target must vary based on props — which is not the case here.
-
-**Phase to address:** Phase 2 — Coverage Zones (dynamic import placement)
+**Phase to address:** Booking status workflow (BOOKINGS-07)
 
 ---
 
-## Cross-Cutting Pitfalls
+## Technical Debt Patterns
 
-### Pitfall 6A: Admin Route Not in Middleware Matcher — Protection Silently Skipped
-
-**Risk level:** CRITICAL
-
-**What goes wrong:**
-The middleware file is correctly implemented, but the `matcher` in the `config` export does not include the `/admin` path. Middleware never runs for `/admin` requests. All admin pages are publicly accessible without authentication.
-
-**Prevention:**
-The matcher must explicitly include `/admin` and all its sub-paths:
-
-```typescript
-export const config = {
-  matcher: [
-    // Standard Next.js assets exclusion
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
-};
-```
-
-This regex matches all paths except static assets and Next.js internals, which includes `/admin`. Alternatively, be explicit:
-
-```typescript
-matcher: ["/admin", "/admin/:path*"]
-```
-
-After deploying, verify by loading `/admin` in a private browsing window without logging in — it must redirect to `/login`.
-
-**Warning signs:**
-- `/admin` loads without authentication in a logged-out browser.
-- Middleware logs show no requests for the `/admin` path.
-- `console.log` inside the middleware function never fires for admin routes.
-
-**Phase to address:** Phase 1 — Auth Setup (middleware config)
+| Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
+|----------|-------------------|----------------|-----------------|
+| Validating promo code only client-side at Step 4 | Instant UX feedback without API call | Code can be exhausted or deactivated between Step 4 and Step 6; client shows valid, server rejects at payment | Never — always re-validate server-side at PaymentIntent creation |
+| Storing holiday dates as an array in `pricing_globals` JSON column | No schema migration needed | Hard to query, no index, no validation per-row | Only for MVP with <20 holiday dates; prefer a dedicated `holiday_dates` table |
+| Using `booking_type` field to infer booking source instead of a dedicated column | No migration | `booking_type = 'confirmed'` means both Stripe-confirmed and operator-manual | Never — add `booking_source` or use `payment_intent_id IS NULL` reliably |
+| Allowing status changes via simple PUT with no transition guard | Simpler endpoint | Data integrity violations, refund confusion | Never for a production booking system |
+| Skipping `charge.refunded` webhook handler (relying on the admin-initiated refund) | Less webhook complexity | If operator refunds directly in Stripe Dashboard, local `status` and `refunded_amount` are never updated | Never — webhooks must stay the authoritative source |
 
 ---
 
-### Pitfall 6B: New Admin Env Vars Not Added to Vercel Production Scope
+## Integration Gotchas
 
-**Risk level:** HIGH
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| Stripe Refunds API | Passing `payment_intent` when `payment_intent_id` is NULL (manual bookings) | Guard: `if (!booking.payment_intent_id) skip Stripe call` |
+| Stripe Refunds API | Not catching `StripeInvalidRequestError` separately from network errors | Wrap in typed catch; `charge_already_refunded` → 409, network error → 503 |
+| Stripe Webhooks | Not handling `refund.created` / `charge.refunded` events to sync local status | Add handler for `charge.refunded` to update `status = 'cancelled'` and store `refunded_amount` |
+| Stripe Webhooks | Webhook handler doesn't deduplicate refund events (Stripe retries) | Check `payment_intent_id` in DB before updating — idempotent UPSERT pattern |
+| Supabase promo_codes table | Read-then-write for `current_uses` increment | Single atomic `UPDATE ... WHERE current_uses < max_uses RETURNING id` |
+| Supabase promo_codes table | Not expiring codes by `expires_at` server-side | Include `expires_at > NOW()` in the WHERE clause of every validation query |
+| Stripe PaymentIntent metadata | Promo code not included in metadata → webhook has no record of discount | Add `promoCode`, `discountAmount` to PI metadata at creation time |
+| Vercel Hobby (10s timeout) | Stripe refund API call + Supabase update in sequence can exceed 10s under load | Use `Promise.all` for independent operations; Stripe refund is typically <2s |
 
-**What goes wrong:**
-Auth-related env vars (e.g., `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` if not already set, or a new `ADMIN_EMAIL` for the seeded admin account) are set locally in `.env.local` but not added to Vercel. The admin login page renders, the user submits credentials, and `signInWithPassword` silently fails because the Supabase client is initialized with `undefined` URL/key. The error message is often misleading ("invalid login credentials") rather than indicating a misconfigured client.
+---
 
-**Prevention:**
-After identifying every new env var required for v1.2, add each to Vercel before the first production deployment. For v1.2, the candidates are:
-- `NEXT_PUBLIC_SUPABASE_URL` — already set in v1.1, verify it is present
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` — already set in v1.1, verify it is present
-- Any new server-side vars scoped to Production only
+## Performance Traps
 
-Verify by calling `/api/health` after deployment and checking the Supabase probe result.
+| Trap | Symptoms | Prevention | When It Breaks |
+|------|----------|------------|----------------|
+| Fetching all bookings to count promo code uses in application code | Slow promo validation as bookings grow | Use `current_uses` counter column with atomic increment — never count from bookings table | At ~500 bookings with high-traffic promo campaign |
+| Zone check on every `/api/calculate-price` call with no zone caching | Supabase query on every price calculation | Cache active zones in memory for 60s with a simple module-level variable (acceptable for low-traffic admin zone changes) | At >50 concurrent price calculations |
+| TanStack Table rendering 200+ bookings without pagination on mobile | 3–5s render freeze on low-end mobile | Server-side pagination already implemented (existing GET /api/admin/bookings); pass `limit=20` and use TanStack's manual pagination mode | First mobile admin visit with a large bookings dataset |
 
-**Phase to address:** Phase 1 — Auth Setup (env var checklist)
+---
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Promo code validated only client-side | Client modifies discount amount before submit; pays less than shown | Server MUST recompute total with promo applied — never trust client-provided amount |
+| Refund endpoint accessible without admin auth check | Any authenticated user (if anon key leaks) issues refunds | Reuse the existing `getAdminUser()` guard (checks `is_admin` app_metadata) on every new admin API route |
+| Manual booking creation endpoint accepts `payment_intent_id` from client | Operator (or attacker) links a manual booking to a real customer's PaymentIntent | The manual booking creation route must generate its own booking reference and never accept external PaymentIntent IDs |
+| Promo code brute-force — no rate limiting on validation endpoint | Attacker enumerates valid codes | Apply the existing rate-limit middleware (`checkRateLimit`) to the promo code validation route |
+
+---
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| Showing "Refund" button for manual bookings (no payment_intent_id) | Operator clicks, gets confusing error | Show "Cancel" (no refund) for `payment_intent_id IS NULL` bookings; show "Cancel + Refund" only for Stripe-paid bookings |
+| Promo code applied at Step 4, but discounted total not shown on Step 6 payment card | Client pays and is surprised by the final amount | Persist applied promo in Zustand store; re-display discount line on Step 6 summary before payment |
+| Admin mobile table with 8+ columns at 375px | Horizontal scroll is unusable with no visual affordance | Use responsive column collapse (TanStack `columnVisibility` with `useWindowSize`) — hide secondary columns below 640px; show only reference, client name, date, amount, status |
+| Status change dropdown shows all statuses including current | Operator selects same status accidentally, triggers unnecessary DB write | Only show VALID_TRANSITIONS[currentStatus] in the status dropdown; grey out or hide invalid options |
+| No confirmation dialog before issuing a Stripe refund | Operator mis-clicks; irreversible action taken | Require a modal confirmation: "Refund CZK 3,200 to {client name}? This cannot be undone." |
+
+---
+
+## "Looks Done But Isn't" Checklist
+
+- [ ] **Promo code**: Code shown as valid to client — verify server-side re-validation happens at PaymentIntent creation, not just at code entry step
+- [ ] **Stripe refund**: Refund button works in test mode — verify `payment_intent_id IS NULL` guard exists for manual bookings before going live
+- [ ] **Zone logic (ZONES-06)**: Unit tests pass for "both outside" case — verify "only pickup inside" and "only dropoff inside" cases also produce prices (not quoteMode)
+- [ ] **Holiday dates**: Coefficient applies on Dec 25 — verify midnight edge case: a booking at 00:30 CET on Dec 25 still gets the holiday coefficient (compare `pickupDate` string, not UTC datetime)
+- [ ] **Status workflow**: PATCH endpoint accepts valid enum — verify invalid transitions (e.g., `completed → pending`) return 422, not 200
+- [ ] **Webhook sync**: Admin-initiated refund updates Supabase status — verify `charge.refunded` webhook also updates status for refunds issued directly in Stripe Dashboard
+- [ ] **Manual booking**: Created with `status = 'confirmed'` — verify `payment_intent_id` is NULL and "Cancel + Refund" button is not shown
+- [ ] **Mobile admin**: Bookings table renders on 375px — verify TanStack Table does not cause horizontal overflow; check that column collapse or card layout is active below 640px
+
+---
+
+## Recovery Strategies
+
+| Pitfall | Recovery Cost | Recovery Steps |
+|---------|---------------|----------------|
+| Promo over-redeemed past max_uses | MEDIUM | Manually set `current_uses = max_uses` and `is_active = false` in Supabase; issue apology credits to extra redeemers if discount was significant |
+| Wrong PaymentIntent refunded | HIGH | Contact Stripe support; re-issue correct refund manually in Dashboard; update Supabase status manually; notify affected clients |
+| Zone logic regression (quoteMode applied to valid routes) | MEDIUM | Revert `calculate-price/route.ts` to previous logic; redeploy; affected clients saw "Request a Quote" instead of price — no financial damage |
+| Holiday coefficient missed for midnight bookings | LOW | Manually apply a partial refund in Stripe Dashboard for the coefficient difference; add a Supabase UPDATE to fix affected booking records |
+| Manual booking linked to wrong PaymentIntent | HIGH | NULL out `payment_intent_id` in Supabase; add a migration guard to prevent this in future |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
-| Pitfall | Risk | Prevention Phase | Verification |
-|---------|------|-----------------|--------------|
-| Infinite redirect loop (cookie not written to both sides) | CRITICAL | Phase 1 — Auth: middleware implementation | Login → redirect to `/admin` works without loop |
-| `getSession()` in server code instead of `getClaims()` | HIGH | Phase 1 — Auth: route protection logic | Code review: no `getSession()` calls in server files |
-| `middleware.ts` in wrong directory | MEDIUM | Phase 1 — Auth: file placement | Middleware log appears in dev terminal |
-| CDN-cached response with session cookie | HIGH | Phase 1 — Auth: cache headers | `force-dynamic` on all admin layouts |
-| Service role client using SSR cookies | HIGH | All phases with admin Route Handlers | Code review: admin writes use `createSupabaseServiceClient()` |
-| PostGIS not enabled before creating geometry column | CRITICAL | Phase 2 — Zones: schema migration | `SELECT postgis_version()` returns version, not error |
-| PostGIS returns WKB hex instead of GeoJSON | HIGH | Phase 2 — Zones: data layer | Querying view returns `{ type: "Polygon", coordinates: [...] }` |
-| Coordinate order mismatch terra-draw vs Google Maps | HIGH | Phase 2 — Zones: coordinate conversion | Prague polygon renders over Prague on map |
-| Missing spatial index | MEDIUM | Phase 2 — Zones: schema migration | Index visible in Supabase Table Editor |
-| Big-bang pricing cutover breaks live bookings | CRITICAL | Phase 3 — Pricing: migration plan | Fallback deployed before `pricing_config` seeded |
-| Pricing response cached — edits not immediate | MEDIUM | Phase 3 — Pricing: API route | `force-dynamic` on `/api/calculate-price` |
-| Pricing config table writable by any authenticated user | HIGH | Phase 3 — Pricing: RLS policies | Non-admin authenticated user cannot INSERT/UPDATE |
-| RLS disabled on new tables | CRITICAL | All phases with new tables | Anon request returns no rows (not data) |
-| `anon` key treated as security boundary | HIGH | Phase 1 — Auth: security audit | DevTools console test returns no booking data |
-| Database views bypass RLS | HIGH | Phase 4 — Stats: view creation | View created with `security_invoker = true` |
-| RLS enabled but no policies — deny all | MEDIUM | All phases with new tables | Admin dashboard shows data, not empty table |
-| terra-draw SSR crash — `window is not defined` | CRITICAL | Phase 2 — Zones: component setup | Build succeeds without SSR errors |
-| terra-draw initialized outside `useEffect` | HIGH | Phase 2 — Zones: initialization | No re-render errors; cleanup on unmount verified |
-| Admin route not in middleware matcher | CRITICAL | Phase 1 — Auth: middleware config | Unauthenticated request to `/admin` redirects to `/login` |
-| Admin env vars missing from Vercel | HIGH | Phase 1 — Auth: env var checklist | `/api/health` returns 200 with Supabase probe green |
+| Pitfall | Prevention Phase | Verification |
+|---------|------------------|--------------|
+| Refunding already-refunded PI | BOOKINGS-08 (cancellation + refund) | Test: attempt double-refund → expect 409 response |
+| Refunding manual booking (null PI) | BOOKINGS-06 + BOOKINGS-08 | Test: manual booking cancel → no Stripe call made |
+| Promo race condition (over-redemption) | PROMO-04 (server validation) | Concurrent test: 2 requests with max_uses=1 code → only 1 succeeds |
+| Price mismatch (client discount vs server amount) | PROMO-03 + PROMO-04 | Test: promo not passed to create-payment-intent → server applies 0 discount |
+| Zone logic regression (ZONES-06) | ZONES-06 | 4-case unit test suite before deploy |
+| Holiday timezone midnight bug | PRICING-07 | Test: pickupTime=00:30, pickupDate=holiday → coefficient applied |
+| Manual booking status confusion | BOOKINGS-06 | Check: `payment_intent_id = NULL` in all manually-created rows |
+| Invalid status transitions | BOOKINGS-07 | Test: PATCH completed→pending → 422; PATCH confirmed→cancelled → 200 |
+| Webhook not handling refund events | BOOKINGS-08 | Test: Stripe CLI send `charge.refunded` → booking status updates |
+| Mobile admin horizontal overflow | UX-01 | Manual test: Chrome DevTools 375px → no horizontal scroll |
 
 ---
 
 ## Sources
 
-- [Supabase: Setting up Server-Side Auth for Next.js](https://supabase.com/docs/guides/auth/server-side/nextjs) — official docs (HIGH confidence)
-- [Supabase: Creating a Supabase client for SSR](https://supabase.com/docs/guides/auth/server-side/creating-a-client) — official docs (HIGH confidence)
-- [Supabase: Advanced Auth guide (cookie dual-write pattern)](https://supabase.com/docs/guides/auth/server-side/advanced-guide) — official docs (HIGH confidence)
-- [Supabase: getClaims reference](https://supabase.com/docs/reference/javascript/auth-getclaims) — official docs (HIGH confidence)
-- [Supabase: Row Level Security](https://supabase.com/docs/guides/database/postgres/row-level-security) — official docs (HIGH confidence)
-- [Supabase: RLS Performance and Best Practices](https://supabase.com/docs/guides/troubleshooting/rls-performance-and-best-practices-Z5Jjwv) — official docs (HIGH confidence)
-- [Supabase: Column Level Security](https://supabase.com/docs/guides/database/postgres/column-level-security) — official docs (HIGH confidence)
-- [Supabase: Securing your API](https://supabase.com/docs/guides/api/securing-your-api) — official docs (HIGH confidence)
-- [Supabase: PostGIS geo queries](https://supabase.com/docs/guides/database/extensions/postgis) — official docs (HIGH confidence)
-- [Supabase: Migrate from auth-helpers to SSR package](https://supabase.com/docs/guides/troubleshooting/how-to-migrate-from-supabase-auth-helpers-to-ssr-package-5NRunM) — official docs (HIGH confidence)
-- [Supabase: Database Migrations](https://supabase.com/docs/guides/deployment/database-migrations) — official docs (HIGH confidence)
-- [Next.js: Lazy Loading guide](https://nextjs.org/docs/pages/building-your-application/optimizing/lazy-loading) — official docs (HIGH confidence)
-- [GitHub: supabase-js issue — cookies not set in App Router](https://github.com/supabase/supabase-js/issues/1396) — community report (MEDIUM confidence, corroborates official docs)
-- [GitHub: next.js discussion — cookies() should be awaited with Turbopack](https://github.com/vercel/next.js/discussions/81445) — community report (MEDIUM confidence)
-- [GitHub: react-leaflet issue — window is not defined in Next.js 15](https://github.com/PaulLeCam/react-leaflet/issues/1152) — community report (MEDIUM confidence)
-- [Medium: How Missing RLS in Supabase Can Expose User Data (Mar 2026)](https://medium.com/@Gakusen/how-missing-row-level-security-in-supabase-can-expose-user-data-599dcab749f3) — MEDIUM confidence
-- [Geospatial Polygons: Full-Stack Guide with PostGIS, Node.js](https://medium.com/@KilgortTrout/geospatial-polygons-a-full-stack-guide-with-postgis-node-js-and-react-da55ab0e7fdd) — MEDIUM confidence
-- [PlaceKit: Making React-Leaflet work with Next.js](https://placekit.io/blog/articles/making-react-leaflet-work-with-nextjs-493i) — MEDIUM confidence (general SSR pattern, applicable to terra-draw)
+- Stripe Refunds API documentation: https://docs.stripe.com/api/refunds/create — confirmed `payment_intent` parameter is valid; error raised on fully-refunded PI
+- Stripe Refund and cancel payments: https://docs.stripe.com/refunds — webhook events `refund.created`, `charge.refunded` confirmed
+- HackerOne report #1717650 — Stripe promotion code race condition on redemption limits (MEDIUM confidence — public disclosure, not official Stripe docs)
+- PostgreSQL atomic UPDATE for race condition prevention: https://medium.com/harrys-engineering/atomic-increment-decrement-operations-in-sql-and-fun-with-locks-f7b124d37873 — verified pattern
+- SELECT FOR UPDATE for race conditions: https://leapcell.io/blog/preventing-race-conditions-with-select-for-update-in-web-applications — HIGH confidence
+- Vercel Hobby plan 10s function timeout: https://vercel.com/kb/guide/what-can-i-do-about-vercel-serverless-functions-timing-out — confirmed
+- TanStack Table responsive column collapse: https://dev.to/juancruzroldan/responsive-collapse-of-columns-in-tanstack-table-2175 — MEDIUM confidence
+- Prestigo existing code analysis: `calculate-price/route.ts` zone logic (lines 132–138), `lib/pricing.ts` `dateDiffDays` UTC-safe pattern, `lib/pricing-config.ts` Supabase NUMERIC→Number cast — HIGH confidence (first-party)
 
 ---
-
-*Pitfalls research for: v1.2 Operator Dashboard — Supabase Auth + GeoJSON Zones + Pricing Config + Admin RLS + terra-draw on Next.js 14 App Router*
-*Researched: 2026-04-01*
+*Pitfalls research for: v1.3 Pricing & Booking Management additions to Prestigo chauffeur booking app*
+*Researched: 2026-04-03*

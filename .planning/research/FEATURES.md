@@ -1,24 +1,30 @@
 # Feature Research
 
-**Domain:** Operator/Admin Dashboard — chauffeur service (rideprestigo.com)
-**Researched:** 2026-04-01
-**Confidence:** HIGH
+**Domain:** Premium chauffeur booking platform — v1.3 Pricing & Booking Management
+**Researched:** 2026-04-03
+**Confidence:** HIGH (existing system) / MEDIUM (UX patterns from industry research)
 
 ---
 
-## Context: What Is Already Built (v1.0 + v1.1)
+## Context: What Is Already Built (v1.0–v1.2)
 
-The following exist and must NOT be rebuilt. The dashboard is additive.
+Do NOT rebuild any of the following. All v1.3 features are additive or corrective.
 
-- 6-step booking wizard (Zustand + sessionStorage, fully client-side)
-- Server-side pricing engine at `lib/pricing.ts` — hardcoded rate tables for 3 vehicle classes (RATE_PER_KM, HOURLY_RATE, DAILY_RATE); rates are plain constants, not database-driven
-- Supabase `bookings` table (33 columns: booking_reference, trip_type, vehicle_class, amount_czk, amount_eur, extras booleans, client info, coordinates, etc.)
-- Stripe PaymentIntent + webhook as source of truth for saves
+- 6-step booking wizard with Zustand + sessionStorage; fully responsive at 375px
+- Server-side pricing engine (`lib/pricing.ts`) — now DB-driven via `pricing_config` table
+- Coverage zone enforcement via Turf.js point-in-polygon; `quoteMode` when outside zones
+- Stripe PaymentIntent + webhook source of truth; full payment at booking time
 - Resend transactional emails (client confirmation + manager alert)
-- `/api/health` per-service probe endpoint
-- Extras pricing: child_seat, meet_greet, extra_luggage as boolean flags (prices currently hardcoded in wizard step 4)
+- Supabase `bookings` table (33 columns); `pricing_config` table; `coverage_zones` table
+- Admin dashboard: auth gate, pricing editor (base rates/extras/airport/night/holiday), zone map editor, bookings table (read-only, paginated, filterable), stats dashboard
+- Admin auth: Supabase Auth email+password, `is_admin` app_metadata gate, middleware redirect
 
-**Critical coupling point:** The pricing engine reads rate tables from hardcoded constants in `lib/pricing.ts`. Making pricing admin-editable requires migrating these constants to a Supabase table and fetching them server-side. This is the single highest-complexity dependency in v1.2.
+**Carried-over context for v1.3 builders:**
+
+- Zone logic currently requires pickup AND dropoff both inside an active zone for price to show. The fix (ZONES-06) is a logic inversion in the point-in-polygon check — low-complexity but high business impact.
+- `pricing_config` table exists and holds night/holiday coefficients. Holiday date enforcement is missing — coefficients are present but nothing applies them automatically based on calendar dates.
+- `bookings` table has no `status` column yet. Manual booking, status workflow, and cancellation all depend on adding this column cleanly via a migration.
+- Admin UI is currently desktop-only — built with wide table layouts that break below ~768px.
 
 ---
 
@@ -26,133 +32,180 @@ The following exist and must NOT be rebuilt. The dashboard is additive.
 
 ### Table Stakes (Operator Expects These)
 
-Features the operator assumes exist in any admin dashboard. Missing these = dashboard feels incomplete or unusable.
-
-#### Pricing Management
+Features that premium chauffeur operators assume any booking management system provides. Missing these makes the admin feel like a prototype, not a production tool.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Edit base rates per vehicle class (per-km, hourly, daily) | Core pricing is currently hardcoded in `lib/pricing.ts` — operator cannot adjust without a code deploy | MEDIUM | Requires migrating RATE_PER_KM / HOURLY_RATE / DAILY_RATE from constants to a `pricing_config` Supabase table; `/api/calculate-price` must fetch from DB instead |
-| Edit extras prices (child seat, meet & greet, extra luggage) | Extra prices are also hardcoded in wizard Step 4; operator needs to adjust without code changes | MEDIUM | Same pattern as base rates — store in `pricing_config` or separate `extras_config` table |
-| Night/holiday surcharge coefficients | Industry standard for premium chauffeur; Prague market has measurable demand peaks (New Year, peak summer, pre-Christmas) | MEDIUM | Store as named multipliers (e.g. `night_multiplier: 1.3`, `holiday_multiplier: 1.5`); booking wizard applies multiplier at price calculation time |
-| Airport fee (flat surcharge for PRG airport pickups/dropoffs) | Airport transfers are the most common trip type; a fixed airport fee is expected by operators | LOW | Single value in config; booking wizard already detects airport trip type |
-| Preview: "what would this trip cost now?" | Operator needs to verify new rates produce sensible quotes before activating | MEDIUM | Call `/api/calculate-price` with a test origin/destination and show result inline |
-
-#### Coverage Zone Management
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Draw polygon zones on Google Maps | Standard in all chauffeur platforms (QuanticaLabs, TaxiCaller, Yelowsoft); operators define service areas visually | HIGH | Google Maps JS API with `google.maps.drawing.DrawingManager`; store polygon vertices as GeoJSON in Supabase `coverage_zones` table |
-| Name and save zones | Zones must be labeled (e.g. "Prague City", "Airport Ring", "Outside Service Area") | LOW | Simple form alongside the map canvas |
-| Toggle zones active/inactive | Operator needs to temporarily disable a zone (e.g. during events) without deleting it | LOW | Boolean `active` flag on the `coverage_zones` row |
-| Zone drives "Request a quote" fallback | The booking wizard already has a `quoteMode` path — zones determine when it triggers. If pickup/destination falls outside all active zones, wizard falls back to quote form | MEDIUM | Polygon point-in-polygon check in `/api/calculate-price`; already has quote fallback logic |
-
-#### Bookings List
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Paginated table of all bookings | The `bookings` table is already populated; operator needs to see orders | LOW | Simple Supabase query with pagination; all columns already exist |
-| Filter by date range | Primary triage for day-of operations and invoice reconciliation | LOW | `pickup_date` column exists; date range filter on query |
-| Filter by status / trip type | Operator wants to see only airport runs, or only pending confirmations | LOW | `trip_type` and `booking_type` columns exist |
-| Search by client name or booking reference | Fast lookup for a specific client who calls in | LOW | `ilike` query on `client_first_name`, `client_last_name`, `booking_reference` |
-| Click to expand booking detail | Full row data (extras, special requests, flight number, coordinates) in a readable view | LOW | Client-side expand; no new query needed |
-
-#### Revenue Statistics
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Total revenue this month / last month (CZK) | Most basic financial KPI; every booking has `amount_czk` | LOW | `SUM(amount_czk)` grouped by month from existing `bookings` table |
-| Booking count by period (today / this week / this month) | Operational pulse metric | LOW | `COUNT(*)` with `created_at` window |
-| Revenue breakdown by vehicle class | Which class drives the most revenue | LOW | `GROUP BY vehicle_class` |
-| Revenue breakdown by trip type | Airport vs transfer vs hourly vs daily | LOW | `GROUP BY trip_type` |
-| Simple chart: revenue over last 12 months | Visual trend for business health | MEDIUM | Recharts or similar; bar chart is sufficient; no real-time needed |
-
----
+| Zone logic: price shown if pickup OR dropoff is in zone | Current AND-logic surprises clients; standard in all chauffeur platforms is "if either endpoint is in our zone, we serve it" | LOW | Logic change in `/api/calculate-price` point-in-polygon check; no schema change |
+| Booking status workflow (pending → confirmed → completed → cancelled) | Industry standard in every chauffeur platform (QuanticaLabs, Moovs, LimoAnywhere); operator needs ops visibility | MEDIUM | Add `status` column to `bookings` (migration); admin UI for status change; status-change email to client on confirm/cancel |
+| Manual booking creation from admin | Phone orders are a primary revenue channel for premium chauffeur; the system must capture them in the same DB | MEDIUM | Admin form that POSTs to a new `/api/admin/bookings` endpoint; generates booking reference; no Stripe payment flow (offline cash/invoice) |
+| Booking cancellation with optional Stripe refund | Premium clients expect instant refund on cancellation; operator must control whether to refund | MEDIUM | Call Stripe Refunds API server-side; admin chooses full/partial/no refund before confirming cancel; status set to `cancelled` |
+| Operator notes on bookings | Dispatchers annotate every job (driver instructions, special access codes, client preferences); universal in dispatch software | LOW | `operator_notes` text column on `bookings`; inline edit in booking detail row; no client visibility |
+| Holiday dates configuration | Night/holiday coefficients exist but are never auto-applied; operator needs a calendar to set holiday dates that trigger the coefficient | MEDIUM | `holiday_dates` table (date + label); admin UI to add/remove dates; `/api/calculate-price` checks if pickup date is in table |
+| Minimum fare per vehicle class | Floor pricing is a basic financial protection; every chauffeur pricing guide mentions it; without it short trips produce uneconomical fares | LOW | Add `min_fare_czk` + `min_fare_eur` fields to `pricing_config` per vehicle class; apply in pricing engine after distance calculation |
+| Mobile-responsive admin panel | Operators check bookings and update status from phones (confirmed by chauffeur dispatch UX research; 58% of web traffic is mobile) | MEDIUM | Tailwind responsive classes on admin layout, sidebar, bookings table, and forms; collapsible sidebar on mobile; table scrollable or card-view below 768px |
 
 ### Differentiators (Competitive Advantage)
 
-Features not universally expected but meaningful for a single-operator premium service.
+Features that go beyond the baseline and reflect Prestigo's premium positioning.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Pricing preview before save | Operator can see "if I set business class to 3.20 CZK/km, a 30km airport run costs X" before committing | MEDIUM | Inline calculator calling `/api/calculate-price` with draft rates (not saved yet) |
-| Zone-to-zone fixed price override | For high-frequency corridors (e.g. Airport to Prague City Centre), a flat price overrides distance calculation | HIGH | Requires a `zone_pricing_rules` table with origin_zone_id + destination_zone_id + flat price; significant schema and logic extension — defer to v1.3 |
-| CSV export of bookings for a date range | Operator sends to accountant without giving DB access | MEDIUM | Server-side CSV generation from Supabase query; streaming download |
-| Booking status workflow (Confirmed / In Progress / Completed) | Operator marks rides as done; gives ops visibility | MEDIUM | Adds a `status` column to `bookings` table (migration required); status changes via admin only |
-
----
+| Promo code system with server-side validation | Personalised codes for corporate clients or repeat customers; premium UX when the field is subtle ("Have a promo code?") and validates server-side before Stripe charge | HIGH | Full system: `promo_codes` table, admin CRUD, client entry in wizard step 5, server validation endpoint, PaymentIntent amount adjusted before charge; race-condition safe via atomic DB decrement |
+| Status-change email to client on confirmation | Clients receiving a "Your booking is confirmed" email (distinct from the payment confirmation) feel handled professionally; not universal in smaller operators | LOW | Resend template triggered when operator changes status from `pending` → `confirmed`; reuses existing email infrastructure |
+| Stripe refund in one click from admin | Operator does not need to leave admin panel and log into Stripe Dashboard to issue a refund; reduces errors and friction | MEDIUM | Calls `stripe.refunds.create` server-side from a new `/api/admin/bookings/[id]/refund` endpoint; shows refund amount inline |
+| Minimum fare as visible config (not hardcoded) | Operator can adjust floor prices as market rates change without a code deploy; competitors often hardcode this | LOW | Already in `pricing_config` pattern; extends the existing editor UI |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Layered pricing rule engine (stack of conditions: time-of-day + zone + vehicle + date range) | Seen in QuanticaLabs and Yelowsoft; gives maximum flexibility | Rule precedence bugs are the #1 reported complaint in chauffeur booking forums; rule conflicts silently produce wrong prices; debugging is painful | Flat structure: one config table with named multipliers (night, holiday, airport). No stacking. Operator tests rates with the preview tool before activating |
-| Real-time driver tracking / dispatch board | Every limousine SaaS has it | Prestigo is a 1-person operator; no driver app, no GPS device integration. Zero value for this scale | Out of scope for v1.2. Revisit only if fleet grows |
-| Multi-user roles (dispatcher, driver, finance) | Standard in enterprise platforms | Single operator. Adding roles adds auth complexity with no benefit | Single admin role with Supabase Auth email+password. No role matrix |
-| Automated invoice PDF generation with branding | Accountant workflow automation | Requires PDF rendering (React PDF or Puppeteer), storage, email delivery — high complexity, low urgency | CSV export of bookings table is sufficient for accountant handoff in v1.2 |
-| Availability calendar blocking | "Don't accept bookings on days I'm unavailable" | Booking wizard has no calendar availability check today. Adding this requires blocking integration with wizard — a significant scope expansion | Manual cancellation / refund flow for now. Availability calendar is v2 |
-| Dynamic surge pricing (auto-adjust by demand) | Uber-style pricing | Single operator, pre-booked premium service model. Surge pricing would damage brand perception and surprise clients | Use manual holiday multiplier coefficients instead. Operator decides when to apply them |
-| Analytics on quote requests (how many fell back to quote mode) | Marketing intelligence | Quote requests are currently not stored in Supabase — they are just email sends. Building quote analytics requires a new `quote_requests` table and instrumentation | Out of scope. Add a `quote_requests` table in v2 if quote conversion becomes a business concern |
+| Partial refund with custom amount input | Flexibility for disputes | Introduces ambiguity in accounting; requires operator judgment on correct partial amount; Stripe partial refunds cannot be undone | Offer full refund or no refund toggle; if custom amount is needed, operator goes to Stripe Dashboard directly |
+| Promo code stacking (apply multiple codes) | Clients want to combine discounts | Race condition surface multiplied; accounting complexity; premium brand dilution | One active code per booking, enforced server-side; clear error "Only one promo code per booking" |
+| Automatic status progression (confirmed after X hours) | Reduces manual steps | Auto-confirmed bookings with no driver assigned cause real-world failures; premium service requires human confirmation | Keep status changes manual; add a "pending bookings" count badge on admin sidebar so operator sees unconfirmed count at a glance |
+| Bulk status update (confirm all pending) | Efficiency | Bulk confirms without per-booking review risk errors; premium service means every booking is manually reviewed | Single-booking status change only in v1.3 |
+| Client-facing booking management portal (cancel own booking) | Reduces operator load | No client accounts exist; adding client auth is a large scope expansion; client self-service cancellation needs refund policy enforcement | Client cancels by emailing/calling operator; operator cancels + refunds from admin panel |
+| SMS notifications on status change | Multi-channel communication | Adds Twilio/Vonage integration cost and complexity; Resend email already confirmed working; Prague luxury market clients are email-responsive | Email notifications only; SMS is v2 if operator reports clients missing emails |
+| Promo code auto-expiry background job | Codes expire automatically | Vercel Hobby has no cron support (only via Vercel Cron, which has limits); background jobs are unreliable on serverless | Store `expires_at` on each code; check expiry at validation time (lazy expiry); no background job needed |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Pricing config table in Supabase]
-    └──required by──> [Pricing editor UI]
-                          └──required by──> [Pricing preview tool]
-    └──required by──> [/api/calculate-price reads from DB instead of constants]
-                          └──affects──> [Booking wizard pricing accuracy]
+[booking status column in DB]
+    └──required by──> [Status workflow UI in admin]
+    └──required by──> [Cancellation flow]
+                          └──requires──> [Stripe Refund API call]
+    └──required by──> [Status-change email to client]
+                          └──requires──> [Resend template for confirmation]
 
-[Coverage zones table in Supabase]
-    └──required by──> [Zone drawing UI]
-    └──required by──> [Point-in-polygon check in /api/calculate-price]
-                          └──drives──> [quoteMode fallback in booking wizard]
+[promo_codes table in Supabase]
+    └──required by──> [Admin promo code CRUD UI]
+    └──required by──> [Client promo entry in wizard step 5]
+                          └──requires──> [Server validation endpoint /api/validate-promo]
+                          └──requires──> [PaymentIntent amount adjustment before Stripe charge]
 
-[Supabase Auth (email+password)]
-    └──required by──> [All /admin routes — protected]
-    └──required by──> [Server actions that mutate pricing config]
-    └──required by──> [Server actions that mutate coverage zones]
+[holiday_dates table in Supabase]
+    └──required by──> [Admin holiday calendar UI]
+    └──required by──> [/api/calculate-price applies holiday_coefficient on match]
 
-[Existing bookings table]
-    └──already exists──> [Bookings list UI — zero new schema needed]
-    └──already exists──> [Revenue statistics — zero new schema needed]
+[pricing_config min_fare fields]
+    └──required by──> [Minimum fare logic in lib/pricing.ts]
+    └──required by──> [Pricing editor UI (new min fare inputs per vehicle class)]
+
+[zone OR-logic fix]
+    └──no schema dependency — logic change only in /api/calculate-price
+    └──unblocks──> [Correct price display for single-endpoint zone trips]
+
+[operator_notes column in bookings]
+    └──required by──> [Notes textarea in booking detail row]
+    └──no other dependencies]
+
+[manual booking form in admin]
+    └──requires──> [booking status column] (manual bookings default to pending)
+    └──requires──> [admin auth] (already exists)
 ```
 
 ### Dependency Notes
 
-- **Pricing config migration is the most load-bearing change.** The booking wizard calls `/api/calculate-price` which calls `lib/pricing.ts` which reads hardcoded constants. Making rates editable requires: (1) new `pricing_config` table, (2) migration script to seed current hardcoded values, (3) `lib/pricing.ts` refactored to accept config parameter, (4) `/api/calculate-price` to fetch config before calling `calculatePrice`. Failing to do all four atomically will break live pricing.
-- **Coverage zones affect the booking wizard at runtime.** Zone changes are immediately live — operator must understand that saving a zone change affects the next booking attempt, not a future deploy.
-- **Bookings list and statistics have zero schema dependencies.** All data already exists in `bookings` table. These can be built independently of pricing and zones, making them good "safe" early phases.
-- **Auth must come first.** All admin mutations (pricing save, zone save) must be behind auth. Build auth gate before any editor UI.
+- **Status column is the most-depended-on schema change.** Status workflow, cancellation, refund flow, and manual booking creation all need it. Add the migration first; all other booking management features unlock after.
+- **Promo code system spans three surfaces.** Admin CRUD (create/deactivate/delete), client wizard entry, and server-side payment validation must be built as a unit. Building only the admin UI without the validation endpoint leaves a non-functional system.
+- **Promo validation must be atomic.** The race condition risk (two users using the same single-use code simultaneously) requires an atomic `UPDATE ... WHERE uses_remaining > 0 RETURNING *` pattern in Postgres — not a check-then-update pattern. This is a critical implementation constraint, not just a nice-to-have.
+- **Holiday dates and min fare are independent.** Both only extend the `pricing_config` / add a new small table. No booking-management dependency. Can be built in any order relative to each other.
+- **Zone OR-logic fix is self-contained.** Lowest-risk change; zero schema changes; high business value since it fixes incorrect price suppression for the most common trip patterns.
+- **Mobile admin is purely presentational.** No API or schema changes. Can be done as a final phase without blocking any other work.
 
 ---
 
-## MVP Definition
+## MVP Definition for v1.3
 
-### Launch With (v1.2)
+### Must Ship (v1.3 Core)
 
-- [ ] Supabase Auth email+password gate on all `/admin` routes — no admin is accessible without login
-- [ ] Pricing editor: edit base rates (per-km, hourly, daily) per vehicle class, extras prices, airport fee, night/holiday multipliers; changes persist to Supabase `pricing_config` table
-- [ ] `/api/calculate-price` reads from `pricing_config` table instead of hardcoded constants
-- [ ] Coverage zone editor: draw polygons on Google Maps, name and save, toggle active/inactive; zones stored in `coverage_zones` table
-- [ ] Point-in-polygon check in `/api/calculate-price` triggers quoteMode when pickup/destination is outside all active zones
-- [ ] Bookings list: paginated table with date range, trip type, and name/reference search filters; click-to-expand detail
-- [ ] Statistics page: total revenue (CZK) by month, booking count by period, breakdown by vehicle class and trip type, 12-month bar chart
+- [ ] ZONES-06 — Zone OR-logic fix: price shown if pickup OR dropoff in any active zone
+- [ ] PRICING-07 — Holiday dates table + admin UI + auto-apply coefficient at price calculation
+- [ ] PRICING-08 — Minimum fare per vehicle class (min_fare fields in pricing_config + pricing engine enforcement)
+- [ ] BOOKINGS-06 — Manual booking creation form in admin (phone orders)
+- [ ] BOOKINGS-07 — Booking status workflow UI (pending → confirmed → completed → cancelled)
+- [ ] BOOKINGS-08 — Cancellation + optional full Stripe refund from admin
+- [ ] BOOKINGS-09 — Operator notes textarea on booking detail
+- [ ] UX-01 — Mobile-responsive admin panel (375px+)
 
-### Add After Validation (v1.x)
+### Promo Code System (v1.3 Secondary — higher complexity)
 
-- [ ] Pricing preview tool (inline "what would this cost?" calculator using draft rates before save) — add when operator reports uncertainty about rate changes
-- [ ] CSV export of bookings — add when first accountant handoff is needed
-- [ ] Booking status workflow (Confirmed/In Progress/Completed column) — add when operations complexity warrants tracking
+- [ ] PROMO-01 — Admin creates promo codes (code string, discount %, expiry date, usage limit)
+- [ ] PROMO-02 — Admin deactivates or deletes promo codes
+- [ ] PROMO-03 — Client enters promo code in wizard step 5; valid code updates displayed price subtly
+- [ ] PROMO-04 — Server-side atomic validation before Stripe charge; invalid codes rejected with specific error
 
-### Future Consideration (v2+)
+### Defer to v2+
 
-- [ ] Zone-to-zone fixed price overrides — only if airport corridor flat pricing becomes operationally needed
-- [ ] Quote requests tracking (`quote_requests` table) — only if quote-to-booking conversion becomes a business metric
-- [ ] Availability calendar with wizard integration — only if no-show / overbooking becomes a real problem
-- [ ] Multi-user roles — only if a second dispatcher or driver is added
+- [ ] Client self-service cancellation (requires client accounts)
+- [ ] SMS notifications on status change (Twilio integration)
+- [ ] Partial refund with custom amount
+- [ ] Cron-based promo code auto-expiry
+- [ ] Bulk booking status updates
+- [ ] Promo code analytics (redemption rates, revenue impact)
+
+---
+
+## UX Behavior Specifications
+
+Research-informed UX expectations for each feature in context of a premium service.
+
+### Promo Code Entry in Wizard (PROMO-03/04)
+
+**Pattern:** Collapsed by default; progressive disclosure. A subtle text link "Have a promo code?" appears near the price summary in step 5 (passenger details). Clicking expands an input + "Apply" button inline. This avoids making users without codes feel excluded — a noted premium checkout concern.
+
+**Validation timing:** On "Apply" button click (not on blur/type). Call `/api/validate-promo` which returns `{ valid: true, discount_percent: 20, new_total_czk: X }` or `{ valid: false, error: "Code expired" | "Code not found" | "Usage limit reached" }`. Show error inline, adjacent to the field, with specific message — not a generic "invalid code" toast.
+
+**Price update:** On valid code, the price breakdown updates in place (no page reload); the discount line appears as "Promo: -20% (CODE20)". The discounted amount is then passed as the PaymentIntent amount.
+
+**Premium feel constraint:** No confetti, no large success banner. Small inline checkmark and updated price. Subtle signals confidence without feeling like a discount site.
+
+**Security:** The promo code is re-validated server-side immediately before the Stripe PaymentIntent is created. A code that was valid at step 5 but reaches its usage limit before payment must be rejected at PaymentIntent creation time with a clear error. This prevents double-use from concurrent sessions.
+
+### Admin Status Change Workflow (BOOKINGS-07)
+
+**Expected statuses:** `pending` (default on creation) → `confirmed` → `completed` → `cancelled`. These are the four statuses standard across QuanticaLabs, Moovs, and LimoAnywhere.
+
+**UX in admin:** Status displayed as a badge in the bookings table row. Clicking the badge (or expanding the row) reveals a dropdown or button set to transition to allowed next statuses. Only valid transitions allowed (e.g., `completed` cannot revert to `pending`).
+
+**Client notification:** When operator changes `pending` → `confirmed`, an email is sent to the client via Resend: "Your booking [REF] has been confirmed." When `cancelled`, a separate cancellation email is sent. No email for `completed` (internal ops state). This matches industry norm: clients receive confirmation and cancellation emails; completion is an internal marker.
+
+**No notification for notes or manual internal changes.** Operator notes are strictly internal.
+
+### Cancellation + Refund (BOOKINGS-08)
+
+**Flow:** Operator clicks "Cancel booking" in expanded booking row → modal appears with two options: "Refund payment" (checked by default) and "Cancel without refund". If "Refund payment" is checked, the full Stripe charge amount is shown. Operator confirms → server calls `stripe.refunds.create({ payment_intent: '...' })` → status set to `cancelled` → cancellation email sent to client.
+
+**Why full refund only (no partial in v1.3):** Partial refunds require operator judgment on correct amount, cannot be undone in Stripe, and create accounting ambiguity. Premium operators handling exceptional cases can use the Stripe Dashboard directly. Industry standard for v1 admin tools is full-or-nothing.
+
+**Refund timing:** Stripe refunds post within 5–10 business days (card network dependent). The admin UI should show "Refund initiated" state, not "Refund completed" — do not imply instant credit to avoid client confusion.
+
+### Manual Booking Creation (BOOKINGS-06)
+
+**Use case:** Client calls, operator takes the booking by phone. Must enter the same data as the wizard collects (pickup, dropoff, date/time, vehicle class, client details, trip type) plus be able to skip payment (mark as "payment collected offline").
+
+**Form location:** `/admin/bookings/new` — a full form, not an embedded modal. Booking is saved directly to `bookings` table with `status: 'confirmed'` (operator already confirmed on the phone) and a generated `booking_reference`.
+
+**No Stripe payment flow.** Manual bookings bypass the payment step. The `payment_intent_id` column should be nullable to support this.
+
+**Client email:** After manual booking creation, operator can choose to send the standard confirmation email to the client's entered email address. This should be opt-in (checkbox "Send confirmation email to client"), not automatic — operator may have already confirmed verbally.
+
+### Operator Notes (BOOKINGS-09)
+
+**Location:** Inside the expanded booking row in the bookings table. A small textarea labeled "Internal notes (not visible to client)". Auto-saves on blur via PATCH to `/api/admin/bookings/[id]`. No separate save button needed — inline auto-save matches dispatch software patterns.
+
+**Not client-facing.** Notes never appear in client emails or on the confirmation page. The label should make this explicit.
+
+### Mobile Admin (UX-01)
+
+**Primary operator use case on mobile:** Check incoming bookings, change status (pending → confirmed), view booking details, add notes. Pricing editor and zone editor are secondary on mobile — acceptable to be functional but not optimized.
+
+**Breakpoint strategy:** Single breakpoint at 768px. Below 768px: sidebar collapses to a hamburger menu; bookings table switches to card layout (one card per booking showing key fields: reference, client name, date, status, amount); action buttons (status change, cancel) remain accessible via card expand. Above 768px: current desktop layout unchanged.
+
+**Touch targets:** 44px minimum (already enforced in wizard; apply same standard to admin buttons).
 
 ---
 
@@ -160,47 +213,55 @@ Features not universally expected but meaningful for a single-operator premium s
 
 | Feature | Operator Value | Implementation Cost | Priority |
 |---------|----------------|---------------------|----------|
-| Auth gate on /admin | HIGH — security; without it all data is exposed | LOW — Supabase Auth + Next.js middleware | P1 |
-| Pricing editor (base rates + multipliers) | HIGH — rates are hardcoded; operator cannot change without code deploy | MEDIUM — schema migration + refactor pricing.ts | P1 |
-| Coverage zone editor (draw + save polygons) | HIGH — drives quoteMode fallback in live booking wizard | HIGH — DrawingManager + GeoJSON storage + point-in-polygon | P1 |
-| Bookings list (filterable table) | HIGH — operator has no visibility into orders today | LOW — query existing table | P1 |
-| Revenue statistics (totals + chart) | MEDIUM — useful but not blocking operations | LOW — aggregate queries on existing table | P1 |
-| Pricing preview tool | MEDIUM — reduces operator risk when changing rates | MEDIUM — draft state management + live calc call | P2 |
-| CSV export | LOW — useful for accountant, not daily ops | MEDIUM — streaming CSV endpoint | P2 |
-| Booking status workflow | LOW — nice for ops clarity | MEDIUM — schema migration + status column | P3 |
+| Zone OR-logic fix (ZONES-06) | HIGH — fixes incorrect price suppression on real bookings | LOW — logic change, no schema | P1 |
+| Status workflow (BOOKINGS-07) | HIGH — core ops visibility; unlocks cancel/refund | MEDIUM — migration + UI + email | P1 |
+| Cancellation + Stripe refund (BOOKINGS-08) | HIGH — clients expect refunds; operator needs single-screen control | MEDIUM — Stripe API call + modal | P1 |
+| Manual booking / phone orders (BOOKINGS-06) | HIGH — significant revenue channel | MEDIUM — admin form + nullable payment_intent | P1 |
+| Operator notes (BOOKINGS-09) | MEDIUM — ops quality; prevents missed instructions | LOW — column + inline edit | P1 |
+| Holiday dates config (PRICING-07) | MEDIUM — coefficients exist but are never applied automatically | MEDIUM — new table + admin UI + pricing engine check | P1 |
+| Minimum fare (PRICING-08) | MEDIUM — financial protection; short trips otherwise uneconomical | LOW — extend pricing_config + pricing engine | P1 |
+| Mobile admin (UX-01) | MEDIUM — operator uses phone in field | MEDIUM — responsive CSS + card layout | P1 |
+| Promo codes - admin CRUD (PROMO-01/02) | MEDIUM — sales tool for corporate accounts | MEDIUM — new table + admin UI | P2 |
+| Promo codes - client entry + validation (PROMO-03/04) | MEDIUM — client-facing; requires careful UX | HIGH — wizard integration + atomic validation + PaymentIntent amount | P2 |
 
 **Priority key:**
-- P1: Must have for v1.2 launch
-- P2: Should have; add when v1.2 core is validated
-- P3: Nice to have; future consideration
+- P1: Must ship in v1.3
+- P2: Ship in v1.3 but can be a later phase within the milestone
+- P3: Defer to v2
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | QuanticaLabs / WordPress plugin | LimoAnywhere / LimoCaptain SaaS | Prestigo v1.2 Approach |
-|---------|---------------------------------|--------------------------------|------------------------|
-| Pricing editor | Complex rule engine with unlimited conditions | Per-vehicle rates + surcharges | Flat config table: named rates + named multipliers (no stacking) |
-| Coverage zones | Polygon drawing, unlimited zones, zone-to-zone pricing rules | City/zone selection, fixed fares | Polygon drawing; active/inactive toggle; drives quoteMode only in v1.2 |
-| Bookings table | Full management: status workflow, manual booking creation, driver assignment | Same, plus driver dispatch | Read-only filterable table in v1.2; status workflow in v1.3 |
-| Statistics | Revenue charts, booking volume, fleet utilization | Per-vehicle revenue, regional breakdown | Revenue totals + breakdown by class/type + 12-month chart |
-| Auth | WordPress user roles | Multi-user with roles | Single admin, email+password via Supabase Auth |
-| Anti-pattern present | Rule stacking causes precedence bugs (reported in Envato forums) | Enterprise feature bloat for small operators | Avoided: flat multipliers, no rule stacking |
+| Feature | QuanticaLabs (WordPress plugin) | Moovs / LimoAnywhere (SaaS) | Prestigo v1.3 Approach |
+|---------|---------------------------------|-----------------------------|------------------------|
+| Booking status workflow | pending / confirmed / cancelled / completed | Same + in-progress, en-route | Same four statuses; manual transitions only; no auto-progression |
+| Manual booking entry | Full form with driver assignment | Same + affiliate bookings | Admin form at /admin/bookings/new; no driver assignment (solo operator) |
+| Refund on cancel | Admin-initiated; Stripe Dashboard link | Integrated Stripe refund in UI | Integrated full refund toggle in cancel modal; no partial refund in v1.3 |
+| Promo codes | Admin creates codes, client enters in checkout, server validates | Same + percentage + flat amount | Percentage discount only in v1.3; atomic usage decrement prevents double-use |
+| Status change notifications | Email on confirm; SMS optional | Email + SMS | Email only (Resend); SMS deferred to v2 |
+| Holiday pricing | Operator sets holiday multiplier, applies manually or via date rules | Date range rules with coefficient | Explicit `holiday_dates` table; auto-applies `holiday_coefficient` at price calculation |
+| Minimum fare | Per-vehicle-class min fare field in pricing config | Same | Same pattern; added to existing `pricing_config` table |
+| Mobile admin | Responsive (plugin uses WP admin responsive) | Native mobile app | Tailwind responsive CSS; card layout below 768px |
+| Operator notes | Notes field on booking | Same | Notes textarea inline in booking row; auto-saves on blur |
 
 ---
 
 ## Sources
 
-- [QuanticaLabs Pricing Rules Overview](https://quanticalabs.com/docs/chauffeur-booking-system/knowledge-base/pricing-rules-overview/) — MEDIUM confidence (industry reference)
-- [QuanticaLabs Geofence Zones](https://quanticalabs.com/docs/chauffeur-booking-system/knowledge-base/working-with-geofence-zones/) — MEDIUM confidence (industry reference)
-- [Yelowsoft Zone-Based Pricing Automation](https://www.yelowsoft.com/blog/automated-zone-pricing-for-taxi-chauffeur-fleets/) — MEDIUM confidence
-- [Chauffeur Drive Systems Dispatch Software](https://www.chauffeurdrivesystems.com/dispatch-software-for-chauffeur-companies/) — MEDIUM confidence (industry overview)
-- [LimoCaptain Features](https://limocaptain.com/software/) — MEDIUM confidence (competitor reference)
-- [Envato Forums — pricing rule bugs](https://forums.envato.com/t/pricing-rules-chauffeur-booking-system/446096) — MEDIUM confidence (real-world problem reports)
-- [InetSoft: Shared Rider System Dashboard KPIs](https://www.inetsch.com/info/shared-rider-system-dashboards/) — MEDIUM confidence
-- Codebase analysis: `lib/pricing.ts`, `supabase/migrations/0001_create_bookings.sql`, `app/api/calculate-price/route.ts` — HIGH confidence (source of truth)
+- [Voucherify — Coupon UX Best Practices](https://www.voucherify.io/blog/coupon-promotions-ui-ux-best-practices-inspirations) — MEDIUM confidence (UX authority)
+- [Econsultancy — Promotions and Discounts UX](https://econsultancy.com/promotions-discounts-ux-ecommerce/) — MEDIUM confidence
+- [Stripe Refunds Documentation](https://docs.stripe.com/refunds) — HIGH confidence (official)
+- [QuanticaLabs Custom Notifications Add-on](https://codecanyon.net/item/custom-notifications-addon-chauffeur-taxi-booking-system/56731397) — MEDIUM confidence (industry reference)
+- [QuanticaLabs Chauffeur Booking System](https://quanticalabs.com/wordpress-plugins/chauffeur-taxi-booking-system-for-wordpress/) — MEDIUM confidence (competitor feature reference)
+- [Moovs Transportation Software](https://www.moovsapp.com/) — MEDIUM confidence (competitor reference)
+- [GitHub Security Advisory — Race Condition in Promo Codes (alf.io)](https://github.com/alfio-event/alf.io/security/advisories/GHSA-67jg-m6f3-473g) — HIGH confidence (documented real vulnerability)
+- [HackerOne — Race Condition in Redeeming Coupons (Instacart)](https://hackerone.com/reports/157996) — HIGH confidence (documented real exploit)
+- [Gitnux — Top Chauffeur Software 2026](https://gitnux.org/best/chauffeur-software/) — LOW confidence (aggregator, use for market context only)
+- [TransferVista — Chauffeur Booking Software Guide](https://transfervista.com/chauffeur-booking-software/) — MEDIUM confidence
+- Codebase analysis: `lib/pricing.ts`, `app/api/calculate-price/route.ts`, `app/admin/` directory, `supabase/migrations/` — HIGH confidence (source of truth for existing system)
 
 ---
 
-*Feature research for: PRESTIGO v1.2 Operator Dashboard*
-*Researched: 2026-04-01*
+*Feature research for: PRESTIGO v1.3 Pricing & Booking Management*
+*Researched: 2026-04-03*
