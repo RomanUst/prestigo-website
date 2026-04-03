@@ -24,6 +24,8 @@ export const useBookingStore = create<BookingStore>()(
       passengerDetails: null,
       paymentIntentClientSecret: null,
       bookingReference: null,
+      promoCode: null,
+      promoDiscount: 0,
 
       setTripType: (type) => {
         set({ tripType: type, priceBreakdown: null, distanceKm: null, quoteMode: false })
@@ -57,6 +59,8 @@ export const useBookingStore = create<BookingStore>()(
       setPassengerDetails: (d) => set({ passengerDetails: d }),
       setPaymentIntentClientSecret: (s) => set({ paymentIntentClientSecret: s }),
       setBookingReference: (ref) => set({ bookingReference: ref }),
+      setPromoCode: (code) => set({ promoCode: code }),
+      setPromoDiscount: (pct) => set({ promoDiscount: pct }),
       resetBooking: () => set({
         tripType: 'transfer',
         origin: null,
@@ -77,6 +81,8 @@ export const useBookingStore = create<BookingStore>()(
         passengerDetails: null,
         paymentIntentClientSecret: null,
         bookingReference: null,
+        promoCode: null,
+        promoDiscount: 0,
       }),
     }),
     {

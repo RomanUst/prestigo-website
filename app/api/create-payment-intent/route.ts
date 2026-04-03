@@ -5,6 +5,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import { generateBookingReference } from '@/lib/booking-reference'
+import { createSupabaseServiceClient } from '@/lib/supabase'
 import type { TripType, VehicleClass } from '@/types/booking'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -76,17 +77,39 @@ export async function POST(req: Request) {
     if (isAirport) adjustedBase += rates.globals.airportFee
 
     const totalEur = adjustedBase + extrasTotal
-    const totalCzk = eurToCzk(totalEur)
 
     if (totalEur <= 0) {
       return NextResponse.json({ error: 'Computed amount must be positive' }, { status: 400 })
     }
 
+    // Promo code atomic claim (PROMO-04)
+    const promoCode = bookingData.promoCode?.trim().toUpperCase() || null
+    let finalTotalEur = totalEur
+    let appliedDiscountPct = 0
+
+    if (promoCode) {
+      const supabaseService = createSupabaseServiceClient()
+      const { data: claimed, error: claimError } = await supabaseService
+        .rpc('claim_promo_code', { p_code: promoCode })
+
+      if (claimError || !claimed || claimed.length === 0) {
+        return NextResponse.json(
+          { error: 'Promo code is invalid, expired, or has reached its usage limit.' },
+          { status: 400 }
+        )
+      }
+      appliedDiscountPct = Number(claimed[0].discount_value)
+      finalTotalEur = Math.round(totalEur * (1 - appliedDiscountPct / 100))
+      if (finalTotalEur <= 0) finalTotalEur = 1 // minimum 1 EUR to avoid Stripe error
+    }
+
+    const totalCzk = eurToCzk(finalTotalEur)
+
     const bookingReference = generateBookingReference()
 
     // Stripe amount in smallest currency unit: euro-cents for EUR, halers for CZK
     const stripeAmount = paymentCurrency === 'eur'
-      ? Math.round(totalEur * 100)
+      ? Math.round(finalTotalEur * 100)
       : Math.round(totalCzk * 100)
 
     const paymentIntent = await stripe.paymentIntents.create({
@@ -119,8 +142,10 @@ export async function POST(req: Request) {
         flightNumber: bookingData.flightNumber ?? '',
         terminal: bookingData.terminal ?? '',
         specialRequests: bookingData.specialRequests ?? '',
-        amountEur: String(totalEur),
+        amountEur: String(finalTotalEur),
         amountCzk: String(totalCzk),
+        promoCode: promoCode || '',
+        discountPct: String(appliedDiscountPct),
       },
     })
 

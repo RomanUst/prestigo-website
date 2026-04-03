@@ -95,6 +95,11 @@ export interface BookingStore {
   bookingReference: string | null
   setPaymentIntentClientSecret: (s: string | null) => void
   setBookingReference: (ref: string | null) => void
+  // Promo
+  promoCode: string | null
+  promoDiscount: number          // percentage (0 = no discount)
+  setPromoCode: (code: string | null) => void
+  setPromoDiscount: (pct: number) => void
   resetBooking: () => void
 }
 
