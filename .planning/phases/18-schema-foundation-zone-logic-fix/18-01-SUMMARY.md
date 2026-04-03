@@ -91,6 +91,15 @@ None - plan executed exactly as written.
 - Plan 18-02 (schema foundation) can proceed — zone OR-logic is now correct and tested
 - Pre-existing test failures in other test files are out of scope for this plan; should be addressed in a dedicated cleanup phase
 
+## Self-Check: PASSED
+
+- lib/zones.ts: FOUND
+- app/api/calculate-price/route.ts: FOUND
+- tests/calculate-price.test.ts: FOUND
+- Commit e13ab78 (feat): FOUND
+- Commit 1f69f4a (fix): FOUND
+- Commit d640fc7 (docs): FOUND
+
 ---
 *Phase: 18-schema-foundation-zone-logic-fix*
 *Completed: 2026-04-03*

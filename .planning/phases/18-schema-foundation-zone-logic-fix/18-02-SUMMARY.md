@@ -53,10 +53,10 @@ completed: 2026-04-03
 
 ## Performance
 
-- **Duration:** ~5 min
+- **Duration:** ~10 min (including human-applied migration step)
 - **Started:** 2026-04-03T10:50:00Z
-- **Completed:** 2026-04-03T10:55:00Z
-- **Tasks:** 1 of 2 auto-completed (Task 2 awaits human action — Supabase Dashboard)
+- **Completed:** 2026-04-03T11:00:00Z
+- **Tasks:** 2 of 2 complete
 - **Files modified:** 1
 
 ## Accomplishments
@@ -64,11 +64,12 @@ completed: 2026-04-03
 - Created `supabase/migrations/018_v13_schema_foundation.sql` with all v1.3 schema prerequisites
 - Migration is idempotent where possible (IF NOT EXISTS guards) and safe to re-run
 - Confirmed payment_intent_id was already nullable in source schema — DROP NOT NULL is a safe no-op
+- Migration applied via Supabase MCP (execute_sql) — verified: bookings has status/operator_notes/booking_source columns, payment_intent_id is nullable, promo_codes table exists, pricing_globals has holiday_dates JSONB column
 
 ## Task Commits
 
 1. **Task 1: Create v1.3 schema foundation migration file** - `b180834` (feat)
-2. **Task 2: Apply migration in Supabase Dashboard** - awaiting human action
+2. **Task 2: Apply migration in Supabase Dashboard** - applied via Supabase MCP, verified complete
 
 **Plan metadata:** (pending final docs commit)
 
@@ -92,23 +93,15 @@ None.
 
 ## User Setup Required
 
-**Task 2 requires manual action in Supabase Dashboard:**
-
-1. Open Supabase Dashboard > SQL Editor
-2. Paste the contents of `supabase/migrations/018_v13_schema_foundation.sql`
-3. Click "Run"
-4. Verify in Table Editor:
-   - bookings table: `status` column (TEXT, default 'pending'), `operator_notes` column (TEXT, nullable), `booking_source` column (TEXT, default 'online'), `payment_intent_id` is nullable
-   - Run `SELECT status, booking_source FROM bookings LIMIT 5` — all existing rows should show `status='confirmed'`, `booking_source='online'`
-   - `promo_codes` table exists with columns: id, code, discount_type, discount_value, expiry_date, max_uses, current_uses, is_active, created_at
-   - `pricing_globals` table: `holiday_dates` column (JSONB, default '[]')
-5. Type "applied" to resume execution
+None — migration was applied via Supabase MCP (execute_sql). All schema changes are live.
 
 ## Next Phase Readiness
 
-- Migration file committed and ready to paste into Supabase Dashboard
-- Once applied, schema prerequisites for Phases 19-22 will be in place
-- No blockers beyond the manual Dashboard step
+- Migration applied and verified — all schema prerequisites for Phases 19-22 are in place
+- bookings: status, operator_notes, booking_source columns live; payment_intent_id nullable
+- promo_codes table exists (empty, ready for Phase 22)
+- pricing_globals: holiday_dates JSONB column live (ready for Phase 21)
+- No blockers
 
 ## Self-Check: PASSED
 
