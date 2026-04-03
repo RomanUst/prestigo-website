@@ -46,7 +46,7 @@ Declared values (existing project tokens, confirmed in STYLEGUIDE.md § 6 and co
 Exceptions:
 - Touch targets: all `<button>` and `<Link>` interactive elements on mobile must have `minHeight: 44px` and `minWidth: 44px` (UX-01 requirement). This overrides the standard sm/md padding on nav links and icon buttons.
 - Sidebar nav link height on mobile: `minHeight: 44px` (expanded from current 10px vertical padding + 13px font).
-- Promo input field: `padding: 10px 12px` (48px total height) to match the 44px accessibility floor.
+- Promo input field: `padding: 8px 12px`; `minHeight: 44px` enforced separately to satisfy the 44px accessibility floor.
 
 Source: REQUIREMENTS.md UX-01, RESEARCH.md Pattern 5, STYLEGUIDE.md § 6 Spacing
 
@@ -59,16 +59,18 @@ Source: REQUIREMENTS.md UX-01, RESEARCH.md Pattern 5, STYLEGUIDE.md § 6 Spacing
 | Admin section heading | Cormorant Garamond | 26px | 300 | 1.2 | 0 | var(--offwhite) `#F5F2EE` |
 | Admin page title | Cormorant Garamond | 20px | 300 | 1.2 | 0.12em | var(--offwhite) `#F5F2EE` |
 | Body / table cell | Montserrat | 13px | 300 | 1.8 | 0.03em | var(--offwhite) `#F5F2EE` |
-| Label / column header | Montserrat | 11px | 400 | 1.4 | 0.3em | var(--warmgrey) `#9A958F` |
-| Caption / meta | Montserrat | 10px | 300 | 1.4 | 0.25em | var(--warmgrey) `#9A958F` |
+| Label / column header / caption / meta | Montserrat | 11px | 400 | 1.4 | 0.3em | var(--warmgrey) `#9A958F` |
 | Badge text | Montserrat | 11px | 400 | n/a | 0.08em | per-badge semantic color |
 | Promo code input text | Montserrat | 13px | 300 | n/a | 0.08em | var(--offwhite) `#F5F2EE` |
 | Promo discount display | Montserrat | 13px | 400 | n/a | 0 | `#4ade80` (active/green) |
+
+Declared sizes: **26px, 20px, 13px, 11px** (4 sizes total — within limit).
 
 Rules (from STYLEGUIDE.md):
 - All labels: `text-transform: uppercase`
 - Never use font-weight 700 (bold) — luxury requires lightness
 - Italic emphasis: `#E8B87A` (Copper Pale) — reserved for pull quotes and display only; do not use in admin UI
+- Caption and meta text (e.g. expiry note, "No expiry" label, "Unlimited") uses the 11px label style (warmgrey, 0.3em letter-spacing, weight 400) — no separate caption size
 
 Source: STYLEGUIDE.md § 3, existing AdminSidebar.tsx (20px/0.12em heading, 11px/0.25em tagline), PricingForm.tsx (13px body, 11px labels), StatusBadge.tsx (11px badge)
 
@@ -81,7 +83,7 @@ Source: STYLEGUIDE.md § 3, existing AdminSidebar.tsx (20px/0.12em heading, 11px
 | Dominant (60%) | `#1C1C1E` var(--anthracite) | Page backgrounds, sidebar background, all dark surfaces |
 | Secondary (30%) | `#2A2A2D` var(--anthracite-mid) | Main content area background, cards, promo code table rows, form inputs background |
 | Border / divider | `#3A3A3F` var(--anthracite-light) | Table borders, card borders, input borders, section dividers |
-| Accent (10%) | `#B87333` var(--copper) | Active nav border-left, primary CTA buttons, input focus ring, sidebar active state, promo code "Add" button, status badge border-left on active promo |
+| Accent (10%) | `#B87333` var(--copper) | Active nav border-left, primary CTA buttons, input focus ring, sidebar active state, promo code "Add Code" button, status badge border-left on active promo |
 | Destructive | `#C0392B` | Delete promo code button, deactivate confirmation prompt, cancel-booking hover state |
 | Text — primary | `#F5F2EE` var(--offwhite) | All readable text, table cell content, input values |
 | Text — secondary | `#9A958F` var(--warmgrey) | Labels, column headers, captions, inactive nav items, placeholder text |
@@ -89,7 +91,7 @@ Source: STYLEGUIDE.md § 3, existing AdminSidebar.tsx (20px/0.12em heading, 11px
 | Semantic — inactive/error | `#f87171` | Inactive promo code badge, invalid promo error in booking wizard |
 | Semantic — pending/warning | `#fb923c` | Pending status (consistent with StatusBadge) |
 
-Accent reserved for: active sidebar nav indicator (3px left border), primary CTA buttons (Create Promo Code, Save), input focus outline, logo "GO" portion — nowhere else.
+Accent reserved for: active sidebar nav indicator (3px left border), primary CTA buttons (Add Code, Apply Code), input focus outline, logo "GO" portion — nowhere else.
 
 Source: STYLEGUIDE.md § 2, StatusBadge.tsx (semantic palette), Step6Payment.tsx (Stripe appearance config), PricingForm.tsx (inputBaseStyle), existing layout.tsx
 
@@ -105,7 +107,7 @@ Components to create or modify in Phase 22:
 |-----------|------|-------------|
 | `PromoCodesTable` | `components/admin/PromoCodesTable.tsx` | List of promo codes with status badges, deactivate toggle, delete action |
 | `PromoCodeForm` | `components/admin/PromoCodeForm.tsx` | Inline form to create a new promo code (code string, discount %, expiry, usage limit) |
-| `PromoInput` | Inline in `Step6Payment.tsx` | Promo code text input + "Apply" button + discount feedback line in booking wizard |
+| `PromoInput` | Inline in `Step6Payment.tsx` | Promo code text input + "Apply Code" button + discount feedback line in booking wizard |
 
 ### Modified Components
 
@@ -155,8 +157,8 @@ Nav item to add in `AdminSidebar.tsx`: `{ href: '/admin/promo-codes', label: 'Pr
 | Table columns | CODE, DISCOUNT, EXPIRY, USES, STATUS, ACTIONS |
 | Active promo row | StatusBadge variant "active" (green); row background `#2A2A2D` |
 | Inactive promo row | StatusBadge variant "inactive" (red); row background `#1C1C1E`; text color `#9A958F` (dimmed) |
-| Deactivate toggle | Lucide `ToggleLeft` (active) / `ToggleRight` (inactive) icon button; 44px touch target; clicking toggles `is_active` via PATCH — optimistic update |
-| Delete action | Lucide `Trash2` icon button; color `#9A958F` default, `#f87171` on hover; 44px touch target; inline confirmation: button text changes to "CONFIRM?" for 3s then reverts — no modal needed (single-operator context) |
+| Deactivate toggle | Lucide `ToggleLeft` (active) / `ToggleRight` (inactive) icon button; 44px touch target; `aria-label="Deactivate promo"` when active, `aria-label="Reactivate promo"` when inactive; clicking toggles `is_active` via PATCH — optimistic update |
+| Delete action | Lucide `Trash2` icon button; `aria-label="Delete promo"`; color `#9A958F` default, `#f87171` on hover; 44px touch target; inline confirmation: button text changes to "CONFIRM?" for 3s then reverts — no modal needed (single-operator context) |
 | Empty state | Heading: "No promo codes yet." Body: "Create a code to offer a discount at checkout." Action: "Create Code" button (copper CTA) |
 | Loading state | Row cells replaced with a single `…` skeleton-style span at 40% opacity |
 
@@ -178,8 +180,8 @@ Location: `Step6Payment.tsx`, inserted between BookingSummaryBlock and the Strip
 
 | State | Visual |
 |-------|--------|
-| Default | Label "PROMO CODE" (11px, uppercase, warmgrey); text input (full width, anthracite-mid bg, anthracite-light border, offwhite text); "Apply" button (copper, 44px height, 13px Montserrat) |
-| Loading | "Apply" button shows "…" text, disabled |
+| Default | Label "PROMO CODE" (11px, uppercase, warmgrey); text input (full width, anthracite-mid bg, anthracite-light border, offwhite text, `padding: 8px 12px`, `minHeight: 44px`); "Apply Code" button (copper, 44px height, 13px Montserrat) |
+| Loading | "Apply Code" button shows "…" text, disabled |
 | Valid code applied | Green checkmark (Lucide `CheckCircle2`, #4ade80) inline with code; below summary line: "PROMO: −{X}%" in green (`#4ade80`); total line updates to show discounted amount; "Remove" link (`#9A958F`, 11px) to clear the code |
 | Invalid code | Input border changes to `#f87171`; error text below: specific message from server (e.g. "Code not found, expired, or inactive." / "This promo code has reached its usage limit.") |
 | Concurrent exhaustion at payment | Payment error dismisses and shows: "Your promo code was just fully redeemed. Please proceed without it or contact us." (no inline color change — uses existing payment error display) |
@@ -214,7 +216,7 @@ Location: `Step6Payment.tsx`, inserted between BookingSummaryBlock and the Strip
 | Element | Copy |
 |---------|------|
 | Primary CTA — create promo | "Add Code" |
-| Primary CTA — promo in wizard | "Apply" |
+| Primary CTA — promo in wizard | "Apply Code" |
 | Primary CTA — main admin nav | "Promos" (nav label, uppercase) |
 | Empty state heading — promo table | "No promo codes yet." |
 | Empty state body — promo table | "Create a code to offer a discount at checkout." |
@@ -266,10 +268,12 @@ Source: RESEARCH.md § Standard Stack ("No new dependencies required"), componen
 | BookingsTable mobile detection | `useEffect` + `useState(isMobile)` — no SSR window access | RESEARCH.md Pitfall 4 |
 | Promo delete confirmation | Inline "CONFIRM?" text (3s timeout), no modal | Single-operator context; STATE.md Phase 19-02 pattern (alert() acceptable) |
 | Deactivate toggle | Optimistic — mutate local state immediately | STATE.md Phase 19-02 decision |
-| Promo validation in wizard | Soft check (/api/validate-promo) on "Apply" click; atomic claim only at payment | RESEARCH.md Pattern 3 & 4 |
+| Promo validation in wizard | Soft check (/api/validate-promo) on "Apply Code" click; atomic claim only at payment | RESEARCH.md Pattern 3 & 4 |
 | Promo state in Zustand | Store as percentage (promoDiscount: number), not absolute amount | RESEARCH.md Open Question 3 |
 | Expiry timezone | UTC dates; expires at midnight UTC (2am Prague time) — acceptable for v1.3 | RESEARCH.md Pitfall 6 |
 | Promo in confirmation email | Pass promoCode + discountPct as Stripe metadata; display in email template | RESEARCH.md Open Question 2 |
+| Typography — caption/meta collapsed | 10px caption size removed; all caption/meta uses 11px label style (warmgrey, 0.3em letter-spacing) | checker revision 2026-04-03 |
+| Promo input padding | `padding: 8px 12px` + `minHeight: 44px` separate rule | checker revision 2026-04-03 — 10px is not a multiple of 4 |
 
 ---
 
