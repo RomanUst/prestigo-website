@@ -40,7 +40,9 @@ interface Booking {
   hours: number | null
   return_date: string | null
   special_requests: string | null
-  payment_intent_id: string
+  payment_intent_id: string | null
+  status: string
+  operator_notes: string | null
   created_at: string
 }
 
@@ -48,6 +50,20 @@ const vehicleClassMap: Record<string, string> = {
   business: 'Business',
   first_class: 'First Class',
   business_van: 'Business Van',
+}
+
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  pending:   ['confirmed', 'cancelled'],
+  confirmed: ['completed', 'cancelled'],
+  completed: [],
+  cancelled: [],
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  pending: 'Pending',
+  confirmed: 'Confirmed',
+  completed: 'Completed',
+  cancelled: 'Cancelled',
 }
 
 function DetailField({ label, value }: { label: string; value: React.ReactNode }) {
@@ -90,6 +106,75 @@ export default function BookingsTable() {
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const limit = 20
 
+  const [localNotes, setLocalNotes] = useState<Record<string, string>>({})
+  const [statusUpdating, setStatusUpdating] = useState<Record<string, boolean>>({})
+  const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
+  const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
+
+  const patchBooking = useCallback(async (body: { id: string; status?: string; operator_notes?: string }) => {
+    const res = await fetch('/api/admin/bookings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(data.error ?? 'Update failed')
+    }
+    return res.json()
+  }, [])
+
+  const handleStatusChange = useCallback(async (bookingId: string, newStatus: string) => {
+    setStatusUpdating(prev => ({ ...prev, [bookingId]: true }))
+    try {
+      await patchBooking({ id: bookingId, status: newStatus })
+      // Optimistic update — mutate only the status field, don't re-fetch
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: newStatus } : b))
+    } catch (err) {
+      // Show alert on failure — simple for v1.3 single-operator admin
+      alert(err instanceof Error ? err.message : 'Status update failed')
+    } finally {
+      setStatusUpdating(prev => ({ ...prev, [bookingId]: false }))
+    }
+  }, [patchBooking])
+
+  const flushNotes = useCallback(async (bookingId: string, value: string) => {
+    setNotesSaving(prev => ({ ...prev, [bookingId]: 'saving' }))
+    try {
+      await patchBooking({ id: bookingId, operator_notes: value })
+      setNotesSaving(prev => ({ ...prev, [bookingId]: 'saved' }))
+      // Reset "saved" indicator after 2 seconds
+      setTimeout(() => {
+        setNotesSaving(prev => prev[bookingId] === 'saved' ? { ...prev, [bookingId]: 'idle' } : prev)
+      }, 2000)
+    } catch {
+      setNotesSaving(prev => ({ ...prev, [bookingId]: 'error' }))
+    }
+  }, [patchBooking])
+
+  const handleNotesChange = useCallback((bookingId: string, value: string) => {
+    setLocalNotes(prev => ({ ...prev, [bookingId]: value }))
+    // Cancel pending debounce
+    if (notesDebounceRef.current[bookingId]) {
+      clearTimeout(notesDebounceRef.current[bookingId])
+    }
+    // Schedule save after 800ms idle
+    notesDebounceRef.current[bookingId] = setTimeout(() => {
+      flushNotes(bookingId, value)
+    }, 800)
+  }, [flushNotes])
+
+  const handleNotesBlur = useCallback((bookingId: string) => {
+    // Flush immediately on blur
+    const currentValue = localNotes[bookingId]
+    if (currentValue !== undefined) {
+      if (notesDebounceRef.current[bookingId]) {
+        clearTimeout(notesDebounceRef.current[bookingId])
+      }
+      flushNotes(bookingId, currentValue)
+    }
+  }, [localNotes, flushNotes])
+
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
     searchDebounceRef.current = setTimeout(() => {
@@ -117,6 +202,17 @@ export default function BookingsTable() {
         const data = await res.json()
         setBookings(data.bookings ?? [])
         setTotal(data.total ?? 0)
+        // Seed localNotes for bookings that don't already have a local edit
+        const fetched = data.bookings ?? []
+        setLocalNotes(prev => {
+          const next = { ...prev }
+          fetched.forEach((b: Booking) => {
+            if (!(b.id in next)) {
+              next[b.id] = b.operator_notes ?? ''
+            }
+          })
+          return next
+        })
       }
     } finally {
       setLoading(false)
@@ -126,6 +222,13 @@ export default function BookingsTable() {
   useEffect(() => {
     fetchBookings()
   }, [fetchBookings])
+
+  // Cleanup debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(notesDebounceRef.current).forEach(timer => clearTimeout(timer))
+    }
+  }, [])
 
   const handleFilterChange = useCallback((setter: (v: string) => void) => (v: string) => {
     setter(v)
@@ -189,6 +292,17 @@ export default function BookingsTable() {
         <span style={{ textAlign: 'right', display: 'block' }}>
           {getValue<number>()} CZK
         </span>
+      ),
+    },
+    {
+      id: 'status',
+      header: 'STATUS',
+      size: 120,
+      cell: ({ row }) => (
+        <StatusBadge
+          variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
+          label={STATUS_LABELS[row.original.status] ?? row.original.status}
+        />
       ),
     },
     {
@@ -541,12 +655,110 @@ export default function BookingsTable() {
                           <DetailField
                             label="PAYMENT ID"
                             value={
-                              <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>
-                                {row.original.payment_intent_id.length > 24
-                                  ? `${row.original.payment_intent_id.slice(0, 24)}...`
-                                  : row.original.payment_intent_id}
-                              </span>
+                              row.original.payment_intent_id ? (
+                                <span style={{ fontFamily: 'monospace', fontSize: '13px' }}>
+                                  {row.original.payment_intent_id.length > 24
+                                    ? `${row.original.payment_intent_id.slice(0, 24)}...`
+                                    : row.original.payment_intent_id}
+                                </span>
+                              ) : '—'
                             }
+                          />
+                        </div>
+
+                        {/* Status transition */}
+                        <div style={{ marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{
+                            fontFamily: 'var(--font-montserrat)',
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.3em',
+                            color: 'var(--warmgrey)',
+                          }}>
+                            Status
+                          </span>
+                          {(VALID_TRANSITIONS[row.original.status] ?? []).length > 0 ? (
+                            <select
+                              value=""
+                              disabled={!!statusUpdating[row.original.id]}
+                              onChange={(e) => {
+                                if (e.target.value) handleStatusChange(row.original.id, e.target.value)
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                height: '32px',
+                                padding: '0 8px',
+                                background: 'var(--anthracite)',
+                                border: '1px solid var(--anthracite-light)',
+                                borderRadius: '2px',
+                                fontFamily: 'var(--font-montserrat)',
+                                fontSize: '13px',
+                                color: 'var(--offwhite)',
+                                cursor: statusUpdating[row.original.id] ? 'not-allowed' : 'pointer',
+                                opacity: statusUpdating[row.original.id] ? 0.5 : 1,
+                              }}
+                            >
+                              <option value="" disabled>
+                                {statusUpdating[row.original.id] ? 'Updating...' : `Change from ${STATUS_LABELS[row.original.status]}...`}
+                              </option>
+                              {(VALID_TRANSITIONS[row.original.status] ?? []).map(s => (
+                                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                              ))}
+                            </select>
+                          ) : (
+                            <StatusBadge
+                              variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
+                              label={`${STATUS_LABELS[row.original.status]} (final)`}
+                            />
+                          )}
+                        </div>
+
+                        {/* Operator notes */}
+                        <div style={{ marginTop: '16px' }}>
+                          <div style={{
+                            fontFamily: 'var(--font-montserrat)',
+                            fontSize: '11px',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.3em',
+                            color: 'var(--warmgrey)',
+                            marginBottom: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                          }}>
+                            Operator Notes
+                            {notesSaving[row.original.id] === 'saving' && (
+                              <span style={{ color: 'var(--copper)', fontSize: '10px', letterSpacing: '0.1em' }}>Saving...</span>
+                            )}
+                            {notesSaving[row.original.id] === 'saved' && (
+                              <span style={{ color: '#4ade80', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>
+                            )}
+                            {notesSaving[row.original.id] === 'error' && (
+                              <span style={{ color: '#f87171', fontSize: '10px', letterSpacing: '0.1em' }}>Error saving</span>
+                            )}
+                          </div>
+                          <textarea
+                            value={localNotes[row.original.id] ?? row.original.operator_notes ?? ''}
+                            onChange={(e) => handleNotesChange(row.original.id, e.target.value)}
+                            onBlur={() => handleNotesBlur(row.original.id)}
+                            onClick={(e) => e.stopPropagation()}
+                            maxLength={2000}
+                            placeholder="Add internal notes..."
+                            rows={3}
+                            style={{
+                              width: '100%',
+                              background: 'var(--anthracite-mid)',
+                              border: '1px solid var(--anthracite-light)',
+                              borderRadius: '2px',
+                              padding: '8px 12px',
+                              fontFamily: 'var(--font-montserrat)',
+                              fontSize: '13px',
+                              color: 'var(--offwhite)',
+                              resize: 'vertical',
+                              outline: 'none',
+                              boxSizing: 'border-box',
+                            }}
+                            onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
                           />
                         </div>
                       </td>
