@@ -137,7 +137,13 @@ Plans:
   3. Operator can deactivate or delete an existing promo code; deactivated codes are no longer accepted by the booking wizard
   4. Client can enter a promo code in the booking wizard at checkout; a valid code updates the displayed total inline without a page reload
   5. An expired, exhausted, or invalid promo code entered at checkout is rejected with a specific error message before payment is attempted; two simultaneous users cannot over-redeem a single-use code
-**Plans**: TBD
+**Plans:** 4 plans
+
+Plans:
+- [ ] 22-01-PLAN.md — Promo code DB claim function + admin API CRUD + admin page with table and form
+- [ ] 22-02-PLAN.md — Mobile admin: sidebar hamburger, 44px touch targets, bookings card layout, Promos nav
+- [ ] 22-03-PLAN.md — Booking wizard promo integration: Zustand store, validate-promo API, atomic claim in create-payment-intent, PromoInput UI
+- [ ] 22-04-PLAN.md — Full test suite + human verification of mobile admin and promo flows
 
 ---
 
@@ -165,5 +171,5 @@ Plans:
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 19. Booking Status Workflow + Operator Notes | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
-| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | 2/2 | Complete    | 2026-04-03 | - |
-| 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
+| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 2/2 | Complete | 2026-04-03 |
+| 22. Mobile Admin + Promo Code System | v1.3 | 0/4 | Not started | - |
