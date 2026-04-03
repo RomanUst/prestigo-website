@@ -81,24 +81,24 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZONES-06 | — | Pending |
-| PRICING-07 | — | Pending |
-| PRICING-08 | — | Pending |
-| PROMO-01 | — | Pending |
-| PROMO-02 | — | Pending |
-| PROMO-03 | — | Pending |
-| PROMO-04 | — | Pending |
-| BOOKINGS-06 | — | Pending |
-| BOOKINGS-07 | — | Pending |
-| BOOKINGS-08 | — | Pending |
-| BOOKINGS-09 | — | Pending |
-| UX-01 | — | Pending |
+| ZONES-06 | Phase 18 | Pending |
+| PRICING-07 | Phase 21 | Pending |
+| PRICING-08 | Phase 21 | Pending |
+| PROMO-01 | Phase 22 | Pending |
+| PROMO-02 | Phase 22 | Pending |
+| PROMO-03 | Phase 22 | Pending |
+| PROMO-04 | Phase 22 | Pending |
+| BOOKINGS-06 | Phase 20 | Pending |
+| BOOKINGS-07 | Phase 19 | Pending |
+| BOOKINGS-08 | Phase 20 | Pending |
+| BOOKINGS-09 | Phase 19 | Pending |
+| UX-01 | Phase 22 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 12 total
-- Mapped to phases: 0
-- Unmapped: 12 ⚠️ (roadmap not yet created)
+- Mapped to phases: 12
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-04-03*
-*Last updated: 2026-04-03 — initial definition for v1.3*
+*Last updated: 2026-04-03 — traceability complete, all 12 requirements mapped*
