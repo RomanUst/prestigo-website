@@ -1,6 +1,8 @@
 'use client'
 import { useState } from 'react'
 import { X } from 'lucide-react'
+import AddressInput from '@/components/booking/AddressInput'
+import type { PlaceResult } from '@/types/booking'
 
 interface ManualBookingFormProps {
   open: boolean
@@ -57,8 +59,8 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [tripType, setTripType] = useState('transfer')
   const [pickupDate, setPickupDate] = useState('')
   const [pickupTime, setPickupTime] = useState('')
-  const [originAddress, setOriginAddress] = useState('')
-  const [destinationAddress, setDestinationAddress] = useState('')
+  const [originPlace, setOriginPlace] = useState<PlaceResult | null>(null)
+  const [destinationPlace, setDestinationPlace] = useState<PlaceResult | null>(null)
   const [vehicleClass, setVehicleClass] = useState('business')
   const [passengers, setPassengers] = useState(1)
   const [luggage, setLuggage] = useState(0)
@@ -82,11 +84,17 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
     setLoading(true)
     setError(null)
 
+    if (!originPlace) {
+      setError('Please select a pickup address from the dropdown.')
+      setLoading(false)
+      return
+    }
+
     const payload: Record<string, unknown> = {
       trip_type: tripType,
       pickup_date: pickupDate,
       pickup_time: pickupTime,
-      origin_address: originAddress,
+      origin_address: originPlace.address,
       vehicle_class: vehicleClass,
       passengers,
       luggage,
@@ -97,7 +105,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       client_phone: phone,
     }
 
-    if (destinationAddress) payload.destination_address = destinationAddress
+    if (destinationPlace) payload.destination_address = destinationPlace.address
     if (hours) payload.hours = Number(hours)
     if (returnDate) payload.return_date = returnDate
     if (flightNumber) payload.flight_number = flightNumber
@@ -232,27 +240,23 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                 </Field>
               </div>
 
-              <Field label="ORIGIN ADDRESS">
-                <input
-                  type="text"
-                  value={originAddress}
-                  onChange={(e) => setOriginAddress(e.target.value)}
-                  style={inputStyle}
-                  required
-                />
-              </Field>
+              <AddressInput
+                label="PICKUP ADDRESS"
+                placeholder="Start typing an address…"
+                value={originPlace}
+                onSelect={setOriginPlace}
+                onClear={() => setOriginPlace(null)}
+                ariaLabel="Pickup address"
+              />
 
-              <Field label="DESTINATION ADDRESS">
-                <input
-                  type="text"
-                  value={destinationAddress}
-                  onChange={(e) => setDestinationAddress(e.target.value)}
-                  style={inputStyle}
-                />
-                <div style={{ fontSize: '10px', color: 'var(--warmgrey)', marginTop: '4px' }}>
-                  (optional for hourly/daily)
-                </div>
-              </Field>
+              <AddressInput
+                label="DESTINATION ADDRESS"
+                placeholder="Start typing an address… (optional for hourly/daily)"
+                value={destinationPlace}
+                onSelect={setDestinationPlace}
+                onClear={() => setDestinationPlace(null)}
+                ariaLabel="Destination address"
+              />
 
               <Field label="VEHICLE CLASS">
                 <select
