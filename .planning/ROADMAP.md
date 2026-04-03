@@ -149,7 +149,7 @@ Plans:
 | 15. UI Design Contract | v1.2 | 1/1 | Complete | 2026-04-02 |
 | 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
 | 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |
-| 18. Schema Foundation + Zone Logic Fix | 2/2 | Complete   | 2026-04-03 | - |
+| 18. Schema Foundation + Zone Logic Fix | 2/2 | Complete    | 2026-04-03 | - |
 | 19. Booking Status Workflow + Operator Notes | v1.3 | 0/TBD | Not started | - |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 0/TBD | Not started | - |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/TBD | Not started | - |
