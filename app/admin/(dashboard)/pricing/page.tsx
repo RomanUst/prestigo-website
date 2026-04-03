@@ -47,7 +47,7 @@ export default async function PricingPage() {
       >
         Pricing
       </h1>
-      <PricingForm initialData={{ config: data.config, globals: data.globals }} />
+      <PricingForm initialData={{ config: data.config, globals: data.globals, holidayDates: data.globals?.holiday_dates ?? [] }} />
     </div>
   )
 }

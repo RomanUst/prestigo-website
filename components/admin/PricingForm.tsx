@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useState } from 'react'
+import { X } from 'lucide-react'
 
 const pricingSchema = z.object({
   config: z.array(z.object({
@@ -10,6 +11,7 @@ const pricingSchema = z.object({
     rate_per_km: z.number().positive(),
     hourly_rate: z.number().positive(),
     daily_rate: z.number().positive(),
+    min_fare: z.number().min(0),
   })),
   globals: z.object({
     airport_fee: z.number().min(0),
@@ -21,6 +23,10 @@ const pricingSchema = z.object({
   }),
 })
 type PricingData = z.infer<typeof pricingSchema>
+
+type PricingFormProps = {
+  initialData: PricingData & { holidayDates: string[] }
+}
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -69,20 +75,28 @@ const headerLabelStyle: React.CSSProperties = {
   color: 'var(--warmgrey)',
 }
 
-export default function PricingForm({ initialData }: { initialData: PricingData }) {
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<PricingData>({
+export default function PricingForm({ initialData }: PricingFormProps) {
+  const { register, handleSubmit, watch, formState: { isSubmitting } } = useForm<PricingData>({
     resolver: zodResolver(pricingSchema),
     defaultValues: initialData,
   })
   const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
+  const [holidayDates, setHolidayDates] = useState<string[]>(initialData.holidayDates ?? [])
+  const [newDate, setNewDate] = useState('')
 
   async function onSubmit(data: PricingData) {
     setSaveStatus('idle')
     const res = await fetch('/api/admin/pricing', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
+      body: JSON.stringify({
+        ...data,
+        globals: {
+          ...data.globals,
+          holiday_dates: holidayDates,
+        },
+      }),
     })
     if (res.ok) {
       setSaveStatus('success')
@@ -123,7 +137,7 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '160px 1fr 1fr 1fr',
+            gridTemplateColumns: '160px 1fr 1fr 1fr 1fr',
             gap: '16px',
             alignItems: 'center',
             marginBottom: '8px',
@@ -148,58 +162,82 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
               EUR / day
             </div>
           </div>
+          <div>
+            <div style={headerLabelStyle}>MIN FARE</div>
+            <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)', marginTop: '2px' }}>
+              EUR min
+            </div>
+          </div>
         </div>
 
         {/* Data rows */}
-        {initialData.config.map((row, index) => (
-          <div
-            key={row.vehicle_class}
-            style={{
-              display: 'grid',
-              gridTemplateColumns: '160px 1fr 1fr 1fr',
-              gap: '16px',
-              alignItems: 'center',
-              marginTop: '12px',
-            }}
-          >
+        {initialData.config.map((row, index) => {
+          const minFareValue = watch(`config.${index}.min_fare`)
+          return (
             <div
+              key={row.vehicle_class}
               style={{
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: '13px',
-                color: 'var(--offwhite)',
+                display: 'grid',
+                gridTemplateColumns: '160px 1fr 1fr 1fr 1fr',
+                gap: '16px',
+                alignItems: 'center',
+                marginTop: '12px',
               }}
             >
-              {VEHICLE_LABELS[row.vehicle_class] ?? row.vehicle_class}
+              <div
+                style={{
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: '13px',
+                  color: 'var(--offwhite)',
+                }}
+              >
+                {VEHICLE_LABELS[row.vehicle_class] ?? row.vehicle_class}
+              </div>
+              <div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  style={getInputStyle(`config-${index}-rate_per_km`)}
+                  {...registerNumeric(`config.${index}.rate_per_km`, `config-${index}-rate_per_km`)}
+                />
+              </div>
+              <div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  style={getInputStyle(`config-${index}-hourly_rate`)}
+                  {...registerNumeric(`config.${index}.hourly_rate`, `config-${index}-hourly_rate`)}
+                />
+              </div>
+              <div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  style={getInputStyle(`config-${index}-daily_rate`)}
+                  {...registerNumeric(`config.${index}.daily_rate`, `config-${index}-daily_rate`)}
+                />
+              </div>
+              <div>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="0"
+                  style={getInputStyle(`config-${index}-min_fare`)}
+                  {...registerNumeric(`config.${index}.min_fare`, `config-${index}-min_fare`)}
+                />
+                {minFareValue === 0 && (
+                  <div style={{ fontFamily: 'var(--font-montserrat)', fontSize: '10px', color: 'var(--warmgrey)', marginTop: '2px' }}>
+                    (no floor)
+                  </div>
+                )}
+              </div>
             </div>
-            <div>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                style={getInputStyle(`config-${index}-rate_per_km`)}
-                {...registerNumeric(`config.${index}.rate_per_km`, `config-${index}-rate_per_km`)}
-              />
-            </div>
-            <div>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                style={getInputStyle(`config-${index}-hourly_rate`)}
-                {...registerNumeric(`config.${index}.hourly_rate`, `config-${index}-hourly_rate`)}
-              />
-            </div>
-            <div>
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                style={getInputStyle(`config-${index}-daily_rate`)}
-                {...registerNumeric(`config.${index}.daily_rate`, `config-${index}-daily_rate`)}
-              />
-            </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Section B — Global Parameters */}
@@ -245,6 +283,144 @@ export default function PricingForm({ initialData }: { initialData: PricingData 
               </div>
             </div>
           ))}
+        </div>
+      </div>
+
+      {/* Section D — Holiday Dates */}
+      <div style={{ ...cardStyle, marginTop: '16px' }}>
+        <div style={headerLabelStyle}>HOLIDAY DATES</div>
+        <div style={{
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: '11px',
+          color: 'var(--warmgrey)',
+          marginTop: '4px',
+          marginBottom: '16px',
+        }}>
+          Trips on these dates apply the holiday coefficient.
+        </div>
+
+        {/* Date list */}
+        {holidayDates.length === 0 ? (
+          <div style={{
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '11px',
+            color: 'var(--warmgrey)',
+            fontStyle: 'italic',
+            marginBottom: '16px',
+          }}>
+            No holiday dates configured.
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
+            {[...holidayDates].sort().map((date) => (
+              <div
+                key={date}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  background: 'var(--anthracite)',
+                  border: '1px solid var(--anthracite-light)',
+                  borderRadius: '2px',
+                  padding: '6px 12px',
+                  width: 'fit-content',
+                }}
+              >
+                <span style={{
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: '13px',
+                  color: 'var(--offwhite)',
+                }}>
+                  {date}
+                </span>
+                <button
+                  type="button"
+                  aria-label={`Remove ${date}`}
+                  onClick={() => setHolidayDates(prev => prev.filter(d => d !== date))}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    minWidth: '32px',
+                    minHeight: '32px',
+                    justifyContent: 'center',
+                  }}
+                  onMouseEnter={(e) => {
+                    const svg = e.currentTarget.querySelector('svg')
+                    if (svg) (svg as SVGElement & { style: CSSStyleDeclaration }).style.color = '#f87171'
+                  }}
+                  onMouseLeave={(e) => {
+                    const svg = e.currentTarget.querySelector('svg')
+                    if (svg) (svg as SVGElement & { style: CSSStyleDeclaration }).style.color = 'var(--warmgrey)'
+                  }}
+                >
+                  <X size={14} style={{ color: 'var(--warmgrey)' }} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add date row */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <input
+            type="date"
+            value={newDate}
+            onChange={(e) => setNewDate(e.target.value)}
+            style={{
+              background: 'var(--anthracite)',
+              border: `1px solid ${newDate && holidayDates.includes(newDate) ? '#f87171' : focusedInput === 'holiday-date-input' ? 'var(--copper)' : 'var(--anthracite-light)'}`,
+              borderRadius: '2px',
+              color: 'var(--offwhite)',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '13px',
+              padding: '8px 12px',
+              width: '160px',
+              outline: 'none',
+            }}
+            onFocus={() => setFocusedInput('holiday-date-input')}
+            onBlur={() => setFocusedInput(null)}
+          />
+          <button
+            type="button"
+            disabled={!newDate || holidayDates.includes(newDate)}
+            onClick={() => {
+              if (newDate && !holidayDates.includes(newDate)) {
+                setHolidayDates(prev => [...prev, newDate])
+                setNewDate('')
+              }
+            }}
+            style={{
+              border: '1px solid var(--copper)',
+              color: 'var(--copper)',
+              background: 'transparent',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              fontWeight: 500,
+              textTransform: 'uppercase',
+              letterSpacing: '0.3em',
+              padding: '8px 16px',
+              borderRadius: '0',
+              cursor: !newDate || holidayDates.includes(newDate) ? 'not-allowed' : 'pointer',
+              opacity: !newDate || holidayDates.includes(newDate) ? 0.5 : 1,
+              transition: 'background 300ms ease, color 300ms ease',
+            }}
+            onMouseEnter={(e) => {
+              if (newDate && !holidayDates.includes(newDate)) {
+                e.currentTarget.style.background = 'var(--copper)'
+                e.currentTarget.style.color = 'var(--anthracite)'
+              }
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.color = 'var(--copper)'
+            }}
+          >
+            + ADD DATE
+          </button>
         </div>
       </div>
 
