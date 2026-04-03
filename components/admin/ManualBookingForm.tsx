@@ -1,6 +1,20 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
+
+// Module-level singleton — same pattern as AddressInput.tsx used by the booking wizard
+let mapsPromise: Promise<void> | null = null
+function ensureMapsLoaded(): Promise<void> {
+  if (mapsPromise) return mapsPromise
+  setOptions({
+    key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+    libraries: ['places'],
+    v: 'weekly',
+  })
+  mapsPromise = importLibrary('places').then(() => undefined)
+  return mapsPromise
+}
 
 const labelStyle: React.CSSProperties = {
   fontSize: '11px',
@@ -47,21 +61,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-// Poll until google.maps.places.Autocomplete widget class is ready
-// (populated by the <Script> tag in admin layout via traditional Maps loading)
-function waitForPlaces(): Promise<void> {
-  return new Promise((resolve) => {
-    const attempt = () => {
-      if (window.google?.maps?.places?.Autocomplete) {
-        resolve()
-      } else {
-        setTimeout(attempt, 150)
-      }
-    }
-    attempt()
-  })
-}
-
 function AdminAddressInput({ label, value, onChange, placeholder, required }: {
   label: string
   value: string
@@ -71,11 +70,11 @@ function AdminAddressInput({ label, value, onChange, placeholder, required }: {
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Attach native Google Autocomplete widget to the input element.
-  // The widget renders its dropdown at <body> level, bypassing any
-  // z-index / overflow clipping issues inside the modal.
+  // Load Maps (same loader as the public booking wizard) then attach
+  // the native Autocomplete widget. It renders its dropdown at <body>
+  // level, bypassing any z-index/overflow clipping inside the modal.
   useEffect(() => {
-    waitForPlaces().then(() => {
+    ensureMapsLoaded().then(() => {
       if (!inputRef.current) return
       const ac = new window.google.maps.places.Autocomplete(inputRef.current, {
         fields: ['formatted_address', 'name'],
