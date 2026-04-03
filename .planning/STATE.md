@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: "Completed 22-02-PLAN.md"
-last_updated: "2026-04-03T19:05:00Z"
+stopped_at: "Completed 22-01-PLAN.md"
+last_updated: "2026-04-03T19:10:00Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 10
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 ## Current Position
 
 Phase: 22 (mobile-admin-promo-code-system) — EXECUTING
-Plan: 3 of 4
+Plan: 2 of 4
 
 ## Performance Metrics
 
@@ -72,6 +72,8 @@ Recent decisions affecting v1.3:
 - [Phase 22-02]: isMobile state + CSS classes (md:hidden/hidden md:block) dual approach — CSS handles flash, JS prevents dual DOM
 - [Phase 22-02]: Mobile status transitions as buttons (not select) — required for 44px touch target compliance
 - [Phase 22-02]: expandedCards state separate from tanstack table expanded state — cards have independent expand/collapse
+- [Phase 22-01]: GET route handler accepts _request: Request param for TypeScript consistency with test signatures
+- [Phase 22-01]: PromoCodesTable uses useEffect to sync localCodes from parent promoCodes prop — prevents stale state after parent re-fetch
 
 ### Pending Todos
 
@@ -85,6 +87,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T18:26:17.795Z
-Stopped at: Phase 22 UI-SPEC approved
-Resume file: .planning/phases/22-mobile-admin-promo-code-system/22-UI-SPEC.md
+Last session: 2026-04-03T19:10:00Z
+Stopped at: Completed 22-01-PLAN.md
