@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
-status: unknown
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-04-03T11:58:10.589Z"
+status: awaiting-verification
+stopped_at: Completed 19-02-PLAN.md (Task 1 of 2; Task 2 is human-verify checkpoint)
+last_updated: "2026-04-03T12:02:46Z"
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 ## Current Position
 
-Phase: 19 (booking-status-workflow-operator-notes) — EXECUTING
-Plan: 2 of 2
+Phase: 19 (booking-status-workflow-operator-notes) — AWAITING VERIFICATION
+Plan: 2 of 2 (COMPLETE — awaiting human verification checkpoint)
 
 ## Performance Metrics
 
@@ -53,6 +53,9 @@ Recent decisions affecting v1.3:
 - [Phase 18]: No extra index on promo_codes.code — UNIQUE constraint creates one implicitly
 - [Phase 19-01]: UUID format in tests must match Zod v4 strict pattern — aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee fails, use valid v4 UUIDs in test payloads
 - [Phase 19-01]: Notes-only PATCH skips current-status SELECT query — no FSM check when status field absent
+- [Phase 19-02]: Optimistic update for status changes — mutate local state immediately, no re-fetch after PATCH success
+- [Phase 19-02]: alert() for status update failures in admin — single-operator v1.3, no toast infrastructure needed
+- [Phase 19-02]: localNotes seeded from fetched data only when booking not in local edit state — preserves in-flight edits on re-fetch
 
 ### Pending Todos
 
@@ -66,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T11:58:10.585Z
-Stopped at: Completed 19-01-PLAN.md
+Last session: 2026-04-03T12:02:46Z
+Stopped at: Completed 19-02-PLAN.md (awaiting human-verify checkpoint for browser verification)
 Resume file: None

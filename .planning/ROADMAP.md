@@ -57,7 +57,7 @@ See full details: `.planning/milestones/v1.2-ROADMAP.md`
 **Milestone Goal:** Enhance pricing logic (zone direction fix, holiday dates, minimum fare), add a full promo code system (admin CRUD + client wizard entry + server-side atomic validation), extend booking management (manual creation, status workflow, cancellation with Stripe refund, operator notes), and make the admin panel usable on mobile.
 
 - [x] **Phase 18: Schema Foundation + Zone Logic Fix** - DB migrations for v1.3 columns and tables; zone pricing logic corrected to OR-logic (completed 2026-04-03)
-- [ ] **Phase 19: Booking Status Workflow + Operator Notes** - Operator can move bookings through lifecycle states and annotate jobs
+- [x] **Phase 19: Booking Status Workflow + Operator Notes** - Operator can move bookings through lifecycle states and annotate jobs (completed 2026-04-03)
 - [ ] **Phase 20: Manual Booking + Cancellation with Refund** - Phone orders captured in admin; operator can cancel with optional Stripe refund
 - [ ] **Phase 21: Pricing Enhancements — Holiday Dates + Minimum Fare** - Holiday coefficient auto-applied by date; minimum fare floor enforced per vehicle class
 - [ ] **Phase 22: Mobile Admin + Promo Code System** - Admin panel works at 375px; full promo code system end-to-end
@@ -89,7 +89,7 @@ Plans:
   2. An invalid status transition (e.g., completed -> pending) is rejected by the server with a clear error
   3. Operator can type internal notes on any booking row and the note auto-saves without a separate save button
   4. Operator notes are visible in the expanded booking row on reload
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 19-01-PLAN.md — PATCH API handler with FSM validation + StatusBadge booking variants + unit tests
@@ -154,7 +154,7 @@ Plans:
 | 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
 | 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
-| 19. Booking Status Workflow + Operator Notes | 1/2 | In Progress|  | - |
+| 19. Booking Status Workflow + Operator Notes | 2/2 | Complete   | 2026-04-03 | - |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 0/TBD | Not started | - |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/TBD | Not started | - |
 | 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
