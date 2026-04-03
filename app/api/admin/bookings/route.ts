@@ -140,6 +140,16 @@ const manualBookingSchema = z.object({
   flight_number:       z.string().max(20).optional(),
   terminal:            z.string().max(20).optional(),
   special_requests:    z.string().max(1000).optional(),
+  // Extras — populated when booking is created via the wizard
+  extra_child_seat:    z.boolean().optional(),
+  extra_meet_greet:    z.boolean().optional(),
+  extra_luggage:       z.boolean().optional(),
+  // Coordinates — populated when addresses were selected via Google Places
+  origin_lat:          z.number().nullable().optional(),
+  origin_lng:          z.number().nullable().optional(),
+  destination_lat:     z.number().nullable().optional(),
+  destination_lng:     z.number().nullable().optional(),
+  distance_km:         z.number().nullable().optional(),
 })
 
 export async function POST(request: Request) {
@@ -159,22 +169,40 @@ export async function POST(request: Request) {
   const bookingReference = generateBookingReference()
   const amount_eur = czkToEur(parsed.data.amount_czk)
 
+  const d = parsed.data
   const row = {
-    ...parsed.data,
-    booking_reference: bookingReference,
-    booking_source: 'manual',
-    booking_type: 'confirmed',
-    payment_intent_id: null,
-    status: 'pending',
+    trip_type:           d.trip_type,
+    pickup_date:         d.pickup_date,
+    pickup_time:         d.pickup_time,
+    origin_address:      d.origin_address,
+    destination_address: d.destination_address ?? null,
+    vehicle_class:       d.vehicle_class,
+    passengers:          d.passengers,
+    luggage:             d.luggage,
+    amount_czk:          d.amount_czk,
+    client_first_name:   d.client_first_name,
+    client_last_name:    d.client_last_name,
+    client_email:        d.client_email,
+    client_phone:        d.client_phone,
+    hours:               d.hours ?? null,
+    return_date:         d.return_date ?? null,
+    flight_number:       d.flight_number ?? null,
+    terminal:            d.terminal ?? null,
+    special_requests:    d.special_requests ?? null,
+    extra_child_seat:    d.extra_child_seat ?? false,
+    extra_meet_greet:    d.extra_meet_greet ?? false,
+    extra_luggage:       d.extra_luggage ?? false,
+    origin_lat:          d.origin_lat ?? null,
+    origin_lng:          d.origin_lng ?? null,
+    destination_lat:     d.destination_lat ?? null,
+    destination_lng:     d.destination_lng ?? null,
+    distance_km:         d.distance_km ?? null,
+    booking_reference:   bookingReference,
+    booking_source:      'manual',
+    booking_type:        'confirmed',
+    payment_intent_id:   null,
+    status:              'pending',
     amount_eur,
-    origin_lat: null,
-    origin_lng: null,
-    destination_lat: null,
-    destination_lng: null,
-    distance_km: null,
-    extra_child_seat: false,
-    extra_meet_greet: false,
-    extra_luggage: false,
   }
 
   const supabase = createSupabaseServiceClient()
