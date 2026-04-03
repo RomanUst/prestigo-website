@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: "Completed 22-01-PLAN.md"
-last_updated: "2026-04-03T19:10:00Z"
+stopped_at: Completed 22-03-PLAN.md
+last_updated: "2026-04-03T19:17:02.664Z"
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 13
-  completed_plans: 10
+  completed_plans: 12
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 ## Current Position
 
 Phase: 22 (mobile-admin-promo-code-system) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -74,6 +74,9 @@ Recent decisions affecting v1.3:
 - [Phase 22-02]: expandedCards state separate from tanstack table expanded state — cards have independent expand/collapse
 - [Phase 22-01]: GET route handler accepts _request: Request param for TypeScript consistency with test signatures
 - [Phase 22-01]: PromoCodesTable uses useEffect to sync localCodes from parent promoCodes prop — prevents stale state after parent re-fetch
+- [Phase 22-03]: validate-promo is public GET (no auth guard) — clients use in booking wizard without authentication
+- [Phase 22-03]: promoCode/promoDiscount NOT persisted to sessionStorage — promo state is session-ephemeral
+- [Phase 22-03]: Server independently recomputes discounted total from claim_promo_code RPC; client only sends promoCode string
 
 ### Pending Todos
 
@@ -87,5 +90,5 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T19:10:00Z
-Stopped at: Completed 22-01-PLAN.md
+Last session: 2026-04-03T19:17:02.658Z
+Stopped at: Completed 22-03-PLAN.md

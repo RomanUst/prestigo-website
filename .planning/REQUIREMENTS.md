@@ -20,8 +20,8 @@
 
 - [x] **PROMO-01**: Operator can create a promo code (code string, discount type %, discount value, expiry date, usage limit) in the admin panel
 - [x] **PROMO-02**: Operator can deactivate or delete existing promo codes
-- [ ] **PROMO-03**: Client can enter a promo code in the booking wizard at checkout; a valid code updates the displayed total price inline
-- [ ] **PROMO-04**: Promo code is validated server-side (atomically, with race-safe usage increment) before Stripe PaymentIntent creation; invalid, expired, or exhausted codes are rejected with a specific error message
+- [x] **PROMO-03**: Client can enter a promo code in the booking wizard at checkout; a valid code updates the displayed total price inline
+- [x] **PROMO-04**: Promo code is validated server-side (atomically, with race-safe usage increment) before Stripe PaymentIntent creation; invalid, expired, or exhausted codes are rejected with a specific error message
 
 ### Booking Management
 
@@ -86,8 +86,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PRICING-08 | Phase 21 | Complete |
 | PROMO-01 | Phase 22 | Complete |
 | PROMO-02 | Phase 22 | Complete |
-| PROMO-03 | Phase 22 | Pending |
-| PROMO-04 | Phase 22 | Pending |
+| PROMO-03 | Phase 22 | Complete |
+| PROMO-04 | Phase 22 | Complete |
 | BOOKINGS-06 | Phase 20 | Complete |
 | BOOKINGS-07 | Phase 19 | Complete |
 | BOOKINGS-08 | Phase 20 | Complete |
