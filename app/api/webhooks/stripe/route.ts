@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
-import { saveBooking, withRetry, buildBookingRow } from '@/lib/supabase'
+import { saveBooking, withRetry, buildBookingRow, createSupabaseServiceClient } from '@/lib/supabase'
 import { sendClientConfirmation, sendManagerAlert, sendEmergencyAlert } from '@/lib/email'
 import type { BookingEmailData } from '@/lib/email'
 
@@ -26,6 +26,20 @@ export async function POST(request: Request) {
     const message = err instanceof Error ? err.message : 'Unknown error'
     console.error('Webhook signature verification failed:', message)
     return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 })
+  }
+
+  if (event.type === 'charge.refunded') {
+    const charge = event.data.object as Stripe.Charge
+    if (charge.payment_intent && charge.refunded) {
+      const supabase = createSupabaseServiceClient()
+      const { error: updateErr } = await supabase
+        .from('bookings')
+        .update({ status: 'cancelled' })
+        .eq('payment_intent_id', charge.payment_intent as string)
+      if (updateErr) {
+        console.error('charge.refunded webhook: DB update failed:', updateErr.message)
+      }
+    }
   }
 
   if (event.type === 'payment_intent.succeeded') {
