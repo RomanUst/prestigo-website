@@ -1,10 +1,9 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
-import usePlacesAutocomplete from 'use-places-autocomplete'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 
-// Module-level singleton — mirrors AddressInput's ensureMapsLoaded pattern exactly
+// Module-level singleton — load Places library once
 let adminMapsPromise: Promise<void> | null = null
 function ensureAdminMapsLoaded(): Promise<void> {
   if (adminMapsPromise) return adminMapsPromise
@@ -58,7 +57,8 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-// Lightweight address input: always typeable, shows Places suggestions when Maps loads
+// Address input using native google.maps.places.Autocomplete widget
+// The input is always typeable; autocomplete attaches after Maps loads
 function AdminAddressInput({ label, value, onChange, placeholder, required }: {
   label: string
   value: string
@@ -66,83 +66,43 @@ function AdminAddressInput({ label, value, onChange, placeholder, required }: {
   placeholder?: string
   required?: boolean
 }) {
-  const [mapsLoaded, setMapsLoaded] = useState(false)
-  const [showSugg, setShowSugg] = useState(false)
-  const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  const {
-    value: inputVal,
-    setValue,
-    suggestions: { data, status },
-    clearSuggestions,
-    init,
-  } = usePlacesAutocomplete({ initOnMount: false, debounce: 300, defaultValue: value })
-
-  // Mirror AddressInput's ensureMapsLoaded pattern exactly
-  useEffect(() => {
-    ensureAdminMapsLoaded().then(() => {
-      init()
-      setMapsLoaded(true)
-    }).catch(() => {})
-  }, [init])
-
-  // Sync if parent resets value to empty
-  useEffect(() => {
-    if (value === '' && inputVal !== '') setValue('', false)
-  }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
+  const inputRef = useRef<HTMLInputElement>(null)
+  const onChangeRef = useRef(onChange)
+  onChangeRef.current = onChange
 
   useEffect(() => {
-    setShowSugg(status === 'OK' && inputVal.length >= 2)
-  }, [status, inputVal])
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(e.target.value)
-    onChange(e.target.value)
-  }
-
-  const handleSelect = (description: string) => {
-    setValue(description, false)
-    onChange(description)
-    clearSuggestions()
-    setShowSugg(false)
-  }
+    let ac: google.maps.places.Autocomplete | null = null
+    ensureAdminMapsLoaded()
+      .then(() => {
+        if (!inputRef.current) return
+        ac = new google.maps.places.Autocomplete(inputRef.current, {
+          fields: ['formatted_address', 'name'],
+        })
+        ac.addListener('place_changed', () => {
+          const place = ac!.getPlace()
+          const addr = place.formatted_address ?? place.name ?? inputRef.current?.value ?? ''
+          onChangeRef.current(addr)
+        })
+      })
+      .catch(() => {})
+    return () => {
+      if (ac) google.maps.event.clearInstanceListeners(ac)
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div>
       <label style={labelStyle}>{label}</label>
       <input
+        ref={inputRef}
         type="text"
-        value={inputVal}
-        onChange={handleChange}
-        onBlur={() => { blurRef.current = setTimeout(() => setShowSugg(false), 200) }}
-        onFocus={() => { if (blurRef.current) clearTimeout(blurRef.current) }}
+        defaultValue={value}
+        onInput={e => onChangeRef.current((e.target as HTMLInputElement).value)}
         placeholder={placeholder}
         required={required}
         style={inputStyle}
         autoComplete="off"
       />
-      {showSugg && data.length > 0 && (
-        <ul style={{
-          position: 'absolute', width: '100%', zIndex: 100,
-          background: 'var(--anthracite)', border: '1px solid var(--anthracite-light)',
-          borderTop: 'none', listStyle: 'none', margin: 0, padding: 0,
-          maxHeight: '200px', overflowY: 'auto', borderRadius: '0 0 2px 2px',
-        }}>
-          {data.map(s => (
-            <li
-              key={s.place_id}
-              onMouseDown={() => handleSelect(s.description)}
-              style={{
-                padding: '10px 12px', cursor: 'pointer',
-                fontFamily: 'var(--font-montserrat)', fontSize: '12px', fontWeight: 300,
-                color: 'var(--offwhite)', borderBottom: '1px solid var(--anthracite-light)',
-              }}
-            >
-              {s.description}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }
