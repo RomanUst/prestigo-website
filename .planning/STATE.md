@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: Completed 21-02-PLAN.md
-last_updated: "2026-04-03T18:08:29.819Z"
+stopped_at: "Completed 22-02-PLAN.md"
+last_updated: "2026-04-03T19:05:00Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 13
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,20 +19,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 21 — pricing-enhancements-holiday-dates-minimum-fare (COMPLETE)
+**Current focus:** Phase 22 — mobile-admin-promo-code-system
 
 ## Current Position
 
-Phase: 21 (pricing-enhancements-holiday-dates-minimum-fare) — COMPLETE
-Plan: 2 of 2 (all plans done)
+Phase: 22 (mobile-admin-promo-code-system) — EXECUTING
+Plan: 3 of 4
 
 ## Performance Metrics
 
 **Velocity (v1.3):**
 
-- Total plans completed: 2
+- Total plans completed: 4
 - Average duration: 4 min
-- Total execution time: 0.13 hours
+- Total execution time: 0.27 hours
 
 *Updated after each plan completion*
 
@@ -68,6 +68,10 @@ Recent decisions affecting v1.3:
 - [Phase 21-01]: minFare applied as final Math.max after coefficient and airport fee — floor is always the last operation
 - [Phase 21-01]: revalidateTag('pricing-config', 'max') missing from admin PUT — added as Rule 1 bug fix
 - [Phase 21-02]: holiday_dates managed via useState not react-hook-form — merged into PUT body at submit time
+- [Phase 22-02]: Fixed sidebar (position: fixed) requires md:ml-[280px] on main — sidebar does not push flex layout
+- [Phase 22-02]: isMobile state + CSS classes (md:hidden/hidden md:block) dual approach — CSS handles flash, JS prevents dual DOM
+- [Phase 22-02]: Mobile status transitions as buttons (not select) — required for 44px touch target compliance
+- [Phase 22-02]: expandedCards state separate from tanstack table expanded state — cards have independent expand/collapse
 
 ### Pending Todos
 
@@ -81,6 +85,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T17:57:05.713Z
-Stopped at: Completed 21-02-PLAN.md
-Resume file: None
+Last session: 2026-04-03T18:26:17.795Z
+Stopped at: Phase 22 UI-SPEC approved
+Resume file: .planning/phases/22-mobile-admin-promo-code-system/22-UI-SPEC.md

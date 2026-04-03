@@ -32,7 +32,7 @@
 
 ### Admin UX
 
-- [ ] **UX-01**: Admin panel is responsive and usable on mobile devices (375px+); bookings table collapses to card layout below 768px; sidebar has hamburger toggle on mobile; all interactive targets are minimum 44px
+- [x] **UX-01**: Admin panel is responsive and usable on mobile devices (375px+); bookings table collapses to card layout below 768px; sidebar has hamburger toggle on mobile; all interactive targets are minimum 44px
 
 ---
 
@@ -92,7 +92,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BOOKINGS-07 | Phase 19 | Complete |
 | BOOKINGS-08 | Phase 20 | Complete |
 | BOOKINGS-09 | Phase 19 | Complete |
-| UX-01 | Phase 22 | Pending |
+| UX-01 | Phase 22 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 12 total
