@@ -4,7 +4,7 @@ milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
 stopped_at: "Completed 21-01-PLAN.md"
-last_updated: "2026-04-03T17:43:15Z"
+last_updated: "2026-04-03T17:47:50Z"
 progress:
   total_phases: 5
   completed_phases: 3
@@ -81,5 +81,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-04-03T17:43:15Z
-Stopped at: Completed 21-01-PLAN.md
+Stopped at: 21-02-PLAN.md — Task 1 complete, awaiting checkpoint:human-verify (Task 2)
 Resume file: .planning/phases/21-pricing-enhancements-holiday-dates-minimum-fare/21-02-PLAN.md
