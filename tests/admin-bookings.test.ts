@@ -15,6 +15,11 @@ const { supabaseAuthStub, supabaseServiceStub } = vi.hoisted(() => {
   return { supabaseAuthStub, supabaseServiceStub }
 })
 
+const { stripeRefundsStub } = vi.hoisted(() => {
+  const create = vi.fn()
+  return { stripeRefundsStub: { create } }
+})
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(supabaseAuthStub)),
 }))
@@ -31,7 +36,14 @@ vi.mock('@/lib/currency', () => ({
   czkToEur: vi.fn((czk: number) => Math.round(czk * 0.04)),
 }))
 
+vi.mock('stripe', () => ({
+  default: function MockStripe() {
+    return { refunds: stripeRefundsStub }
+  },
+}))
+
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
+import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
 
 function makeRequest(url?: string): Request {
   return new Request(url ?? 'http://localhost/api/admin/bookings', {
@@ -50,6 +62,14 @@ function makePatchRequest(body: Record<string, unknown>): Request {
 
 function makePostRequest(body: Record<string, unknown>): Request {
   return new Request('http://localhost/api/admin/bookings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+function makeCancelRequest(body: Record<string, unknown>): Request {
+  return new Request('http://localhost/api/admin/bookings/cancel', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
@@ -345,5 +365,118 @@ describe('POST /api/admin/bookings', () => {
         }),
       ])
     )
+  })
+})
+
+describe('POST /api/admin/bookings/cancel', () => {
+  it('Test 1: returns 401 when no session', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'No session' },
+    })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(401)
+  })
+
+  it('Test 2: returns 403 for non-admin user', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: '2', app_metadata: { is_admin: false } } },
+      error: null,
+    })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(403)
+  })
+
+  it('Test 3: returns 404 when booking not found', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: null, error: { message: 'not found' } })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(404)
+  })
+
+  it("Test 4: returns 422 when booking status is 'cancelled'", async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'cancelled', payment_intent_id: null }, error: null })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain("Cannot cancel a booking with status 'cancelled'")
+  })
+
+  it("Test 5: returns 422 when booking status is 'completed'", async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'completed', payment_intent_id: null }, error: null })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain("Cannot cancel a booking with status 'completed'")
+  })
+
+  it('Test 6: returns 200 and sets status=cancelled for manual booking, stripe NOT called', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'pending', payment_intent_id: null }, error: null })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
+    expect(stripeRefundsStub.create).not.toHaveBeenCalled()
+    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
+  })
+
+  it('Test 7: returns 200 and calls stripe.refunds.create for Stripe-paid booking', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed', payment_intent_id: 'pi_xxx' }, error: null })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    stripeRefundsStub.create.mockResolvedValue({ id: 're_test123' })
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true, refund_id: 're_test123' })
+    expect(stripeRefundsStub.create).toHaveBeenCalledWith({ payment_intent: 'pi_xxx' })
+    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
+  })
+
+  it('Test 8: returns 502 when stripe.refunds.create throws, booking status NOT updated', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'pending', payment_intent_id: 'pi_xxx' }, error: null })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    stripeRefundsStub.create.mockRejectedValue(new Error('charge_already_refunded'))
+
+    const res = await CANCEL_POST(makeCancelRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(502)
+    // DB update should NOT have been called (only 1 supabase.from call for the select)
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
   })
 })

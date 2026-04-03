@@ -6,11 +6,17 @@ const { stripeStub } = vi.hoisted(() => {
   return { stripeStub: { constructEvent } }
 })
 
+const { supabaseServiceStub } = vi.hoisted(() => {
+  const supabaseServiceStub = { from: vi.fn() }
+  return { supabaseServiceStub }
+})
+
 // Mock lib/supabase
 vi.mock('@/lib/supabase', () => ({
   saveBooking: vi.fn().mockResolvedValue(undefined),
   withRetry: vi.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
   buildBookingRow: vi.fn().mockReturnValue({ booking_reference: 'PRG-20260330-1234', booking_type: 'confirmed' }),
+  createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
 // Mock lib/email
@@ -190,5 +196,26 @@ describe('/api/webhooks/stripe', () => {
       const res = await POST(makeRequest())
       expect(res.status).toBe(200)
     })
+  })
+})
+
+describe('charge.refunded webhook', () => {
+  it('charge.refunded event updates booking status to cancelled via payment_intent lookup', async () => {
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'charge.refunded',
+      data: { object: { payment_intent: 'pi_test_123', refunded: true } },
+    })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+    supabaseServiceStub.from.mockReturnValue({ update: updateFn })
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toEqual({ received: true })
+    expect(supabaseServiceStub.from).toHaveBeenCalledWith('bookings')
+    expect(updateFn).toHaveBeenCalledWith({ status: 'cancelled' })
+    expect(updateEqFn).toHaveBeenCalledWith('payment_intent_id', 'pi_test_123')
   })
 })
