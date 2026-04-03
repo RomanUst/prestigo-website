@@ -9,7 +9,7 @@
 
 ### Coverage Zones
 
-- [ ] **ZONES-06**: Trip shows a calculated price if pickup **or** dropoff is within an active zone; `quoteMode: true` only when neither point is in any active zone
+- [x] **ZONES-06**: Trip shows a calculated price if pickup **or** dropoff is within an active zone; `quoteMode: true` only when neither point is in any active zone
 
 ### Pricing
 
@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ZONES-06 | Phase 18 | Pending |
+| ZONES-06 | Phase 18 | Complete |
 | PRICING-07 | Phase 21 | Pending |
 | PRICING-08 | Phase 21 | Pending |
 | PROMO-01 | Phase 22 | Pending |

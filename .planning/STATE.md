@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
-status: planning
-stopped_at: Phase 18 context gathered
-last_updated: "2026-04-03T10:26:20.108Z"
-last_activity: 2026-04-03 — v1.3 roadmap written (5 phases, 12 requirements)
+status: unknown
+stopped_at: "Completed 18-02-PLAN.md (checkpoint: awaiting Supabase Dashboard migration apply)"
+last_updated: "2026-04-03T10:49:10.535Z"
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
-  percent: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -21,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 18 — Schema Foundation + Zone Logic Fix
+**Current focus:** Phase 18 — schema-foundation-zone-logic-fix
 
 ## Current Position
 
-Phase: 18 of 22 (Schema Foundation + Zone Logic Fix)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-04-03 — v1.3 roadmap written (5 phases, 12 requirements)
-
-Progress: [░░░░░░░░░░] 0% (v1.3)
+Phase: 18 (schema-foundation-zone-logic-fix) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -53,6 +47,8 @@ Recent decisions affecting v1.3:
 - Phase 18: Zone OR-logic fix — rename `isOutsideAllZones` to `isInAnyZone`, write 4-case unit test before touching production
 - Phase 21: Holiday dates stored as JSONB key in `pricing_config` — no per-date metadata needed for v1.3
 - Phase 22: Promo race condition — atomic `UPDATE ... WHERE current_uses < max_uses RETURNING id` pattern; server re-validates promo independently, never trusts client-provided amount
+- [Phase 18]: CHECK constraints added on bookings.status and bookings.booking_source for DB-level enum enforcement
+- [Phase 18]: No extra index on promo_codes.code — UNIQUE constraint creates one implicitly
 
 ### Pending Todos
 
@@ -66,6 +62,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:26:20.102Z
-Stopped at: Phase 18 context gathered
-Resume file: .planning/phases/18-schema-foundation-zone-logic-fix/18-CONTEXT.md
+Last session: 2026-04-03T10:49:10.529Z
+Stopped at: Completed 18-02-PLAN.md (checkpoint: awaiting Supabase Dashboard migration apply)
+Resume file: None
