@@ -72,8 +72,15 @@ export default function AddressInput({
     requestOptions: {},
   })
 
-  // Load Google Maps on mount
+  // Load Google Maps on mount.
+  // Fast path: if Maps was already loaded by a <Script> tag (e.g. admin layout),
+  // skip the async loader and enable the input immediately.
   useEffect(() => {
+    if (window.google?.maps?.places?.AutocompleteService) {
+      init()
+      setMapsLoaded(true)
+      return
+    }
     ensureMapsLoaded().then(() => {
       init()
       setMapsLoaded(true)

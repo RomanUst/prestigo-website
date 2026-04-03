@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Script from 'next/script'
 import { createClient } from '@/lib/supabase/server'
 import AdminSidebar from '@/components/admin/AdminSidebar'
 
@@ -20,6 +21,11 @@ export default async function AdminDashboardLayout({
 
   return (
     <div style={{ minHeight: '100vh', position: 'relative' }}>
+      {/* Pre-load Google Maps so AddressInput is ready when the booking wizard opens */}
+      <Script
+        src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places&v=weekly`}
+        strategy="afterInteractive"
+      />
       <AdminSidebar />
       <main
         className="md:ml-[280px] pt-16 md:pt-8"
