@@ -23,7 +23,15 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
-import { GET, PATCH } from '@/app/api/admin/bookings/route'
+vi.mock('@/lib/booking-reference', () => ({
+  generateBookingReference: vi.fn(() => 'PRG-20260403-1234'),
+}))
+
+vi.mock('@/lib/currency', () => ({
+  czkToEur: vi.fn((czk: number) => Math.round(czk * 0.04)),
+}))
+
+import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 
 function makeRequest(url?: string): Request {
   return new Request(url ?? 'http://localhost/api/admin/bookings', {
@@ -35,6 +43,14 @@ function makeRequest(url?: string): Request {
 function makePatchRequest(body: Record<string, unknown>): Request {
   return new Request('http://localhost/api/admin/bookings', {
     method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+}
+
+function makePostRequest(body: Record<string, unknown>): Request {
+  return new Request('http://localhost/api/admin/bookings', {
+    method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
@@ -56,6 +72,22 @@ function makeQueryChain(overrides: {
   const selectFn = vi.fn().mockReturnValue({ order: orderFn, range: rangeFn, gte: gteFn, lte: lteFn, eq: eqFn, or: orFn })
 
   return { selectFn, orderFn, rangeFn, orFn, eqFn, gteFn, lteFn }
+}
+
+const validPostPayload = {
+  trip_type: 'transfer',
+  pickup_date: '2026-04-10',
+  pickup_time: '14:00',
+  origin_address: 'Prague Airport Terminal 1',
+  destination_address: 'Hotel Four Seasons Prague',
+  vehicle_class: 'business',
+  passengers: 2,
+  luggage: 3,
+  amount_czk: 1500,
+  client_first_name: 'Jan',
+  client_last_name: 'Novak',
+  client_email: 'jan@example.com',
+  client_phone: '+420600123456',
 }
 
 beforeEach(() => {
@@ -232,5 +264,86 @@ describe('PATCH /api/admin/bookings', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true })
+  })
+})
+
+describe('POST /api/admin/bookings', () => {
+  it('Test 1: returns 401 when no session', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'No session' },
+    })
+
+    const res = await POST(makePostRequest(validPostPayload))
+    expect(res.status).toBe(401)
+  })
+
+  it('Test 2: returns 403 for non-admin user', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: '2', app_metadata: { is_admin: false } } },
+      error: null,
+    })
+
+    const res = await POST(makePostRequest(validPostPayload))
+    expect(res.status).toBe(403)
+  })
+
+  it('Test 3: returns 400 when required fields missing (no trip_type)', async () => {
+    const { trip_type: _omitted, ...payloadWithoutTripType } = validPostPayload
+    const res = await POST(makePostRequest(payloadWithoutTripType))
+    expect(res.status).toBe(400)
+  })
+
+  it('Test 4: returns 400 when amount_czk is zero or negative', async () => {
+    const res = await POST(makePostRequest({ ...validPostPayload, amount_czk: 0 }))
+    expect(res.status).toBe(400)
+  })
+
+  it('Test 5: returns 201 with { booking } for valid payload and correct DB fields', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-1234' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const res = await POST(makePostRequest(validPostPayload))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json).toHaveProperty('booking')
+    expect(json.booking).toMatchObject({ id: 'test-id', booking_reference: 'PRG-20260403-1234' })
+
+    // Verify insert was called with correct booking_source, payment_intent_id, status, booking_type
+    expect(insertFn).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          booking_source: 'manual',
+          payment_intent_id: null,
+          status: 'pending',
+          booking_type: 'confirmed',
+        }),
+      ])
+    )
+  })
+
+  it('Test 6: POST generates booking_reference matching PRG-YYYYMMDD-XXXX pattern', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-1234' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    await POST(makePostRequest(validPostPayload))
+
+    expect(insertFn).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          booking_reference: expect.stringMatching(/^PRG-\d{8}-\d{4}$/),
+        }),
+      ])
+    )
   })
 })

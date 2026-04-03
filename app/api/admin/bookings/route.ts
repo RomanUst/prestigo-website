@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { generateBookingReference } from '@/lib/booking-reference'
+import { czkToEur } from '@/lib/currency'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -117,4 +119,72 @@ export async function PATCH(request: Request) {
   if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
 
   return NextResponse.json({ ok: true })
+}
+
+const manualBookingSchema = z.object({
+  trip_type:           z.enum(['transfer', 'hourly', 'daily']),
+  pickup_date:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  pickup_time:         z.string().regex(/^\d{2}:\d{2}$/),
+  origin_address:      z.string().min(1).max(500),
+  destination_address: z.string().max(500).optional(),
+  vehicle_class:       z.enum(['business', 'first_class', 'business_van']),
+  passengers:          z.number().int().min(1).max(20),
+  luggage:             z.number().int().min(0).max(20),
+  amount_czk:          z.number().int().positive(),
+  client_first_name:   z.string().min(1).max(100),
+  client_last_name:    z.string().min(1).max(100),
+  client_email:        z.string().email(),
+  client_phone:        z.string().min(1).max(50),
+  hours:               z.number().int().min(1).max(24).optional(),
+  return_date:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  flight_number:       z.string().max(20).optional(),
+  terminal:            z.string().max(20).optional(),
+  special_requests:    z.string().max(1000).optional(),
+})
+
+export async function POST(request: Request) {
+  const { error } = await getAdminUser()
+  if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  const body = await request.json()
+  const parsed = manualBookingSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid payload', issues: parsed.error.issues },
+      { status: 400 }
+    )
+  }
+
+  const bookingReference = generateBookingReference()
+  const amount_eur = czkToEur(parsed.data.amount_czk)
+
+  const row = {
+    ...parsed.data,
+    booking_reference: bookingReference,
+    booking_source: 'manual',
+    booking_type: 'confirmed',
+    payment_intent_id: null,
+    status: 'pending',
+    amount_eur,
+    origin_lat: null,
+    origin_lng: null,
+    destination_lat: null,
+    destination_lng: null,
+    distance_km: null,
+    extra_child_seat: false,
+    extra_meet_greet: false,
+    extra_luggage: false,
+  }
+
+  const supabase = createSupabaseServiceClient()
+  const { data, error: dbError } = await supabase
+    .from('bookings')
+    .insert([row])
+    .select()
+    .single()
+
+  if (dbError) return NextResponse.json({ error: 'DB insert failed' }, { status: 500 })
+
+  return NextResponse.json({ booking: data }, { status: 201 })
 }

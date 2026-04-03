@@ -4,6 +4,7 @@ import { calculatePrice, dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
+import { generateBookingReference } from '@/lib/booking-reference'
 import type { TripType, VehicleClass } from '@/types/booking'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -12,13 +13,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 })
 
 const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily']
-
-function generateBookingReference(): string {
-  const now = new Date()
-  const datePart = now.toISOString().slice(0, 10).replace(/-/g, '')
-  const suffix = String(Math.floor(Math.random() * 9000) + 1000)
-  return `PRG-${datePart}-${suffix}`
-}
 
 export async function POST(req: Request) {
   try {
