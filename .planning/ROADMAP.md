@@ -60,7 +60,7 @@ See full details: `.planning/milestones/v1.2-ROADMAP.md`
 - [x] **Phase 19: Booking Status Workflow + Operator Notes** - Operator can move bookings through lifecycle states and annotate jobs (completed 2026-04-03)
 - [x] **Phase 20: Manual Booking + Cancellation with Refund** - Phone orders captured in admin; operator can cancel with optional Stripe refund (completed 2026-04-03)
 - [x] **Phase 21: Pricing Enhancements — Holiday Dates + Minimum Fare** - Holiday coefficient auto-applied by date; minimum fare floor enforced per vehicle class (completed 2026-04-03)
-- [ ] **Phase 22: Mobile Admin + Promo Code System** - Admin panel works at 375px; full promo code system end-to-end
+- [x] **Phase 22: Mobile Admin + Promo Code System** - Admin panel works at 375px; full promo code system end-to-end (completed 2026-04-03)
 
 ## Phase Details
 
@@ -137,7 +137,7 @@ Plans:
   3. Operator can deactivate or delete an existing promo code; deactivated codes are no longer accepted by the booking wizard
   4. Client can enter a promo code in the booking wizard at checkout; a valid code updates the displayed total inline without a page reload
   5. An expired, exhausted, or invalid promo code entered at checkout is rejected with a specific error message before payment is attempted; two simultaneous users cannot over-redeem a single-use code
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 22-01-PLAN.md — Promo code DB claim function + admin API CRUD + admin page with table and form
@@ -172,4 +172,4 @@ Plans:
 | 19. Booking Status Workflow + Operator Notes | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 2/2 | Complete | 2026-04-03 |
-| 22. Mobile Admin + Promo Code System | 3/4 | In Progress|  | - |
+| 22. Mobile Admin + Promo Code System | 3/4 | Complete    | 2026-04-03 | - |
