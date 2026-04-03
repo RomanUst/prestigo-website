@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: Completed 20-03-PLAN.md (Phase 20 complete)
-last_updated: "2026-04-03T16:09:10.447Z"
+stopped_at: "Completed 21-01-PLAN.md"
+last_updated: "2026-04-03T17:43:15Z"
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,20 +19,20 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 20 — manual-booking-cancellation-with-refund
+**Current focus:** Phase 21 — pricing-enhancements-holiday-dates-minimum-fare
 
 ## Current Position
 
-Phase: 20 (manual-booking-cancellation-with-refund) — COMPLETE
-Plan: 3 of 3
+Phase: 21 (pricing-enhancements-holiday-dates-minimum-fare) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
 **Velocity (v1.3):**
 
-- Total plans completed: 1
-- Average duration: 3 min
-- Total execution time: 0.05 hours
+- Total plans completed: 2
+- Average duration: 4 min
+- Total execution time: 0.13 hours
 
 *Updated after each plan completion*
 
@@ -63,6 +63,10 @@ Recent decisions affecting v1.3:
 - [Phase 20-02]: Stripe refund issued BEFORE DB update — if refund succeeds but DB fails, logs orphaned refund_id for manual recovery
 - [Phase 20-02]: charge.refunded webhook updates booking status to cancelled by matching payment_intent_id
 - [Phase 20-03]: Phase 20 accepted with partial verification — Stripe-paid cancel path and charge.refunded webhook tested by unit tests only; no Stripe-paid bookings available in dev at verification time
+- [Phase 21-01]: Night coefficient takes precedence over holiday when both flags true — `isNight ? nightCoefficient : isHoliday ? holidayCoefficient : 1.0`
+- [Phase 21-01]: isHolidayDate and applyGlobals exported from calculate-price route.ts for direct unit testing without HTTP layer
+- [Phase 21-01]: minFare applied as final Math.max after coefficient and airport fee — floor is always the last operation
+- [Phase 21-01]: revalidateTag('pricing-config', 'max') missing from admin PUT — added as Rule 1 bug fix
 
 ### Pending Todos
 
@@ -76,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T16:15:00Z
-Stopped at: Completed 20-03-PLAN.md (Phase 20 complete)
-Resume file: None
+Last session: 2026-04-03T17:43:15Z
+Stopped at: Completed 21-01-PLAN.md
+Resume file: .planning/phases/21-pricing-enhancements-holiday-dates-minimum-fare/21-02-PLAN.md

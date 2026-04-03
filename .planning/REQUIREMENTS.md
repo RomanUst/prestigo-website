@@ -13,8 +13,8 @@
 
 ### Pricing
 
-- [ ] **PRICING-07**: Operator can configure a list of holiday dates in the admin pricing editor; trips with pickup on a configured date automatically apply `holiday_coefficient` at price calculation time
-- [ ] **PRICING-08**: Operator can set a minimum fare per vehicle class in the admin pricing editor; calculated prices below this floor are raised to the minimum
+- [x] **PRICING-07**: Operator can configure a list of holiday dates in the admin pricing editor; trips with pickup on a configured date automatically apply `holiday_coefficient` at price calculation time
+- [x] **PRICING-08**: Operator can set a minimum fare per vehicle class in the admin pricing editor; calculated prices below this floor are raised to the minimum
 
 ### Promo Codes
 
@@ -82,8 +82,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | ZONES-06 | Phase 18 | Complete |
-| PRICING-07 | Phase 21 | Pending |
-| PRICING-08 | Phase 21 | Pending |
+| PRICING-07 | Phase 21 | Complete |
+| PRICING-08 | Phase 21 | Complete |
 | PROMO-01 | Phase 22 | Pending |
 | PROMO-02 | Phase 22 | Pending |
 | PROMO-03 | Phase 22 | Pending |

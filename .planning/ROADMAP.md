@@ -121,7 +121,7 @@ Plans:
   2. A trip with pickup on a configured holiday date has the `holiday_coefficient` applied at price calculation time — the client sees the correct holiday-adjusted total
   3. Operator can set a minimum fare for each vehicle class in the admin pricing editor
   4. A short trip whose calculated distance price falls below the minimum fare for the selected vehicle class is displayed and charged at the minimum fare, not the calculated price
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 21-01-PLAN.md — Migration + types + isHolidayDate helper + applyGlobals update + admin API schema extension + tests
@@ -165,5 +165,5 @@ Plans:
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 19. Booking Status Workflow + Operator Notes | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
-| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/2 | Not started | - |
+| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | 1/2 | In Progress|  | - |
 | 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
