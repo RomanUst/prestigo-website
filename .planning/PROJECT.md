@@ -54,6 +54,36 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 
 ### Active
 
+<!-- v1.3 Pricing & Booking Management -->
+
+- [ ] ZONES-06: Zone logic — trip shows price if pickup OR dropoff is within an active zone; quoteMode only when neither point is in any zone
+- [ ] PRICING-07: Operator can configure holiday dates in admin; trips booked on those dates auto-apply holiday_coefficient
+- [ ] PRICING-08: Operator can set minimum fare per vehicle class; calculated prices below the floor are raised to the minimum
+- [ ] PROMO-01: Operator can create promo codes (code, discount type %, expiry, usage limit) in admin
+- [ ] PROMO-02: Operator can deactivate or delete promo codes
+- [ ] PROMO-03: Client can enter promo code in booking wizard; valid code updates displayed price
+- [ ] PROMO-04: Promo code validated server-side before payment; invalid codes rejected with error
+- [ ] BOOKINGS-06: Operator can create manual booking via admin form (for phone orders)
+- [ ] BOOKINGS-07: Operator can change booking status (pending → confirmed → completed → cancelled)
+- [ ] BOOKINGS-08: Operator can cancel booking with optional Stripe refund
+- [ ] BOOKINGS-09: Operator can add internal notes to any booking
+- [ ] UX-01: Admin panel is responsive and usable on mobile (375px+)
+
+## Current Milestone: v1.3 Pricing & Booking Management
+
+**Goal:** Enhance admin pricing logic (zone direction fix, holidays, promo codes, minimum fare) and add full booking management actions (manual creation, status workflow, cancellation + Stripe refund, operator notes) plus mobile-responsive admin UI.
+
+**Target features:**
+- Zone pricing logic: show price if pickup OR dropoff in zone
+- Holiday dates configuration with auto-coefficient
+- Minimum fare per vehicle class
+- Promo code system (admin management + client entry)
+- Manual booking creation (phone orders)
+- Booking status workflow
+- Booking cancellation + Stripe refund
+- Operator notes on bookings
+- Mobile-responsive admin panel
+
 ### Out of Scope
 
 - Multi-language support (CS/RU/DE) — deferred to v2
@@ -113,4 +143,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-02 after v1.2 milestone — Operator Dashboard shipped*
+*Last updated: 2026-04-03 after v1.3 milestone started — Pricing & Booking Management*
