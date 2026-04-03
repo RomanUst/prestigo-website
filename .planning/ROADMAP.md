@@ -56,7 +56,7 @@ See full details: `.planning/milestones/v1.2-ROADMAP.md`
 
 **Milestone Goal:** Enhance pricing logic (zone direction fix, holiday dates, minimum fare), add a full promo code system (admin CRUD + client wizard entry + server-side atomic validation), extend booking management (manual creation, status workflow, cancellation with Stripe refund, operator notes), and make the admin panel usable on mobile.
 
-- [ ] **Phase 18: Schema Foundation + Zone Logic Fix** - DB migrations for v1.3 columns and tables; zone pricing logic corrected to OR-logic
+- [x] **Phase 18: Schema Foundation + Zone Logic Fix** - DB migrations for v1.3 columns and tables; zone pricing logic corrected to OR-logic (completed 2026-04-03)
 - [ ] **Phase 19: Booking Status Workflow + Operator Notes** - Operator can move bookings through lifecycle states and annotate jobs
 - [ ] **Phase 20: Manual Booking + Cancellation with Refund** - Phone orders captured in admin; operator can cancel with optional Stripe refund
 - [ ] **Phase 21: Pricing Enhancements — Holiday Dates + Minimum Fare** - Holiday coefficient auto-applied by date; minimum fare floor enforced per vehicle class
@@ -74,7 +74,7 @@ See full details: `.planning/milestones/v1.2-ROADMAP.md`
   3. A booking where neither pickup nor dropoff is in any active zone correctly falls back to quote mode
   4. `bookings` table has `status`, `operator_notes`, and `booking_source` columns; `payment_intent_id` is nullable
   5. `promo_codes` table exists (empty); `pricing_config` JSONB includes `holiday_dates` key
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 18-01-PLAN.md — Zone logic fix: extract isInAnyZone helper to lib/zones.ts, TDD 4-case test matrix, fix OR-logic bug in route
@@ -149,7 +149,7 @@ Plans:
 | 15. UI Design Contract | v1.2 | 1/1 | Complete | 2026-04-02 |
 | 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
 | 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |
-| 18. Schema Foundation + Zone Logic Fix | 1/2 | In Progress|  | - |
+| 18. Schema Foundation + Zone Logic Fix | 2/2 | Complete   | 2026-04-03 | - |
 | 19. Booking Status Workflow + Operator Notes | v1.3 | 0/TBD | Not started | - |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 0/TBD | Not started | - |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/TBD | Not started | - |

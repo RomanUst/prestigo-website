@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: "Completed 18-02-PLAN.md (checkpoint: awaiting Supabase Dashboard migration apply)"
-last_updated: "2026-04-03T10:49:10.535Z"
+stopped_at: "Completed 18-01-PLAN.md"
+last_updated: "2026-04-03T10:50:06Z"
 progress:
   total_phases: 5
   completed_phases: 0
@@ -24,15 +24,15 @@ See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 ## Current Position
 
 Phase: 18 (schema-foundation-zone-logic-fix) — EXECUTING
-Plan: 1 of 2
+Plan: 2 of 2 (18-01 complete; 18-02 awaiting Supabase migration apply)
 
 ## Performance Metrics
 
 **Velocity (v1.3):**
 
-- Total plans completed: 0
-- Average duration: — min
-- Total execution time: — hours
+- Total plans completed: 1
+- Average duration: 3 min
+- Total execution time: 0.05 hours
 
 *Updated after each plan completion*
 
@@ -47,6 +47,8 @@ Recent decisions affecting v1.3:
 - Phase 18: Zone OR-logic fix — rename `isOutsideAllZones` to `isInAnyZone`, write 4-case unit test before touching production
 - Phase 21: Holiday dates stored as JSONB key in `pricing_config` — no per-date metadata needed for v1.3
 - Phase 22: Promo race condition — atomic `UPDATE ... WHERE current_uses < max_uses RETURNING id` pattern; server re-validates promo independently, never trusts client-provided amount
+- [Phase 18-01]: isInAnyZone in lib/zones.ts is single source of truth — turf imports removed from route.ts and test file
+- [Phase 18-01]: quoteMode triggers only when BOTH origin AND destination are outside all active zones (was: either outside)
 - [Phase 18]: CHECK constraints added on bookings.status and bookings.booking_source for DB-level enum enforcement
 - [Phase 18]: No extra index on promo_codes.code — UNIQUE constraint creates one implicitly
 
@@ -62,6 +64,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T10:49:10.529Z
-Stopped at: Completed 18-02-PLAN.md (checkpoint: awaiting Supabase Dashboard migration apply)
+Last session: 2026-04-03T10:50:06Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
