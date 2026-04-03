@@ -4,12 +4,12 @@ import { X } from 'lucide-react'
 import usePlacesAutocomplete from 'use-places-autocomplete'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 
-// Non-blocking Maps loader — never throws, returns false on failure
-let adminMapsPromise: Promise<boolean> | null = null
-function tryLoadMaps(): Promise<boolean> {
+// Module-level singleton — mirrors AddressInput's ensureMapsLoaded pattern exactly
+let adminMapsPromise: Promise<void> | null = null
+function ensureAdminMapsLoaded(): Promise<void> {
   if (adminMapsPromise) return adminMapsPromise
   setOptions({ key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!, libraries: ['places'], v: 'weekly' })
-  adminMapsPromise = importLibrary('places').then(() => true).catch(() => false)
+  adminMapsPromise = importLibrary('places').then(() => undefined)
   return adminMapsPromise
 }
 
@@ -66,6 +66,7 @@ function AdminAddressInput({ label, value, onChange, placeholder, required }: {
   placeholder?: string
   required?: boolean
 }) {
+  const [mapsLoaded, setMapsLoaded] = useState(false)
   const [showSugg, setShowSugg] = useState(false)
   const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -77,8 +78,12 @@ function AdminAddressInput({ label, value, onChange, placeholder, required }: {
     init,
   } = usePlacesAutocomplete({ initOnMount: false, debounce: 300, defaultValue: value })
 
+  // Mirror AddressInput's ensureMapsLoaded pattern exactly
   useEffect(() => {
-    tryLoadMaps().then(ok => { if (ok) init() })
+    ensureAdminMapsLoaded().then(() => {
+      init()
+      setMapsLoaded(true)
+    }).catch(() => {})
   }, [init])
 
   // Sync if parent resets value to empty
