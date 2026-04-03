@@ -1,27 +1,7 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
-import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
-
-// Module-level singleton — load Places library once
-let adminMapsPromise: Promise<void> | null = null
-function ensureAdminMapsLoaded(): Promise<void> {
-  if (adminMapsPromise) return adminMapsPromise
-  setOptions({ key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!, libraries: ['places'], v: 'weekly' })
-  adminMapsPromise = importLibrary('places').then(() => undefined)
-  return adminMapsPromise
-}
-
-const labelStyle: React.CSSProperties = {
-  fontSize: '11px',
-  fontFamily: 'var(--font-montserrat)',
-  fontWeight: 300,
-  textTransform: 'uppercase',
-  letterSpacing: '0.3em',
-  color: 'var(--warmgrey)',
-  marginBottom: '4px',
-  display: 'block',
-}
+import AddressInput from '@/components/booking/AddressInput'
 
 const inputStyle: React.CSSProperties = {
   background: 'var(--anthracite)',
@@ -49,117 +29,20 @@ const sectionLabelStyle: React.CSSProperties = {
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  const labelStyle: React.CSSProperties = {
+    fontSize: '11px',
+    fontFamily: 'var(--font-montserrat)',
+    fontWeight: 300,
+    textTransform: 'uppercase',
+    letterSpacing: '0.3em',
+    color: 'var(--warmgrey)',
+    marginBottom: '4px',
+    display: 'block',
+  }
   return (
     <div>
       <label style={labelStyle}>{label}</label>
       {children}
-    </div>
-  )
-}
-
-// Address input: controlled, always typeable, Google suggestions when Maps ready
-function AdminAddressInput({ label, value, onChange, placeholder, required }: {
-  label: string
-  value: string
-  onChange: (val: string) => void
-  placeholder?: string
-  required?: boolean
-}) {
-  const [inputVal, setInputVal] = useState(value)
-  const [suggestions, setSuggestions] = useState<Array<{ description: string; place_id: string }>>([])
-  const [showList, setShowList] = useState(false)
-  const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null)
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  // Load Maps + init service once
-  useEffect(() => {
-    ensureAdminMapsLoaded()
-      .then(() => {
-        serviceRef.current = new google.maps.places.AutocompleteService()
-      })
-      .catch(() => {})
-  }, [])
-
-  // Sync when parent resets to empty (e.g., form reset)
-  useEffect(() => {
-    if (value === '' && inputVal !== '') {
-      setInputVal('')
-      setSuggestions([])
-      setShowList(false)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [value])
-
-  const fetchSuggestions = (text: string) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    if (text.length < 2 || !serviceRef.current) {
-      setSuggestions([])
-      setShowList(false)
-      return
-    }
-    debounceRef.current = setTimeout(() => {
-      serviceRef.current!.getPlacePredictions({ input: text }, (predictions, status) => {
-        if (status === 'OK' && predictions) {
-          setSuggestions(predictions.slice(0, 5).map(p => ({ description: p.description, place_id: p.place_id })))
-          setShowList(true)
-        } else {
-          setSuggestions([])
-          setShowList(false)
-        }
-      })
-    }, 300)
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const text = e.target.value
-    setInputVal(text)
-    onChange(text)
-    fetchSuggestions(text)
-  }
-
-  const handleSelect = (description: string) => {
-    setInputVal(description)
-    onChange(description)
-    setSuggestions([])
-    setShowList(false)
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-  }
-
-  return (
-    <div style={{ position: 'relative' }}>
-      <label style={labelStyle}>{label}</label>
-      <input
-        type="text"
-        value={inputVal}
-        onChange={handleChange}
-        onBlur={() => setTimeout(() => setShowList(false), 200)}
-        placeholder={placeholder}
-        required={required}
-        style={inputStyle}
-        autoComplete="off"
-      />
-      {showList && suggestions.length > 0 && (
-        <ul style={{
-          position: 'absolute', top: '100%', left: 0, width: '100%', zIndex: 200,
-          background: 'var(--anthracite)', border: '1px solid var(--anthracite-light)',
-          borderTop: 'none', listStyle: 'none', margin: 0, padding: 0,
-          maxHeight: '200px', overflowY: 'auto', borderRadius: '0 0 2px 2px',
-        }}>
-          {suggestions.map(s => (
-            <li
-              key={s.place_id}
-              onMouseDown={() => handleSelect(s.description)}
-              style={{
-                padding: '10px 12px', cursor: 'pointer',
-                fontFamily: 'var(--font-montserrat)', fontSize: '12px', fontWeight: 300,
-                color: 'var(--offwhite)', borderBottom: '1px solid var(--anthracite-light)',
-              }}
-            >
-              {s.description}
-            </li>
-          ))}
-        </ul>
-      )}
     </div>
   )
 }
@@ -359,19 +242,26 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                 </Field>
               </div>
 
-              <AdminAddressInput
+              <AddressInput
                 label="PICKUP ADDRESS"
-                value={originAddress}
-                onChange={setOriginAddress}
                 placeholder="Start typing an address…"
-                required
+                value={null}
+                onSelect={(place) => setOriginAddress(place.address)}
+                onClear={() => setOriginAddress('')}
+                onTextChange={setOriginAddress}
+                neverDisabled
+                ariaLabel="Pickup address"
               />
 
-              <AdminAddressInput
+              <AddressInput
                 label="DESTINATION ADDRESS"
-                value={destinationAddress}
-                onChange={setDestinationAddress}
                 placeholder="Start typing an address… (optional for hourly/daily)"
+                value={null}
+                onSelect={(place) => setDestinationAddress(place.address)}
+                onClear={() => setDestinationAddress('')}
+                onTextChange={setDestinationAddress}
+                neverDisabled
+                ariaLabel="Destination address"
               />
 
               <Field label="VEHICLE CLASS">

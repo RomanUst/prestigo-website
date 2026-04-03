@@ -30,6 +30,8 @@ interface AddressInputProps {
   hasError?: boolean
   errorMessage?: string
   ariaLabel: string
+  neverDisabled?: boolean
+  onTextChange?: (text: string) => void
 }
 
 export default function AddressInput({
@@ -43,6 +45,8 @@ export default function AddressInput({
   hasError = false,
   errorMessage,
   ariaLabel,
+  neverDisabled = false,
+  onTextChange,
 }: AddressInputProps) {
   const [mapsLoaded, setMapsLoaded] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
@@ -122,6 +126,7 @@ export default function AddressInput({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value
     setValue(text)
+    onTextChange?.(text)
     // If user modifies text after a selection, clear the parent's value.
     // Set the flag so the sync effect doesn't wipe the text they just typed.
     if (value !== null) {
@@ -242,7 +247,7 @@ export default function AddressInput({
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          disabled={!mapsLoaded && !ready}
+          disabled={!neverDisabled && !mapsLoaded && !ready}
           autoComplete="off"
           aria-label={ariaLabel}
           aria-autocomplete="list"
