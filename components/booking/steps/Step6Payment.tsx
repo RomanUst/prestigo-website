@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { CheckCircle2 } from 'lucide-react'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { PRG_CONFIG } from '@/types/booking'
@@ -156,14 +157,58 @@ export default function Step6Payment() {
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
 
+  const promoCode = useBookingStore((s) => s.promoCode)
+  const promoDiscount = useBookingStore((s) => s.promoDiscount)
+  const setPromoCode = useBookingStore((s) => s.setPromoCode)
+  const setPromoDiscount = useBookingStore((s) => s.setPromoDiscount)
+
   const [selectedCurrency, setSelectedCurrency] = useState<'eur' | 'czk'>('eur')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingRef, setBookingRef] = useState<string>('')
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
+  const [promoInput, setPromoInput] = useState('')
+  const [promoLoading, setPromoLoading] = useState(false)
+  const [promoError, setPromoError] = useState<string | null>(null)
+
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
   const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
+
+  const discountedTotalEur = promoDiscount > 0
+    ? Math.round(totalEur * (1 - promoDiscount / 100))
+    : totalEur
+
+  const handleApplyPromo = async () => {
+    const code = promoInput.trim().toUpperCase()
+    if (!code) return
+    setPromoLoading(true)
+    setPromoError(null)
+    try {
+      const res = await fetch(`/api/validate-promo?code=${encodeURIComponent(code)}`)
+      const data = await res.json()
+      if (data.valid) {
+        setPromoCode(code)
+        setPromoDiscount(data.discountPct)
+        setPromoError(null)
+      } else {
+        setPromoError(data.error || 'Invalid code.')
+        setPromoCode(null)
+        setPromoDiscount(0)
+      }
+    } catch {
+      setPromoError('Something went wrong. Please try again.')
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  const handleRemovePromo = () => {
+    setPromoCode(null)
+    setPromoDiscount(0)
+    setPromoInput('')
+    setPromoError(null)
+  }
 
   useEffect(() => {
     if (totalEur <= 0) return
@@ -204,6 +249,7 @@ export default function Step6Payment() {
               terminal: passengerDetails?.terminal ?? '',
               specialRequests: (passengerDetails?.specialRequests ?? '').slice(0, 490),
               currency: selectedCurrency,
+              promoCode: promoCode || '',
             },
           }),
         })
@@ -223,7 +269,7 @@ export default function Step6Payment() {
 
     fetchPaymentIntent()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalEur, selectedCurrency])
+  }, [totalEur, selectedCurrency, promoCode])
 
   const options = useMemo(
     () =>
@@ -242,6 +288,118 @@ export default function Step6Payment() {
   return (
     <div className="max-w-[560px] mx-auto">
       <BookingSummaryBlock selectedCurrency={selectedCurrency} />
+
+      {/* Promo Code Section */}
+      <div style={{ marginTop: 24, marginBottom: 24 }}>
+        <span style={{
+          display: 'block',
+          fontSize: '11px',
+          fontWeight: 400,
+          letterSpacing: '0.3em',
+          textTransform: 'uppercase',
+          color: '#9A958F',
+          fontFamily: 'var(--font-montserrat)',
+          marginBottom: 8,
+        }}>
+          PROMO CODE
+        </span>
+
+        {promoCode ? (
+          /* Applied state */
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <CheckCircle2 size={16} color="#4ade80" />
+            <span style={{
+              fontSize: '13px',
+              fontWeight: 300,
+              color: '#F5F2EE',
+              fontFamily: 'var(--font-montserrat)',
+              letterSpacing: '0.08em',
+            }}>{promoCode}</span>
+            <button
+              type="button"
+              onClick={handleRemovePromo}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#9A958F',
+                fontSize: '11px',
+                fontFamily: 'var(--font-montserrat)',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                letterSpacing: '0.08em',
+              }}
+            >Remove</button>
+          </div>
+        ) : (
+          /* Input state */
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              type="text"
+              value={promoInput}
+              onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
+              placeholder="Enter code"
+              style={{
+                flex: 1,
+                backgroundColor: '#2A2A2D',
+                border: promoError ? '1px solid #f87171' : '1px solid #3A3A3F',
+                color: '#F5F2EE',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '13px',
+                fontWeight: 300,
+                letterSpacing: '0.08em',
+                padding: '8px 12px',
+                minHeight: 44,
+                borderRadius: 4,
+                outline: 'none',
+              }}
+            />
+            <button
+              type="button"
+              onClick={handleApplyPromo}
+              disabled={promoLoading || !promoInput.trim()}
+              style={{
+                backgroundColor: '#B87333',
+                color: '#F5F2EE',
+                border: 'none',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '13px',
+                fontWeight: 400,
+                letterSpacing: '0.08em',
+                padding: '0 16px',
+                minHeight: 44,
+                borderRadius: 4,
+                cursor: promoLoading || !promoInput.trim() ? 'not-allowed' : 'pointer',
+                opacity: promoLoading || !promoInput.trim() ? 0.4 : 1,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {promoLoading ? '...' : 'Apply Code'}
+            </button>
+          </div>
+        )}
+
+        {promoError && (
+          <p style={{
+            color: '#f87171',
+            fontSize: '13px',
+            fontWeight: 300,
+            fontFamily: 'var(--font-montserrat)',
+            marginTop: 8,
+          }}>{promoError}</p>
+        )}
+
+        {promoDiscount > 0 && (
+          <p style={{
+            color: '#4ade80',
+            fontSize: '13px',
+            fontWeight: 400,
+            fontFamily: 'var(--font-montserrat)',
+            marginTop: 8,
+          }}>
+            {`PROMO: \u2212${promoDiscount}%`}
+          </p>
+        )}
+      </div>
 
       <div style={{ borderTop: '1px solid var(--anthracite-light)', margin: '32px 0' }} />
 
@@ -284,7 +442,7 @@ export default function Step6Payment() {
       <div style={{ marginTop: 24 }}>
         {options ? (
           <Elements stripe={stripePromise} options={options}>
-            <PaymentForm totalEur={totalEur} selectedCurrency={selectedCurrency} bookingRef={bookingRef} />
+            <PaymentForm totalEur={discountedTotalEur} selectedCurrency={selectedCurrency} bookingRef={bookingRef} />
           </Elements>
         ) : paymentError ? (
           <p
