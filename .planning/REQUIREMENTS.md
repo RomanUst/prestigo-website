@@ -26,9 +26,9 @@
 ### Booking Management
 
 - [ ] **BOOKINGS-06**: Operator can create a manual booking via an admin form (for phone orders) — trip type, date/time, pickup/dropoff addresses, vehicle class, passenger details, price; booking is saved with `booking_source: 'manual'` and no Stripe payment reference
-- [ ] **BOOKINGS-07**: Operator can change booking status from the admin bookings table (pending → confirmed → completed → cancelled); only valid state transitions are permitted
+- [x] **BOOKINGS-07**: Operator can change booking status from the admin bookings table (pending → confirmed → completed → cancelled); only valid state transitions are permitted
 - [ ] **BOOKINGS-08**: Operator can cancel a booking with an optional full Stripe refund; for Stripe-paid bookings a confirmation modal is shown before refund is issued; manual bookings show "Cancel" only (no refund option)
-- [ ] **BOOKINGS-09**: Operator can add or edit internal operator notes on any booking; notes are visible in the expanded booking row and auto-save
+- [x] **BOOKINGS-09**: Operator can add or edit internal operator notes on any booking; notes are visible in the expanded booking row and auto-save
 
 ### Admin UX
 
@@ -89,9 +89,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PROMO-03 | Phase 22 | Pending |
 | PROMO-04 | Phase 22 | Pending |
 | BOOKINGS-06 | Phase 20 | Pending |
-| BOOKINGS-07 | Phase 19 | Pending |
+| BOOKINGS-07 | Phase 19 | Complete |
 | BOOKINGS-08 | Phase 20 | Pending |
-| BOOKINGS-09 | Phase 19 | Pending |
+| BOOKINGS-09 | Phase 19 | Complete |
 | UX-01 | Phase 22 | Pending |
 
 **Coverage:**

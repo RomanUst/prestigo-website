@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: Completed 18-02-PLAN.md
-last_updated: "2026-04-03T11:16:12.834Z"
+stopped_at: Completed 19-01-PLAN.md
+last_updated: "2026-04-03T11:58:10.589Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 18 — schema-foundation-zone-logic-fix
+**Current focus:** Phase 19 — booking-status-workflow-operator-notes
 
 ## Current Position
 
-Phase: 18 (schema-foundation-zone-logic-fix) — EXECUTING
-Plan: 2 of 2 (18-01 complete; 18-02 complete — migration applied and verified)
+Phase: 19 (booking-status-workflow-operator-notes) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -51,6 +51,8 @@ Recent decisions affecting v1.3:
 - [Phase 18-01]: quoteMode triggers only when BOTH origin AND destination are outside all active zones (was: either outside)
 - [Phase 18]: CHECK constraints added on bookings.status and bookings.booking_source for DB-level enum enforcement
 - [Phase 18]: No extra index on promo_codes.code — UNIQUE constraint creates one implicitly
+- [Phase 19-01]: UUID format in tests must match Zod v4 strict pattern — aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee fails, use valid v4 UUIDs in test payloads
+- [Phase 19-01]: Notes-only PATCH skips current-status SELECT query — no FSM check when status field absent
 
 ### Pending Todos
 
@@ -64,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T11:11:14.578Z
-Stopped at: Completed 18-02-PLAN.md
+Last session: 2026-04-03T11:58:10.585Z
+Stopped at: Completed 19-01-PLAN.md
 Resume file: None

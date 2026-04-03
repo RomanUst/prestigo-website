@@ -89,7 +89,7 @@ Plans:
   2. An invalid status transition (e.g., completed -> pending) is rejected by the server with a clear error
   3. Operator can type internal notes on any booking row and the note auto-saves without a separate save button
   4. Operator notes are visible in the expanded booking row on reload
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 19-01-PLAN.md — PATCH API handler with FSM validation + StatusBadge booking variants + unit tests
@@ -154,7 +154,7 @@ Plans:
 | 16. Admin UI Pages | v1.2 | 5/5 | Complete | 2026-04-02 |
 | 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
-| 19. Booking Status Workflow + Operator Notes | v1.3 | 0/2 | Not started | - |
+| 19. Booking Status Workflow + Operator Notes | 1/2 | In Progress|  | - |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 0/TBD | Not started | - |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/TBD | Not started | - |
 | 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
