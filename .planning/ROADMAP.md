@@ -105,7 +105,12 @@ Plans:
   3. After cancellation, the booking status updates to cancelled and the Stripe refund is visible in the Stripe Dashboard
   4. Attempting to cancel a manual booking shows a "Cancel" option only — no refund prompt appears
   5. Attempting to cancel an already-cancelled or completed booking is blocked by the server
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 20-01-PLAN.md — Manual booking POST API + ManualBookingForm modal + booking reference extraction + MANUAL badge
+- [ ] 20-02-PLAN.md — Cancel endpoint with Stripe refund + charge.refunded webhook + CancellationModal UI
+- [ ] 20-03-PLAN.md — Human verification of manual booking and cancellation flows
 
 ### Phase 21: Pricing Enhancements — Holiday Dates + Minimum Fare
 **Goal**: Holiday coefficient is automatically applied to trips on configured dates and no trip is priced below the per-vehicle-class minimum fare
@@ -155,6 +160,6 @@ Plans:
 | 17. Pricing Globals Integration | v1.2 | 2/2 | Complete | 2026-04-02 |
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 19. Booking Status Workflow + Operator Notes | 2/2 | Complete   | 2026-04-03 | - |
-| 20. Manual Booking + Cancellation with Refund | v1.3 | 0/TBD | Not started | - |
+| 20. Manual Booking + Cancellation with Refund | v1.3 | 0/3 | Not started | - |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 0/TBD | Not started | - |
 | 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
