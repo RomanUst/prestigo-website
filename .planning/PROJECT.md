@@ -6,7 +6,7 @@ Custom multi-step booking wizard for rideprestigo.com — a premium chauffeur se
 
 Clients book one-way transfers, airport rides, hourly or daily hire directly on the site: selecting a vehicle class with a live price, adding optional extras, filling in passenger details, and paying online via Stripe. The operator controls all pricing (base rates per vehicle class, airport fee, night/holiday coefficients, extras surcharges) via a protected `/admin` dashboard, draws coverage zones on Google Maps to define the service area, and monitors all bookings and revenue in real time.
 
-**Current state:** v1.2 Operator Dashboard shipped 2026-04-02. Live at rideprestigo.com.
+**Current state:** v1.3 Pricing & Booking Management shipped 2026-04-03. Phase 22 complete — mobile admin + promo code system live.
 
 ## Core Value
 
@@ -143,4 +143,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-03 after Phase 19 complete — booking status workflow + operator notes shipped*
+*Last updated: 2026-04-03 after Phase 22 complete — mobile admin + promo code system shipped. Validated in Phase 22: UX-01 (mobile admin 375px), PROMO-01/02 (admin CRUD), PROMO-03/04 (booking wizard promo + atomic claim).*
