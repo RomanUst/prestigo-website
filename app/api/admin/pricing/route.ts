@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { revalidateTag } from 'next/cache'
 import { z } from 'zod'
 
 async function getAdminUser() {
@@ -16,6 +17,7 @@ const pricingConfigSchema = z.object({
   rate_per_km: z.number().positive(),
   hourly_rate: z.number().positive(),
   daily_rate: z.number().positive(),
+  min_fare: z.number().min(0),
 })
 
 const pricingPutSchema = z.object({
@@ -27,6 +29,7 @@ const pricingPutSchema = z.object({
     extra_child_seat: z.number().min(0),
     extra_meet_greet: z.number().min(0),
     extra_luggage: z.number().min(0),
+    holiday_dates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
   }),
 })
 
@@ -76,5 +79,6 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   }
 
+  revalidateTag('pricing-config', 'max')
   return NextResponse.json({ ok: true })
 }

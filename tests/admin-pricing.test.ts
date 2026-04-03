@@ -45,9 +45,9 @@ function makeRequest(method: string, body?: unknown): Request {
 
 const validPutBody = {
   config: [
-    { vehicle_class: 'business', rate_per_km: 3.00, hourly_rate: 60, daily_rate: 350 },
-    { vehicle_class: 'first_class', rate_per_km: 4.50, hourly_rate: 90, daily_rate: 500 },
-    { vehicle_class: 'business_van', rate_per_km: 3.80, hourly_rate: 75, daily_rate: 420 },
+    { vehicle_class: 'business', rate_per_km: 3.00, hourly_rate: 60, daily_rate: 350, min_fare: 0 },
+    { vehicle_class: 'first_class', rate_per_km: 4.50, hourly_rate: 90, daily_rate: 500, min_fare: 0 },
+    { vehicle_class: 'business_van', rate_per_km: 3.80, hourly_rate: 75, daily_rate: 420, min_fare: 0 },
   ],
   globals: {
     airport_fee: 10,
@@ -56,6 +56,7 @@ const validPutBody = {
     extra_child_seat: 20,
     extra_meet_greet: 30,
     extra_luggage: 25,
+    holiday_dates: [],
   },
 }
 
@@ -199,6 +200,72 @@ describe('/api/admin/pricing', () => {
 
       const res = await PUT(makeRequest('PUT', validPutBody))
       expect(res.status).toBe(500)
+    })
+
+    describe('PRICING-07 + PRICING-08: Extended PUT payload', () => {
+      it('returns 200 when holiday_dates and min_fare per class are provided', async () => {
+        const configUpsert = vi.fn(() => Promise.resolve({ error: null }))
+        const globalsUpsert = vi.fn(() => Promise.resolve({ error: null }))
+
+        supabaseServiceStub.from.mockImplementation((table: string) => {
+          if (table === 'pricing_config') return { upsert: configUpsert }
+          if (table === 'pricing_globals') return { upsert: globalsUpsert }
+        })
+
+        const bodyWithNewFields = {
+          config: [
+            { vehicle_class: 'business', rate_per_km: 3.00, hourly_rate: 60, daily_rate: 350, min_fare: 15 },
+            { vehicle_class: 'first_class', rate_per_km: 4.50, hourly_rate: 90, daily_rate: 500, min_fare: 15 },
+            { vehicle_class: 'business_van', rate_per_km: 3.80, hourly_rate: 75, daily_rate: 420, min_fare: 15 },
+          ],
+          globals: {
+            airport_fee: 10,
+            night_coefficient: 1.2,
+            holiday_coefficient: 1.5,
+            extra_child_seat: 20,
+            extra_meet_greet: 30,
+            extra_luggage: 25,
+            holiday_dates: ['2026-12-25', '2026-12-31'],
+          },
+        }
+
+        const res = await PUT(makeRequest('PUT', bodyWithNewFields))
+        expect(res.status).toBe(200)
+        expect(configUpsert).toHaveBeenCalledWith(bodyWithNewFields.config)
+        expect(globalsUpsert).toHaveBeenCalledWith(
+          { id: 1, ...bodyWithNewFields.globals },
+          { onConflict: 'id' }
+        )
+      })
+
+      it('returns 400 when holiday_dates contains invalid date format', async () => {
+        const invalidBody = {
+          ...validPutBody,
+          globals: {
+            ...validPutBody.globals,
+            holiday_dates: ['25-12-2026'], // wrong format — should be YYYY-MM-DD
+          },
+        }
+
+        const res = await PUT(makeRequest('PUT', invalidBody))
+        expect(res.status).toBe(400)
+        const json = await res.json()
+        expect(json).toHaveProperty('issues')
+      })
+
+      it('returns 400 when min_fare is negative', async () => {
+        const invalidBody = {
+          ...validPutBody,
+          config: [
+            { vehicle_class: 'business', rate_per_km: 3.00, hourly_rate: 60, daily_rate: 350, min_fare: -5 },
+          ],
+        }
+
+        const res = await PUT(makeRequest('PUT', invalidBody))
+        expect(res.status).toBe(400)
+        const json = await res.json()
+        expect(json).toHaveProperty('issues')
+      })
     })
   })
 })
