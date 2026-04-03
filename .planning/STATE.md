@@ -2,14 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
-status: ready_to_plan
-stopped_at: Roadmap created — 5 phases (18-22), 12 requirements mapped, ready to plan Phase 18
-last_updated: "2026-04-03T00:00:00.000Z"
+status: planning
+stopped_at: Phase 18 context gathered
+last_updated: "2026-04-03T10:26:20.108Z"
+last_activity: 2026-04-03 — v1.3 roadmap written (5 phases, 12 requirements)
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -33,6 +35,7 @@ Progress: [░░░░░░░░░░] 0% (v1.3)
 ## Performance Metrics
 
 **Velocity (v1.3):**
+
 - Total plans completed: 0
 - Average duration: — min
 - Total execution time: — hours
@@ -46,6 +49,7 @@ Progress: [░░░░░░░░░░] 0% (v1.3)
 All v1.0–v1.2 decisions logged in PROJECT.md Key Decisions table.
 
 Recent decisions affecting v1.3:
+
 - Phase 18: Zone OR-logic fix — rename `isOutsideAllZones` to `isInAnyZone`, write 4-case unit test before touching production
 - Phase 21: Holiday dates stored as JSONB key in `pricing_config` — no per-date metadata needed for v1.3
 - Phase 22: Promo race condition — atomic `UPDATE ... WHERE current_uses < max_uses RETURNING id` pattern; server re-validates promo independently, never trusts client-provided amount
@@ -62,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03
-Stopped at: Roadmap created — ready to plan Phase 18
-Resume file: None
+Last session: 2026-04-03T10:26:20.102Z
+Stopped at: Phase 18 context gathered
+Resume file: .planning/phases/18-schema-foundation-zone-logic-fix/18-CONTEXT.md
