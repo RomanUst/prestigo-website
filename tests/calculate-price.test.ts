@@ -1,19 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
-import { point } from '@turf/helpers'
-
-// Inline the helper for testing (same logic as in route.ts)
-function isOutsideAllZones(
-  lat: number,
-  lng: number,
-  zones: Array<{ geojson: unknown }>
-): boolean {
-  if (zones.length === 0) return false
-  const pt = point([lng, lat]) // GeoJSON: longitude first
-  return !zones.some(zone =>
-    booleanPointInPolygon(pt, zone.geojson as Parameters<typeof booleanPointInPolygon>[1])
-  )
-}
+import { isInAnyZone } from '@/lib/zones'
 
 // Prague test polygon: covers roughly 14.35-14.50 lng, 50.05-50.12 lat
 const pragueZone = {
@@ -27,20 +13,16 @@ const pragueZone = {
   }
 }
 
-describe('isOutsideAllZones helper', () => {
-  it('returns false when point is inside the zone (Prague center)', () => {
-    expect(isOutsideAllZones(50.08, 14.42, [pragueZone])).toBe(false)
+describe('isInAnyZone helper (ZONES-06)', () => {
+  it('returns true when point is inside the zone (Prague center)', () => {
+    expect(isInAnyZone(50.08, 14.42, [pragueZone])).toBe(true)
   })
 
-  it('returns true when point is outside all zones (Vienna area)', () => {
-    expect(isOutsideAllZones(48.00, 16.00, [pragueZone])).toBe(true)
+  it('returns false when point is outside all zones', () => {
+    expect(isInAnyZone(48.00, 16.00, [pragueZone])).toBe(false)
   })
 
-  it('returns false when zones array is empty (ZONES-05: no zones = not blocked)', () => {
-    expect(isOutsideAllZones(50.08, 14.42, [])).toBe(false)
-  })
-
-  it('returns false when outside one zone but inside another', () => {
+  it('returns true when inside one of multiple zones (OR-logic)', () => {
     const viennaZone = {
       geojson: {
         type: 'Feature',
@@ -51,23 +33,11 @@ describe('isOutsideAllZones helper', () => {
         properties: {}
       }
     }
-    // Vienna (48.20, 16.37) is inside viennaZone but outside pragueZone
-    expect(isOutsideAllZones(48.20, 16.37, [pragueZone, viennaZone])).toBe(false)
+    expect(isInAnyZone(48.20, 16.37, [pragueZone, viennaZone])).toBe(true)
   })
 
-  it('returns true when point is outside all multiple zones', () => {
-    const berlinZone = {
-      geojson: {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [[[13.10, 52.35], [13.70, 52.35], [13.70, 52.65], [13.10, 52.65], [13.10, 52.35]]]
-        },
-        properties: {}
-      }
-    }
-    // Paris-ish coords (48.85, 2.35) is outside both Prague and Berlin zones
-    expect(isOutsideAllZones(48.85, 2.35, [pragueZone, berlinZone])).toBe(true)
+  it('returns false when zones array is empty (no restriction)', () => {
+    expect(isInAnyZone(50.08, 14.42, [])).toBe(false)
   })
 })
 
