@@ -51,10 +51,10 @@ completed: 2026-04-03
 
 ## Performance
 
-- **Duration:** ~4 min
+- **Duration:** ~10 min
 - **Started:** 2026-04-03T11:59:31Z
-- **Completed:** 2026-04-03T12:02:46Z
-- **Tasks:** 1 of 2 (Task 2 is human verification checkpoint)
+- **Completed:** 2026-04-03T12:10:00Z
+- **Tasks:** 2 of 2 (Task 1 auto, Task 2 human-verify — approved)
 - **Files modified:** 1
 
 ## Accomplishments
@@ -62,14 +62,16 @@ completed: 2026-04-03
 - Added status transition dropdown in expanded row constrained by VALID_TRANSITIONS FSM — pending shows Confirmed/Cancelled, confirmed shows Completed/Cancelled, terminal states show static badge with "(final)"
 - Added operator notes textarea with 800ms debounced auto-save, blur flush, and Saving.../Saved/Error indicators
 - Fixed payment_intent_id type to `string | null` for manual bookings created in Phase 18
+- User verified all features in browser: STATUS column visible, transitions work correctly, notes persist on page reload
 
 ## Task Commits
 
 Each task was committed atomically:
 
 1. **Task 1: Add status column, transition dropdown, and operator notes textarea to BookingsTable** - `5c92baa` (feat)
+2. **Task 2: Verify status workflow and notes in browser** - human-verify checkpoint, approved by user
 
-**Plan metadata:** (pending after human verification)
+**Plan metadata:** (docs commit after state update)
 
 ## Files Created/Modified
 - `prestigo/components/admin/BookingsTable.tsx` - Status column, VALID_TRANSITIONS FSM, status dropdown, operator notes textarea with debounced auto-save
@@ -90,8 +92,8 @@ None - plan executed exactly as written.
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- Booking status workflow is fully operational pending manual verification
-- Phase 20 (refund flow) can proceed once verification passes — status transitions and operator notes are ready
+- Booking status workflow is fully operational — user-verified in browser
+- Phase 20 (refund flow) can proceed — status transitions and operator notes are ready
 - Stripe webhook handler for `charge.refunded` remains a blocker noted in STATE.md
 
 ---
