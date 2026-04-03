@@ -9,7 +9,7 @@ import {
   type ExpandedState,
 } from '@tanstack/react-table'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ChevronDown, ChevronUp, Search } from 'lucide-react'
+import { ChevronDown, ChevronUp, Search, X } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 
 interface Booking {
@@ -112,6 +112,18 @@ export default function BookingsTable() {
   const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
   const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
+  const [pendingCancel, setPendingCancel] = useState<Booking | null>(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState<string | null>(null)
+
+  // Reset cancel state when modal opens/closes
+  useEffect(() => {
+    if (!pendingCancel) {
+      setCancelling(false)
+      setCancelError(null)
+    }
+  }, [pendingCancel])
+
   const patchBooking = useCallback(async (body: { id: string; status?: string; operator_notes?: string }) => {
     const res = await fetch('/api/admin/bookings', {
       method: 'PATCH',
@@ -175,6 +187,21 @@ export default function BookingsTable() {
       flushNotes(bookingId, currentValue)
     }
   }, [localNotes, flushNotes])
+
+  const handleCancel = useCallback(async (booking: Booking) => {
+    const res = await fetch('/api/admin/bookings/cancel', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: booking.id }),
+    })
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({ error: 'Unknown error' }))
+      throw new Error(data.error ?? 'Cancel failed')
+    }
+    // Optimistic update
+    setBookings(prev => prev.map(b => b.id === booking.id ? { ...b, status: 'cancelled' } : b))
+    setPendingCancel(null)
+  }, [])
 
   useEffect(() => {
     if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current)
@@ -778,6 +805,31 @@ export default function BookingsTable() {
                             onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
                           />
                         </div>
+
+                        {/* Cancel Booking button — only for cancellable statuses */}
+                        {(row.original.status === 'pending' || row.original.status === 'confirmed') && (
+                          <div style={{ marginTop: '16px' }}>
+                            <button
+                              onClick={(e) => { e.stopPropagation(); setPendingCancel(row.original) }}
+                              style={{
+                                border: '1px solid var(--anthracite-light)',
+                                background: 'transparent',
+                                color: 'var(--warmgrey)',
+                                fontFamily: 'var(--font-montserrat)',
+                                fontSize: '11px',
+                                fontWeight: 500,
+                                letterSpacing: '3px',
+                                textTransform: 'uppercase',
+                                padding: '0 24px',
+                                minHeight: '44px',
+                                borderRadius: '2px',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              Cancel Booking
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   )}
@@ -851,6 +903,183 @@ export default function BookingsTable() {
           Next
         </button>
       </div>
+
+      {/* CancellationModal */}
+      {pendingCancel !== null && (
+        <div
+          onClick={() => { if (!cancelling) setPendingCancel(null) }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 50,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: 'var(--anthracite-mid)',
+              border: '1px solid var(--anthracite-light)',
+              borderRadius: '4px',
+              maxWidth: '480px',
+              width: '100%',
+              padding: '24px',
+              position: 'relative',
+            }}
+          >
+            {/* Close button */}
+            <button
+              aria-label="Close"
+              onClick={() => { if (!cancelling) setPendingCancel(null) }}
+              style={{
+                position: 'absolute',
+                top: '24px',
+                right: '24px',
+                background: 'none',
+                border: 'none',
+                color: 'var(--warmgrey)',
+                cursor: 'pointer',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <X size={16} />
+            </button>
+
+            {/* Heading */}
+            <h2 style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: '26px',
+              fontWeight: 300,
+              lineHeight: 1.2,
+              color: 'var(--offwhite)',
+              margin: 0,
+            }}>
+              Cancel Booking
+            </h2>
+
+            {pendingCancel.payment_intent_id !== null ? (
+              /* Variant A: Stripe-paid */
+              <>
+                <p style={{
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '16px',
+                  lineHeight: 1.8,
+                }}>
+                  This booking was paid online. Cancelling will issue a full refund to the client&apos;s card. This action cannot be undone.
+                </p>
+                <p style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 500,
+                  textTransform: 'uppercase',
+                  color: '#f87171',
+                  marginTop: '12px',
+                }}>
+                  A FULL STRIPE REFUND WILL BE ISSUED.
+                </p>
+              </>
+            ) : (
+              /* Variant B: Manual */
+              <p style={{
+                fontSize: '13px',
+                fontFamily: 'var(--font-montserrat)',
+                fontWeight: 300,
+                color: 'var(--warmgrey)',
+                marginTop: '16px',
+                lineHeight: 1.8,
+              }}>
+                This booking was created manually and has no payment record. Cancelling will mark the booking as cancelled.
+              </p>
+            )}
+
+            {/* Action buttons */}
+            <div style={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: '12px',
+              marginTop: '24px',
+            }}>
+              <button
+                onClick={() => setPendingCancel(null)}
+                disabled={cancelling}
+                style={{
+                  border: '1px solid var(--anthracite-light)',
+                  color: 'var(--warmgrey)',
+                  background: 'transparent',
+                  minHeight: '44px',
+                  padding: '0 24px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  letterSpacing: '3px',
+                  textTransform: 'uppercase',
+                  borderRadius: '2px',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                  opacity: cancelling ? 0.7 : 1,
+                }}
+              >
+                Keep Booking
+              </button>
+              <button
+                onClick={async () => {
+                  setCancelling(true)
+                  setCancelError(null)
+                  try {
+                    await handleCancel(pendingCancel)
+                  } catch (err) {
+                    setCancelError(err instanceof Error ? err.message : 'Cancel failed')
+                    setCancelling(false)
+                  }
+                }}
+                disabled={cancelling}
+                style={{
+                  border: '1px solid var(--copper)',
+                  color: 'var(--copper)',
+                  background: 'transparent',
+                  minHeight: '44px',
+                  padding: '0 24px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: '11px',
+                  fontWeight: 500,
+                  letterSpacing: '3px',
+                  textTransform: 'uppercase',
+                  borderRadius: '2px',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                  opacity: cancelling ? 0.7 : 1,
+                }}
+              >
+                {cancelling
+                  ? 'Cancelling...'
+                  : pendingCancel.payment_intent_id !== null
+                    ? 'Confirm Cancel + Refund'
+                    : 'Cancel Booking'}
+              </button>
+            </div>
+
+            {/* Error message */}
+            {cancelError && (
+              <p style={{
+                fontSize: '11px',
+                fontFamily: 'var(--font-montserrat)',
+                fontWeight: 300,
+                color: '#f87171',
+                marginTop: '8px',
+                textAlign: 'right',
+              }}>
+                {cancelError}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
