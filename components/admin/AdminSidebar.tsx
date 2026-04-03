@@ -32,7 +32,6 @@ export default function AdminSidebar() {
           zIndex: 60,
           minWidth: 44,
           minHeight: 44,
-          display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           background: '#1C1C1E',
