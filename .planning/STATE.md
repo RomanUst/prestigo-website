@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Pricing & Booking Management
 status: unknown
-stopped_at: "Completed 21-01-PLAN.md"
-last_updated: "2026-04-03T17:47:50Z"
+stopped_at: Completed 21-02-PLAN.md
+last_updated: "2026-04-03T17:57:05.719Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-03 — v1.3 roadmap created)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 21 — pricing-enhancements-holiday-dates-minimum-fare
+**Current focus:** Phase 21 — pricing-enhancements-holiday-dates-minimum-fare (COMPLETE)
 
 ## Current Position
 
-Phase: 21 (pricing-enhancements-holiday-dates-minimum-fare) — EXECUTING
-Plan: 2 of 2
+Phase: 21 (pricing-enhancements-holiday-dates-minimum-fare) — COMPLETE
+Plan: 2 of 2 (all plans done)
 
 ## Performance Metrics
 
@@ -67,6 +67,7 @@ Recent decisions affecting v1.3:
 - [Phase 21-01]: isHolidayDate and applyGlobals exported from calculate-price route.ts for direct unit testing without HTTP layer
 - [Phase 21-01]: minFare applied as final Math.max after coefficient and airport fee — floor is always the last operation
 - [Phase 21-01]: revalidateTag('pricing-config', 'max') missing from admin PUT — added as Rule 1 bug fix
+- [Phase 21-02]: holiday_dates managed via useState not react-hook-form — merged into PUT body at submit time
 
 ### Pending Todos
 
@@ -80,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-03T17:43:15Z
-Stopped at: 21-02-PLAN.md — Task 1 complete, awaiting checkpoint:human-verify (Task 2)
-Resume file: .planning/phases/21-pricing-enhancements-holiday-dates-minimum-fare/21-02-PLAN.md
+Last session: 2026-04-03T17:57:05.713Z
+Stopped at: Completed 21-02-PLAN.md
+Resume file: None
