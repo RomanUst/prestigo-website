@@ -23,12 +23,20 @@ vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
-import { GET } from '@/app/api/admin/bookings/route'
+import { GET, PATCH } from '@/app/api/admin/bookings/route'
 
 function makeRequest(url?: string): Request {
   return new Request(url ?? 'http://localhost/api/admin/bookings', {
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+function makePatchRequest(body: Record<string, unknown>): Request {
+  return new Request('http://localhost/api/admin/bookings', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
 }
 
@@ -130,5 +138,99 @@ describe('/api/admin/bookings', () => {
     const res = await GET(makeRequest('http://localhost/api/admin/bookings?tripType=hourly'))
     expect(res.status).toBe(200)
     expect(eqFn).toHaveBeenCalledWith('trip_type', 'hourly')
+  })
+})
+
+describe('PATCH /api/admin/bookings', () => {
+  it('Test 1: returns 401 when no session', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'No session' },
+    })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(401)
+  })
+
+  it('Test 2: returns 403 for non-admin user', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: '2', app_metadata: { is_admin: false } } },
+      error: null,
+    })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(403)
+  })
+
+  it('Test 3: returns 200 for valid transition (pending -> confirmed)', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'pending' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectChainFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
+  })
+
+  it('Test 4: returns 422 for invalid transition (completed -> pending)', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'completed' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'pending' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain("Cannot transition from 'completed' to 'pending'")
+  })
+
+  it('Test 5: returns 422 for invalid transition (cancelled -> confirmed)', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'cancelled' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain("Cannot transition from 'cancelled' to 'confirmed'")
+  })
+
+  it('Test 6: returns 404 when booking not found', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: null, error: { message: 'not found' } })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(404)
+  })
+
+  it('Test 7: returns 400 when neither status nor operator_notes provided', async () => {
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d' }))
+    expect(res.status).toBe(400)
+  })
+
+  it('Test 8: returns 200 for operator_notes update (no status)', async () => {
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ update: updateFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', operator_notes: 'VIP client' }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
   })
 })
