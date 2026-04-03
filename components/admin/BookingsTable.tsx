@@ -15,6 +15,7 @@ import { StatusBadge } from './StatusBadge'
 interface Booking {
   id: string
   booking_reference: string
+  booking_source: 'online' | 'manual'
   pickup_date: string
   pickup_time: string
   client_first_name: string
@@ -239,14 +240,30 @@ export default function BookingsTable() {
     {
       accessorKey: 'booking_reference',
       header: 'REF',
-      size: 120,
-      cell: ({ getValue }) => (
-        <span style={{
-          fontFamily: 'monospace',
-          fontSize: '13px',
-          color: 'var(--copper)',
-        }}>
-          {getValue<string>()}
+      size: 160,
+      cell: ({ row }) => (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 0 }}>
+          <span style={{
+            fontFamily: 'monospace',
+            fontSize: '13px',
+            color: 'var(--copper)',
+          }}>
+            {row.original.booking_reference}
+          </span>
+          {row.original.booking_source === 'manual' && (
+            <span style={{
+              marginLeft: '8px',
+              background: '#2a2a1a',
+              color: '#E8B87A',
+              border: '1px solid rgba(184,115,51,0.25)',
+              fontSize: '11px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              padding: '4px 8px',
+              borderRadius: '2px',
+              display: 'inline-block',
+            }}>MANUAL</span>
+          )}
         </span>
       ),
     },

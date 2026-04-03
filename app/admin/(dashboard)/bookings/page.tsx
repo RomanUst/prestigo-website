@@ -1,7 +1,8 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { KPICard } from '@/components/admin/KPICard'
 import BookingsTable from '@/components/admin/BookingsTable'
+import { ManualBookingForm } from '@/components/admin/ManualBookingForm'
 
 function getMonday(date: Date): string {
   const d = new Date(date)
@@ -24,6 +25,13 @@ function getSunday(date: Date): string {
 export default function BookingsPage() {
   const [todayCount, setTodayCount] = useState<number | null>(null)
   const [weekRevenue, setWeekRevenue] = useState<number | null>(null)
+  const [showNewBooking, setShowNewBooking] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
+
+  const handleBookingCreated = useCallback(() => {
+    setRefreshKey(k => k + 1)
+    setShowNewBooking(false)
+  }, [])
 
   useEffect(() => {
     const now = new Date()
@@ -57,18 +65,39 @@ export default function BookingsPage() {
 
   return (
     <div>
-      <h1
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '28px',
-          fontWeight: 400,
-          color: 'var(--offwhite)',
-          letterSpacing: '0.08em',
-          marginBottom: '16px',
-        }}
-      >
-        Bookings
-      </h1>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <h1
+          style={{
+            fontFamily: 'var(--font-cormorant)',
+            fontSize: '28px',
+            fontWeight: 400,
+            color: 'var(--offwhite)',
+            letterSpacing: '0.08em',
+            margin: 0,
+          }}
+        >
+          Bookings
+        </h1>
+        <button
+          onClick={() => setShowNewBooking(true)}
+          style={{
+            border: '1px solid var(--anthracite-light)',
+            background: 'transparent',
+            color: 'var(--warmgrey)',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '11px',
+            fontWeight: 500,
+            letterSpacing: '3px',
+            textTransform: 'uppercase',
+            padding: '0 24px',
+            minHeight: '44px',
+            borderRadius: '2px',
+            cursor: 'pointer',
+          }}
+        >
+          New Booking
+        </button>
+      </div>
 
       <div
         style={{
@@ -89,7 +118,13 @@ export default function BookingsPage() {
         />
       </div>
 
-      <BookingsTable />
+      <BookingsTable key={refreshKey} />
+
+      <ManualBookingForm
+        open={showNewBooking}
+        onClose={() => setShowNewBooking(false)}
+        onCreated={handleBookingCreated}
+      />
     </div>
   )
 }
