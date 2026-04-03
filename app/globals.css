@@ -244,6 +244,13 @@ body {
   }
 }
 
+/* ── Google Places autocomplete dropdown ────────────── */
+/* Ensure .pac-container appears above admin modal overlay (z-index: 50) */
+.pac-container {
+  z-index: 99999 !important;
+  font-family: var(--font-montserrat) !important;
+}
+
 /* ── LimoAnywhere iframe overrides ─────────────────── */
 #limoanywhere-frame {
   border: none;
