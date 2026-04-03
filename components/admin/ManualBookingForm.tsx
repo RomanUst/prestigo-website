@@ -57,8 +57,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-// Address input using native google.maps.places.Autocomplete widget
-// The input is always typeable; autocomplete attaches after Maps loads
+// Address input: controlled, always typeable, Google suggestions when Maps ready
 function AdminAddressInput({ label, value, onChange, placeholder, required }: {
   label: string
   value: string
@@ -66,43 +65,101 @@ function AdminAddressInput({ label, value, onChange, placeholder, required }: {
   placeholder?: string
   required?: boolean
 }) {
-  const inputRef = useRef<HTMLInputElement>(null)
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
+  const [inputVal, setInputVal] = useState(value)
+  const [suggestions, setSuggestions] = useState<Array<{ description: string; place_id: string }>>([])
+  const [showList, setShowList] = useState(false)
+  const serviceRef = useRef<google.maps.places.AutocompleteService | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Load Maps + init service once
   useEffect(() => {
-    let ac: google.maps.places.Autocomplete | null = null
     ensureAdminMapsLoaded()
       .then(() => {
-        if (!inputRef.current) return
-        ac = new google.maps.places.Autocomplete(inputRef.current, {
-          fields: ['formatted_address', 'name'],
-        })
-        ac.addListener('place_changed', () => {
-          const place = ac!.getPlace()
-          const addr = place.formatted_address ?? place.name ?? inputRef.current?.value ?? ''
-          onChangeRef.current(addr)
-        })
+        serviceRef.current = new google.maps.places.AutocompleteService()
       })
       .catch(() => {})
-    return () => {
-      if (ac) google.maps.event.clearInstanceListeners(ac)
+  }, [])
+
+  // Sync when parent resets to empty (e.g., form reset)
+  useEffect(() => {
+    if (value === '' && inputVal !== '') {
+      setInputVal('')
+      setSuggestions([])
+      setShowList(false)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  const fetchSuggestions = (text: string) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    if (text.length < 2 || !serviceRef.current) {
+      setSuggestions([])
+      setShowList(false)
+      return
+    }
+    debounceRef.current = setTimeout(() => {
+      serviceRef.current!.getPlacePredictions({ input: text }, (predictions, status) => {
+        if (status === 'OK' && predictions) {
+          setSuggestions(predictions.slice(0, 5).map(p => ({ description: p.description, place_id: p.place_id })))
+          setShowList(true)
+        } else {
+          setSuggestions([])
+          setShowList(false)
+        }
+      })
+    }, 300)
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const text = e.target.value
+    setInputVal(text)
+    onChange(text)
+    fetchSuggestions(text)
+  }
+
+  const handleSelect = (description: string) => {
+    setInputVal(description)
+    onChange(description)
+    setSuggestions([])
+    setShowList(false)
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+  }
 
   return (
-    <div>
+    <div style={{ position: 'relative' }}>
       <label style={labelStyle}>{label}</label>
       <input
-        ref={inputRef}
         type="text"
-        defaultValue={value}
-        onInput={e => onChangeRef.current((e.target as HTMLInputElement).value)}
+        value={inputVal}
+        onChange={handleChange}
+        onBlur={() => setTimeout(() => setShowList(false), 200)}
         placeholder={placeholder}
         required={required}
         style={inputStyle}
         autoComplete="off"
       />
+      {showList && suggestions.length > 0 && (
+        <ul style={{
+          position: 'absolute', top: '100%', left: 0, width: '100%', zIndex: 200,
+          background: 'var(--anthracite)', border: '1px solid var(--anthracite-light)',
+          borderTop: 'none', listStyle: 'none', margin: 0, padding: 0,
+          maxHeight: '200px', overflowY: 'auto', borderRadius: '0 0 2px 2px',
+        }}>
+          {suggestions.map(s => (
+            <li
+              key={s.place_id}
+              onMouseDown={() => handleSelect(s.description)}
+              style={{
+                padding: '10px 12px', cursor: 'pointer',
+                fontFamily: 'var(--font-montserrat)', fontSize: '12px', fontWeight: 300,
+                color: 'var(--offwhite)', borderBottom: '1px solid var(--anthracite-light)',
+              }}
+            >
+              {s.description}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }
