@@ -165,5 +165,5 @@ Plans:
 | 18. Schema Foundation + Zone Logic Fix | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 19. Booking Status Workflow + Operator Notes | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
-| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | 2/2 | Complete   | 2026-04-03 | - |
+| 21. Pricing Enhancements — Holiday Dates + Minimum Fare | 2/2 | Complete    | 2026-04-03 | - |
 | 22. Mobile Admin + Promo Code System | v1.3 | 0/TBD | Not started | - |
