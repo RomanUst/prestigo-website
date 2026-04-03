@@ -1,13 +1,16 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
-import AddressInput from '@/components/booking/AddressInput'
-import type { PlaceResult } from '@/types/booking'
+import usePlacesAutocomplete from 'use-places-autocomplete'
+import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 
-interface ManualBookingFormProps {
-  open: boolean
-  onClose: () => void
-  onCreated: () => void
+// Non-blocking Maps loader — never throws, returns false on failure
+let adminMapsPromise: Promise<boolean> | null = null
+function tryLoadMaps(): Promise<boolean> {
+  if (adminMapsPromise) return adminMapsPromise
+  setOptions({ key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!, libraries: ['places'], v: 'weekly' })
+  adminMapsPromise = importLibrary('places').then(() => true).catch(() => false)
+  return adminMapsPromise
 }
 
 const labelStyle: React.CSSProperties = {
@@ -55,12 +58,102 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
+// Lightweight address input: always typeable, shows Places suggestions when Maps loads
+function AdminAddressInput({ label, value, onChange, placeholder, required }: {
+  label: string
+  value: string
+  onChange: (val: string) => void
+  placeholder?: string
+  required?: boolean
+}) {
+  const [showSugg, setShowSugg] = useState(false)
+  const blurRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const {
+    value: inputVal,
+    setValue,
+    suggestions: { data, status },
+    clearSuggestions,
+    init,
+  } = usePlacesAutocomplete({ initOnMount: false, debounce: 300, defaultValue: value })
+
+  useEffect(() => {
+    tryLoadMaps().then(ok => { if (ok) init() })
+  }, [init])
+
+  // Sync if parent resets value to empty
+  useEffect(() => {
+    if (value === '' && inputVal !== '') setValue('', false)
+  }, [value]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    setShowSugg(status === 'OK' && inputVal.length >= 2)
+  }, [status, inputVal])
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(e.target.value)
+    onChange(e.target.value)
+  }
+
+  const handleSelect = (description: string) => {
+    setValue(description, false)
+    onChange(description)
+    clearSuggestions()
+    setShowSugg(false)
+  }
+
+  return (
+    <div style={{ position: 'relative' }}>
+      <label style={labelStyle}>{label}</label>
+      <input
+        type="text"
+        value={inputVal}
+        onChange={handleChange}
+        onBlur={() => { blurRef.current = setTimeout(() => setShowSugg(false), 200) }}
+        onFocus={() => { if (blurRef.current) clearTimeout(blurRef.current) }}
+        placeholder={placeholder}
+        required={required}
+        style={inputStyle}
+        autoComplete="off"
+      />
+      {showSugg && data.length > 0 && (
+        <ul style={{
+          position: 'absolute', width: '100%', zIndex: 100,
+          background: 'var(--anthracite)', border: '1px solid var(--anthracite-light)',
+          borderTop: 'none', listStyle: 'none', margin: 0, padding: 0,
+          maxHeight: '200px', overflowY: 'auto', borderRadius: '0 0 2px 2px',
+        }}>
+          {data.map(s => (
+            <li
+              key={s.place_id}
+              onMouseDown={() => handleSelect(s.description)}
+              style={{
+                padding: '10px 12px', cursor: 'pointer',
+                fontFamily: 'var(--font-montserrat)', fontSize: '12px', fontWeight: 300,
+                color: 'var(--offwhite)', borderBottom: '1px solid var(--anthracite-light)',
+              }}
+            >
+              {s.description}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  )
+}
+
+interface ManualBookingFormProps {
+  open: boolean
+  onClose: () => void
+  onCreated: () => void
+}
+
 export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFormProps) {
   const [tripType, setTripType] = useState('transfer')
   const [pickupDate, setPickupDate] = useState('')
   const [pickupTime, setPickupTime] = useState('')
-  const [originPlace, setOriginPlace] = useState<PlaceResult | null>(null)
-  const [destinationPlace, setDestinationPlace] = useState<PlaceResult | null>(null)
+  const [originAddress, setOriginAddress] = useState('')
+  const [destinationAddress, setDestinationAddress] = useState('')
   const [vehicleClass, setVehicleClass] = useState('business')
   const [passengers, setPassengers] = useState(1)
   const [luggage, setLuggage] = useState(0)
@@ -79,13 +172,17 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
 
   if (!open) return null
 
+  function openPicker(e: React.MouseEvent<HTMLInputElement>) {
+    try { (e.currentTarget as HTMLInputElement).showPicker() } catch { /* unsupported */ }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
-    if (!originPlace) {
-      setError('Please select a pickup address from the dropdown.')
+    if (!originAddress.trim()) {
+      setError('Please enter a pickup address.')
       setLoading(false)
       return
     }
@@ -94,7 +191,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       trip_type: tripType,
       pickup_date: pickupDate,
       pickup_time: pickupTime,
-      origin_address: originPlace.address,
+      origin_address: originAddress.trim(),
       vehicle_class: vehicleClass,
       passengers,
       luggage,
@@ -105,7 +202,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       client_phone: phone,
     }
 
-    if (destinationPlace) payload.destination_address = destinationPlace.address
+    if (destinationAddress.trim()) payload.destination_address = destinationAddress.trim()
     if (hours) payload.hours = Number(hours)
     if (returnDate) payload.return_date = returnDate
     if (flightNumber) payload.flight_number = flightNumber
@@ -127,9 +224,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
         try {
           const data = await res.json()
           if (data.error) msg = data.error
-        } catch {
-          // keep default
-        }
+        } catch { /* keep default */ }
         setError(msg)
       }
     } catch {
@@ -225,7 +320,8 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                     type="date"
                     value={pickupDate}
                     onChange={(e) => setPickupDate(e.target.value)}
-                    style={{ ...inputStyle, colorScheme: 'dark' }}
+                    onClick={openPicker}
+                    style={{ ...inputStyle, colorScheme: 'dark', cursor: 'pointer' }}
                     required
                   />
                 </Field>
@@ -234,28 +330,26 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                     type="time"
                     value={pickupTime}
                     onChange={(e) => setPickupTime(e.target.value)}
-                    style={{ ...inputStyle, colorScheme: 'dark' }}
+                    onClick={openPicker}
+                    style={{ ...inputStyle, colorScheme: 'dark', cursor: 'pointer' }}
                     required
                   />
                 </Field>
               </div>
 
-              <AddressInput
+              <AdminAddressInput
                 label="PICKUP ADDRESS"
+                value={originAddress}
+                onChange={setOriginAddress}
                 placeholder="Start typing an address…"
-                value={originPlace}
-                onSelect={setOriginPlace}
-                onClear={() => setOriginPlace(null)}
-                ariaLabel="Pickup address"
+                required
               />
 
-              <AddressInput
+              <AdminAddressInput
                 label="DESTINATION ADDRESS"
+                value={destinationAddress}
+                onChange={setDestinationAddress}
                 placeholder="Start typing an address… (optional for hourly/daily)"
-                value={destinationPlace}
-                onSelect={setDestinationPlace}
-                onClear={() => setDestinationPlace(null)}
-                ariaLabel="Destination address"
               />
 
               <Field label="VEHICLE CLASS">
@@ -322,7 +416,8 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                   type="date"
                   value={returnDate}
                   onChange={(e) => setReturnDate(e.target.value)}
-                  style={{ ...inputStyle, colorScheme: 'dark' }}
+                  onClick={openPicker}
+                  style={{ ...inputStyle, colorScheme: 'dark', cursor: 'pointer' }}
                 />
               </Field>
 
