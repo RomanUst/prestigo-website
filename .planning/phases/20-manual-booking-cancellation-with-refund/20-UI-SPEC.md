@@ -37,7 +37,6 @@ Declared values — project uses a custom named scale, NOT 8-point multiples. Th
 | sm | 8px | Badge padding, compact element spacing (e.g. `padding: 4px 8px` on StatusBadge) |
 | md | 24px | Label-to-content, card padding, form field gap |
 | lg | 48px | Section padding |
-| xl | 80px | Page horizontal margins |
 
 For Phase 20 specifically:
 
@@ -49,8 +48,7 @@ For Phase 20 specifically:
 | Modal max-width | 640px | Centered card; fits all required fields without horizontal scroll |
 | Button height (modal CTAs) | 44px | Minimum touch target per UX-01 (Phase 22 enforces globally; Phase 20 adopts proactively for modal buttons) |
 | Expanded row cancel button | 44px min-height | Same touch target rule |
-
-Exceptions: 6px (`--space-xs` project variant) is acceptable for tight icon-to-label gaps inside buttons.
+| Icon-to-label gap inside buttons | 4px (`--space-xs`) | Tight inline gap; must be a multiple of 4 |
 
 Source: STYLEGUIDE.md section 6 Spacing. Phase 22 UX-01 touch target requirement adopted proactively for modal buttons.
 
@@ -60,17 +58,19 @@ Source: STYLEGUIDE.md section 6 Spacing. Phase 22 UX-01 touch target requirement
 
 All admin UI uses Montserrat for body/UI elements; Cormorant Garamond is reserved for display/headings.
 
+Exactly 2 weights declared: 300 (body, labels, headings) and 500 (CTAs/buttons). Visual distinction between body text and labels is achieved via letter-spacing (0.3em on labels), not a third weight.
+
 | Role | Font | Size | Weight | Line Height | Letter-spacing | Colour |
 |------|------|------|--------|-------------|----------------|--------|
 | Body / form input value | Montserrat | 13px | 300 | 1.8 | 0.5px | `var(--offwhite)` / `#F5F2EE` |
-| UI label / field label | Montserrat | 11px | 400 | 1.4 | 0.3em (≈3.3px) | `var(--warmgrey)` / `#9A958F` |
+| UI label / field label | Montserrat | 11px | 300 | 1.4 | 0.3em (≈3.3px) | `var(--warmgrey)` / `#9A958F` |
 | Modal heading | Cormorant Garamond | 26px | 300 | 1.2 | 0 | `var(--offwhite)` / `#F5F2EE` |
 | Button / CTA text | Montserrat | 11px | 500 | n/a | 3px | `var(--offwhite)` or `var(--anthracite)` |
 
 Rules:
 - All labels and field headings: `text-transform: uppercase`
 - Never use bold (700+) weights — lightness signals luxury (STYLEGUIDE.md rule)
-- Modal subheadings (e.g. "TRIP DETAILS", "PASSENGER DETAILS"): 11px Montserrat 400, uppercase, `var(--copper)` / `#B87333`, letter-spacing 0.3em — matches the copper section-label pattern
+- Modal subheadings (e.g. "TRIP DETAILS", "PASSENGER DETAILS"): 11px Montserrat 300, uppercase, `var(--copper)` / `#B87333`, letter-spacing 0.3em — matches the copper section-label pattern; visual distinction from warmgrey labels is achieved through colour, not weight
 
 Source: STYLEGUIDE.md section 3 Typography. Existing `DetailField` component in BookingsTable confirms 11px labels at `letterSpacing: '0.3em'` with `var(--warmgrey)` and 13px values with `var(--offwhite)`.
 
@@ -109,6 +109,8 @@ Source: STYLEGUIDE.md section 2 Colour Palette. StatusBadge.tsx colour values co
 
 **Layout:** `position: fixed; inset: 0` overlay with centered card (`max-width: 640px; max-height: 90vh; overflow-y: auto`). Card background `var(--anthracite-mid)`. Copper gradient accent line at top of card (2px height).
 
+**Modal close button:** Top-right corner of the modal card. Icon: `X` (lucide-react). `aria-label="Close"`. Style: ghost, `color: var(--warmgrey)`, no border.
+
 **Form structure — two labeled sections:**
 
 Section A — "TRIP DETAILS" (copper section label):
@@ -140,7 +142,7 @@ padding: 8px 12px
 ```
 
 **Modal footer buttons (right-aligned):**
-- "Cancel" — ghost button (`border: 1px solid var(--anthracite-light); color: var(--warmgrey)`)
+- "Discard Booking" — ghost button (`border: 1px solid var(--anthracite-light); color: var(--warmgrey)`)
 - "Create Booking" — primary CTA (`background: var(--copper); color: var(--offwhite)`)
 - Both buttons: `min-height: 44px; padding: 0 24px`
 
@@ -156,6 +158,8 @@ padding: 8px 12px
 
 **Trigger:** "Cancel Booking" button in the expanded booking row. State: `pendingCancel: Booking | null`.
 
+**Modal close button:** Top-right corner of the modal card. Icon: `X` (lucide-react). `aria-label="Close"`. Style: ghost, `color: var(--warmgrey)`, no border.
+
 **Variant A — Stripe-paid booking** (`payment_intent_id !== null`):
 
 Heading (26px Cormorant Garamond 300): "Cancel Booking"
@@ -163,7 +167,7 @@ Heading (26px Cormorant Garamond 300): "Cancel Booking"
 Body text (13px Montserrat 300, `var(--warmgrey)`):
 "This booking was paid online. Cancelling will issue a full refund to the client's card. This action cannot be undone."
 
-Warning line (11px Montserrat 400 uppercase, `#f87171`): "A FULL STRIPE REFUND WILL BE ISSUED."
+Warning line (11px Montserrat 500 uppercase, `#f87171`): "A FULL STRIPE REFUND WILL BE ISSUED."
 
 Buttons (right-aligned):
 - "Keep Booking" — ghost, `border: 1px solid var(--anthracite-light); color: var(--warmgrey)`, min-height 44px
@@ -249,6 +253,7 @@ All copy follows brand voice: declarative, no hype, no hedging, sentence brevity
 | Cancel CTA — Stripe-paid confirmation | "Confirm Cancel + Refund" |
 | Cancel CTA — manual booking confirmation | "Cancel Booking" |
 | Dismiss modal / keep booking | "Keep Booking" |
+| ManualBookingForm dismiss | "Discard Booking" |
 | ManualBookingForm modal heading | "New Booking" |
 | CancellationModal heading (both variants) | "Cancel Booking" |
 | Refund warning body (Stripe-paid) | "This booking was paid online. Cancelling will issue a full refund to the client's card. This action cannot be undone." |
