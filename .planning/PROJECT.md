@@ -73,6 +73,7 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ BOOKINGS-08: Operator can cancel booking with optional full Stripe refund; confirmation modal before refund — v1.3 (Phase 20)
 - ✓ BOOKINGS-09: Operator can add internal notes to any booking; auto-save with debounce — v1.3 (Phase 19)
 - ✓ UX-01: Admin panel fully responsive and usable on mobile (375px+); bookings table card layout below 768px; hamburger sidebar — v1.3 (Phase 22)
+- ✓ RTFR-01: TripType union extended with `round_trip`; Zustand store gains `returnTime` + `setReturnTime`; ROUND TRIP tab rendered as 4th tab; swap icon shown for round_trip; Step 2 `canProceed` requires `returnDate` for round_trip — v1.4 (Phase 24)
 
 ### Active
 
@@ -157,4 +158,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-04 after v1.4 milestone started — Return Transfer Booking.*
+*Last updated: 2026-04-04 after Phase 24 complete — TripType + store + ROUND TRIP tab.*
