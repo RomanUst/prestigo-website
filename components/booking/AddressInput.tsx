@@ -9,6 +9,10 @@ import type { PlaceResult } from '@/types/booking'
 // Module-level singleton loader — shared across all AddressInput instances
 let loaderPromise: Promise<void> | null = null
 function ensureMapsLoaded(): Promise<void> {
+  // If Google Maps Places is already loaded (e.g. by APIProvider or <Script>), skip loader
+  if (typeof window !== 'undefined' && window.google?.maps?.places?.AutocompleteService) {
+    return Promise.resolve()
+  }
   if (loaderPromise) return loaderPromise
   setOptions({
     key: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
