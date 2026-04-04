@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { KPICard } from '@/components/admin/KPICard'
 import BookingsTable from '@/components/admin/BookingsTable'
-import { AdminBookingWizard } from '@/components/admin/AdminBookingWizard'
+import { ManualBookingForm } from '@/components/admin/ManualBookingForm'
 
 function getMonday(date: Date): string {
   const d = new Date(date)
@@ -120,7 +120,7 @@ export default function BookingsPage() {
 
       <BookingsTable key={refreshKey} />
 
-      <AdminBookingWizard
+      <ManualBookingForm
         open={showNewBooking}
         onClose={() => setShowNewBooking(false)}
         onCreated={handleBookingCreated}
