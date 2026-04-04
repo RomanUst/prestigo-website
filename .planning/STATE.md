@@ -45,6 +45,9 @@ Key v1.4 architectural decisions (from research):
 - [Phase 24-01-types-store]: returnDate shared between daily hire and round_trip — setTripType never clears returnDate
 - [Phase 24-01-types-store]: returnTime persisted to sessionStorage via partialize alongside returnDate
 - [Phase 24-02-ui-tab]: returnTime excluded from canProceed guard — return time UI deferred to Phase 25 to avoid blocking round_trip users with no input available
+- [Phase 25-01-step2-return-pickers]: ISO string comparison (YYYY-MM-DDTHH:MM lexicographic) used for datetime ordering — no Date parsing needed
+- [Phase 25-01-step2-return-pickers]: scrollIntoView mock added to tests/setup.ts globally — jsdom does not implement it
+- [Phase 25-01-step2-return-pickers]: BookingWizard tests set booking_deeplink=1 in sessionStorage to prevent mount useEffect from resetting currentStep
 - [Phase 25-02-pricing-engine]: returnLegPrices replaces roundTripPrices — old field inherited outbound coefficients; new field computes return leg independently via applyGlobals(returnBase, ..., isNightTime(returnTime), isHolidayDate(returnDate, ...))
 - [Phase 25-02-pricing-engine]: returnLegPrices is null when returnDate OR returnTime is missing — supports one-way pricing and step-by-step form fill
 - [Phase 25-02-pricing-engine]: Return leg discount applied to post-applyGlobals adjusted base, not raw base — preserves coefficient effect before discount
@@ -63,6 +66,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-04T20:51:18.039Z
-Stopped at: Completed 25-02-PLAN.md — returnLegPrices with independent night/holiday coefficients, 7 TDD tests passing
+Last session: 2026-04-04T22:51:29Z
+Stopped at: Completed 25-01-PLAN.md — return date + time pickers in Step 2 for round_trip, canProceed guard, 11 TDD tests passing
 Resume file: None

@@ -8,7 +8,7 @@
 ### Wizard
 
 - [x] **RTFR-01**: Client can select "Round Trip" as a 6th trip type in Step 1 of the booking wizard
-- [ ] **RTFR-02**: When Round Trip is selected, Step 2 collects return date and time; return date/time must be after the outbound pickup date/time (validated with inline error)
+- [x] **RTFR-02**: When Round Trip is selected, Step 2 collects return date and time; return date/time must be after the outbound pickup date/time (validated with inline error)
 - [ ] **RTFR-03**: When Round Trip is selected and the route falls into quoteMode (outside coverage zones), the Round Trip option is disabled and a message directs the client to request a quote instead
 - [ ] **RTFR-04**: Step 3 displays outbound price and discounted return price separately (with return discount % shown), plus combined total; vehicle selection updates both prices live
 - [ ] **RTFR-05**: Step 6 payment summary shows both legs with individual prices, discount % applied to return, and combined total; promo code (if applied) reduces the combined total
