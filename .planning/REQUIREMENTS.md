@@ -15,9 +15,9 @@
 
 ### Pricing
 
-- [ ] **RTPR-01**: Return leg uses the same route distance as outbound (no second Google Routes API call); night/holiday coefficients are computed independently using the return date and time
-- [ ] **RTPR-02**: Return leg price is reduced by the operator-configured `return_discount_pct` before display and before charging; displayed discount % matches the charged amount
-- [ ] **RTPR-03**: Extras (child seat, meet & greet, extra luggage) apply to the outbound leg only — the return leg does not duplicate extras charges
+- [x] **RTPR-01**: Return leg uses the same route distance as outbound (no second Google Routes API call); night/holiday coefficients are computed independently using the return date and time
+- [x] **RTPR-02**: Return leg price is reduced by the operator-configured `return_discount_pct` before display and before charging; displayed discount % matches the charged amount
+- [x] **RTPR-03**: Extras (child seat, meet & greet, extra luggage) apply to the outbound leg only — the return leg does not duplicate extras charges
 - [ ] **RTPR-04**: Promo code discount is computed on the combined total (outbound + discounted return) and applied server-side at PaymentIntent creation
 
 ### Payment & Data

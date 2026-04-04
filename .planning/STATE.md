@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Return Transfer Booking
 status: unknown
-stopped_at: Completed 24-02-PLAN.md — ROUND TRIP tab added, swap icon guard, canProceed guard, 5 TripTypeTabs tests passing
-last_updated: "2026-04-04T19:28:20.103Z"
+stopped_at: Completed 25-02-PLAN.md — returnLegPrices with independent night/holiday coefficients, 7 TDD tests passing
+last_updated: "2026-04-04T20:51:18.046Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04 after v1.4 milestone started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 24 — types-zustand-store-step-1-round-trip
+**Current focus:** Phase 25 — pricing-engine-step-2-step-3
 
 ## Current Position
 
-Phase: 24 (types-zustand-store-step-1-round-trip) — COMPLETE
-Plan: 2 of 2 (all plans complete)
+Phase: 25 (pricing-engine-step-2-step-3) — EXECUTING
+Plan: 2 of 3
 
 ## Accumulated Context
 
@@ -45,6 +45,9 @@ Key v1.4 architectural decisions (from research):
 - [Phase 24-01-types-store]: returnDate shared between daily hire and round_trip — setTripType never clears returnDate
 - [Phase 24-01-types-store]: returnTime persisted to sessionStorage via partialize alongside returnDate
 - [Phase 24-02-ui-tab]: returnTime excluded from canProceed guard — return time UI deferred to Phase 25 to avoid blocking round_trip users with no input available
+- [Phase 25-02-pricing-engine]: returnLegPrices replaces roundTripPrices — old field inherited outbound coefficients; new field computes return leg independently via applyGlobals(returnBase, ..., isNightTime(returnTime), isHolidayDate(returnDate, ...))
+- [Phase 25-02-pricing-engine]: returnLegPrices is null when returnDate OR returnTime is missing — supports one-way pricing and step-by-step form fill
+- [Phase 25-02-pricing-engine]: Return leg discount applied to post-applyGlobals adjusted base, not raw base — preserves coefficient effect before discount
 
 ### Pending Todos
 
@@ -60,6 +63,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-04T21:32:00.000Z
-Stopped at: Completed 24-02-PLAN.md — ROUND TRIP tab added, swap icon guard, canProceed guard, 5 TripTypeTabs tests passing
+Last session: 2026-04-04T20:51:18.039Z
+Stopped at: Completed 25-02-PLAN.md — returnLegPrices with independent night/holiday coefficients, 7 TDD tests passing
 Resume file: None

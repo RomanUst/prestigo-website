@@ -115,7 +115,7 @@ Plans:
   3. The return leg price uses the same distance as outbound (no second Google API call) and computes night/holiday coefficients from the return date and time independently
   4. Extras (child seat, meet & greet, extra luggage) appear in the outbound price only; the return price does not include extras charges
   5. When Round Trip is selected and the route is in quoteMode, the Round Trip option in Step 1 is disabled and a message directs the client to request a quote
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 25-01-PLAN.md — Step 2 return date+time pickers with datetime ordering validation and canProceed guard
 - [ ] 25-02-PLAN.md — API returnLegPrices with independent night/holiday coefficient, discount, no extras
@@ -187,7 +187,7 @@ Plans:
 | 22. Mobile Admin + Promo Code System | v1.3 | 4/4 | Complete | 2026-04-03 |
 | 23. Database Schema Foundation | v1.4 | 1/1 | Complete | 2026-04-04 |
 | 24. Types, Zustand Store & Step 1 Round Trip | 2/2 | Complete    | 2026-04-04 | - |
-| 25. Pricing Engine + Step 2 & Step 3 | v1.4 | 0/? | Not started | - |
+| 25. Pricing Engine + Step 2 & Step 3 | 1/3 | In Progress|  | - |
 | 26. Payment — Combined Stripe Charge | v1.4 | 0/? | Not started | - |
 | 27. Webhook & Notifications | v1.4 | 0/? | Not started | - |
 | 28. Admin — Return Discount Config + Booking Management | v1.4 | 0/? | Not started | - |
