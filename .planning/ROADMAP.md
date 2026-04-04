@@ -182,7 +182,7 @@ Plans:
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 22. Mobile Admin + Promo Code System | v1.3 | 4/4 | Complete | 2026-04-03 |
 | 23. Database Schema Foundation | v1.4 | 1/1 | Complete | 2026-04-04 |
-| 24. Types, Zustand Store & Step 1 Round Trip | 2/2 | Complete   | 2026-04-04 | - |
+| 24. Types, Zustand Store & Step 1 Round Trip | 2/2 | Complete    | 2026-04-04 | - |
 | 25. Pricing Engine + Step 2 & Step 3 | v1.4 | 0/? | Not started | - |
 | 26. Payment — Combined Stripe Charge | v1.4 | 0/? | Not started | - |
 | 27. Webhook & Notifications | v1.4 | 0/? | Not started | - |
