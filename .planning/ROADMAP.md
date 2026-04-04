@@ -89,7 +89,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
   5. Calling `create_round_trip_bookings(p_outbound, p_return)` atomically inserts two cross-linked rows; if either insert fails, neither row is committed
 **Plans:** 1/1 plans complete
 Plans:
-- [ ] 23-01-PLAN.md — Write and apply v1.4 schema migration (leg column, composite UNIQUE, linked_booking_id FK, per-leg amounts, return_discount_pct, atomic RPC)
+- [x] 23-01-PLAN.md — Write and apply v1.4 schema migration (leg column, composite UNIQUE, linked_booking_id FK, per-leg amounts, return_discount_pct, atomic RPC)
 
 ### Phase 24: Types, Zustand Store & Step 1 Round Trip
 **Goal**: TypeScript types and Zustand store correctly model round-trip state, and clients can select Round Trip as the 6th trip type in Step 1 with no pricing wired yet

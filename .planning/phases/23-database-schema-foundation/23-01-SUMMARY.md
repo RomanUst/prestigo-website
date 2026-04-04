@@ -57,26 +57,27 @@ completed: 2026-04-04
 
 ## Performance
 
-- **Duration:** ~5 min
+- **Duration:** ~30 min (including human checkpoint for Supabase Dashboard apply + verification)
 - **Started:** 2026-04-04T18:11:49Z
-- **Completed:** 2026-04-04T18:13:30Z
-- **Tasks:** 1 of 2 (Task 2 is a human-verify checkpoint — awaiting DB apply)
+- **Completed:** 2026-04-04T20:18:00Z
+- **Tasks:** 2 of 2 complete
 - **Files modified:** 1
 
 ## Accomplishments
 
 - Created `supabase/migrations/023_v14_schema_foundation.sql` with all 6 required schema steps
-- Verified all acceptance criteria pass (file content grep checks)
-- Confirmed existing 13-test Vitest suite remains green (tests mock saveBooking, unaffected by schema DDL)
-- Migration ready for manual apply via Supabase Dashboard SQL Editor
+- Migration applied to live Supabase database — all 6 verification queries (SC1–SC6) passed
+- Confirmed existing 13-test Vitest suite remains green after schema change
+- All downstream phases (24–28) now have the required schema in place
 
 ## Task Commits
 
 Each task was committed atomically:
 
 1. **Task 1: Write the v1.4 schema migration SQL file** - `a5fdfb0` (feat)
+2. **Task 2: Apply migration in Supabase Dashboard and verify schema** - human checkpoint, approved (live DB apply, no commit)
 
-**Plan metadata:** pending (awaiting checkpoint completion)
+**Plan metadata:** pending (docs commit below)
 
 ## Files Created/Modified
 
@@ -99,25 +100,21 @@ None - plan executed exactly as written.
 
 ## User Setup Required
 
-**Task 2 requires manual database migration.** Follow these steps in Supabase Dashboard:
-
-1. **Before applying — verify constraint name:**
-   ```sql
-   SELECT constraint_name FROM information_schema.table_constraints
-   WHERE table_name = 'bookings' AND constraint_type = 'UNIQUE';
-   ```
-   Expected: `bookings_payment_intent_id_key`. If different, update the DROP CONSTRAINT line in the migration file.
-
-2. **Apply the migration:** Open Supabase Dashboard > SQL Editor, paste entire contents of `supabase/migrations/023_v14_schema_foundation.sql`, click Run.
-
-3. **Verify success** using the 6 verification queries in Task 2 of the plan.
+None - migration was applied to live Supabase DB as part of Task 2 checkpoint. All 6 verification queries confirmed success:
+- SC1: 0 existing rows affected (all have leg = 'outbound')
+- SC2: 4 new columns exist (leg, linked_booking_id, outbound_amount_czk, return_amount_czk)
+- SC3: return_discount_pct = 10.00 on pricing_globals row id=1
+- SC4: composite constraint bookings_payment_intent_id_leg_key exists
+- SC5: create_round_trip_bookings RPC routine exists
+- SC6: linked_booking_id is nullable (ON DELETE SET NULL confirmed)
 
 ## Next Phase Readiness
 
-- Phase 24 (webhook handler) requires all 6 schema changes applied to live DB
-- Phase 25 (booking form UI) requires return_discount_pct available on pricing_globals
-- Phase 27 (supabase client) requires create_round_trip_bookings RPC callable via supabase.rpc()
-- **Blocker:** Migration must be applied to live Supabase DB before phases 24–28 can be built or tested
+- All 6 schema changes are live in Supabase — phases 24–28 can build immediately
+- Phase 24 (Types, Zustand Store & Step 1) can reference leg, linked_booking_id, outbound_amount_czk, return_amount_czk columns
+- Phase 27 (Webhook & Notifications) can call create_round_trip_bookings RPC via supabase.rpc()
+- Phase 28 (Admin) can read and write return_discount_pct from pricing_globals
+- No blockers
 
 ---
 *Phase: 23-database-schema-foundation*
