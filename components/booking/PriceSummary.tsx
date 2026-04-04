@@ -16,6 +16,8 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
   const hours = useBookingStore((s) => s.hours)
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
+  const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
+  const returnDiscountPercent = useBookingStore((s) => s.returnDiscountPercent)
   const quoteMode = useBookingStore((s) => s.quoteMode)
   const nextStep = useBookingStore((s) => s.nextStep)
   const extras = useBookingStore((s) => s.extras)
@@ -44,15 +46,24 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
 
   const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
 
+  const isRoundTripMode = tripType === 'round_trip'
+  const selectedReturnLegPrice = vehicleClass && roundTripPriceBreakdown ? roundTripPriceBreakdown[vehicleClass] : null
+  const outboundWithExtras = totalEur
+  const combinedTotal = isRoundTripMode && selectedPrice && selectedReturnLegPrice
+    ? outboundWithExtras + selectedReturnLegPrice.total
+    : null
+
   const priceDisplay = () => {
     if (!vehicleClass) return '\u2014'
     if (quoteMode) return 'Request a quote'
     if (!selectedPrice) return '\u2014'
+    if (isRoundTripMode && combinedTotal !== null) return `\u20AC${combinedTotal}`
     return `\u20AC${totalEur}`
   }
 
   const czkDisplay = () => {
     if (!vehicleClass || quoteMode || !selectedPrice) return null
+    if (isRoundTripMode && combinedTotal !== null) return formatCZK(eurToCzk(combinedTotal))
     return formatCZK(eurToCzk(totalEur))
   }
 
@@ -122,33 +133,61 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         </div>
       )}
 
-      {/* Price with cross-fade */}
-      <span
-        key={`${vehicleClass ?? 'none'}-${extrasTotal}`}
-        style={{
-          display: 'block',
-          animation: 'fadeIn 0.15s ease forwards',
-          fontSize: isQuoteOrNoPrice ? 13 : 20,
-          fontWeight: 400,
-          color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
-          fontFamily: 'var(--font-montserrat)',
-        }}
-      >
-        {priceDisplay()}
-      </span>
-      {czkDisplay() && (
-        <span
-          style={{
-            display: 'block',
-            fontSize: 13,
-            fontWeight: 300,
-            color: 'var(--warmgrey)',
-            fontFamily: 'var(--font-montserrat)',
-            marginTop: 2,
-          }}
-        >
-          {czkDisplay()}
-        </span>
+      {/* Round-trip three-line breakdown or single price */}
+      {isRoundTripMode && combinedTotal !== null && !quoteMode ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {/* Outbound line */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Outbound</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 14, color: 'var(--offwhite)' }}>&euro;{outboundWithExtras}</span>
+          </div>
+          {/* Return leg line */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
+              Return leg <span style={{ color: 'var(--copper)', letterSpacing: '0.1em', marginLeft: 4 }}>&minus;{returnDiscountPercent}%</span>
+            </span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 14, color: 'var(--offwhite)' }}>&euro;{selectedReturnLegPrice!.total}</span>
+          </div>
+          {/* Combined total line */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--anthracite-light)' }}>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--copper)' }}>Combined</span>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 20, color: 'var(--offwhite)' }}>&euro;{combinedTotal}</span>
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 2 }}>{formatCZK(eurToCzk(combinedTotal))}</span>
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
+          {/* Price with cross-fade */}
+          <span
+            key={`${vehicleClass ?? 'none'}-${extrasTotal}`}
+            style={{
+              display: 'block',
+              animation: 'fadeIn 0.15s ease forwards',
+              fontSize: isQuoteOrNoPrice ? 13 : 20,
+              fontWeight: 400,
+              color: isQuoteOrNoPrice ? 'var(--warmgrey)' : 'var(--offwhite)',
+              fontFamily: 'var(--font-montserrat)',
+            }}
+          >
+            {priceDisplay()}
+          </span>
+          {czkDisplay() && (
+            <span
+              style={{
+                display: 'block',
+                fontSize: 13,
+                fontWeight: 300,
+                color: 'var(--warmgrey)',
+                fontFamily: 'var(--font-montserrat)',
+                marginTop: 2,
+              }}
+            >
+              {czkDisplay()}
+            </span>
+          )}
+        </>
       )}
     </div>
   )
