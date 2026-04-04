@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Return Transfer Booking
-status: ready_to_plan
-stopped_at: roadmap created — Phase 23 ready to plan
-last_updated: "2026-04-04T00:00:00.000Z"
+status: unknown
+stopped_at: Checkpoint reached — Task 1 complete; Task 2 awaiting human migration apply
+last_updated: "2026-04-04T18:14:39.953Z"
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04 after v1.4 milestone started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 23 — Database Schema Foundation
+**Current focus:** Phase 23 — database-schema-foundation
 
 ## Current Position
 
-Phase: 23 of 28 (Database Schema Foundation)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-04-04 — ROADMAP.md created; v1.4 phases 23–28 defined
-
-Progress: [░░░░░░░░░░] 0% (v1.4 milestone)
+Phase: 23 (database-schema-foundation) — EXECUTING
+Plan: 1 of 1
 
 ## Accumulated Context
 
@@ -37,11 +33,14 @@ Progress: [░░░░░░░░░░] 0% (v1.4 milestone)
 All decisions from v1.0–v1.3 logged in PROJECT.md Key Decisions table.
 
 Key v1.4 architectural decisions (from research):
+
 - Composite UNIQUE `(payment_intent_id, leg)` replaces single-column UNIQUE — preserves idempotency for webhook replays; real Stripe IDs stay in the column
 - Atomic RPC `create_round_trip_bookings` for two-row insert — sequential JS inserts are not atomic on Vercel serverless
 - Symmetric distance assumption — return `distanceKm` equals outbound; no second Google Routes API call
 - Extras apply to outbound leg only — child seat and meet & greet are one-time charges
 - Promo discount applied once to combined total (outbound + discounted return), not per leg
+- [Phase 23-database-schema-foundation]: Composite UNIQUE(payment_intent_id, leg) replaces single-column UNIQUE for round-trip support
+- [Phase 23-database-schema-foundation]: linked_booking_id uses ON DELETE SET NULL — cancelling one leg does not delete the partner
 
 ### Pending Todos
 
@@ -57,6 +56,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-04
-Stopped at: Roadmap created — 6 phases (23–28) defined; ready to plan Phase 23
+Last session: 2026-04-04T18:14:39.947Z
+Stopped at: Checkpoint reached — Task 1 complete; Task 2 awaiting human migration apply
 Resume file: None

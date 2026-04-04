@@ -68,7 +68,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
 
 **Milestone Goal:** Allow clients to book a round-trip transfer in a single session — outbound + return — with a discounted return leg, a single Stripe charge, and two linked booking records in the operator dashboard.
 
-- [ ] **Phase 23: Database Schema Foundation** - Land all DB changes required for round-trip before any other code is touched
+- [x] **Phase 23: Database Schema Foundation** - Land all DB changes required for round-trip before any other code is touched (completed 2026-04-04)
 - [ ] **Phase 24: Types, Zustand Store & Step 1** - Extend TypeScript types and store for round-trip state; add Round Trip as 6th trip type in Step 1
 - [ ] **Phase 25: Pricing Engine + Step 2 & Step 3** - Return date/time collection; return leg pricing; combined price display; quoteMode guard
 - [ ] **Phase 26: Payment — Combined Stripe Charge** - Single PaymentIntent for combined total; promo on combined total; Step 6 summary
@@ -87,7 +87,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
   3. `linked_booking_id` column exists with a self-referential FK that sets NULL on delete (no cascade delete of paired booking)
   4. `outbound_amount_czk` and `return_amount_czk` columns exist on `bookings`; `return_discount_pct` column exists on `pricing_globals` with default 10
   5. Calling `create_round_trip_bookings(p_outbound, p_return)` atomically inserts two cross-linked rows; if either insert fails, neither row is committed
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 23-01-PLAN.md — Write and apply v1.4 schema migration (leg column, composite UNIQUE, linked_booking_id FK, per-leg amounts, return_discount_pct, atomic RPC)
 
@@ -178,7 +178,7 @@ Plans:
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 22. Mobile Admin + Promo Code System | v1.3 | 4/4 | Complete | 2026-04-03 |
-| 23. Database Schema Foundation | v1.4 | 0/1 | In progress | - |
+| 23. Database Schema Foundation | 1/1 | Complete   | 2026-04-04 | - |
 | 24. Types, Zustand Store & Step 1 Round Trip | v1.4 | 0/? | Not started | - |
 | 25. Pricing Engine + Step 2 & Step 3 | v1.4 | 0/? | Not started | - |
 | 26. Payment — Combined Stripe Charge | v1.4 | 0/? | Not started | - |
