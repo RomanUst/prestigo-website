@@ -1,7 +1,8 @@
 'use client'
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { X, Calculator } from 'lucide-react'
 import AddressInput from '@/components/booking/AddressInput'
+import { czkToEur, eurToCzk } from '@/lib/currency'
 import type { PlaceResult } from '@/types/booking'
 
 const labelStyle: React.CSSProperties = {
@@ -66,6 +67,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [passengers, setPassengers] = useState(1)
   const [luggage, setLuggage] = useState(0)
   const [amountCzk, setAmountCzk] = useState('')
+  const [amountEur, setAmountEur] = useState('')
   const [hours, setHours] = useState('')
   const [returnDate, setReturnDate] = useState('')
   const [flightNumber, setFlightNumber] = useState('')
@@ -77,6 +79,55 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [phone, setPhone] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [priceLoading, setPriceLoading] = useState(false)
+  const [priceNote, setPriceNote] = useState<string | null>(null)
+
+  async function handleCalculatePrice() {
+    if (!originPlace?.lat || !originPlace?.lng) {
+      setPriceNote('Enter pickup address first.')
+      return
+    }
+    if (tripType === 'transfer' && (!destinationPlace?.lat || !destinationPlace?.lng)) {
+      setPriceNote('Enter destination address for transfer.')
+      return
+    }
+    setPriceLoading(true)
+    setPriceNote(null)
+    try {
+      const res = await fetch('/api/calculate-price', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          origin: originPlace ? { lat: originPlace.lat, lng: originPlace.lng } : null,
+          destination: destinationPlace ? { lat: destinationPlace.lat, lng: destinationPlace.lng } : null,
+          tripType,
+          hours: hours ? Number(hours) : 2,
+          pickupDate: pickupDate || null,
+          returnDate: returnDate || null,
+          pickupTime: pickupTime || null,
+          isAirport: false,
+        }),
+      })
+      const data = await res.json()
+      if (data.quoteMode || !data.prices) {
+        setPriceNote('Route outside coverage zone — enter price manually.')
+      } else {
+        const vcKey = vehicleClass === 'first_class' ? 'first_class' : vehicleClass === 'business_van' ? 'business_van' : 'business'
+        const price = data.prices?.[vcKey]?.total
+        if (price) {
+          setAmountCzk(String(price))
+          setAmountEur(String(czkToEur(price)))
+          setPriceNote(`Calculated: ${price} CZK`)
+        } else {
+          setPriceNote('Could not get price for this vehicle class.')
+        }
+      }
+    } catch {
+      setPriceNote('Price calculation failed.')
+    } finally {
+      setPriceLoading(false)
+    }
+  }
 
   if (!open) return null
 
@@ -302,16 +353,70 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                 </Field>
               </div>
 
-              <Field label="PRICE (CZK) — OPERATOR ENTERED">
-                <input
-                  type="number"
-                  value={amountCzk}
-                  onChange={(e) => setAmountCzk(e.target.value)}
-                  style={inputStyle}
-                  required
-                  min={1}
-                />
-              </Field>
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                  <div>
+                    <label style={labelStyle}>PRICE (CZK)</label>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input
+                        type="number"
+                        value={amountCzk}
+                        onChange={(e) => {
+                          setAmountCzk(e.target.value)
+                          setAmountEur(e.target.value ? String(czkToEur(Number(e.target.value))) : '')
+                        }}
+                        style={{ ...inputStyle, flex: 1 }}
+                        required
+                        min={1}
+                      />
+                      <button
+                        type="button"
+                        onClick={handleCalculatePrice}
+                        disabled={priceLoading}
+                        title="Calculate price automatically"
+                        style={{
+                          background: 'var(--anthracite)',
+                          border: '1px solid var(--anthracite-light)',
+                          borderRadius: '2px',
+                          color: priceLoading ? 'var(--warmgrey)' : 'var(--copper)',
+                          cursor: priceLoading ? 'not-allowed' : 'pointer',
+                          padding: '8px 10px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Calculator size={16} />
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label style={labelStyle}>PRICE (EUR)</label>
+                    <input
+                      type="number"
+                      value={amountEur}
+                      onChange={(e) => {
+                        setAmountEur(e.target.value)
+                        setAmountCzk(e.target.value ? String(eurToCzk(Number(e.target.value))) : '')
+                      }}
+                      style={inputStyle}
+                      min={1}
+                    />
+                  </div>
+                </div>
+                {priceNote && (
+                  <span style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontWeight: 300,
+                    color: priceNote.startsWith('Calculated') ? 'var(--copper)' : 'var(--warmgrey)',
+                    marginTop: '4px',
+                    display: 'block',
+                  }}>
+                    {priceNote}
+                  </span>
+                )}
+              </div>
 
               <Field label="HOURS (optional)">
                 <input
