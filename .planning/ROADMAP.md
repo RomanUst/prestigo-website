@@ -69,7 +69,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
 **Milestone Goal:** Allow clients to book a round-trip transfer in a single session — outbound + return — with a discounted return leg, a single Stripe charge, and two linked booking records in the operator dashboard.
 
 - [x] **Phase 23: Database Schema Foundation** - Land all DB changes required for round-trip before any other code is touched (completed 2026-04-04)
-- [ ] **Phase 24: Types, Zustand Store & Step 1** - Extend TypeScript types and store for round-trip state; add Round Trip as 6th trip type in Step 1
+- [x] **Phase 24: Types, Zustand Store & Step 1** - Extend TypeScript types and store for round-trip state; add Round Trip as 6th trip type in Step 1 (completed 2026-04-04)
 - [ ] **Phase 25: Pricing Engine + Step 2 & Step 3** - Return date/time collection; return leg pricing; combined price display; quoteMode guard
 - [ ] **Phase 26: Payment — Combined Stripe Charge** - Single PaymentIntent for combined total; promo on combined total; Step 6 summary
 - [ ] **Phase 27: Webhook & Notifications** - Atomic two-row creation via RPC; two-leg confirmation email; two ICS events; confirmation page shows both references
@@ -100,7 +100,7 @@ Plans:
   2. Switching away from "Round Trip" back to another trip type clears `returnTime` from the store — no stale return state
   3. Page refresh mid-wizard on a round-trip session preserves `returnTime` (persisted via `partialize`) but does not persist price breakdowns
   4. `resetBooking` clears all new return-leg fields; no orphaned return state from a previous session carries into a new booking
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 24-01-PLAN.md — Extend TripType union, add returnTime to BookingStore interface and Zustand store, write store unit tests
 - [ ] 24-02-PLAN.md — Add ROUND TRIP tab to TripTypeTabs, update swap icon and canProceed guards, write UI tests
@@ -182,7 +182,7 @@ Plans:
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 22. Mobile Admin + Promo Code System | v1.3 | 4/4 | Complete | 2026-04-03 |
 | 23. Database Schema Foundation | v1.4 | 1/1 | Complete | 2026-04-04 |
-| 24. Types, Zustand Store & Step 1 Round Trip | 1/2 | In Progress|  | - |
+| 24. Types, Zustand Store & Step 1 Round Trip | 2/2 | Complete   | 2026-04-04 | - |
 | 25. Pricing Engine + Step 2 & Step 3 | v1.4 | 0/? | Not started | - |
 | 26. Payment — Combined Stripe Charge | v1.4 | 0/? | Not started | - |
 | 27. Webhook & Notifications | v1.4 | 0/? | Not started | - |
