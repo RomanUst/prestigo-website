@@ -57,6 +57,12 @@ export default function Routes() {
         <p className="body-text text-[11px] mt-6 text-center">
           All prices include tolls, waiting time, and meet &amp; greet. Fixed — guaranteed at booking.
         </p>
+
+        <div className="mt-10 flex justify-center">
+          <a href="/routes" className="btn-ghost">
+            View all routes
+          </a>
+        </div>
       </div>
     </section>
   )

@@ -64,6 +64,11 @@ export default function Footer() {
                   </a>
                 </li>
               ))}
+              <li>
+                <a href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors" style={{ color: 'var(--copper)' }}>
+                  View all routes →
+                </a>
+              </li>
             </ul>
           </div>
 
