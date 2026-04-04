@@ -15,9 +15,9 @@ function renderCard(overrides: Partial<Parameters<typeof VehicleCard>[0]> = {}) 
     price: basePrice,
     roundTripPrice: returnPrice,
     returnDiscountPercent: 15,
+    showRoundTripOption: true,
     isSelectedOneWay: false,
     isSelectedRoundTrip: false,
-    isRoundTripMode: false,
     isLoading: false,
     quoteMode: false,
     onSelectOneWay: () => {},
@@ -26,75 +26,80 @@ function renderCard(overrides: Partial<Parameters<typeof VehicleCard>[0]> = {}) 
   return render(<VehicleCard {...defaultProps} {...overrides} />)
 }
 
-describe('Step3Vehicle', () => {
-  describe('STEP3-01: Vehicle class display', () => {
-    it.todo('renders 3 vehicle cards: Business, First Class, Business Van')
-    it.todo('each card shows vehicle photo, class name, passenger count, luggage count')
-  })
-
-  describe('STEP3-02: Vehicle card content', () => {
-    it.todo('card displays calculated price when available')
-    it.todo('card shows skeleton shimmer while price is loading')
-    it.todo('card shows "Request a quote" in quoteMode')
-  })
-
-  describe('STEP3-03: Live price calculation', () => {
-    it.todo('fetches prices from /api/calculate-price on mount')
-    it.todo('fetch is called only once (not on every card click)')
-    it.todo('stores all 3 vehicle prices in Zustand after fetch')
-  })
-
-  describe('STEP3-04: Vehicle selection', () => {
-    it.todo('clicking a card calls setVehicleClass with the card key')
-    it.todo('selected card shows copper border ring')
-    it.todo('selected card has aria-pressed="true"')
-  })
-
-  describe('STEP3-05: Quote fallback', () => {
-    it.todo('all 3 cards show "Request a quote" when route is unmappable')
-    it.todo('user can still select a vehicle in quoteMode')
-  })
-
-  describe('STEP3-RT: Round-trip three-line VehicleCard layout', () => {
-    it('isRoundTripMode=true shows Outbound, Return, Combined labels', () => {
-      renderCard({ isRoundTripMode: true })
-      expect(screen.getByText(/outbound/i)).toBeInTheDocument()
-      expect(screen.getByText(/return/i)).toBeInTheDocument()
-      expect(screen.getByText(/combined/i)).toBeInTheDocument()
-    })
-
-    it('isRoundTripMode=true does NOT show One Way / Round Trip two-button layout', () => {
-      renderCard({ isRoundTripMode: true })
-      expect(screen.queryByText(/one way/i)).not.toBeInTheDocument()
-      expect(screen.queryByText(/round trip/i)).not.toBeInTheDocument()
-    })
-
-    it('isRoundTripMode=false shows the two-button layout (One Way + Round Trip)', () => {
-      renderCard({ isRoundTripMode: false })
+describe('VehicleCard', () => {
+  describe('Two-button layout', () => {
+    it('shows One Way and Round Trip buttons when showRoundTripOption=true', () => {
+      renderCard()
       expect(screen.getByText(/one way/i)).toBeInTheDocument()
-      // Round trip button only shows if roundTripPrice provided
       expect(screen.getByText(/round trip/i)).toBeInTheDocument()
     })
 
-    it('Combined total equals price.total + roundTripPrice.total', () => {
-      renderCard({ isRoundTripMode: true, price: basePrice, roundTripPrice: returnPrice })
-      // combined = 100 + 85 = 185
-      expect(screen.getByText(/185/)).toBeInTheDocument()
+    it('does NOT show Round Trip button when showRoundTripOption=false', () => {
+      renderCard({ showRoundTripOption: false })
+      expect(screen.getByText(/one way/i)).toBeInTheDocument()
+      expect(screen.queryByText(/round trip/i)).not.toBeInTheDocument()
     })
 
-    it('isRoundTripMode=true clicking card calls onSelectRoundTrip', async () => {
+    it('One Way button shows one-way price', () => {
+      renderCard({ price: basePrice })
+      expect(screen.getByText('€100')).toBeInTheDocument()
+    })
+
+    it('Round Trip button shows combined total when roundTripPrice is available', () => {
+      renderCard({ price: basePrice, roundTripPrice: returnPrice })
+      // combined = 100 + 85 = 185
+      expect(screen.getByText('€185')).toBeInTheDocument()
+    })
+
+    it('Round Trip button shows "Enter return details below" when no roundTripPrice', () => {
+      renderCard({ roundTripPrice: null })
+      expect(screen.getByText(/enter return details below/i)).toBeInTheDocument()
+    })
+
+    it('clicking One Way calls onSelectOneWay', async () => {
+      const user = userEvent.setup()
+      const onSelectOneWay = vi.fn()
+      renderCard({ onSelectOneWay })
+      const buttons = screen.getAllByRole('button')
+      await user.click(buttons[0]) // first button = One Way
+      expect(onSelectOneWay).toHaveBeenCalledTimes(1)
+    })
+
+    it('clicking Round Trip calls onSelectRoundTrip', async () => {
       const user = userEvent.setup()
       const onSelectRoundTrip = vi.fn()
-      renderCard({ isRoundTripMode: true, onSelectRoundTrip })
-      // The single button in round trip mode triggers onSelectRoundTrip
-      const button = screen.getByRole('button', { name: /combined/i })
-      await user.click(button)
+      renderCard({ onSelectRoundTrip })
+      const buttons = screen.getAllByRole('button')
+      await user.click(buttons[1]) // second button = Round Trip
       expect(onSelectRoundTrip).toHaveBeenCalledTimes(1)
     })
 
-    it('isRoundTripMode=true + quoteMode=true shows Request a quote', () => {
-      renderCard({ isRoundTripMode: true, quoteMode: true })
+    it('One Way button has aria-pressed="true" when isSelectedOneWay', () => {
+      renderCard({ isSelectedOneWay: true })
+      const buttons = screen.getAllByRole('button')
+      expect(buttons[0]).toHaveAttribute('aria-pressed', 'true')
+    })
+
+    it('Round Trip button has aria-pressed="true" when isSelectedRoundTrip', () => {
+      renderCard({ isSelectedRoundTrip: true })
+      const buttons = screen.getAllByRole('button')
+      expect(buttons[1]).toHaveAttribute('aria-pressed', 'true')
+    })
+  })
+
+  describe('quoteMode', () => {
+    it('shows Request a quote instead of price buttons', () => {
+      renderCard({ quoteMode: true })
       expect(screen.getByText(/request a quote/i)).toBeInTheDocument()
+      expect(screen.queryByText(/one way/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/round trip/i)).not.toBeInTheDocument()
+    })
+  })
+
+  describe('discount badge', () => {
+    it('shows discount percent badge on Round Trip button', () => {
+      renderCard({ returnDiscountPercent: 15 })
+      expect(screen.getByText(/-15%/)).toBeInTheDocument()
     })
   })
 })

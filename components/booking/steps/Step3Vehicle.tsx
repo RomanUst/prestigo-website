@@ -1,13 +1,37 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 import { VEHICLE_CONFIG, PRG_CONFIG } from '@/types/booking'
 import VehicleCard from '@/components/booking/VehicleCard'
 import PriceSummary from '@/components/booking/PriceSummary'
 
+const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
+  const h = Math.floor(i / 12).toString().padStart(2, '0')
+  const m = ((i % 12) * 5).toString().padStart(2, '0')
+  return `${h}:${m}`
+})
+
+const calendarStyles = {
+  root: { fontFamily: 'var(--font-montserrat)', color: 'var(--offwhite)', background: 'transparent' },
+  caption_label: { color: 'var(--offwhite)', fontSize: 13, fontWeight: 400, fontFamily: 'var(--font-montserrat)' },
+  weekday: { color: 'var(--warmgrey)', fontSize: 13, fontWeight: 400 },
+  day: { color: 'var(--offwhite)', fontSize: 13, width: 44, height: 44 },
+  day_button: { color: 'var(--offwhite)', fontSize: 13, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', border: 'none' },
+  button_previous: { color: 'var(--warmgrey)', border: '1px solid var(--anthracite-light)', background: 'transparent', cursor: 'pointer' },
+  button_next: { color: 'var(--warmgrey)', border: '1px solid var(--anthracite-light)', background: 'transparent', cursor: 'pointer' },
+}
+
+const modifiersStyles = {
+  selected: { background: 'var(--copper)', color: 'var(--anthracite)', borderRadius: 0 },
+  disabled: { color: 'var(--warmgrey)', opacity: 0.4, cursor: 'not-allowed' },
+  today: { outline: '1px solid var(--anthracite-light)', outlineOffset: '-2px' },
+}
+
 export default function Step3Vehicle() {
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
 
   const tripType = useBookingStore((s) => s.tripType)
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
@@ -15,6 +39,10 @@ export default function Step3Vehicle() {
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const returnDiscountPercent = useBookingStore((s) => s.returnDiscountPercent)
   const quoteMode = useBookingStore((s) => s.quoteMode)
+  const returnDate = useBookingStore((s) => s.returnDate)
+  const returnTime = useBookingStore((s) => s.returnTime)
+  const pickupDate = useBookingStore((s) => s.pickupDate)
+
   const setPriceBreakdown = useBookingStore((s) => s.setPriceBreakdown)
   const setRoundTripPriceBreakdown = useBookingStore((s) => s.setRoundTripPriceBreakdown)
   const setReturnDiscountPercent = useBookingStore((s) => s.setReturnDiscountPercent)
@@ -22,13 +50,13 @@ export default function Step3Vehicle() {
   const setQuoteMode = useBookingStore((s) => s.setQuoteMode)
   const setVehicleClass = useBookingStore((s) => s.setVehicleClass)
   const setTripType = useBookingStore((s) => s.setTripType)
+  const setReturnDate = useBookingStore((s) => s.setReturnDate)
+  const setReturnTime = useBookingStore((s) => s.setReturnTime)
 
-  const [fetchError, setFetchError] = useState(false)
+  const isRoundTrip = tripType === 'round_trip'
 
   const fetchPrice = useCallback(async () => {
     const s = useBookingStore.getState()
-    // Always send as 'transfer' to get one-way prices; round trip is computed from those
-    const effectiveTripType = s.tripType === 'round_trip' ? 'transfer' : s.tripType
     setLoading(true)
     try {
       const res = await fetch('/api/calculate-price', {
@@ -37,7 +65,7 @@ export default function Step3Vehicle() {
         body: JSON.stringify({
           origin: s.origin ? { lat: s.origin.lat, lng: s.origin.lng } : null,
           destination: s.destination ? { lat: s.destination.lat, lng: s.destination.lng } : null,
-          tripType: effectiveTripType,
+          tripType: 'transfer',
           hours: s.hours,
           pickupDate: s.pickupDate,
           returnDate: s.returnDate,
@@ -65,27 +93,63 @@ export default function Step3Vehicle() {
     }
   }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setQuoteMode])
 
+  // Initial fetch on mount
   useEffect(() => {
     fetchPrice()
-  }, [fetchPrice]) // fetch once on mount
+  }, [fetchPrice])
 
-  const showRoundTripPrices = !!(roundTripPriceBreakdown && tripType === 'round_trip')
+  // Re-fetch when return date+time are both set (to compute returnLegPrices)
+  const prevReturnTime = useRef<string | null>(null)
+  useEffect(() => {
+    if (returnTime && returnTime !== prevReturnTime.current) {
+      fetchPrice()
+    }
+    prevReturnTime.current = returnTime ?? null
+  }, [returnTime, fetchPrice])
+
+  // Min return date = pickup date (same day return allowed)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const returnDateMin = pickupDate ? new Date(pickupDate + 'T00:00:00') : today
+  const returnDateObj = returnDate ? new Date(returnDate + 'T00:00:00') : undefined
+
+  function handleReturnDateSelect(date: Date | undefined) {
+    if (date) {
+      const iso =
+        `${date.getFullYear()}-` +
+        `${String(date.getMonth() + 1).padStart(2, '0')}-` +
+        `${String(date.getDate()).padStart(2, '0')}`
+      setReturnDate(iso)
+      // Clear returnTime if it may now violate ordering
+      if (returnTime) setReturnTime(null)
+    } else {
+      setReturnDate(null)
+      setReturnTime(null)
+    }
+  }
+
+  // Only transfer trips support round-trip
+  const showRoundTripOption = tripType === 'transfer' || tripType === 'round_trip'
 
   const cards = VEHICLE_CONFIG.map((vc) => (
     <VehicleCard
       key={vc.key}
       config={vc}
       price={priceBreakdown?.[vc.key] ?? null}
-      roundTripPrice={showRoundTripPrices ? (roundTripPriceBreakdown?.[vc.key] ?? null) : null}
+      roundTripPrice={roundTripPriceBreakdown?.[vc.key] ?? null}
       returnDiscountPercent={returnDiscountPercent}
+      showRoundTripOption={showRoundTripOption}
       isSelectedOneWay={vehicleClass === vc.key && tripType !== 'round_trip'}
       isSelectedRoundTrip={vehicleClass === vc.key && tripType === 'round_trip'}
-      isRoundTripMode={tripType === 'round_trip'}
       isLoading={loading}
       quoteMode={quoteMode}
       onSelectOneWay={() => {
         setVehicleClass(vc.key)
-        setTripType('transfer')
+        if (tripType === 'round_trip') {
+          setTripType('transfer')
+          setReturnDate(null)
+          setReturnTime(null)
+        }
       }}
       onSelectRoundTrip={() => {
         setVehicleClass(vc.key)
@@ -96,14 +160,13 @@ export default function Step3Vehicle() {
 
   return (
     <div>
-      {/* Fetch error message */}
       {fetchError && (
         <p style={{ fontSize: 13, fontWeight: 400, color: 'var(--warmgrey)', marginBottom: 24 }}>
           Pricing unavailable. Your selection has been saved — continue to request a quote.
         </p>
       )}
 
-      {/* Desktop layout: 2-col grid (cards + sticky summary) */}
+      {/* Desktop: 2-col grid (cards + sticky summary) */}
       <div className="hidden md:grid" style={{ gridTemplateColumns: '1fr 320px', gap: 32 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
           {cards}
@@ -111,10 +174,107 @@ export default function Step3Vehicle() {
         <PriceSummary desktopOnly />
       </div>
 
-      {/* Mobile layout: single column */}
+      {/* Mobile: single column */}
       <div className="grid md:hidden" style={{ gridTemplateColumns: '1fr', gap: 24, paddingBottom: 80 }}>
         {cards}
       </div>
+
+      {/* Return date/time — appears after clicking "Round Trip" on any card */}
+      {isRoundTrip && (
+        <div
+          style={{
+            marginTop: 32,
+            paddingTop: 32,
+            borderTop: '1px solid var(--anthracite-light)',
+          }}
+        >
+          <p className="label" style={{ marginBottom: 24 }}>RETURN DATE &amp; TIME</p>
+
+          <div className="flex flex-col md:flex-row" style={{ gap: 32 }}>
+            {/* Return date calendar */}
+            <div className="md:w-[60%] w-full">
+              <span className="label" style={{ display: 'block', marginBottom: 12 }}>
+                RETURN DATE
+              </span>
+              <DayPicker
+                mode="single"
+                selected={returnDateObj}
+                onSelect={handleReturnDateSelect}
+                disabled={{ before: returnDateMin }}
+                styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}
+                modifiersStyles={modifiersStyles}
+              />
+            </div>
+
+            {/* Return time list */}
+            <div className="md:w-[40%] w-full">
+              <span className="label" style={{ display: 'block', marginBottom: 12 }}>
+                RETURN TIME
+              </span>
+              {returnDate ? (
+                <ul
+                  role="listbox"
+                  aria-label="Return time"
+                  style={{
+                    maxHeight: 240,
+                    overflowY: 'auto',
+                    margin: 0,
+                    padding: 0,
+                    border: '1px solid var(--anthracite-light)',
+                  }}
+                >
+                  {TIME_SLOTS.map((slot) => (
+                    <li
+                      key={slot}
+                      role="option"
+                      aria-selected={returnTime === slot}
+                      onClick={() => setReturnTime(slot)}
+                      style={{
+                        minHeight: 44,
+                        padding: '0 16px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        fontFamily: 'var(--font-montserrat)',
+                        fontSize: 13,
+                        fontWeight: 400,
+                        color: returnTime === slot ? 'var(--offwhite)' : 'var(--warmgrey)',
+                        background: returnTime === slot ? 'var(--anthracite-mid)' : 'transparent',
+                        borderLeft: returnTime === slot ? '4px solid var(--copper)' : '4px solid transparent',
+                        cursor: 'pointer',
+                        transition: 'background 0.15s ease, color 0.15s ease',
+                        listStyle: 'none',
+                      }}
+                    >
+                      {slot}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--warmgrey)', lineHeight: 1.8 }}>
+                  Select a return date first
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Ordering validation */}
+          {returnDate && returnTime && pickupDate && useBookingStore.getState().pickupTime &&
+            `${returnDate}T${returnTime}` <= `${pickupDate}T${useBookingStore.getState().pickupTime}` && (
+            <p
+              role="alert"
+              style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: 13,
+                color: 'var(--copper)',
+                marginTop: 12,
+                letterSpacing: '0.03em',
+              }}
+            >
+              Return must be after pickup
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Mobile fixed bottom bar */}
       <PriceSummary mobileOnly />

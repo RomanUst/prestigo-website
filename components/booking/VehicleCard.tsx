@@ -9,9 +9,9 @@ interface VehicleCardProps {
   price: PriceBreakdown | null
   roundTripPrice: PriceBreakdown | null
   returnDiscountPercent: number
+  showRoundTripOption: boolean
   isSelectedOneWay: boolean
   isSelectedRoundTrip: boolean
-  isRoundTripMode: boolean
   isLoading: boolean
   quoteMode: boolean
   onSelectOneWay: () => void
@@ -23,16 +23,15 @@ export default function VehicleCard({
   price,
   roundTripPrice,
   returnDiscountPercent,
+  showRoundTripOption,
   isSelectedOneWay,
   isSelectedRoundTrip,
-  isRoundTripMode,
   isLoading,
   quoteMode,
   onSelectOneWay,
   onSelectRoundTrip,
 }: VehicleCardProps) {
   const [hovered, setHovered] = useState(false)
-  const [imgError, setImgError] = useState(false)
 
   const isSelected = isSelectedOneWay || isSelectedRoundTrip
 
@@ -56,16 +55,12 @@ export default function VehicleCard({
       }}
     >
       {/* Vehicle photo */}
-      {imgError ? (
-        <div style={{ width: '100%', aspectRatio: '16/9', background: 'var(--anthracite-light)', borderRadius: 4, marginBottom: 16 }} />
-      ) : (
-        <img
-          src={config.image}
-          alt={config.label}
-          onError={() => setImgError(true)}
-          style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: 4, marginBottom: 16 }}
-        />
-      )}
+      <img
+        src={config.image}
+        alt={config.label}
+        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+        style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: 4, marginBottom: 16 }}
+      />
 
       {/* Class name */}
       <span
@@ -101,7 +96,7 @@ export default function VehicleCard({
         </div>
       </div>
 
-      {/* Price options */}
+      {/* Price buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto' }}>
         {isLoading ? (
           <>
@@ -118,55 +113,6 @@ export default function VehicleCard({
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--warmgrey)' }}>
               Request a quote
             </span>
-          </button>
-        ) : isRoundTripMode && price && roundTripPrice && combinedTotal !== null ? (
-          /* Three-line round-trip layout */
-          <button
-            type="button"
-            onClick={onSelectRoundTrip}
-            aria-pressed={isSelectedRoundTrip}
-            aria-label={`Combined €${combinedTotal}`}
-            style={priceButtonStyle(isSelectedRoundTrip)}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {/* Line 1: Outbound */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
-                  Outbound
-                </span>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, fontWeight: 400, color: 'var(--offwhite)' }}>
-                  &euro;{price.total}
-                </span>
-              </div>
-              {/* Line 2: Return with discount badge */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                  <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
-                    Return
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.1em', color: 'var(--copper)', background: 'rgba(184,115,51,0.12)', padding: '1px 6px' }}>
-                    -{returnDiscountPercent}%
-                  </span>
-                </div>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, fontWeight: 400, color: 'var(--offwhite)' }}>
-                  &euro;{roundTripPrice.total}
-                </span>
-              </div>
-              {/* Line 3: Combined total */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', borderTop: '1px solid var(--anthracite-light)', paddingTop: 6, marginTop: 2 }}>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.3em', textTransform: 'uppercase', color: isSelectedRoundTrip ? 'var(--copper)' : 'var(--warmgrey)' }}>
-                  Combined
-                </span>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
-                  <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 18, fontWeight: 500, color: 'var(--offwhite)', letterSpacing: '0.03em' }}>
-                    &euro;{combinedTotal}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 1 }}>
-                    {formatCZK(eurToCzk(combinedTotal))}
-                  </span>
-                </div>
-              </div>
-            </div>
           </button>
         ) : (
           <>
@@ -194,8 +140,8 @@ export default function VehicleCard({
               </div>
             </button>
 
-            {/* Round Trip */}
-            {roundTripPrice && (
+            {/* Round Trip — only for transfer type */}
+            {showRoundTripOption && (
               <button
                 type="button"
                 onClick={onSelectRoundTrip}
@@ -211,12 +157,20 @@ export default function VehicleCard({
                       -{returnDiscountPercent}%
                     </span>
                   </div>
-                  <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 18, fontWeight: 500, color: 'var(--offwhite)', letterSpacing: '0.03em' }}>
-                    &euro;{roundTripPrice.total}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 1 }}>
-                    {formatCZK(eurToCzk(roundTripPrice.total))}
-                  </span>
+                  {combinedTotal !== null ? (
+                    <>
+                      <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 18, fontWeight: 500, color: 'var(--offwhite)', letterSpacing: '0.03em' }}>
+                        &euro;{combinedTotal}
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 1 }}>
+                        {formatCZK(eurToCzk(combinedTotal))}
+                      </span>
+                    </>
+                  ) : (
+                    <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 2 }}>
+                      Enter return details below
+                    </span>
+                  )}
                 </div>
               </button>
             )}
