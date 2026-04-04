@@ -59,7 +59,7 @@ export default function Routes() {
         </p>
 
         <div className="mt-10 flex justify-center">
-          <a href="/routes" className="btn-ghost">
+          <a href="/routes" className="btn-ghost" style={{ borderColor: 'var(--copper)', color: 'var(--copper)' }}>
             View all routes
           </a>
         </div>
