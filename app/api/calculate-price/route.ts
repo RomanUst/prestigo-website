@@ -71,7 +71,7 @@ export async function POST(req: Request) {
 
   try {
     const body = await req.json()
-    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, isAirport } = body as {
+    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, returnTime, isAirport } = body as {
       origin: { lat: number; lng: number } | null
       destination: { lat: number; lng: number } | null
       tripType: TripType
@@ -79,6 +79,7 @@ export async function POST(req: Request) {
       pickupDate: string | null
       returnDate: string | null
       pickupTime: string | null
+      returnTime: string | null
       isAirport: boolean
     }
     // Detect airport server-side by coordinates (not by client-provided placeId,
@@ -100,23 +101,23 @@ export async function POST(req: Request) {
     if (tripType === 'hourly') {
       const prices = buildPriceMap('hourly', null, hours || 2, 0, rates)
       const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
-      return NextResponse.json({ prices: adjusted, distanceKm: null, quoteMode: false })
+      return NextResponse.json({ prices: adjusted, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false })
     }
 
     // Daily: no distance needed, no zone check
     if (tripType === 'daily') {
       if (!pickupDate || !returnDate) {
-        return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+        return NextResponse.json({ prices: null, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: true })
       }
       const days = dateDiffDays(pickupDate, returnDate)
       const prices = buildPriceMap('daily', null, 0, days, rates)
       const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
-      return NextResponse.json({ prices: adjusted, distanceKm: null, quoteMode: false })
+      return NextResponse.json({ prices: adjusted, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false })
     }
 
     // Transfer types: need origin + destination
     if (!origin || !destination) {
-      return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
     }
 
     // ZONES-04 + ZONES-05: Zone check for transfer trips only
@@ -130,7 +131,7 @@ export async function POST(req: Request) {
       const originInZone = isInAnyZone(origin.lat, origin.lng, zones)
       const destInZone = isInAnyZone(destination.lat, destination.lng, zones)
       if (!originInZone && !destInZone) {
-        return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+        return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
       }
     }
 
@@ -138,7 +139,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY
     if (!apiKey) {
       console.error('GOOGLE_MAPS_API_KEY not configured')
-      return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
     }
 
     const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
@@ -158,20 +159,39 @@ export async function POST(req: Request) {
     if (!res.ok) {
       const errBody = await res.text()
       console.error('Google Routes API error:', res.status, errBody)
-      return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
     }
 
     const data = await res.json()
     const distanceMeters = data?.routes?.[0]?.distanceMeters
     if (!distanceMeters) {
       console.error('No distanceMeters in response, routes:', JSON.stringify(data?.routes))
-      return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
     }
 
     const distanceKm = distanceMeters / 1000
     const prices = buildPriceMap('transfer', distanceKm, 0, 0, rates)
     const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
-    return NextResponse.json({ prices: adjusted, distanceKm, quoteMode: false })
+    const discountPct = rates.globals.returnDiscountPercent
+
+    // Compute return-leg price ONLY when returnDate + returnTime are both provided
+    let returnLegPrices: Record<string, { base: number; extras: number; total: number; currency: string }> | null = null
+    if (returnDate && returnTime) {
+      const isReturnNight = isNightTime(returnTime)
+      const isReturnHoliday = isHolidayDate(returnDate, rates.globals.holidayDates)
+      // Reuse distanceKm from outbound — no second Google Routes call (RTPR-01)
+      const returnBase = buildPriceMap('transfer', distanceKm, 0, 0, rates)
+      const returnAdjusted = applyGlobals(returnBase, rates.globals, airportFlag, isReturnNight, isReturnHoliday, rates.minFare)
+      returnLegPrices = Object.fromEntries(
+        Object.entries(returnAdjusted).map(([vc, b]) => {
+          const discountedTotal = Math.round(b.base * (1 - discountPct / 100))
+          // No extras on return leg (RTPR-03)
+          return [vc, { base: discountedTotal, extras: 0, total: discountedTotal, currency: b.currency }]
+        })
+      )
+    }
+
+    return NextResponse.json({ prices: adjusted, returnLegPrices, returnDiscountPercent: discountPct, distanceKm, quoteMode: false })
   } catch (error) {
     console.error('calculate-price error:', error)
     return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
