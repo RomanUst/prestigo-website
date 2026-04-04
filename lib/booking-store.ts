@@ -16,6 +16,7 @@ export const useBookingStore = create<BookingStore>()(
       pickupDate: null,
       pickupTime: null,
       returnDate: null,
+      returnTime: null,
       vehicleClass: null,
       distanceKm: null,
       priceBreakdown: null,
@@ -28,7 +29,14 @@ export const useBookingStore = create<BookingStore>()(
       promoDiscount: 0,
 
       setTripType: (type) => {
-        set({ tripType: type, priceBreakdown: null, distanceKm: null, quoteMode: false })
+        const clearReturn = type !== 'round_trip'
+        set({
+          tripType: type,
+          priceBreakdown: null,
+          distanceKm: null,
+          quoteMode: false,
+          ...(clearReturn ? { returnTime: null } : {}),
+        })
       },
       setOrigin: (place) => set({ origin: place, priceBreakdown: null, distanceKm: null, quoteMode: false }),
       setDestination: (place) => set({ destination: place, priceBreakdown: null, distanceKm: null, quoteMode: false }),
@@ -48,6 +56,7 @@ export const useBookingStore = create<BookingStore>()(
       setPickupDate: (date) => set({ pickupDate: date }),
       setPickupTime: (time) => set({ pickupTime: time }),
       setReturnDate: (date) => set({ returnDate: date }),
+      setReturnTime: (time) => set({ returnTime: time }),
       setVehicleClass: (v) => set({ vehicleClass: v }),
       setDistanceKm: (km) => set({ distanceKm: km }),
       setPriceBreakdown: (p) => set({ priceBreakdown: p }),
@@ -73,6 +82,7 @@ export const useBookingStore = create<BookingStore>()(
         pickupDate: null,
         pickupTime: null,
         returnDate: null,
+        returnTime: null,
         vehicleClass: null,
         distanceKm: null,
         priceBreakdown: null,
@@ -100,6 +110,7 @@ export const useBookingStore = create<BookingStore>()(
         pickupDate: state.pickupDate,
         pickupTime: state.pickupTime,
         returnDate: state.returnDate,
+        returnTime: state.returnTime,
         vehicleClass: state.vehicleClass,
         // distanceKm, priceBreakdown, quoteMode intentionally NOT persisted —
         // prices are always re-fetched on Step 3 mount so admin changes reflect

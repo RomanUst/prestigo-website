@@ -1,4 +1,4 @@
-export type TripType = 'transfer' | 'hourly' | 'daily'
+export type TripType = 'transfer' | 'hourly' | 'daily' | 'round_trip'
 
 export interface PlaceResult {
   address: string
@@ -60,7 +60,8 @@ export interface BookingStore {
   // Step 2
   pickupDate: string | null        // ISO date 'YYYY-MM-DD'
   pickupTime: string | null        // '08:15' format
-  returnDate: string | null        // Daily Hire only
+  returnDate: string | null        // Daily Hire and Round Trip
+  returnTime: string | null        // '14:30' format — Round Trip only
   // Step 3
   vehicleClass: VehicleClass | null
   distanceKm: number | null        // cached from API response
@@ -83,6 +84,7 @@ export interface BookingStore {
   setPickupDate: (date: string | null) => void
   setPickupTime: (time: string | null) => void
   setReturnDate: (date: string | null) => void
+  setReturnTime: (time: string | null) => void
   setVehicleClass: (v: VehicleClass | null) => void
   setDistanceKm: (km: number | null) => void
   setPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
