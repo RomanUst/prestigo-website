@@ -11,6 +11,17 @@ const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
   return `${h}:${m}`
 })
 
+function isReturnBeforeOrEqualPickup(
+  returnDate: string | null,
+  returnTime: string | null,
+  pickupDate: string | null,
+  pickupTime: string | null
+): boolean {
+  if (!returnDate || !returnTime || !pickupDate || !pickupTime) return false
+  // ISO string comparison works for 'YYYY-MM-DDTHH:MM'
+  return `${returnDate}T${returnTime}` <= `${pickupDate}T${pickupTime}`
+}
+
 // Common DayPicker inline styles for the Prestigo dark theme
 const calendarStyles = {
   root: {
@@ -142,9 +153,11 @@ export default function Step2DateTime() {
   const pickupDate = useBookingStore((s) => s.pickupDate)
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
+  const returnTime = useBookingStore((s) => s.returnTime)
   const setPickupDate = useBookingStore((s) => s.setPickupDate)
   const setPickupTime = useBookingStore((s) => s.setPickupTime)
   const setReturnDate = useBookingStore((s) => s.setReturnDate)
+  const setReturnTime = useBookingStore((s) => s.setReturnTime)
 
   const today = new Date()
   today.setHours(0, 0, 0, 0)
@@ -165,6 +178,10 @@ export default function Step2DateTime() {
       // Clear returnDate if it is now before the new pickupDate
       if (returnDate && returnDate <= iso) {
         setReturnDate(null)
+      }
+      // Clear returnTime if the combined return datetime now violates ordering
+      if (returnDate && returnTime && `${returnDate}T${returnTime}` <= `${iso}T${pickupTime ?? '00:00'}`) {
+        setReturnTime(null)
       }
     } else {
       setPickupDate(null)
@@ -207,8 +224,8 @@ export default function Step2DateTime() {
             modifiersStyles={modifiersStyles}
           />
 
-          {/* Return date — Daily Hire only */}
-          {tripType === 'daily' && (
+          {/* Return date — Daily Hire and Round Trip */}
+          {(tripType === 'daily' || tripType === 'round_trip') && (
             <div style={{ marginTop: 32 }}>
               <span className="label" style={{ display: 'block', marginBottom: 12 }}>
                 RETURN DATE
@@ -268,6 +285,53 @@ export default function Step2DateTime() {
           )}
         </div>
       </div>
+
+      {/* Return time — Round Trip only, shown after returnDate is selected */}
+      {tripType === 'round_trip' && returnDate && (
+        <div style={{ marginTop: 32 }}>
+          <span className="label" style={{ display: 'block', marginBottom: 12 }}>
+            RETURN TIME
+          </span>
+          <ul
+            role="listbox"
+            aria-label="Return time"
+            style={{
+              maxHeight: 240,
+              overflowY: 'auto',
+              margin: 0,
+              padding: 0,
+              border: '1px solid var(--anthracite-light)',
+            }}
+          >
+            {TIME_SLOTS.map((slot) => (
+              <TimeSlotItem
+                key={slot}
+                slot={slot}
+                isSelected={returnTime === slot}
+                onSelect={setReturnTime}
+              />
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Inline ordering error — shown when return datetime is not strictly after pickup */}
+      {tripType === 'round_trip' &&
+        isReturnBeforeOrEqualPickup(returnDate, returnTime, pickupDate, pickupTime) && (
+          <p
+            role="alert"
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 13,
+              fontWeight: 400,
+              color: 'var(--copper)',
+              marginTop: 12,
+              letterSpacing: '0.03em',
+            }}
+          >
+            Return must be after pickup
+          </p>
+        )}
     </div>
   )
 }
