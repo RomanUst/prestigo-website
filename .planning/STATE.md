@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Return Transfer Booking
 status: unknown
-stopped_at: Completed 23-01-PLAN.md — Phase 23 complete, all 6 DB verification queries passed
-last_updated: "2026-04-04T18:42:37.510Z"
+stopped_at: Completed 24-01-PLAN.md — TripType extended with round_trip, Zustand store updated, 7 unit tests passing
+last_updated: "2026-04-04T21:20:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-04 after v1.4 milestone started)
 
 **Core value:** A client can go from "I need a ride" to confirmed & paid booking in under 2 minutes, without leaving the site.
-**Current focus:** Phase 23 — database-schema-foundation
+**Current focus:** Phase 24 — types-zustand-store-step-1-round-trip
 
 ## Current Position
 
-Phase: 23 (database-schema-foundation) — COMPLETE
-Plan: 1 of 1 complete
+Phase: 24 (types-zustand-store-step-1-round-trip) — EXECUTING
+Plan: 2 of 2
 
 ## Accumulated Context
 
@@ -41,6 +41,9 @@ Key v1.4 architectural decisions (from research):
 - Promo discount applied once to combined total (outbound + discounted return), not per leg
 - [Phase 23-database-schema-foundation]: Composite UNIQUE(payment_intent_id, leg) replaces single-column UNIQUE for round-trip support
 - [Phase 23-database-schema-foundation]: linked_booking_id uses ON DELETE SET NULL — cancelling one leg does not delete the partner
+- [Phase 24-01-types-store]: returnTime cleared conditionally in setTripType via spread — only when switching away from round_trip
+- [Phase 24-01-types-store]: returnDate shared between daily hire and round_trip — setTripType never clears returnDate
+- [Phase 24-01-types-store]: returnTime persisted to sessionStorage via partialize alongside returnDate
 
 ### Pending Todos
 
@@ -56,6 +59,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-04T20:18:00.000Z
-Stopped at: Completed 23-01-PLAN.md — Phase 23 complete, all 6 DB verification queries passed
+Last session: 2026-04-04T21:20:00.000Z
+Stopped at: Completed 24-01-PLAN.md — TripType extended with round_trip, Zustand store updated, 7 unit tests passing
 Resume file: None

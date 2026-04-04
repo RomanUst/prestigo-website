@@ -7,7 +7,7 @@
 
 ### Wizard
 
-- [ ] **RTFR-01**: Client can select "Round Trip" as a 6th trip type in Step 1 of the booking wizard
+- [x] **RTFR-01**: Client can select "Round Trip" as a 6th trip type in Step 1 of the booking wizard
 - [ ] **RTFR-02**: When Round Trip is selected, Step 2 collects return date and time; return date/time must be after the outbound pickup date/time (validated with inline error)
 - [ ] **RTFR-03**: When Round Trip is selected and the route falls into quoteMode (outside coverage zones), the Round Trip option is disabled and a message directs the client to request a quote instead
 - [ ] **RTFR-04**: Step 3 displays outbound price and discounted return price separately (with return discount % shown), plus combined total; vehicle selection updates both prices live
@@ -23,8 +23,8 @@
 ### Payment & Data
 
 - [ ] **RTPM-01**: Client pays a single combined total (outbound + discounted return − promo) in one Stripe PaymentIntent; amount is computed server-side and validated before charge
-- [ ] **RTPM-02**: Stripe webhook atomically creates two linked Supabase booking records via a Postgres RPC; each record references the other via `linked_booking_id`; partial failure rolls back both inserts
-- [ ] **RTPM-03**: Each booking record stores its own leg amount (`outbound_amount_czk` / `return_amount_czk`) to enable accurate per-leg partial refunds
+- [x] **RTPM-02**: Stripe webhook atomically creates two linked Supabase booking records via a Postgres RPC; each record references the other via `linked_booking_id`; partial failure rolls back both inserts
+- [x] **RTPM-03**: Each booking record stores its own leg amount (`outbound_amount_czk` / `return_amount_czk`) to enable accurate per-leg partial refunds
 
 ### Notifications
 
