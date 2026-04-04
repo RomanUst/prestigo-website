@@ -172,9 +172,16 @@ export default function RoutesPage() {
                     </ul>
                   )}
                 </div>
-                <a href="/book" className="btn-primary self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
-                  Book Prague → {r.to}
-                </a>
+                <div className="flex flex-wrap gap-3">
+                  <a href="/book" className="btn-primary self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                    Book Prague → {r.to}
+                  </a>
+                  {r.to === 'Vienna' && (
+                    <a href="/routes/prague-vienna" className="btn-ghost self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                      Route Details
+                    </a>
+                  )}
+                </div>
               </div>
             </div>
           ))}
