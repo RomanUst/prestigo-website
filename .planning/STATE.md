@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.4
 milestone_name: Return Transfer Booking
-status: unknown
-stopped_at: Completed 25-02-PLAN.md — returnLegPrices with independent night/holiday coefficients, 7 TDD tests passing
-last_updated: "2026-04-04T20:51:18.046Z"
+status: executing
+stopped_at: Completed 25-03-PLAN.md — Step3 UI complete, three-line VehicleCard + PriceSummary breakdowns, quoteMode guard in TripTypeTabs, RTFR-03 + RTFR-04 satisfied
+last_updated: "2026-04-04T23:13:00Z"
 progress:
   total_phases: 6
   completed_phases: 2
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-04-04 after v1.4 milestone started)
 
 ## Current Position
 
-Phase: 25 (pricing-engine-step-2-step-3) — EXECUTING
-Plan: 2 of 3
+Phase: 25 (pricing-engine-step-2-step-3) — COMPLETE
+Plan: 3 of 3 (all plans complete)
 
 ## Accumulated Context
 
@@ -51,6 +51,9 @@ Key v1.4 architectural decisions (from research):
 - [Phase 25-02-pricing-engine]: returnLegPrices replaces roundTripPrices — old field inherited outbound coefficients; new field computes return leg independently via applyGlobals(returnBase, ..., isNightTime(returnTime), isHolidayDate(returnDate, ...))
 - [Phase 25-02-pricing-engine]: returnLegPrices is null when returnDate OR returnTime is missing — supports one-way pricing and step-by-step form fill
 - [Phase 25-02-pricing-engine]: Return leg discount applied to post-applyGlobals adjusted base, not raw base — preserves coefficient effect before discount
+- [Phase 25-03-step3-ui]: VehicleCard combinedTotal = price.total + roundTripPrice.total computed at render time — not stored in Zustand
+- [Phase 25-03-step3-ui]: PriceSummary priceDisplay()/czkDisplay() helpers branch on isRoundTripMode — mobile bar gets combined total without structural JSX changes
+- [Phase 25-03-step3-ui]: isRoundTripMode derived as tripType === 'round_trip' at call site and passed as boolean prop to VehicleCard
 
 ### Pending Todos
 
@@ -66,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-04-04T22:51:29Z
-Stopped at: Completed 25-01-PLAN.md — return date + time pickers in Step 2 for round_trip, canProceed guard, 11 TDD tests passing
+Last session: 2026-04-04T23:13:00Z
+Stopped at: Completed 25-03-PLAN.md — Step3 UI complete (VehicleCard three-line breakdown, PriceSummary combined total, TripTypeTabs quoteMode guard)
 Resume file: None
