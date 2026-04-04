@@ -1,6 +1,8 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState } from 'react'
 import { X } from 'lucide-react'
+import AddressInput from '@/components/booking/AddressInput'
+import type { PlaceResult } from '@/types/booking'
 
 const labelStyle: React.CSSProperties = {
   fontSize: '11px',
@@ -47,71 +49,6 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   )
 }
 
-// Poll until google.maps.places.Autocomplete widget class is ready
-// (populated by the <Script> tag in admin layout via traditional Maps loading)
-function waitForPlaces(): Promise<void> {
-  return new Promise((resolve) => {
-    const attempt = () => {
-      if (window.google?.maps?.places?.Autocomplete) {
-        resolve()
-      } else {
-        setTimeout(attempt, 150)
-      }
-    }
-    attempt()
-  })
-}
-
-function AdminAddressInput({ label, value, onChange, placeholder, required }: {
-  label: string
-  value: string
-  onChange: (val: string) => void
-  placeholder?: string
-  required?: boolean
-}) {
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  // Attach native Google Autocomplete widget to the input element.
-  // The widget renders its dropdown at <body> level, bypassing any
-  // z-index / overflow clipping issues inside the modal.
-  useEffect(() => {
-    waitForPlaces().then(() => {
-      if (!inputRef.current) return
-      const ac = new window.google.maps.places.Autocomplete(inputRef.current, {
-        fields: ['formatted_address', 'name'],
-      })
-      ac.addListener('place_changed', () => {
-        const place = ac.getPlace()
-        const address = place.formatted_address ?? place.name ?? inputRef.current?.value ?? ''
-        onChange(address)
-      })
-    })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // Reset DOM value when parent clears the field
-  useEffect(() => {
-    if (value === '' && inputRef.current && inputRef.current.value !== '') {
-      inputRef.current.value = ''
-    }
-  }, [value])
-
-  return (
-    <div>
-      <label style={labelStyle}>{label}</label>
-      <input
-        ref={inputRef}
-        type="text"
-        defaultValue={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        required={required}
-        style={inputStyle}
-        autoComplete="off"
-      />
-    </div>
-  )
-}
 
 interface ManualBookingFormProps {
   open: boolean
@@ -123,8 +60,8 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [tripType, setTripType] = useState('transfer')
   const [pickupDate, setPickupDate] = useState('')
   const [pickupTime, setPickupTime] = useState('')
-  const [originAddress, setOriginAddress] = useState('')
-  const [destinationAddress, setDestinationAddress] = useState('')
+  const [originPlace, setOriginPlace] = useState<PlaceResult | null>(null)
+  const [destinationPlace, setDestinationPlace] = useState<PlaceResult | null>(null)
   const [vehicleClass, setVehicleClass] = useState('business')
   const [passengers, setPassengers] = useState(1)
   const [luggage, setLuggage] = useState(0)
@@ -152,7 +89,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
     setLoading(true)
     setError(null)
 
-    if (!originAddress.trim()) {
+    if (!originPlace?.address) {
       setError('Please enter a pickup address.')
       setLoading(false)
       return
@@ -162,7 +99,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       trip_type: tripType,
       pickup_date: pickupDate,
       pickup_time: pickupTime,
-      origin_address: originAddress.trim(),
+      origin_address: originPlace.address,
       vehicle_class: vehicleClass,
       passengers,
       luggage,
@@ -173,7 +110,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       client_phone: phone,
     }
 
-    if (destinationAddress.trim()) payload.destination_address = destinationAddress.trim()
+    if (destinationPlace?.address) payload.destination_address = destinationPlace.address
     if (hours) payload.hours = Number(hours)
     if (returnDate) payload.return_date = returnDate
     if (flightNumber) payload.flight_number = flightNumber
@@ -308,19 +245,24 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                 </Field>
               </div>
 
-              <AdminAddressInput
+              <AddressInput
                 label="PICKUP ADDRESS"
-                value={originAddress}
-                onChange={setOriginAddress}
                 placeholder="Start typing an address…"
-                required
+                value={originPlace}
+                onSelect={setOriginPlace}
+                onClear={() => setOriginPlace(null)}
+                ariaLabel="Pickup address"
+                neverDisabled
               />
 
-              <AdminAddressInput
+              <AddressInput
                 label="DESTINATION ADDRESS"
-                value={destinationAddress}
-                onChange={setDestinationAddress}
                 placeholder="Start typing an address… (optional for hourly/daily)"
+                value={destinationPlace}
+                onSelect={setDestinationPlace}
+                onClear={() => setDestinationPlace(null)}
+                ariaLabel="Destination address"
+                neverDisabled
               />
 
               <Field label="VEHICLE CLASS">
