@@ -7,6 +7,7 @@ const TRIP_TYPES: { value: TripType; label: string }[] = [
   { value: 'transfer', label: 'TRANSFER' },
   { value: 'hourly', label: 'HOURLY' },
   { value: 'daily', label: 'DAILY' },
+  { value: 'round_trip', label: 'ROUND TRIP' },
 ]
 
 export default function TripTypeTabs() {

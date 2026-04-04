@@ -76,7 +76,7 @@ export default function Step1TripType() {
     setDestination(null)
   }
 
-  const showSwapIcon = tripType === 'transfer' || tripType === 'daily'
+  const showSwapIcon = tripType === 'transfer' || tripType === 'daily' || tripType === 'round_trip'
 
   // Continue button content (shared between desktop and mobile)
   const continueButton = (

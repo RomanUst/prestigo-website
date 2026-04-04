@@ -53,7 +53,8 @@ export default function BookingWizard() {
         return (
           pickupDate !== null &&
           pickupTime !== null &&
-          (tripType !== 'daily' || returnDate !== null)
+          (tripType !== 'daily' || returnDate !== null) &&
+          (tripType !== 'round_trip' || returnDate !== null)
         )
       case 3:
         return vehicleClass !== null
