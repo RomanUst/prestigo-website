@@ -1,12 +1,23 @@
 # Prestigo — Booking Wizard + Operator Dashboard
 
+## Current Milestone: v1.4 Return Transfer Booking
+
+**Goal:** Allow clients to book a round-trip transfer in a single session — outbound + return — with a discounted return leg, a single Stripe charge, and two linked booking records in the operator dashboard.
+
+**Target features:**
+- "Round Trip" as a 6th trip type in the booking wizard Step 1
+- Return date/time collected in Step 2; return priced via same engine (reversed route) with operator-configurable discount %
+- Combined Stripe charge → webhook atomically creates two linked Supabase booking records
+- Single confirmation email listing both legs + two ICS calendar events
+- Admin: return discount % in pricing settings; return bookings as distinct rows linked to outbound
+
 ## What This Is
 
 Custom multi-step booking wizard for rideprestigo.com — a premium chauffeur service based in Prague — with a full operator dashboard for pricing, coverage zones, promo codes, and booking management.
 
-Clients book one-way transfers, airport rides, hourly or daily hire directly on the site: selecting a vehicle class with a live price, applying promo codes, adding optional extras, filling in passenger details, and paying online via Stripe. The operator controls all pricing (base rates per vehicle class, airport fee, night/holiday coefficients, extras surcharges, minimum fares, holiday dates) and promo codes via a protected `/admin` dashboard — accessible on mobile — draws coverage zones on Google Maps, and manages the full booking lifecycle (create, status transitions, cancel with refund, operator notes).
+Clients book one-way transfers, airport rides, hourly or daily hire, and round-trips directly on the site: selecting a vehicle class with a live price, applying promo codes, adding optional extras, filling in passenger details, and paying online via Stripe. The operator controls all pricing (base rates per vehicle class, airport fee, night/holiday coefficients, extras surcharges, minimum fares, holiday dates, return discount) and promo codes via a protected `/admin` dashboard — accessible on mobile — draws coverage zones on Google Maps, and manages the full booking lifecycle (create, status transitions, cancel with refund, operator notes).
 
-**Current state:** v1.3 Pricing & Booking Management shipped 2026-04-03. All four milestones complete — booking wizard, go-live, operator dashboard, and pricing/booking management are production-ready.
+**Current state:** v1.4 Return Transfer Booking in progress. v1.3 Pricing & Booking Management shipped 2026-04-03.
 
 ## Core Value
 
@@ -65,8 +76,14 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 
 ### Active
 
-<!-- Ready for next milestone planning -->
-(None — awaiting v1.4 milestone definition)
+- [ ] Round Trip as 6th trip type in wizard Step 1
+- [ ] Return date/time collection in Step 2 (when Round Trip selected)
+- [ ] Return leg pricing via same engine (reversed route) with operator-configurable discount %
+- [ ] Combined Stripe charge (outbound + discounted return) in single PaymentIntent
+- [ ] Two linked Supabase booking records created atomically by webhook
+- [ ] Single confirmation email listing both legs; two ICS calendar events
+- [ ] Return discount % configurable by operator in admin pricing settings
+- [ ] Return booking shown as distinct linked row in admin bookings list
 
 ### Out of Scope
 
@@ -140,4 +157,4 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - **Notifications:** Resend transactional email service
 
 ---
-*Last updated: 2026-04-03 after v1.3 milestone complete — Pricing & Booking Management shipped. All 12 v1.3 requirements validated.*
+*Last updated: 2026-04-04 after v1.4 milestone started — Return Transfer Booking.*
