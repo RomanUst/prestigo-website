@@ -36,6 +36,7 @@ export default function BookingWizard() {
   const pickupDate = useBookingStore((s) => s.pickupDate)
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
+  const returnTime = useBookingStore((s) => s.returnTime)
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -49,15 +50,23 @@ export default function BookingWizard() {
     switch (currentStep) {
       case 1:
         return true // Step 1 handles its own validation and Continue button
-      case 2:
-        return (
+      case 2: {
+        const basePass =
           pickupDate !== null &&
           pickupTime !== null &&
-          (tripType !== 'daily' || returnDate !== null) &&
-          (tripType !== 'round_trip' || returnDate !== null)
-        )
+          (tripType !== 'daily' || returnDate !== null)
+        if (!basePass) return false
+        if (tripType === 'round_trip') {
+          if (returnDate === null || returnTime === null) return false
+          // Strict ordering: return datetime must be AFTER pickup datetime (not equal)
+          const pickupDT = `${pickupDate}T${pickupTime}`
+          const returnDT = `${returnDate}T${returnTime}`
+          if (returnDT <= pickupDT) return false
+        }
+        return true
+      }
       case 3:
-        return vehicleClass !== null
+        return vehicleClass !== null && (tripType !== 'round_trip' || returnDate !== null)
       case 4:
         return true // Step 4 extras are all optional — always can proceed
       case 5:
