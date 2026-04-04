@@ -37,7 +37,17 @@ export default function VehicleCard({
 
   const bgColor = isSelected || hovered ? 'var(--anthracite-light)' : 'var(--anthracite-mid)'
 
-  const combinedTotal = price && roundTripPrice ? price.total + roundTripPrice.total : null
+  // Exact combined when returnLegPrices computed (after user picks return time)
+  // Estimated combined when only one-way price is available (show immediately)
+  const estimatedReturnTotal = price ? Math.round(price.total * (1 - returnDiscountPercent / 100)) : null
+  const combinedTotal = price && roundTripPrice
+    ? price.total + roundTripPrice.total
+    : price
+    ? price.total + estimatedReturnTotal!
+    : null
+  const isEstimated = !!price && !roundTripPrice
+  // Savings vs buying two one-way tickets
+  const savings = price ? Math.round(price.total * returnDiscountPercent / 100) : null
 
   return (
     <div
@@ -157,7 +167,7 @@ export default function VehicleCard({
                       -{returnDiscountPercent}%
                     </span>
                   </div>
-                  {combinedTotal !== null ? (
+                  {combinedTotal !== null && (
                     <>
                       <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 18, fontWeight: 500, color: 'var(--offwhite)', letterSpacing: '0.03em' }}>
                         &euro;{combinedTotal}
@@ -165,11 +175,12 @@ export default function VehicleCard({
                       <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 1 }}>
                         {formatCZK(eurToCzk(combinedTotal))}
                       </span>
+                      {savings !== null && savings > 0 && (
+                        <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 10, fontWeight: 400, color: 'var(--copper)', marginTop: 3, letterSpacing: '0.03em' }}>
+                          You save &euro;{savings}{isEstimated ? ' · select return date to confirm' : ''}
+                        </span>
+                      )}
                     </>
-                  ) : (
-                    <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 2 }}>
-                      Enter return details below
-                    </span>
                   )}
                 </div>
               </button>

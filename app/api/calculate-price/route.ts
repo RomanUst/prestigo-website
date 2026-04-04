@@ -148,6 +148,7 @@ export async function POST(req: Request) {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
         'X-Goog-FieldMask': 'routes.distanceMeters',
+        'Referer': 'https://rideprestigo.com',
       },
       body: JSON.stringify({
         origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
