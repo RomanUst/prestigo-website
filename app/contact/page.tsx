@@ -100,7 +100,7 @@ export default function ContactPage() {
 
           {/* Right — contact form */}
           <div className="md:col-span-3">
-            <ContactForm whatsappNumber={WHATSAPP_NUMBER} />
+            <ContactForm />
           </div>
         </div>
       </section>

@@ -321,6 +321,39 @@ Total: €${czkToEur(data.amountCzk)} (${data.amountCzk.toLocaleString('cs-CZ')}
   }
 }
 
+export interface ContactInquiryData {
+  name: string
+  email: string
+  phone?: string
+  service?: string
+  message: string
+}
+
+export async function sendContactInquiry(data: ContactInquiryData): Promise<void> {
+  const text = `New contact inquiry from the website.
+
+Name: ${data.name}
+Email: ${data.email}
+Phone: ${data.phone || '—'}
+Service: ${data.service || '—'}
+
+Message:
+${data.message}`
+
+  try {
+    const { error } = await resend.emails.send({
+      from: 'PRESTIGO Website <bookings@rideprestigo.com>',
+      to: [process.env.MANAGER_EMAIL!],
+      replyTo: data.email,
+      subject: `New inquiry: ${data.name} — ${data.service || 'General'}`,
+      text,
+    })
+    if (error) console.error('Resend contact inquiry error:', error)
+  } catch (err) {
+    console.error('Resend contact inquiry exception:', err)
+  }
+}
+
 export async function sendEmergencyAlert(
   bookingReference: string,
   bookingRow: Record<string, unknown>

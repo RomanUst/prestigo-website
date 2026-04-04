@@ -13,34 +13,64 @@ const services = [
 
 type FormState = 'idle' | 'sending' | 'success' | 'error'
 
-export default function ContactForm({ whatsappNumber }: { whatsappNumber: string }) {
+export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
   const [state, setState] = useState<FormState>('idle')
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setState('sending')
 
-    // Build WhatsApp message and open in new tab as "send"
-    const msg = encodeURIComponent(
-      `Hello PRESTIGO,\n\nName: ${form.name}\nEmail: ${form.email}\nPhone: ${form.phone || '—'}\nService: ${form.service || '—'}\n\n${form.message}`
-    )
-    window.open(`https://wa.me/${whatsappNumber}?text=${msg}`, '_blank')
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone || undefined,
+          service: form.service || undefined,
+          message: form.message,
+        }),
+      })
 
-    // Simulate success
-    setTimeout(() => {
+      if (!res.ok) throw new Error('Failed')
+
       setState('success')
       setForm({ name: '', email: '', phone: '', service: '', message: '' })
-    }, 400)
+    } catch {
+      setState('error')
+    }
   }
 
   const inputClass =
     'w-full bg-anthracite-mid border border-anthracite-light px-4 py-3.5 font-body font-light text-[12px] text-offwhite placeholder-warmgrey/60 tracking-wide focus:outline-none focus:border-copper/60 transition-colors'
 
   const labelClass = 'block font-body font-light text-[10px] tracking-[0.18em] uppercase text-warmgrey mb-2'
+
+  if (state === 'error') {
+    return (
+      <div className="border border-anthracite-light p-10 flex flex-col items-start gap-6">
+        <div>
+          <h3 className="font-display font-light text-[22px] text-offwhite mb-2">Something went wrong.</h3>
+          <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>
+            We could not send your message. Please try again or contact us directly at<br />
+            <span style={{ color: 'var(--copper)' }}>info@rideprestigo.com</span>
+          </p>
+        </div>
+        <button
+          onClick={() => setState('idle')}
+          className="font-body font-light text-[10px] tracking-[0.18em] uppercase hover:text-offwhite transition-colors"
+          style={{ color: 'var(--copper)' }}
+        >
+          Try again →
+        </button>
+      </div>
+    )
+  }
 
   if (state === 'success') {
     return (
@@ -53,7 +83,7 @@ export default function ContactForm({ whatsappNumber }: { whatsappNumber: string
         <div>
           <h3 className="font-display font-light text-[22px] text-offwhite mb-2">Message sent.</h3>
           <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>
-            Your request has been forwarded to our team via WhatsApp.<br />
+            Your message has been received by our team.<br />
             We will get back to you shortly.
           </p>
         </div>
@@ -154,7 +184,7 @@ export default function ContactForm({ whatsappNumber }: { whatsappNumber: string
           {state === 'sending' ? 'Sending…' : 'Send message'}
         </button>
         <p className="font-body font-light text-[10px] tracking-wide text-warmgrey/70">
-          Message will be forwarded via WhatsApp
+          We respond within 30 minutes during business hours.
         </p>
       </div>
     </form>

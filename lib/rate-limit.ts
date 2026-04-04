@@ -15,6 +15,7 @@ const WINDOW_MS = 60_000 // 1 minute sliding window
 const LIMITS: Record<string, number> = {
   '/api/calculate-price': 30, // real users recalculate several times
   '/api/submit-quote': 5,     // 5 quote submissions per minute is already suspicious
+  '/api/contact': 3,          // 3 contact form submissions per minute
 }
 
 interface WindowEntry {
