@@ -64,7 +64,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
 
 </details>
 
-### 🚧 v1.4 Return Transfer Booking (In Progress)
+### v1.4 Return Transfer Booking (In Progress)
 
 **Milestone Goal:** Allow clients to book a round-trip transfer in a single session — outbound + return — with a discounted return leg, a single Stripe charge, and two linked booking records in the operator dashboard.
 
@@ -87,7 +87,9 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
   3. `linked_booking_id` column exists with a self-referential FK that sets NULL on delete (no cascade delete of paired booking)
   4. `outbound_amount_czk` and `return_amount_czk` columns exist on `bookings`; `return_discount_pct` column exists on `pricing_globals` with default 10
   5. Calling `create_round_trip_bookings(p_outbound, p_return)` atomically inserts two cross-linked rows; if either insert fails, neither row is committed
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 23-01-PLAN.md — Write and apply v1.4 schema migration (leg column, composite UNIQUE, linked_booking_id FK, per-leg amounts, return_discount_pct, atomic RPC)
 
 ### Phase 24: Types, Zustand Store & Step 1 Round Trip
 **Goal**: TypeScript types and Zustand store correctly model round-trip state, and clients can select Round Trip as the 6th trip type in Step 1 with no pricing wired yet
@@ -140,7 +142,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
 **Depends on**: Phase 27
 **Requirements**: RTAD-01, RTAD-02, RTAD-03, RTAD-04
 **Success Criteria** (what must be TRUE):
-  1. The admin pricing settings page has a `Return Discount %` field (0–100); saving a new value immediately changes the discount applied in the booking wizard for subsequent bookings
+  1. The admin pricing settings page has a `Return Discount %` field (0-100); saving a new value immediately changes the discount applied in the booking wizard for subsequent bookings
   2. Return-leg booking rows appear in the admin bookings list with a "Return" badge; the expandable row shows the paired outbound booking reference as a link
   3. The operator can independently change status and add notes to the outbound leg and the return leg without affecting the paired leg
   4. Cancelling a single leg from the admin cancel modal triggers a Stripe partial refund for that leg's stored amount only; the cancel modal shows the per-leg refund amount and a warning that the paired leg is unaffected
@@ -150,7 +152,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
 
 ## Progress
 
-**Execution Order:** Phases execute in numeric order: 23 → 24 → 25 → 26 → 27 → 28
+**Execution Order:** Phases execute in numeric order: 23 -> 24 -> 25 -> 26 -> 27 -> 28
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -176,7 +178,7 @@ See full details: `.planning/milestones/v1.3-ROADMAP.md`
 | 20. Manual Booking + Cancellation with Refund | v1.3 | 3/3 | Complete | 2026-04-03 |
 | 21. Pricing Enhancements — Holiday Dates + Minimum Fare | v1.3 | 2/2 | Complete | 2026-04-03 |
 | 22. Mobile Admin + Promo Code System | v1.3 | 4/4 | Complete | 2026-04-03 |
-| 23. Database Schema Foundation | v1.4 | 0/? | Not started | - |
+| 23. Database Schema Foundation | v1.4 | 0/1 | In progress | - |
 | 24. Types, Zustand Store & Step 1 Round Trip | v1.4 | 0/? | Not started | - |
 | 25. Pricing Engine + Step 2 & Step 3 | v1.4 | 0/? | Not started | - |
 | 26. Payment — Combined Stripe Charge | v1.4 | 0/? | Not started | - |
