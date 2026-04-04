@@ -38,8 +38,8 @@ const vehicles = [
   {
     model: 'Mercedes V-Class',
     category: 'Executive Van',
-    description: 'Up to 7 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
-    features: ['7 seats', 'Full luggage capacity', 'Individual captain seats', 'Privacy screen'],
+    description: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
+    features: ['6 seats', 'Full luggage capacity', 'Individual captain seats', 'Privacy screen'],
     idealFor: 'Groups, families, conference transfers',
     price: 'From €69',
     photo: '/v-class-photo.png',

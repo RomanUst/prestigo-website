@@ -22,8 +22,8 @@ const vehicles = [
   {
     model: 'Mercedes-Benz V-Class',
     category: 'Group',
-    passengers: '7 pax',
-    bags: '7 bags',
+    passengers: '6 pax',
+    bags: '6 bags',
     features: ['Facing seats', 'Extra luggage space', 'Conference seating', 'USB charging'],
     photo: '/v-class-photo.png',
     photoAlt: 'Mercedes-Benz V-Class — Prague chauffeur service',
