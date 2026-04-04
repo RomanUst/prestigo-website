@@ -1,179 +1,215 @@
 # Project Research Summary
 
-**Project:** Prestigo v1.3 — Pricing & Booking Management
-**Domain:** Premium chauffeur booking platform — additive feature expansion on existing Next.js 16 / Supabase / Stripe production system
-**Researched:** 2026-04-03
+**Project:** Prestigo v1.4 — Return Transfer Booking
+**Domain:** Round-trip booking added to an existing Next.js / Supabase / Stripe chauffeur service
+**Researched:** 2026-04-04
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Prestigo v1.3 extends a mature, production-grade chauffeur booking system rather than building from scratch. The existing stack (Next.js 16 App Router, Supabase, Stripe, TanStack Table, Tailwind CSS 4) already covers every v1.3 requirement — no new npm packages are needed. The four feature areas (booking management with status workflow, promo codes, pricing enhancements, and mobile admin) are all implementable with patterns already proven in the codebase.
+Prestigo v1.4 adds a single-session round-trip booking to a mature, production booking system. All four research areas confirm this milestone is purely additive: no new npm packages, no new external services, and no breaking changes to existing one-way bookings. The implementation is constrained by four architectural facts that shape the entire phase order: (1) the existing UNIQUE constraint on `payment_intent_id` must be replaced with a composite `(payment_intent_id, leg)` constraint before any webhook code changes; (2) both booking rows must be created atomically via a Postgres RPC because Supabase's JS client provides no multi-statement transactions; (3) the return leg distance is symmetric (same km as outbound, no second Google API call); and (4) all pricing recomputation stays server-side at PaymentIntent creation time, consistent with the established anti-tamper pattern.
 
-The recommended approach is to prioritize the `bookings` table schema migration first, since the `status` column is a hard prerequisite for three of the four booking management features (status workflow, cancellation/refund, and manual booking creation). After that foundation, the pricing enhancements (zone OR-logic fix, holiday dates, minimum fare) can be built in any order as they are self-contained. The promo code system is the most complex feature, spanning three surfaces (admin CRUD, client wizard, server payment flow), and must be built as an integrated unit rather than incrementally.
+The build is well de-risked because the codebase already contains the patterns this feature needs: a working RPC (`claim_promo_code`), an ICS generator, a Zustand store with sessionStorage `partialize`, and a Stripe webhook that is the sole writer to Supabase. The main engineering risk is not complexity but sequencing — five of the ten critical pitfalls occur when developers write webhook or payment code before the DB schema is correct. The recommended phase order enforces schema-first to eliminate that class of error entirely.
 
-The critical risks are all well-documented and preventable: a promo code race condition (two users simultaneously exhausting a single-use code) must be solved with an atomic Postgres UPDATE rather than a read-then-write pattern; manual bookings with no `payment_intent_id` must be guarded against the refund flow; and the zone OR-logic fix requires explicit unit tests for all four pickup/dropoff combinations before deploying, as a naming confusion in the existing helper function (`isOutsideAllZones`) makes the correct boolean logic non-obvious.
+Three product decisions require operator input before or during implementation. These are not blockers for early phases but must be resolved before pricing and payment phases: (1) whether extras (child seat, meet & greet) charge on the outbound leg only or on both legs — research recommends outbound only; (2) whether the symmetric-distance assumption is acceptable or requires a second Google Routes API call; (3) how `quoteMode` interacts with the combined price in Step 3 when the user switches vehicle class after a round-trip price has already been fetched. These three questions are captured in the Open Questions section below.
+
+---
 
 ## Key Findings
 
-### Recommended Stack
+### Stack: No New Dependencies
 
-The existing stack is the complete v1.3 stack. No new dependencies are warranted. The Stripe SDK (`stripe` ^21.0.1) supports `stripe.refunds.create()` as-is; `react-day-picker` already supports multi-select mode for the holiday date picker admin UI; `@tanstack/react-table` supports responsive column hiding via `meta.className`; and Zod + react-hook-form cover all new form validation needs. The only notable external event is the release of `stripe` v22.0.0 on 2026-04-03 with breaking changes — the project must stay pinned to `^21.0.1` for the duration of v1.3 and schedule the upgrade separately.
+The existing `package.json` covers all v1.4 needs. The four workstreams map onto existing infrastructure: the FK/RPC pattern for linked Supabase records, the metadata expansion for Stripe (35 keys total, well under the 50-key limit), RFC 5545 multi-VEVENT for two ICS events using the existing hand-written generator, and a single new numeric column on `pricing_globals` for the return discount. The only item requiring careful budgeting is Stripe metadata: with 35 keys and long Czech address strings, the 500-character-per-value limit needs a truncation guard on address fields before shipping.
 
-**Core technologies (v1.3 delta only):**
+**Core packages and their v1.4 roles:**
+- `@supabase/supabase-js` ^2.101.0 — RPC call for atomic two-row insert; self-referential FK pattern; no upgrade
+- `stripe` ^21.0.1 — combined amount in `paymentIntents.create()`; 35 metadata keys; partial refund via `amount` parameter
+- `zustand` ^5.0.12 — 4 new return-leg state fields, additive; `partialize` updated to persist `returnPickupDate`/`returnPickupTime` only
+- `react-day-picker` ^9.14.0 — second date/time block in Step 2; existing picker component reused
+- `resend` ^6.9.4 — email template extended with a second leg section; two Google Calendar links generated
 
-- `stripe` ^21.0.1: `stripe.refunds.create({ payment_intent })` — already installed, no upgrade needed
-- `@supabase/supabase-js` ^2.101.0: new `promo_codes` table, atomic `UPDATE ... RETURNING` pattern for race-safe usage increment
-- `@tanstack/react-table` ^8.21.3: `meta.className` + Tailwind responsive classes for mobile admin tables
-- `react-day-picker` ^9.14.0: `mode="multiple"` for holiday date multi-select in admin
-- `zod` + `react-hook-form`: promo code admin CRUD forms and manual booking creation form
+### Features: All P1 Items Are in Scope
 
-**What not to add:** No promo code npm libraries (custom Supabase table is simpler and gives full control), no headless UI library for mobile sidebar (two lines of `useState` + Tailwind transitions), no `date-fns` as a direct dependency (already available via `react-day-picker` peer dep), no `ag-grid` (TanStack Table with pagination is sufficient for this operator's booking volume).
+Every must-have feature is achievable with the existing stack and architecture. The differentiator Blacklane does not offer — single-session round-trip in one payment — is the headline of this milestone, and the implementation avoids the anti-patterns that degrade premium UX: no re-entry of passenger details, no two Stripe charges, no joint-cancellation-only model.
 
-### Expected Features
+**Must have (table stakes):**
+- Round Trip as 6th trip type — entry point, Step 1 selector
+- Return date and time collected in the same wizard session, with validation (return must be at least 1 hour after outbound)
+- Return route auto-reversed from Step 1 inputs — no re-entry required
+- Return leg priced server-side by the same pricing engine; night/holiday coefficients applied independently based on return datetime
+- Return discount applied automatically from `return_discount_pct` in `pricing_globals`
+- Combined price breakdown shown in Step 3: outbound + discounted return + extras
+- Single Stripe PaymentIntent for the combined amount
+- Webhook atomically creates two linked Supabase rows, each storing its own per-leg amount
+- Confirmation email listing both legs with datetime, pickup, dropoff, and per-leg price
+- Two ICS calendar events (one per leg) in the confirmation email
+- Admin bookings list shows the return row with a "RETURN" badge linked to the outbound row
+- Per-leg independent cancellation with Stripe partial refund of that leg's stored amount
 
-**Must have (v1.3 Core — table stakes for a production booking management system):**
-- ZONES-06: Zone OR-logic fix — price shown if pickup OR dropoff is in any active zone (current AND-logic suppresses valid bookings)
-- BOOKINGS-07: Booking status workflow (pending → confirmed → completed → cancelled) with server-side transition guard
-- BOOKINGS-08: Cancellation with optional full Stripe refund from admin panel, confirmation modal required
-- BOOKINGS-06: Manual booking creation for phone orders (no Stripe payment, `payment_intent_id` nullable)
-- BOOKINGS-09: Operator notes textarea on booking detail, auto-saves on blur
-- PRICING-07: Holiday dates configuration — calendar admin UI + auto-apply `holiday_coefficient` at price calculation
-- PRICING-08: Minimum fare per vehicle class — extend `pricing_config` + enforce in `lib/pricing.ts`
-- UX-01: Mobile-responsive admin panel (single 768px breakpoint; card layout below; hamburger sidebar)
+**Should have (competitive differentiators — ship in v1.4 at low cost):**
+- Transparent price split in Step 3: "Outbound: 1,200 CZK + Return: 1,080 CZK (10% off) = 2,280 CZK"
+- Single booking reference with leg suffix: "PRST-2847-A / PRST-2847-B"
+- Promo code applies to the combined total (no changes to the promo system needed)
 
-**Should have (v1.3 Secondary — differentiators worth shipping in this milestone):**
-- PROMO-01/02: Admin CRUD for promo codes (create with code string, discount %, expiry, usage limit; deactivate/delete)
-- PROMO-03/04: Client promo entry in wizard (progressive disclosure "Have a promo code?" link) + server-side atomic validation before Stripe charge
+**Defer to v1.x or v2+:**
+- Return-leg datetime reschedule in admin — add if operators request it post-launch
+- Per-leg extras selection — HIGH complexity, under 5% of real use cases
+- Open-return / book-later flow — requires auth, deferred payment trigger, reminder flows
 
-**Defer to v2+:**
-- Client self-service cancellation (requires client accounts — large scope change)
-- SMS notifications on status change (Twilio integration cost/complexity; email is sufficient for Prague luxury market)
-- Partial refund with custom amount (accounting ambiguity; operators use Stripe Dashboard for exceptional cases)
-- Bulk booking status updates (single-booking review is the right premium-service norm)
-- Promo code analytics and auto-expiry background jobs
+### Architecture: Three Structural Decisions Are Resolved
 
-### Architecture Approach
+Research resolved three design questions with clear recommendations backed by direct codebase inspection. These are not open questions — treat them as implementation constraints.
 
-The v1.3 architecture follows the established v1.2 admin pattern: new API routes live under `/api/admin/[feature]/`, protected by the existing `getAdminUser()` guard. New admin pages extend `/app/admin/`. Database changes are additive migrations — a new `promo_codes` table, new columns (`status`, `operator_notes`, `booking_source`, `payment_intent_id` made nullable) on `bookings`, and new fields in the `pricing_config` JSONB. Holiday dates are best stored as a new key in `pricing_config` JSONB for v1.3 scope (no per-date metadata needed). The `bookings` table schema migration (adding `status`) is the single most dependency-heavy change and must land first.
+**Decision 1 — Composite UNIQUE constraint, not suffix and not relaxed:**
+Replace `UNIQUE (payment_intent_id)` with `UNIQUE (payment_intent_id, leg)` and add `leg TEXT NOT NULL DEFAULT 'outbound'`. The suffix approach (`pi_xxx_return`) destroys the semantic integrity of the column and breaks the `charge.refunded` handler's `.eq('payment_intent_id', realStripeId)` lookup. Relaxing the constraint entirely removes the idempotency guard against webhook replays. The composite unique is the only option that preserves all existing behavior while enabling two rows per PaymentIntent.
 
-**Major components (new or modified for v1.3):**
+**Decision 2 — Atomic RPC for two-row insert:**
+The webhook calls `supabase.rpc('create_round_trip_bookings', { p_outbound, p_return })` — a Postgres function that wraps both inserts in an implicit transaction. Two sequential JS `insert()` calls are not atomic: if the second fails after the first succeeds, an orphan outbound row exists with no return row and no automatic rollback. The `claim_promo_code` RPC validates this pattern is reliable in production.
 
-1. `/api/admin/bookings/[id]/refund` (POST) — server-side Stripe refund endpoint with status guard and typed error handling
-2. `/api/admin/bookings/[id]` (PATCH) — status update with server-enforced transition state machine
-3. `/api/admin/bookings/new` + `/api/promo/validate` — manual booking creation and promo validation endpoints
-4. `promo_codes` Supabase table — with atomic `UPDATE ... WHERE current_uses < max_uses RETURNING id` pattern
-5. `BookingsTable` (modified) — TanStack Table with responsive `meta.className` column collapse and status badge + action UI
-6. Admin sidebar — hamburger toggle on mobile via `useState` + Tailwind `translate-x` transitions
+**Decision 3 — Symmetric distance assumption:**
+Return `distanceKm` equals outbound `distanceKm` — same road reversed, one Google Routes API call. The price difference from a second API call would be negligible for Prestigo's route types; the extra latency and quota cost are not justified. This assumption requires operator confirmation (see Open Questions).
+
+**Components modified across 7 phases:**
+1. `supabase/migrations/023_return_booking_fk.sql` — `leg` column, composite UNIQUE, `linked_booking_id`, `return_discount_pct` on `pricing_globals`, `create_round_trip_bookings()` RPC
+2. `lib/booking-store.ts` + `types/booking.ts` — 4 new return-leg fields, 4 setters, `partialize` and `resetBooking` updated
+3. `Step1TripType.tsx`, `Step2DateTime.tsx` — Round Trip tab, return date/time pickers with cross-field validation
+4. `lib/pricing-config.ts`, `/api/calculate-price`, `Step3Vehicle.tsx` — return pricing with `returnDiscountPct`
+5. `/api/create-payment-intent` — combined amount, 35 metadata keys, `returnBookingReference` generation
+6. `/api/webhooks/stripe`, `lib/email.ts`, confirmation page — RPC call, two-leg email, two ICS events
+7. Admin pricing editor + bookings list — `return_discount_pct` field, "RETURN" badge, per-leg cancel with partial refund
 
 ### Critical Pitfalls
 
-1. **Promo code race condition (over-redemption)** — Two concurrent users with a single-use code both pass a read-check before either increments; solution is a single atomic `UPDATE promo_codes SET current_uses = current_uses + 1 WHERE ... AND current_uses < max_uses RETURNING id`; perform this increment at PaymentIntent creation, not at client-side validation. Phase: PROMO-04.
+The ten pitfalls cluster into three root causes. Addressing the root causes is more effective than patching pitfalls individually.
 
-2. **Refunding a manual booking with null payment_intent_id** — Manual bookings (phone orders) have no Stripe payment; passing `payment_intent: null` to Stripe throws. Guard the refund route: if `payment_intent_id IS NULL`, skip Stripe entirely and only update status. The admin UI must hide "Cancel + Refund" for manual bookings and show "Cancel" only. Phase: BOOKINGS-06 + BOOKINGS-08 must coordinate.
+**Root cause A — Schema last instead of first:** The UNIQUE constraint silently swallows the second insert (`ignoreDuplicates: true` produces a no-op, not an error). If the webhook is written before the composite UNIQUE and `leg` column exist, return rows disappear with no log error. Fix: schema is Phase 1; no webhook code merges until the migration is confirmed on staging.
 
-3. **Zone logic regression when fixing ZONES-06** — The existing helper is named `isOutsideAllZones` (returns `true` when outside). Applying OR-logic with a double-negated name causes developers to invert the condition incorrectly. Rename to `isInAnyZone`, write four explicit unit tests (pickup-in/dropoff-out, pickup-out/dropoff-in, both-in, both-out) before touching production. Phase: ZONES-06.
+**Root cause B — Promo discount applied to partial totals:** The operator return discount (`returnDiscountPct`) is applied to the return base price before summing. The promo discount is applied once to `outboundTotal + returnBase`. Applying the promo per-leg double-discounts; computing `outboundTotal` alone before adding `returnBase` causes the client to pay more than the displayed price. Fix: document the computation order in a code comment in `create-payment-intent` and test with a known promo code before shipping.
 
-4. **Holiday date timezone midnight bug** — Comparing `new Date(pickupDate).toISOString().slice(0,10)` converts local Prague time to UTC, causing midnight bookings (00:00–01:00 CET) to compare against the previous UTC date. Solution: compare `pickupDate` string (local date as entered by user) directly against the holiday list — never UTC-convert a date-only string. Follow the existing `dateDiffDays` pattern in `lib/pricing.ts`. Phase: PRICING-07.
+**Root cause C — Refund logic assumes one row per PaymentIntent:** The cancel endpoint must pass `amount` (in cents, equal to the cancelled leg's stored `amount_eur`) to `stripe.refunds.create`. Without `amount`, Stripe refunds the full combined charge. The `charge.refunded` webhook handler must distinguish full refund (cancel both legs) from partial refund (cancel only the matching leg). Fix: the cancel endpoint and `charge.refunded` handler are updated in the same phase as admin UI — never deferred.
 
-5. **Price mismatch — client sees discounted price, server charges full** — If the applied promo code is not passed in `bookingData` to `/api/create-payment-intent`, the server creates the PaymentIntent at full price. Server must independently re-validate the promo code and recompute the total; never trust a client-provided amount. Phases: PROMO-03 and PROMO-04 must ship as a single coordinated change.
+**Top 5 pitfalls by severity:**
+1. **UNIQUE constraint swallows second insert silently** — Phase 1; composite UNIQUE with `leg` column
+2. **Non-atomic sequential inserts leave orphan rows** — Phase 1; Postgres RPC
+3. **Promo applied to wrong total** — Phase 5; document computation order, test before shipping
+4. **Cancel endpoint issues full refund on partial cancel** — Phase 7; always pass `amount` to `stripe.refunds.create`
+5. **`charge.refunded` bulk-cancels all rows on partial refund** — Phase 6; check `charge.amount_refunded < charge.amount` before cancelling
+
+---
 
 ## Implications for Roadmap
 
-Based on combined research, the recommended phase structure is five phases ordered by schema dependencies, then feature complexity, then surface area.
+### Phase 1: Database Schema
+**Rationale:** The UNIQUE constraint and missing `leg` column are silent blocking constraints — other phases produce data loss, not errors, if this is missing. Must be verified on staging before any other phase begins.
+**Delivers:** Migration `023_return_booking_fk.sql` with `leg` column, composite UNIQUE `(payment_intent_id, leg)`, `linked_booking_id` FK on `bookings`, `return_discount_pct` on `pricing_globals`, `create_round_trip_bookings()` RPC.
+**Avoids:** Pitfalls 1 (UNIQUE conflict silent no-op), 2 (non-atomic inserts), 10 (missing FK for return row linkage)
 
-### Phase 1: Schema Foundation + Zone Logic Fix
+### Phase 2: Types and Zustand Store
+**Rationale:** Types and store are the interface contract between all wizard steps and API routes. Building UI or API code before the types compile produces cascading refactors. Fixing store fields and `partialize` before UI prevents stale state on page refresh.
+**Delivers:** `TripType` union gains `'round_trip'`; `BookingStore` gains 4 return-leg fields and setters; `partialize` persists `returnPickupDate` and `returnPickupTime` only; `setTripType` clears return fields on trip-type switch; `resetBooking` resets all new fields.
+**Avoids:** Pitfalls 5 (stale `returnDate` collision between Daily Hire and Round Trip), 6 (`partialize` missing new fields loses state on page refresh)
 
-**Rationale:** The `bookings.status` column is a hard prerequisite for Phases 2 and 3 — it must land before any status UI, cancellation flow, or manual booking creation. The zone OR-logic fix (ZONES-06) is zero-dependency, zero-schema, and highest operator value per unit of effort — it belongs in Phase 1 to unblock correct pricing for the most common trip patterns. Landing both together means Phase 2 can begin immediately.
-**Delivers:** Production-correct zone pricing; `status`, `operator_notes`, `booking_source` columns on `bookings`; `promo_codes` table created (empty); `payment_intent_id` made nullable; `holiday_dates` added to `pricing_config` JSONB schema.
-**Addresses:** ZONES-06, schema prerequisites for BOOKINGS-06/07/08/09, PROMO-01 through PROMO-04, PRICING-07.
-**Avoids:** Zone logic regression (write 4-case unit test suite before deploying ZONES-06 fix).
+### Phase 3: Wizard UX — Step 1 and Step 2
+**Rationale:** Step 1 (trip type selector) and Step 2 (return date/time with validation) have no server-side pricing dependencies. They can be built and visually reviewed before any API changes. Isolating wizard UX allows UX sign-off before pricing complexity is introduced.
+**Delivers:** "Round Trip" tab in Step 1; conditional return date/time block in Step 2 with reversed-route display (read-only); cross-field validation — return datetime must be at least 1 hour after outbound datetime; inline error on violation.
+**Avoids:** UX pitfall of return date field appearing for non-round-trip trip types; return datetime earlier than outbound being accepted silently
 
-### Phase 2: Booking Status Workflow + Operator Notes
+### Phase 4: Pricing Engine — Return Leg
+**Rationale:** Pricing must be correct and independently verifiable before it is connected to real Stripe charges. The pricing extension and Step 3 combined price display are co-located because Step 3 is the sole consumer of the pricing API response.
+**Delivers:** `returnDiscountPct` in `PricingGlobals` and `getPricingConfig()`; `/api/calculate-price` returns `returnPrices` alongside `outboundPrices` when `tripType === 'round_trip'`; night/holiday coefficients applied independently to the return leg based on its own datetime; Step 3 shows combined price breakdown per vehicle class.
+**Uses:** Single `getPricingConfig()` call (not two); symmetric `distanceKm` for both legs; coefficient order: base × night_or_holiday → airport fee → (extras on outbound only) → × (1 − returnDiscountPct/100)
 
-**Rationale:** With the `status` column in place, this phase adds the complete status management surface: status badge in the bookings table, transition dropdown (showing only valid next states), status-change emails via Resend, and the operator notes inline textarea. These are the table stakes every premium operator expects before considering the system production-ready.
-**Delivers:** Admin can move bookings through the full lifecycle; clients receive confirmation and cancellation emails; operators can annotate every job.
-**Addresses:** BOOKINGS-07, BOOKINGS-09.
-**Avoids:** Invalid status transitions (enforce state machine in PATCH endpoint: `pending → confirmed|cancelled`, `confirmed → completed|cancelled`, terminal states for `completed` and `cancelled`).
+### Phase 5: Payment — PaymentIntent and Step 6
+**Rationale:** Gated on verified pricing (Phase 4). The combined amount passed to Stripe derives directly from the pricing engine. This phase also generates the second booking reference and embeds all return metadata in the single PaymentIntent.
+**Delivers:** Combined amount computation in `create-payment-intent`; all 35 metadata keys including return-leg fields with address truncation guard; `returnBookingReference` generation; Step 6 updated to display combined price summary; promo discount applied once to the combined total.
+**Avoids:** Pitfall 2 (promo discount applied to wrong total), Pitfall 7 (metadata key or character limit exceeded)
 
-### Phase 3: Manual Booking + Cancellation with Refund
+### Phase 6: Webhook and Notifications
+**Rationale:** The webhook is the sole writer to Supabase and the sole sender of confirmation emails. It must be built after schema (Phase 1), RPC, and PaymentIntent metadata (Phase 5) are all in place.
+**Delivers:** `payment_intent.succeeded` detects `isRoundTrip === 'true'`, calls `create_round_trip_bookings` RPC, includes both references in emergency alert on RPC failure; `BookingEmailData` extended with `isRoundTrip`, `returnPickupDate`, `returnPickupTime`, `returnAmountCzk`; confirmation email shows Leg 1 + Leg 2 sections with two Google Calendar links; two VEVENT blocks in single `.ics` file; `charge.refunded` handler updated to distinguish partial from full refund before cancelling rows.
+**Avoids:** Pitfalls 3 (non-atomic sequential inserts), 4 (partial refund fires `charge.refunded`, bulk-cancels all rows), 8 (email missing return leg)
 
-**Rationale:** Both features depend on the `status` column (Phase 1) and share the same critical null-`payment_intent_id` edge case — they must be designed together even if built sequentially. Manual booking creation must decide the `booking_source` column value; the refund route must check that column. Building them in the same phase prevents the null-PI pitfall from falling through the cracks.
-**Delivers:** Phone orders captured in the system at `/admin/bookings/new`; operator can cancel any booking with one-click Stripe refund from admin; refund modal prevents accidental double-click with confirmation step.
-**Addresses:** BOOKINGS-06, BOOKINGS-08.
-**Avoids:** Refunding null `payment_intent_id` (coordinate guard logic in both routes); refunding already-refunded PI (status guard: only `confirmed|pending` are eligible); add `charge.refunded` webhook handler for Stripe Dashboard refund sync.
-
-### Phase 4: Pricing Enhancements (Holiday Dates + Minimum Fare)
-
-**Rationale:** Both pricing features are independent of booking management changes. Holiday dates extend the existing pricing engine with a date-matching lookup; minimum fare adds floor logic after distance calculation. Both are isolated to `lib/pricing.ts` and `pricing_config`. Grouping them together minimises context switches and keeps the pricing engine stable for Phase 5 (promo codes, which also modify the price calculation path).
-**Delivers:** Holiday coefficient auto-applied based on configured calendar dates; short trips priced at minimum fare floor; operator controls both from the admin pricing editor.
-**Addresses:** PRICING-07, PRICING-08.
-**Avoids:** Holiday timezone midnight bug (compare `pickupDate` string directly, never UTC-convert; follow existing `dateDiffDays` pattern).
-
-### Phase 5: Mobile-Responsive Admin + Promo Code System
-
-**Rationale:** Mobile admin (UX-01) is purely presentational — no API or schema changes — and is least likely to introduce regressions. Promo codes are the highest-complexity feature (three surfaces, atomic DB pattern, wizard integration, PaymentIntent amount adjustment) and should be last to benefit from stable foundational code. Both are grouped here because mobile testing naturally accompanies all other UI work completed in Phases 2–4.
-**Delivers:** Admin usable at 375px (hamburger sidebar, card-layout bookings table below 768px, 44px touch targets); full promo code system end-to-end (admin CRUD, client wizard entry, server-side atomic validation, PaymentIntent amount adjustment).
-**Addresses:** UX-01, PROMO-01, PROMO-02, PROMO-03, PROMO-04.
-**Avoids:** Promo race condition (atomic UPDATE pattern in PROMO-04); price mismatch (promo code wired through Zustand store to create-payment-intent, server re-validates independently); mobile horizontal overflow (test at 375px in Chrome DevTools before sign-off).
+### Phase 7: Admin — Pricing Editor and Bookings List
+**Rationale:** Admin is a read/config layer with no upstream blocking dependencies beyond schema (Phase 1) and the `return_discount_pct` field (Phase 4). Can be built in parallel with Phase 5 in a team context. Must ship in the same release — operators need the "RETURN" badge before any round-trip bookings appear in production.
+**Delivers:** `return_discount_pct` input in admin pricing editor (react-hook-form + Zod, same pattern as existing fields); "RETURN LEG" badge on return booking rows in the bookings list; linked outbound booking reference shown in expandable row; per-leg cancel modal showing leg-specific refund amount with sibling-leg warning; cancel endpoint updated to issue Stripe partial refund for the cancelled leg's stored `amount_eur` only.
+**Avoids:** Pitfall 3 (full refund on partial cancel — pass `amount` to `stripe.refunds.create`), Pitfall 9 (admin shows orphan rows with no linkage indication)
 
 ### Phase Ordering Rationale
 
-- Schema migrations must precede all feature work that reads or writes new columns; `status` is the most-depended-on change (affects 4 features).
-- ZONES-06 is placed in Phase 1 because it is a zero-risk, high-value change that operators will notice immediately and that validates the pricing engine before riskier changes touch it.
-- Manual booking and refund are paired (Phase 3) because the null-`payment_intent_id` edge case spans both; designing them separately risks the pitfall.
-- Pricing enhancements (Phase 4) are isolated before promo codes (Phase 5) because promo codes also modify the price calculation path — a stable pricing engine reduces integration risk.
-- Mobile admin is deferred to the final phase because it is additive and non-breaking; it also benefits from testing against all admin UI surfaces completed in earlier phases.
+The order is enforced by three hard dependency chains:
+- **Schema before webhook:** Composite UNIQUE and RPC must exist before the webhook is modified — silent data loss otherwise, no error signal.
+- **Types before UI:** Wizard steps read from the Zustand store; the store must be typed correctly before component props are defined to avoid cascading refactors.
+- **Pricing before payment:** The combined Stripe charge amount derives from the pricing engine; pricing must be verified independently before any real charges are created.
+
+Phase 7 (Admin) has no strict dependency on Phases 5 or 6 beyond the schema and `return_discount_pct`, making it a candidate for parallelism in a team build. In a solo build, sequential after Phase 6 is the safe path.
 
 ### Research Flags
 
-Phases needing deeper research or careful design before implementation:
-- **Phase 3 (Refund flow):** The interaction between admin-initiated refunds and Stripe-initiated refunds (via Dashboard) requires adding a `charge.refunded` webhook handler. The exact deduplication logic (idempotent UPSERT) warrants a brief design step before coding.
-- **Phase 5 (Promo codes — PROMO-04):** The atomic PostgreSQL UPDATE pattern is well-understood, but wiring the promo code through the Zustand store, PaymentIntent creation, and webhook handler (for usage count sync) is a multi-step integration that benefits from a written data-flow plan before coding begins.
+**Phases with well-documented patterns — no additional research needed:**
+- Phase 1 — PostgreSQL composite UNIQUE and self-referential FK are standard; migration SQL is fully written in STACK.md and ARCHITECTURE.md
+- Phase 2 — Additive Zustand store changes following a documented pattern; `partialize` checklist fully specified in PITFALLS.md
+- Phase 3 — Extending existing step components; react-day-picker reuse; conditional rendering
+- Phase 5 — Metadata keys counted and verified (35 of 50 limit); combined amount formula documented in STACK.md and ARCHITECTURE.md
+- Phase 6 — ICS multi-VEVENT is 30 lines; RPC call pattern validated by `claim_promo_code` in production
 
-Phases with standard, well-documented patterns (can skip research-phase):
-- **Phase 1 (Schema migrations):** Standard Supabase `ALTER TABLE` migrations following existing `supabase/migrations/` conventions.
-- **Phase 2 (Status workflow UI):** TanStack Table badge + dropdown pattern; Resend email trigger on status change — both follow established codebase patterns.
-- **Phase 4 (Pricing enhancements):** Extend existing `pricing_config` JSONB and `lib/pricing.ts`; patterns fully established in v1.2.
+**Phases warranting a targeted code check before implementation:**
+- Phase 4 — Inspect `Step3Vehicle.tsx` and the current `quoteMode` fetch behavior before implementing the combined price display. If `quoteMode` triggers a re-fetch on vehicle-class change, both outbound and return prices must be re-fetched together. The exact behavior is not described in the research files.
+- Phase 7 — Verify Stripe's behavior when `stripe.refunds.create` is called with an `amount` that exceeds the remaining refundable balance on a PaymentIntent (e.g. if a prior refund was already issued). Confirm in Stripe docs before building the partial-cancel endpoint.
+
+---
+
+## Open Questions Requiring Operator Decision
+
+Must be resolved before Phases 4-5 begin.
+
+| # | Question | Research default | Impact if changed |
+|---|----------|-----------------|-------------------|
+| 1 | Do extras (child seat, meet & greet, extra luggage) charge on the outbound leg only, or on both legs? | Outbound only — a child seat is rented once; airport meet & greet applies to the arrival leg | If "both legs": extras are doubled in the combined amount; pricing formula changes; email and price breakdown must list extras per leg |
+| 2 | Is symmetric distance (return km = outbound km) acceptable, or is a second Google Routes API call required for accuracy? | Symmetric — negligible price difference for Prestigo's routes; saves quota and latency | If "second API call": `calculate-price` makes two Google requests; response latency increases; `returnDistanceKm` becomes a distinct value from `distanceKm` |
+| 3 | How should `quoteMode` behave when the user switches vehicle class in Step 3 on a round-trip booking? | Re-fetch both outbound and return prices together on vehicle-class switch | If "return price fixed on first fetch": stale return price shown after class change; visible inconsistency in the price breakdown |
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All packages verified against official docs and GitHub releases on 2026-04-03; no new dependencies required |
-| Features | HIGH | Existing system codebase analyzed directly; competitor feature set verified against QuanticaLabs, Moovs, LimoAnywhere; race condition risk backed by HackerOne disclosures |
-| Architecture | HIGH | v1.2 architecture is production-confirmed; v1.3 additions follow established patterns from official Supabase SSR, Next.js App Router, and Stripe docs |
-| Pitfalls | HIGH | Critical pitfalls (race condition, null PI, zone naming confusion, timezone bug) all verified against first-party sources (codebase analysis + official API docs) |
+| Stack | HIGH | Verified against official Stripe docs (key limits, partial refund API), official Supabase docs (FK, RPC, cascade behavior), RFC 5545, and live codebase. No training-data inference. |
+| Features | HIGH / MEDIUM | Must-have features confirmed against Blacklane official documentation and live codebase. Transfeero return-toggle pattern is MEDIUM — direct fetch returned 403; verified via search result summaries only. |
+| Architecture | HIGH | All integration points verified against live source files. The UNIQUE constraint issue, `ignoreDuplicates: true` no-op behavior, `charge.refunded` semantics, and `partialize` opt-in list all confirmed in actual code. |
+| Pitfalls | HIGH | All 10 pitfalls derived from direct codebase inspection. Recovery cost estimates are based on actual system behavior, not generic patterns. |
 
-**Overall confidence:** HIGH
+**Overall confidence: HIGH**
 
 ### Gaps to Address
 
-- **`charge.refunded` webhook handler:** PITFALLS.md flags that admin-initiated refunds must be mirrored by a webhook handler so Stripe Dashboard refunds also update local status. The exact deduplication implementation is not specified — design this before Phase 3.
-- **Stripe v22.0.0 upgrade path:** Documented in STACK.md; not blocking v1.3 but must be scheduled as a follow-on task immediately after v1.3 ships to avoid accumulating technical debt.
-- **`date-fns` import risk:** `date-fns` is available as a `react-day-picker` peer dep, not a direct dependency. If `react-day-picker` ever changes its peer dep relationship, direct `date-fns` imports break silently. Use native `Date.toISOString().slice(0, 10)` for the holiday date comparison to eliminate this latent risk entirely.
+- **`quoteMode` interaction in Step 3** — inspect `Step3Vehicle.tsx` before implementing Phase 4 to confirm re-fetch behavior on vehicle-class switch.
+- **Extras-per-leg policy** — confirm with operator before Phase 4; pricing formula and email template both depend on this decision.
+- **Symmetric distance acceptability** — confirm with operator before Phase 4; if a second Google API call is required, the `calculate-price` response shape gains a distinct `returnDistanceKm` field.
+- **PostgREST self-referential FK query behavior** — medium confidence from a GitHub issue thread; keep admin queries flat (two separate `select()` calls, not nested joins) until validated on staging.
+
+---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Stripe Refunds API (official docs) — `stripe.refunds.create()` signature, `charge_already_refunded` error, `charge.refunded` webhook event
-- stripe-node v22.0.0 Release Notes (GitHub) — breaking changes; async/await pattern unaffected
-- Supabase `@supabase/ssr` official docs — `createServerClient`, `updateSession` middleware pattern
-- Next.js App Router official docs — middleware, Server Components, Route Handlers
-- TanStack Table v8 official docs — `meta.className` column visibility, manual pagination
-- react-day-picker v9 official docs — `mode="multiple"` multi-select
-- PostgreSQL JSON Types docs — JSONB for holiday dates storage
-- Prestigo codebase (first-party) — `calculate-price/route.ts` zone logic, `lib/pricing.ts` `dateDiffDays` pattern, `lib/pricing-config.ts` cache pattern
+- Stripe Metadata docs — 50-key / 500-char / 40-char-key limits
+- Stripe Create PaymentIntent API — `amount`, `currency`, `metadata` parameters
+- Stripe Refunds API — `stripe.refunds.create({ payment_intent, amount })` for partial refunds
+- Stripe charge object reference — `charge.refunded` vs `charge.amount_refunded` for partial refund detection
+- Supabase Tables and Data docs — FK relationships, self-referential FK setup
+- Supabase Cascade Deletes docs — `ON DELETE SET NULL` behavior
+- RFC 5545 iCalendar Specification — multiple VEVENT blocks in a single VCALENDAR confirmed valid
+- Blacklane Help Center — official confirmation that Blacklane requires two separate transactions for round-trip
+- Live codebase inspection (2026-04-04) — `lib/supabase.ts`, `lib/booking-store.ts`, `types/booking.ts`, `app/api/webhooks/stripe/route.ts`, `app/api/create-payment-intent/route.ts`, `app/api/calculate-price/route.ts`, `app/api/admin/bookings/cancel/route.ts`, `lib/email.ts`, `lib/pricing-config.ts`, `components/booking/steps/Step2DateTime.tsx`
 
 ### Secondary (MEDIUM confidence)
-- QuanticaLabs Chauffeur Booking System — competitor feature set reference (status workflow, manual booking, holiday pricing)
-- Moovs / LimoAnywhere — competitor feature set reference
-- TanStack Table GitHub discussions #3259 — responsive column collapse community pattern
-- DEV Community — TanStack Table responsive collapse implementation walkthrough
-- Voucherify / Econsultancy — promo code UX best practices (progressive disclosure, inline validation)
-
-### Tertiary (LOW confidence)
-- Gitnux — chauffeur software market context (aggregator; used for market framing only)
+- Transfeero booking guide — return toggle pattern inferred from search summaries (direct fetch returned 403)
+- QuanticaLabs Chauffeur Booking System docs — return-leg pricing rule industry patterns
+- WordPress.org community thread (QuanticaLabs plugin) — return discount not standard out-of-box in existing chauffeur platforms
+- PostgREST self-referential FK ambiguity — GitHub issue supabase/supabase#6329
 
 ---
-*Research completed: 2026-04-03*
+
+*Research completed: 2026-04-04*
 *Ready for roadmap: yes*
