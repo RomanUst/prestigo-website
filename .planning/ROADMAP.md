@@ -115,7 +115,11 @@ Plans:
   3. The return leg price uses the same distance as outbound (no second Google API call) and computes night/holiday coefficients from the return date and time independently
   4. Extras (child seat, meet & greet, extra luggage) appear in the outbound price only; the return price does not include extras charges
   5. When Round Trip is selected and the route is in quoteMode, the Round Trip option in Step 1 is disabled and a message directs the client to request a quote
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 25-01-PLAN.md — Step 2 return date+time pickers with datetime ordering validation and canProceed guard
+- [ ] 25-02-PLAN.md — API returnLegPrices with independent night/holiday coefficient, discount, no extras
+- [ ] 25-03-PLAN.md — Step 3 three-line VehicleCard breakdown, returnTime wiring, quoteMode message in TripTypeTabs
 
 ### Phase 26: Payment — Combined Stripe Charge
 **Goal**: A single Stripe PaymentIntent is created for the combined outbound + discounted return total; any promo code reduces the combined total; Step 6 shows the full two-leg payment summary before the client pays
