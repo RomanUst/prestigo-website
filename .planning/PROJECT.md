@@ -74,11 +74,13 @@ A client can go from "I need a ride" to confirmed & paid booking in under 2 minu
 - ✓ BOOKINGS-09: Operator can add internal notes to any booking; auto-save with debounce — v1.3 (Phase 19)
 - ✓ UX-01: Admin panel fully responsive and usable on mobile (375px+); bookings table card layout below 768px; hamburger sidebar — v1.3 (Phase 22)
 - ✓ RTFR-01: TripType union extended with `round_trip`; Zustand store gains `returnTime` + `setReturnTime`; ROUND TRIP tab rendered as 4th tab; swap icon shown for round_trip; Step 2 `canProceed` requires `returnDate` for round_trip — v1.4 (Phase 24)
+- ✓ RTFR-02: Step 2 shows return date + time pickers when tripType is round_trip; datetime ordering guard blocks Continue when return ≤ outbound pickup; `canProceed` gated — v1.4 (Phase 25)
+- ✓ RTFR-03: TripTypeTabs disables Round Trip tab (aria-disabled, opacity 0.4, inert click, inline message) when quoteMode is true — v1.4 (Phase 25)
+- ✓ RTFR-04: VehicleCard shows three-line breakdown (Outbound / Return −N% / Combined) when isRoundTripMode; PriceSummary mirrors on desktop, combined total on mobile bar — v1.4 (Phase 25)
+- ✓ RTPR-01/02/03: API computes return leg independently (night/holiday from returnDate+returnTime, returnDiscountPercent, zero extras); response adds returnLegPrices; single Google Routes call — v1.4 (Phase 25)
 
 ### Active
 
-- [ ] Round Trip as 6th trip type in wizard Step 1
-- [ ] Return date/time collection in Step 2 (when Round Trip selected)
 - [ ] Return leg pricing via same engine (reversed route) with operator-configurable discount %
 - [ ] Combined Stripe charge (outbound + discounted return) in single PaymentIntent
 - [ ] Two linked Supabase booking records created atomically by webhook
