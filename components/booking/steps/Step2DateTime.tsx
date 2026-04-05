@@ -11,17 +11,6 @@ const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
   return `${h}:${m}`
 })
 
-function isReturnBeforeOrEqualPickup(
-  returnDate: string | null,
-  returnTime: string | null,
-  pickupDate: string | null,
-  pickupTime: string | null
-): boolean {
-  if (!returnDate || !returnTime || !pickupDate || !pickupTime) return false
-  // ISO string comparison works for 'YYYY-MM-DDTHH:MM'
-  return `${returnDate}T${returnTime}` <= `${pickupDate}T${pickupTime}`
-}
-
 // Common DayPicker inline styles for the Prestigo dark theme
 const calendarStyles = {
   root: {
@@ -176,10 +165,6 @@ export default function Step2DateTime() {
       // Clear returnDate if it is now before the new pickupDate
       if (returnDate && returnDate <= iso) {
         setReturnDate(null)
-      }
-      // Clear returnTime if the combined return datetime now violates ordering
-      if (returnDate && returnTime && `${returnDate}T${returnTime}` <= `${iso}T${pickupTime ?? '00:00'}`) {
-        setReturnTime(null)
       }
     } else {
       setPickupDate(null)
