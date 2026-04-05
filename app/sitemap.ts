@@ -2,7 +2,66 @@ import { MetadataRoute } from 'next'
 
 const BASE = 'https://prestigo-site.vercel.app'
 
+const routeSlugs = [
+  'prague-vienna',
+  'prague-karlovy-vary',
+  'prague-plzen',
+  'prague-liberec',
+  'prague-pardubice',
+  'prague-hradec-kralove',
+  'prague-ceske-budejovice',
+  'prague-marianske-lazne',
+  'prague-frantiskovy-lazne',
+  'prague-cesky-krumlov',
+  'prague-dresden',
+  'prague-leipzig',
+  'prague-linz',
+  'prague-brno',
+  'prague-passau',
+  'prague-erfurt',
+  'prague-olomouc',
+  'prague-wroclaw',
+  'prague-regensburg',
+  'prague-salzburg',
+  'prague-zlin',
+  'prague-bratislava',
+  'prague-berlin',
+  'prague-nuremberg',
+  'prague-ostrava',
+  'prague-munich',
+  'prague-krakow',
+  'prague-augsburg',
+  'prague-graz',
+  'prague-frankfurt',
+  'prague-budapest',
+  'prague-innsbruck',
+  'prague-stuttgart',
+  'prague-kosice',
+  'prague-cologne',
+  'prague-dusseldorf',
+  'prague-warsaw',
+  'prague-hamburg',
+  'prague-basel',
+  'prague-zurich',
+  'prague-strasbourg',
+  'prague-venice',
+  'prague-bern',
+  'prague-verona',
+  'prague-geneva',
+  'prague-amsterdam',
+  'prague-brussels',
+  'prague-milan',
+  'prague-paris',
+]
+
 export default function sitemap(): MetadataRoute.Sitemap {
+  const routeEntries: MetadataRoute.Sitemap = routeSlugs.map((slug) => ({
+    url: `${BASE}/routes/${slug}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.85,
+  }))
+
   return [
     {
       url: BASE,
@@ -28,12 +87,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly',
       priority: 0.9,
     },
-    {
-      url: `${BASE}/routes/prague-vienna`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.85,
-    },
+    ...routeEntries,
     {
       url: `${BASE}/corporate`,
       lastModified: new Date(),
