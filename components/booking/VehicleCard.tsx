@@ -119,7 +119,7 @@ export default function VehicleCard({
             type="button"
             onClick={onSelectOneWay}
             aria-pressed={isSelectedOneWay}
-            style={priceButtonStyle(isSelectedOneWay)}
+            style={priceButtonStyle(isSelectedOneWay, false)}
           >
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--warmgrey)' }}>
               Request a quote
