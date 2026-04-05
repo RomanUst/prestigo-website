@@ -32,6 +32,7 @@ export default function VehicleCard({
   onSelectRoundTrip,
 }: VehicleCardProps) {
   const [hovered, setHovered] = useState(false)
+  const [hoveredBtn, setHoveredBtn] = useState<'one_way' | 'round_trip' | null>(null)
 
   const isSelected = isSelectedOneWay || isSelectedRoundTrip
 
@@ -131,7 +132,9 @@ export default function VehicleCard({
               type="button"
               onClick={onSelectOneWay}
               aria-pressed={isSelectedOneWay}
-              style={priceButtonStyle(isSelectedOneWay)}
+              onMouseEnter={() => setHoveredBtn('one_way')}
+              onMouseLeave={() => setHoveredBtn(null)}
+              style={priceButtonStyle(isSelectedOneWay, hoveredBtn === 'one_way')}
             >
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.3em', textTransform: 'uppercase', color: isSelectedOneWay ? 'var(--copper)' : 'var(--warmgrey)', marginBottom: 2 }}>
@@ -156,7 +159,9 @@ export default function VehicleCard({
                 type="button"
                 onClick={onSelectRoundTrip}
                 aria-pressed={isSelectedRoundTrip}
-                style={priceButtonStyle(isSelectedRoundTrip)}
+                onMouseEnter={() => setHoveredBtn('round_trip')}
+                onMouseLeave={() => setHoveredBtn(null)}
+                style={priceButtonStyle(isSelectedRoundTrip, hoveredBtn === 'round_trip')}
               >
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
@@ -192,16 +197,16 @@ export default function VehicleCard({
   )
 }
 
-function priceButtonStyle(isActive: boolean): React.CSSProperties {
+function priceButtonStyle(isActive: boolean, isHovered: boolean): React.CSSProperties {
   return {
     display: 'block',
     width: '100%',
     textAlign: 'left',
-    background: isActive ? 'rgba(184,115,51,0.08)' : 'rgba(255,255,255,0.03)',
-    border: isActive ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
+    background: isActive ? 'rgba(184,115,51,0.08)' : isHovered ? 'rgba(184,115,51,0.04)' : 'rgba(255,255,255,0.03)',
+    border: isActive ? '1px solid var(--copper)' : isHovered ? '1px solid rgba(184,115,51,0.5)' : '1px solid var(--anthracite-light)',
     padding: '10px 12px',
     cursor: 'pointer',
-    transition: 'border-color 0.2s ease, background 0.2s ease',
+    transition: 'border-color 0.15s ease, background 0.15s ease',
     borderRadius: 2,
   }
 }
