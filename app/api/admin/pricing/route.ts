@@ -29,6 +29,7 @@ const pricingPutSchema = z.object({
     extra_child_seat: z.number().min(0),
     extra_meet_greet: z.number().min(0),
     extra_luggage: z.number().min(0),
+    return_discount_percent: z.number().min(0).max(100),
     holiday_dates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
   }),
 })

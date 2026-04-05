@@ -20,6 +20,7 @@ const pricingSchema = z.object({
     extra_child_seat: z.number().min(0),
     extra_meet_greet: z.number().min(0),
     extra_luggage: z.number().min(0),
+    return_discount_percent: z.number().min(0).max(100),
   }),
 })
 type PricingData = z.infer<typeof pricingSchema>
@@ -45,6 +46,7 @@ const GLOBALS_FIELDS: Array<{
   { key: 'extra_child_seat', label: 'CHILD SEAT', suffix: 'EUR / booking' },
   { key: 'extra_meet_greet', label: 'MEET & GREET', suffix: 'EUR / booking' },
   { key: 'extra_luggage', label: 'EXTRA LUGGAGE', suffix: 'EUR / booking' },
+  { key: 'return_discount_percent', label: 'ROUND TRIP DISCOUNT', suffix: '% off total' },
 ]
 
 const inputBaseStyle: React.CSSProperties = {

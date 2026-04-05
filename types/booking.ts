@@ -66,6 +66,8 @@ export interface BookingStore {
   vehicleClass: VehicleClass | null
   distanceKm: number | null        // cached from API response
   priceBreakdown: Record<VehicleClass, PriceBreakdown> | null
+  roundTripPriceBreakdown: Record<VehicleClass, PriceBreakdown> | null
+  returnDiscountPercent: number    // admin-configurable round trip discount %
   quoteMode: boolean               // true when route cannot be priced
   // Step 4
   extras: Extras
@@ -88,6 +90,8 @@ export interface BookingStore {
   setVehicleClass: (v: VehicleClass | null) => void
   setDistanceKm: (km: number | null) => void
   setPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
+  setRoundTripPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
+  setReturnDiscountPercent: (pct: number) => void
   setQuoteMode: (q: boolean) => void
   setExtras: (e: Extras) => void
   toggleExtra: (key: keyof Extras) => void
