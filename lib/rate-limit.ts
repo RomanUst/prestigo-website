@@ -1,15 +1,16 @@
 /**
  * Sliding-window rate limiter.
  *
- * Uses Upstash Redis when UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
- * are set (production / staging). Falls back to an in-memory Map for local
- * development or if Redis is unavailable — state is per-instance only, but
- * that is acceptable for a single dev server.
+ * Uses Upstash Redis REST API directly (no SDK) when
+ * UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN are set.
+ * Falls back to an in-memory Map otherwise.
  *
- * All calls are async so they work transparently with both backends.
+ * The Upstash path uses a Lua EVAL script for atomic fixed-window limiting,
+ * which is sufficient for our traffic volumes and does not require the
+ * @upstash/ratelimit SDK (which has compatibility issues in some Vercel runtimes).
  */
 
-/** Max requests per IP per 60-second sliding window, keyed by route pathname */
+/** Max requests per IP per 60-second window, keyed by route pathname */
 const LIMITS: Record<string, number> = {
   '/api/calculate-price':       30, // users recalculate several times while booking
   '/api/submit-quote':           5, // 5 quote submissions per minute is already suspicious
@@ -23,36 +24,47 @@ export interface RateLimitResult {
   limit: number
 }
 
-// ── Upstash distributed backend (production) ─────────────────────────────────
+// ── Upstash REST API (production) ─────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let _redis: any = null
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const upstashLimiters = new Map<string, any>()
-
-async function getUpstashLimiter(pathname: string, maxRequests: number) {
+/**
+ * Atomic fixed-window counter via Lua EVAL.
+ * Returns { count, allowed } for the current 60-second window.
+ */
+async function checkUpstash(key: string, limit: number): Promise<RateLimitResult | null> {
   const url   = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
 
+  // Lua script: INCR + conditional EXPIRE (atomic)
+  const luaScript = [
+    'local c = redis.call("INCR", KEYS[1])',
+    'if c == 1 then redis.call("EXPIRE", KEYS[1], 60) end',
+    'return c',
+  ].join(' ')
+
   try {
-    if (!_redis) {
-      const { Redis } = await import('@upstash/redis')
-      _redis = new Redis({ url, token })
+    const res = await fetch(`${url}/eval`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify([luaScript, 1, key]),
+      // Tell Next.js not to cache this request
+      cache: 'no-store',
+    })
+
+    if (!res.ok) {
+      console.warn('[rate-limit] Upstash EVAL returned', res.status)
+      return null
     }
 
-    if (!upstashLimiters.has(pathname)) {
-      const { Ratelimit } = await import('@upstash/ratelimit')
-      upstashLimiters.set(pathname, new Ratelimit({
-        redis:   _redis,
-        limiter: Ratelimit.slidingWindow(maxRequests, '60 s'),
-        prefix:  'prestigo:rl',
-      }))
-    }
-
-    return upstashLimiters.get(pathname)
+    const data = await res.json() as { result: number }
+    const count = data.result
+    const remaining = Math.max(0, limit - count)
+    return { allowed: count <= limit, remaining, limit }
   } catch (err) {
-    console.warn('[rate-limit] Failed to initialise Upstash limiter:', err)
+    console.warn('[rate-limit] Upstash fetch failed:', err)
     return null
   }
 }
@@ -102,29 +114,14 @@ function checkInMemory(pathname: string, ip: string, limit: number): RateLimitRe
 /**
  * Check whether the given IP is within the rate limit for this route.
  * Returns `allowed: true` for routes that have no configured limit.
- *
- * Uses Upstash Redis in production (shared across all serverless instances).
- * Degrades gracefully to in-memory if Redis is not configured or unavailable.
  */
 export async function checkRateLimit(pathname: string, ip: string): Promise<RateLimitResult> {
   const limit = LIMITS[pathname]
   if (!limit) return { allowed: true, remaining: Infinity, limit: Infinity }
 
-  const limiter = await getUpstashLimiter(pathname, limit)
-
-  if (limiter) {
-    try {
-      const result = await limiter.limit(`${pathname}:${ip}`)
-      return {
-        allowed:   result.success,
-        remaining: result.remaining,
-        limit:     result.limit,
-      }
-    } catch (err) {
-      // Redis unavailable → degrade gracefully to in-memory for this request
-      console.warn('[rate-limit] Upstash request failed, falling back to in-memory:', err)
-    }
-  }
+  const key = `prestigo:rl:${pathname}:${ip}`
+  const upstash = await checkUpstash(key, limit)
+  if (upstash !== null) return upstash
 
   return checkInMemory(pathname, ip, limit)
 }
