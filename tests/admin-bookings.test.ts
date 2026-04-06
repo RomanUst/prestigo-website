@@ -29,7 +29,7 @@ vi.mock('@/lib/supabase', () => ({
 }))
 
 vi.mock('@/lib/booking-reference', () => ({
-  generateBookingReference: vi.fn(() => 'PRG-20260403-1234'),
+  generateBookingReference: vi.fn(() => 'PRG-20260403-AB12CD'),
 }))
 
 vi.mock('@/lib/currency', () => ({
@@ -321,7 +321,7 @@ describe('POST /api/admin/bookings', () => {
 
   it('Test 5: returns 201 with { booking } for valid payload and correct DB fields', async () => {
     const singleFn = vi.fn().mockResolvedValue({
-      data: { id: 'test-id', booking_reference: 'PRG-20260403-1234' },
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
       error: null,
     })
     const selectFn = vi.fn().mockReturnValue({ single: singleFn })
@@ -332,7 +332,7 @@ describe('POST /api/admin/bookings', () => {
     expect(res.status).toBe(201)
     const json = await res.json()
     expect(json).toHaveProperty('booking')
-    expect(json.booking).toMatchObject({ id: 'test-id', booking_reference: 'PRG-20260403-1234' })
+    expect(json.booking).toMatchObject({ id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' })
 
     // Verify insert was called with correct booking_source, payment_intent_id, status, booking_type
     expect(insertFn).toHaveBeenCalledWith(
@@ -349,7 +349,7 @@ describe('POST /api/admin/bookings', () => {
 
   it('Test 6: POST generates booking_reference matching PRG-YYYYMMDD-XXXX pattern', async () => {
     const singleFn = vi.fn().mockResolvedValue({
-      data: { id: 'test-id', booking_reference: 'PRG-20260403-1234' },
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
       error: null,
     })
     const selectFn = vi.fn().mockReturnValue({ single: singleFn })
@@ -361,7 +361,7 @@ describe('POST /api/admin/bookings', () => {
     expect(insertFn).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
-          booking_reference: expect.stringMatching(/^PRG-\d{8}-\d{4}$/),
+          booking_reference: expect.stringMatching(/^PRG-\d{8}-[A-F0-9]{6}$/),
         }),
       ])
     )

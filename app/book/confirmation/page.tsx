@@ -42,10 +42,22 @@ function generateICSContent(booking: {
   ].join('\r\n')
 }
 
+/**
+ * Validates a booking/quote reference against the expected format.
+ * Accepts both the current hex suffix (PRG-YYYYMMDD-AB12CD) and the
+ * legacy numeric suffix (PRG-YYYYMMDD-1234) for backward compatibility.
+ */
+function isValidRef(ref: string | null): ref is string {
+  if (!ref) return false
+  return /^(PRG|QR)-\d{8}-([A-F0-9]{6}|\d{4})$/.test(ref)
+}
+
 function ConfirmationContent() {
   const searchParams = useSearchParams()
   const type = searchParams.get('type')
-  const ref = searchParams.get('ref')
+  const rawRef = searchParams.get('ref')
+  // Reject refs that don't match the expected format — prevents crafted URLs
+  const ref = isValidRef(rawRef) ? rawRef : null
   const isQuote = type === 'quote'
 
   const storeRef = useRef(useBookingStore.getState())

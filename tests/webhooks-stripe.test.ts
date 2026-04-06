@@ -76,6 +76,13 @@ function makeRequest(body = 'raw-body', sig = 'valid-sig'): Request {
 
 beforeEach(() => {
   vi.clearAllMocks()
+
+  // Default: idempotency check returns null (new event, not yet processed)
+  const singleFn = vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } })
+  const eqFn    = vi.fn().mockReturnValue({ single: singleFn })
+  const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+  supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+
   // Default: valid payment_intent.succeeded event
   stripeStub.constructEvent.mockReturnValue({
     type: 'payment_intent.succeeded',
@@ -195,6 +202,26 @@ describe('/api/webhooks/stripe', () => {
       ;(sendClientConfirmation as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Resend down'))
       const res = await POST(makeRequest())
       expect(res.status).toBe(200)
+    })
+  })
+
+  describe('BACK-05: Idempotency', () => {
+    it('skips processing and returns 200 when booking already exists', async () => {
+      // Simulate: idempotency check finds an existing booking
+      const singleFn  = vi.fn().mockResolvedValue({ data: { id: 'existing-uuid' }, error: null })
+      const eqFn      = vi.fn().mockReturnValue({ single: singleFn })
+      const selectFn  = vi.fn().mockReturnValue({ eq: eqFn })
+      supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+      const json = await res.json()
+      expect(json).toEqual({ received: true })
+
+      // Must NOT save or send emails again
+      expect(saveBooking).not.toHaveBeenCalled()
+      expect(sendClientConfirmation).not.toHaveBeenCalled()
+      expect(sendManagerAlert).not.toHaveBeenCalled()
     })
   })
 })

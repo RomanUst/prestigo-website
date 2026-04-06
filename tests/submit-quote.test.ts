@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
+// Mock rate limiter — always allow in tests
+vi.mock('@/lib/rate-limit', () => ({
+  checkRateLimit: vi.fn().mockResolvedValue({ allowed: true, remaining: 99, limit: 100 }),
+  getClientIp: () => '127.0.0.1',
+}))
+
 // Mock lib/supabase
 vi.mock('@/lib/supabase', () => ({
   saveBooking: vi.fn().mockResolvedValue(undefined),
   withRetry: vi.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
-  buildBookingRow: vi.fn().mockReturnValue({ booking_reference: 'QR-20260330-5678', booking_type: 'quote', payment_intent_id: null }),
+  buildBookingRow: vi.fn().mockReturnValue({ booking_reference: 'QR-20260330-AB12CD', booking_type: 'quote', payment_intent_id: null }),
 }))
 
 // Mock lib/email
@@ -26,6 +32,7 @@ const mockQuoteBody = {
   pickupTime: '14:00',
   vehicleClass: 'business',
   passengers: 2,
+  luggage: 0,
   extras: { childSeat: false, meetAndGreet: true, extraLuggage: false },
   passengerDetails: {
     firstName: 'Jan',
@@ -46,7 +53,7 @@ function makeRequest(body: unknown = mockQuoteBody): Request {
 beforeEach(() => {
   vi.clearAllMocks()
   ;(withRetry as ReturnType<typeof vi.fn>).mockImplementation((fn: () => Promise<unknown>) => fn())
-  ;(buildBookingRow as ReturnType<typeof vi.fn>).mockReturnValue({ booking_reference: 'QR-20260330-5678', booking_type: 'quote', payment_intent_id: null })
+  ;(buildBookingRow as ReturnType<typeof vi.fn>).mockReturnValue({ booking_reference: 'QR-20260330-AB12CD', booking_type: 'quote', payment_intent_id: null })
   ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendManagerAlert as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendEmergencyAlert as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
@@ -58,7 +65,7 @@ describe('/api/submit-quote', () => {
       const res = await POST(makeRequest())
       expect(res.status).toBe(200)
       const json = await res.json()
-      expect(json.quoteReference).toMatch(/^QR-\d{8}-\d{4}$/)
+      expect(json.quoteReference).toMatch(/^QR-\d{8}-[A-F0-9]{6}$/)
     })
 
     it('returns 500 on malformed request body', async () => {
@@ -111,7 +118,7 @@ describe('/api/submit-quote', () => {
       ;(withRetry as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('Supabase down'))
       await POST(makeRequest())
       expect(sendEmergencyAlert).toHaveBeenCalledWith(
-        expect.stringMatching(/^QR-\d{8}-\d{4}$/),
+        expect.stringMatching(/^QR-\d{8}-[A-F0-9]{6}$/),
         expect.objectContaining({ booking_type: 'quote' })
       )
     })
@@ -121,7 +128,7 @@ describe('/api/submit-quote', () => {
       const res = await POST(makeRequest())
       expect(res.status).toBe(200)
       const json = await res.json()
-      expect(json.quoteReference).toMatch(/^QR-\d{8}-\d{4}$/)
+      expect(json.quoteReference).toMatch(/^QR-\d{8}-[A-F0-9]{6}$/)
     })
   })
 })

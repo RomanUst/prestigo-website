@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
@@ -36,12 +37,12 @@ const submitQuoteSchema = z.object({
 function generateQuoteReference(): string {
   const now = new Date()
   const datePart = now.toISOString().slice(0, 10).replace(/-/g, '')
-  const suffix = String(Math.floor(Math.random() * 9000) + 1000)
+  const suffix = randomBytes(3).toString('hex').toUpperCase() // 16^6 = 16.7M combinations
   return `QR-${datePart}-${suffix}`
 }
 
 export async function POST(req: Request) {
-  const { allowed, remaining, limit } = checkRateLimit('/api/submit-quote', getClientIp(req))
+  const { allowed, remaining, limit } = await checkRateLimit('/api/submit-quote', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(
       { error: 'Too many requests' },

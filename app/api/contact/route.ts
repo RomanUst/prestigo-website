@@ -12,7 +12,7 @@ const contactSchema = z.object({
 })
 
 export async function POST(req: Request) {
-  const { allowed, remaining, limit } = checkRateLimit('/api/contact', getClientIp(req))
+  const { allowed, remaining, limit } = await checkRateLimit('/api/contact', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(
       { error: 'Too many requests' },

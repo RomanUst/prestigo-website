@@ -6,6 +6,7 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import type { TripType, VehicleClass } from '@/types/booking'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -16,6 +17,21 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily']
 
 export async function POST(req: Request) {
+  const { allowed, remaining, limit } = await checkRateLimit('/api/create-payment-intent', getClientIp(req))
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': '60',
+          'X-RateLimit-Limit': String(limit),
+          'X-RateLimit-Remaining': String(remaining),
+        },
+      }
+    )
+  }
+
   try {
     const body = await req.json()
     const { bookingData } = body as { bookingData: Record<string, string> }
