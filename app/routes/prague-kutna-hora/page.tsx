@@ -153,8 +153,9 @@ export default function PragueKutnaHoraPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
-                <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9' }}>
-                  <img src={v.photo} alt={v.name} className="w-full h-full object-cover" style={{ filter: 'brightness(0.92)' }} />
+                <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}>
+                  <img src={v.photo} alt={v.name} className="w-full h-full object-cover object-top" style={{ filter: 'brightness(0.92)' }} />
+                  <div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} />
                 </div>
                 <div className="p-8 flex flex-col gap-6 flex-1">
                   <div>
