@@ -8,7 +8,7 @@ export const metadata: Metadata = {
     canonical: '/corporate',
   },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/corporate',
+    url: 'https://rideprestigo.com/corporate',
     title: 'Corporate Chauffeur Accounts Prague — PRESTIGO',
     description:
       'Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch, Mercedes fleet.',

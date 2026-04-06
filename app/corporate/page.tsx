@@ -8,6 +8,16 @@ type FormState = 'idle' | 'sending' | 'success'
 
 const WHATSAPP_NUMBER = '420725986855'
 
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Corporate Accounts', item: 'https://rideprestigo.com/corporate' },
+  ],
+}
+
 export default function CorporatePage() {
   const [form, setForm] = useState({ company: '', name: '', email: '', trips: '', notes: '' })
   const [state, setState] = useState<FormState>('idle')
@@ -34,6 +44,7 @@ export default function CorporatePage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">

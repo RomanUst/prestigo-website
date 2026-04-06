@@ -1,10 +1,10 @@
 const routes = [
-  { from: 'Prague', to: 'Vienna', distance: '330 km', duration: '~3.5 h', price: 'From €290' },
-  { from: 'Prague', to: 'Berlin', distance: '350 km', duration: '~4 h', price: 'From €310' },
-  { from: 'Prague', to: 'Munich', distance: '380 km', duration: '~4.5 h', price: 'From €330' },
-  { from: 'Prague', to: 'Budapest', distance: '530 km', duration: '~6 h', price: 'From €420' },
-  { from: 'Prague', to: 'Bratislava', distance: '330 km', duration: '~3.5 h', price: 'From €280' },
-  { from: 'Prague', to: 'Salzburg', distance: '410 km', duration: '~5 h', price: 'From €360' },
+  { from: 'Prague', to: 'Vienna', slug: 'prague-vienna', distance: '330 km', duration: '~3.5 h', price: 'From €290' },
+  { from: 'Prague', to: 'Berlin', slug: 'prague-berlin', distance: '350 km', duration: '~4 h', price: 'From €310' },
+  { from: 'Prague', to: 'Munich', slug: 'prague-munich', distance: '380 km', duration: '~4.5 h', price: 'From €330' },
+  { from: 'Prague', to: 'Budapest', slug: 'prague-budapest', distance: '530 km', duration: '~6 h', price: 'From €420' },
+  { from: 'Prague', to: 'Bratislava', slug: 'prague-bratislava', distance: '330 km', duration: '~3.5 h', price: 'From €280' },
+  { from: 'Prague', to: 'Salzburg', slug: 'prague-salzburg', distance: '410 km', duration: '~5 h', price: 'From €360' },
 ]
 
 export default function Routes() {
@@ -23,8 +23,9 @@ export default function Routes() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-anthracite-light">
           {routes.map((r) => (
-            <div
+            <a
               key={`${r.from}-${r.to}`}
+              href={`/routes/${r.slug}`}
               className="bg-anthracite-mid px-8 py-6 flex items-center justify-between hover:bg-anthracite transition-colors group"
             >
               <div className="flex items-center gap-4">
@@ -38,19 +39,14 @@ export default function Routes() {
                 </div>
               </div>
               <div className="text-right">
-                <p
-                  className="font-body font-light text-[11px] tracking-[0.1em] text-copper group-hover:text-copper-light transition-colors"
-                >
+                <p className="font-body font-light text-[11px] tracking-[0.1em] text-copper group-hover:text-copper-light transition-colors">
                   {r.price}
                 </p>
-                <a
-                  href="#book"
-                  className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey hover:text-offwhite transition-colors mt-1 block py-1"
-                >
-                  Book →
-                </a>
+                <span className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey group-hover:text-offwhite transition-colors mt-1 block py-1">
+                  View route →
+                </span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
 

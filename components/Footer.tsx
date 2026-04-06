@@ -43,6 +43,8 @@ export default function Footer() {
                 { label: 'Corporate Accounts', href: '/corporate' },
                 { label: 'VIP & Events', href: '/services' },
                 { label: 'Group Transfer', href: '/services' },
+                { label: 'About PRESTIGO', href: '/about' },
+                { label: 'FAQ', href: '/faq' },
               ].map((s) => (
                 <li key={s.label}>
                   <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors">

@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'PRESTIGO is Prague\'s only locally-rooted chauffeur service built to international luxury standards. Meet our team, learn our story, and understand why discerning travellers choose us.',
   alternates: { canonical: '/about' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/about',
+    url: 'https://rideprestigo.com/about',
     title: "About PRESTIGO — Prague's Premium Chauffeur Service",
     description: "PRESTIGO is Prague's only locally-rooted chauffeur service built to international luxury standards. Meet our team, learn our story, and understand why discerning travellers choose us.",
   },
@@ -36,10 +36,21 @@ const requirements = [
   'Uniformed: dark suit, clean shoes, no cologne',
 ]
 
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'About', item: 'https://rideprestigo.com/about' },
+  ],
+}
+
 export default function AboutPage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">

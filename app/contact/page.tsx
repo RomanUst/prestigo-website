@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
   alternates: { canonical: '/contact' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/contact',
+    url: 'https://rideprestigo.com/contact',
     title: 'Contact — PRESTIGO Premium Chauffeur Prague',
     description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
   },
@@ -16,15 +16,26 @@ export const metadata: Metadata = {
 
 const WHATSAPP_NUMBER = '420725986855'
 
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Contact', item: 'https://rideprestigo.com/contact' },
+  ],
+}
+
 export default function ContactPage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Get in touch</p>
+          <p className="label mb-6">Contact · Prague Chauffeur Service</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
             We are here.<br />
@@ -101,6 +112,97 @@ export default function ContactPage() {
           {/* Right — contact form */}
           <div className="md:col-span-3">
             <ContactForm />
+          </div>
+        </div>
+      </section>
+
+      {/* What to expect */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">What happens next</p>
+          <span className="copper-line mb-10 block" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {[
+              {
+                step: '01',
+                title: 'You reach out',
+                body: 'Send us a message via the form, WhatsApp, or email. Include your pickup location, destination, date, and time. No account required.',
+              },
+              {
+                step: '02',
+                title: 'We confirm within minutes',
+                body: 'During business hours, expect a response in under 15 minutes. Outside business hours, we aim to confirm within 2 hours. Your booking is not final until confirmed in writing.',
+              },
+              {
+                step: '03',
+                title: 'Your driver is there',
+                body: 'On the day, your assigned chauffeur arrives at the agreed location — on time, in uniform, name board held. For airport pickups, we track your flight automatically.',
+              },
+            ].map((s) => (
+              <div key={s.step} className="flex flex-col gap-4">
+                <p className="font-body font-light text-[10px] tracking-[0.25em] uppercase" style={{ color: 'var(--copper)' }}>{s.step}</p>
+                <h3 className="font-display font-light text-[20px] text-offwhite">{s.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Common enquiries */}
+      <section className="bg-anthracite py-16 md:py-20 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+          <div>
+            <p className="label mb-6">Common enquiries</p>
+            <span className="copper-line mb-10 block" />
+            <div className="flex flex-col gap-8">
+              {[
+                {
+                  q: 'I need an airport transfer from Prague Václav Havel (PRG).',
+                  a: 'Use the booking form or WhatsApp. Provide your flight number, arrival terminal, and destination address. We track the flight and adjust pickup time if it lands early or late.',
+                },
+                {
+                  q: 'I need a transfer to Vienna, Berlin, or another European city.',
+                  a: 'View our full route list, or simply tell us your pickup and destination. We serve 50 intercity routes from Prague with fixed prices and door-to-door service.',
+                },
+                {
+                  q: 'My company needs a corporate account.',
+                  a: 'We set up corporate accounts with monthly invoicing and a dedicated manager. Visit the Corporate page or describe your requirements in the form and we will follow up.',
+                },
+                {
+                  q: 'I need to cancel or change a booking.',
+                  a: 'Contact us via WhatsApp or email with your booking reference. Cancellations made at least 2 hours before departure are free of charge.',
+                },
+              ].map((item) => (
+                <div key={item.q} className="border-b border-anthracite-light pb-8 last:border-0 last:pb-0">
+                  <p className="font-body font-medium text-[12px] tracking-[0.03em] text-offwhite mb-2">{item.q}</p>
+                  <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-8">
+            <div>
+              <p className="label mb-6">Also useful</p>
+              <span className="copper-line mb-10 block" />
+              <div className="flex flex-col gap-4">
+                {[
+                  { label: 'Book online instantly', href: '/book', desc: 'Select route, vehicle, and date — confirmed in seconds.' },
+                  { label: 'View all 50 routes', href: '/routes', desc: 'Prague to Vienna, Berlin, Munich, and 47 more destinations.' },
+                  { label: 'Corporate accounts', href: '/corporate', desc: 'Monthly invoicing and dedicated management for companies.' },
+                  { label: 'Full FAQ', href: '/faq', desc: 'Cancellation, child seats, waiting time, and more.' },
+                ].map((link) => (
+                  <a
+                    key={link.href}
+                    href={link.href}
+                    className="flex flex-col gap-1 border border-anthracite-light px-5 py-4 hover:border-copper transition-colors group"
+                  >
+                    <p className="font-body font-medium text-[11px] tracking-[0.1em] uppercase text-offwhite group-hover:text-copper transition-colors">{link.label} →</p>
+                    <p className="body-text text-[11px]">{link.desc}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </section>

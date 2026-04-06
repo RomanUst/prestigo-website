@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Prague to Brno Private Transfer — From €340 | PRESTIGO',
+  title: 'Prague to Brno Private Transfer — From €340',
   description: 'Book a private chauffeur from Prague to Brno. 205 km on the D1 in a Mercedes-Benz. Fixed price from €340, Moravia\'s capital.',
   alternates: { canonical: '/routes/prague-brno' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/routes/prague-brno',
-    title: 'Prague to Brno Private Transfer — From €340 | PRESTIGO',
+    url: 'https://rideprestigo.com/routes/prague-brno',
+    title: 'Prague to Brno Private Transfer — From €340',
     description: 'Book a private chauffeur from Prague to Brno. 205 km on the D1 in a Mercedes-Benz. Fixed price from €340, Moravia\'s capital.',
   },
 }
@@ -46,10 +46,33 @@ const faqs = [
   { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. The V-Class is ideal for corporate delegations visiting trade fairs.' },
 ]
 
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+    { '@type': 'ListItem', position: 3, name: 'Prague to Brno', item: 'https://rideprestigo.com/routes/prague-brno' },
+  ],
+}
+
 export default function PragueBrnoPage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><img src="/photohero.png" alt="Brno" className="w-full h-full object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">

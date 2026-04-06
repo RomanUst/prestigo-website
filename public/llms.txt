@@ -33,7 +33,7 @@ All vehicles are Mercedes-Benz, late-model, fully insured, with pre-trip inspect
 
 ## Frequently Asked Questions
 
-**How do I book?** Book online at prestigo-site.vercel.app/book. Confirmation is instant.
+**How do I book?** Book online at rideprestigo.com/book. Confirmation is instant.
 
 **Are prices fixed?** Yes. All prices are fixed at the time of booking. No surge pricing, no hidden fees, tolls included.
 
@@ -43,7 +43,7 @@ All vehicles are Mercedes-Benz, late-model, fully insured, with pre-trip inspect
 
 **Do you provide child seats?** Yes. Child seats are available on request at no additional charge.
 
-**Do you offer corporate accounts?** Yes. Monthly invoicing, dedicated account manager, priority dispatch. Apply at prestigo-site.vercel.app/corporate.
+**Do you offer corporate accounts?** Yes. Monthly invoicing, dedicated account manager, priority dispatch. Apply at rideprestigo.com/corporate.
 
 ## Business Information
 
@@ -56,11 +56,11 @@ All vehicles are Mercedes-Benz, late-model, fully insured, with pre-trip inspect
 
 ## Pages
 
-- Homepage: https://prestigo-site.vercel.app
-- Services: https://prestigo-site.vercel.app/services
-- Fleet: https://prestigo-site.vercel.app/fleet
-- Routes: https://prestigo-site.vercel.app/routes
-- Corporate: https://prestigo-site.vercel.app/corporate
-- About: https://prestigo-site.vercel.app/about
-- FAQ: https://prestigo-site.vercel.app/faq
-- Contact: https://prestigo-site.vercel.app/contact
+- Homepage: https://rideprestigo.com
+- Services: https://rideprestigo.com/services
+- Fleet: https://rideprestigo.com/fleet
+- Routes: https://rideprestigo.com/routes
+- Corporate: https://rideprestigo.com/corporate
+- About: https://rideprestigo.com/about
+- FAQ: https://rideprestigo.com/faq
+- Contact: https://rideprestigo.com/contact

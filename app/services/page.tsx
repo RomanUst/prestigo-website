@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Chauffeur Services Prague — Airport, Intercity & Corporate | PRESTIGO',
+  title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',
   description: 'Premium chauffeur services in Prague: airport transfers, city-to-city routes, corporate accounts, VIP & events, city rides, group transfers. Fixed price, flight tracking, instant booking.',
   alternates: { canonical: '/services' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/services',
-    title: 'Chauffeur Services Prague — Airport, Intercity & Corporate | PRESTIGO',
+    url: 'https://rideprestigo.com/services',
+    title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',
     description: 'Premium chauffeur services in Prague: airport transfers, city-to-city routes, corporate accounts, VIP & events, city rides, group transfers. Fixed price, flight tracking, instant booking.',
   },
 }
@@ -85,15 +85,45 @@ const trust = [
   },
 ]
 
+const serviceListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'PRESTIGO Chauffeur Services Prague',
+  itemListElement: services.map((s, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Service',
+      name: s.title,
+      description: s.description,
+      provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      areaServed: 'Prague, Czech Republic',
+      url: `https://rideprestigo.com${s.href}`,
+      ...(s.price ? { offers: { '@type': 'Offer', price: s.price.replace(/[^0-9]/g, ''), priceCurrency: 'EUR' } } : {}),
+    },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://rideprestigo.com/services' },
+  ],
+}
+
 export default function ServicesPage() {
   return (
     <main id="main-content">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceListSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Nav />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Our Services</p>
+          <p className="label mb-6">Chauffeur Services · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
             Every journey.<br />

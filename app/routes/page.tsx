@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Prague Private Chauffeur — 50 Intercity Routes | PRESTIGO',
+  title: 'Prague Private Chauffeur — 50 Intercity Routes',
   description: 'Private chauffeur transfers from Prague to 50 destinations across Central Europe. Vienna from €485, Berlin from €580, Munich from €635, Paris from €1,735. Fixed price, door-to-door.',
   alternates: { canonical: '/routes' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/routes',
-    title: 'Prague Private Chauffeur — 50 Intercity Routes | PRESTIGO',
+    url: 'https://rideprestigo.com/routes',
+    title: 'Prague Private Chauffeur — 50 Intercity Routes',
     description: 'Private chauffeur transfers from Prague to 50 destinations across Central Europe. Vienna from €485, Berlin from €580, Munich from €635, Paris from €1,735. Fixed price, door-to-door.',
   },
 }
@@ -85,10 +85,21 @@ const faqs = [
   },
 ]
 
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+  ],
+}
+
 export default function RoutesPage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">

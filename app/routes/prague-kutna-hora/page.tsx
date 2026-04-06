@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Prague to Kutná Hora Private Transfer — From €115 | PRESTIGO',
+  title: 'Prague to Kutná Hora Private Transfer — From €115',
   description: 'Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €115, UNESCO old town, Sedlec Ossuary.',
   alternates: { canonical: '/routes/prague-kutna-hora' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/routes/prague-kutna-hora',
-    title: 'Prague to Kutná Hora Private Transfer — From €115 | PRESTIGO',
+    url: 'https://rideprestigo.com/routes/prague-kutna-hora',
+    title: 'Prague to Kutná Hora Private Transfer — From €115',
     description: 'Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €115, UNESCO old town, Sedlec Ossuary.',
   },
 }
@@ -46,10 +46,33 @@ const faqs = [
   { q: 'Can I combine Kutná Hora with Pardubice or Hradec Králové?', a: 'Yes. PRESTIGO can arrange a multi-stop day itinerary covering Kutná Hora and nearby East Bohemian towns. Contact us for custom route pricing.' },
 ]
 
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+    { '@type': 'ListItem', position: 3, name: 'Prague to Kutná Hora', item: 'https://rideprestigo.com/routes/prague-kutna-hora' },
+  ],
+}
+
 export default function PragueKutnaHoraPage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>

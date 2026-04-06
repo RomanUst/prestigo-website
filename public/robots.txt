@@ -15,4 +15,4 @@ Allow: /
 User-agent: Googlebot
 Allow: /
 
-Sitemap: https://prestigo-site.vercel.app/sitemap.xml
+Sitemap: https://rideprestigo.com/sitemap.xml

@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Prague to Karlovy Vary Private Transfer — From €215 | PRESTIGO',
+  title: 'Prague to Karlovy Vary Private Transfer — From €215',
   description: 'Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €215, spa town luxury transfer.',
   alternates: { canonical: '/routes/prague-karlovy-vary' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/routes/prague-karlovy-vary',
-    title: 'Prague to Karlovy Vary Private Transfer — From €215 | PRESTIGO',
+    url: 'https://rideprestigo.com/routes/prague-karlovy-vary',
+    title: 'Prague to Karlovy Vary Private Transfer — From €215',
     description: 'Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €215, spa town luxury transfer.',
   },
 }
@@ -46,10 +46,33 @@ const faqs = [
   { q: 'What vehicles are available on this route?', a: 'Mercedes-Benz E-Class for individuals or small groups, S-Class for a more executive experience, and V-Class for groups of up to 6 passengers.' },
 ]
 
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+    { '@type': 'ListItem', position: 3, name: 'Prague to Karlovy Vary', item: 'https://rideprestigo.com/routes/prague-karlovy-vary' },
+  ],
+}
+
 export default function PragueKarlovyVaryPage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>

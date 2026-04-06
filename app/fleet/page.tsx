@@ -4,12 +4,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Our Fleet — Mercedes Chauffeur Cars Prague | PRESTIGO',
+  title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
   description: 'Travel in a Mercedes E-Class, S-Class or V-Class. PRESTIGO operates a modern, fully insured Mercedes fleet for executive transfers in Prague and across Central Europe.',
   alternates: { canonical: '/fleet' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/fleet',
-    title: 'Our Fleet — Mercedes Chauffeur Cars Prague | PRESTIGO',
+    url: 'https://rideprestigo.com/fleet',
+    title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
     description: 'Travel in a Mercedes E-Class, S-Class or V-Class. PRESTIGO operates a modern, fully insured Mercedes fleet for executive transfers in Prague and across Central Europe.',
   },
 }
@@ -54,15 +54,48 @@ const standards = [
   { title: 'Chargers & Wi-Fi', body: 'Stay connected on the move' },
 ]
 
+const vehicleListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'PRESTIGO Mercedes Fleet Prague',
+  itemListElement: vehicles.map((v, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Product',
+      name: v.model,
+      description: v.description,
+      brand: { '@type': 'Brand', name: 'Mercedes-Benz' },
+      offers: {
+        '@type': 'Offer',
+        price: v.price.replace(/[^0-9]/g, ''),
+        priceCurrency: 'EUR',
+        seller: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      },
+    },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Fleet', item: 'https://rideprestigo.com/fleet' },
+  ],
+}
+
 export default function FleetPage() {
   return (
     <main id="main-content">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleListSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <Nav />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">The Fleet</p>
+          <p className="label mb-6">Mercedes Fleet · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
             The vehicle is part<br />

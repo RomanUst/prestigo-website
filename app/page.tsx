@@ -51,6 +51,23 @@ const localBusinessSchema = {
     latitude: '50.0755',
     longitude: '14.4378',
   },
+  image: 'https://rideprestigo.com/photohero.png',
+  sameAs: [
+    'https://www.instagram.com/rideprestigo/',
+    'https://www.facebook.com/profile.php?id=61574283117859',
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+420-725-986-855',
+    contactType: 'customer service',
+    availableLanguage: ['English', 'Czech'],
+    hoursAvailable: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '00:00',
+      closes: '23:59',
+    },
+  },
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',

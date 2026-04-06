@@ -3,12 +3,12 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Prague to Hradec Králové Private Transfer — From €190 | PRESTIGO',
+  title: 'Prague to Hradec Králové Private Transfer — From €190',
   description: 'Book a private chauffeur from Prague to Hradec Králové. 115 km on the D11 in a Mercedes-Benz. Fixed price from €190.',
   alternates: { canonical: '/routes/prague-hradec-kralove' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/routes/prague-hradec-kralove',
-    title: 'Prague to Hradec Králové Private Transfer — From €190 | PRESTIGO',
+    url: 'https://rideprestigo.com/routes/prague-hradec-kralove',
+    title: 'Prague to Hradec Králové Private Transfer — From €190',
     description: 'Book a private chauffeur from Prague to Hradec Králové. 115 km on the D11 in a Mercedes-Benz. Fixed price from €190.',
   },
 }
@@ -46,10 +46,33 @@ const faqs = [
   { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Hradec Králové route.' },
 ]
 
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map(f => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+    { '@type': 'ListItem', position: 3, name: 'Prague to Hradec Králové', item: 'https://rideprestigo.com/routes/prague-hradec-kralove' },
+  ],
+}
+
 export default function PragueHradecKralovePage() {
   return (
     <main id="main-content">
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><img src="/photohero.png" alt="Hradec Králové" className="w-full h-full object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">

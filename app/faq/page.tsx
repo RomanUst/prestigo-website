@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
   alternates: { canonical: '/faq' },
   openGraph: {
-    url: 'https://prestigo-site.vercel.app/faq',
+    url: 'https://rideprestigo.com/faq',
     title: 'FAQ — PRESTIGO Prague Chauffeur Service | Prices, Booking & More',
     description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
   },
@@ -127,7 +127,7 @@ const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: [
-    { '@type': 'Question', name: 'How do I book a PRESTIGO transfer?', acceptedAnswer: { '@type': 'Answer', text: 'Book online at prestigo-site.vercel.app/book. Select your route, vehicle, and date. Confirmation is instant — no waiting for a callback.' } },
+    { '@type': 'Question', name: 'How do I book a PRESTIGO transfer?', acceptedAnswer: { '@type': 'Answer', text: 'Book online at rideprestigo.com/book. Select your route, vehicle, and date. Confirmation is instant — no waiting for a callback.' } },
     { '@type': 'Question', name: 'Is the price fixed?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. The price shown at booking is the price you pay. No surge pricing. No hidden tolls. No extras unless you request them.' } },
     { '@type': 'Question', name: 'What happens if my flight is delayed?', acceptedAnswer: { '@type': 'Answer', text: 'Your driver monitors your flight in real time. A delay costs you nothing extra — your driver adjusts automatically.' } },
     { '@type': 'Question', name: 'Can I cancel my booking?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Free cancellation up to 1 hour before the scheduled pickup. Later cancellations may be subject to a fee.' } },
@@ -138,11 +138,22 @@ const faqSchema = {
   ],
 }
 
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'FAQ', item: 'https://rideprestigo.com/faq' },
+  ],
+}
+
 export default function FaqPage() {
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">

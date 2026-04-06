@@ -48,6 +48,10 @@ export const metadata: Metadata = {
     title: 'PRESTIGO — Premium Chauffeur Service Prague',
     description:
       'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
+    images: ['/photohero.png'],
+  },
+  icons: {
+    apple: '/apple-touch-icon.png',
   },
   robots: {
     index: true,
@@ -64,6 +68,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <meta property="og:image" content="https://rideprestigo.com/photohero.png" />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+      </head>
       <body className={`${cormorant.variable} ${montserrat.variable}`}>
         <a href="#main-content" className="skip-link btn-primary">
           Skip to content
