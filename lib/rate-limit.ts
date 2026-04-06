@@ -43,13 +43,14 @@ async function checkUpstash(key: string, limit: number): Promise<RateLimitResult
   ].join(' ')
 
   try {
-    const res = await fetch(`${url}/eval`, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify([luaScript, 1, key]),
+      // Upstash REST API: send full Redis command as JSON array
+      body: JSON.stringify(['EVAL', luaScript, 1, key]),
       // Tell Next.js not to cache this request
       cache: 'no-store',
     })

@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Upstash packages use native Node.js fetch and must not be bundled by webpack
-  serverExternalPackages: ['@upstash/redis', '@upstash/ratelimit', '@upstash/core-analytics'],
   images: {
     remotePatterns: [
       {
