@@ -9,9 +9,6 @@
  * All calls are async so they work transparently with both backends.
  */
 
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
-
 /** Max requests per IP per 60-second sliding window, keyed by route pathname */
 const LIMITS: Record<string, number> = {
   '/api/calculate-price':       30, // users recalculate several times while booking
@@ -28,30 +25,36 @@ export interface RateLimitResult {
 
 // ── Upstash distributed backend (production) ─────────────────────────────────
 
-let redis: Redis | null = null
-const upstashLimiters = new Map<string, Ratelimit>()
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let _redis: any = null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const upstashLimiters = new Map<string, any>()
 
-function getRedis(): Redis | null {
-  if (redis) return redis
-  const url  = process.env.UPSTASH_REDIS_REST_URL
+async function getUpstashLimiter(pathname: string, maxRequests: number) {
+  const url   = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
-  redis = new Redis({ url, token })
-  return redis
-}
 
-function getUpstashLimiter(pathname: string, maxRequests: number): Ratelimit | null {
-  const r = getRedis()
-  if (!r) return null
+  try {
+    if (!_redis) {
+      const { Redis } = await import('@upstash/redis')
+      _redis = new Redis({ url, token })
+    }
 
-  if (!upstashLimiters.has(pathname)) {
-    upstashLimiters.set(pathname, new Ratelimit({
-      redis: r,
-      limiter: Ratelimit.slidingWindow(maxRequests, '60 s'),
-      prefix: `prestigo:rl`,
-    }))
+    if (!upstashLimiters.has(pathname)) {
+      const { Ratelimit } = await import('@upstash/ratelimit')
+      upstashLimiters.set(pathname, new Ratelimit({
+        redis:   _redis,
+        limiter: Ratelimit.slidingWindow(maxRequests, '60 s'),
+        prefix:  'prestigo:rl',
+      }))
+    }
+
+    return upstashLimiters.get(pathname)
+  } catch (err) {
+    console.warn('[rate-limit] Failed to initialise Upstash limiter:', err)
+    return null
   }
-  return upstashLimiters.get(pathname)!
 }
 
 // ── In-memory fallback (development / Redis unavailable) ─────────────────────
@@ -107,7 +110,7 @@ export async function checkRateLimit(pathname: string, ip: string): Promise<Rate
   const limit = LIMITS[pathname]
   if (!limit) return { allowed: true, remaining: Infinity, limit: Infinity }
 
-  const limiter = getUpstashLimiter(pathname, limit)
+  const limiter = await getUpstashLimiter(pathname, limit)
 
   if (limiter) {
     try {
