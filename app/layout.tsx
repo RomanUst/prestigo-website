@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Montserrat } from 'next/font/google'
-import Script from 'next/script'
 import './globals.css'
-
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? 'G-SX98ZT7YRN'
+import GoogleAnalytics from '@/components/GoogleAnalytics'
+import CookieBanner from '@/components/CookieBanner'
 
 const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
@@ -65,25 +64,13 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
-      <head>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="ga-init" strategy="afterInteractive">
-          {`
-            window.dataLayer = window.dataLayer || [];
-            function gtag(){dataLayer.push(arguments);}
-            gtag('js', new Date());
-            gtag('config', '${GA_ID}');
-          `}
-        </Script>
-      </head>
       <body className={`${cormorant.variable} ${montserrat.variable}`}>
         <a href="#main-content" className="skip-link btn-primary">
           Skip to content
         </a>
         {children}
+        <GoogleAnalytics />
+        <CookieBanner />
       </body>
     </html>
   )

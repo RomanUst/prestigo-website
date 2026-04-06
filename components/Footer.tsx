@@ -115,6 +115,23 @@ export default function Footer() {
           <p className="font-body font-light text-[10px] tracking-[0.15em] uppercase" style={{ color: 'var(--warmgrey)' }}>
             © {new Date().getFullYear()} PRESTIGO. All rights reserved.
           </p>
+          <div className="flex items-center gap-3">
+            <a
+              href="/privacy"
+              className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              Privacy Policy
+            </a>
+            <span className="text-anthracite-light">|</span>
+            <a
+              href="/terms"
+              className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors"
+              style={{ color: 'var(--warmgrey)' }}
+            >
+              Terms
+            </a>
+          </div>
           <div className="flex items-center gap-4">
             <a
               href="https://www.instagram.com/rideprestigo/"

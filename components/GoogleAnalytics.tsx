@@ -1,0 +1,34 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Script from 'next/script'
+import { getConsent } from './CookieBanner'
+
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? 'G-SX98ZT7YRN'
+
+export default function GoogleAnalytics() {
+  const [allowed, setAllowed] = useState(false)
+
+  useEffect(() => {
+    setAllowed(getConsent() === 'granted')
+  }, [])
+
+  if (!allowed) return null
+
+  return (
+    <>
+      <Script
+        src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
+        strategy="afterInteractive"
+      />
+      <Script id="ga-init" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GA_ID}');
+        `}
+      </Script>
+    </>
+  )
+}
