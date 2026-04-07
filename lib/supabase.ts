@@ -44,6 +44,7 @@ export function buildBookingRow(
   return {
     booking_reference: meta.bookingReference,
     payment_intent_id: paymentIntentId,
+    leg: 'outbound' as const, // webhooks and quote submissions always create the outbound leg
     booking_type: bookingType,
     trip_type: meta.tripType,
     origin_address: meta.originAddress ?? meta.origin ?? null,
@@ -75,10 +76,22 @@ export function buildBookingRow(
   }
 }
 
-export async function saveBooking(row: ReturnType<typeof buildBookingRow>) {
+/**
+ * Insert a booking row. Returns the inserted rows (one element) if the row
+ * was new, or an empty array if the row was a duplicate of an existing
+ * (payment_intent_id, leg) pair — which is the idempotency signal for the
+ * webhook to skip sending emails on Stripe retries.
+ *
+ * Uses upsert with ignoreDuplicates so concurrent duplicate inserts do NOT
+ * raise an error — the DB constraint enforces atomicity, eliminating the
+ * TOCTOU race of a SELECT-then-INSERT pattern.
+ */
+export async function saveBooking(row: ReturnType<typeof buildBookingRow>): Promise<{ id: string }[]> {
   const supabase = createSupabaseServiceClient()
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('bookings')
-    .upsert([row], { onConflict: 'payment_intent_id', ignoreDuplicates: true })
+    .upsert([row], { onConflict: 'payment_intent_id,leg', ignoreDuplicates: true })
+    .select('id')
   if (error) throw new Error(`Supabase insert failed: ${error.message}`)
+  return data ?? []
 }

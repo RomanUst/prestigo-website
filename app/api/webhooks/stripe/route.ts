@@ -47,32 +47,30 @@ export async function POST(request: Request) {
     const meta = paymentIntent.metadata
     const bookingReference = meta.bookingReference || 'UNKNOWN'
 
-    // Idempotency guard — Stripe retries webhooks on non-2xx or network errors,
-    // so the same event can arrive more than once. Skip processing if a booking
-    // for this PaymentIntent already exists to prevent duplicate emails.
-    const supabase = createSupabaseServiceClient()
-    const { data: existing } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('payment_intent_id', paymentIntent.id)
-      .single()
-
-    if (existing) {
-      return NextResponse.json({ received: true })
-    }
-
     // 1. Build row from metadata
     const bookingRow = buildBookingRow(meta, paymentIntent.id, 'confirmed')
 
-    // 2. Save to Supabase with retry (3 attempts, exponential backoff)
+    // 2. Save to Supabase with retry (3 attempts, exponential backoff).
+    //
+    // Idempotency: saveBooking uses upsert with ignoreDuplicates=true on the
+    // composite (payment_intent_id, leg) unique constraint. The DB enforces
+    // atomicity — no TOCTOU race. If the row already exists (Stripe retry),
+    // saveBooking returns [] and we skip sending emails.
+    let inserted: { id: string }[] = []
     try {
-      await withRetry(() => saveBooking(bookingRow), 3, 1000)
+      inserted = await withRetry(() => saveBooking(bookingRow), 3, 1000)
     } catch (err) {
       // Log only the error message — never log the full bookingRow which
       // contains PII (email, phone, special requests).
       console.error('Supabase save failed after 3 retries:', err instanceof Error ? err.message : 'Unknown error')
       // Emergency fallback: send booking data to manager via email
       await sendEmergencyAlert(bookingReference, bookingRow)
+      return NextResponse.json({ received: true })
+    }
+
+    // Duplicate event — row already existed, emails already sent.
+    if (inserted.length === 0) {
+      return NextResponse.json({ received: true })
     }
 
     // 3. Build email data from metadata

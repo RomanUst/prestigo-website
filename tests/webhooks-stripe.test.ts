@@ -13,7 +13,7 @@ const { supabaseServiceStub } = vi.hoisted(() => {
 
 // Mock lib/supabase
 vi.mock('@/lib/supabase', () => ({
-  saveBooking: vi.fn().mockResolvedValue(undefined),
+  saveBooking: vi.fn().mockResolvedValue([{ id: 'new-booking-uuid' }]),
   withRetry: vi.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),
   buildBookingRow: vi.fn().mockReturnValue({ booking_reference: 'PRG-20260330-1234', booking_type: 'confirmed' }),
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
@@ -77,12 +77,6 @@ function makeRequest(body = 'raw-body', sig = 'valid-sig'): Request {
 beforeEach(() => {
   vi.clearAllMocks()
 
-  // Default: idempotency check returns null (new event, not yet processed)
-  const singleFn = vi.fn().mockResolvedValue({ data: null, error: { code: 'PGRST116' } })
-  const eqFn    = vi.fn().mockReturnValue({ single: singleFn })
-  const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
-  supabaseServiceStub.from.mockReturnValue({ select: selectFn })
-
   // Default: valid payment_intent.succeeded event
   stripeStub.constructEvent.mockReturnValue({
     type: 'payment_intent.succeeded',
@@ -90,7 +84,7 @@ beforeEach(() => {
   })
   ;(withRetry as ReturnType<typeof vi.fn>).mockImplementation((fn: () => Promise<unknown>) => fn())
   ;(buildBookingRow as ReturnType<typeof vi.fn>).mockReturnValue({ booking_reference: 'PRG-20260330-1234', booking_type: 'confirmed' })
-  ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+  ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'new-booking-uuid' }])
   ;(sendClientConfirmation as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendManagerAlert as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendEmergencyAlert as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
@@ -206,20 +200,17 @@ describe('/api/webhooks/stripe', () => {
   })
 
   describe('BACK-05: Idempotency', () => {
-    it('skips processing and returns 200 when booking already exists', async () => {
-      // Simulate: idempotency check finds an existing booking
-      const singleFn  = vi.fn().mockResolvedValue({ data: { id: 'existing-uuid' }, error: null })
-      const eqFn      = vi.fn().mockReturnValue({ single: singleFn })
-      const selectFn  = vi.fn().mockReturnValue({ eq: eqFn })
-      supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+    it('skips emails and returns 200 when saveBooking signals duplicate (returns [])', async () => {
+      // Simulate: DB upsert with ignoreDuplicates=true found an existing row — returns empty array
+      ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue([])
 
       const res = await POST(makeRequest())
       expect(res.status).toBe(200)
       const json = await res.json()
       expect(json).toEqual({ received: true })
 
-      // Must NOT save or send emails again
-      expect(saveBooking).not.toHaveBeenCalled()
+      // saveBooking was still called (DB handles dedup), but emails must be skipped
+      expect(saveBooking).toHaveBeenCalled()
       expect(sendClientConfirmation).not.toHaveBeenCalled()
       expect(sendManagerAlert).not.toHaveBeenCalled()
     })
