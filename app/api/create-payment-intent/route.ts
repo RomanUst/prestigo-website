@@ -170,10 +170,9 @@ export async function POST(req: Request) {
       bookingReference,
     })
   } catch (error) {
-    const msg = error instanceof Error ? error.message : String(error)
-    console.error('create-payment-intent error:', msg)
+    console.error('create-payment-intent error:', error instanceof Error ? error.message : String(error))
     return NextResponse.json(
-      { error: msg || 'Failed to create payment intent' },
+      { error: 'Failed to create payment intent. Please try again.' },
       { status: 500 }
     )
   }

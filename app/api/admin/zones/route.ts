@@ -77,6 +77,9 @@ export async function DELETE(request: Request) {
 
   const id = new URL(request.url).searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id parameter' }, { status: 400 })
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return NextResponse.json({ error: 'Invalid id format' }, { status: 400 })
+  }
 
   const supabase = createSupabaseServiceClient()
   const { error: dbError } = await supabase

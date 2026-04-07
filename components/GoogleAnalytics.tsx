@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Script from 'next/script'
 import { getConsent } from './CookieBanner'
 
-const GA_ID = process.env.NEXT_PUBLIC_GA_ID ?? 'G-SX98ZT7YRN'
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 
 export default function GoogleAnalytics() {
   const [allowed, setAllowed] = useState(false)
@@ -13,7 +13,7 @@ export default function GoogleAnalytics() {
     setAllowed(getConsent() === 'granted')
   }, [])
 
-  if (!allowed) return null
+  if (!allowed || !GA_ID) return null
 
   return (
     <>

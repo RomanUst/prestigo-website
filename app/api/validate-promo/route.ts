@@ -1,7 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 export async function GET(request: Request) {
+  const { allowed } = await checkRateLimit('/api/validate-promo', getClientIp(request))
+  if (!allowed) {
+    return NextResponse.json(
+      { valid: false, error: 'Too many requests. Please try again later.' },
+      { status: 429, headers: { 'Retry-After': '60' } }
+    )
+  }
+
   const code = new URL(request.url).searchParams.get('code')?.trim().toUpperCase()
   if (!code) {
     return NextResponse.json({ valid: false, error: 'No code provided.' })

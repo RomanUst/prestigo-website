@@ -3,8 +3,16 @@ import { updateSession } from '@/lib/supabase/middleware'
 
 const MUTATION_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE'])
 
+// Public endpoints that mutate state — require Origin validation to prevent CSRF
+const CSRF_PROTECTED_PREFIXES = [
+  '/api/admin',
+  '/api/submit-quote',
+  '/api/contact',
+  '/api/create-payment-intent',
+]
+
 /**
- * CSRF protection for admin mutation endpoints via Origin header validation.
+ * CSRF protection via Origin header validation for all mutation endpoints.
  *
  * How it works:
  * - Browsers always include the `Origin` header on cross-origin requests.
@@ -12,8 +20,10 @@ const MUTATION_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE'])
  * - If Origin is absent (server-to-server, curl) → allow through (not a browser CSRF vector).
  * - Combined with Supabase SSR's SameSite=Lax cookies, this gives defence-in-depth.
  */
-function checkAdminCsrf(request: NextRequest): NextResponse | null {
-  if (!request.nextUrl.pathname.startsWith('/api/admin')) return null
+function checkCsrf(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl
+  const isCsrfProtected = CSRF_PROTECTED_PREFIXES.some(p => pathname.startsWith(p))
+  if (!isCsrfProtected) return null
   if (!MUTATION_METHODS.has(request.method)) return null
 
   const origin = request.headers.get('origin')
@@ -33,7 +43,7 @@ function checkAdminCsrf(request: NextRequest): NextResponse | null {
 }
 
 export async function middleware(request: NextRequest) {
-  const csrfError = checkAdminCsrf(request)
+  const csrfError = checkCsrf(request)
   if (csrfError) return csrfError
   return await updateSession(request)
 }

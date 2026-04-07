@@ -16,6 +16,8 @@ const LIMITS: Record<string, number> = {
   '/api/submit-quote':           5, // 5 quote submissions per minute is already suspicious
   '/api/contact':                3, // 3 contact form submissions per minute
   '/api/create-payment-intent': 10, // prevent cost abuse and promo-code enumeration
+  '/api/validate-promo':        20, // prevent promo code enumeration
+  '/admin/login':                5, // prevent brute force on admin credentials
 }
 
 export interface RateLimitResult {

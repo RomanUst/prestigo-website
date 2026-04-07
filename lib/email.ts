@@ -358,7 +358,20 @@ export async function sendEmergencyAlert(
   bookingReference: string,
   bookingRow: Record<string, unknown>
 ): Promise<void> {
-  const text = `Supabase save failed after 3 retries.\nFull booking data as JSON follows.\nClient confirmation email has been sent.\n\n${JSON.stringify(bookingRow, null, 2)}`
+  // Only include non-PII fields in the alert — client email/phone/name stay out of email.
+  const safeSummary = {
+    booking_reference: bookingRow.booking_reference,
+    trip_type: bookingRow.trip_type,
+    vehicle_class: bookingRow.vehicle_class,
+    pickup_date: bookingRow.pickup_date,
+    pickup_time: bookingRow.pickup_time,
+    origin_address: bookingRow.origin_address,
+    destination_address: bookingRow.destination_address,
+    amount_eur: bookingRow.amount_eur,
+    amount_czk: bookingRow.amount_czk,
+    stripe_payment_intent_id: bookingRow.stripe_payment_intent_id,
+  }
+  const text = `Supabase save failed after 3 retries.\nClient confirmation email has been sent.\nRetrieve full booking details from Stripe dashboard using the payment intent ID below.\n\n${JSON.stringify(safeSummary, null, 2)}`
 
   try {
     const { error } = await resend.emails.send({

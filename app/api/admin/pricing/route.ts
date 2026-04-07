@@ -13,7 +13,7 @@ async function getAdminUser() {
 }
 
 const pricingConfigSchema = z.object({
-  vehicle_class: z.string(),
+  vehicle_class: z.enum(['business', 'first_class', 'business_van']),
   rate_per_km: z.number().positive(),
   hourly_rate: z.number().positive(),
   daily_rate: z.number().positive(),

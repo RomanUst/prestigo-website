@@ -1,11 +1,28 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { buildPriceMap, dateDiffDays } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
-import type { TripType } from '@/types/booking'
 import type { PricingGlobals } from '@/lib/pricing-config'
+
+const coordSchema = z.object({
+  lat: z.number().finite().min(-90).max(90),
+  lng: z.number().finite().min(-180).max(180),
+}).nullable()
+
+const calculatePriceSchema = z.object({
+  origin: coordSchema,
+  destination: coordSchema,
+  tripType: z.enum(['transfer', 'hourly', 'daily']),
+  hours: z.number().int().min(1).max(24).optional().default(2),
+  pickupDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  returnDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
+  pickupTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+  returnTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
+  isAirport: z.boolean().optional().default(false),
+})
 
 export function isHolidayDate(pickupDate: string | null, holidayDates: string[]): boolean {
   if (!pickupDate || holidayDates.length === 0) return false
@@ -70,18 +87,12 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json()
-    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, returnTime, isAirport } = body as {
-      origin: { lat: number; lng: number } | null
-      destination: { lat: number; lng: number } | null
-      tripType: TripType
-      hours: number
-      pickupDate: string | null
-      returnDate: string | null
-      pickupTime: string | null
-      returnTime: string | null
-      isAirport: boolean
+    const rawBody = await req.json()
+    const parsed = calculatePriceSchema.safeParse(rawBody)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
+    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, returnTime, isAirport } = parsed.data
     // Detect airport server-side by coordinates (not by client-provided placeId,
     // which can mismatch between Places API versions).
     const airportFlag = isNearAirport(origin) || isNearAirport(destination) || isAirport === true
@@ -95,12 +106,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
     }
 
-    const isHoliday = isHolidayDate(pickupDate, rates.globals.holidayDates)
+    const isHoliday = isHolidayDate(pickupDate ?? null, rates.globals.holidayDates)
 
     // Hourly: no distance needed, no zone check
     if (tripType === 'hourly') {
       const prices = buildPriceMap('hourly', null, hours || 2, 0, rates)
-      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
+      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
       return NextResponse.json({ prices: adjusted, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false })
     }
 
@@ -111,7 +122,7 @@ export async function POST(req: Request) {
       }
       const days = dateDiffDays(pickupDate, returnDate)
       const prices = buildPriceMap('daily', null, 0, days, rates)
-      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
+      const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
       return NextResponse.json({ prices: adjusted, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false })
     }
 
@@ -172,14 +183,14 @@ export async function POST(req: Request) {
 
     const distanceKm = distanceMeters / 1000
     const prices = buildPriceMap('transfer', distanceKm, 0, 0, rates)
-    const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime), isHoliday, rates.minFare)
+    const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
     const discountPct = rates.globals.returnDiscountPercent
 
     // Compute return-leg price ONLY when returnDate + returnTime are both provided
     let returnLegPrices: Record<string, { base: number; extras: number; total: number; currency: string }> | null = null
     if (returnDate && returnTime) {
-      const isReturnNight = isNightTime(returnTime)
-      const isReturnHoliday = isHolidayDate(returnDate, rates.globals.holidayDates)
+      const isReturnNight = isNightTime(returnTime ?? null)
+      const isReturnHoliday = isHolidayDate(returnDate ?? null, rates.globals.holidayDates)
       // Reuse distanceKm from outbound — no second Google Routes call (RTPR-01)
       const returnBase = buildPriceMap('transfer', distanceKm, 0, 0, rates)
       const returnAdjusted = applyGlobals(returnBase, rates.globals, airportFlag, isReturnNight, isReturnHoliday, rates.minFare)
