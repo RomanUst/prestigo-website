@@ -19,7 +19,7 @@ function checkAdminCsrf(request: NextRequest): NextResponse | null {
   const origin = request.headers.get('origin')
   if (!origin) return null // no Origin header → server-to-server, not a browser CSRF attack
 
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')) ?? request.nextUrl.origin
 
   const allowedOrigins = new Set(
     [siteUrl, 'http://localhost:3000', 'http://localhost:3001'].filter(Boolean)
