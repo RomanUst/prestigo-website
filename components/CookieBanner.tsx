@@ -21,12 +21,34 @@ export default function CookieBanner() {
   function handleAccept() {
     localStorage.setItem(CONSENT_KEY, 'granted')
     setVisible(false)
-    window.location.reload()
+    // Consent Mode v2 — flip analytics_storage to granted in-place so gtag.js
+    // retroactively unlocks analytics cookies + any queued events, without
+    // needing a page reload. Ad categories stay 'denied' because the banner
+    // copy explicitly promises "No advertising cookies" — flipping them on
+    // here would contradict the banner and break GDPR compliance.
+    if (typeof window !== 'undefined') {
+      const w = window as typeof window & {
+        dataLayer?: unknown[]
+        gtag?: (...args: unknown[]) => void
+      }
+      if (typeof w.gtag === 'function') {
+        w.gtag('consent', 'update', {
+          analytics_storage: 'granted',
+        })
+      } else {
+        // gtag.js not loaded yet (e.g. still waiting on afterInteractive) —
+        // push directly to dataLayer so gtag.js picks it up on init.
+        w.dataLayer = w.dataLayer || []
+        w.dataLayer.push(['consent', 'update', { analytics_storage: 'granted' }])
+      }
+    }
   }
 
   function handleNecessary() {
     localStorage.setItem(CONSENT_KEY, 'necessary')
     setVisible(false)
+    // No gtag update needed — default is already 'denied' for everything
+    // except session-level cookieless pings, which is exactly what we want.
   }
 
   if (!visible) return null
