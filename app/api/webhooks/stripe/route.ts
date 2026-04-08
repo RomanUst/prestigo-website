@@ -4,7 +4,15 @@ import { saveBooking, withRetry, buildBookingRow, createSupabaseServiceClient } 
 import { sendClientConfirmation, sendManagerAlert, sendEmergencyAlert } from '@/lib/email'
 import type { BookingEmailData } from '@/lib/email'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+// Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
+let _stripe: Stripe | null = null
+function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured')
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY)
+  }
+  return _stripe
+}
 
 export async function POST(request: Request) {
   const sig = request.headers.get('stripe-signature')
@@ -17,7 +25,7 @@ export async function POST(request: Request) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!

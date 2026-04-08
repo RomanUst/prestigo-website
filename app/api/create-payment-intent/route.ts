@@ -9,10 +9,18 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import type { TripType, VehicleClass } from '@/types/booking'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  httpClient: Stripe.createFetchHttpClient(),
-  maxNetworkRetries: 0,
-})
+// Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
+let _stripe: Stripe | null = null
+function getStripe(): Stripe {
+  if (!_stripe) {
+    if (!process.env.STRIPE_SECRET_KEY) throw new Error('STRIPE_SECRET_KEY is not configured')
+    _stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      httpClient: Stripe.createFetchHttpClient(),
+      maxNetworkRetries: 0,
+    })
+  }
+  return _stripe
+}
 
 const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily']
 
@@ -128,7 +136,7 @@ export async function POST(req: Request) {
       ? Math.round(finalTotalEur * 100)
       : Math.round(totalCzk * 100)
 
-    const paymentIntent = await stripe.paymentIntents.create({
+    const paymentIntent = await getStripe().paymentIntents.create({
       amount: stripeAmount,
       currency: paymentCurrency,
       automatic_payment_methods: { enabled: true },
