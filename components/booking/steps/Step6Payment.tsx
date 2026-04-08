@@ -8,7 +8,14 @@ import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { PRG_CONFIG } from '@/types/booking'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
+import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import BookingSummaryBlock from '../BookingSummaryBlock'
+
+const VEHICLE_LABELS_FOR_ANALYTICS: Record<string, string> = {
+  business: 'Business',
+  first_class: 'First Class',
+  business_van: 'Business Van',
+}
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -43,9 +50,25 @@ interface PaymentFormProps {
   totalEur: number
   selectedCurrency: 'eur' | 'czk'
   bookingRef: string
+  // Snapshot data for the GA4 purchase event on the confirmation page.
+  // Passed down so PaymentForm can persist it to sessionStorage immediately
+  // before the Stripe redirect (which wipes in-memory Zustand state).
+  analyticsItems: Array<{
+    item_id: string
+    item_name: string
+    item_category: string
+    item_variant: string
+    price: number
+    quantity: number
+  }>
 }
 
-function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProps) {
+function PaymentForm({
+  totalEur,
+  selectedCurrency,
+  bookingRef,
+  analyticsItems,
+}: PaymentFormProps) {
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -63,6 +86,18 @@ function PaymentForm({ totalEur, selectedCurrency, bookingRef }: PaymentFormProp
 
     setIsProcessing(true)
     setErrorMessage(null)
+
+    // Persist the purchase snapshot BEFORE calling confirmPayment. Stripe may
+    // redirect to a 3DS page (cross-origin) and back, and the non-3DS branch
+    // below does a full `window.location.href` reload — both wipe in-memory
+    // Zustand state, and priceBreakdown is intentionally not persisted.
+    // sessionStorage survives both routes within the same tab.
+    writePurchaseSnapshot({
+      ref: bookingRef,
+      value: totalEur,
+      currency: 'EUR',
+      items: analyticsItems,
+    })
 
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
@@ -178,6 +213,25 @@ export default function Step6Payment() {
   const discountedTotalEur = promoDiscount > 0
     ? Math.round(totalEur * (1 - promoDiscount / 100))
     : totalEur
+
+  // Build the GA4 items array for the purchase snapshot. Recomputes on every
+  // render — cheap, and guarantees PaymentForm receives the current vehicle
+  // class and price when the user clicks Pay.
+  const analyticsItems = useMemo(
+    () => [
+      {
+        item_id: vehicleClass ?? 'transfer',
+        item_name:
+          (vehicleClass && VEHICLE_LABELS_FOR_ANALYTICS[vehicleClass]) ||
+          'Chauffeur Transfer',
+        item_category: tripType ?? 'transfer',
+        item_variant: tripType ?? 'transfer',
+        price: discountedTotalEur,
+        quantity: 1,
+      },
+    ],
+    [vehicleClass, tripType, discountedTotalEur]
+  )
 
   const handleApplyPromo = async () => {
     const code = promoInput.trim().toUpperCase()
@@ -442,7 +496,12 @@ export default function Step6Payment() {
       <div style={{ marginTop: 24 }}>
         {options ? (
           <Elements stripe={stripePromise} options={options}>
-            <PaymentForm totalEur={discountedTotalEur} selectedCurrency={selectedCurrency} bookingRef={bookingRef} />
+            <PaymentForm
+              totalEur={discountedTotalEur}
+              selectedCurrency={selectedCurrency}
+              bookingRef={bookingRef}
+              analyticsItems={analyticsItems}
+            />
           </Elements>
         ) : paymentError ? (
           <p

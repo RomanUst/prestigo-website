@@ -3,12 +3,40 @@
 import { useSearchParams } from 'next/navigation'
 import { useEffect, useRef, Suspense } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
+import { computeExtrasTotal } from '@/lib/extras'
+import { consumePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import Link from 'next/link'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
   first_class: 'First Class',
   business_van: 'Business Van',
+}
+
+/**
+ * Pushes a GA4 event to gtag.js. Safe before gtag.js has loaded — entries
+ * queued on dataLayer are replayed when the gtag.js library finishes loading.
+ * No-op when cookie consent hasn't granted analytics and gtag isn't present.
+ */
+type GtagFn = (...args: unknown[]) => void
+function pushGA4Event(eventName: string, params: Record<string, unknown>): void {
+  if (typeof window === 'undefined') return
+  const w = window as typeof window & {
+    dataLayer?: unknown[]
+    gtag?: GtagFn
+  }
+  // Prefer the gtag function defined by GoogleAnalytics.tsx (global inline
+  // script scope) or by gtag.js itself after it loads.
+  if (typeof w.gtag === 'function') {
+    w.gtag('event', eventName, params)
+    return
+  }
+  // Fallback: write directly to dataLayer in the gtag.js tuple format. If
+  // gtag.js loads later, it will replay this entry. Forward-compatible with
+  // GTM (which accepts { event, ... } objects) via a second push.
+  w.dataLayer = w.dataLayer || []
+  w.dataLayer.push(['event', eventName, params])
+  w.dataLayer.push({ event: eventName, ...params })
 }
 
 function generateICSContent(booking: {
@@ -62,11 +90,96 @@ function ConfirmationContent() {
 
   const storeRef = useRef(useBookingStore.getState())
   const resetBooking = useBookingStore((s) => s.resetBooking)
+  // Guard against StrictMode double-invocation and hydration re-runs — we
+  // must only fire the analytics event once per confirmation page view.
+  const analyticsFiredRef = useRef(false)
 
   useEffect(() => {
-    storeRef.current = useBookingStore.getState()
+    // Capture the latest state before we reset the store.
+    const snap = useBookingStore.getState()
+    storeRef.current = snap
+
+    if (!analyticsFiredRef.current && ref) {
+      analyticsFiredRef.current = true
+
+      // For the PAID booking flow, read the authoritative snapshot that
+      // Step6Payment wrote to sessionStorage right before the Stripe redirect.
+      // This is the only reliable source for `value`, because priceBreakdown
+      // is not persisted by Zustand and the redirect wipes in-memory state.
+      // For the QUOTE flow, navigation is client-side (router.push), so the
+      // in-memory store still has priceBreakdown — fall back to computing it.
+      const purchaseSnapshot = !isQuote ? consumePurchaseSnapshot(ref) : null
+
+      let totalEur: number
+      let currency: string
+      let items: Array<{
+        item_id: string
+        item_name: string
+        item_category: string
+        item_variant: string
+        price: number
+        quantity: number
+      }>
+
+      if (purchaseSnapshot) {
+        totalEur = purchaseSnapshot.value
+        currency = purchaseSnapshot.currency
+        items = purchaseSnapshot.items
+      } else {
+        // Fallback: reconstruct from the Zustand store (used for the quote
+        // flow and as a safety net if sessionStorage is unavailable).
+        const selectedPrice =
+          snap.vehicleClass && snap.priceBreakdown
+            ? snap.priceBreakdown[snap.vehicleClass]
+            : null
+        const extrasTotal = computeExtrasTotal(snap.extras)
+        const baseTotal = selectedPrice ? selectedPrice.base + extrasTotal : 0
+        totalEur =
+          snap.promoDiscount > 0
+            ? Math.round(baseTotal * (1 - snap.promoDiscount / 100))
+            : baseTotal
+        currency = selectedPrice?.currency ?? 'EUR'
+
+        const itemName =
+          snap.vehicleClass && VEHICLE_LABELS[snap.vehicleClass]
+            ? VEHICLE_LABELS[snap.vehicleClass]
+            : 'Chauffeur Transfer'
+
+        items = [
+          {
+            item_id: snap.vehicleClass ?? 'transfer',
+            item_name: itemName,
+            item_category: snap.tripType ?? 'transfer',
+            item_variant: snap.tripType ?? 'transfer',
+            price: totalEur,
+            quantity: 1,
+          },
+        ]
+      }
+
+      if (isQuote) {
+        // Unpriced quote leads — send generate_lead with the quoted amount
+        // (may be 0 if the route is priced by agent).
+        pushGA4Event('generate_lead', {
+          currency,
+          value: totalEur,
+          transaction_id: ref,
+          lead_type: 'quote_request',
+        })
+      } else {
+        // Paid booking — GA4 recommended ecommerce purchase event.
+        pushGA4Event('purchase', {
+          transaction_id: ref,
+          value: totalEur,
+          currency,
+          items,
+          affiliation: 'PRESTIGO',
+        })
+      }
+    }
+
     resetBooking()
-  }, [resetBooking])
+  }, [resetBooking, ref, isQuote])
 
   const { origin, destination, pickupDate, pickupTime, vehicleClass, passengers, hours, tripType } =
     storeRef.current
