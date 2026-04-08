@@ -115,9 +115,9 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
         const vcKey = vehicleClass === 'first_class' ? 'first_class' : vehicleClass === 'business_van' ? 'business_van' : 'business'
         const price = data.prices?.[vcKey]?.total
         if (price) {
-          setAmountCzk(String(price))
-          setAmountEur(String(czkToEur(price)))
-          setPriceNote(`Calculated: ${price} CZK`)
+          setAmountEur(String(price))
+          setAmountCzk(String(eurToCzk(price)))
+          setPriceNote(`Calculated: ${price} EUR`)
         } else {
           setPriceNote('Could not get price for this vehicle class.')
         }
