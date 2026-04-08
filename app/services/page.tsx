@@ -20,8 +20,10 @@ const services = [
     description: 'Prague Václav Havel Airport — met on arrival, every time. Your driver monitors your flight in real time, holds your name board at Arrivals, and handles your luggage. Fixed price from the moment you book.',
     features: ['Flight tracking included', 'Meet & greet at Arrivals', 'Name board included', 'All terminals covered'],
     price: 'From €49',
-    cta: 'BOOK AIRPORT TRANSFER',
-    href: '/book',
+    cta: 'LEARN MORE',
+    href: '/services/airport-transfer',
+    bookHref: '/book',
+    bookCta: 'BOOK NOW',
   },
   {
     label: 'CITY-TO-CITY',
@@ -29,8 +31,10 @@ const services = [
     description: 'Prague to Vienna in 3.5 hours. Prague to Berlin in 4. Door-to-door, in a Mercedes, with a driver who knows the road. Work the whole way or simply watch Europe pass by.',
     features: ['Fixed price per route', 'Prague → Vienna, Berlin, Munich, Budapest, Bratislava, Salzburg, Dresden', 'Available 24/7', 'Business or leisure'],
     price: 'From €180',
-    cta: 'VIEW ROUTES',
-    href: '/routes',
+    cta: 'LEARN MORE',
+    href: '/services/intercity-routes',
+    bookHref: '/routes',
+    bookCta: 'VIEW ROUTES',
   },
   {
     label: 'CORPORATE',
@@ -38,8 +42,10 @@ const services = [
     description: 'A dedicated account for your company. Monthly invoicing, consolidated reporting, a named account manager. Your travel manager books once, PRESTIGO handles everything else.',
     features: ['Monthly consolidated invoicing', 'Dedicated account manager', 'Priority dispatch', 'Corporate reporting dashboard'],
     price: null,
-    cta: 'SET UP CORPORATE ACCOUNT',
-    href: '/corporate',
+    cta: 'LEARN MORE',
+    href: '/services/corporate-accounts',
+    bookHref: '/corporate',
+    bookCta: 'SET UP ACCOUNT',
   },
   {
     label: 'VIP',
@@ -47,8 +53,10 @@ const services = [
     description: 'Diplomatic visits. Private openings. Luxury hotel arrivals. Multi-vehicle coordination for events where every detail matters and nothing can go wrong.',
     features: ['Diplomatic protocol awareness', 'Multi-vehicle coordination', 'Discretion guaranteed', 'Advance route reconnaissance available'],
     price: null,
-    cta: 'ENQUIRE ABOUT VIP SERVICE',
-    href: '/contact',
+    cta: 'LEARN MORE',
+    href: '/services/vip-events',
+    bookHref: '/contact',
+    bookCta: 'ENQUIRE',
   },
   {
     label: 'CITY',
@@ -56,8 +64,10 @@ const services = [
     description: 'Hourly hire within Prague. Business meetings, theatre, private dinner at a Michelin-starred restaurant. Your chauffeur knows the city — not just the roads.',
     features: ['Hourly hire from 2 hours', 'Local knowledge included', 'Airport-quality service, city rates', 'Ideal for sightseeing & leisure'],
     price: 'From €80/hour',
-    cta: 'BOOK CITY RIDE',
-    href: '/book',
+    cta: 'LEARN MORE',
+    href: '/services/city-rides',
+    bookHref: '/book',
+    bookCta: 'BOOK NOW',
   },
   {
     label: 'GROUP',
@@ -65,8 +75,10 @@ const services = [
     description: 'Conference delegations. Incentive travel. Corporate off-sites. Minivans, multiple vehicles, precise timing. Everyone arrives together, on schedule.',
     features: ['Minivan & multi-car coordination', 'Up to 50 passengers', 'Conference & events specialists', 'Custom itineraries'],
     price: null,
-    cta: 'REQUEST GROUP QUOTE',
-    href: '/contact',
+    cta: 'LEARN MORE',
+    href: '/services/group-transfers',
+    bookHref: '/contact',
+    bookCta: 'GET QUOTE',
   },
 ]
 
@@ -162,9 +174,14 @@ export default function ServicesPage() {
                     </li>
                   ))}
                 </ul>
-                <a href={s.href} className="btn-primary self-start">
-                  {s.cta}
-                </a>
+                <div className="flex flex-wrap gap-3">
+                  <a href={s.href} className="btn-primary self-start">
+                    {s.cta}
+                  </a>
+                  <a href={s.bookHref} className="btn-secondary self-start">
+                    {s.bookCta}
+                  </a>
+                </div>
               </div>
             </div>
           ))}
