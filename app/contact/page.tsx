@@ -35,7 +35,7 @@ export default function ContactPage() {
       {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <img src="/hero-contact.webp" alt="Contact PRESTIGO — Premium Chauffeur Prague" className="w-full h-full object-cover" style={{ filter: 'brightness(0.38)', objectPosition: '30% 35%' }} />
+          <img src="/hero-contact.webp" alt="Contact PRESTIGO — Premium Chauffeur Prague" className="w-full h-full object-cover" style={{ filter: 'brightness(0.38)', objectPosition: '30% 25%' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Contact · Prague Chauffeur Service</p>
