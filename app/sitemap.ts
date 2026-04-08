@@ -43,6 +43,7 @@ const routeSlugs = [
   'prague-hamburg',
   'prague-basel',
   'prague-zurich',
+  'prague-kutna-hora',
   'prague-strasbourg',
   'prague-venice',
   'prague-bern',
