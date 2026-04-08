@@ -29,10 +29,16 @@ function checkCsrf(request: NextRequest): NextResponse | null {
   const origin = request.headers.get('origin')
   if (!origin) return null // no Origin header → server-to-server, not a browser CSRF attack
 
-  const siteUrl = (process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')) ?? request.nextUrl.origin
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
+
+  // Derive allowed origin from the Host header + forwarded protocol as a
+  // reliable fallback that works on Vercel even without NEXT_PUBLIC_SITE_URL.
+  const host = request.headers.get('host')
+  const proto = request.headers.get('x-forwarded-proto')?.split(',')[0].trim() ?? 'https'
+  const hostOrigin = host ? `${proto}://${host}` : null
 
   const allowedOrigins = new Set(
-    [siteUrl, 'http://localhost:3000', 'http://localhost:3001'].filter(Boolean)
+    [siteUrl, hostOrigin, request.nextUrl.origin, 'http://localhost:3000', 'http://localhost:3001'].filter(Boolean)
   )
 
   if (!allowedOrigins.has(origin)) {
