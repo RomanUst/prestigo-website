@@ -3,7 +3,18 @@ import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+// Lazy initialisation — avoids module-load crash when RESEND_API_KEY is absent
+// (e.g. Preview environment where email sending is not needed)
+let _resend: Resend | null = null
+function getResend(): Resend {
+  if (!_resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY environment variable is not configured')
+    }
+    _resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return _resend
+}
 
 export interface BookingEmailData {
   bookingReference: string
@@ -264,7 +275,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
 export async function sendClientConfirmation(data: BookingEmailData): Promise<void> {
   const html = buildConfirmationHtml(data)
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.email],
       replyTo: 'roman@rideprestigo.com',
@@ -307,7 +318,7 @@ Special Requests: ${data.specialRequests || 'None'}
 Total: €${czkToEur(data.amountCzk)} (${data.amountCzk.toLocaleString('cs-CZ')} Kč)`
 
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [process.env.MANAGER_EMAIL!],
       replyTo: 'roman@rideprestigo.com',
@@ -341,7 +352,7 @@ Message:
 ${data.message}`
 
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: 'PRESTIGO Website <bookings@rideprestigo.com>',
       to: [process.env.MANAGER_EMAIL!],
       replyTo: data.email,
@@ -374,7 +385,7 @@ export async function sendEmergencyAlert(
   const text = `Supabase save failed after 3 retries.\nClient confirmation email has been sent.\nRetrieve full booking details from Stripe dashboard using the payment intent ID below.\n\n${JSON.stringify(safeSummary, null, 2)}`
 
   try {
-    const { error } = await resend.emails.send({
+    const { error } = await getResend().emails.send({
       from: 'PRESTIGO System <bookings@rideprestigo.com>',
       to: [process.env.MANAGER_EMAIL!],
       replyTo: process.env.MANAGER_EMAIL!,
