@@ -18,12 +18,12 @@ const WIDGET_MINUTES: string[] = Array.from({ length: 12 }, (_, i) =>
   (i * 5).toString().padStart(2, '0')
 )
 
-// Format an ISO date (YYYY-MM-DD) as "Apr 14, 2026" for display in the trigger
+// Format an ISO date (YYYY-MM-DD) as "April 14, 2026" for display in the trigger
 function formatDateDisplay(iso: string): string {
   if (!iso) return ''
   const d = new Date(iso + 'T00:00:00')
   if (Number.isNaN(d.getTime())) return ''
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
 }
 
 // DayPicker styles for the widget (same dark-theme palette as Step 2)
