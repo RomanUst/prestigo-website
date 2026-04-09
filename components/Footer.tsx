@@ -47,7 +47,7 @@ export default function Footer() {
                 { label: 'FAQ', href: '/faq' },
               ].map((s) => (
                 <li key={s.label}>
-                  <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors">
+                  <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
                     {s.label}
                   </a>
                 </li>
@@ -67,13 +67,13 @@ export default function Footer() {
                 { label: 'Prague → Bratislava', href: '/routes/prague-bratislava' },
               ].map((r) => (
                 <li key={r.label}>
-                  <a href={r.href} className="body-text text-[11px] hover:text-offwhite transition-colors">
+                  <a href={r.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
                     {r.label}
                   </a>
                 </li>
               ))}
               <li>
-                <a href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors" style={{ color: 'var(--copper)' }}>
+                <a href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5" style={{ color: 'var(--copper-light)' }}>
                   View all routes →
                 </a>
               </li>
@@ -90,7 +90,7 @@ export default function Footer() {
                 { label: 'Prague–Vienna: transfer vs train', href: '/compare/prague-vienna-transfer-vs-train' },
               ].map((g) => (
                 <li key={g.label}>
-                  <a href={g.href} className="body-text text-[11px] hover:text-offwhite transition-colors">
+                  <a href={g.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
                     {g.label}
                   </a>
                 </li>
@@ -103,7 +103,7 @@ export default function Footer() {
             <p className="label mb-5">Contact</p>
             <ul className="flex flex-col gap-3">
               <li>
-                <a href="tel:+420725986855" className="body-text text-[11px] hover:text-offwhite transition-colors">
+                <a href="tel:+420725986855" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
                   +420 725 986 855
                 </a>
               </li>
@@ -112,7 +112,7 @@ export default function Footer() {
                   href="https://wa.me/420725986855"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-[#25D366] hover:bg-[#1ebe5d] transition-colors text-[#0a0a0a] font-body font-medium text-[11px] tracking-[0.08em] uppercase"
+                  className="inline-flex items-center gap-2 px-4 py-3 min-h-[44px] rounded bg-[#25D366] hover:bg-[#1ebe5d] transition-colors text-[#0a0a0a] font-body font-medium text-[11px] tracking-[0.08em] uppercase"
                 >
                   <svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
@@ -122,7 +122,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="mailto:info@rideprestigo.com" className="body-text text-[11px] hover:text-offwhite transition-colors">
+                <a href="mailto:info@rideprestigo.com" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
                   info@rideprestigo.com
                 </a>
               </li>
@@ -146,32 +146,32 @@ export default function Footer() {
           <p className="font-body font-light text-[10px] tracking-[0.15em] uppercase" style={{ color: 'var(--warmgrey)' }}>
             © {new Date().getFullYear()} PRESTIGO. All rights reserved.
           </p>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <a
               href="/privacy"
-              className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors"
+              className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors inline-flex items-center min-h-[44px] px-2"
               style={{ color: 'var(--warmgrey)' }}
             >
               Privacy Policy
             </a>
-            <span className="text-anthracite-light">|</span>
+            <span className="text-anthracite-light" aria-hidden="true">|</span>
             <a
               href="/terms"
-              className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors"
+              className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors inline-flex items-center min-h-[44px] px-2"
               style={{ color: 'var(--warmgrey)' }}
             >
               Terms
             </a>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
             <a
               href="https://www.instagram.com/rideprestigo/"
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Instagram"
-              className="text-[var(--warmgrey)] hover:text-offwhite transition-colors"
+              className="text-[var(--warmgrey)] hover:text-offwhite transition-colors inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
                 <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
                 <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
@@ -182,9 +182,9 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Facebook"
-              className="text-[var(--warmgrey)] hover:text-offwhite transition-colors"
+              className="text-[var(--warmgrey)] hover:text-offwhite transition-colors inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
               </svg>
             </a>

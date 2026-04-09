@@ -77,7 +77,7 @@ export default function Services() {
               <div className="mt-auto">
                 <a
                   href={s.href}
-                  className="inline-block font-body font-light text-[10px] tracking-[0.18em] uppercase border border-copper/40 px-4 py-2.5 text-copper hover:bg-copper/10 hover:border-copper transition-colors"
+                  className="inline-flex items-center justify-center font-body font-light text-[10px] tracking-[0.18em] uppercase border border-copper-light/40 px-5 py-3 min-h-[44px] text-copper-light hover:bg-copper-light/10 hover:border-copper-light transition-colors"
                 >
                   Learn more
                 </a>

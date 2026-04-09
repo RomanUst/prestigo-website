@@ -36,6 +36,7 @@ interface AddressInputProps {
   ariaLabel: string
   neverDisabled?: boolean
   onTextChange?: (text: string) => void
+  required?: boolean
 }
 
 export default function AddressInput({
@@ -51,12 +52,15 @@ export default function AddressInput({
   ariaLabel,
   neverDisabled = false,
   onTextChange,
+  required = false,
 }: AddressInputProps) {
   const [mapsLoaded, setMapsLoaded] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const uid = useId()
-  const listboxId = useRef(`address-listbox-${uid.replace(/:/g, '')}`)
+  const uidClean = uid.replace(/:/g, '')
+  const inputId = useRef(`address-input-${uidClean}`)
+  const listboxId = useRef(`address-listbox-${uidClean}`)
   const containerRef = useRef<HTMLDivElement>(null)
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevValueRef = useRef(value)
@@ -194,7 +198,7 @@ export default function AddressInput({
   if (readOnly) {
     return (
       <div>
-        <p className="label" style={{ marginBottom: '8px' }}>
+        <p className="label" style={{ marginBottom: '8px' }} aria-hidden="true">
           {label}
         </p>
         <div
@@ -241,13 +245,17 @@ export default function AddressInput({
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      <p className="label" style={{ marginBottom: '8px' }}>
+      <label htmlFor={inputId.current} className="label" style={{ display: 'block', marginBottom: '8px' }}>
         {label}
-      </p>
+        {required && (
+          <span aria-hidden="true" style={{ color: 'var(--copper-light)', marginLeft: '4px' }}>*</span>
+        )}
+      </label>
 
       {/* Input wrapper */}
       <div style={{ position: 'relative' }}>
         <input
+          id={inputId.current}
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -261,6 +269,8 @@ export default function AddressInput({
           disabled={false}
           autoComplete="off"
           aria-label={ariaLabel}
+          aria-required={required || undefined}
+          aria-invalid={hasError || undefined}
           aria-autocomplete="list"
           aria-expanded={showSuggestions}
           aria-controls={listboxId.current}
@@ -272,6 +282,7 @@ export default function AddressInput({
             background: 'var(--anthracite-mid)',
             border: `1px solid ${borderColor}`,
             padding: value !== null ? '12px 40px 12px 16px' : '12px 16px',
+            minHeight: '48px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: '14px',
             fontWeight: 300,

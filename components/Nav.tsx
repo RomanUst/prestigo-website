@@ -25,7 +25,7 @@ export default function Nav() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
 
         {/* Wordmark */}
-        <a href="/" className="wordmark tracking-[0.6em]">
+        <a href="/" className="wordmark tracking-[0.6em] inline-flex items-center h-16" aria-label="PRESTIGO — home">
           <span className="wordmark-presti">PRESTI</span>
           <span className="wordmark-go">GO</span>
         </a>
@@ -72,8 +72,8 @@ export default function Nav() {
       {/* Mobile menu */}
       <div
         id="mobile-menu"
-        className={`md:hidden bg-anthracite-mid border-anthracite-light px-6 flex flex-col gap-5 overflow-hidden transition-all duration-300 ease-out ${
-          open ? 'max-h-96 py-6 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
+        className={`md:hidden bg-anthracite-mid border-anthracite-light px-6 flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+          open ? 'max-h-[500px] py-4 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
         }`}
       >
         {[
@@ -87,7 +87,7 @@ export default function Nav() {
             key={link.label}
             href={link.href}
             onClick={() => setOpen(false)}
-            className={`font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors ${
+            className={`font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors flex items-center min-h-[44px] ${
               pathname === link.href
                 ? 'text-offwhite'
                 : 'text-warmgrey hover:text-offwhite'
@@ -96,7 +96,7 @@ export default function Nav() {
             {link.label}
           </a>
         ))}
-        <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-2">
+        <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-3">
           Book now
         </a>
       </div>

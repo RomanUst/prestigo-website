@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInput from '@/components/booking/AddressInput'
@@ -11,6 +11,9 @@ import type { PlaceResult } from '@/types/booking'
 export default function BookingWidget() {
   const router = useRouter()
   const tripType = useBookingStore((s) => s.tripType)
+  const uid = useId().replace(/:/g, '')
+  const dateId = `booking-date-${uid}`
+  const timeId = `booking-time-${uid}`
 
   const [origin, setOrigin] = useState<PlaceResult | null>(null)
   const [destination, setDestination] = useState<PlaceResult | null>(null)
@@ -103,6 +106,7 @@ export default function BookingWidget() {
           onClear={() => setOrigin(null)}
           hasError={!!errors.origin}
           ariaLabel="Pick-up address"
+          required
         />
 
         {/* Destination or Duration */}
@@ -124,6 +128,7 @@ export default function BookingWidget() {
             onClear={() => setDestination(null)}
             hasError={!!errors.destination}
             ariaLabel="Drop-off address"
+            required
           />
         )}
 
@@ -134,13 +139,20 @@ export default function BookingWidget() {
         >
           <div style={{ flex: 1, minWidth: 0 }}>
             <label
+              htmlFor={dateId}
               className="label"
               style={{ display: 'block', marginBottom: '8px' }}
             >
-              DATE
+              DATE <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
             </label>
             <input
+              id={dateId}
+              name="pickupDate"
               type="date"
+              required
+              aria-required="true"
+              aria-label="Pickup date"
+              aria-invalid={!!errors.date}
               value={date}
               min={todayStr}
               onClick={(e) => { try { (e.currentTarget as HTMLInputElement).showPicker() } catch { /* unsupported */ } }}
@@ -154,19 +166,27 @@ export default function BookingWidget() {
               }}
               style={{
                 ...inputStyle,
+                minHeight: '48px',
                 border: errors.date ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
               }}
             />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <label
+              htmlFor={timeId}
               className="label"
               style={{ display: 'block', marginBottom: '8px' }}
             >
-              TIME
+              TIME <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
             </label>
             <input
+              id={timeId}
+              name="pickupTime"
               type="time"
+              required
+              aria-required="true"
+              aria-label="Pickup time"
+              aria-invalid={!!errors.time}
               value={time}
               step={300}
               onClick={(e) => { try { (e.currentTarget as HTMLInputElement).showPicker() } catch { /* unsupported */ } }}
@@ -180,26 +200,29 @@ export default function BookingWidget() {
               }}
               style={{
                 ...inputStyle,
+                minHeight: '48px',
                 border: errors.time ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
               }}
             />
           </div>
         </div>
 
-        {/* Validation error */}
-        {hasError && (
-          <p
-            style={{
-              fontFamily: 'var(--font-montserrat)',
-              fontSize: '13px',
-              fontWeight: 400,
-              color: '#C0392B',
-              marginTop: '-8px',
-            }}
-          >
-            Please fill in all required fields before continuing.
-          </p>
-        )}
+        {/* Validation error — live region so screen readers announce */}
+        <p
+          role="alert"
+          aria-live="polite"
+          style={{
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '13px',
+            fontWeight: 400,
+            color: '#C0392B',
+            marginTop: hasError ? '-8px' : 0,
+            minHeight: hasError ? 'auto' : 0,
+            overflow: 'hidden',
+          }}
+        >
+          {hasError ? 'Please fill in all required fields before continuing.' : ''}
+        </p>
 
         {/* CTA */}
         <button
