@@ -106,8 +106,8 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* Scroll hint */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-on-load delay-800">
+        {/* Scroll hint — desktop/tablet only; hidden on mobile where it collides with stacked CTAs */}
+        <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 animate-on-load delay-800">
           <span className="label" style={{ fontSize: '9px', color: 'var(--warmgrey)' }}>
             Scroll
           </span>

@@ -174,6 +174,27 @@ body {
   color: var(--offwhite);
 }
 
+.btn-secondary {
+  display: inline-block;
+  font-family: var(--font-montserrat);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: var(--warmgrey);
+  border: 1px solid var(--anthracite-light);
+  padding: 14px 32px;
+  transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+  cursor: pointer;
+  background: transparent;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  border-color: var(--copper);
+  color: var(--offwhite);
+}
+
 /* ── Wordmark ───────────────────────────────────────── */
 .wordmark {
   font-family: var(--font-cormorant);
