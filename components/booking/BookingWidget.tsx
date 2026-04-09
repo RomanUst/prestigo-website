@@ -3,10 +3,19 @@
 import { useState, useEffect, useId } from 'react'
 import { useRouter } from 'next/navigation'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
-import AddressInput from '@/components/booking/AddressInput'
+import AddressInputLegacy from '@/components/booking/AddressInput'
+import AddressInputNew from '@/components/booking/AddressInputNew'
 import DurationSelector from '@/components/booking/DurationSelector'
 import { useBookingStore } from '@/lib/booking-store'
 import type { PlaceResult } from '@/types/booking'
+
+// Feature flag: swap between deprecated AutocompleteService (AddressInput.tsx)
+// and the New Places API implementation (AddressInputNew.tsx).
+// Set NEXT_PUBLIC_USE_NEW_PLACES_API=1 in .env.local (or Vercel env) to enable.
+// Once QA on Vercel preview passes, AddressInput.tsx will be deleted and
+// AddressInputNew.tsx renamed — this flag will be removed.
+const AddressInput =
+  process.env.NEXT_PUBLIC_USE_NEW_PLACES_API === '1' ? AddressInputNew : AddressInputLegacy
 
 export default function BookingWidget() {
   const router = useRouter()
