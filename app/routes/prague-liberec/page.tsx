@@ -48,23 +48,91 @@ const faqs = [
 ]
 
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(f => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
+const serviceSchema = {
+  '@type': 'Service',
+  '@id': 'https://rideprestigo.com/routes/prague-liberec#service',
+  name: 'Private Chauffeur Transfer from Prague to Liberec',
+  serviceType: 'Private ground transfer',
+  description: 'Chauffeured private transfer from Prague to Liberec in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 1 hour 15 minutes door-to-door via the R10 and R35 motorways. Distance 105 km.',
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': 'https://rideprestigo.com/#business',
+    name: 'Prestigo',
+    url: 'https://rideprestigo.com',
+    telephone: '+420-xxx-xxx-xxx',
+    email: 'info@rideprestigo.com',
+    priceRange: '€€€',
+    areaServed: 'Prague, Czech Republic',
+  },
+  areaServed: [
+    {
+      '@type': 'City',
+      name: 'Prague',
+      addressCountry: 'CZ',
+    },
+    {
+      '@type': 'City',
+      name: 'Liberec',
+      addressCountry: 'CZ',
+    },
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Vehicle Classes',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        name: 'Mercedes E-Class',
+        description: 'Up to 3 passengers, 3 suitcases',
+        price: '175',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-liberec#e-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes S-Class',
+        description: 'Up to 3 passengers, flagship comfort',
+        price: '255',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-liberec#s-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes V-Class',
+        description: 'Up to 6 passengers, 6 suitcases',
+        price: '200',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-liberec#v-class',
+      },
+    ],
+  },
 }
 
-const breadcrumbSchema = {
+const pageSchema = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-    { '@type': 'ListItem', position: 3, name: 'Prague to Liberec', item: 'https://rideprestigo.com/routes/prague-liberec' },
+  '@graph': [
+    serviceSchema,
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rideprestigo.com/routes/prague-liberec#faq',
+      mainEntity: faqs.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rideprestigo.com/routes/prague-liberec#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+        { '@type': 'ListItem', position: 3, name: 'Prague to Liberec', item: 'https://rideprestigo.com/routes/prague-liberec' },
+      ],
+    },
   ],
 }
 
@@ -72,8 +140,7 @@ export default function PragueLibeRecPage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
 
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">

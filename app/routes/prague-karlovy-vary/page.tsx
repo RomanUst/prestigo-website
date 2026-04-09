@@ -48,23 +48,91 @@ const faqs = [
 ]
 
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(f => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
+const serviceSchema = {
+  '@type': 'Service',
+  '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#service',
+  name: 'Private Chauffeur Transfer from Prague to Karlovy Vary',
+  serviceType: 'Private ground transfer',
+  description: 'Chauffeured private transfer from Prague to Karlovy Vary in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 1 hour 30 minutes door-to-door via the R6 motorway through Cheb direction. Distance 130 km.',
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': 'https://rideprestigo.com/#business',
+    name: 'Prestigo',
+    url: 'https://rideprestigo.com',
+    telephone: '+420-xxx-xxx-xxx',
+    email: 'info@rideprestigo.com',
+    priceRange: '€€€',
+    areaServed: 'Prague, Czech Republic',
+  },
+  areaServed: [
+    {
+      '@type': 'City',
+      name: 'Prague',
+      addressCountry: 'CZ',
+    },
+    {
+      '@type': 'City',
+      name: 'Karlovy Vary',
+      addressCountry: 'CZ',
+    },
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Vehicle Classes',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        name: 'Mercedes E-Class',
+        description: 'Up to 3 passengers, 3 suitcases',
+        price: '215',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-karlovy-vary#e-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes S-Class',
+        description: 'Up to 3 passengers, flagship comfort',
+        price: '320',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-karlovy-vary#s-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes V-Class',
+        description: 'Up to 6 passengers, 6 suitcases',
+        price: '250',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-karlovy-vary#v-class',
+      },
+    ],
+  },
 }
 
-const breadcrumbSchema = {
+const pageSchema = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-    { '@type': 'ListItem', position: 3, name: 'Prague to Karlovy Vary', item: 'https://rideprestigo.com/routes/prague-karlovy-vary' },
+  '@graph': [
+    serviceSchema,
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#faq',
+      mainEntity: faqs.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+        { '@type': 'ListItem', position: 3, name: 'Prague to Karlovy Vary', item: 'https://rideprestigo.com/routes/prague-karlovy-vary' },
+      ],
+    },
   ],
 }
 
@@ -72,8 +140,7 @@ export default function PragueKarlovyVaryPage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
 
       {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>

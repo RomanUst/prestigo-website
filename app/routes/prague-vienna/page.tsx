@@ -47,23 +47,91 @@ const faqs = [
   { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class for individuals or small groups, S-Class for executive travel, and V-Class for groups of up to 6. All vehicles are late-model, maintained to manufacturer standard.' },
 ]
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(f => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
+const serviceSchema = {
+  '@type': 'Service',
+  '@id': 'https://rideprestigo.com/routes/prague-vienna#service',
+  name: 'Private Chauffeur Transfer from Prague to Vienna',
+  serviceType: 'Private ground transfer',
+  description: 'Chauffeured private transfer from Prague to Vienna in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 15 minutes door-to-door via the D1 motorway and the E65. Distance 295 km.',
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': 'https://rideprestigo.com/#business',
+    name: 'Prestigo',
+    url: 'https://rideprestigo.com',
+    telephone: '+420-xxx-xxx-xxx',
+    email: 'info@rideprestigo.com',
+    priceRange: '€€€',
+    areaServed: 'Prague, Czech Republic',
+  },
+  areaServed: [
+    {
+      '@type': 'City',
+      name: 'Prague',
+      addressCountry: 'CZ',
+    },
+    {
+      '@type': 'City',
+      name: 'Vienna',
+      addressCountry: 'AT',
+    },
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Vehicle Classes',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        name: 'Mercedes E-Class',
+        description: 'Up to 3 passengers, 3 suitcases',
+        price: '485',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-vienna#e-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes S-Class',
+        description: 'Up to 3 passengers, flagship comfort',
+        price: '725',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-vienna#s-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes V-Class',
+        description: 'Up to 6 passengers, 6 suitcases',
+        price: '560',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-vienna#v-class',
+      },
+    ],
+  },
 }
 
-const breadcrumbSchema = {
+const pageSchema = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-    { '@type': 'ListItem', position: 3, name: 'Prague to Vienna', item: 'https://rideprestigo.com/routes/prague-vienna' },
+  '@graph': [
+    serviceSchema,
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rideprestigo.com/routes/prague-vienna#faq',
+      mainEntity: faqs.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rideprestigo.com/routes/prague-vienna#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+        { '@type': 'ListItem', position: 3, name: 'Prague to Vienna', item: 'https://rideprestigo.com/routes/prague-vienna' },
+      ],
+    },
   ],
 }
 
@@ -71,8 +139,7 @@ export default function PragueViennaPage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/vienna.png" alt="Vienna" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">

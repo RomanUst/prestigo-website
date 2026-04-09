@@ -48,23 +48,91 @@ const faqs = [
 ]
 
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map(f => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
+const serviceSchema = {
+  '@type': 'Service',
+  '@id': 'https://rideprestigo.com/routes/prague-regensburg#service',
+  name: 'Private Chauffeur Transfer from Prague to Regensburg',
+  serviceType: 'Private ground transfer',
+  description: 'Chauffeured private transfer from Prague to Regensburg in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 30 minutes door-to-door via the D5 motorway and the A93. Distance 285 km.',
+  provider: {
+    '@type': 'LocalBusiness',
+    '@id': 'https://rideprestigo.com/#business',
+    name: 'Prestigo',
+    url: 'https://rideprestigo.com',
+    telephone: '+420-xxx-xxx-xxx',
+    email: 'info@rideprestigo.com',
+    priceRange: '€€€',
+    areaServed: 'Prague, Czech Republic',
+  },
+  areaServed: [
+    {
+      '@type': 'City',
+      name: 'Prague',
+      addressCountry: 'CZ',
+    },
+    {
+      '@type': 'City',
+      name: 'Regensburg',
+      addressCountry: 'DE',
+    },
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Vehicle Classes',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        name: 'Mercedes E-Class',
+        description: 'Up to 3 passengers, 3 suitcases',
+        price: '470',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-regensburg#e-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes S-Class',
+        description: 'Up to 3 passengers, flagship comfort',
+        price: '700',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-regensburg#s-class',
+      },
+      {
+        '@type': 'Offer',
+        name: 'Mercedes V-Class',
+        description: 'Up to 6 passengers, 6 suitcases',
+        price: '540',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        url: 'https://rideprestigo.com/routes/prague-regensburg#v-class',
+      },
+    ],
+  },
 }
 
-const breadcrumbSchema = {
+const pageSchema = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-    { '@type': 'ListItem', position: 3, name: 'Prague to Regensburg', item: 'https://rideprestigo.com/routes/prague-regensburg' },
+  '@graph': [
+    serviceSchema,
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rideprestigo.com/routes/prague-regensburg#faq',
+      mainEntity: faqs.map(f => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rideprestigo.com/routes/prague-regensburg#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+        { '@type': 'ListItem', position: 3, name: 'Prague to Regensburg', item: 'https://rideprestigo.com/routes/prague-regensburg' },
+      ],
+    },
   ],
 }
 
@@ -72,8 +140,7 @@ export default function PragueRegensburgPage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Regensburg" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
