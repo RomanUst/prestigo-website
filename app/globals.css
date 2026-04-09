@@ -351,30 +351,73 @@ body {
   --rdp-accent-color: var(--copper);
   --rdp-accent-background-color: var(--copper);
 }
-.rdp-nav {
-  gap: 8px;
+/* Editorial layout: month label left, nav buttons top-right */
+.rdp-months {
+  position: relative;
 }
+.rdp-nav {
+  position: absolute !important;
+  top: -4px;
+  right: 0;
+  display: flex;
+  gap: 4px;
+  z-index: 1;
+}
+.rdp-month_caption {
+  padding: 0 0 12px 0;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--anthracite-light);
+  text-align: left;
+}
+.rdp-caption_label {
+  font-family: var(--font-montserrat) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: var(--offwhite) !important;
+}
+/* Ghost circular nav buttons with copper chevrons */
 .rdp-button_previous,
 .rdp-button_next {
-  width: 32px !important;
-  height: 32px !important;
+  width: 36px !important;
+  height: 36px !important;
+  padding: 0 !important;
   color: var(--copper) !important;
-  border: 1px solid var(--copper) !important;
+  border: none !important;
   background: transparent !important;
-  border-radius: 0 !important;
+  border-radius: 999px !important;
   cursor: pointer;
-  transition: background 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, transform 0.2s ease;
 }
 .rdp-button_previous:hover,
 .rdp-button_next:hover {
-  background: rgba(184, 115, 51, 0.12) !important;
+  background-color: rgba(184, 115, 51, 0.12) !important;
+}
+.rdp-button_previous:active,
+.rdp-button_next:active {
+  transform: scale(0.92);
+}
+.rdp-button_previous:focus-visible,
+.rdp-button_next:focus-visible {
+  outline: 1px solid var(--copper);
+  outline-offset: 2px;
+}
+.rdp-button_previous[disabled],
+.rdp-button_next[disabled] {
+  opacity: 0.25;
+  cursor: not-allowed;
 }
 .rdp-chevron {
   fill: var(--copper) !important;
-  width: 16px !important;
-  height: 16px !important;
+  width: 18px !important;
+  height: 18px !important;
+  transition: fill 0.2s ease;
 }
-.rdp-button_previous .rdp-chevron,
-.rdp-button_next .rdp-chevron {
-  fill: var(--copper) !important;
+.rdp-button_previous:hover .rdp-chevron,
+.rdp-button_next:hover .rdp-chevron {
+  fill: var(--copper-light) !important;
 }
