@@ -111,8 +111,11 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com",
               // API calls: Stripe, GA4 (including regional endpoints like
               // region1.google-analytics.com — required for EU traffic to
-              // reach GA4), Google Tag Manager, Supabase, Google Maps APIs
-              `connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com`,
+              // reach GA4), Google Tag Manager, Supabase, Google Maps APIs.
+              // places.googleapis.com is Places API (New) REST endpoint used
+              // by AddressInputNew (behind NEXT_PUBLIC_USE_NEW_PLACES_API flag);
+              // maps.googleapis.com is used by the legacy JS SDK path.
+              `connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com`,
             ].join("; "),
           },
         ],

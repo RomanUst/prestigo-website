@@ -90,6 +90,7 @@ export default function AddressInputNew({
     setValue,
     clearSuggestions,
     getPlaceDetails,
+    error: hookError,
   } = usePlacesAutocomplete({
     apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
     debounceMs: 300,
@@ -97,6 +98,14 @@ export default function AddressInputNew({
     includedRegionCodes: ['cz', 'at', 'de', 'sk', 'hu', 'pl'],
     sessionToken,
   })
+
+  // Surface hook errors (CORS, quota, API key restriction) in dev console.
+  // In production these errors are swallowed silently by the hook state.
+  useEffect(() => {
+    if (hookError) {
+      console.warn('[AddressInputNew] Places API error:', hookError.message)
+    }
+  }, [hookError])
 
   // Sync when parent explicitly clears the value (null transition).
   // Skip clearing when the transition was caused by user typing.
@@ -122,8 +131,13 @@ export default function AddressInputNew({
 
   const handleSelect = useCallback(
     async (description: string, placeId: string) => {
+      // NOTE: call order matters. In places-autocomplete-hook@1.1.1 the
+      // clearSuggestions() function internally resets both predictions AND
+      // the value string. So we must NOT call clearSuggestions() after
+      // setValue() — it would wipe the text we just set. Instead, we rely
+      // on setValue(description, false) with shouldFetch=false, which stops
+      // any pending debounced search. Hiding the listbox is enough for UX.
       setValue(description, false)
-      clearSuggestions()
       setShowSuggestions(false)
       setActiveIndex(-1)
       try {
@@ -142,7 +156,7 @@ export default function AddressInputNew({
         console.error('Place details error:', error)
       }
     },
-    [setValue, clearSuggestions, onSelect, getPlaceDetails]
+    [setValue, onSelect, getPlaceDetails]
   )
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
