@@ -59,10 +59,16 @@ export default function Footer() {
           <div>
             <p className="label mb-5">Popular routes</p>
             <ul className="flex flex-col gap-3">
-              {['Prague → Vienna', 'Prague → Berlin', 'Prague → Munich', 'Prague → Budapest', 'Prague → Bratislava'].map((r) => (
-                <li key={r}>
-                  <a href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors">
-                    {r}
+              {[
+                { label: 'Prague → Vienna', href: '/routes/prague-vienna' },
+                { label: 'Prague → Berlin', href: '/routes/prague-berlin' },
+                { label: 'Prague → Munich', href: '/routes/prague-munich' },
+                { label: 'Prague → Budapest', href: '/routes/prague-budapest' },
+                { label: 'Prague → Bratislava', href: '/routes/prague-bratislava' },
+              ].map((r) => (
+                <li key={r.label}>
+                  <a href={r.href} className="body-text text-[11px] hover:text-offwhite transition-colors">
+                    {r.label}
                   </a>
                 </li>
               ))}

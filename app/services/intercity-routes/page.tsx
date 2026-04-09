@@ -35,12 +35,12 @@ const breadcrumbSchema = {
 }
 
 const popularRoutes = [
-  { from: 'Prague', to: 'Vienna', duration: '3.5 hrs', price: 'From €180' },
-  { from: 'Prague', to: 'Berlin', duration: '4 hrs', price: 'From €220' },
-  { from: 'Prague', to: 'Munich', duration: '3.5 hrs', price: 'From €200' },
-  { from: 'Prague', to: 'Budapest', duration: '5 hrs', price: 'From €240' },
-  { from: 'Prague', to: 'Bratislava', duration: '3 hrs', price: 'From €160' },
-  { from: 'Prague', to: 'Dresden', duration: '1.5 hrs', price: 'From €120' },
+  { from: 'Prague', to: 'Vienna', slug: 'prague-vienna', duration: '3.5 hrs', price: 'From €485' },
+  { from: 'Prague', to: 'Berlin', slug: 'prague-berlin', duration: '4 hrs', price: 'From €580' },
+  { from: 'Prague', to: 'Munich', slug: 'prague-munich', duration: '4 hrs', price: 'From €635' },
+  { from: 'Prague', to: 'Budapest', slug: 'prague-budapest', duration: '5.5 hrs', price: 'From €885' },
+  { from: 'Prague', to: 'Bratislava', slug: 'prague-bratislava', duration: '3.5 hrs', price: 'From €545' },
+  { from: 'Prague', to: 'Dresden', slug: 'prague-dresden', duration: '1.5 hrs', price: 'From €250' },
 ]
 
 const features = [
@@ -95,7 +95,7 @@ export default function IntercityRoutesPage() {
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-anthracite-light">
             {popularRoutes.map((r) => (
-              <div key={`${r.from}-${r.to}`} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group">
+              <a key={`${r.from}-${r.to}`} href={`/routes/${r.slug}`} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group block">
                 <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>
                   {r.from} → {r.to}
                 </p>
@@ -104,7 +104,7 @@ export default function IntercityRoutesPage() {
                   <span className="font-body font-light text-[11px] text-warmgrey tracking-wide">{r.duration}</span>
                   <span className="font-body font-light text-[11px] tracking-wide" style={{ color: 'var(--copper-light)' }}>{r.price}</span>
                 </div>
-              </div>
+              </a>
             ))}
           </div>
           <div className="mt-8">
