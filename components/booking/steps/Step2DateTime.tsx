@@ -4,11 +4,13 @@ import { useEffect, useRef } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 
-// Hours 00–23 and minutes in 15-minute increments
+// Hours 00–23 and minutes in 5-minute increments
 const HOURS: string[] = Array.from({ length: 24 }, (_, i) =>
   i.toString().padStart(2, '0')
 )
-const MINUTES: string[] = ['00', '15', '30', '45']
+const MINUTES: string[] = Array.from({ length: 12 }, (_, i) =>
+  (i * 5).toString().padStart(2, '0')
+)
 
 // Common DayPicker inline styles for the Prestigo dark theme
 const calendarStyles = {
@@ -174,13 +176,12 @@ export default function Step2DateTime() {
     ? pickupTime.split(':')
     : [null, null]
 
-  // Snap a raw minute value to the nearest 15-minute increment
+  // Snap a raw minute value to the nearest 5-minute increment (floor)
   function snapMinute(raw: string | null): string {
     if (!raw) return '00'
     const n = parseInt(raw, 10)
     if (Number.isNaN(n)) return '00'
-    // Round down to nearest 15 (so selecting 10:00 → hour stays 10:00)
-    const snapped = Math.floor(n / 15) * 15
+    const snapped = Math.floor(n / 5) * 5
     return snapped.toString().padStart(2, '0')
   }
 
@@ -330,6 +331,8 @@ export default function Step2DateTime() {
                   role="listbox"
                   aria-label="Pickup minute"
                   style={{
+                    maxHeight: 240,
+                    overflowY: 'auto',
                     margin: 0,
                     padding: 0,
                     border: '1px solid var(--anthracite-light)',
@@ -341,6 +344,7 @@ export default function Step2DateTime() {
                       value={m}
                       isSelected={selectedMinute === m}
                       onSelect={handleMinuteSelect}
+                      scrollIntoView
                     />
                   ))}
                 </ul>
