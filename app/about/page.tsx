@@ -2,14 +2,16 @@ import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
+const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO."
+
 export const metadata: Metadata = {
   title: "About PRESTIGO — Prague's Premium Chauffeur Service",
-  description: 'PRESTIGO is Prague\'s only locally-rooted chauffeur service built to international luxury standards. Meet our team, learn our story, and understand why discerning travellers choose us.',
+  description: ABOUT_DESCRIPTION,
   alternates: { canonical: '/about' },
   openGraph: {
     url: 'https://rideprestigo.com/about',
     title: "About PRESTIGO — Prague's Premium Chauffeur Service",
-    description: "PRESTIGO is Prague's only locally-rooted chauffeur service built to international luxury standards. Meet our team, learn our story, and understand why discerning travellers choose us.",
+    description: ABOUT_DESCRIPTION,
   },
 }
 
@@ -88,9 +90,82 @@ export default function AboutPage() {
             <div className="w-full border border-anthracite-light p-10">
               <span className="copper-line mb-8 block" />
               <blockquote className="font-display font-light italic text-[24px] md:text-[28px] text-offwhite leading-[1.5]">
-                "The first person in Prague who is already on your side."
+                &ldquo;The first person in Prague who is already on your side.&rdquo;
               </blockquote>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Our story */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
+          <div className="md:col-span-2">
+            <p className="label mb-6">Our story</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px]">From one car, <span className="display-italic">to a standard.</span></h2>
+          </div>
+          <div className="md:col-span-3 flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              PRESTIGO began the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they&rsquo;d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              The founding principle was that the standard has to be set at the edges, not the centre. Anyone can run a good airport transfer on a sunny Tuesday afternoon. The real test is the 04:00 pickup in a snowstorm, the last-minute rerouting when a meeting runs long, the visiting principal with a protocol team, the family of five with skis and a nervous dog. If the service holds at the edges, the centre takes care of itself.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Today, PRESTIGO operates a curated Mercedes-Benz fleet out of Prague with a small team of vetted chauffeurs who&rsquo;ve each been with us long enough to be trusted with any booking. We have deliberately kept the operation compact: we would rather refuse work than dilute the standard.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What discretion means */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <div>
+            <p className="label mb-6">On discretion</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px] mb-6">What discretion <span className="display-italic">actually means.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              &ldquo;Discretion&rdquo; is one of those words every premium operator puts on their website and very few define. At PRESTIGO, discretion is a set of concrete practices, not a marketing line. It is the reason we hesitate to photograph our own vehicles with clients inside them, the reason our chauffeurs don&rsquo;t carry company-branded clothing to dinner pickups, and the reason nothing that happens in the cabin is ever repeated — to colleagues, to family, or to a social feed.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-4">
+            {[
+              { t: 'No social posting — ever', b: 'Our drivers do not photograph clients, vehicles with clients inside, or the addresses we collect from. There is no internal chat group sharing stories. We don&rsquo;t have one.' },
+              { t: 'NDAs on request, at no cost', b: 'For any booking that touches confidential business, we will sign a standard mutual NDA before the trip. Many of our corporate accounts run on a permanent NDA as a matter of routine.' },
+              { t: 'Private pickups without signage', b: 'For sensitive collections at residences, embassies, or private entrances, the chauffeur carries no company signage and uses a vehicle without external branding.' },
+              { t: 'Conversation only on invitation', b: 'Our chauffeurs will not speak first. If you want a conversation, start one. If you want to work or sleep, the cabin stays silent for the entire journey.' },
+              { t: 'What happens inside, stays inside', b: 'Phone calls, documents on your lap, conversations with colleagues in the back seat — none of it exists outside the vehicle. This is not a slogan. It is how we are trained.' },
+            ].map((item) => (
+              <li key={item.t} className="flex items-start gap-4 py-3 border-b border-anthracite-light last:border-0">
+                <span className="mt-[8px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
+                <div>
+                  <p className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-1" dangerouslySetInnerHTML={{ __html: item.t }} />
+                  <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }} dangerouslySetInnerHTML={{ __html: item.b }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Local knowledge */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Local knowledge, international standards</p>
+          <span className="copper-line mb-8 block" />
+          <h2 className="display text-[28px] md:text-[36px] mb-10">Prague is our home. <span className="display-italic">That is the advantage.</span></h2>
+          <div className="flex flex-col gap-6">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Most of the global chauffeur brands that operate in Prague are platforms — they list local drivers, collect a fee, and disappear the moment something goes wrong. PRESTIGO is the opposite. We are based in Prague, we employ our drivers directly, and we live with every decision about service the next day. That is what &ldquo;locally-rooted&rdquo; actually means.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Local knowledge is a practical advantage. Our chauffeurs know that the Prague 1 traffic pattern changes completely during the Christmas markets, that Charles Bridge is closed to vehicles, that Wenceslas Square becomes impassable whenever there&rsquo;s a protest or a football final, and that the fastest route from the airport to a hotel in Malá Strana depends entirely on the time of day. They know which hotels expect you to drop at the main entrance and which prefer the side porte-cochère. They know which embassies have security checks that add fifteen minutes to the pickup. They know the border-crossing habits of the E65 to Vienna at 06:00 on a summer Monday versus a winter Saturday.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              None of this is written in a policy document. It is learned by driving the city for years, and then choosing to stay with one operator who asks the right questions. It is the single biggest reason PRESTIGO is consistent at the edges — where other services begin to fray.
+            </p>
           </div>
         </div>
       </section>

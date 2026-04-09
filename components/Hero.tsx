@@ -11,6 +11,7 @@ export default function Hero() {
         alt="Prestigo premium chauffeur — Prague airport transfer"
         fill
         priority
+        fetchPriority="high"
         sizes="100vw"
         style={{ objectFit: 'cover', objectPosition: 'center' }}
       />

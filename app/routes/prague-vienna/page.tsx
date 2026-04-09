@@ -3,14 +3,16 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
+const PRAGUE_VIENNA_DESCRIPTION = 'Private chauffeur Prague to Vienna: 330 km door-to-door in a Mercedes E-Class, S-Class or V-Class. Fixed price from €485, stops available.'
+
 export const metadata: Metadata = {
   title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
-  description: 'Book a private chauffeur from Prague to Vienna. 330 km door-to-door in a Mercedes-Benz E-Class, S-Class, or V-Class. Fixed price from €485, flight tracking, stops available.',
+  description: PRAGUE_VIENNA_DESCRIPTION,
   alternates: { canonical: '/routes/prague-vienna' },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-vienna',
     title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
-    description: 'Book a private chauffeur from Prague to Vienna. 330 km door-to-door in a Mercedes-Benz E-Class, S-Class, or V-Class. Fixed price from €485, flight tracking, stops available.',
+    description: PRAGUE_VIENNA_DESCRIPTION,
   },
 }
 

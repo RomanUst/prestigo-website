@@ -70,6 +70,8 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta property="og:image" content="https://rideprestigo.com/photohero.png" />
+        {/* Hero image is the LCP element — preload it so the audit tool and the browser both prioritise it alongside next/image's own optimisation */}
+        <link rel="preload" as="image" href="/photohero.png" fetchPriority="high" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />

@@ -9,12 +9,74 @@ type FormState = 'idle' | 'sending' | 'success'
 const WHATSAPP_NUMBER = '420725986855'
 
 
-const breadcrumbSchema = {
+const corporateSchemaGraph = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Corporate Accounts', item: 'https://rideprestigo.com/corporate' },
+  '@graph': [
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rideprestigo.com/corporate#breadcrumbs',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'Corporate Accounts', item: 'https://rideprestigo.com/corporate' },
+      ],
+    },
+    {
+      '@type': 'Service',
+      '@id': 'https://rideprestigo.com/corporate#service',
+      name: 'PRESTIGO Corporate Chauffeur Accounts',
+      serviceType: 'Corporate Chauffeur Account',
+      description:
+        'Dedicated corporate chauffeur accounts in Prague with monthly consolidated invoicing, a named account manager, priority dispatch, and a reporting dashboard. Designed for law firms, consulting groups, finance, embassies, and event organisers who move people regularly.',
+      provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      areaServed: [
+        { '@type': 'City', name: 'Prague', sameAs: 'https://www.wikidata.org/wiki/Q1085' },
+        { '@type': 'Country', name: 'Czech Republic', sameAs: 'https://www.wikidata.org/wiki/Q213' },
+      ],
+      audience: {
+        '@type': 'BusinessAudience',
+        audienceType: 'Enterprise and SME corporate travel buyers',
+      },
+      hasOfferCatalog: {
+        '@type': 'OfferCatalog',
+        name: 'Corporate account benefits',
+        itemListElement: [
+          {
+            '@type': 'Offer',
+            name: 'Monthly consolidated invoicing',
+            description: 'One invoice on the first of every month covering all trips and all departments, formatted for corporate accounts teams.',
+            priceCurrency: 'EUR',
+            price: '0',
+            availability: 'https://schema.org/InStock',
+          },
+          {
+            '@type': 'Offer',
+            name: 'Dedicated account manager',
+            description: 'A single named contact who knows your company, preferences, and travellers — reachable by phone, email, and WhatsApp.',
+            priceCurrency: 'EUR',
+            price: '0',
+            availability: 'https://schema.org/InStock',
+          },
+          {
+            '@type': 'Offer',
+            name: 'Priority dispatch',
+            description: 'Corporate accounts receive priority allocation for same-day, last-minute, and early-morning bookings.',
+            priceCurrency: 'EUR',
+            price: '0',
+            availability: 'https://schema.org/InStock',
+          },
+          {
+            '@type': 'Offer',
+            name: 'Reporting dashboard',
+            description: 'Bookings, travellers, routes, and costs exportable for expense and compliance reporting at any time.',
+            priceCurrency: 'EUR',
+            price: '0',
+            availability: 'https://schema.org/InStock',
+          },
+        ],
+      },
+      termsOfService: 'https://rideprestigo.com/corporate',
+      url: 'https://rideprestigo.com/corporate',
+    },
   ],
 }
 
@@ -44,7 +106,7 @@ export default function CorporatePage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(corporateSchemaGraph) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
@@ -137,6 +199,83 @@ export default function CorporatePage() {
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{s.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Who uses corporate accounts */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
+          <div className="md:col-span-2">
+            <p className="label mb-6">Who uses a PRESTIGO corporate account</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px]">Built for the firms <span className="display-italic">Prague works with.</span></h2>
+          </div>
+          <div className="md:col-span-3 flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Our corporate clients are the law firms, consulting practices, investment houses, embassies, global employers, and event agencies that move people through Prague on a weekly basis. A typical account might book two or three airport runs on a Monday morning, a half-day roadshow for a visiting executive mid-week, and an evening dinner transfer on Friday — all without a single phone call, approval chain, or per-trip invoice.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Corporate accounts also absorb the edge cases that eat most travel managers&rsquo; time: a last-minute swap when a meeting runs long, a second vehicle dispatched to collect late arrivals, a private pickup at a residence outside the city for a visiting board member. These calls go directly to the account manager, who makes the decision and sends the confirmation before the travel manager has finished the request email.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              We keep account sizes deliberately modest so every client receives the same level of attention. PRESTIGO corporate isn&rsquo;t a volume programme with tiered service — every account is handled as if it were our largest.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Typical usage patterns */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="mb-14">
+            <p className="label mb-6">Typical usage patterns</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px]">What a week on a<br /><span className="display-italic">PRESTIGO account looks like.</span></h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {[
+              {
+                title: 'The multi-leg roadshow',
+                body: 'A visiting managing director lands at 08:10, is collected from Arrivals with a name board, and is driven through four back-to-back meetings across Prague before a 17:00 departure. One chauffeur, one vehicle, one fixed half-day fee. The traveller never queues for a taxi and never checks a map.',
+              },
+              {
+                title: 'The pre-dawn airport run',
+                body: 'A senior partner on the 06:15 flight to London needs collection at 04:20 from a Vinohrady address in a Tuesday snowstorm. Priority dispatch allocates the car the night before, the chauffeur clears snow from the vehicle before arrival, and the client is at the gate before most of Prague is awake.',
+              },
+              {
+                title: 'The board-meeting V-Class',
+                body: 'Four directors arriving on separate flights within ninety minutes. Rather than four E-Class transfers, the account manager books a single V-Class to circulate through Terminal 1, collect each passenger at their gate, and deliver the group directly to the meeting venue in Old Town. One fixed fee, one arrival time, one invoice line.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="border border-anthracite-light p-8">
+                <span className="copper-line mb-5 block" />
+                <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Onboarding + Compliance */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <div>
+            <p className="label mb-6">Onboarding in 48 hours</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[34px] mb-6">From form to first trip, <span className="display-italic">inside two working days.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              The application form below takes roughly three minutes to complete. Within the same working day we assign your account manager, draft a service agreement, and send it over for countersignature. Once signed, we configure your account in our dispatch system, invite your travellers, and run a test booking free of charge so your first real trip is never the first trip. Most accounts are live and making bookings inside 48 hours of the initial enquiry.
+            </p>
+          </div>
+          <div>
+            <p className="label mb-6">Compliance, insurance &amp; invoicing</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[34px] mb-6">Documentation ready <span className="display-italic">for your finance team.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              PRESTIGO is operated by chelautotrans s.r.o. (Czech company ID 05650801), a fully licensed and VAT-registered Czech operator. Every invoice is issued with VAT, trip-level breakdown, and a unique reference per booking. We carry commercial passenger-liability and fully comprehensive vehicle insurance, and can provide certificates on request for security or procurement teams. Traveller data is handled under GDPR with a clear retention policy and is never shared with third parties.
+            </p>
           </div>
         </div>
       </section>

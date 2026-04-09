@@ -1,17 +1,17 @@
 import type { Metadata } from 'next'
 
+const CORPORATE_DESCRIPTION = 'Corporate chauffeur accounts in Prague: monthly invoicing, a dedicated account manager, priority dispatch, and a Mercedes fleet on call. Set up in 24 hours.'
+
 export const metadata: Metadata = {
   title: 'Corporate Chauffeur Accounts Prague — PRESTIGO',
-  description:
-    'Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch, Mercedes fleet. Set up in 24 hours.',
+  description: CORPORATE_DESCRIPTION,
   alternates: {
     canonical: '/corporate',
   },
   openGraph: {
     url: 'https://rideprestigo.com/corporate',
     title: 'Corporate Chauffeur Accounts Prague — PRESTIGO',
-    description:
-      'Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch, Mercedes fleet.',
+    description: CORPORATE_DESCRIPTION,
   },
 }
 

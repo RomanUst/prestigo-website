@@ -2,14 +2,16 @@ import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
+const SERVICES_DESCRIPTION = 'Prague chauffeur services: airport transfers, intercity routes, corporate accounts, VIP events, city rides. Fixed price, flight tracking, instant booking.'
+
 export const metadata: Metadata = {
   title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',
-  description: 'Premium chauffeur services in Prague: airport transfers, city-to-city routes, corporate accounts, VIP & events, city rides, group transfers. Fixed price, flight tracking, instant booking.',
+  description: SERVICES_DESCRIPTION,
   alternates: { canonical: '/services' },
   openGraph: {
     url: 'https://rideprestigo.com/services',
     title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',
-    description: 'Premium chauffeur services in Prague: airport transfers, city-to-city routes, corporate accounts, VIP & events, city rides, group transfers. Fixed price, flight tracking, instant booking.',
+    description: SERVICES_DESCRIPTION,
   },
 }
 

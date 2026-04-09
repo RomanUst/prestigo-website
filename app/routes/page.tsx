@@ -3,14 +3,16 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
 
+const ROUTES_DESCRIPTION = 'Private chauffeur from Prague to 30 Central European destinations. Vienna €485, Berlin €580, Munich €635, Budapest €885. Fixed price, door-to-door.'
+
 export const metadata: Metadata = {
   title: 'Prague Private Chauffeur — 30 Intercity Routes',
-  description: 'Private chauffeur transfers from Prague to 30 destinations across Central Europe. Vienna from €485, Berlin from €580, Munich from €635, Budapest from €885. Fixed price, door-to-door.',
+  description: ROUTES_DESCRIPTION,
   alternates: { canonical: '/routes' },
   openGraph: {
     url: 'https://rideprestigo.com/routes',
     title: 'Prague Private Chauffeur — 30 Intercity Routes',
-    description: 'Private chauffeur transfers from Prague to 30 destinations across Central Europe. Vienna from €485, Berlin from €580, Munich from €635, Budapest from €885. Fixed price, door-to-door.',
+    description: ROUTES_DESCRIPTION,
   },
 }
 
@@ -62,8 +64,30 @@ export default function RoutesPage() {
             <span className="display-italic">door to door.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prague is the centre of Central Europe. Vienna, Berlin, Munich, Budapest — all within a day's drive. PRESTIGO chauffeurs cover 30 routes with fixed pricing, premium vehicles, and zero surprises.
+            Prague is the centre of Central Europe. Vienna, Berlin, Munich, Budapest — all within a day&rsquo;s drive. PRESTIGO chauffeurs cover 30 routes with fixed pricing, premium vehicles, and zero surprises.
           </p>
+        </div>
+      </section>
+
+      {/* Planning intercity travel */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
+          <div className="md:col-span-2">
+            <p className="label mb-6">Planning intercity travel</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px]">Why a private transfer <span className="display-italic">beats the train.</span></h2>
+          </div>
+          <div className="md:col-span-3 flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Intercity rail in Central Europe is excellent — but it stops at the station, not at your hotel door. For most of our clients, the hidden cost of a Prague&ndash;Vienna or Prague&ndash;Berlin trip isn&rsquo;t the ticket. It&rsquo;s the two taxis on either side, the hour spent dragging luggage through a terminus, the rigid departure window, and the wasted time between meetings when the schedule slips.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              A PRESTIGO private transfer replaces all of that with a single fixed-price journey. Your chauffeur collects you from your address in Prague, loads your luggage, clears the city on the fastest route of the day, and delivers you to the exact entrance of your destination — hotel, office, embassy, conference centre, airport. If you need to take a phone call the whole way, you can. If you need to sleep, you can. If you need to stop for lunch in Brno, Bratislava or Dresden, you simply tell the driver.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Every intercity route on this page is operated with the same fleet, the same vetted chauffeurs, and the same service standard as our airport transfers. Prices are quoted per vehicle, not per passenger — so two people share the same fare as one, and a V-Class with six passengers and full luggage still travels for a single fixed total.
+            </p>
+          </div>
         </div>
       </section>
 
@@ -165,6 +189,71 @@ export default function RoutesPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Border crossings, tolls, paperwork */}
+      <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="mb-14">
+            <p className="label mb-6">Borders, tolls &amp; paperwork</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px]">Crossing borders<br /><span className="display-italic">without the friction.</span></h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {[
+              {
+                title: 'Schengen as standard',
+                body: 'Every route we operate is within the Schengen area — Czechia, Austria, Germany, Slovakia, Hungary, Poland. There is no passport control at the border and no document inspection during the journey. Non-EU passport holders should still carry their passport, as occasional spot checks do happen during major events.',
+              },
+              {
+                title: 'All tolls and vignettes included',
+                body: 'The fixed price on each route covers every motorway toll, tunnel fee, Austrian and Slovak vignette, Czech dálniční známka, and city congestion charge along the way. There are no surcharges for fuel, waiting at the border, or driver overtime.',
+              },
+              {
+                title: 'Documentation for corporate travel',
+                body: 'For corporate and diplomatic clients we can prepare a detailed trip confirmation in advance, including vehicle plate, driver name and licence number, insurance reference, and estimated route — useful for security teams, embassies, and venues with advance-notification requirements.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="border border-anthracite-light p-8">
+                <span className="copper-line mb-5 block" />
+                <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Luggage, pets, child seats */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <div>
+            <p className="label mb-6">Luggage, pets &amp; children</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px] mb-6">Travel with everything <span className="display-italic">you need.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Intercity transfers usually mean more luggage than a city run — ski bags, golf clubs, sample cases, presentation materials, or the full suitcase complement of a family relocating between capitals. Every PRESTIGO class is matched to a realistic luggage load, and when in doubt we upgrade you at the same price rather than squeeze a trip.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-4">
+            {[
+              { t: 'E-Class luggage', b: '2 large suitcases + 2 cabin bags, or 3 large cases for 2 passengers.' },
+              { t: 'S-Class luggage', b: '2 large suitcases + 2 cabin bags. Same capacity, with executive rear legroom and massage seats.' },
+              { t: 'V-Class luggage', b: 'Up to 6 large suitcases and 6 cabin bags with all seats occupied — effectively unlimited for 2 or 3 passengers.' },
+              { t: 'Pets welcome', b: 'Small pets travel free in a carrier; larger dogs accepted by arrangement in the V-Class. Please note at booking.' },
+              { t: 'Child &amp; booster seats', b: 'EU-certified infant, toddler and booster seats available at no charge. Just confirm age and weight when you book.' },
+              { t: 'Oversized items', b: 'Skis, golf bags, bicycles (partially dismantled) and musical instruments carried on request — V-Class is almost always the right answer.' },
+            ].map((item) => (
+              <li key={item.t} className="flex items-start gap-4 py-3 border-b border-anthracite-light last:border-0">
+                <span className="mt-[8px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
+                <div>
+                  <p className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-1" dangerouslySetInnerHTML={{ __html: item.t }} />
+                  <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }} dangerouslySetInnerHTML={{ __html: item.b }} />
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
       </section>
 

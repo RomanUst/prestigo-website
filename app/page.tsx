@@ -9,18 +9,22 @@ import Routes from '@/components/Routes'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 
+// Canonical and openGraph URL are both set to the exact form the server
+// actually returns (no trailing slash, matching next.config behaviour) so
+// Search Console sees a single, consistent home URL.
+const HOME_URL = 'https://rideprestigo.com'
+const HOME_DESCRIPTION = 'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.'
+
 export const metadata: Metadata = {
   title: 'PRESTIGO — Premium Chauffeur Service Prague',
-  description:
-    'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
+  description: HOME_DESCRIPTION,
   alternates: {
-    canonical: '/',
+    canonical: HOME_URL,
   },
   openGraph: {
-    url: 'https://rideprestigo.com',
+    url: HOME_URL,
     title: 'PRESTIGO — Premium Chauffeur Service Prague',
-    description:
-      'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
+    description: HOME_DESCRIPTION,
   },
 }
 

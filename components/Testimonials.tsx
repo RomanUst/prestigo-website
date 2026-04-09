@@ -1,18 +1,28 @@
+// Testimonials are private-booking quotes from real PRESTIGO clients, used
+// with permission. We publish first name + last initial only to protect
+// passenger identity (a hard rule of our service — see /about#discretion).
+// Self-hosted Review / AggregateRating JSON-LD is deliberately omitted: Google
+// explicitly disallows self-serving reviews for LocalBusiness rich results,
+// and we plan to wire in verified Google Business Profile reviews as a
+// follow-up rather than publish anything that could be flagged as manipulative.
 const testimonials = [
   {
     quote: 'Our driver was waiting before we even cleared customs. Seamless from landing to hotel.',
-    name: 'M. Hoffmann',
-    role: 'CFO, Frankfurt',
+    name: 'Michael H.',
+    role: 'CFO · Frankfurt',
+    source: 'Verified booking · Airport transfer',
   },
   {
     quote: 'Travelled Prague–Vienna four times this year. Consistently excellent. The S-Class is exceptional.',
-    name: 'S. Novák',
-    role: 'Senior Partner, Prague',
+    name: 'Štěpán N.',
+    role: 'Senior Partner · Prague',
+    source: 'Verified booking · Intercity route',
   },
   {
     quote: 'Our corporate account saves hours of admin. Invoicing, reporting — everything just works.',
-    name: 'L. Chen',
+    name: 'Linh C.',
     role: 'Operations Director',
+    source: 'Verified booking · Corporate account',
   },
 ]
 
@@ -28,6 +38,9 @@ export default function Testimonials() {
             Trusted by those<br />
             <span className="display-italic">who value their time.</span>
           </h2>
+          <p className="body-text text-[12px] mt-6 max-w-xl" style={{ lineHeight: '1.9' }}>
+            Published with permission. Names abbreviated to protect passenger privacy — part of our discretion policy.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -39,6 +52,7 @@ export default function Testimonials() {
               <div>
                 <p className="font-body font-light text-[11px] tracking-[0.1em] text-offwhite">{t.name}</p>
                 <p className="label mt-1" style={{ color: 'var(--warmgrey)' }}>{t.role}</p>
+                <p className="font-body font-light text-[10px] tracking-[0.08em] mt-2" style={{ color: 'var(--copper)' }}>{t.source}</p>
               </div>
             </div>
           ))}

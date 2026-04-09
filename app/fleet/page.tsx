@@ -3,14 +3,20 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
+// Static page — regenerate at most once per hour so updates to the fleet
+// copy propagate without forcing on-demand SSR on every request.
+export const revalidate = 3600
+
+const FLEET_DESCRIPTION = 'Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared.'
+
 export const metadata: Metadata = {
   title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
-  description: 'Travel in a Mercedes E-Class, S-Class or V-Class. PRESTIGO operates a modern, fully insured Mercedes fleet for executive transfers in Prague and across Central Europe.',
+  description: FLEET_DESCRIPTION,
   alternates: { canonical: '/fleet' },
   openGraph: {
     url: 'https://rideprestigo.com/fleet',
     title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
-    description: 'Travel in a Mercedes E-Class, S-Class or V-Class. PRESTIGO operates a modern, fully insured Mercedes fleet for executive transfers in Prague and across Central Europe.',
+    description: FLEET_DESCRIPTION,
   },
 }
 
@@ -173,6 +179,110 @@ export default function FleetPage() {
                 <p className="body-text text-[12px]">{s.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Why Mercedes-Benz */}
+      <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <div>
+            <p className="label mb-6">Why Mercedes-Benz exclusively</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px] mb-8">One marque. Three silhouettes. <span className="display-italic">Zero compromise.</span></h2>
+          </div>
+          <div className="flex flex-col gap-6">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              PRESTIGO operates a pure Mercedes-Benz fleet — not because it&rsquo;s the easy choice, but because it&rsquo;s the right one. For executive transport in Central Europe, Mercedes remains the undisputed standard: the E-Class is the default business sedan of every capital from Prague to Warsaw, the S-Class defines the upper tier of ground luxury, and the V-Class is the only premium van our corporate clients recognise on sight.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              A single-marque fleet also means consistency. Every driver already knows the controls, the service intervals, and the quirks of each chassis. Every passenger steps into an interior they already know how to use — the same climate logic, the same seat controls, the same quality of leather and stitching. There are no surprises, and in executive travel, surprises are the enemy.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              We refresh vehicles on a rolling schedule, well before the cosmetic or mechanical standard begins to slip. Our clients travel in a car that feels current — because it is.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Maintenance & safety */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <div className="mb-14">
+            <p className="label mb-6">Maintenance &amp; Safety</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px]">Prepared before<br /><span className="display-italic">every journey.</span></h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {[
+              {
+                title: 'Manufacturer-schedule servicing',
+                body: 'Every vehicle is serviced by authorised Mercedes-Benz technicians on the factory-recommended schedule. We keep complete service records and replace consumables (tyres, brake pads, wipers) well before the legal minimum.',
+              },
+              {
+                title: 'Commercial insurance, fully comprehensive',
+                body: 'Every journey is covered by commercial passenger liability and fully comprehensive vehicle insurance, underwritten in the EU. Documentation is available on request for corporate compliance teams.',
+              },
+              {
+                title: 'Daily pre-trip inspection',
+                body: 'Tyre pressure, fluid levels, lights, and cabin cleanliness are checked before the first assignment of the day — and again between back-to-back executive bookings.',
+              },
+            ].map((item) => (
+              <div key={item.title} className="border border-anthracite-light p-8">
+                <span className="copper-line mb-5 block" />
+                <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Technology onboard */}
+      <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <div>
+            <p className="label mb-6">Technology onboard</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px] mb-6">A rolling office.<br /><span className="display-italic">A quiet sanctuary.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Our passengers often arrive at the car with work still to finish — or nerves still to settle after a long flight. The cabin of every PRESTIGO vehicle is prepared for both. Whether you need to take a video call between meetings or simply close your eyes for an hour, the interior adapts to you, not the other way around.
+            </p>
+          </div>
+          <ul className="flex flex-col gap-5">
+            {[
+              { t: 'Unlimited mobile Wi-Fi', b: 'Enterprise-grade 5G router in every vehicle. Multiple devices, full bandwidth, no data caps.' },
+              { t: 'Fast charging for every device', b: 'USB-C and USB-A ports within reach of every seat. Apple and Samsung fast-charge supported.' },
+              { t: 'Climate preset on arrival', b: 'Your preferred cabin temperature is set before the car reaches you — noted once, remembered for every future booking.' },
+              { t: 'Still and sparkling water', b: 'Complimentary chilled mineral water on every transfer. Tea, coffee and champagne available on request for executive and VIP bookings.' },
+              { t: 'Child &amp; booster seats', b: 'Full range of EU-certified child restraints available at no extra charge — just note the age and weight at booking.' },
+              { t: 'Discreet privacy', b: 'S-Class and V-Class offer privacy glass and optional rear partitions. What happens in the cabin stays in the cabin.' },
+            ].map((item) => (
+              <li key={item.t} className="flex items-start gap-4 py-4 border-b border-anthracite-light last:border-0">
+                <span className="mt-[9px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
+                <div>
+                  <p className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-2" dangerouslySetInnerHTML={{ __html: item.t }} />
+                  <p className="body-text text-[12px]" style={{ lineHeight: '1.85' }} dangerouslySetInnerHTML={{ __html: item.b }} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* Selection criteria */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">How we choose a class for your journey</p>
+          <span className="copper-line mb-8 block" />
+          <h2 className="display text-[28px] md:text-[36px] mb-10">Matching vehicle to <span className="display-italic">occasion.</span></h2>
+          <div className="flex flex-col gap-6">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              The right vehicle depends on the trip, not the price list. A solo executive arriving from London City with a briefcase and a carry-on is best served by an E-Class — efficient, quiet, and perfectly appointed for a ninety-minute airport run. A visiting principal with protocol requirements and an aide will prefer the S-Class, where rear legroom, massage seats, and the near-silent cabin become genuinely useful. A family of five with skis and luggage, or a four-person board arriving for a half-day roadshow, belongs in the V-Class — the only vehicle in the fleet that comfortably seats six adults with full luggage.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              If you&rsquo;re unsure which class fits your booking, note your passenger count, luggage, and journey length in the booking form and our dispatcher will confirm the right pairing within minutes. For recurring corporate travel, we maintain vehicle preferences against your account profile so every trip is matched automatically.
+            </p>
           </div>
         </div>
       </section>
