@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import ArticleByline from '@/components/ArticleByline'
+import { personSchemaFor } from '@/lib/authors'
+
+const ARTICLE_PUBLISHED = '2026-04-09'
+const ARTICLE_MODIFIED = '2026-04-09'
 
 // Exhaustive Prague Airport → city guide, verified against PID Lítačka 2026
 // tariff (effective 1 Jan 2026), DPP network changes (bus 119 → trolleybus 59
@@ -302,9 +307,10 @@ const pageSchemaGraph = {
       description: DESCRIPTION,
       about: { '@type': 'Place', name: 'Václav Havel Airport Prague' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      author: personSchemaFor('roman-ustyugov'),
       url: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
-      datePublished: '2026-04-09',
-      dateModified: '2026-04-09',
+      datePublished: ARTICLE_PUBLISHED,
+      dateModified: ARTICLE_MODIFIED,
     },
     {
       '@type': 'FAQPage',
@@ -341,6 +347,13 @@ export default function GuidePragueAirportPage() {
             This guide has the current numbers and, unusually, routes you by passenger profile and
             neighbourhood rather than giving you a generic "six options" list.
           </p>
+          <div className="mt-10 max-w-2xl">
+            <ArticleByline
+              authorSlug="roman-ustyugov"
+              datePublished={ARTICLE_PUBLISHED}
+              dateModified={ARTICLE_MODIFIED}
+            />
+          </div>
         </div>
       </section>
 

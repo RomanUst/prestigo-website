@@ -59,6 +59,23 @@ const localBusinessSchema = {
     longitude: '14.4378',
   },
   image: 'https://rideprestigo.com/photohero.png',
+  founder: {
+    '@type': 'Person',
+    '@id': 'https://rideprestigo.com/authors/roman-ustyugov#person',
+    name: 'Roman Ustyugov',
+    jobTitle: 'Founder & Chief Experience Officer',
+    url: 'https://rideprestigo.com/authors/roman-ustyugov',
+    image: 'https://rideprestigo.com/roman-ustyugov-founder.jpg',
+    worksFor: { '@id': 'https://rideprestigo.com/#business' },
+  },
+  knowsAbout: [
+    'Luxury chauffeur service',
+    'Airport transfer Prague',
+    'Corporate ground transportation',
+    '5-star hotel partner transport',
+    'Executive Mercedes-Benz fleet',
+  ],
+  slogan: 'The first person in Prague who is already on your side.',
   sameAs: [
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',

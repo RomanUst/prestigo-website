@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import { getAuthor, personSchemaFor } from '@/lib/authors'
 
 const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO."
 
@@ -39,12 +40,28 @@ const requirements = [
 ]
 
 
-const breadcrumbSchema = {
+const founder = getAuthor('roman-ustyugov')
+
+const aboutPageSchemaGraph = {
   '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'About', item: 'https://rideprestigo.com/about' },
+  '@graph': [
+    {
+      '@type': 'BreadcrumbList',
+      '@id': 'https://rideprestigo.com/about#breadcrumb',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'About', item: 'https://rideprestigo.com/about' },
+      ],
+    },
+    {
+      '@type': 'AboutPage',
+      '@id': 'https://rideprestigo.com/about#aboutpage',
+      url: 'https://rideprestigo.com/about',
+      name: "About PRESTIGO — Prague's Premium Chauffeur Service",
+      description: ABOUT_DESCRIPTION,
+      mainEntity: { '@id': 'https://rideprestigo.com/#business' },
+      about: personSchemaFor('roman-ustyugov'),
+    },
   ],
 }
 
@@ -52,7 +69,7 @@ export default function AboutPage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchemaGraph) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
@@ -115,6 +132,59 @@ export default function AboutPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Today, PRESTIGO operates a curated Mercedes-Benz fleet out of Prague with a small team of vetted chauffeurs who&rsquo;ve each been with us long enough to be trusted with any booking. We have deliberately kept the operation compact: we would rather refuse work than dilute the standard.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Founder */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-start">
+          <div>
+            <picture>
+              <source srcSet="/roman-ustyugov-founder.avif" type="image/avif" />
+              <source srcSet="/roman-ustyugov-founder.webp" type="image/webp" />
+              <img
+                src={founder.image}
+                alt={founder.imageAlt}
+                width={220}
+                height={220}
+                loading="lazy"
+                decoding="async"
+                className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full object-cover border border-anthracite-light"
+              />
+            </picture>
+          </div>
+          <div>
+            <p className="label mb-6">Meet the founder</p>
+            <span className="copper-line mb-8 block" />
+            <h2 className="display text-[28px] md:text-[36px] mb-3">
+              Roman Ustyugov, <span className="display-italic">Founder.</span>
+            </h2>
+            <p className="font-body text-[11px] tracking-[0.12em] uppercase text-copper mb-6">
+              {founder.jobTitle}
+            </p>
+            <div className="flex flex-col gap-5 max-w-2xl">
+              {founder.bio.map((para, i) => (
+                <p
+                  key={i}
+                  className="body-text text-[13px]"
+                  style={{ lineHeight: '1.9' }}
+                >
+                  {para}
+                </p>
+              ))}
+              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                Ten years in the industry means every 04:00 pickup, every wrong-terminal arrival, every VIP protocol has been seen, solved, and written into PRESTIGO&rsquo;s playbook. That is what you are booking when you book us.
+              </p>
+              <div className="pt-2">
+                <a
+                  href={`/authors/${founder.slug}`}
+                  className="font-body text-[11px] tracking-[0.12em] uppercase text-copper hover:text-offwhite transition-colors"
+                >
+                  Read full profile →
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>

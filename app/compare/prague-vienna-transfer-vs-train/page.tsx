@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import ArticleByline from '@/components/ArticleByline'
+import { personSchemaFor } from '@/lib/authors'
+
+const ARTICLE_PUBLISHED = '2026-04-09'
+const ARTICLE_MODIFIED = '2026-04-09'
 
 // Long-form comparison built from real 2026 ÖBB/RegioJet/FlixBus fare data
 // and PRESTIGO's published intercity pricing (see Notion pricing ledger).
@@ -221,9 +226,10 @@ const pageSchemaGraph = {
       description: DESCRIPTION,
       about: { '@type': 'Service', name: 'Prague to Vienna private chauffeur transfer' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      author: personSchemaFor('roman-ustyugov'),
       url: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
-      datePublished: '2026-04-09',
-      dateModified: '2026-04-09',
+      datePublished: ARTICLE_PUBLISHED,
+      dateModified: ARTICLE_MODIFIED,
     },
     {
       '@type': 'FAQPage',
@@ -258,6 +264,13 @@ export default function ComparePragueViennaPage() {
             to oversell the private transfer — for half of travellers, the train is the right answer. This
             guide tells you which half you are in, to the euro and to the minute.
           </p>
+          <div className="mt-10 max-w-2xl">
+            <ArticleByline
+              authorSlug="roman-ustyugov"
+              datePublished={ARTICLE_PUBLISHED}
+              dateModified={ARTICLE_MODIFIED}
+            />
+          </div>
         </div>
       </section>
 

@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import ArticleByline from '@/components/ArticleByline'
+import { personSchemaFor } from '@/lib/authors'
+
+const ARTICLE_PUBLISHED = '2026-04-09'
+const ARTICLE_MODIFIED = '2026-04-09'
 
 // Long-form comparison built from verified April 2026 data: Uber's 2023-2028
 // exclusive PRG rank contract, official Prague Airport signage, PID Lítačka
@@ -207,9 +212,10 @@ const pageSchemaGraph = {
       description: DESCRIPTION,
       about: { '@type': 'Service', name: 'Prague airport transfer' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      author: personSchemaFor('roman-ustyugov'),
       url: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
-      datePublished: '2026-04-09',
-      dateModified: '2026-04-09',
+      datePublished: ARTICLE_PUBLISHED,
+      dateModified: ARTICLE_MODIFIED,
     },
     {
       '@type': 'FAQPage',
@@ -244,6 +250,13 @@ export default function CompareAirportTaxiPage() {
             are still quoting outdated fares. This is the honest 2026 comparison across all six realistic ways
             into Prague, with real pricing, profile-based recommendations, and current scam alerts.
           </p>
+          <div className="mt-10 max-w-2xl">
+            <ArticleByline
+              authorSlug="roman-ustyugov"
+              datePublished={ARTICLE_PUBLISHED}
+              dateModified={ARTICLE_MODIFIED}
+            />
+          </div>
         </div>
       </section>
 
