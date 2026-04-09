@@ -5,7 +5,11 @@ import { buildPriceMap, dateDiffDays } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
-import type { PricingGlobals } from '@/lib/pricing-config'
+import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
+// Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
+// that imported them directly from this route continue to compile. The single
+// source of truth is @/lib/server-pricing; this re-export is a compat shim.
+export { isHolidayDate, applyGlobals }
 
 const coordSchema = z.object({
   lat: z.number().finite().min(-90).max(90),
@@ -24,18 +28,6 @@ const calculatePriceSchema = z.object({
   isAirport: z.boolean().optional().default(false),
 })
 
-export function isHolidayDate(pickupDate: string | null, holidayDates: string[]): boolean {
-  if (!pickupDate || holidayDates.length === 0) return false
-  const dateSet = new Set(holidayDates)
-  return dateSet.has(pickupDate)
-}
-
-function isNightTime(time: string | null): boolean {
-  if (!time) return false
-  const hour = parseInt(time.split(':')[0], 10)
-  return hour >= 22 || hour < 6
-}
-
 // Prague Václav Havel Airport coordinates
 const PRG_LAT = 50.1008
 const PRG_LNG = 14.26
@@ -47,26 +39,6 @@ function isNearAirport(pt: { lat: number; lng: number } | null | undefined): boo
   return (
     Math.abs(pt.lat - PRG_LAT) < PRG_RADIUS_DEG &&
     Math.abs(pt.lng - PRG_LNG) < PRG_RADIUS_DEG
-  )
-}
-
-export function applyGlobals(
-  prices: Record<string, { base: number; extras: number; total: number; currency: string }>,
-  globals: PricingGlobals,
-  isAirport: boolean,
-  isNight: boolean,
-  isHoliday: boolean,
-  minFare: Record<string, number>,
-): Record<string, { base: number; extras: number; total: number; currency: string }> {
-  // Night takes precedence over holiday — explicit business rule
-  const coefficient = isNight ? globals.nightCoefficient : isHoliday ? globals.holidayCoefficient : 1.0
-  return Object.fromEntries(
-    Object.entries(prices).map(([vc, breakdown]) => {
-      let adjustedBase = Math.round(breakdown.base * coefficient)
-      if (isAirport) adjustedBase += globals.airportFee
-      adjustedBase = Math.max(adjustedBase, minFare[vc] ?? 0)
-      return [vc, { ...breakdown, base: adjustedBase, total: adjustedBase }]
-    })
   )
 }
 
