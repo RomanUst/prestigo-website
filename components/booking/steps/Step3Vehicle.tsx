@@ -174,8 +174,9 @@ export default function Step3Vehicle() {
         <PriceSummary desktopOnly />
       </div>
 
-      {/* Mobile: single column */}
-      <div className="grid md:hidden" style={{ gridTemplateColumns: '1fr', gap: 24, paddingBottom: 80 }}>
+      {/* Mobile: single column. paddingBottom leaves room for the fixed PriceSummary.mobileBar
+         (~68px + safe area) so cards aren't hidden behind it at scroll end. */}
+      <div className="grid md:hidden" style={{ gridTemplateColumns: '1fr', gap: 24, paddingBottom: 100 }}>
         {cards}
       </div>
 

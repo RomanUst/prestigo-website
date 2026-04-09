@@ -54,9 +54,9 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
     : null
 
   const priceDisplay = () => {
-    if (!vehicleClass) return '\u2014'
+    if (!vehicleClass) return 'Select a vehicle'
     if (quoteMode) return 'Request a quote'
-    if (!selectedPrice) return '\u2014'
+    if (!selectedPrice) return 'Select a vehicle'
     if (isRoundTripMode && combinedTotal !== null) return `\u20AC${combinedTotal}`
     return `\u20AC${totalEur}`
   }
@@ -201,14 +201,15 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         bottom: 0,
         left: 0,
         right: 0,
-        height: 56,
+        minHeight: 68,
         background: 'var(--anthracite-mid)',
-        borderTop: '1px solid var(--anthracite-light)',
-        padding: '0 16px',
-        paddingBottom: 'env(safe-area-inset-bottom)',
+        borderTop: '1px solid var(--copper)',
+        boxShadow: '0 -8px 24px rgba(0, 0, 0, 0.5)',
+        padding: '12px 16px calc(12px + env(safe-area-inset-bottom)) 16px',
         alignItems: 'center',
         justifyContent: 'space-between',
-        zIndex: 50,
+        gap: 12,
+        zIndex: 60,
       }}
     >
       <div style={{ display: 'flex', flexDirection: 'column' }}>
