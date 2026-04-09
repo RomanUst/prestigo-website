@@ -29,6 +29,8 @@ const localBusinessSchema = {
   '@type': ['LocalBusiness', 'TaxiService'],
   '@id': 'https://rideprestigo.com/#business',
   name: 'PRESTIGO',
+  legalName: 'chelautotrans s.r.o.',
+  taxID: '05650801',
   description:
     'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
   url: 'https://rideprestigo.com',
@@ -43,7 +45,8 @@ const localBusinessSchema = {
   ],
   address: {
     '@type': 'PostalAddress',
-    addressLocality: 'Prague',
+    streetAddress: 'Spojovací 685',
+    addressLocality: 'Vysoký Újezd',
     addressCountry: 'CZ',
   },
   geo: {

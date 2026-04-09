@@ -109,6 +109,15 @@ export default function ContactPage() {
                   24 / 7 — 365 days a year
                 </p>
               </div>
+              <div>
+                <p className="label mb-3">Legal entity</p>
+                <address className="font-body font-light text-[13px] text-warmgrey not-italic" style={{ lineHeight: '1.8' }}>
+                  <span className="text-offwhite">chelautotrans s.r.o.</span><br />
+                  IČO: 05650801<br />
+                  Spojovací 685, Vysoký Újezd<br />
+                  Czech Republic
+                </address>
+              </div>
             </div>
           </div>
 
