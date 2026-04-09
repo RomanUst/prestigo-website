@@ -33,9 +33,9 @@ const inclusions = [
   'Fuel, all tolls, and the Czech, Slovak, and Hungarian motorway vignettes. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Buda Castle and Fisherman\'s Bastion express',
     body: 'Pickup at 5:00, arrive central Budapest by 10:30. Three hours on Castle Hill — Matthias Church, Fisherman\'s Bastion, the views across the Danube to Parliament — with lunch at a terrace restaurant in the Várnegyed. Return to Prague by 21:00.',
-    price: 'From €1,750 in E-Class — based on three hours on site.',
+    price: 'From €1,400 — based on three hours on site.',
   },
   {
     title: 'The Széchenyi Baths half-day',
     body: 'Early pickup for a 10:30 arrival at the Széchenyi Thermal Bath in City Park. Four hours in the outdoor pools and neo-Baroque bathhouse, with a late lunch on Andrássy Avenue before the drive back. Robes, swimwear, and timed entry arranged in advance on request.',
-    price: 'From €1,800 in E-Class — based on four hours on site.',
+    price: 'From €1,450 — based on four hours on site.',
   },
   {
     title: 'The Pest grand boulevards day',
     body: 'Pickup at 5:00. Five hours in Pest — Parliament exterior and Kossuth Square, St Stephen\'s Basilica, the Great Market Hall, and Váci Street for the afternoon. Your chauffeur waits near Vörösmarty Square between stops. Back in Prague before midnight.',
-    price: 'From €1,850 in E-Class — based on five hours on site.',
+    price: 'From €1,500 — based on five hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueBudapestPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

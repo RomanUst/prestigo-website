@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, the Czech motorway vignette, and the Austrian motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Vienna take?', a: 'Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Vienna cost?', a: 'Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €560 in V-Class (up to 6 passengers), or €725 in S-Class. Prices include fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Vienna is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
+  { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking from €40/hour. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
   { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Vienna concierge handoffs or business meetings on arrival. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Schönbrunn and Belvedere Day',
     body: 'Pickup at 7:00, arrive Vienna 10:30. Three hours at Schloss Schönbrunn — the state apartments, the Gloriette, the gardens — then a transfer across the city for two hours at the Upper Belvedere with the Klimt collection. Return to Prague by 21:00.',
-    price: 'From €1,150 in E-Class — based on six hours on site.',
+    price: 'From €950 — based on six hours on site.',
   },
   {
     title: 'The Innere Stadt and Opera Evening',
     body: 'A late-morning pickup, lunch at a Stephansplatz Konditorei, an afternoon at the Albertina or Kunsthistorisches Museum, and a 19:00 curtain at the Wiener Staatsoper. Your chauffeur waits during the performance and drives you back overnight.',
-    price: 'From €1,250 in E-Class — based on eight hours on site.',
+    price: 'From €1,000 — based on eight hours on site.',
   },
   {
     title: 'The Naschmarkt and MuseumsQuartier Afternoon',
     body: 'Pickup at 8:00, arrive Vienna 11:30. A wander through the Naschmarkt food stalls, lunch at a Saturday flea-market terrace, and a slow afternoon at the Leopold Museum and mumok in the MuseumsQuartier before the return drive.',
-    price: 'From €1,090 in E-Class — based on five hours on site.',
+    price: 'From €900 — based on five hours on site.',
   },
 ]
 
@@ -312,7 +312,7 @@ export default function PragueViennaPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

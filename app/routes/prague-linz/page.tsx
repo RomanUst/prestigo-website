@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and both the Czech and Austrian motorway vignettes. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Linz take?', a: 'Approximately 2 hours 30 minutes door-to-door via the D3 motorway south through Tábor and České Budějovice, then the Austrian S10 Mühlviertel expressway into Linz. Friday afternoon traffic leaving Prague can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Linz cost?', a: 'Fixed fare from €320 in Mercedes E-Class (up to 3 passengers), €370 in V-Class (up to 6 passengers), or €480 in S-Class. Prices include fuel, Czech and Austrian motorway vignettes, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Linz?', a: 'Yes, and it is the standard pattern on this route. Linz is close enough that most clients leave Prague in the morning, spend four to six hours in the city, and return the same evening. A same-day return receives a 10% discount. Waiting time in Linz is billed at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Can I book a same-day round trip from Prague to Linz?', a: 'Yes, and it is the standard pattern on this route. Linz is close enough that most clients leave Prague in the morning, spend four to six hours in the city, and return the same evening. A same-day return receives a 10% discount. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. The Wullowitz/Dolní Dvořiště crossing in South Bohemia is invisible — no stops, no document checks for EU citizens. All Prestigo vehicles carry both Czech and Austrian motorway vignettes, and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Hauptplatz and Linz Castle Morning',
     body: 'Pickup at 8:00, arrive Linz around 10:30. Three hours walking the Hauptplatz, crossing the Nibelungenbrücke to Urfahr, and climbing to Linz Castle for the upper-city view over the Danube. Lunch at a riverfront café before the return to Prague by 17:30.',
-    price: 'From €750 in E-Class — based on three hours on site.',
+    price: 'From €600 — based on three hours on site.',
   },
   {
     title: 'The Ars Electronica and Lentos Afternoon',
     body: 'Pickup at 9:00 and a direct run to the Ars Electronica Center on the north bank. Four hours across Ars Electronica and the Lentos Art Museum facing it across the river — the two poles of Linz as UNESCO City of Media Arts. Arrival back in Prague by 19:30.',
-    price: 'From €800 in E-Class — based on four hours on site.',
+    price: 'From €600 — based on four hours on site.',
   },
   {
     title: 'The Pöstlingberg Basilica and Tram Day',
     body: 'Pickup at 7:30 for an early arrival in Linz. Five hours to ride the historic Pöstlingbergbahn — one of Europe\'s steepest adhesion railways — up to the basilica, then the old town and an unhurried lunch in the Landstraße quarter before heading back north.',
-    price: 'From €850 in E-Class — based on five hours on site.',
+    price: 'From €650 — based on five hours on site.',
   },
 ]
 
@@ -310,7 +310,7 @@ export default function PragueLinzPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

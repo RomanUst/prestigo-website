@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, the Czech motorway vignette, and every toll along the D1 and D46. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Olomouc take?', a: 'Approximately 3 hours door-to-door via the D1 motorway east through Brno, then the D46 north to Olomouc. Traffic leaving Prague during Friday afternoon rush hour can add 20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Olomouc cost?', a: 'Fixed fare from €460 in Mercedes E-Class (up to 3 passengers), €530 in V-Class (up to 6 passengers), or €685 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Olomouc?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Olomouc is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a full day to cover Upper Square, the Holy Trinity Column, and lunch in the old town before the drive back.' },
+  { q: 'Can I book a same-day round trip from Prague to Olomouc?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Olomouc with you during the visit, add hourly city rental to the booking from €40/hour. Most clients book a full day to cover Upper Square, the Holy Trinity Column, and lunch in the old town before the drive back.' },
   { q: 'Is there a border crossing on the way to Olomouc?', a: 'No. The Prague–Olomouc route is entirely inside the Czech Republic. No border, no passport check, no international tolls. The Czech motorway vignette is included in the quoted price.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, Russian, or other languages can be arranged on request at the time of booking.' },

@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Berlin take?', a: 'Approximately 4 hours door-to-door via the D8 motorway north through Ústí nad Labem, the A17 around Dresden, and the A13 north to Berlin. Friday afternoon rush hour out of Prague or construction near Lovosice can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Berlin cost?', a: 'Fixed fare from €580 in Mercedes E-Class (up to 3 passengers), €665 in V-Class (up to 6 passengers), or €860 in S-Class. Prices include fuel, all tolls, the German vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Berlin?', a: 'Yes, but most clients prefer an overnight. A same-day round trip means roughly eight hours on the road plus your time in Berlin — possible, but heavy. If you do book it, the return leg receives a 10% discount and waiting time in Berlin is billed at €60/hour for E-Class or €80/hour for S-Class. We are happy to advise based on your meeting schedule.' },
+  { q: 'Can I book a same-day round trip from Prague to Berlin?', a: 'Yes, but most clients prefer an overnight. A same-day round trip means roughly eight hours on the road plus your time in Berlin — possible, but heavy. If you do book it, the return leg receives a 10% discount. If you need the chauffeur to move around with you, add hourly city rental from €40/hour. We are happy to advise based on your meeting schedule.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Hřensko/Schönwald. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request and recommended for the Berlin route. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Brandenburg Gate and Reichstag',
     body: 'For overnight visits. Pickup in Prague at 7:00, arrive Berlin Mitte by 11:00. Brandenburger Tor, the Reichstag dome (book the slot in advance), Unter den Linden, and dinner near Gendarmenmarkt. Return the following morning.',
-    price: 'From €1,100 in E-Class — based on round-trip with overnight in Berlin.',
+    price: 'From €850 — based on round-trip with overnight in Berlin.',
   },
   {
     title: 'The Museum Island morning',
     body: 'For overnight visits. Pickup at 6:30, arrive Museum Island by 10:30. Pergamon, Neues Museum, and the Berliner Dom across the morning. Lunch in Mitte before the chauffeur takes you to your hotel for the night.',
-    price: 'From €1,100 in E-Class — based on round-trip with overnight in Berlin.',
+    price: 'From €850 — based on round-trip with overnight in Berlin.',
   },
   {
     title: 'The Charlottenburg express',
     body: 'For tight day-trip schedules. Pickup at 5:30, arrive Charlottenburg Palace 9:30, three hours on site, lunch nearby, and back in Prague by 21:00. Long, but possible if the day is firmly anchored on one venue.',
-    price: 'From €1,150 in E-Class — based on three hours on site, same-day round trip.',
+    price: 'From €950 — based on three hours on site, same-day round trip.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueBerlinPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

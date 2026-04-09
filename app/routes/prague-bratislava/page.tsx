@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, the Czech motorway vignette, and the Slovak motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Bratislava take?', a: 'Approximately 3.5 hours door-to-door via the D1 motorway east through Brno, then the D2 south across the Czech–Slovak border at Brodské and into Bratislava. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Bratislava cost?', a: 'Fixed fare from €545 in Mercedes E-Class (up to 3 passengers), €625 in V-Class (up to 6 passengers), or €810 in S-Class. Prices include fuel, both motorway vignettes, all tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Bratislava?', a: 'Yes, though most clients prefer to spend the night given the distance. A return on the same day receives a 10% discount. Wait-on-site time in Bratislava is charged at €60/hour for E-Class or €80/hour for S-Class. A typical day trip allows four to five hours on site between the Old Town, Bratislava Castle, and lunch on the Danube.' },
+  { q: 'Can I book a same-day round trip from Prague to Bratislava?', a: 'Yes, though most clients prefer to spend the night given the distance. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. A typical day trip allows four to five hours on site between the Old Town, Bratislava Castle, and lunch on the Danube.' },
   { q: 'Do you cross the Czech–Slovak border without problems?', a: 'Both countries have been inside the Schengen Area since 2007. There are no routine border checks at the Brodské crossing — the line on the map is invisible from the car. Carry travel documents for non-EU passengers as a precaution.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What language will the chauffeur speak?', a: 'Czech and Slovak are mutually intelligible — your chauffeur will be fluent in both, plus English. German is available on request. There is no language gap between the two countries; the only thing that changes at the border is the currency, and Slovakia uses the euro.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Castle and Old Town',
     body: 'Pickup at 7:30, arrive Bratislava 11:00. Four hours on site — Bratislava Castle on the hill, the coronation route through the Old Town (Staré Mesto), and lunch at a terrace on Hviezdoslavovo Square before the return to Prague by 18:30.',
-    price: 'From €1,090 in E-Class — based on four hours on site.',
+    price: 'From €950 — based on four hours on site.',
   },
   {
     title: 'The Devín Castle Afternoon',
     body: 'Pickup at 8:00. Your chauffeur takes you straight to Devín Castle on the cliffs above the Danube–Morava confluence — the three-country viewpoint with Austria across the river. An hour at the ruins, then late lunch in the Old Town and the drive home.',
-    price: 'From €1,120 in E-Class — based on five hours on site.',
+    price: 'From €1,000 — based on five hours on site.',
   },
   {
     title: 'The Slavín and UFO Bridge Express',
     body: 'A focused half-day. Slavín memorial for the panorama over the city, then the UFO observation deck on the SNP Bridge for the modern skyline. Three hours on site, back in Prague before dinner.',
-    price: 'From €1,030 in E-Class — based on three hours on site.',
+    price: 'From €900 — based on three hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueBratislavaPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

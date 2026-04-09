@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, the Czech motorway vignette, and all tolls. Nothing is charged on top of the quoted fare.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Pardubice take?', a: 'Approximately 1.5 hours door-to-door via the D11 motorway east from Prague. The D11 is one of the newer Czech motorways, well-maintained and fast outside peak hours. Add 10–15 minutes during Friday afternoon rush hour out of Prague.' },
   { q: 'How much does a chauffeur from Prague to Pardubice cost?', a: 'Fixed fare from €180 in Mercedes E-Class (up to 3 passengers), €210 in V-Class (up to 6 passengers), or €270 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Pardubice?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Pardubice is charged at €60/hour for E-Class or €80/hour for S-Class. Many clients book a 5–6 hour round trip to cover a meeting, a racecourse visit, or a walk through the Old Town.' },
+  { q: 'Can I book a same-day round trip from Prague to Pardubice?', a: 'Yes. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Many clients book a 5–6 hour round trip to cover a meeting, a racecourse visit, or a walk through the Old Town.' },
   { q: 'Is there a border crossing between Prague and Pardubice?', a: 'No. Both cities are in the Czech Republic. The drive is entirely on Czech motorways — the D11 east, then Highway 37 south — with no border checks and no foreign vignette required.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, French, or Italian can be arranged on request at no additional charge — please mention the preferred language at booking.' },

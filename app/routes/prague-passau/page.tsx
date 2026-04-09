@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Passau take?', a: 'Approximately 2.5 to 3 hours door-to-door via the D3 motorway and Route 4 south through South Bohemia, crossing into Germany at Strážný/Philippsreut, then descending the Bayerischer Wald on the B12 into Passau. Traffic around Prague during rush hour can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Passau cost?', a: 'Fixed fare from €365 in Mercedes E-Class (up to 3 passengers), €420 in V-Class (up to 6 passengers), or €540 in S-Class. Prices include fuel, all tolls, the German vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Passau?', a: 'Yes. A same-day return is workable — the round trip sits comfortably within a single driving day. A return booked together receives a 10% discount. Wait-on-site time in Passau is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a 7–9 hour round trip to cover St. Stephan\'s Cathedral, the Altstadt, and the Veste Oberhaus.' },
+  { q: 'Can I book a same-day round trip from Prague to Passau?', a: 'Yes. A same-day return is workable — the round trip sits comfortably within a single driving day. A return booked together receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most clients book a 7–9 hour round trip to cover St. Stephan\'s Cathedral, the Altstadt, and the Veste Oberhaus.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Strážný/Philippsreut crossing on Route 4 / B12 is invisible — no stops, no document checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The St. Stephan\'s Cathedral and Altstadt Day',
     body: 'Pickup at 7:30, arrive Passau around 10:15. Five hours in the Altstadt — St. Stephan\'s Cathedral with the world\'s largest cathedral organ, the midday organ recital, Residenzplatz, and a late lunch at a riverside terrace on the Danube promenade. Return to Prague by 19:30.',
-    price: 'From €950 in E-Class — based on five hours on site.',
+    price: 'From €700 — based on five hours on site.',
   },
   {
     title: 'The Veste Oberhaus and Three Rivers Afternoon',
     body: 'Pickup at 8:00. Arrive at the Veste Oberhaus fortress by 10:45 for the view over the confluence of the Danube, Inn, and Ilz. Four hours covering the fortress museum, the walk down to the Dreiflüsseeck, and lunch in the Altstadt before the return drive.',
-    price: 'From €850 in E-Class — based on four hours on site.',
+    price: 'From €700 — based on four hours on site.',
   },
   {
     title: 'The Danube Cruise Handoff',
     body: 'Pickup at 6:30 in Prague. Your chauffeur delivers you directly to the Passau cruise terminal for a Viking, AmaWaterways, or Uniworld Danube river cruise departure, handling luggage from hotel door to ship gangway. On return cruises, the chauffeur meets you dockside for the drive back.',
-    price: 'From €800 in E-Class — one-way plus dock handling.',
+    price: 'From €500 — one-way plus dock handling.',
   },
 ]
 
@@ -312,7 +312,7 @@ export default function PraguePassauPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

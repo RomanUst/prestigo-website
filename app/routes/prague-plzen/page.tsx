@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Plzeň take?', a: 'Approximately 1 hour door-to-door via the D5 motorway. The D5 is a direct, fully built-out route west from Prague. Traffic leaving Prague during weekday rush hour can add 10–15 minutes.' },
   { q: 'How much does a chauffeur from Prague to Plzeň cost?', a: 'Fixed fare from €150 in Mercedes E-Class (up to 3 passengers), €170 in V-Class (up to 6 passengers), or €220 in S-Class. Prices include fuel, all tolls, the Czech vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day return with a stop at the Pilsner Urquell brewery?', a: 'Yes. Most Plzeň bookings are same-day round trips built around the Pilsner Urquell tour. Your chauffeur waits on site while you tour the brewery and the cellars. Waiting time is €60/hour for E-Class or €80/hour for S-Class, billed in 15-minute increments. Book both directions together for a 10% discount on the return leg.' },
+  { q: 'Can I book a same-day return with a stop at the Pilsner Urquell brewery?', a: 'Yes. Most Plzeň bookings are same-day round trips built around the Pilsner Urquell tour. Your chauffeur waits on site while you tour the brewery and the cellars. Book both directions together for a 10% discount on the return leg. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Is there a border crossing on this route?', a: 'No. Plzeň is inside the Czech Republic — the entire Prague to Plzeň journey stays within Czechia. No passports, no vignettes beyond the Czech one, no checks. The D5 does continue west to the German border at Rozvadov/Waidhaus, but only if you extend the route to Nuremberg or Munich.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German is available on request at no additional charge — useful if you are combining Plzeň with an onward leg into Bavaria.' },

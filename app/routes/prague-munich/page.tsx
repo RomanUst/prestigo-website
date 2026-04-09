@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Munich take?', a: 'Approximately 4 hours door-to-door via the D5 motorway through Plzeň, the Czech-German border at Rozvadov/Waidhaus, then the A6 west, the A93 south past Regensburg, and the A9 into central Munich. Friday afternoon traffic on the A99 ring around Munich can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Munich cost?', a: 'Fixed fare from €635 in Mercedes E-Class (up to 3 passengers), €730 in V-Class (up to 6 passengers), or €945 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Munich?', a: 'Yes, though it is a long day. A round trip is roughly 8 hours of driving, so most clients depart Prague at 6:00 to give themselves four to six hours on the ground in Munich before the return. A same-day return receives a 10% discount and waiting time in Munich is billed at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Can I book a same-day round trip from Prague to Munich?', a: 'Yes, though it is a long day. A round trip is roughly 8 hours of driving, so most clients depart Prague at 6:00 to give themselves four to six hours on the ground in Munich before the return. A same-day return receives a 10% discount. If you need the chauffeur to move around with you, add hourly city rental from €40/hour.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Czech-German border at Rozvadov/Waidhaus has no routine checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Bavaria.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Bavarian hotel concierges, Oktoberfest pickups, or business meetings in Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Marienplatz and Hofbräuhaus Day',
     body: 'Pickup at 6:00, arrive Munich around 10:00. Four hours in the Altstadt — the Glockenspiel on Marienplatz at 11:00, the Viktualienmarkt for lunch, then a stein at the Hofbräuhaus before the return. Back in Prague by 20:00.',
-    price: 'From €1,350 in E-Class — based on four hours on site.',
+    price: 'From €1,100 — based on four hours on site.',
   },
   {
     title: 'The BMW Welt and Olympiapark Morning',
     body: 'Pickup at 6:30, arrive at BMW Welt for the 10:00 opening. Three hours in the museum and the showroom, then a walk through the 1972 Olympiapark. Lunch in Schwabing before the chauffeur turns the car back toward Prague.',
-    price: 'From €1,300 in E-Class — based on three hours on site.',
+    price: 'From €1,050 — based on three hours on site.',
   },
   {
     title: 'The Pinakothek Galleries Day',
     body: 'Pickup at 6:00, arrive Maxvorstadt around 10:00. Five hours across the Alte, Neue, and Pinakothek der Moderne — the strongest museum quarter in southern Germany — with a coffee break at the Café in the Alte Pinakothek. Departure at 15:30, home before 20:00.',
-    price: 'From €1,400 in E-Class — based on five hours on site.',
+    price: 'From €1,150 — based on five hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueMunichPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

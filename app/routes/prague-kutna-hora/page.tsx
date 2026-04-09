@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Kutná Hora take?', a: 'Approximately one hour door-to-door via the D1 motorway east out of Prague and Highway 38 through Kolín. It is the shortest drive of any Prestigo heritage route. Even with morning traffic leaving Prague, the full journey rarely exceeds 75 minutes.' },
   { q: 'How much does a chauffeur from Prague to Kutná Hora cost?', a: 'Fixed fare from €115 in Mercedes E-Class (up to 3 passengers), €135 in V-Class (up to 6 passengers), or €170 in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip and have the chauffeur wait?', a: 'Yes — and it is the standard pattern for this route. Kutná Hora is the easiest day trip from Prague, and most clients book the chauffeur to wait on site while they visit. Waiting time is billed at €60/hour (E-Class) or €80/hour (S-Class). A six-hour round trip covers St. Barbara, Sedlec, and a slow lunch without feeling rushed.' },
+  { q: 'Can I book a same-day round trip and have the chauffeur wait?', a: 'Yes — and it is the standard pattern for this route. Kutná Hora is the easiest day trip from Prague, and most clients book the chauffeur to wait on site while they visit. A six-hour round trip covers St. Barbara, Sedlec, and a slow lunch without feeling rushed. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Is there a border crossing on the way to Kutná Hora?', a: 'No. Kutná Hora is entirely within the Czech Republic, about 70 kilometres east of Prague in the Central Bohemian region. No border formalities, no vignettes beyond the Czech one, no passport checks.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. Additional languages — German, Italian, French, Russian — are available on request when you book in advance.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Cathedral and Italian Court',
     body: 'A half-day focused on the historic core. Pickup at 9:00, arrive in Kutná Hora by 10:00. Three hours for the Cathedral of St. Barbara, the Italian Court (Vlašský Dvůr) where Bohemian kings once minted the Prague groschen, and a walk along the Barborská terrace. Back in Prague by 14:00.',
-    price: 'From €350 in E-Class — based on three hours on site.',
+    price: 'From €250 — based on three hours on site.',
   },
   {
     title: 'The Sedlec Ossuary and Cathedral Combo',
     body: 'The classic pairing. Pickup at 8:30, first stop at the Sedlec Ossuary before the coach crowds arrive, then across town to the Cathedral of St. Barbara and the medieval silver-mining quarter. Lunch in the old town, return to Prague late afternoon.',
-    price: 'From €500 in E-Class — based on five hours on site.',
+    price: 'From €350 — based on five hours on site.',
   },
   {
     title: 'The Silver Mining and Historic Centre Day',
     body: 'A full day for travellers who want the full story. The Czech Museum of Silver and a guided descent into the medieval Hrádek mine, then the Cathedral of St. Barbara, the Italian Court, and the Stone House. The chauffeur stays with you throughout and handles parking between the sites.',
-    price: 'From €550 in E-Class — based on six hours on site.',
+    price: 'From €400 — based on six hours on site.',
   },
 ]
 
@@ -384,7 +384,7 @@ export default function PragueKutnaHoraPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

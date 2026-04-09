@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Regensburg take?', a: 'Approximately 3 hours door-to-door via the D5 motorway southwest through Plzeň, the Czech–German border at Rozvadov/Waidhaus, and the A93 south from the A6 junction. Friday afternoon traffic out of Prague or construction on the A93 corridor can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Regensburg cost?', a: 'Fixed fare from €470 in Mercedes E-Class (up to 3 passengers), €540 in V-Class (up to 6 passengers), or €700 in S-Class. Prices include fuel, the Czech vignette, the German toll vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Regensburg?', a: 'Yes, and it is a comfortable day trip at roughly three hours each way. Most clients book a 6–8 hour round trip with four to five hours on the ground — enough for the Altstadt, the Stone Bridge, lunch on the Danube, and a visit to the Cathedral. Wait-on-site time in Regensburg is billed at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Can I book a same-day round trip from Prague to Regensburg?', a: 'Yes, and it is a comfortable day trip at roughly three hours each way. Most clients book a 6–8 hour round trip with four to five hours on the ground — enough for the Altstadt, the Stone Bridge, lunch on the Danube, and a visit to the Cathedral. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Rozvadov/Waidhaus is invisible — no routine checks, no document stops. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Cathedral and Stone Bridge Day',
     body: 'Pickup at 8:00, arrive Regensburg around 11:00. Four hours in the Altstadt — Dom St. Peter with its stained-glass windows, the 12th-century Steinerne Brücke, and a lunch stop at one of the riverside terraces near the Salzstadel. Return to Prague by 18:30.',
-    price: 'From €1,050 in E-Class — based on four hours on site.',
+    price: 'From €850 — based on four hours on site.',
   },
   {
     title: 'The Walhalla Excursion',
     body: 'Pickup at 9:30 for a late-morning arrival at the Walhalla memorial east of the city in Donaustauf. After an hour at the hall of fame above the Danube, your chauffeur continues into Regensburg for a late lunch and a short walk along the Old Town before the return.',
-    price: 'From €1,000 in E-Class — based on three hours on site.',
+    price: 'From €800 — based on three hours on site.',
   },
   {
     title: 'The Danube Riverside and Old Town Day',
     body: 'Pickup at 7:30, arrive Regensburg by 10:30. Five unhurried hours on foot — the Stone Bridge, the old Wurstkuchl sausage kitchen, the Schloss Thurn und Taxis grounds, and an afternoon coffee on the Danube promenade. Return to Prague by 19:30.',
-    price: 'From €1,100 in E-Class — based on five hours on site.',
+    price: 'From €900 — based on five hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueRegensburgPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

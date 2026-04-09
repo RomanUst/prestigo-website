@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Nuremberg take?', a: 'Approximately 3.5 hours door-to-door via the D5 motorway southwest through Plzeň, then across the Czech–German Schengen border at Rozvadov/Waidhaus and west along the A6 into Bavaria. Friday afternoon traffic leaving Prague can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Nuremberg cost?', a: 'Fixed fare from €595 in Mercedes E-Class (up to 3 passengers), €685 in V-Class (up to 6 passengers), or €880 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Nuremberg?', a: 'Yes, and it is a workable day at 3.5 hours each way. A return on the same day receives a 10% discount. Wait-on-site time in Nuremberg is charged at €60/hour for E-Class or €80/hour for S-Class. Most day-trip clients book between 4 and 6 hours on site.' },
+  { q: 'Can I book a same-day round trip from Prague to Nuremberg?', a: 'Yes, and it is a workable day at 3.5 hours each way. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most day-trip clients book between 4 and 6 hours on site.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Rozvadov/Waidhaus crossing is invisible — no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request, useful in Nuremberg where English is less universal than in Berlin or Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Imperial Castle and Old Town',
     body: 'Pickup at 7:30, arrive Nuremberg around 11:00. Four to five hours in the Altstadt — the Kaiserburg with its panoramic terrace, Albrecht Dürer\'s house on Tiergärtnertorplatz, a lunch of Nürnberger Rostbratwürste at a Hauptmarkt terrace, and the Schöner Brunnen. Return to Prague by evening.',
-    price: 'From €1,350 in E-Class — based on five hours on site.',
+    price: 'From €1,050 — based on five hours on site.',
   },
   {
     title: 'The Christkindlesmarkt Day',
     body: 'December only. Pickup at 8:00 to beat the coach traffic into Nuremberg. Four hours walking the Christkindlesmarkt on Hauptmarkt — Lebkuchen, mulled wine, the wooden stalls that have defined German Christmas markets since 1628. A warm cabin waits for the drive home.',
-    price: 'From €1,300 in E-Class — based on four hours on site.',
+    price: 'From €1,050 — based on four hours on site.',
   },
   {
     title: 'The Documentation Centre half-day',
     body: 'For visitors focused on twentieth-century history. Three hours at the Documentation Centre at the former Nazi Party Rally Grounds and a walk across the Zeppelinfeld, with an optional stop at Courtroom 600 in the Palace of Justice where the Nuremberg Trials were held.',
-    price: 'From €1,250 in E-Class — based on three hours on site.',
+    price: 'From €1,000 — based on three hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueNurembergPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

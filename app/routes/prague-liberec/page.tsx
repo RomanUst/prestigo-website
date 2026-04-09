@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Liberec take?', a: 'Approximately 1 hour 30 minutes door-to-door on the D10 motorway through Mladá Boleslav and Turnov, then the R35 into Liberec. Traffic is generally light outside Friday afternoon rush hour and winter ski-season weekends.' },
   { q: 'How much does a chauffeur from Prague to Liberec cost?', a: 'Fixed fare from €175 in Mercedes E-Class (up to 3 passengers), €200 in V-Class (up to 6 passengers), or €255 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Liberec?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Liberec is charged at €60/hour for E-Class or €80/hour for S-Class. A typical day trip runs six to eight hours and covers the Ještěd cable car, the Town Hall square, and lunch in the old centre.' },
+  { q: 'Can I book a same-day round trip from Prague to Liberec?', a: 'Yes. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. A typical day trip runs six to eight hours and covers the Ještěd cable car, the Town Hall square, and lunch in the old centre.' },
   { q: 'Is there a border crossing on this route?', a: 'No. Prague to Liberec is entirely within the Czech Republic. The German and Polish borders are close to Liberec, but the destination itself is Czech. If you need to continue into Germany or Poland from Liberec, Prestigo can extend the booking.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German is available on request.' },

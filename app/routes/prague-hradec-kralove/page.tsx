@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does the Prague to Hradec Králové transfer take?', a: 'Approximately 1.5 hours door-to-door via the D11 motorway. The D11 runs east out of Prague directly into Hradec Králové — straightforward, well-maintained, and the only major road needed for the journey.' },
   { q: 'How much does a chauffeur from Prague to Hradec Králové cost?', a: 'Fixed fare from €190 in Mercedes E-Class (up to 3 passengers), €220 in V-Class (up to 6 passengers), or €280 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your chauffeur can wait on site in Hradec Králové or return at an agreed time. A return booked on the same day receives a 10% discount. Waiting time on site is billed at €60/hour for E-Class or €80/hour for S-Class in 15-minute increments.' },
+  { q: 'Is a same-day return available?', a: 'Yes. Your chauffeur can wait on site in Hradec Králové or return at an agreed time. A return booked on the same day receives a 10% discount. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Is there a border crossing on this route?', a: 'No. Hradec Králové is in East Bohemia and the entire route runs inside the Czech Republic. There are no border checks, no foreign vignettes, and no currency changes. Only the Czech motorway toll applies, and it is already included in your fixed fare.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are all available at no extra charge. Please specify your child\'s age at booking so the correct seat is fitted before pickup.' },
   { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, French, Italian, or Russian-speaking chauffeurs are available on request — please mention your preference at booking.' },

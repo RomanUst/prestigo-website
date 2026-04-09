@@ -33,7 +33,7 @@ const inclusions = [
   'Fuel, all Czech motorway tolls, and the vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
   'Same-day return discount — reduced rate on the return leg when both directions are booked together.',
 ]
@@ -41,7 +41,7 @@ const inclusions = [
 const faqs = [
   { q: 'How long does a private transfer from Prague to České Budějovice take?', a: 'Approximately 2 hours door-to-door via the D3 / E55 motorway through Tábor. With the České Budějovice bypass opened in December 2024, the drive is faster and calmer than it used to be. Friday afternoon departures out of Prague may add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to České Budějovice cost?', a: 'Fixed fare from €255 in Mercedes E-Class (up to 3 passengers), €295 in V-Class (up to 6 passengers), or €380 in S-Class. Prices include fuel, Czech tolls, the vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day return with a stop at the Budvar brewery?', a: 'Yes. A same-day return is the most common booking on this route. Your chauffeur can wait during a Budějovický Budvar tour, a lunch on Náměstí Přemysla Otakara II, or an onward leg to Český Krumlov. Wait time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class).' },
+  { q: 'Can I book a same-day return with a stop at the Budvar brewery?', a: 'Yes. A same-day return is the most common booking on this route. Your chauffeur can wait during a Budějovický Budvar tour, a lunch on Náměstí Přemysla Otakara II, or an onward leg to Český Krumlov. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Is there a border crossing on this route?', a: 'No. The entire drive is inside the Czech Republic, from Prague south through Central Bohemia and Tábor into South Bohemia. No passport, no vignette change, no stops.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, French, Italian, or Russian-speaking chauffeurs are available on request when booked in advance.' },

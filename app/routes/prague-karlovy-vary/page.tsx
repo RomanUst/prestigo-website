@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Karlovy Vary take?', a: 'Approximately 1 hour 30 minutes door-to-door via the D6 motorway. The route runs entirely inside the Czech Republic and rarely congests outside of Friday afternoons in summer. Prague rush-hour traffic can add 10–15 minutes to the first leg.' },
   { q: 'How much does a chauffeur from Prague to Karlovy Vary cost?', a: 'Fixed fare from €215 in Mercedes E-Class (up to 3 passengers), €250 in V-Class (up to 6 passengers), or €320 in S-Class. Prices include fuel, the Czech vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Karlovy Vary?', a: 'Yes — this is the most natural day-trip route we run. A return on the same day receives a 10% discount. Wait-on-site time in Karlovy Vary is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a 4–6 hour round trip to cover the Mill Colonnade, a lunch at the Grandhotel Pupp, and a walk through the spa quarter.' },
+  { q: 'Can I book a same-day round trip from Prague to Karlovy Vary?', a: 'Yes — this is the most natural day-trip route we run. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most clients book a 4–6 hour round trip to cover the Mill Colonnade, a lunch at the Grandhotel Pupp, and a walk through the spa quarter.' },
   { q: 'Is there a border crossing on the Prague to Karlovy Vary route?', a: 'No. The entire journey is inside the Czech Republic on the D6 motorway. No documents are required beyond what your chauffeur carries as standard. The single Czech motorway vignette is included in the fare.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German, Russian, or other languages can be arranged on request at no extra charge — mention your preference when booking.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Colonnades and Becherovka',
     body: 'Pickup at 8:30, arrive Karlovy Vary around 10:00. Ninety minutes walking the Mlýnská Kolonáda and tasting the thermal springs from a lázeňský pohárek, then a guided tour at the Jan Becher Museum to trace the history of Becherovka. Back in Prague before lunch.',
-    price: 'From €550 in E-Class — based on three hours on site.',
+    price: 'From €400 — based on three hours on site.',
   },
   {
     title: 'Grandhotel Pupp and the Mill Colonnade',
     body: 'Pickup at 9:00, arrive in time for a late coffee at the Grandhotel Pupp café, lunch in the dining room, and an afternoon across the Mlýnská Kolonáda, Hotel Imperial, and the Diana funicular. Return to Prague by early evening.',
-    price: 'From €650 in E-Class — based on five hours on site.',
+    price: 'From €500 — based on five hours on site.',
   },
   {
     title: 'Loket Castle or the Film Festival',
     body: 'A full day in the region: Karlovy Vary in the morning, lunch, and either a short drive onward to Loket Castle on the Ohře river or an evening slot at the Karlovy Vary International Film Festival (late June to early July). Your chauffeur stays with you throughout.',
-    price: 'From €800 in E-Class — based on seven hours on site.',
+    price: 'From €600 — based on seven hours on site.',
   },
 ]
 
@@ -384,7 +384,7 @@ export default function PragueKarlovyVaryPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

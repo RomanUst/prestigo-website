@@ -33,9 +33,9 @@ const inclusions = [
   'Fuel and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const whyBook = [
@@ -56,7 +56,7 @@ const whyBook = [
 const faqs = [
   { q: 'How long does a private transfer from Prague to Františkovy Lázně take?', a: 'Approximately 2.5 hours door-to-door via the D5 motorway west through Plzeň, then Highway 21 toward Cheb and Františkovy Lázně. Friday afternoon traffic out of Prague can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Františkovy Lázně cost?', a: 'Fixed fare from €290 in Mercedes E-Class (up to 3 passengers), €335 in V-Class (up to 6 passengers), or €430 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip with time at the spa?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Františkovy Lázně is charged at €60/hour for E-Class or €80/hour for S-Class. Many clients book a 7–9 hour round trip to cover a drinking cure at the colonnades, lunch in the Empire quarter, and time on the parkland paths.' },
+  { q: 'Can I book a same-day round trip with time at the spa?', a: 'Yes. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Many clients book a 7–9 hour round trip to cover a drinking cure at the colonnades, lunch in the Empire quarter, and time on the parkland paths.' },
   { q: 'Is there a border crossing on the way to Františkovy Lázně?', a: 'No. Františkovy Lázně sits entirely inside the Czech Republic, although the German border is only a few minutes away. The town is part of the UNESCO World Heritage inscription Great Spa Towns of Europe, added in 2021 alongside Karlovy Vary and Mariánské Lázně — no document checks are required for the transfer.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — a quiet advantage given how close Franzensbad, as the town is known in German, sits to the Bavarian border. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },

@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, the Czech vignette, and the Austrian motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Graz take?', a: 'Approximately 4.5 to 5 hours door-to-door. The route runs east on the D1 motorway through Brno, south across the Slovak and Hungarian corners into Austria, and down the A2 through Styria into Graz. Traffic around Prague during Friday afternoon rush hour can add 20 to 30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Graz cost?', a: 'Fixed fare from €745 in Mercedes E-Class (up to 3 passengers), €855 in V-Class (up to 6 passengers), or €1,105 in S-Class. Prices include fuel, the Czech motorway vignette, the Austrian motorway vignette, Styrian tunnel tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip to Graz?', a: 'It is workable but heavy. A round trip is close to ten hours on the road before any time on site, so most clients choose to overnight in Graz and return the next morning. A same-day return is booked at a 10% discount on the return leg and wait-on-site time is billed at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Can I book a same-day round trip to Graz?', a: 'It is workable but heavy. A round trip is close to ten hours on the road before any time on site, so most clients choose to overnight in Graz and return the next morning. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Are there border crossings on the way?', a: 'Yes, one or two depending on the routing. The Czech–Slovak border at Břeclav and the Slovak–Hungarian border at Rajka, or alternatively the Slovak–Austrian border near Bratislava. All are inside the Schengen Area — no passport checks, no stops. Non-EU passengers should carry valid travel documents as a precaution.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request, which many clients appreciate for a Graz run. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },

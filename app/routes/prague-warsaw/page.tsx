@@ -35,7 +35,7 @@ const inclusions = [
   'Bottled water, phone charger, and WiFi in the rear cabin.',
   'Waiting time at pickup — 60 minutes free at airports, then billed in 15-minute increments.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [

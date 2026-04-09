@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Mariánské Lázně take?', a: 'Approximately 2 hours door-to-door along the D5 motorway west through Plzeň, then Highway 21 north into the spa valley. Friday afternoons out of Prague can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Mariánské Lázně cost?', a: 'Fixed fare from €270 in Mercedes E-Class (up to 3 passengers), €315 in V-Class (up to 6 passengers), or €405 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day return, and will the chauffeur wait during my spa treatment?', a: 'Yes. A return on the same day receives a 10% discount. The chauffeur waits in Mariánské Lázně while you take the waters, walk the colonnade, or complete a spa programme. If your treatment runs over, the return simply shifts — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class).' },
+  { q: 'Can I book a same-day return, and will the chauffeur wait during my spa treatment?', a: 'Yes. A return on the same day receives a 10% discount. The chauffeur waits in Mariánské Lázně while you take the waters, walk the colonnade, or complete a spa programme. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Is there a border crossing?', a: 'No. Mariánské Lázně sits in the West Bohemian spa triangle inside the Czech Republic. The entire route is domestic — no passport control, no vignette changes, no paperwork. Your chauffeur knows the D5 and Highway 21 intimately.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German or Russian is available on request at no extra charge — useful for spa guests who prefer context in their own language.' },

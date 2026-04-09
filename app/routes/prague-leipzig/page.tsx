@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Leipzig take?', a: 'Approximately 2 hours 45 minutes to 3 hours door-to-door via the D8 motorway north from Prague through Ústí nad Labem, the A17 around Dresden, and the A14 northwest to Leipzig. Friday rush hour out of Prague or construction on the A14 corridor can add 20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Leipzig cost?', a: 'Fixed fare from €270 in Mercedes E-Class (up to 3 passengers), €315 in V-Class (up to 6 passengers), or €405 in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Leipzig?', a: 'Yes — and it is the most common booking pattern on this route. A return on the same day receives a 10% discount. Many clients combine Leipzig with a half-day in Dresden, which sits directly en route. Wait-on-site time is charged at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Can I book a same-day round trip from Prague to Leipzig?', a: 'Yes — and it is the most common booking pattern on this route. A return on the same day receives a 10% discount. Many clients combine Leipzig with a half-day in Dresden, which sits directly en route. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Schönwald/Hřensko is invisible — no stops, no document checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Bach and Thomaskirche Day',
     body: 'Pickup at 7:30, arrive Leipzig around 10:30. Morning at St. Thomas Church — Bach\'s tomb in the chancel, the Bach Museum across the square, and if the timing lines up, a Motette service with the Thomanerchor. Lunch on the Markt before the return.',
-    price: 'From €750 in E-Class — based on five hours on site.',
+    price: 'From €600 — based on five hours on site.',
   },
   {
     title: 'The Spinnerei and Museums Afternoon',
     body: 'Later pickup at 9:00. Arrive for an afternoon at the Leipziger Baumwollspinnerei — the former cotton mill turned contemporary art quarter — with time for the Museum der bildenden Künste or the Grassi Museum before dinner near the Marktplatz.',
-    price: 'From €700 in E-Class — based on four hours on site.',
+    price: 'From €550 — based on four hours on site.',
   },
   {
     title: 'The Battle of the Nations and Old Town',
     body: 'Pickup at 8:00. Start at the Völkerschlachtdenkmal — the 91-metre Battle of the Nations Monument and its viewing platform — then a half-day in the Old Town around the Markt, the Old City Hall, and the Mädler-Passage. Return by early evening.',
-    price: 'From €800 in E-Class — based on six hours on site.',
+    price: 'From €600 — based on six hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueLeipzigPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

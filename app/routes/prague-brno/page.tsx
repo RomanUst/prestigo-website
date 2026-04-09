@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel and the Czech motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Brno take?', a: 'Approximately 2.5 hours door-to-door via the D1 motorway east through the Vysočina highlands. Friday afternoon outbound traffic from Prague can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Brno cost?', a: 'Fixed fare from €340 in Mercedes E-Class (up to 3 passengers), €390 in V-Class (up to 6 passengers), or €500 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Brno?', a: 'Yes — and it is the natural pattern for this route. Brno is 2.5 hours each way, which leaves a comfortable day on site without an overnight stay. A same-day return receives a 10% discount. Wait-on-site time is charged at €60/hour (E-Class) or €80/hour (S-Class). Most clients book a 6–8 hour round trip to cover a meeting, a lunch, and the drive back to Prague by evening.' },
+  { q: 'Can I book a same-day round trip from Prague to Brno?', a: 'Yes — and it is the natural pattern for this route. Brno is 2.5 hours each way, which leaves a comfortable day on site without an overnight stay. A same-day return receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most clients book a 6–8 hour round trip to cover a meeting, a lunch, and the drive back to Prague by evening.' },
   { q: 'Is there a border crossing on the way to Brno?', a: 'No. The route is entirely within the Czech Republic on the D1 motorway. No border checks, no vignette changes, no document requirements beyond those for domestic travel.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. Other languages can be arranged on request at the time of booking.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Špilberk and Old Town Day',
     body: 'Pickup at 8:00, arrive Brno by 10:30. Three hours at Špilberk Castle on the hill above the city — fortress, casemates, and Brno City Museum — followed by lunch on Zelný trh and a walk to the Cathedral of St. Peter and Paul on Petrov. Back in Prague by 18:30.',
-    price: 'From €850 in E-Class — based on four hours on site.',
+    price: 'From €650 — based on four hours on site.',
   },
   {
     title: 'The Villa Tugendhat and Moravian Wine Afternoon',
     body: 'Pre-booked timed entry for Villa Tugendhat, the Mies van der Rohe modernist house and UNESCO World Heritage site. After the tour, a drive south into the Pálava wine region for a late lunch and cellar visit in Mikulov or Valtice before the return.',
-    price: 'From €950 in E-Class — based on six hours on site.',
+    price: 'From €750 — based on six hours on site.',
   },
   {
     title: 'The Brno Exhibition Centre Trade Fair Day',
     body: 'Early pickup in Prague, drop-off at the correct gate inside BVV — the chauffeur knows which entrance each hall uses during large fairs. Your driver stays on standby for the day, handles any mid-show runs to the hotel or city centre, and returns you to Prague after the closing session.',
-    price: 'From €900 in E-Class — based on five hours on standby.',
+    price: 'From €700 — based on five hours on standby.',
   },
 ]
 
@@ -310,7 +310,7 @@ export default function PragueBrnoPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

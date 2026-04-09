@@ -33,9 +33,9 @@ const inclusions = [
   'Fuel, all tolls, the Czech motorway e-vignette, and the Austrian motorway vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Mozart City Morning',
     body: 'Pickup at 6:30, arrive Salzburg around 10:30. Four hours in the Altstadt — Mozart\'s birthplace on Getreidegasse, the Residenzplatz, and a coffee at Café Tomaselli before the return to Prague.',
-    price: 'From €1,100 in E-Class — based on four hours on site.',
+    price: 'From €900 — based on four hours on site.',
   },
   {
     title: 'The Hohensalzburg and Mirabell Afternoon',
     body: 'A slightly later pickup and five hours on site. The funicular to Hohensalzburg fortress for the panorama over the Salzach, then the Mirabell Palace gardens for the Sound of Music backdrop, then dinner on Judengasse before the drive back.',
-    price: 'From €1,200 in E-Class — based on five hours on site.',
+    price: 'From €950 — based on five hours on site.',
   },
   {
     title: 'The Hellbrunn Palace and Trick Fountains',
     body: 'Early departure and six hours in Salzburg. The morning at Hellbrunn Palace with its seventeenth-century trick fountains, the afternoon in the Altstadt and the Dom cathedral. Your chauffeur repositions between the two stops.',
-    price: 'From €1,250 in E-Class — based on six hours on site.',
+    price: 'From €950 — based on six hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueSalzburgPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

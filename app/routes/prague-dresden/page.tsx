@@ -33,15 +33,15 @@ const inclusions = [
   'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
   'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
   'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return discount — 10% off the return leg if booked together.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Dresden take?', a: 'Approximately 2 hours door-to-door via the D8 motorway through Ústí nad Labem and the A17 after the German border. Traffic around Prague during rush hour can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Dresden cost?', a: 'Fixed fare from €250 in Mercedes E-Class (up to 3 passengers), €285 in V-Class (up to 6 passengers), or €370 in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Dresden?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Dresden is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a 6–8 hour round trip to cover the Old Masters Gallery, Frauenkirche, and lunch along the Elbe.' },
+  { q: 'Can I book a same-day round trip from Prague to Dresden?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Dresden with you during the visit, add hourly city rental to the booking from €40/hour. Most clients book a 6–8 hour round trip to cover the Old Masters Gallery, Frauenkirche, and lunch along the Elbe.' },
   { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Gallery Day',
     body: 'Pickup at 8:30, arrive Dresden 10:30. Four hours at the Zwinger — Old Masters Gallery, Porcelain Collection, Mathematisch-Physikalischer Salon — with a lunch stop near Neumarkt. Return to Prague by 17:00.',
-    price: 'From €450 in E-Class — based on four hours on site.',
+    price: 'From €500 — based on four hours on site.',
   },
   {
     title: 'The Elbe Cruise Handoff',
     body: 'Pickup at 7:00 in Prague. Your chauffeur delivers you directly to the Terrassenufer landing stage for a Sächsische Dampfschiffahrt river cruise, then meets you at the return pier in Pirna or Bad Schandau for the drive back.',
-    price: 'From €400 in E-Class — one-way plus pier pickup.',
+    price: 'From €350 — one-way plus pier pickup.',
   },
   {
     title: 'The Frauenkirche and Green Vault',
     body: 'Timed-entry tickets for the Green Vault are limited — your chauffeur pre-checks the arrival window so you walk in on time. After the Vault, half an hour at the Frauenkirche and dinner at a Neumarkt terrace before the return.',
-    price: 'From €470 in E-Class — based on five hours on site.',
+    price: 'From €550 — based on five hours on site.',
   },
 ]
 
@@ -311,7 +311,7 @@ export default function PragueDresdenPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
