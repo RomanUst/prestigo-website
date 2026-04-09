@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Brno stop available on request en route',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. Additional languages on request.',
+  'Fuel, the Czech motorway vignette, and every toll along the D1 and D46. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Olomouc transfer take?', a: 'Approximately 3 hours via the D1 east through Brno, then continuing northeast on the D46 to Olomouc. The route is entirely motorway with light traffic outside peak hours.' },
-  { q: 'Can I stop in Brno on the way to Olomouc?', a: 'Yes. Brno is on the route and available as an en-route stop. Request at booking for optimal routing and timing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Olomouc or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is Olomouc known for?', a: 'Olomouc is Moravia\'s historic capital — six baroque fountains, the Holy Trinity Column (UNESCO), a remarkably preserved old town, and Palacký University. Often called the most underrated city in the Czech Republic.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Olomouc route.' },
+  { q: 'How long does a private transfer from Prague to Olomouc take?', a: 'Approximately 3 hours door-to-door via the D1 motorway east through Brno, then the D46 north to Olomouc. Traffic leaving Prague during Friday afternoon rush hour can add 20 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Olomouc cost?', a: 'Fixed fare from €460 in Mercedes E-Class (up to 3 passengers), €530 in V-Class (up to 6 passengers), or €685 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Olomouc?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Olomouc is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a full day to cover Upper Square, the Holy Trinity Column, and lunch in the old town before the drive back.' },
+  { q: 'Is there a border crossing on the way to Olomouc?', a: 'No. The Prague–Olomouc route is entirely inside the Czech Republic. No border, no passport check, no international tolls. The Czech motorway vignette is included in the quoted price.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, Russian, or other languages can be arranged on request at the time of booking.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech motorway vignette, driver time. Nothing added at drop-off, no meter, no surcharge for a Friday evening.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and familiar with Moravian routes and addresses.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the D1 has a closure near Velké Meziříčí, your chauffeur reroutes via the parallel R602. For combining Olomouc with Brno or Ostrava in the same day, that is included.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
+  { slug: 'prague-ostrava', city: 'Ostrava', distance: '370 km', duration: '3h 45min' },
+  { slug: 'prague-zlin', city: 'Zlín', distance: '300 km', duration: '3h 15min' },
+  { slug: 'prague-krakow', city: 'Kraków', distance: '540 km', duration: '5h 30min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +162,23 @@ export default function PragueOlomoucPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Olomouc" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Olomouc</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Olomouc,<br /><span className="display-italic">baroque Moravia.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>280 km east to Moravia's grand historic capital. Six baroque fountains, a UNESCO Holy Trinity Column, and one of Central Europe's most intact old towns — three hours, one fixed price.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>280 km east to Moravia&apos;s grand historic capital. Six baroque fountains, a UNESCO Holy Trinity Column, and one of Central Europe&apos;s most intact old towns — three hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +186,53 @@ export default function PragueOlomoucPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Olomouc is a three-hour drive across the width of the Czech Republic, and the distance should feel like part of the trip rather than an obstacle between you and Moravia. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who treat the D1 as a home road. The fare is fixed before you book. The car is at the kerb when you step outside. Your chauffeur already knows whether to aim for a hotel on Upper Square, a client office in the Holice industrial park, or a Palacký University faculty building on třída Svobody.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change between booking and drop-off.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Olomouc<br /><span className="display-italic">in three hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east through the Vysočina highlands toward Brno. Somewhere past the midpoint, the landscape opens onto the rolling fields of the Hanácká plain and the road turns north onto the D46, arriving in Olomouc — the second-largest historical city centre in the Czech Republic after Prague itself. No border crossing; the whole route stays inside the Czech Republic, so there are no passport checks and no international toll charges.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Olomouc rewards the drive. The UNESCO-listed Holy Trinity Column dominates Upper Square, or Horní náměstí, and is the largest baroque sculpture group in the country. Six separate baroque fountains — Caesar, Hercules, Neptune, Jupiter, Mercury, and Triton — sit within a few minutes&apos; walk of each other. The Saint Wenceslas Cathedral rises on the hill above the old town, the Astronomical Clock ticks through its communist-era mosaic on the square, and Palacký University, founded in 1573, is one of the oldest universities in Central Europe.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 280 kilometres. Your chauffeur checks the D1 before every departure. When there is a lane closure near Velké Meziříčí, they reroute via the parallel R602 without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Olomouc transfer runs east through Moravia in comfort. Business visit, cultural trip, or a university stay — your driver delivers you door to door.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Olomouc drop-off. The car, the chauffeur, the fuel, the vignette, the tolls. Business visit, university meeting, or a weekend among the baroque fountains — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +243,8 @@ export default function PragueOlomoucPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,7 +253,7 @@ export default function PragueOlomoucPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Brno (optional)', note: 'Moravia\'s capital — available as an en-route stop for a meeting, lunch, or visit.', anchor: false, custom: false },
+                { city: 'Brno (optional)', note: 'Moravia\'s capital — available as a natural en-route stop for a meeting, lunch, or a short old-town visit.', anchor: false, custom: false },
                 { city: 'Anywhere you like', note: 'A stop anywhere along the D1 or D46. Your Moravia, your pace.', anchor: false, custom: true },
                 { city: 'Olomouc', note: 'Drop-off at any Olomouc address, the old town, university, or your hotel.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
@@ -203,25 +267,96 @@ export default function PragueOlomoucPage() {
                   { label: 'Border crossing', value: 'No border crossing — entirely within the Czech Republic.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Brno connection', value: 'Brno is 75 km from Olomouc. PRESTIGO can cover both cities in a single booking.' },
+                  { label: 'Brno connection', value: 'Brno is 75 km from Olomouc. Prestigo can cover both cities in a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address in central Prague — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are arriving at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for three hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Olomouc — the city&apos;s centuries as the Moravian historic capital, the Jesuit origins of Palacký University, the baroque architecture that survived where Prague&apos;s was over-restored, the café culture that still runs on Hanácká plain hospitality — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to break the drive with a real coffee at a proper rest stop on the D1 rather than a petrol station kiosk, your chauffeur already knows which exit to take.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Olomouc.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Moravia and beyond.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Olomouc sits at the crossroads of Moravia, within easy reach of Brno, Ostrava, Zlín, and the Polish border. Many clients combine an Olomouc run with another Moravian city or extend into southern Poland. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Olomouc.<br /><span className="display-italic">From €460, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

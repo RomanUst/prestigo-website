@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Linz or Vienna stop available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, all tolls, the Czech vignette, and the Austrian motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Graz transfer take?', a: 'Approximately 4.5 hours via the D3 south through South Bohemia, crossing into Austria, then south through the Styrian Alps to Graz.' },
-  { q: 'Is there a border crossing between Prague and Graz?', a: 'Yes. The Czech-Austrian Schengen border is crossed in South Bohemia. No passport check for EU citizens — non-EU passengers should carry valid travel documents.' },
-  { q: 'Can I stop in Linz or Vienna on the way?', a: 'Yes. Linz is on the route and Vienna is a short detour. Both are available as en-route stops. Request at booking for optimal routing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Graz or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, Austrian motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Graz route.' },
+  { q: 'How long does a private transfer from Prague to Graz take?', a: 'Approximately 4.5 to 5 hours door-to-door. The route runs east on the D1 motorway through Brno, south across the Slovak and Hungarian corners into Austria, and down the A2 through Styria into Graz. Traffic around Prague during Friday afternoon rush hour can add 20 to 30 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Graz cost?', a: 'Fixed fare from €745 in Mercedes E-Class (up to 3 passengers), €855 in V-Class (up to 6 passengers), or €1,105 in S-Class. Prices include fuel, the Czech motorway vignette, the Austrian motorway vignette, Styrian tunnel tolls, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip to Graz?', a: 'It is workable but heavy. A round trip is close to ten hours on the road before any time on site, so most clients choose to overnight in Graz and return the next morning. A same-day return is booked at a 10% discount on the return leg and wait-on-site time is billed at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Are there border crossings on the way?', a: 'Yes, one or two depending on the routing. The Czech–Slovak border at Břeclav and the Slovak–Hungarian border at Rajka, or alternatively the Slovak–Austrian border near Bratislava. All are inside the Schengen Area — no passport checks, no stops. Non-EU passengers should carry valid travel documents as a precaution.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request, which many clients appreciate for a Graz run. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, Czech vignette, Austrian vignette, Styrian tolls, driver time. Nothing added at drop-off on Herrengasse.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long international routes.',
+  },
+  {
+    title: 'The route, your way',
+    body: 'If you want to combine Graz with Vienna or Bratislava on the way, that is included. For Styrian wine country detours south of the city, the chauffeur knows the route.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-vienna', city: 'Vienna', distance: '330 km', duration: '3h 30min' },
+  { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 30min' },
+  { slug: 'prague-budapest', city: 'Budapest', distance: '525 km', duration: '5h 15min' },
+  { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,6 +162,8 @@ export default function PragueGrazPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Graz" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
@@ -154,6 +177,8 @@ export default function PragueGrazPage() {
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +186,53 @@ export default function PragueGrazPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Graz is a four-and-a-half-hour run down the spine of Central Europe, and every hour of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know the long route south: east on the D1 through Brno, a short pass through Slovakia, and the final descent into Styria on the A2. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your hotel near Hauptplatz or your apartment off Sporgasse.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Graz<br /><span className="display-italic">in four and a half hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D1 east through the Bohemian-Moravian highlands to Brno, then turns south toward the Slovak border. From there the road becomes the D2 for a brief crossing of the Slovak corner, around the Bratislava bypass on the D4, and over into Hungary on the M15 and M1 heading toward Vienna. The final leg runs south from Vienna on the Austrian A2, climbing through the Semmering pass and the green hills of Styria into Graz. On lighter days, a shorter alternative runs D1 to D2 to the S6 at Vienna, then the same A2 south.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              The Czech–Slovak border at Břeclav, the Slovak–Hungarian border at Rajka, and the Hungarian–Austrian crossing are all inside Schengen — invisible, no stops, no document checks. You arrive at the UNESCO Old Town, one of the best-preserved historic centres in Central Europe, with the Schloßberg and the Uhrturm rising above the Mur and the Kunsthaus — the friendly alien — glowing blue across the river.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur watches Friday-afternoon outbound traffic from Prague and the Semmering weather before every departure. If there is a closure, they reroute without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What's Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Graz transfer delivers you to Styria's capital in comfort. Business visit, design conference, or a Styrian weekend — your driver handles everything.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Graz drop-off. The car, the chauffeur, the fuel, the tolls, both vignettes. Business visit, design conference, or a Styrian weekend — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +243,8 @@ export default function PragueGrazPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,9 +253,9 @@ export default function PragueGrazPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Linz (optional)', note: 'Upper Austria\'s capital on the Danube — available as an en-route stop before the Styrian Alps.', anchor: false, custom: false },
-                { city: 'Anywhere you like', note: 'A stop at any Austrian village or viewpoint along the way. Your route, your pace.', anchor: false, custom: true },
-                { city: 'Graz', note: 'Drop-off at any Graz address, Graz Airport (GRZ), or the old town Schlossberg.', anchor: true, custom: false },
+                { city: 'Vienna or Bratislava (optional)', note: 'Both cities sit naturally en route and are available as a lunch stop or a short visit before the final leg south.', anchor: false, custom: false },
+                { city: 'Anywhere you like', note: 'A stop at a viewpoint, a village, or a Styrian wine tavern off the A2. Your route, your pace.', anchor: false, custom: true },
+                { city: 'Graz', note: 'Drop-off at any Graz address, Graz Airport (GRZ), or the Schloßberg below the Uhrturm.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
           </div>
@@ -200,28 +264,99 @@ export default function PragueGrazPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'Czech-Austrian Schengen border in South Bohemia. No passport check for EU citizens.' },
-                  { label: 'Tolls', value: 'Czech and Austrian motorway vignettes both included in the quoted price. Styrian tunnel tolls included.' },
-                  { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Onward routing', value: 'Vienna is 190 km north, Slovenia border 60 km south. PRESTIGO can extend your journey from Graz.' },
+                  { label: 'Border crossings', value: 'Czech–Slovak at Břeclav, Slovak–Hungarian at Rajka, and Hungarian–Austrian — all Schengen, no passport checks for EU citizens.' },
+                  { label: 'Tolls', value: 'Czech vignette, Austrian vignette, and Styrian tunnel tolls all included in the quoted price.' },
+                  { label: 'Return transfer', value: 'Book both directions together for a reduced rate. Most clients overnight in Graz.' },
+                  { label: 'Onward routing', value: 'Vienna is 190 km north, the Slovenian border 60 km south. Prestigo can extend your transfer as a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you at Václav Havel Airport or in front of your central Prague address — not a parking lot across the street, not a meeting point a ten-minute walk away. At the airport, they are inside the arrivals hall with a Prestigo tablet displaying your name, and the black Mercedes is already parked at the door.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for four hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Graz — the Habsburg imperial seat era when it was one of the capitals of Inner Austria, the UNESCO listing of the Old Town in 1999, the UNESCO City of Design title earned in 2011, or the Styrian traditions of crisp white wine and dark pumpkin seed oil from the hills south of the city — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. Temperature is set to your preference. A real rest stop is planned halfway — usually a proper Raststätte on the D1 near Brno or on the Austrian A2 before Graz — not a petrol pump beside the motorway.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Graz.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Graz sits at the end of the long southern run through Vienna and the Austrian Alps. Many clients combine the Graz transfer with Vienna, Bratislava, Budapest, or a stop in Brno on the way. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Graz.<br /><span className="display-italic">From €745, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

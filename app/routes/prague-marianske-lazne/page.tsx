@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Spa triangle extension to Karlovy Vary or Františkovy Lázně available',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Mariánské Lázně transfer take?', a: 'Approximately 2 hours via the D6 motorway west. The route runs through West Bohemia — straightforward with light traffic outside weekends.' },
-  { q: 'Can I combine Mariánské Lázně with Karlovy Vary or Františkovy Lázně?', a: 'Yes. The three West Bohemian spa towns are within 30–40 km of each other. PRESTIGO can combine them in a single tour booking — request at booking for routing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Mariánské Lázně or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is Mariánské Lázně known for?', a: 'Mariánské Lázně (Marienbad) is known for its colonnaded promenades, mineral springs, singing fountain, and forested setting. Goethe visited frequently — the town retains its 19th-century elegance.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Mariánské Lázně route.' },
+  { q: 'How long does a private transfer from Prague to Mariánské Lázně take?', a: 'Approximately 2 hours door-to-door along the D5 motorway west through Plzeň, then Highway 21 north into the spa valley. Friday afternoons out of Prague can add 15–20 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Mariánské Lázně cost?', a: 'Fixed fare from €270 in Mercedes E-Class (up to 3 passengers), €315 in V-Class (up to 6 passengers), or €405 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day return, and will the chauffeur wait during my spa treatment?', a: 'Yes. A return on the same day receives a 10% discount. The chauffeur waits in Mariánské Lázně while you take the waters, walk the colonnade, or complete a spa programme. If your treatment runs over, the return simply shifts — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class).' },
+  { q: 'Is there a border crossing?', a: 'No. Mariánské Lázně sits in the West Bohemian spa triangle inside the Czech Republic. The entire route is domestic — no passport control, no vignette changes, no paperwork. Your chauffeur knows the D5 and Highway 21 intimately.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German or Russian is available on request at no extra charge — useful for spa guests who prefer context in their own language.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech motorway vignette, driver time. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance spa transfers.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If you want to combine Mariánské Lázně with Karlovy Vary or Františkovy Lázně in the same day to complete the spa triangle, that is included. If your spa treatment runs over time, the chauffeur shifts the return without a phone call.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-karlovy-vary', city: 'Karlovy Vary', distance: '130 km', duration: '1h 30min' },
+  { slug: 'prague-frantiskovy-lazne', city: 'Františkovy Lázně', distance: '180 km', duration: '2h 15min' },
+  { slug: 'prague-plzen', city: 'Plzeň', distance: '90 km', duration: '1h' },
+  { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 30min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +162,23 @@ export default function PragueMarianskeLaznePage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Mariánské Lázně" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Mariánské Lázně</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Mariánské Lázně,<br /><span className="display-italic">Goethe's spa.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>165 km west to the most elegant of the West Bohemian spa towns. Colonnaded promenades, mineral springs, the singing fountain, and forested hills — two hours, one fixed price.</p>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Mariánské Lázně,<br /><span className="display-italic">Goethe&apos;s spa.</span></h1>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>165 km west to the most elegant of the West Bohemian spa towns. Colonnaded promenades, mineral springs, the Singing Fountain, and forested hills — two hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +186,53 @@ export default function PragueMarianskeLaznePage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Mariánské Lázně is a two-hour drive west across Bohemia, and every hour of that drive should feel like part of the cure — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have covered this route for spa guests, weekend travellers, and business clients hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your spa hotel near the Main Colonnade.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Mariánské Lázně<br /><span className="display-italic">in two hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway west through the bypass of Plzeň — past the Valík Tunnel and the bridge over the Úhlava — and leaves at exit 128 for Highway 21. The road then curves north through the rolling West Bohemian hills into the spa triangle, arriving in Mariánské Lázně at your hotel or the spa address you specified. No border crossing. Entirely Czech motorway from pickup to drop-off.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Mariánské Lázně is the green pearl of the West Bohemian spa triangle. Its centrepiece is the cast-iron Main Colonnade of 1889, a neo-baroque gallery 119 metres long that frames the Singing Fountain, which plays Chopin, Mozart, and Smetana on the hour. A few steps away sit the Maxim Gorky Colonnade, the spa parks designed by the town gardener Václav Skalník, the Russian Orthodox Church of St. Vladimir, and the Mariánské Lázně Golf Club — founded 1905, one of the oldest courses in continental Europe.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 165 kilometres. Driving time is two hours in normal conditions. Your chauffeur watches the D5 before every departure, and if Friday afternoon traffic builds up around the Prague ring, they shift the pickup without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Mariánské Lázně transfer delivers you to West Bohemia's most refined spa town. Wellness retreat, business visit, or a spa triangle tour — your driver handles everything.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Mariánské Lázně drop-off. The car, the chauffeur, the fuel, the vignette. Spa programme, weekend retreat, or a business visit to one of the resorts — your driver handles the route while you focus on the cure.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +243,8 @@ export default function PragueMarianskeLaznePage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,8 +253,9 @@ export default function PragueMarianskeLaznePage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Anywhere you like', note: 'A stop in Plzeň, Stříbro, or anywhere along the D6. Your West Bohemia, your pace.', anchor: false, custom: true },
-                { city: 'Mariánské Lázně', note: 'Drop-off at any Mariánské Lázně address, your spa hotel, or the main colonnade.', anchor: true, custom: false },
+                { city: 'Karlovy Vary (optional)', note: 'A natural en-route stop for those combining the spa triangle — thirty minutes off Highway 21 and easy to fold into the same day.', anchor: false, custom: false },
+                { city: 'Anywhere you like', note: 'A stop in Plzeň for lunch, a rest stop along the D5, or anywhere the mood suggests. Your West Bohemia, your pace.', anchor: false, custom: true },
+                { city: 'Mariánské Lázně', note: 'Drop-off at any Mariánské Lázně address — your spa hotel, the Main Colonnade, or the Singing Fountain.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
           </div>
@@ -199,28 +264,99 @@ export default function PragueMarianskeLaznePage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'No border crossing — entirely within the Czech Republic.' },
+                  { label: 'Border crossing', value: 'None. The route is entirely inside the Czech Republic — no passport checks, no vignette changes.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Spa triangle', value: 'Karlovy Vary and Františkovy Lázně are nearby. PRESTIGO can combine all three spa towns in a single tour booking.' },
+                  { label: 'Spa triangle', value: 'Karlovy Vary and Františkovy Lázně are nearby. Prestigo can combine all three spa towns in a single tour booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you at Václav Havel Airport arrivals or in front of your central Prague hotel — not across the street, not in a parking lot. If you are arriving by flight, they stand in the arrivals hall with a Prestigo tablet displaying your name and track the landing in real time.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for two hours of rest before a spa programme, the chauffeur will read that signal and let you be. If you want context on Mariánské Lázně — the green pearl of the West Bohemian spa triangle, the visits of Chopin and Goethe, the spa-cure tradition that has run without interruption since 1808, the summers of Edward VII — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific temperature or a quieter playlist, say so. If you want a real rest stop along the D5 toward Plzeň for a coffee and a short walk, that is included in the time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Mariánské Lázně.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue through<br /><span className="display-italic">West Bohemia.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Mariánské Lázně sits at the heart of the West Bohemian spa triangle. Many clients combine it with Karlovy Vary or Františkovy Lázně, or continue south toward Český Krumlov for a longer weekend. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Mariánské Lázně.<br /><span className="display-italic">From €270, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Liberec or Ostrava connection available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. Polish on request.',
+  'Fuel, Czech motorway vignette, and Polish expressway tolls. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Wrocław transfer take?', a: 'Approximately 3 hours via the D11 northeast, crossing into Poland near Náchod/Kudowa-Zdrój, then continuing north to Wrocław. The route passes through the Sudetenland foothills.' },
-  { q: 'Is there a border crossing between Prague and Wrocław?', a: 'Yes. The Czech-Polish Schengen border is crossed in North Bohemia or the Sudetenland region. No passport check for EU citizens — non-EU passengers should carry valid travel documents.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Wrocław or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is Wrocław known for?', a: 'Wrocław is famous for its colourful market square (Rynek), hundreds of bronze dwarf (krasnal) figurines, Gothic Town Hall, and vibrant cultural scene. It is Lower Silesia\'s capital and one of Poland\'s most visited cities.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Wrocław route.' },
+  { q: 'How long does a private transfer from Prague to Wrocław take?', a: 'Approximately 3 hours door-to-door via the D11 motorway north to Hradec Králové, then Highway 33 northeast to the Czech–Polish border at Náchod/Kudowa-Zdrój, then the Polish DK8 and S8 expressways into Wrocław. Traffic around Prague during rush hour can add 15–20 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Wrocław cost?', a: 'Fixed fare from €470 in Mercedes E-Class (up to 3 passengers), €540 in V-Class (up to 6 passengers), or €700 in S-Class. Prices include fuel, Czech vignette, Polish tolls, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Wrocław?', a: 'Yes, and it is the standard pattern on this route. A return on the same day receives a 10% discount. Wait-on-site time in Wrocław is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a 10–12 hour round trip to cover the Rynek, the Racławice Panorama, and lunch near Ostrów Tumski.' },
+  { q: 'Do you cross the Czech–Polish border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Náchod/Kudowa-Zdrój is invisible — no routine checks, no passport control. All Prestigo vehicles carry the Czech vignette and pre-paid Polish tolls, and the chauffeur holds an international chauffeur licence recognised across the EU.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'Can the chauffeur speak Polish?', a: 'A Polish-speaking chauffeur is available on request — useful for business meetings in Wrocław or for clients who prefer to be greeted in Polish. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, Czech vignette, Polish tolls, driver time. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the Náchod border crossing has weekend congestion, your chauffeur uses the Bogatynia or Cieszyn alternative. For Polish-language meetings, a Polish-speaking chauffeur is available on request.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '115 km', duration: '1h 15min' },
+  { slug: 'prague-liberec', city: 'Liberec', distance: '110 km', duration: '1h 20min' },
+  { slug: 'prague-krakow', city: 'Kraków', distance: '535 km', duration: '5h 30min' },
+  { slug: 'prague-warsaw', city: 'Warsaw', distance: '680 km', duration: '6h 45min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +162,23 @@ export default function PragueWroclawPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Wrocław" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Wrocław</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Wrocław,<br /><span className="display-italic">Lower Silesia direct.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>285 km northeast to Poland's city of dwarfs and one of Central Europe's most vibrant market squares. Three hours, one fixed price, door to door across the border.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>285 km northeast to Poland&apos;s city of dwarfs and one of Central Europe&apos;s most vibrant market squares. Three hours, one fixed price, door to door across the border.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +186,53 @@ export default function PragueWroclawPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Wrocław is a three-hour drive across two Schengen countries, and every kilometre of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven this route into Lower Silesia hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which hotel entrance to use near the Rynek, which gate to take at a Wrocław business park, or which address to call from in the suburbs around Psie Pole.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Wrocław<br /><span className="display-italic">in three hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D11 motorway north toward Hradec Králové, then joins Highway 33 northeast through the Czech foothills to the border at Náchod and Kudowa-Zdrój. The Czech–Polish Schengen crossing is invisible — no stops, no document checks. Once inside Poland, the road becomes the DK8 and then the S8 expressway, dropping into Wrocław from the south-west.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 285 kilometres. Driving time is three hours in normal conditions. Add 15–20 minutes on Friday afternoons leaving Prague. On weekends with heavy Polish border traffic, your chauffeur can reroute via Liberec and the Bogatynia crossing — a slightly longer drive through the Jizera Mountains but a cleaner run into Lower Silesia.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Wrocław itself is worth the drive. The Rynek is one of the largest medieval market squares in Europe. The bronze Wrocław dwarves — boguszów krasnale, roughly six hundred of them — began as a single protest figurine in the 1980s and now turn every walk into a hunt. Cathedral Island (Ostrów Tumski), the Centennial Hall with its pioneering reinforced-concrete dome listed by UNESCO, and the immense Racławice Panorama in its purpose-built rotunda complete the short list. Your chauffeur watches traffic on the D11 before every departure. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Wrocław transfer crosses the Polish border in comfort. Business trip, cultural weekend, or a Silesian visit — your driver handles the route and the crossing.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Wrocław drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Polish tolls. Business meeting in Lower Silesia, cultural weekend on the Rynek, or a Silesian family visit — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +243,8 @@ export default function PragueWroclawPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,7 +253,7 @@ export default function PragueWroclawPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Czech-Polish border', note: 'Schengen crossing in North Bohemia — no delays for EU citizens. Your driver coordinates the crossing.', anchor: false, custom: false },
+                { city: 'Czech-Polish border', note: 'Schengen crossing at Náchod/Kudowa-Zdrój — no delays for EU citizens. Your driver coordinates the crossing.', anchor: false, custom: false },
                 { city: 'Anywhere you like', note: 'A stop in Kudowa-Zdrój spa town or anywhere along the way. Your route, your pace.', anchor: false, custom: true },
                 { city: 'Wrocław', note: 'Drop-off at any Wrocław address, the Rynek market square, or your hotel.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
@@ -200,7 +264,7 @@ export default function PragueWroclawPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'Czech-Polish Schengen border in North Bohemia. No passport check for EU citizens.' },
+                  { label: 'Border crossing', value: 'Czech-Polish Schengen border at Náchod/Kudowa-Zdrój. No passport check for EU citizens.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included. Polish expressway tolls included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
                   { label: 'Onward routing', value: 'Wrocław connects to Kraków and Warsaw. PRESTIGO can extend your journey onward from Wrocław.' },
@@ -210,18 +274,89 @@ export default function PragueWroclawPage() {
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address in central Prague — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are flying into Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name, and the luggage goes into the boot before you reach the car.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for three hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Wrocław — the Lower Silesian capital that was German Breslau until 1945, the population exchange that refilled the city with Polish families from Lwów, the university tradition, the Orange Alternative movement that birthed the krasnale dwarf tradition in the 1980s and turned it into a cultural landmark, or the 2016 European Capital of Culture year — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. A real rest stop near Hradec Králové on the D11 or on the Polish S8 after the border is included whenever you want one.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Wrocław.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Wrocław is the gateway between Prague and the rest of Poland. Many clients combine the Wrocław run with Kraków, Warsaw, or a Czech stop on the way. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Wrocław.<br /><span className="display-italic">From €470, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

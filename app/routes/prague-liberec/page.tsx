@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Jizera Mountains ski resorts and hiking accessible from Liberec',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel and the Czech motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Liberec transfer take?', a: 'Approximately 1.5 hours. The route heads north through Mladá Boleslav and the Bohemian highlands. Traffic is generally light outside peak ski season weekends.' },
-  { q: 'Is Liberec a good base for the Jizera Mountains?', a: 'Yes. Liberec sits at the foot of the Jizera Mountains, with ski resorts and hiking trails within 20–30 minutes by car. PRESTIGO can continue to specific mountain resorts from Liberec.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Liberec or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'Can I reach Hrádek nad Nisou or the Czech-German border from Liberec?', a: 'Yes. Liberec is close to the Czech-German border. PRESTIGO can continue to Zittau or other German border-region destinations from Liberec.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. The V-Class is ideal for ski groups with equipment.' },
+  { q: 'How long does a private transfer from Prague to Liberec take?', a: 'Approximately 1 hour 30 minutes door-to-door on the D10 motorway through Mladá Boleslav and Turnov, then the R35 into Liberec. Traffic is generally light outside Friday afternoon rush hour and winter ski-season weekends.' },
+  { q: 'How much does a chauffeur from Prague to Liberec cost?', a: 'Fixed fare from €175 in Mercedes E-Class (up to 3 passengers), €200 in V-Class (up to 6 passengers), or €255 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Liberec?', a: 'Yes. A return on the same day receives a 10% discount. Wait-on-site time in Liberec is charged at €60/hour for E-Class or €80/hour for S-Class. A typical day trip runs six to eight hours and covers the Ještěd cable car, the Town Hall square, and lunch in the old centre.' },
+  { q: 'Is there a border crossing on this route?', a: 'No. Prague to Liberec is entirely within the Czech Republic. The German and Polish borders are close to Liberec, but the destination itself is Czech. If you need to continue into Germany or Poland from Liberec, Prestigo can extend the booking.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German is available on request.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech motorway vignette, driver time. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for long-distance work inside Czechia and across the nearby borders.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the D10 has a closure near Mladá Boleslav, your chauffeur reroutes via Highway 16 without asking. For Ještěd cable car visits, the chauffeur knows the operating windows and can time the run so you are not left waiting on a cold platform.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '115 km', duration: '1h 20min' },
+  { slug: 'prague-dresden', city: 'Dresden', distance: '150 km', duration: '2h' },
+  { slug: 'prague-wroclaw', city: 'Wrocław', distance: '340 km', duration: '3h 45min' },
+  { slug: 'prague-pardubice', city: 'Pardubice', distance: '125 km', duration: '1h 30min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -142,6 +163,7 @@ export default function PragueLibeRecPage() {
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
 
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
           <Image src="/photohero.png" alt="Liberec" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
@@ -154,7 +176,7 @@ export default function PragueLibeRecPage() {
             <span className="display-italic">mountain gateway.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            105 km north to North Bohemia's capital at the foot of the Jizera Mountains. Cable car, neo-baroque town hall, and Czech glass tradition — one and a half hours, one fixed price.
+            105 km north to North Bohemia&apos;s capital at the foot of the Jizera Mountains. Cable car, neo-baroque town hall, and Czech glass tradition — one and a half hours, one fixed price.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
@@ -163,6 +185,7 @@ export default function PragueLibeRecPage() {
         </div>
       </section>
 
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -185,12 +208,46 @@ export default function PragueLibeRecPage() {
         </div>
       </section>
 
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Liberec is a ninety-minute drive on clean Czech motorway, and every minute of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven this route into North Bohemia hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your hotel near the Town Hall square or your apartment in the Jeřáb district.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Liberec<br /><span className="display-italic">in ninety minutes.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D10 motorway north — part of European route E65 — through Mladá Boleslav and on to Turnov, the gateway to the Bohemian Paradise. At Turnov the road shifts onto the R35, and a quieter final stretch through wooded hills drops you into Liberec at the foot of the Jizera Mountains. There is no border crossing on this route. The German and Polish frontiers sit just beyond Liberec, but the destination itself is entirely inside Czechia.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Liberec rewards a visitor. The neo-Renaissance Town Hall on Dr. E. Beneše Square is one of the most photographed civic buildings in the country. The Ještěd cable car climbs from Horní Hanychov to the summit, where Karel Hubáček&apos;s hyperboloid hotel-tower has stood since 1973 and still functions as a working transmitter and restaurant. The Botanical Gardens are a short walk from the centre, and the hiking and ski trails of the Jizera Mountains begin twenty minutes beyond the city.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur watches traffic on the D10 before every departure. Friday afternoons out of Prague can add fifteen minutes near Brandýs nad Labem, and winter ski-season weekends tighten the final stretch toward Liberec. If there is a closure, they reroute via Highway 16 without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Liberec transfer delivers you to North Bohemia's capital in comfort. Business visit, ski weekend, or a mountain day trip — your driver handles the route.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Liberec drop-off. The car, the chauffeur, the fuel, the motorway vignette. Business visit, ski weekend, or a day with the Jizera Mountains — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">
             {inclusions.map((item) => (
@@ -203,6 +260,7 @@ export default function PragueLibeRecPage() {
         </div>
       </section>
 
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -230,6 +288,7 @@ export default function PragueLibeRecPage() {
         </div>
       </section>
 
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -275,9 +334,49 @@ export default function PragueLibeRecPage() {
         </div>
       </section>
 
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address in central Prague, or inside the arrivals hall at Václav Havel Airport with a Prestigo tablet displaying your name. No parking lot walk. No meeting point in another terminal.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for ninety minutes of work or rest, the chauffeur will read that signal and let you be. If you want context on Liberec, your driver knows it — the Bohemian textile industry that built the city, the Sudeten German history that shaped it before 1945, the Czech glass tradition still alive in the workshops around Jablonec, the winter life of Ještěd as a working ski resort, and the three-country corner where Czechia meets Germany and Poland within forty minutes of the town square.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at a real rest area on the D10 between Brandýs nad Labem and Mladá Boleslav, that is included.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Liberec.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">
             {faqs.map((faq, i) => (
               <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
@@ -289,6 +388,34 @@ export default function PragueLibeRecPage() {
         </div>
       </section>
 
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Liberec sits at a crossroads of Czech regional routes and cross-border runs toward Saxony and Lower Silesia. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>

@@ -28,23 +28,23 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Pardubice stop available on request en route',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. Additional languages on request.',
+  'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Hradec Králové transfer take?', a: 'Approximately 1.5 hours via the D11 motorway. The D11 connects Prague directly to Hradec Králové — straightforward and well-maintained.' },
-  { q: 'Can I stop in Pardubice on the way?', a: 'Yes. Pardubice is adjacent to Hradec Králové and directly on the route. Available as an en-route stop at no extra charge.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Hradec Králové or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'Does PRESTIGO cover the East Bohemia Museum and military sites?', a: 'Yes. PRESTIGO serves all Hradec Králové addresses including the East Bohemia Museum, military history sites, and the university campus.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One fixed price with no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Hradec Králové route.' },
+  { q: 'How long does the Prague to Hradec Králové transfer take?', a: 'Approximately 1.5 hours door-to-door via the D11 motorway. The D11 runs east out of Prague directly into Hradec Králové — straightforward, well-maintained, and the only major road needed for the journey.' },
+  { q: 'How much does a chauffeur from Prague to Hradec Králové cost?', a: 'Fixed fare from €190 in Mercedes E-Class (up to 3 passengers), €220 in V-Class (up to 6 passengers), or €280 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Is a same-day return available?', a: 'Yes. Your chauffeur can wait on site in Hradec Králové or return at an agreed time. A return booked on the same day receives a 10% discount. Waiting time on site is billed at €60/hour for E-Class or €80/hour for S-Class in 15-minute increments.' },
+  { q: 'Is there a border crossing on this route?', a: 'No. Hradec Králové is in East Bohemia and the entire route runs inside the Czech Republic. There are no border checks, no foreign vignettes, and no currency changes. Only the Czech motorway toll applies, and it is already included in your fixed fare.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are all available at no extra charge. Please specify your child\'s age at booking so the correct seat is fitted before pickup.' },
+  { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, French, Italian, or Russian-speaking chauffeurs are available on request — please mention your preference at booking.' },
 ]
 
 
@@ -136,11 +136,35 @@ const pageSchema = {
   ],
 }
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech motorway vignette, driver time. Nothing added at drop-off, no meter, no app surge.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for long-distance work.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If you want to combine Hradec Králové with Pardubice in the same day, that is included. The two cities are 25 minutes apart and form the natural East Bohemian pair. Tell your chauffeur the plan; the rest is handled.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-pardubice', city: 'Pardubice', distance: '105 km', duration: '1h 15min' },
+  { slug: 'prague-liberec', city: 'Liberec', distance: '110 km', duration: '1h 20min' },
+  { slug: 'prague-kutna-hora', city: 'Kutná Hora', distance: '80 km', duration: '1h' },
+  { slug: 'prague-brno', city: 'Brno', distance: '205 km', duration: '2h 20min' },
+]
+
 export default function PragueHradecKralovePage() {
   return (
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Hradec Králové" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
@@ -154,6 +178,8 @@ export default function PragueHradecKralovePage() {
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -166,18 +192,53 @@ export default function PragueHradecKralovePage() {
           </div>
         </div>
       </section>
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Hradec Králové is a ninety-minute drive east on the D11, and every mile of that drive should feel like the start of the visit — not a logistics problem to solve. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know this motorway by habit. The fare is fixed before you book. The car is waiting at your hotel door. The chauffeur already knows whether you are heading to the Masaryk Square district, the university campus, or a business address on the outskirts of the royal city.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a taxi app. A private Mercedes, one chauffeur, and a fare that does not change between booking and drop-off.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Hradec Králové transfer runs the D11 in comfort. Business visit, cultural trip, or a day in East Bohemia — your driver delivers you door to door.</p>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Hradec Králové<br /><span className="display-italic">in ninety minutes.</span></h2>
           </div>
-          <div className="flex flex-col gap-4 justify-center">
-            {inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D11 motorway east. The D11 is the primary eastbound Czech motorway connecting the capital to East Bohemia, and it runs directly from the Prague ring road into the outskirts of Hradec Králové without branching. There is no border crossing, no foreign vignette to arrange, and no document check to anticipate — the entire route is inside the Czech Republic.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              On arrival, Hradec Králové unfolds at the confluence of the Elbe and Orlice rivers. The medieval core is anchored by the Bílá Věž (White Tower) bell tower above the Old Town Square and the Gothic Cathedral of the Holy Spirit. Around that medieval spine, the city was replanned in the early twentieth century by Jan Kotěra and his protégé Josef Gočár into one of Europe's most coherent functionalist civic quarters — the reason Hradec is known as the Salon of the Republic. The East Bohemian Museum, designed by Kotěra, is part of that legacy.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is roughly 115 kilometres. Normal driving time is ninety minutes. Friday evening traffic out of Prague can add fifteen minutes; your chauffeur checks D11 conditions before every departure and reroutes if needed. You are not paying for traffic; you are paying for time.
+            </p>
           </div>
         </div>
       </section>
+
+      {/* What's included */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">What's Included</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Hradec Králové drop-off. The car, the chauffeur, the fuel, the Czech motorway vignette. Business visit, architectural tour, or a day at the East Bohemian Museum — your driver handles the route while you focus on the destination.</p>
+          </div>
+          <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
+        </div>
+      </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -201,6 +262,8 @@ export default function PragueHradecKralovePage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -241,6 +304,47 @@ export default function PragueHradecKralovePage() {
           </div>
         </div>
       </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur meets you in front of your pickup address — a hotel in Old Town, a residence in Vinohrady, or the arrivals hall at Václav Havel Airport with a Prestigo tablet displaying your name. Not a parking lot across the street, not a meeting point requiring a ten-minute walk with luggage.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for ninety minutes of work or rest, the chauffeur will read that signal and let you be. If you want context on Hradec Králové — the royal city of the dowager queens of Bohemia, the modernist replanning by Kotěra and Gočár that earned the Salon of the Republic nickname, the military history tied to the Czech Armed Forces headquarters, the rhythm of a Czech university town during term — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a different cabin temperature, say so. If you would like a short coffee stop at the Sedlice rest stop on the D11, that is included in the fare.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Hradec Králové.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
@@ -249,6 +353,35 @@ export default function PragueHradecKralovePage() {
           </div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Bohemia and beyond.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Hradec Králové sits at the heart of East Bohemia. Many clients pair it with Pardubice, extend north to Liberec, or continue southeast toward Brno. Every Prestigo route shares the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
@@ -261,6 +394,7 @@ export default function PragueHradecKralovePage() {
           </div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

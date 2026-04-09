@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Olomouc or Brno stop available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. Other languages on request.',
+  'Fuel and the Czech motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Zlín transfer take?', a: 'Approximately 3.5 hours via the D1 east to Brno, then the D55 southeast toward Zlín in the Moravian Wallachia region.' },
-  { q: 'What is Zlín known for?', a: 'Zlín is the city built by Tomáš Baťa for his shoe empire — a unique example of functionalist urban planning. The Baťa 21st-Century Galleries, the preserved factory complex, and the 21st-century architecture are the main draws.' },
-  { q: 'Can I stop in Brno or Olomouc on the way?', a: 'Yes. Both cities are on or near the route. Request at booking for the most efficient routing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Zlín or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Zlín route.' },
+  { q: 'How long does a private transfer from Prague to Zlín take?', a: 'Approximately 3.5 hours door-to-door via the D1 motorway east through Brno, then the D55 south or Highway 50 east into Zlín. Friday afternoon traffic leaving Prague can add 20–30 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Zlín cost?', a: 'Fixed fare from €510 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €760 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Zlín?', a: 'Yes. A same-day return is workable — most clients book a 9–11 hour round trip that allows three to four hours on site in Zlín. Wait-on-site time is billed at €60/hour for E-Class or €80/hour for S-Class. Book both legs together for a 10% discount on the return.' },
+  { q: 'Is there a border crossing on the way to Zlín?', a: 'No. The Prague–Zlín route is entirely within the Czech Republic. No passport checks, no vignette changes, no customs. The Czech motorway vignette is included in the quoted price.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, Italian, or Russian-speaking chauffeurs can be requested at booking.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time across a 310-kilometre run. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance runs across Moravia.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the D1 has a closure near Brno, your chauffeur reroutes via Olomouc without asking. For Zlín Film Festival pickups, the chauffeur knows the venue access protocols and delivers you to the correct entrance on time.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
+  { slug: 'prague-olomouc', city: 'Olomouc', distance: '280 km', duration: '3h' },
+  { slug: 'prague-ostrava', city: 'Ostrava', distance: '360 km', duration: '3h 45min' },
+  { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 30min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +162,23 @@ export default function PragueZlinPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Zlín" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Zlín</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Zlín,<br /><span className="display-italic">Baťa's city.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>310 km east to Moravia's functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.</p>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Zlín,<br /><span className="display-italic">Baťa&apos;s city.</span></h1>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>310 km east to Moravia&apos;s functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +186,53 @@ export default function PragueZlinPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Zlín is a three-and-a-half-hour run across Moravia, and every kilometre of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know the D1, the D55, and the quieter back roads through the wine country east of Brno. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows how to approach the Baťa factory complex, the Zlín Film Studios, or your hotel in the functionalist grid at the heart of the old company town.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Zlín<br /><span className="display-italic">across Moravia.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east through the Bohemian–Moravian Highlands and on through Brno. From Brno, the road branches south onto the D55 or continues east on Highway 50 through the Moravian wine country toward the Zlín region. There is no border crossing — the entire route is within the Czech Republic, so no passport checks and no vignette changes.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Zlín itself is unlike any other Czech city. It is the functionalist company town built by the shoemaker Tomáš Baťa in the 1920s and 1930s, a planned industrial city of unmistakable red-brick grids, flat roofs, and glass stairwells. The 21st building — Baťa&apos;s skyscraper, finished in 1938 — was one of the first high-rise buildings in Europe and still anchors the skyline. The Baťa Villa, the preserved factory halls, and the Zlín Film Studios sit within walking distance of each other. The Zlín Film Studios are one of the oldest animation centres in Europe, and the city hosts the Zlín Film Festival for Children and Youth every year — the oldest event of its kind in the world, running since 1961.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 310 kilometres. Driving time is around three and a half hours. Friday afternoons out of Prague add 20–30 minutes, and your chauffeur checks D1 conditions before every departure. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Zlín transfer runs east through Moravia in comfort. Business visit, architectural pilgrimage, or a Moravian day trip — your driver delivers you door to door.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Zlín drop-off. The car, the chauffeur, the fuel, the vignette. Business visit, architectural pilgrimage, or a Moravian day trip — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +243,8 @@ export default function PragueZlinPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,9 +253,9 @@ export default function PragueZlinPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Brno (optional)', note: 'Czech Republic\'s second city — available as an en-route stop on the D1 before continuing to Zlín.', anchor: false, custom: false },
+                { city: 'Olomouc (optional)', note: 'A natural en-route stop off the D1 — one of Moravia\'s most atmospheric historic cities, with the UNESCO-listed Holy Trinity Column.', anchor: false, custom: false },
                 { city: 'Anywhere you like', note: 'A stop anywhere along the route through Moravia. Your schedule, your pace.', anchor: false, custom: true },
-                { city: 'Zlín', note: 'Drop-off at any Zlín address, the Baťa factory complex, or your hotel.', anchor: true, custom: false },
+                { city: 'Zlín', note: 'Drop-off at any Zlín address, the Baťa factory complex, the 21st building, or your hotel.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
           </div>
@@ -203,25 +267,96 @@ export default function PragueZlinPage() {
                   { label: 'Border crossing', value: 'No border crossing — entirely within the Czech Republic.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Moravian connection', value: 'Olomouc is 60 km from Zlín. PRESTIGO can cover both cities in a single booking.' },
+                  { label: 'Moravian connection', value: 'Olomouc is 60 km from Zlín. Prestigo can cover both cities in a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — whether that is a hotel in central Prague, an office in Karlín, or Václav Havel Airport. At the airport, they are inside the arrivals hall with a Prestigo tablet displaying your name.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for three and a half hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Zlín — the Baťa company town legacy, the social experiment of a factory city planned around its workers, the red-brick functionalist architecture that came out of it, the long Czech animation tradition at the Zlín Film Studios, the post-1989 industrial transformation of the region — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific temperature in the rear cabin, say so. Roughly halfway across, your chauffeur will stop at a real rest stop on the D1 — coffee, fuel, and five quiet minutes outside the car. That is included.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Zlín.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Moravia.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Zlín sits deep in Moravia, and many clients combine the Zlín run with other eastern routes or extend into Slovakia. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Zlín.<br /><span className="display-italic">From €510, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

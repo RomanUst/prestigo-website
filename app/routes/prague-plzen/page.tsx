@@ -28,25 +28,46 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or airport',
-  'Pilsner Urquell brewery tour available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Plzeň transfer take?', a: 'Approximately 1 hour via the D5 motorway. The D5 is the main Prague–Nuremberg corridor — well-maintained and direct with minimal traffic outside peak hours.' },
-  { q: 'Can I stop at the Pilsner Urquell brewery?', a: 'Yes. Pilsner Urquell is one of the world\'s most famous brewery tours and is available as part of your Plzeň visit. Request at booking and your driver will coordinate timing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Plzeň or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'Can I continue from Plzeň to Nuremberg or Munich?', a: 'Yes. Plzeň sits on the D5, the direct route to Nuremberg (270 km) and Munich (295 km). PRESTIGO can extend your transfer beyond Plzeň as a single booking.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price from booking to arrival — no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class for individuals and small groups, S-Class for executive travel, and V-Class for up to 6 passengers.' },
+  { q: 'How long does a private transfer from Prague to Plzeň take?', a: 'Approximately 1 hour door-to-door via the D5 motorway. The D5 is a direct, fully built-out route west from Prague. Traffic leaving Prague during weekday rush hour can add 10–15 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Plzeň cost?', a: 'Fixed fare from €150 in Mercedes E-Class (up to 3 passengers), €170 in V-Class (up to 6 passengers), or €220 in S-Class. Prices include fuel, all tolls, the Czech vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day return with a stop at the Pilsner Urquell brewery?', a: 'Yes. Most Plzeň bookings are same-day round trips built around the Pilsner Urquell tour. Your chauffeur waits on site while you tour the brewery and the cellars. Waiting time is €60/hour for E-Class or €80/hour for S-Class, billed in 15-minute increments. Book both directions together for a 10% discount on the return leg.' },
+  { q: 'Is there a border crossing on this route?', a: 'No. Plzeň is inside the Czech Republic — the entire Prague to Plzeň journey stays within Czechia. No passports, no vignettes beyond the Czech one, no checks. The D5 does continue west to the German border at Rozvadov/Waidhaus, but only if you extend the route to Nuremberg or Munich.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German is available on request at no additional charge — useful if you are combining Plzeň with an onward leg into Bavaria.' },
 ]
 
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time, waiting at the brewery gate. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the full Bohemia network.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If you want to combine the brewery tour with a Karlovy Vary stop on the same day, that is included. If your hotel concierge changes the pickup time, the chauffeur shifts without a phone call.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-karlovy-vary', city: 'Karlovy Vary', distance: '130 km', duration: '1h 30min' },
+  { slug: 'prague-marianske-lazne', city: 'Mariánské Lázně', distance: '160 km', duration: '1h 45min' },
+  { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '360 km', duration: '4h' },
+  { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 15min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -142,6 +163,7 @@ export default function PraguePlzenPage() {
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
 
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
           <Image src="/photohero.png" alt="Plzeň" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
@@ -154,7 +176,7 @@ export default function PraguePlzenPage() {
             <span className="display-italic">the brewery capital.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            90 km west on the D5. Home of Pilsner Urquell, West Bohemia's industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.
+            90 km west on the D5. Home of Pilsner Urquell, West Bohemia&apos;s industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
@@ -163,6 +185,7 @@ export default function PraguePlzenPage() {
         </div>
       </section>
 
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -187,17 +210,46 @@ export default function PraguePlzenPage() {
         </div>
       </section>
 
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Plzeň is a one-hour drive on the D5, and every minute of it should feel like part of the day — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know this corridor hand to hand. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows whether you want the drop-off at the Pilsner Urquell gate on U Prazdroje, at a hotel on Republic Square, or at a Škoda Transportation office in the industrial district.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Plzeň<br /><span className="display-italic">in one hour.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway west. The road runs past Beroun, through the Valík tunnel on the ring south of Plzeň, and drops you into the city from whichever exit is closest to your destination. The entire route is inside the Czech Republic — there is no border crossing on this transfer. The same D5 continues beyond Plzeň to the German border at Rozvadov/Waidhaus, but only if you extend the booking west into Bavaria.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 90 kilometres. Driving time is one hour in normal conditions. Add 10–15 minutes during Friday afternoon rush hour out of Prague, when the westbound D5 fills with weekenders heading for the spa triangle and Bavaria.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              The D5 has been fully built between Prague and the German border since 2006, and it remains one of the smoother motorway runs in Czechia. Your chauffeur still checks traffic before every departure. If there is a closure near Beroun or roadwork on the Plzeň ring, they reroute without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">
-              Everything included,<br />
-              <span className="display-italic">nothing to arrange.</span>
-            </h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              PRESTIGO's Prague–Plzeň transfer connects you city centre to city centre in an hour. Business visit, brewery tour, or day trip — your driver handles the route while you handle the day.
-            </p>
+            <p className="label mb-6">What&apos;s Included</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Plzeň drop-off. The car, the chauffeur, the fuel, the Czech vignette. Brewery tour, business meeting at Škoda, or a slow afternoon on Republic Square — your driver handles the route while you focus on the day.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">
             {inclusions.map((item) => (
@@ -210,6 +262,7 @@ export default function PraguePlzenPage() {
         </div>
       </section>
 
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -251,6 +304,7 @@ export default function PraguePlzenPage() {
         </div>
       </section>
 
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -288,7 +342,7 @@ export default function PraguePlzenPage() {
                   { label: 'Border crossing', value: 'No border crossing — entirely within the Czech Republic.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Onward routing', value: 'Plzeň is on the D5 to Nuremberg and Munich. PRESTIGO can extend your journey beyond Plzeň as a single booking.' },
+                  { label: 'Onward routing', value: 'Plzeň is on the D5 to Nuremberg and Munich. Prestigo can extend your journey beyond Plzeň as a single booking.' },
                 ].map((item) => (
                   <div key={item.label}>
                     <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p>
@@ -301,9 +355,49 @@ export default function PraguePlzenPage() {
         </div>
       </section>
 
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — central Prague, Old Town, Vinohrady, or the arrivals hall at Václav Havel Airport. If you are at the airport, they are inside the terminal with a Prestigo tablet displaying your name. Not in a distant parking lot, not waiting for a phone call.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for an hour of calls or rest, the chauffeur will read that signal and let you be. If you want context on Plzeň — the 1842 founding of the brewery that gave pale lager its name, the Škoda Transportation works that still ship trams and locomotives across Europe, the city&apos;s turn as European Capital of Culture in 2015, its role as the western gateway toward Bavaria — your driver knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific rear-cabin temperature, say so. If you want to stop at the Rozvadov rest area further along the D5 on a Bavaria-bound extension, or just pause for a coffee before Plzeň, that is part of the fare.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Plzeň.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">
             {faqs.map((faq, i) => (
               <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
@@ -315,6 +409,34 @@ export default function PraguePlzenPage() {
         </div>
       </section>
 
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">West Bohemia.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Plzeň sits at the centre of the western corridor out of Prague. Many clients combine the brewery run with a spa stop in Karlovy Vary, a Baroque afternoon in Český Krumlov, or an onward leg into Bavaria. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
