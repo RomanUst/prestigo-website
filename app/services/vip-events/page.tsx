@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'VIP & Events Chauffeur Prague — Diplomatic & Private | PRESTIGO',
+  title: 'VIP & Events Chauffeur Prague — Diplomatic & Private',
   description: 'VIP chauffeur service in Prague for diplomatic visits, private events, luxury hotel transfers, and multi-vehicle coordination. Discretion guaranteed.',
   alternates: { canonical: '/services/vip-events' },
   openGraph: {

@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'FAQ — PRESTIGO Prague Chauffeur Service | Prices, Booking & More',
+  title: 'FAQ — Prague Chauffeur Service: Prices, Booking & More',
   description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
   alternates: { canonical: '/faq' },
   openGraph: {

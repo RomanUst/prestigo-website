@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Airport Transfer Prague — PRG Václav Havel | PRESTIGO',
+  title: 'Airport Transfer Prague — PRG Václav Havel',
   description: 'Prague airport transfer with flight tracking, meet & greet, and fixed price. All terminals covered. Available 24/7. Book your PRG transfer online in seconds.',
   alternates: { canonical: '/services/airport-transfer' },
   openGraph: {

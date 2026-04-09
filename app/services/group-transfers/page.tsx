@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Group Transfers Prague — Minivan & Multi-Car | PRESTIGO',
+  title: 'Group Transfers Prague — Minivan & Multi-Car',
   description: 'Group chauffeur transfers in Prague. Minivans and multi-car coordination for conferences, incentive travel, and corporate events. Up to 50 passengers.',
   alternates: { canonical: '/services/group-transfers' },
   openGraph: {

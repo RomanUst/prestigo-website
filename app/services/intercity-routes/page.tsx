@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Intercity Routes from Prague — Vienna, Berlin, Munich | PRESTIGO',
+  title: 'Intercity Routes from Prague — Vienna, Berlin, Munich',
   description: 'Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door, available 24/7.',
   alternates: { canonical: '/services/intercity-routes' },
   openGraph: {

@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Prague City Rides — Hourly Chauffeur Hire | PRESTIGO',
+  title: 'Prague City Rides — Hourly Chauffeur Hire',
   description: 'Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €80/hour.',
   alternates: { canonical: '/services/city-rides' },
   openGraph: {

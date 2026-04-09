@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Corporate Chauffeur Accounts Prague | PRESTIGO',
+  title: 'Corporate Chauffeur Accounts Prague',
   description: 'Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch. Set up in 24 hours.',
   alternates: { canonical: '/services/corporate-accounts' },
   openGraph: {
