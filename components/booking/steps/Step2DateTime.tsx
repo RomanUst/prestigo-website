@@ -4,12 +4,11 @@ import { useEffect, useRef } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 
-// 288 time slots at 5-minute increments covering 00:00–23:55
-const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
-  const h = Math.floor(i / 12).toString().padStart(2, '0')
-  const m = ((i % 12) * 5).toString().padStart(2, '0')
-  return `${h}:${m}`
-})
+// Hours 00–23 and minutes in 15-minute increments
+const HOURS: string[] = Array.from({ length: 24 }, (_, i) =>
+  i.toString().padStart(2, '0')
+)
+const MINUTES: string[] = ['00', '15', '30', '45']
 
 // Common DayPicker inline styles for the Prestigo dark theme
 const calendarStyles = {
@@ -50,17 +49,29 @@ const calendarStyles = {
     background: 'transparent',
     border: 'none',
   },
+  nav: {
+    color: 'var(--copper)',
+  },
   button_previous: {
-    color: 'var(--warmgrey)',
-    border: '1px solid var(--anthracite-light)',
+    color: 'var(--copper)',
+    border: '1px solid var(--copper)',
     background: 'transparent',
     cursor: 'pointer',
+    width: 32,
+    height: 32,
   },
   button_next: {
-    color: 'var(--warmgrey)',
-    border: '1px solid var(--anthracite-light)',
+    color: 'var(--copper)',
+    border: '1px solid var(--copper)',
     background: 'transparent',
     cursor: 'pointer',
+    width: 32,
+    height: 32,
+  },
+  chevron: {
+    fill: 'var(--copper)',
+    width: 16,
+    height: 16,
   },
 }
 
@@ -81,35 +92,38 @@ const modifiersStyles = {
   },
 }
 
-interface TimeSlotItemProps {
-  slot: string
+interface TimeCellProps {
+  value: string
   isSelected: boolean
-  onSelect: (slot: string) => void
+  onSelect: (value: string) => void
+  scrollIntoView?: boolean
 }
 
-function TimeSlotItem({ slot, isSelected, onSelect }: TimeSlotItemProps) {
+function TimeCell({ value, isSelected, onSelect, scrollIntoView }: TimeCellProps) {
   const ref = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
-    if (isSelected && ref.current) {
+    if (isSelected && scrollIntoView && ref.current) {
       ref.current.scrollIntoView({ block: 'center', behavior: 'smooth' })
     }
-  }, [isSelected])
+  }, [isSelected, scrollIntoView])
 
   return (
     <li
       ref={ref}
       role="option"
       aria-selected={isSelected}
-      onClick={() => onSelect(slot)}
+      onClick={() => onSelect(value)}
       style={{
         minHeight: 44,
         padding: '0 16px',
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'center',
         fontFamily: 'var(--font-montserrat)',
-        fontSize: 13,
+        fontSize: 14,
         fontWeight: 400,
+        letterSpacing: '0.05em',
         color: isSelected ? 'var(--offwhite)' : 'var(--warmgrey)',
         background: isSelected ? 'var(--anthracite-mid)' : 'transparent',
         borderLeft: isSelected ? '4px solid var(--copper)' : '4px solid transparent',
@@ -132,7 +146,7 @@ function TimeSlotItem({ slot, isSelected, onSelect }: TimeSlotItemProps) {
         }
       }}
     >
-      {slot}
+      {value}
     </li>
   )
 }
@@ -154,6 +168,36 @@ export default function Step2DateTime() {
   // Minimum return date: the day after pickup (or today if no pickup selected)
   const returnDateMin = pickupDate ? new Date(pickupDate + 'T00:00:00') : today
   const returnDateObj = returnDate ? new Date(returnDate + 'T00:00:00') : undefined
+
+  // Derive selected hour and minute from pickupTime (stored as "HH:MM")
+  const [selectedHour, selectedMinute] = pickupTime
+    ? pickupTime.split(':')
+    : [null, null]
+
+  // Snap a raw minute value to the nearest 15-minute increment
+  function snapMinute(raw: string | null): string {
+    if (!raw) return '00'
+    const n = parseInt(raw, 10)
+    if (Number.isNaN(n)) return '00'
+    // Round down to nearest 15 (so selecting 10:00 → hour stays 10:00)
+    const snapped = Math.floor(n / 15) * 15
+    return snapped.toString().padStart(2, '0')
+  }
+
+  function handleHourSelect(hour: string) {
+    // Read fresh state from the store to avoid stale closures when the user
+    // clicks hour and minute in quick succession before React re-renders.
+    const current = useBookingStore.getState().pickupTime
+    const currentMinute = current ? current.split(':')[1] : null
+    const minute = snapMinute(currentMinute)
+    setPickupTime(`${hour}:${minute}`)
+  }
+
+  function handleMinuteSelect(minute: string) {
+    const current = useBookingStore.getState().pickupTime
+    const hour = current ? current.split(':')[0] : '00'
+    setPickupTime(`${hour}:${minute}`)
+  }
 
   function handlePickupDateSelect(date: Date | undefined) {
     if (date) {
@@ -225,33 +269,83 @@ export default function Step2DateTime() {
           )}
         </div>
 
-        {/* Right: Time slot list (~40% on desktop) */}
+        {/* Right: Time section (~40% on desktop) — hour + minute columns */}
         <div className="md:w-[40%] w-full">
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
             PICKUP TIME
           </span>
 
           {pickupDate ? (
-            <ul
-              role="listbox"
-              aria-label="Pickup time"
-              style={{
-                maxHeight: 240,
-                overflowY: 'auto',
-                margin: 0,
-                padding: 0,
-                border: '1px solid var(--anthracite-light)',
-              }}
-            >
-              {TIME_SLOTS.map((slot) => (
-                <TimeSlotItem
-                  key={slot}
-                  slot={slot}
-                  isSelected={pickupTime === slot}
-                  onSelect={setPickupTime}
-                />
-              ))}
-            </ul>
+            <div style={{ display: 'flex', gap: 12 }}>
+              {/* Hour column */}
+              <div style={{ flex: 1 }}>
+                <span
+                  className="label"
+                  style={{
+                    display: 'block',
+                    marginBottom: 8,
+                    fontSize: 11,
+                    color: 'var(--warmgrey)',
+                  }}
+                >
+                  HOUR
+                </span>
+                <ul
+                  role="listbox"
+                  aria-label="Pickup hour"
+                  style={{
+                    maxHeight: 240,
+                    overflowY: 'auto',
+                    margin: 0,
+                    padding: 0,
+                    border: '1px solid var(--anthracite-light)',
+                  }}
+                >
+                  {HOURS.map((h) => (
+                    <TimeCell
+                      key={h}
+                      value={h}
+                      isSelected={selectedHour === h}
+                      onSelect={handleHourSelect}
+                      scrollIntoView
+                    />
+                  ))}
+                </ul>
+              </div>
+
+              {/* Minute column */}
+              <div style={{ flex: 1 }}>
+                <span
+                  className="label"
+                  style={{
+                    display: 'block',
+                    marginBottom: 8,
+                    fontSize: 11,
+                    color: 'var(--warmgrey)',
+                  }}
+                >
+                  MIN
+                </span>
+                <ul
+                  role="listbox"
+                  aria-label="Pickup minute"
+                  style={{
+                    margin: 0,
+                    padding: 0,
+                    border: '1px solid var(--anthracite-light)',
+                  }}
+                >
+                  {MINUTES.map((m) => (
+                    <TimeCell
+                      key={m}
+                      value={m}
+                      isSelected={selectedMinute === m}
+                      onSelect={handleMinuteSelect}
+                    />
+                  ))}
+                </ul>
+              </div>
+            </div>
           ) : (
             <p
               style={{

@@ -345,3 +345,36 @@ body {
 .car-image-wrap:hover img {
   transform: scale(var(--sh)) !important;
 }
+
+/* ── React Day Picker booking calendar overrides ──── */
+.rdp-root {
+  --rdp-accent-color: var(--copper);
+  --rdp-accent-background-color: var(--copper);
+}
+.rdp-nav {
+  gap: 8px;
+}
+.rdp-button_previous,
+.rdp-button_next {
+  width: 32px !important;
+  height: 32px !important;
+  color: var(--copper) !important;
+  border: 1px solid var(--copper) !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.rdp-button_previous:hover,
+.rdp-button_next:hover {
+  background: rgba(184, 115, 51, 0.12) !important;
+}
+.rdp-chevron {
+  fill: var(--copper) !important;
+  width: 16px !important;
+  height: 16px !important;
+}
+.rdp-button_previous .rdp-chevron,
+.rdp-button_next .rdp-chevron {
+  fill: var(--copper) !important;
+}
