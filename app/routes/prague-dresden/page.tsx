@@ -51,17 +51,17 @@ const dayTripConfigurations = [
   {
     title: 'The Gallery Day',
     body: 'Pickup at 8:30, arrive Dresden 10:30. Four hours at the Zwinger — Old Masters Gallery, Porcelain Collection, Mathematisch-Physikalischer Salon — with a lunch stop near Neumarkt. Return to Prague by 17:00.',
-    price: '€450 E-Class with four hours of waiting on site.',
+    price: 'From €450 in E-Class — based on four hours on site.',
   },
   {
     title: 'The Elbe Cruise Handoff',
     body: 'Pickup at 7:00 in Prague. Your chauffeur delivers you directly to the Terrassenufer landing stage for a Sächsische Dampfschiffahrt river cruise, then meets you at the return pier in Pirna or Bad Schandau for the drive back.',
-    price: '€400 E-Class, one-way plus pier pickup.',
+    price: 'From €400 in E-Class — one-way plus pier pickup.',
   },
   {
     title: 'The Frauenkirche and Green Vault',
     body: 'Timed-entry tickets for the Green Vault are limited — your chauffeur pre-checks the arrival window so you walk in on time. After the Vault, half an hour at the Frauenkirche and dinner at a Neumarkt terrace before the return.',
-    price: '€470 E-Class with five hours of on-site waiting.',
+    price: 'From €470 in E-Class — based on five hours on site.',
   },
 ]
 
@@ -310,6 +310,9 @@ export default function PragueDresdenPage() {
               </div>
             ))}
           </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
         </div>
       </section>
 
