@@ -20,7 +20,7 @@ export default function Footer() {
 
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
 
           {/* Brand */}
           <div className="md:col-span-1">
@@ -77,6 +77,24 @@ export default function Footer() {
                   View all routes →
                 </a>
               </li>
+            </ul>
+          </div>
+
+          {/* Guides */}
+          <div>
+            <p className="label mb-5">Guides &amp; compare</p>
+            <ul className="flex flex-col gap-3">
+              {[
+                { label: 'Prague airport → city centre', href: '/guides/prague-airport-to-city-center' },
+                { label: 'Taxi vs chauffeur at PRG', href: '/compare/prague-airport-taxi-vs-chauffeur' },
+                { label: 'Prague–Vienna: transfer vs train', href: '/compare/prague-vienna-transfer-vs-train' },
+              ].map((g) => (
+                <li key={g.label}>
+                  <a href={g.href} className="body-text text-[11px] hover:text-offwhite transition-colors">
+                    {g.label}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
 
