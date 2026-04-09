@@ -20,36 +20,100 @@ export const metadata: Metadata = {
   },
 }
 
-const vehicles = [
+type VehicleSpec = {
+  model: string
+  category: string
+  description: string
+  features: string[]
+  idealFor: string
+  price: string
+  priceAmount: string
+  photo: string
+  photoAlt: string
+  // Structured spec table for Vehicle schema + on-page display
+  specs: {
+    seating: number
+    luggage: string
+    fuelType: 'hybrid' | 'petrol' | 'diesel' | 'electric'
+    transmission: 'automatic' | 'manual'
+    driveType: 'rwd' | 'awd' | 'fwd'
+    modelYearFrom: number
+    cylinders?: number
+    wheelbase?: string
+    cargoVolume?: string
+    vehicleConfiguration?: string
+  }
+}
+
+const vehicles: VehicleSpec[] = [
   {
-    model: 'Mercedes E-Class',
+    model: 'Mercedes-Benz E-Class',
     category: 'Business Sedan',
     description: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
-    features: ['Leather interior', 'Climate control', 'Wi-Fi available', 'Chargers'],
+    features: ['Leather interior', 'Dual-zone climate control', 'Onboard Wi-Fi', 'USB-C fast charging', 'Bottled water'],
     idealFor: 'Airport, city, solo business travel',
     price: 'From €49',
+    priceAmount: '49',
     photo: '/e-class-photo.png',
     photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
+    specs: {
+      seating: 3,
+      luggage: '3 large cases + 2 cabin bags',
+      fuelType: 'hybrid',
+      transmission: 'automatic',
+      driveType: 'rwd',
+      modelYearFrom: 2022,
+      cylinders: 4,
+      wheelbase: '2,961 mm',
+      cargoVolume: '540 L',
+      vehicleConfiguration: 'E 220 d / E 300 de Hybrid',
+    },
   },
   {
-    model: 'Mercedes S-Class',
+    model: 'Mercedes-Benz S-Class',
     category: 'Executive Sedan',
     description: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
-    features: ['Premium leather', 'Massage seats', 'Ambient lighting', 'Champagne on request'],
+    features: ['Premium Nappa leather', 'Rear massage seats', 'Ambient lighting', 'Executive rear package', 'Champagne on request'],
     idealFor: 'VIP, diplomatic, extended intercity',
     price: 'From €89',
+    priceAmount: '89',
     photo: '/s-class-photo.png',
     photoAlt: 'Mercedes-Benz S-Class — PRESTIGO chauffeur service Prague',
+    specs: {
+      seating: 3,
+      luggage: '3 large cases + 2 cabin bags',
+      fuelType: 'hybrid',
+      transmission: 'automatic',
+      driveType: 'awd',
+      modelYearFrom: 2022,
+      cylinders: 6,
+      wheelbase: '3,216 mm',
+      cargoVolume: '550 L',
+      vehicleConfiguration: 'S 450 4MATIC / S 580 e Hybrid',
+    },
   },
   {
-    model: 'Mercedes V-Class',
+    model: 'Mercedes-Benz V-Class',
     category: 'Executive Van',
     description: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
-    features: ['6 seats', 'Full luggage capacity', 'Individual captain seats', 'Privacy screen'],
+    features: ['6 captain seats', 'Full luggage capacity', 'Rear privacy glass', 'Fold-out table', 'Individual reading lights'],
     idealFor: 'Groups, families, conference transfers',
     price: 'From €69',
+    priceAmount: '69',
     photo: '/v-class-photo.png',
     photoAlt: 'Mercedes-Benz V-Class — PRESTIGO chauffeur service Prague',
+    specs: {
+      seating: 6,
+      luggage: '6 large cases + 6 cabin bags',
+      fuelType: 'diesel',
+      transmission: 'automatic',
+      driveType: 'rwd',
+      modelYearFrom: 2022,
+      cylinders: 4,
+      wheelbase: '3,200 mm',
+      cargoVolume: '1,410 L',
+      vehicleConfiguration: 'V 300 d Extralong AVANTGARDE',
+    },
   },
 ]
 
@@ -63,20 +127,55 @@ const standards = [
 const vehicleListSchema = {
   '@context': 'https://schema.org',
   '@type': 'ItemList',
+  '@id': 'https://rideprestigo.com/fleet#vehicles',
   name: 'PRESTIGO Mercedes Fleet Prague',
   itemListElement: vehicles.map((v, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     item: {
-      '@type': 'Product',
+      // Upgraded from Product → Vehicle: unlocks vehicleSeatingCapacity,
+      // fuelType, vehicleTransmission, driveWheelConfiguration, cargoVolume,
+      // and modelDate for richer entity signals.
+      '@type': 'Vehicle',
+      '@id': `https://rideprestigo.com/fleet#${v.model.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       name: v.model,
       description: v.description,
+      image: `https://rideprestigo.com${v.photo}`,
       brand: { '@type': 'Brand', name: 'Mercedes-Benz' },
+      manufacturer: { '@type': 'Organization', name: 'Mercedes-Benz Group AG' },
+      vehicleModelDate: String(v.specs.modelYearFrom),
+      vehicleConfiguration: v.specs.vehicleConfiguration,
+      bodyType: v.category,
+      fuelType: v.specs.fuelType,
+      vehicleTransmission: v.specs.transmission,
+      driveWheelConfiguration: v.specs.driveType === 'rwd'
+        ? 'https://schema.org/RearWheelDriveConfiguration'
+        : v.specs.driveType === 'awd'
+          ? 'https://schema.org/AllWheelDriveConfiguration'
+          : 'https://schema.org/FrontWheelDriveConfiguration',
+      vehicleSeatingCapacity: {
+        '@type': 'QuantitativeValue',
+        value: v.specs.seating,
+        unitText: 'passengers',
+      },
+      cargoVolume: v.specs.cargoVolume
+        ? { '@type': 'QuantitativeValue', value: parseInt(v.specs.cargoVolume), unitText: 'L' }
+        : undefined,
+      wheelbase: v.specs.wheelbase,
+      numberOfAxles: 2,
       offers: {
         '@type': 'Offer',
-        price: v.price.replace(/[^0-9]/g, ''),
+        price: v.priceAmount,
         priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
         seller: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+        areaServed: { '@type': 'City', name: 'Prague' },
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          price: v.priceAmount,
+          priceCurrency: 'EUR',
+          valueAddedTaxIncluded: true,
+        },
       },
     },
   })),
@@ -91,11 +190,58 @@ const breadcrumbSchema = {
   ],
 }
 
+// Substantive, 130–170 word answers optimised for LLM citation. These pages
+// won't earn Google rich results (FAQ rich snippets for non-gov/health sites
+// were deprecated August 2023), but FAQPage markup remains a strong signal
+// for ChatGPT, Perplexity, Claude, and Google AI Overviews passage extraction.
+const fleetFaqs = [
+  {
+    q: 'Which Mercedes-Benz models does PRESTIGO operate?',
+    a: 'PRESTIGO runs a three-class Mercedes-Benz fleet in Prague: the E-Class (E 220 d or E 300 de Hybrid) as our business sedan, the S-Class (S 450 4MATIC or S 580 e Hybrid) as our executive sedan, and the V-Class (V 300 d Extralong AVANTGARDE) as our six-passenger van. Every vehicle is 2022 model year or newer, 9-speed automatic transmission, and configured in black exterior with black leather or Nappa interior. Each chassis is serviced on the factory-recommended schedule by authorised Mercedes-Benz Prague technicians, and we refresh the fleet on a rolling cycle so no car remains in service long enough for its cosmetic or mechanical standard to slip. We deliberately run one marque and three silhouettes — it means every driver knows the controls, every passenger recognises the interior, and there are no surprises.',
+  },
+  {
+    q: 'How many passengers and how much luggage fit in each class?',
+    a: 'The Mercedes E-Class seats up to 3 passengers and carries 3 large suitcases plus 2 cabin bags comfortably in its 540-litre boot — the right choice for a solo traveller or couple with full airport luggage. The S-Class has the same 3-passenger limit but adds executive-package rear legroom and massage seats; the boot is 550 litres, so luggage capacity is effectively identical to the E-Class. The V-Class seats up to 6 passengers in individual captain chairs and takes 6 large cases plus 6 cabin bags without compromise thanks to its 1,410-litre cargo area — the only fleet choice for families, board transfers, and multi-bag intercity trips. If you are carrying skis, golf bags, or oversized items, book the V-Class and tell us at booking.',
+  },
+  {
+    q: 'Are the vehicles insured and licensed for international travel?',
+    a: 'Yes. Every PRESTIGO vehicle is fully registered in the Czech Republic, carries commercial passenger-liability insurance and comprehensive vehicle cover underwritten by an EU insurer, and holds the Czech passenger-transport licence (koncese) required for commercial chauffeur operation. For intercity routes we carry the Czech dálniční známka, the Austrian and Slovak vignettes, and we pay every German motorway toll and every bridge or tunnel charge along the way — all included in the quoted fare. Drivers hold valid international professional driver qualifications (ŘPZD), background checks, and fluent English at minimum B2. We are happy to provide insurance certificates and vehicle documentation in advance for corporate procurement teams or diplomatic security requirements — email info@rideprestigo.com and we will send the dossier within one business day.',
+  },
+  {
+    q: 'Can I request a specific vehicle, colour, or interior configuration?',
+    a: 'Vehicle class (E, S, or V) is always your choice and is guaranteed at booking. Within a class, every PRESTIGO car is black exterior with black leather or Nappa interior and the same specification set, so requesting a specific chassis is rarely necessary — the experience is consistent across the fleet. If you have a genuine preference (for example, a client who has travelled with a specific driver before and would like the same vehicle), note it in the booking form and we will honour the request when scheduling allows. For VIP, diplomatic, or multi-vehicle event bookings we can coordinate matching cars, pre-position them at a specific arrival time, and provide a single point of dispatch contact. Child seats, phone chargers, and bottled water are standard in every car.',
+  },
+  {
+    q: 'How often is the fleet serviced and replaced?',
+    a: 'PRESTIGO vehicles are serviced by authorised Mercedes-Benz technicians on the manufacturer-recommended schedule — typically every 25,000 km or 12 months, whichever comes first, for E-Class and S-Class, and every 20,000 km or 12 months for V-Class. Between scheduled services we run daily pre-trip inspections covering tyre pressure and tread, fluid levels, lighting, brake response, and cabin cleanliness. Consumables (tyres, brake pads, wipers, cabin filters) are replaced well before the legal minimum. We retire and replace vehicles on a rolling 3–4 year cycle so no car in service is ever old enough to look or feel dated. If a vehicle needs unscheduled repair mid-assignment, dispatch swaps it for a matching class car immediately — you should never notice, and in practice our clients rarely do.',
+  },
+  {
+    q: 'Is Wi-Fi, phone charging, and child seats really included in every car?',
+    a: 'Yes, included at no extra cost in every PRESTIGO vehicle. Wi-Fi runs on an enterprise 5G mobile router with unlimited data — bandwidth is good enough to take a video call from Prague to Vienna without dropping. USB-C and USB-A fast-charging ports are within reach of every seat, and Apple and Samsung fast-charge protocols are supported. We carry a full range of EU-certified (R129/i-Size) child and booster seats — rear-facing infant, forward-facing toddler, and booster — and install the right one before pickup as long as you confirm the child&rsquo;s age and weight at booking. Bottled still and sparkling water are standard; coffee, tea, and champagne are available on request for executive and VIP bookings. If you need an adapter or a specific amenity, just ask at booking.',
+  },
+]
+
+const fleetSchemaGraph = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    vehicleListSchema,
+    breadcrumbSchema,
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rideprestigo.com/fleet#faq',
+      mainEntity: fleetFaqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+  ],
+}
+
 export default function FleetPage() {
   return (
     <main id="main-content">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(vehicleListSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fleetSchemaGraph) }} />
       <Nav />
 
       {/* Hero */}
@@ -152,10 +298,31 @@ export default function FleetPage() {
                     </li>
                   ))}
                 </ul>
+
+                {/* Spec table — aligns with Vehicle schema (seating, fuel, transmission, cargo, etc.) */}
+                <dl className="border-t border-anthracite-light pt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-[11px]">
+                  {[
+                    ['Seats', `${v.specs.seating} passengers`],
+                    ['Luggage', v.specs.luggage],
+                    ['Configuration', v.specs.vehicleConfiguration],
+                    ['Fuel type', v.specs.fuelType.charAt(0).toUpperCase() + v.specs.fuelType.slice(1)],
+                    ['Transmission', v.specs.transmission.charAt(0).toUpperCase() + v.specs.transmission.slice(1)],
+                    ['Drive', v.specs.driveType.toUpperCase()],
+                    ['Model year', `${v.specs.modelYearFrom}+`],
+                    ['Wheelbase', v.specs.wheelbase],
+                    ['Cargo volume', v.specs.cargoVolume],
+                  ].filter(([, val]) => Boolean(val)).map(([label, val]) => (
+                    <div key={String(label)} className="flex flex-col">
+                      <dt className="font-body font-medium uppercase tracking-[0.12em] text-warmgrey/80" style={{ fontSize: '9px' }}>{label}</dt>
+                      <dd className="font-body font-light text-offwhite mt-1">{val}</dd>
+                    </div>
+                  ))}
+                </dl>
+
                 <div className="flex items-center gap-6">
                   <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>{v.price}</p>
                   <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
-                    Book {v.model.split(' ')[1]}
+                    Book {v.model.split(' ').pop()}
                   </a>
                 </div>
                 <p className="font-body font-light text-[11px] text-warmgrey">
@@ -283,6 +450,23 @@ export default function FleetPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               If you&rsquo;re unsure which class fits your booking, note your passenger count, luggage, and journey length in the booking form and our dispatcher will confirm the right pairing within minutes. For recurring corporate travel, we maintain vehicle preferences against your account profile so every trip is matched automatically.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Fleet questions</p>
+          <span className="copper-line mb-8 block" />
+          <h2 className="display text-[28px] md:text-[36px] mb-12">About the vehicles.</h2>
+          <div className="flex flex-col gap-0">
+            {fleetFaqs.map((faq, i) => (
+              <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
+                <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>

@@ -70,8 +70,11 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <meta property="og:image" content="https://rideprestigo.com/photohero.png" />
-        {/* Hero image is the LCP element — preload it so the audit tool and the browser both prioritise it alongside next/image's own optimisation */}
-        <link rel="preload" as="image" href="/photohero.png" fetchPriority="high" />
+        {/* Hero image is the LCP element — preload the 24 KB AVIF directly
+            rather than the 1.42 MB PNG. AVIF is supported by ~96% of global
+            traffic in 2026; the remaining clients still get the Image
+            component's negotiated fallback via /_next/image. */}
+        <link rel="preload" as="image" href="/photohero.avif" fetchPriority="high" type="image/avif" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />

@@ -7,7 +7,7 @@ export default function Hero() {
 
       {/* Full-screen background photo */}
       <Image
-        src="/photohero.png"
+        src="/photohero.avif"
         alt="Prestigo premium chauffeur — Prague airport transfer"
         fill
         priority

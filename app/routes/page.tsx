@@ -21,31 +21,53 @@ export const metadata: Metadata = {
 
 const faqs = [
   {
-    q: 'Can I stop en route?',
-    a: 'Yes. Stops can be added at booking or on the day.',
+    q: 'Can I stop en route between Prague and my destination?',
+    a: 'Yes — stops are included at no extra cost on every intercity route and can be added at booking or requested on the day directly with the chauffeur. Typical stops include a lunch break at a roadside restaurant, a scenic viewpoint, or a secondary city on the way (Brno between Prague and Vienna, Dresden between Prague and Berlin, Bratislava between Prague and Budapest). Waiting time at each stop is included up to 30 minutes; beyond that we bill at a clear hourly waiting rate agreed in advance. If you need a longer stop — for example, a three-hour visit to Karlovy Vary on the way to Munich — book it as a multi-stop itinerary and we quote a single fixed fare for the whole journey. For corporate clients we can build recurring multi-stop itineraries into the account so your travellers can select them with one click.',
   },
   {
-    q: 'What if my plans change?',
-    a: 'Free cancellation up to 2 hours before departure.',
+    q: 'What if my plans change after I book?',
+    a: 'Cancellations are free up to two hours before the scheduled pickup time — no questions asked, refund processed to the original payment method within one business day. Changes to pickup time, pickup or drop-off address, vehicle class, or passenger name are free at any time, including on the day of travel: just call dispatch on +420 725 986 855 or message us on WhatsApp. For intercity routes booked more than 48 hours in advance, you can postpone the trip to any future date without penalty, and the original payment carries over. For last-minute cancellations inside the two-hour window we charge a minimum fee of 50 % to cover the driver&rsquo;s dispatched position, except when the cancellation is due to a flight cancellation — in which case the booking is cancelled at no charge and we help rebook for your next scheduled arrival.',
   },
   {
-    q: 'Can I book a return journey?',
-    a: 'Yes, return bookings are available at a discount.',
+    q: 'Can I book a return journey from the destination back to Prague?',
+    a: 'Yes — return bookings are available on every route and receive a 10 % discount on the return leg when both legs are booked together. The discount applies automatically at checkout when you select a return date and time. Same-day returns (for example, a morning drive from Prague to Dresden and an evening return) are the most common use case and work particularly well for day trips to Karlovy Vary, Kutná Hora, Dresden, or Vienna. Multi-day returns work equally well for business trips — book both legs now and the same vehicle (or at least the same class) is dispatched for each. For flight-connected returns — a transfer to Vienna, a flight elsewhere, and a pickup back in Vienna days later — the return is tracked against your flight number exactly like an airport pickup.',
   },
   {
-    q: 'What vehicle will I travel in?',
-    a: 'Mercedes E-Class (standard), S-Class (executive), or V-Class (group). Select at booking.',
+    q: 'What vehicle will I travel in and can I upgrade?',
+    a: 'You choose the vehicle class at booking. The Mercedes E-Class is our business sedan: up to 3 passengers, 3 large suitcases plus cabin bags, leather interior, onboard Wi-Fi, and the baseline price for every route. The S-Class is our executive sedan with the same capacity but rear massage seats, executive legroom, and ambient lighting — priced roughly 50 % higher than the E-Class on any given route. The V-Class is our six-passenger van, priced between E-Class and S-Class, and is the right choice whenever you have more than three passengers, six or more pieces of luggage, or want a more comfortable group experience. Upgrades after booking are possible subject to availability: contact dispatch and we confirm within minutes. Every vehicle is 2022 model year or newer.',
+  },
+  {
+    q: 'Are tolls, vignettes, and fuel included in the quoted price?',
+    a: 'Yes — every cost associated with the journey is included in the fixed quoted fare. That covers fuel, the Czech dálniční známka (motorway vignette), the Austrian and Slovak vignettes where relevant, every German motorway toll, every bridge or tunnel charge, and any urban congestion fee along the route. It also covers the driver&rsquo;s time on the full journey plus the included waiting allowance at your pickup and drop-off addresses. There is nothing added at the end of the trip: no service charge, no fuel surcharge, no border surcharge, no late-night surcharge, no weekend premium. The only thing that can change the total after booking is if you add a stop, extend a waiting period, or request an additional service (for example, a second drop-off in a different city) — and in those cases the adjusted quote is always confirmed with you before the change happens.',
+  },
+  {
+    q: 'How far in advance should I book an intercity route?',
+    a: 'We recommend booking at least 24 hours in advance for peace of mind, and 48–72 hours for major destinations (Vienna, Berlin, Munich, Budapest) during peak travel periods (Easter, Christmas markets, major trade fairs, Formula 1 weekends). That said, PRESTIGO accepts same-day bookings on every route up to two hours before pickup, subject to driver availability, and for corporate accounts we guarantee same-day availability with priority dispatch. Last-minute bookings inside the two-hour window are best handled by phone on +420 725 986 855 — dispatch can often find a car when the online system suggests no availability. For complex multi-stop itineraries, weekend or holiday travel, or V-Class bookings during peak season we do recommend booking at least 72 hours out to guarantee your exact preferred vehicle and driver.',
   },
 ]
 
-
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
+const routesBreadcrumbSchema = {
   '@type': 'BreadcrumbList',
+  '@id': 'https://rideprestigo.com/routes#breadcrumb',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
     { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
   ],
+}
+
+const routesFaqSchema = {
+  '@type': 'FAQPage',
+  '@id': 'https://rideprestigo.com/routes#faq',
+  mainEntity: faqs.map((f) => ({
+    '@type': 'Question',
+    name: f.q,
+    acceptedAnswer: { '@type': 'Answer', text: f.a },
+  })),
+}
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [routesBreadcrumbSchema, routesFaqSchema],
 }
 
 export default function RoutesPage() {
@@ -91,16 +113,54 @@ export default function RoutesPage() {
         </div>
       </section>
 
-      {/* Route sections */}
+      {/* Route sections — grouped by country to replace 30 H2s with 7 country
+          H2s and route H3s nested beneath, collapsing the H2 count from 54 to
+          well under 15 across the whole page. */}
       <section className="bg-anthracite py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-0">
-          {ROUTES.map((r, i) => {
+        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-16">
+          {(() => {
+            // Sort routes within each country by distance, then group.
+            const byCountry: Record<string, typeof ROUTES> = {}
+            for (const r of ROUTES) {
+              if (!byCountry[r.country]) byCountry[r.country] = []
+              byCountry[r.country].push(r)
+            }
+            // Country display order: CZ first, then international by shortest
+            // available route distance.
+            const order = Object.keys(byCountry).sort((a, b) => {
+              if (a === 'Czech Republic') return -1
+              if (b === 'Czech Republic') return 1
+              const minA = Math.min(...byCountry[a].map((x) => x.distanceKm))
+              const minB = Math.min(...byCountry[b].map((x) => x.distanceKm))
+              return minA - minB
+            })
+            return order.map((country) => {
+              const routes = byCountry[country].slice().sort((a, b) => a.distanceKm - b.distanceKm)
+              const countryId = country.toLowerCase().replace(/\s+/g, '-')
+              return (
+                <div key={country} className="flex flex-col">
+                  {/* Country H2 */}
+                  <div className="mb-10" id={`routes-${countryId}`}>
+                    <p className="label mb-4">Destination country</p>
+                    <span className="copper-line mb-6 block" />
+                    <h2 className="display text-[32px] md:text-[44px]">
+                      {country}<span className="display-italic"> — {routes.length} {routes.length === 1 ? 'route' : 'routes'} from Prague</span>
+                    </h2>
+                    <p className="body-text text-[13px] mt-4 max-w-2xl" style={{ lineHeight: '1.9' }}>
+                      {routes.length === 1
+                        ? `One private chauffeur route from Prague into ${country}.`
+                        : `${routes.length} private chauffeur routes from Prague into ${country}, sorted by distance.`}
+                      {' '}Every route is a single fixed fare, door-to-door, with flight tracking on the return leg where applicable.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-0">
+          {routes.map((r, i) => {
             const hasImage = Boolean(r.image)
             const cardContent = (
               <>
                 <div>
                   <p className="label mb-4">{r.from} → {r.city}</p>
-                  <h2 className="display text-[26px] md:text-[32px] mb-4">{r.h2}</h2>
+                  <h3 className="display text-[26px] md:text-[32px] mb-4">{r.h2}</h3>
                   <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{r.description}</p>
                 </div>
                 <div className="flex flex-col justify-between gap-6">
@@ -169,6 +229,11 @@ export default function RoutesPage() {
               </div>
             )
           })}
+                  </div>
+                </div>
+              )
+            })
+          })()}
         </div>
       </section>
 

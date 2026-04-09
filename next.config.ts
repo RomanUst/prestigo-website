@@ -58,6 +58,12 @@ const nextConfig: NextConfig = {
     ]
   },
   images: {
+    // Serve AVIF first, then WebP. Every modern browser (Chrome 85+, Safari 16+,
+    // Firefox 93+, Edge 85+) supports AVIF — combined coverage is ~96% of
+    // global traffic in 2026. next/image negotiates per request via the
+    // Accept header and falls back to WebP/JPEG for the few clients that
+    // don't accept AVIF.
+    formats: ['image/avif', 'image/webp'],
     remotePatterns: [
       {
         protocol: "https",

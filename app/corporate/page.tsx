@@ -9,6 +9,33 @@ type FormState = 'idle' | 'sending' | 'success'
 const WHATSAPP_NUMBER = '420725986855'
 
 
+const corporateFaqs = [
+  {
+    q: 'What is a PRESTIGO corporate chauffeur account?',
+    a: 'A PRESTIGO corporate account is a dedicated billing and dispatch relationship for companies that use chauffeur transport in Prague on a regular basis. Instead of paying per trip with corporate cards and chasing receipts for expense reports, your travellers book against a central account by name, every trip is captured with a unique reference, and everything is invoiced once a month in a single consolidated statement with full trip-level breakdown. A named account manager handles your company&rsquo;s preferences, recurring routes, and exception requests — same-day changes, after-hours bookings, protocol requirements — without routing through public dispatch. Accounts are set up in roughly 48 hours: you fill in the application form, we countersign a short service agreement, configure your travellers in our dispatch system, run a free test booking, and you are live. There is no joining fee, no minimum spend, and no lock-in contract.',
+  },
+  {
+    q: 'Who typically uses corporate accounts?',
+    a: 'Our corporate clients are the law firms, consulting practices, investment houses, embassies, global employers, event agencies, and privately owned Czech businesses that move people through Prague on a weekly basis. A typical account might book two or three airport runs on a Monday morning, a half-day roadshow for a visiting executive mid-week, and an evening dinner transfer on Friday. Account sizes range from boutique firms with four or five trips a month to multinational corporates with several hundred bookings. We deliberately keep the book of accounts compact so every client receives the same level of attention regardless of volume — there is no tiered service model where small accounts wait longer. If your company regularly books airport transfers or intercity trips for visiting executives, clients, or directors, an account almost always saves both money and administration time.',
+  },
+  {
+    q: 'How does monthly invoicing and payment work?',
+    a: 'Every trip on a corporate account is captured at the moment of booking with a unique reference number, vehicle class, passenger name, route, and any optional notes your travel manager provides (cost centre, project code, client reference). On the first working day of each month, our finance team compiles all trips from the previous month into a single VAT-registered invoice, itemised by trip and optionally grouped by cost centre, department, or traveller. The invoice is sent as a PDF to your accounts payable address and is payable within 30 days by bank transfer in EUR or CZK, or by credit card. We can also support automatic monthly card billing for companies that prefer it. For international clients we issue invoices with reverse-charge VAT handling where applicable. Any dispute or adjustment is handled through your account manager without delay.',
+  },
+  {
+    q: 'Can multiple travellers book under one account without individual logins?',
+    a: 'Yes. Corporate accounts operate on a named-traveller model, not a per-user login model. Your travel manager (or account manager for smaller accounts) adds authorised travellers to the account — typically the partners, directors, and assistants who travel regularly — and each traveller can be booked either by themselves, by an assistant, or by the central travel desk. Bookings can be made online against the account, by phone or WhatsApp direct to the account manager, or by email with a standing authorisation on file. There are no passwords to manage, no booking quotas per traveller, and no approval chains unless your internal policy requires them. For companies that need approval workflows (for example, requiring a line manager sign-off for trips above a certain value), we can implement the approval step as part of the booking flow — just tell us the policy at onboarding.',
+  },
+  {
+    q: 'What about insurance, GDPR, and corporate compliance?',
+    a: 'PRESTIGO is operated by chelautotrans s.r.o. (Czech company ID 05650801, VAT registered), a fully licensed Czech passenger-transport operator holding the commercial koncese required for chauffeur work. Every vehicle carries commercial passenger-liability insurance and fully comprehensive vehicle cover underwritten by an EU insurer — we can provide certificates of insurance, driver licence numbers, and vehicle registration details in advance for any booking where your security or procurement team requires it. Traveller data is handled under GDPR with a clear retention policy: trip records are kept for seven years (Czech accounting law) and personal contact details only as long as the account is active, then deleted. We do not share data with third parties, do not use traveller data for marketing, and sign mutual NDAs at no charge for accounts that require them. Data is stored on EU-based infrastructure.',
+  },
+  {
+    q: 'What is the typical onboarding timeline?',
+    a: 'Most corporate accounts are live and taking bookings within 48 hours of the initial enquiry. The sequence is: Day 0, you complete the three-minute application form at /corporate describing your company, expected monthly volume, and any specific requirements. Within the same working day we assign an account manager and send a short service agreement for countersignature (usually two pages — our standard terms plus your specific notes). Day 1, once signed, we configure your account in the dispatch system, invite your listed travellers, and run a test booking free of charge so your first real trip is never the first trip. Day 2, you make your first live booking. For companies with unusual requirements — bespoke invoicing formats, integration with an existing travel management platform, or multi-entity setups — onboarding can take up to a week, and we agree the timeline up front.',
+  },
+]
+
 const corporateSchemaGraph = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -19,6 +46,15 @@ const corporateSchemaGraph = {
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
         { '@type': 'ListItem', position: 2, name: 'Corporate Accounts', item: 'https://rideprestigo.com/corporate' },
       ],
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': 'https://rideprestigo.com/corporate#faq',
+      mainEntity: corporateFaqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
     },
     {
       '@type': 'Service',
@@ -276,6 +312,23 @@ export default function CorporatePage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               PRESTIGO is operated by chelautotrans s.r.o. (Czech company ID 05650801), a fully licensed and VAT-registered Czech operator. Every invoice is issued with VAT, trip-level breakdown, and a unique reference per booking. We carry commercial passenger-liability and fully comprehensive vehicle insurance, and can provide certificates on request for security or procurement teams. Traveller data is handled under GDPR with a clear retention policy and is never shared with third parties.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Corporate account questions</p>
+          <span className="copper-line mb-8 block" />
+          <h2 className="display text-[28px] md:text-[36px] mb-12">Questions from finance, travel &amp; procurement.</h2>
+          <div className="flex flex-col gap-0">
+            {corporateFaqs.map((faq, i) => (
+              <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
+                <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
