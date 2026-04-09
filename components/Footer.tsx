@@ -103,7 +103,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <p className="body-text text-[11px]">Prague, Czech Republic</p>
+                <address className="body-text text-[11px] not-italic leading-relaxed">
+                  <span className="text-offwhite">chelautotrans s.r.o.</span><br />
+                  IČO: 05650801<br />
+                  Spojovací 685, Vysoký Újezd<br />
+                  Czech Republic
+                </address>
               </li>
               <li>
                 <p className="body-text text-[11px]">24 / 7 availability</p>
