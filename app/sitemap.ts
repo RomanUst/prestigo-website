@@ -1,46 +1,15 @@
 import { MetadataRoute } from 'next'
+import { ROUTES } from '@/lib/routes'
 
 const BASE = 'https://rideprestigo.com'
 
-// 30 indexed intercity routes (17 Green + 13 Yellow).
-// 20 long-distance routes removed 2026-04-09 per SEO strategy
+// Route entries derived from lib/routes.ts (30 indexed: 17 Green + 13 Yellow).
+// The 20 long-distance routes were removed 2026-04-09 per SEO strategy
 // — see /Users/romanustyugov/Desktop/founder prestigo/routes/03-noindex-rules-20-red-routes.md
-const routeSlugs = [
-  'prague-vienna',
-  'prague-karlovy-vary',
-  'prague-plzen',
-  'prague-liberec',
-  'prague-pardubice',
-  'prague-hradec-kralove',
-  'prague-ceske-budejovice',
-  'prague-marianske-lazne',
-  'prague-frantiskovy-lazne',
-  'prague-cesky-krumlov',
-  'prague-dresden',
-  'prague-leipzig',
-  'prague-linz',
-  'prague-brno',
-  'prague-passau',
-  'prague-olomouc',
-  'prague-wroclaw',
-  'prague-regensburg',
-  'prague-salzburg',
-  'prague-zlin',
-  'prague-bratislava',
-  'prague-berlin',
-  'prague-nuremberg',
-  'prague-ostrava',
-  'prague-munich',
-  'prague-krakow',
-  'prague-graz',
-  'prague-budapest',
-  'prague-warsaw',
-  'prague-kutna-hora',
-]
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const routeEntries: MetadataRoute.Sitemap = routeSlugs.map((slug) => ({
-    url: `${BASE}/routes/${slug}`,
+  const routeEntries: MetadataRoute.Sitemap = ROUTES.map((r) => ({
+    url: `${BASE}/routes/${r.slug}`,
     lastModified: new Date(),
     changeFrequency: 'monthly',
     priority: 0.85,
