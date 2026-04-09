@@ -28,25 +28,64 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'České Budějovice stop available on request en route',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, the Czech motorway vignette, and all tolls. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Český Krumlov transfer take?', a: 'Approximately 2.5 hours heading south through Central and South Bohemia. The route passes through České Budějovice before the final stretch to the Vltava bend where Krumlov sits.' },
-  { q: 'Can I stop in České Budějovice on the way?', a: 'Yes. České Budějovice is 20 km before Český Krumlov and easily added as an en-route stop. Request at booking for optimal routing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Český Krumlov or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What makes Český Krumlov worth the trip?', a: 'Český Krumlov is a UNESCO World Heritage Site — a medieval castle complex above a Vltava horseshoe bend, with baroque theatre, gardens, and a perfectly preserved old town. One of Bohemia\'s most photographed places.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Český Krumlov route.' },
+  { q: 'How long does a private transfer from Prague to Český Krumlov take?', a: 'Approximately 2.5 hours door-to-door via Highway 3 and the D3 motorway south through Tábor and České Budějovice. Friday afternoon rush hour out of Prague can add 15–20 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Český Krumlov cost?', a: 'Fixed fare from €290 in Mercedes E-Class (up to 3 passengers), €335 in V-Class (up to 6 passengers), or €430 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip with waiting time?', a: 'Yes — this is the standard booking pattern for Český Krumlov. Your chauffeur waits on site while you explore the Old Town and Castle, then drives you back the same evening. Waiting is billed at €60/hour (E-Class) or €80/hour (S-Class). A return booked together receives a 10% discount on the return leg.' },
+  { q: 'Do you cross any border?', a: 'No. The entire route runs inside the Czech Republic — Prague, Tábor, České Budějovice, and Český Krumlov are all in Bohemia. No passport checks, no vignettes beyond the Czech one, which is included.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German is available on request at no extra charge.' },
 ]
 
+const dayTripConfigurations = [
+  {
+    title: 'The Castle and Old Town Day',
+    body: 'Pickup at 8:00, arrive Český Krumlov around 10:30. A guided walk through the Castle complex — the Upper Castle, the Baroque Theatre, the Castle Gardens — followed by lunch in the Old Town below the Vltava bend. Return to Prague by 18:00.',
+    price: 'From €800 in E-Class — based on five hours on site.',
+  },
+  {
+    title: 'The Schiele Art Centrum and Latrán Afternoon',
+    body: 'Later pickup at 9:30 for a focused afternoon at the Egon Schiele Art Centrum, followed by an unhurried walk through the Latrán quarter on the far bank of the Vltava. Coffee, galleries, and river views before the drive back.',
+    price: 'From €750 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'The Vltava Raft and Lunch',
+    body: 'A morning departure for a midday rafting loop through the Old Town on the Vltava, then lunch at a riverside restaurant with the Castle on the skyline. Your chauffeur handles the handoff between the put-in point and the pickup pier.',
+    price: 'From €850 in E-Class — based on six hours on site.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance Bohemia routes.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the D3 closures near Tábor cause delays, your chauffeur knows the parallel Highway 3 routing. If you want to combine with České Budějovice or Hluboká Castle in the same day, that is included.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-ceske-budejovice', city: 'České Budějovice', distance: '155 km', duration: '2h' },
+  { slug: 'prague-linz', city: 'Linz', distance: '230 km', duration: '2h 45min' },
+  { slug: 'prague-passau', city: 'Passau', distance: '240 km', duration: '3h' },
+  { slug: 'prague-salzburg', city: 'Salzburg', distance: '360 km', duration: '4h 15min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,6 +180,8 @@ export default function PragueCeskyKrumlovPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Český Krumlov" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
@@ -154,6 +195,8 @@ export default function PragueCeskyKrumlovPage() {
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +204,53 @@ export default function PragueCeskyKrumlovPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Český Krumlov is the cleanest way to reach Bohemia's most photographed medieval town. It is a two-and-a-half-hour drive south through the heart of South Bohemia, and every hour of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven this route hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows where to drop you at the permitted entry closest to the Old Town.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Český Krumlov<br /><span className="display-italic">in two and a half hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes Highway 3 and the E55 south through the rolling farmland of Central Bohemia. The D3 motorway is only partially finished — the middle section from Mezno through Tábor and around the České Budějovice bypass opened in late 2024, but the northern stretch into Prague is still under construction. Your chauffeur uses the parallel Highway 3 until it joins the motorway, then runs the D3 all the way past České Budějovice before dropping onto the 39 for the final approach to Český Krumlov.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 175 kilometres, all inside the Czech Republic — no border crossing, no second vignette. Driving time is two and a half hours in normal conditions. Your drop-off point is the UNESCO Old Town on the Vltava horseshoe bend, beneath the Castle complex and across from the Egon Schiele Art Centrum and the Latrán quarter.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              One seasonal note — in summer, parking inside the Old Town is restricted and every approach road is congested. Your chauffeur drops you at the most accessible permitted point near the historic core and collects you from the same spot when you are ready. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What's Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Český Krumlov transfer delivers you to South Bohemia's jewel in comfort. Day trip, cultural stay, or family visit — your driver handles the route while you enjoy the journey.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Český Krumlov drop-off. The car, the chauffeur, the fuel, the vignette. Day trip, overnight stay, or a longer South Bohemia loop — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +261,8 @@ export default function PragueCeskyKrumlovPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -203,25 +285,119 @@ export default function PragueCeskyKrumlovPage() {
                   { label: 'Border crossing', value: 'No border crossing — entirely within the Czech Republic.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'České Budějovice', value: 'Just 20 km away — PRESTIGO can include a Budějovice stop as part of a single booking.' },
+                  { label: 'České Budějovice', value: 'Just 20 km away — Prestigo can include a Budějovice stop as part of a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Český Krumlov is the most-requested day-trip destination from Prague, and the two-and-a-half-hour each way timing makes it an ideal full-day run. Three configurations cover most of what Prestigo clients ask for.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you at Václav Havel Airport or any central Prague address — at the door, not in a parking lot across the street. If you are in arrivals, they are inside the terminal with a Prestigo tablet displaying your name.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for two and a half hours of rest or work, the chauffeur will read that signal and let you be. If you want context on Český Krumlov — the UNESCO World Heritage listing in 1992, the Rosenberg family who held the Castle for three centuries, Egon Schiele's brief exile from Vienna in 1911, the unusual geography of the Vltava horseshoe that shaped the Old Town — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at one of the rest areas on the D3/E55 corridor near Tábor or Mirošovice, that is included.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Český Krumlov.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">South Bohemia.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Český Krumlov sits in the heart of South Bohemia, a short drive from České Budějovice and the Austrian border. Many clients combine the Krumlov run with an onward transfer to Linz, Passau, or Salzburg in the same booking. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Český Krumlov.<br /><span className="display-italic">From €290, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

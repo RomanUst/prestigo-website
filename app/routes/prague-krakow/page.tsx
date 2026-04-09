@@ -28,25 +28,64 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Ostrava or Auschwitz-Birkenau visit available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. Polish on request.',
+  'Fuel, Czech motorway vignette, and all Polish toll motorway charges including the A4. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Kraków transfer take?', a: 'Approximately 4 hours via the D1 east through Brno, then northeast through Ostrava and across the Czech-Polish border into Kraków.' },
-  { q: 'Is there a border crossing between Prague and Kraków?', a: 'Yes. The Czech-Polish Schengen border is crossed near Ostrava/Cieszyn. No passport check for EU citizens — non-EU passengers should carry valid travel documents.' },
-  { q: 'Can I visit Auschwitz-Birkenau from Kraków?', a: 'Yes. Auschwitz-Birkenau is 70 km west of Kraków. PRESTIGO can arrange a full-day itinerary combining the transfer with a memorial visit. Request at booking.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Kraków or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. Polish expressway tolls included.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Kraków route.' },
+  { q: 'How long does a private transfer from Prague to Kraków take?', a: 'Approximately 4 to 4.5 hours door-to-door. The route runs east on the D1 through Brno, then northeast toward Ostrava on the D1/D48, across the Schengen border at Český Těšín/Cieszyn, and east on the Polish A1 and A4 into Kraków. Friday afternoon departures out of Prague can add 20 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Kraków cost?', a: 'Fixed fare from €635 in Mercedes E-Class (up to 3 passengers), €730 in V-Class (up to 6 passengers), or €945 in S-Class. Prices include fuel, the Czech vignette, and all Polish toll sections including the A4. No hidden charges.' },
+  { q: 'Is a same-day round trip from Prague to Kraków possible?', a: 'Technically yes, but the driving alone is 8 to 9 hours round trip. Most Prestigo clients overnight in Kraków and book the return for the following day. If you need to return the same day — a business meeting, a one-scene shoot, a brief memorial visit — your chauffeur can wait and drive back, with waiting time billed at €60/hour (E-Class) or €80/hour (S-Class).' },
+  { q: 'Do you cross the Polish border without problems?', a: 'Both countries are inside the Schengen Area. The Czech–Polish border is crossed at Český Těšín on the Czech side and Cieszyn on the Polish side — no routine checks. All Prestigo vehicles are registered for international travel and the chauffeur holds a valid international chauffeur licence recognised in Poland.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'Can the chauffeur speak Polish?', a: 'Polish is available on request — mention it at booking and Prestigo will assign a chauffeur with working Polish. Every Prestigo chauffeur speaks fluent English and Czech as standard, which is more than enough for the drive itself and for most interactions in Kraków.' },
 ]
 
+const dayTripConfigurations = [
+  {
+    title: 'The Wawel Castle and Old Town Day',
+    body: 'Pickup at 6:30, arrive Kraków around 11:00. Five hours on foot: Wawel Castle and Cathedral, the Rynek Główny and Cloth Hall, lunch at a restaurant off the main square, the Jagiellonian University quarter. Return to Prague late evening.',
+    price: 'From €1,400 in E-Class — based on five hours on site.',
+  },
+  {
+    title: 'The Auschwitz-Birkenau Memorial Day',
+    body: 'Pickup at 6:00. Your chauffeur drives directly to the Auschwitz-Birkenau State Museum in Oświęcim, 70 km west of Kraków. Four hours at the memorial with a booked, timed-entry guided tour. A quiet return drive to Prague. Handled with discretion.',
+    price: 'From €1,350 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'Wieliczka Salt Mine and Old Town',
+    body: 'Pickup at 6:30, arrive Wieliczka around 11:00 for a two-hour underground tour of the UNESCO salt mine. Then into central Kraków for four hours at Rynek Główny and Kazimierz, the former Jewish quarter, before the return leg to Prague.',
+    price: 'From €1,500 in E-Class — based on six hours on site.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech vignette, Polish motorway tolls, driver time, border crossing. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the A4 has a closure near Katowice, your chauffeur reroutes via Bielsko-Biała without asking. For Auschwitz-Birkenau visits, the chauffeur knows the timed-entry windows and builds the arrival around them, not around the drive.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-ostrava', city: 'Ostrava', distance: '370 km', duration: '3h 30min' },
+  { slug: 'prague-wroclaw', city: 'Wrocław', distance: '280 km', duration: '3h 15min' },
+  { slug: 'prague-warsaw', city: 'Warsaw', distance: '680 km', duration: '7h' },
+  { slug: 'prague-brno', city: 'Brno', distance: '200 km', duration: '2h' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +180,23 @@ export default function PragueKrakowPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Kraków" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Kraków</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Kraków,<br /><span className="display-italic">Poland's royal city.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>385 km northeast to Poland's cultural capital. Wawel Castle, the Rynek market square, Jewish Kazimierz, and salt mines at Wieliczka — four hours, one fixed price.</p>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Kraków,<br /><span className="display-italic">Poland&apos;s royal city.</span></h1>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>385 km northeast to Poland&apos;s cultural capital. Wawel Castle, the Rynek market square, Jewish Kazimierz, and salt mines at Wieliczka — four hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +204,53 @@ export default function PragueKrakowPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Kraków is a four-hour drive across two countries on a clean, modern motorway, and every hour of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven this corridor many times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your hotel near Rynek Główny, your apartment in Kazimierz, or the arrivals hall at Kraków Airport.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, one border crossing handled for you, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Kraków<br /><span className="display-italic">in four hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east past Brno, then continues northeast on the D1 and D48 toward Ostrava. The Czech–Polish Schengen border is crossed at Český Těšín on the Czech side and Cieszyn on the Polish side — invisible, no stops, no document checks. From there, the Polish A1 joins the A4 heading east through Katowice and on to Kraków, arriving at your hotel or meeting point in central Małopolska.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 385 kilometres. Driving time is four hours in normal conditions, four and a half during Friday afternoon traffic out of Prague. If the chauffeur prefers a slightly different line on a given day — through Olomouc on the D35 and then onto the D48 — that option is on the table too. Both routes reach Kraków in roughly the same time, and the choice is made on the morning of the drive based on live traffic.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              In Kraków the drop-off can be anywhere: Stare Miasto and the Main Market Square, Wawel Castle above the Vistula, Kazimierz — the former Jewish quarter — or the socialist-realist plan of Nowa Huta on the eastern edge of the city. Your chauffeur watches traffic on the D1 and the Polish A4 before every departure. The A4 is a toll motorway and that cost is already inside your fare; if there is an incident near Katowice, they reroute without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Kraków transfer crosses into Poland in comfort. Business visit, cultural trip, or a Jewish heritage tour — your driver handles the route and border crossing.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Kraków drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Polish toll motorway. Business visit, cultural weekend, or a memorial day at Auschwitz-Birkenau — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +261,8 @@ export default function PragueKrakowPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,9 +271,9 @@ export default function PragueKrakowPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Czech-Polish border', note: 'Schengen crossing near Cieszyn — no delays for EU citizens. Your driver manages the crossing.', anchor: false, custom: false },
+                { city: 'Brno or Ostrava (optional)', note: 'A natural midway stop for a coffee or a quick lunch. Brno after two hours on the D1, or Ostrava closer to the border if you prefer a later break.', anchor: false, custom: false },
                 { city: 'Anywhere you like', note: 'A stop at the Wieliczka salt mines, Auschwitz-Birkenau, or anywhere on the route. Your schedule, your pace.', anchor: false, custom: true },
-                { city: 'Kraków', note: 'Drop-off at any Kraków address, Wawel Castle, the Rynek, or Kraków Airport (KRK).', anchor: true, custom: false },
+                { city: 'Kraków', note: 'Drop-off at any Kraków address, Wawel Castle, the Rynek Główny, or Kraków Airport (KRK).', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
           </div>
@@ -200,28 +282,122 @@ export default function PragueKrakowPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'Czech-Polish Schengen border near Cieszyn. No passport check for EU citizens.' },
-                  { label: 'Tolls', value: 'Czech motorway vignette and Polish expressway tolls both included in the quoted price.' },
-                  { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Auschwitz-Birkenau', value: '70 km from Kraków. PRESTIGO can incorporate a memorial visit into the transfer itinerary on request.' },
+                  { label: 'Border crossing', value: 'Czech–Polish Schengen border at Český Těšín/Cieszyn. No passport check for EU citizens — carry travel documents for non-EU passengers.' },
+                  { label: 'Tolls', value: 'Czech motorway vignette and Polish toll motorway sections including the A4 all included in the quoted price.' },
+                  { label: 'Return transfer', value: 'Book both directions together for a reduced rate. Most clients overnight in Kraków and return the following day.' },
+                  { label: 'Auschwitz-Birkenau', value: '70 km west of Kraków. Prestigo can incorporate a respectful memorial visit into the transfer itinerary on request.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Kraków at four to four and a half hours each way is a stretchy day trip. Most clients prefer an overnight. For those who want to see the city and be back in Prague by bedtime, three configurations cover the common requests.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address in central Prague — Old Town, Malá Strana, Vinohrady — or inside the arrivals hall at Václav Havel Airport, holding a Prestigo tablet with your name. Not across a parking lot. Not at a meeting point ten minutes away. Where you are, at the time you booked.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for four hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Kraków — its centuries as the seat of the Polish royal court, the UNESCO-listed Old Town, the Jagiellonian University founded in 1364, the weight of Holocaust memory in Kazimierz and at the Auschwitz-Birkenau memorial, the post-1989 transformation of the city — your chauffeur has it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific cabin temperature, say so. If you want to stop at the OMV rest area on the D1 near Brno for a coffee and a proper lunch, that is included — most Prague–Kraków drives take a twenty-minute break there.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Kraków.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Kraków is the anchor of Małopolska, but Prestigo covers the whole corridor east from Prague. Many clients combine the Kraków run with Ostrava or Brno on the Czech side, or with Wrocław and Warsaw further into Poland. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Kraków.<br /><span className="display-italic">From €635, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

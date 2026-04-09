@@ -28,25 +28,64 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Brno Exhibition Centre transfers available',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech as standard.',
+  'Fuel and the Czech motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Brno transfer take?', a: 'Approximately 2.5 hours via the D1 motorway east — the main Prague–Brno artery. Traffic can be heavy at peak hours; early morning or evening departures are typically faster.' },
-  { q: 'Does PRESTIGO cover Brno Exhibition Centre (BVV)?', a: 'Yes. PRESTIGO serves the Brno Exhibition Centre for trade fairs including MBTM, Stavebniny trade fairs, and other BVV events. Group bookings for large delegations available on request.' },
-  { q: 'Can I continue to Bratislava or Vienna from Brno?', a: 'Yes. Brno is 130 km from Bratislava and 150 km from Vienna. PRESTIGO can extend your transfer from Brno to either capital as a single booking.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Brno or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. The V-Class is ideal for corporate delegations visiting trade fairs.' },
+  { q: 'How long does a private transfer from Prague to Brno take?', a: 'Approximately 2.5 hours door-to-door via the D1 motorway east through the Vysočina highlands. Friday afternoon outbound traffic from Prague can add 20–30 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Brno cost?', a: 'Fixed fare from €340 in Mercedes E-Class (up to 3 passengers), €390 in V-Class (up to 6 passengers), or €500 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Brno?', a: 'Yes — and it is the natural pattern for this route. Brno is 2.5 hours each way, which leaves a comfortable day on site without an overnight stay. A same-day return receives a 10% discount. Wait-on-site time is charged at €60/hour (E-Class) or €80/hour (S-Class). Most clients book a 6–8 hour round trip to cover a meeting, a lunch, and the drive back to Prague by evening.' },
+  { q: 'Is there a border crossing on the way to Brno?', a: 'No. The route is entirely within the Czech Republic on the D1 motorway. No border checks, no vignette changes, no document requirements beyond those for domestic travel.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. Other languages can be arranged on request at the time of booking.' },
 ]
 
+const dayTripConfigurations = [
+  {
+    title: 'The Špilberk and Old Town Day',
+    body: 'Pickup at 8:00, arrive Brno by 10:30. Three hours at Špilberk Castle on the hill above the city — fortress, casemates, and Brno City Museum — followed by lunch on Zelný trh and a walk to the Cathedral of St. Peter and Paul on Petrov. Back in Prague by 18:30.',
+    price: 'From €850 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'The Villa Tugendhat and Moravian Wine Afternoon',
+    body: 'Pre-booked timed entry for Villa Tugendhat, the Mies van der Rohe modernist house and UNESCO World Heritage site. After the tour, a drive south into the Pálava wine region for a late lunch and cellar visit in Mikulov or Valtice before the return.',
+    price: 'From €950 in E-Class — based on six hours on site.',
+  },
+  {
+    title: 'The Brno Exhibition Centre Trade Fair Day',
+    body: 'Early pickup in Prague, drop-off at the correct gate inside BVV — the chauffeur knows which entrance each hall uses during large fairs. Your driver stays on standby for the day, handles any mid-show runs to the hotel or city centre, and returns you to Prague after the closing session.',
+    price: 'From €900 in E-Class — based on five hours on standby.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, no meter running while you take a meeting.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for long-distance executive travel.',
+  },
+  {
+    title: 'Route knowledge, not a map app',
+    body: 'If the D1 has a closure near Velké Meziříčí, your chauffeur knows the parallel R602 routing without touching the satnav. For BVV trade fair pickups, the chauffeur knows where to drop within the entry gates so you walk into the right hall, not the opposite end of the complex.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 45min' },
+  { slug: 'prague-vienna', city: 'Vienna', distance: '330 km', duration: '3h 45min' },
+  { slug: 'prague-olomouc', city: 'Olomouc', distance: '280 km', duration: '3h' },
+  { slug: 'prague-zlin', city: 'Zlín', distance: '300 km', duration: '3h 30min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +180,23 @@ export default function PragueBrnoPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Brno" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Brno</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Brno,<br /><span className="display-italic">Moravia's capital.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>205 km east on the D1 to the Czech Republic's second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price.</p>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Brno,<br /><span className="display-italic">Moravia&apos;s capital.</span></h1>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>205 km east on the D1 to the Czech Republic&apos;s second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +204,53 @@ export default function PragueBrnoPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Brno is a two-and-a-half-hour drive on the D1 motorway, and every kilometre of that drive should feel like part of the working day — not an item on a checklist. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know the D1 the way a Prague tram driver knows the line to Smíchov. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which gate to use at the Brno Exhibition Centre, which hotel entrance on Česká handles luggage, and which side of Petrov hill gets you closest to the Cathedral.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Brno<br /><span className="display-italic">in two and a half hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in the Old Town, Vinohrady, Karlín, or Václav Havel Airport, your chauffeur takes the D1 motorway east. The D1 is the busiest motorway in the Czech Republic and the central spine of the country, running from the capital through the Vysočina — the Bohemian-Moravian Highlands — and down into Brno. There is no border crossing; the route stays entirely within Czechia, which means no vignette changes, no document checks, and no stop at a frontier.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 205 kilometres. Much of the corridor has been progressively widened and rebuilt over the last several years, and the drive now moves at a steady rhythm through Humpolec, Jihlava, and Velké Meziříčí before descending into Brno. In the city, the route branches to where you actually need to go — the Old Town under Špilberk Castle and the Cathedral of St. Peter and Paul, the Brno Exhibition Centre (BVV) for trade fairs, Villa Tugendhat on the hill above Černá Pole, or south into the Moravian wine country around Mikulov.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Friday afternoon outbound from Prague is the one pattern worth planning around — it is reliably heavy and can add half an hour. Your chauffeur watches the D1 before every departure and shifts the pickup time if the map is red. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Brno transfer runs the D1 in comfort. Business meeting, trade fair, or a Moravian weekend — your driver delivers you door to door.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Brno drop-off. The car, the chauffeur, the fuel, the vignette. Business meeting, trade fair at BVV, or a Moravian wine weekend — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +261,8 @@ export default function PragueBrnoPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -209,18 +291,112 @@ export default function PragueBrnoPage() {
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Brno is 2.5 hours each way, which makes it an ideal day trip from Prague — a full working day on site with the chauffeur on standby, and home before dinner. Three configurations cover most requests.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are arriving at Václav Havel Airport or staying in central Prague, they are at the door with a Prestigo tablet displaying your name.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for two and a half hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Brno — Mendel&apos;s garden at the Augustinian abbey where the laws of genetics were first described, the Tugendhat house as a founding monument of European modernism, the BVV trade fair complex that put socialist Czechoslovakia on the industrial map, the startup and tech cluster that now makes Brno one of the fastest-growing Czech tech cities — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you want to stop for a coffee at the Devět Křížů rest area halfway to Brno, that is included. If you need a specific temperature in the rear cabin, say so.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Brno.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Moravia and beyond.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Brno is the natural hub for Moravia and the gateway south to Bratislava and Vienna. Many clients combine a Brno run with onward travel or use it as a bridge into the Danube capitals. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Brno.<br /><span className="display-italic">From €340, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

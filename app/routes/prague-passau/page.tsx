@@ -28,23 +28,63 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Linz or České Budějovice stop available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Passau transfer take?', a: 'Approximately 2.5 hours via the D3 south through South Bohemia, crossing into Austria, then continuing to Passau in Bavaria. The route is scenic and well-maintained.' },
-  { q: 'Is there a border crossing on the way to Passau?', a: 'Yes — two Schengen crossings. The Czech-Austrian border and then the Austrian-German border before Passau. No passport control for EU citizens; non-EU passengers should carry valid documents.' },
-  { q: 'Can I stop in Linz en route to Passau?', a: 'Yes. Linz is on the route and available as an en-route stop. Request at booking and your driver will factor in the timing.' },
-  { q: 'Is a same-day return available?', a: 'Yes. Your driver can wait in Passau or return at an agreed time. Book both directions together for a reduced rate.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, Austrian motorway vignette, German motorway toll, fuel, and driver waiting time up to 60 minutes. All border tolls covered.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Passau route.' },
+  { q: 'How long does a private transfer from Prague to Passau take?', a: 'Approximately 2.5 to 3 hours door-to-door via the D3 motorway and Route 4 south through South Bohemia, crossing into Germany at Strážný/Philippsreut, then descending the Bayerischer Wald on the B12 into Passau. Traffic around Prague during rush hour can add 15–20 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Passau cost?', a: 'Fixed fare from €365 in Mercedes E-Class (up to 3 passengers), €420 in V-Class (up to 6 passengers), or €540 in S-Class. Prices include fuel, all tolls, the German vignette, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Passau?', a: 'Yes. A same-day return is workable — the round trip sits comfortably within a single driving day. A return booked together receives a 10% discount. Wait-on-site time in Passau is charged at €60/hour for E-Class or €80/hour for S-Class. Most clients book a 7–9 hour round trip to cover St. Stephan\'s Cathedral, the Altstadt, and the Veste Oberhaus.' },
+  { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Strážný/Philippsreut crossing on Route 4 / B12 is invisible — no stops, no document checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+]
+
+const dayTripConfigurations = [
+  {
+    title: 'The St. Stephan\'s Cathedral and Altstadt Day',
+    body: 'Pickup at 7:30, arrive Passau around 10:15. Five hours in the Altstadt — St. Stephan\'s Cathedral with the world\'s largest cathedral organ, the midday organ recital, Residenzplatz, and a late lunch at a riverside terrace on the Danube promenade. Return to Prague by 19:30.',
+    price: 'From €950 in E-Class — based on five hours on site.',
+  },
+  {
+    title: 'The Veste Oberhaus and Three Rivers Afternoon',
+    body: 'Pickup at 8:00. Arrive at the Veste Oberhaus fortress by 10:45 for the view over the confluence of the Danube, Inn, and Ilz. Four hours covering the fortress museum, the walk down to the Dreiflüsseeck, and lunch in the Altstadt before the return drive.',
+    price: 'From €850 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'The Danube Cruise Handoff',
+    body: 'Pickup at 6:30 in Prague. Your chauffeur delivers you directly to the Passau cruise terminal for a Viking, AmaWaterways, or Uniworld Danube river cruise departure, handling luggage from hotel door to ship gangway. On return cruises, the chauffeur meets you dockside for the drive back.',
+    price: 'From €800 in E-Class — one-way plus dock handling.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the B12 mountain pass has winter conditions, your chauffeur reroutes via Linz and the A8 on the Austrian side without asking. For Danube river cruise handoffs, the chauffeur knows the dock approach times and the luggage window so you are not standing on the quay with suitcases.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 15min' },
+  { slug: 'prague-linz', city: 'Linz', distance: '230 km', duration: '2h 45min' },
+  { slug: 'prague-regensburg', city: 'Regensburg', distance: '300 km', duration: '3h 15min' },
+  { slug: 'prague-munich', city: 'Munich', distance: '380 km', duration: '4h' },
 ]
 
 
@@ -141,6 +181,8 @@ export default function PraguePassauPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Passau" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
@@ -154,6 +196,8 @@ export default function PraguePassauPage() {
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +205,53 @@ export default function PraguePassauPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Passau is a two-and-a-half hour drive south through the Bohemian Forest into Bavaria, and every hour of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know this corridor in every season. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows whether you are heading to a hotel in the Altstadt, a dockside river cruise terminal on the Danube, or a private residence above the confluence of the three rivers.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Passau<br /><span className="display-italic">in two and a half hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D3 motorway south through Tábor and continues on Route 4 past Strakonice and Vimperk into the Šumava highlands. The Czech–German Schengen border at Strážný/Philippsreut is invisible — no stops, no document checks. The road becomes the B12 on the Bavarian side and descends the Bayerischer Wald, arriving at the confluence of the Danube, Inn, and Ilz rivers where the Altstadt sits on its narrow peninsula.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 220 kilometres. Driving time is two and a half hours in normal conditions, closer to three during summer weekends or around the Vimperk rest stops. The drop-off can be anywhere in Passau — St. Stephan\'s Cathedral with the world\'s largest cathedral organ, the Veste Oberhaus fortress overlooking the river confluence, or a hotel on Residenzplatz in the baroque heart of the Altstadt.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur watches conditions on the B12 mountain pass before every winter departure. If snow or ice has closed the Philippsreut approach, they reroute via Linz and the A8 on the Austrian side without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What's Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Passau transfer covers three countries in comfort. Business visit, cruise embarkation, or a Danube gateway — your driver handles the route and all border crossings.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Passau drop-off. The car, the chauffeur, the fuel, the tolls, the vignette. Business visit, cathedral day, or a Danube cruise embarkation — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +262,8 @@ export default function PraguePassauPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,9 +272,9 @@ export default function PraguePassauPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Czech-Austrian border', note: 'Schengen crossing in South Bohemia — no delays for EU citizens. Your driver handles the crossing.', anchor: false, custom: false },
-                { city: 'Anywhere you like', note: 'A stop in Linz or anywhere along the way. Your route, your pace.', anchor: false, custom: true },
-                { city: 'Passau', note: 'Drop-off at any Passau address, the cathedral, cruise terminal, or your hotel.', anchor: true, custom: false },
+                { city: 'Český Krumlov (optional)', note: 'A natural en-route stop along the South Bohemian corridor — the UNESCO Old Town and castle sit a short detour from Route 4.', anchor: false, custom: false },
+                { city: 'Anywhere you like', note: 'A stop at a viewpoint, a village in the Bohemian Forest, or anywhere along the way. Your route, your pace.', anchor: false, custom: true },
+                { city: 'Passau', note: 'Drop-off at any Passau address — your hotel, St. Stephan\'s Cathedral, the Veste Oberhaus, or the Danube cruise terminal.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
           </div>
@@ -200,28 +283,122 @@ export default function PraguePassauPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossings', value: 'Two Schengen crossings: Czech-Austrian and Austrian-German. No passport control for EU citizens.' },
-                  { label: 'Tolls', value: 'Czech and Austrian motorway vignettes and German motorway toll all included in the quoted price.' },
+                  { label: 'Border crossing', value: 'Czech–German Schengen border at Strážný/Philippsreut on Route 4 / B12. No passport check for EU citizens — carry travel documents for non-EU passengers.' },
+                  { label: 'Tolls', value: 'Czech motorway vignette and German motorway toll included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Onward routing', value: 'Passau is a gateway to Munich (190 km) and Regensburg (120 km). PRESTIGO can continue onward from Passau.' },
+                  { label: 'Onward routing', value: 'Passau is a gateway to Munich (190 km) and Regensburg (120 km). Prestigo can extend your transfer as a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            At two and a half to three hours each way, Passau sits comfortably within a single driving day from Prague. Three configurations cover most requests.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport or a central Prague hotel, they are there with a Prestigo tablet displaying your name.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for three hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Passau — the Bavarian episcopal city on the Danube, the baroque rebuilding after the great fire of 1662, the tradition of the cathedral organ recitals, or how the three rivers shaped the town from a Roman camp into a river cruise gateway — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at a rest area on the D3 south of Tábor or above Vimperk before the Philippsreut descent, that is included.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Passau.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Passau sits on the southern corridor between Bohemia and Bavaria. Many clients combine the Passau run with other routes in the region. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Passau.<br /><span className="display-italic">From €365, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

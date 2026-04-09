@@ -28,25 +28,64 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or airport',
-  'Nuremberg or Regensburg stop available on request',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Munich transfer take?', a: 'Approximately 4 hours via the D5 southwest through Plzeň, crossing into Germany at Waidhaus/Rozvadov, then the A6/A9 south to Munich.' },
-  { q: 'Is there a border crossing between Prague and Munich?', a: 'Yes. The Czech-German Schengen border is crossed at Waidhaus/Rozvadov. No passport check for EU citizens — non-EU passengers should carry valid travel documents.' },
-  { q: 'Does PRESTIGO serve Munich Airport (MUC)?', a: 'Yes. PRESTIGO serves Munich Airport directly. Your driver will meet you at arrivals with a name board and full wait time included.' },
-  { q: 'Can I stop in Nuremberg or Regensburg on the way?', a: 'Yes. Both are on the route and available as en-route stops. Request at booking and your driver will plan the timing.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, German motorway toll, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Munich route.' },
+  { q: 'How long does a private transfer from Prague to Munich take?', a: 'Approximately 4 hours door-to-door via the D5 motorway through Plzeň, the Czech-German border at Rozvadov/Waidhaus, then the A6 west, the A93 south past Regensburg, and the A9 into central Munich. Friday afternoon traffic on the A99 ring around Munich can add 20–30 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Munich cost?', a: 'Fixed fare from €635 in Mercedes E-Class (up to 3 passengers), €730 in V-Class (up to 6 passengers), or €945 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Munich?', a: 'Yes, though it is a long day. A round trip is roughly 8 hours of driving, so most clients depart Prague at 6:00 to give themselves four to six hours on the ground in Munich before the return. A same-day return receives a 10% discount and waiting time in Munich is billed at €60/hour for E-Class or €80/hour for S-Class.' },
+  { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Czech-German border at Rozvadov/Waidhaus has no routine checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Bavaria.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Bavarian hotel concierges, Oktoberfest pickups, or business meetings in Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
 ]
 
+const dayTripConfigurations = [
+  {
+    title: 'The Marienplatz and Hofbräuhaus Day',
+    body: 'Pickup at 6:00, arrive Munich around 10:00. Four hours in the Altstadt — the Glockenspiel on Marienplatz at 11:00, the Viktualienmarkt for lunch, then a stein at the Hofbräuhaus before the return. Back in Prague by 20:00.',
+    price: 'From €1,350 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'The BMW Welt and Olympiapark Morning',
+    body: 'Pickup at 6:30, arrive at BMW Welt for the 10:00 opening. Three hours in the museum and the showroom, then a walk through the 1972 Olympiapark. Lunch in Schwabing before the chauffeur turns the car back toward Prague.',
+    price: 'From €1,300 in E-Class — based on three hours on site.',
+  },
+  {
+    title: 'The Pinakothek Galleries Day',
+    body: 'Pickup at 6:00, arrive Maxvorstadt around 10:00. Five hours across the Alte, Neue, and Pinakothek der Moderne — the strongest museum quarter in southern Germany — with a coffee break at the Café in the Alte Pinakothek. Departure at 15:30, home before 20:00.',
+    price: 'From €1,400 in E-Class — based on five hours on site.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, the Czech vignette, the German toll, driver time. Nothing added at drop-off in Munich.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the long Bavaria run.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the A93 has a closure near Regensburg, your chauffeur reroutes via Bayreuth without asking. If your flight into MUC is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '290 km', duration: '3h' },
+  { slug: 'prague-regensburg', city: 'Regensburg', distance: '290 km', duration: '3h 15min' },
+  { slug: 'prague-passau', city: 'Passau', distance: '230 km', duration: '2h 45min' },
+  { slug: 'prague-salzburg', city: 'Salzburg', distance: '470 km', duration: '4h 45min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,6 +180,8 @@ export default function PragueMunichPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Munich" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
@@ -154,6 +195,8 @@ export default function PragueMunichPage() {
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +204,53 @@ export default function PragueMunichPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Munich is a four-hour drive across Bohemia into Bavaria, and every hour of that drive should feel like part of the trip — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know the D5 and the Bavarian autobahns by heart. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows whether to take you to a hotel on Maximilianstraße, an apartment in Schwabing, or the executive aviation terminal at Munich Airport.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Munich<br /><span className="display-italic">in four hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway southwest through Pilsen and the rolling West Bohemian countryside. The Czech-German Schengen border at Rozvadov/Waidhaus is invisible — no stops, no document checks. Once in Bavaria, the road becomes the A6 heading west toward Nuremberg.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              The conventional fast route then turns south on the A93 past Regensburg and joins the A9 for the final approach into Munich. Drop-off is anywhere you need it — a hotel in the Altstadt near Marienplatz, an office in Maxvorstadt, the BMW Welt, or the executive terminal at Munich Airport (MUC). Total distance is approximately 385 kilometres.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Driving time is four hours in clean conditions. The Munich autobahn ring, the A99, can be heavy at morning and evening rush hour, so add 20–30 minutes for arrivals between 7:30 and 9:30 or 16:30 and 18:30. Your chauffeur watches the boards before every departure and shifts the route through the city outskirts when needed. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What's Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Munich transfer runs the D5 in comfort. Airport transfer, business visit, Oktoberfest, or a Bavarian weekend — your driver handles everything.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Munich drop-off. The car, the chauffeur, the fuel, the tolls, the vignette. Airport transfer, business meeting, Oktoberfest weekend, or a Bavarian holiday — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +261,8 @@ export default function PragueMunichPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -200,7 +282,7 @@ export default function PragueMunichPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'Czech-German Schengen border at Waidhaus/Rozvadov. No passport check for EU citizens.' },
+                  { label: 'Border crossing', value: 'Czech-German Schengen border at Rozvadov/Waidhaus. No passport check for EU citizens.' },
                   { label: 'Tolls', value: 'Czech motorway vignette and German motorway toll both included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
                   { label: 'Airport service', value: 'Full airport meet-and-greet at Munich Airport (MUC). Flight tracking and flexible wait times included.' },
@@ -210,18 +292,112 @@ export default function PragueMunichPage() {
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Munich is four hours from Prague, which makes a same-day round trip practical for early starters. Three configurations cover most requests.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name. If your inbound flight lands at Munich Airport, the same protocol holds at MUC — meet inside Terminal 1 or Terminal 2 arrivals, luggage to the car, motorway in under fifteen minutes.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for four hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Munich — the Bavarian distinction from the rest of Germany, the post-war rebuilding of the Altstadt, the BMW industrial story, what Oktoberfest looks like from the inside of a Schwabing flat — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you need a longer break, the chauffeur will pull off at the Heiligenwald rest stop on the A6 just past Waidhaus — clean facilities, real coffee, ten minutes to stretch. Then back on the road and on time into Munich.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Munich.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Bavaria and beyond.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Munich anchors the Bavarian corridor between Prague and the Alps. Many clients combine the Munich run with Nuremberg, Regensburg, or extend into Austria. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Munich.<br /><span className="display-italic">From €635, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

@@ -28,25 +28,64 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Plzeň stop available on request en route',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English and Czech. German on request.',
+  'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Nuremberg transfer take?', a: 'Approximately 3.5 hours via the D5 motorway southwest through Plzeň, crossing into Germany at Waidhaus/Rozvadov, then the A6 to Nuremberg.' },
-  { q: 'Is there a border crossing between Prague and Nuremberg?', a: 'Yes. The Czech-German Schengen border is crossed at Waidhaus/Rozvadov. No passport check for EU citizens — non-EU passengers should carry valid travel documents.' },
-  { q: 'Can I stop in Plzeň on the way?', a: 'Yes. Plzeň is on the D5 and available as an en-route stop. The Pilsner Urquell brewery tour can be combined with the transfer.' },
-  { q: 'Does PRESTIGO cover Nuremberg Airport (NUE)?', a: 'Yes. PRESTIGO serves Nuremberg Airport directly. Your driver will meet you at arrivals with a name board.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, German motorway toll, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Nuremberg route.' },
+  { q: 'How long does a private transfer from Prague to Nuremberg take?', a: 'Approximately 3.5 hours door-to-door via the D5 motorway southwest through Plzeň, then across the Czech–German Schengen border at Rozvadov/Waidhaus and west along the A6 into Bavaria. Friday afternoon traffic leaving Prague can add 20–30 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Nuremberg cost?', a: 'Fixed fare from €595 in Mercedes E-Class (up to 3 passengers), €685 in V-Class (up to 6 passengers), or €880 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Nuremberg?', a: 'Yes, and it is a workable day at 3.5 hours each way. A return on the same day receives a 10% discount. Wait-on-site time in Nuremberg is charged at €60/hour for E-Class or €80/hour for S-Class. Most day-trip clients book between 4 and 6 hours on site.' },
+  { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Rozvadov/Waidhaus crossing is invisible — no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request, useful in Nuremberg where English is less universal than in Berlin or Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
 ]
 
+const dayTripConfigurations = [
+  {
+    title: 'The Imperial Castle and Old Town',
+    body: 'Pickup at 7:30, arrive Nuremberg around 11:00. Four to five hours in the Altstadt — the Kaiserburg with its panoramic terrace, Albrecht Dürer\'s house on Tiergärtnertorplatz, a lunch of Nürnberger Rostbratwürste at a Hauptmarkt terrace, and the Schöner Brunnen. Return to Prague by evening.',
+    price: 'From €1,350 in E-Class — based on five hours on site.',
+  },
+  {
+    title: 'The Christkindlesmarkt Day',
+    body: 'December only. Pickup at 8:00 to beat the coach traffic into Nuremberg. Four hours walking the Christkindlesmarkt on Hauptmarkt — Lebkuchen, mulled wine, the wooden stalls that have defined German Christmas markets since 1628. A warm cabin waits for the drive home.',
+    price: 'From €1,300 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'The Documentation Centre half-day',
+    body: 'For visitors focused on twentieth-century history. Three hours at the Documentation Centre at the former Nazi Party Rally Grounds and a walk across the Zeppelinfeld, with an optional stop at Courtroom 600 in the Palace of Justice where the Nuremberg Trials were held.',
+    price: 'From €1,250 in E-Class — based on three hours on site.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off in Nuremberg.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel into Bavaria.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the A6 has a closure near Amberg, your chauffeur reroutes via Bayreuth without asking. If you are visiting in December for the Christkindlesmarkt, the chauffeur knows where to park so you reach the Hauptmarkt without a long walk in the cold.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-munich', city: 'Munich', distance: '380 km', duration: '4h 15min' },
+  { slug: 'prague-regensburg', city: 'Regensburg', distance: '280 km', duration: '3h' },
+  { slug: 'prague-dresden', city: 'Dresden', distance: '150 km', duration: '2h' },
+  { slug: 'prague-plzen', city: 'Plzeň', distance: '90 km', duration: '1h' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +180,23 @@ export default function PragueNurembergPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Nuremberg" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Nuremberg</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Nuremberg,<br /><span className="display-italic">Franconian city.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>360 km southwest on the D5 into Bavaria. The medieval castle, the Christkindlesmarkt, Dürer's house, and a city rebuilt after the war with extraordinary precision — three and a half hours, one fixed price.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>360 km southwest on the D5 into Bavaria. Three and a half hours door-to-door. Fixed fare from €595. Your chauffeur is already waiting.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +204,53 @@ export default function PragueNurembergPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Nuremberg is a three-and-a-half-hour drive southwest across Bohemia into Bavaria, and every hour of that drive should feel like part of the trip — not a logistics problem to solve on the way. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven the D5 corridor hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows the quiet loading zone behind your hotel on Königstraße or the discreet entrance to your apartment near the Kaiserburg.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Nuremberg<br /><span className="display-italic">in three and a half hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway southwest through the Bohemian countryside toward Plzeň. After the brewery city the D5 climbs into the forested Bohemian Forest and reaches the Czech–German Schengen border at Rozvadov and Waidhaus — invisible inside the Schengen Area, no stops, no document checks. Once in Germany, the road becomes the A6 and runs west through the rolling Upper Palatinate countryside into Bavaria, arriving in Nuremberg from the east.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 360 kilometres. Driving time is three and a half hours in normal conditions. The route delivers you directly to the Altstadt with its Kaiserburg on the sandstone ridge above the Pegnitz, the Hauptmarkt where the Christkindlesmarkt fills the square every December, Albrecht Dürer\'s house below the castle, and the Documentation Centre at the former Nazi Party Rally Grounds south of the centre.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur watches traffic on the A6 before every departure. If a summer holiday weekend has stacked traffic near Amberg, or if the A6 widening works are active, they reroute without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What's Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Nuremberg transfer runs the D5 in comfort. Trade fair, business visit, or a cultural weekend in Franconia — your driver delivers you door to door.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Nuremberg drop-off. The car, the chauffeur, the fuel, the Czech vignette, the German toll. Trade fair at NürnbergMesse, a museum day in the Altstadt, or a Christmas market weekend — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +261,8 @@ export default function PragueNurembergPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -189,7 +271,7 @@ export default function PragueNurembergPage() {
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Plzeň (optional)', note: 'West Bohemia\'s capital — Pilsner Urquell brewery and city centre available as an en-route stop on the D5.', anchor: false, custom: false },
+                { city: 'Plzeň (optional)', note: 'West Bohemia\'s capital — Pilsner Urquell brewery and the city centre available as an en-route stop on the D5.', anchor: false, custom: false },
                 { city: 'Anywhere you like', note: 'A stop at the Czech-German border region or anywhere along the A6. Your route, your pace.', anchor: false, custom: true },
                 { city: 'Nuremberg', note: 'Drop-off at any Nuremberg address, Nuremberg Airport (NUE), or the medieval city centre.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
@@ -200,28 +282,122 @@ export default function PragueNurembergPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'Czech-German Schengen border at Waidhaus/Rozvadov. No passport check for EU citizens.' },
+                  { label: 'Border crossing', value: 'Czech-German Schengen border at Rozvadov/Waidhaus. No passport check for EU citizens.' },
                   { label: 'Tolls', value: 'Czech motorway vignette and German motorway toll both included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Onward routing', value: 'Munich is 160 km south. PRESTIGO can extend your journey from Nuremberg to Munich as a single booking.' },
+                  { label: 'Onward routing', value: 'Munich is 160 km south. Prestigo can extend your journey from Nuremberg to Munich as a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            At three and a half hours each way, Nuremberg makes a comfortable day trip from Prague. Three configurations cover the majority of requests.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name. A central Prague pickup from Old Town, Vinohrady, or Malá Strana is the same: the car is at the door, the luggage is loaded, and the drive begins.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for three and a half hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Nuremberg — the city that hosted imperial diets of the Holy Roman Empire, the birthplace of Albrecht Dürer, the stage of the Nazi Party rallies and the post-war trials that established the Nuremberg Code in medical ethics, the place where the German Christmas market tradition was written in 1628 — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at the Rozvadov rest area a kilometre before the German border, or at one of the A6 services between Waidhaus and Nuremberg, that is included.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Nuremberg.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Nuremberg sits on the D5 and A6 corridor between Prague and southern Germany. Many clients combine the Nuremberg run with a stop in Plzeň, an onward transfer to Munich, or a different German city altogether. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Nuremberg.<br /><span className="display-italic">From €595, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )

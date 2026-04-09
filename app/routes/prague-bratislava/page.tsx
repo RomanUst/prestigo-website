@@ -28,25 +28,64 @@ const vehicles = [
 ]
 
 const inclusions = [
-  'Door-to-door service from any Prague address',
-  'Fixed price — no surge, no meter running',
-  'Complimentary still water on board',
-  'Meet & greet with name board at hotel or address',
-  'Brno stop available on request en route',
-  'Return same day — driver waits or returns at agreed time',
-  'Free cancellation up to 2 hours before departure',
-  "Need an hour or more at a stop? Waiting time is simply added to the final price — your driver is always there when you're ready.",
+  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+  'A professional chauffeur — fluent English, Czech, and Slovak. German on request.',
+  'Fuel, all tolls, the Czech motorway vignette, and the Slovak motorway vignette. Nothing is charged on top.',
+  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+  'Bottled water, phone charger, and WiFi in the rear cabin.',
+  'Waiting time at pickup — 15 minutes free, then €60/hour (E-Class) or €80/hour (S-Class).',
+  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+  'Same-day return discount — 10% off the return leg if booked together.',
 ]
 
 const faqs = [
-  { q: 'How long does the Prague to Bratislava transfer take?', a: 'Approximately 3.5 hours via the D1 east to Brno, then the D2 south to Bratislava. The Bratislava border crossing is at the Czech-Slovak-Austrian tri-border area.' },
-  { q: 'Is there a border crossing between Prague and Bratislava?', a: 'Yes. The Czech-Slovak Schengen border is crossed near Hodonín. No passport check for EU citizens — non-EU passengers should carry valid travel documents.' },
-  { q: 'Can I stop in Brno on the way?', a: 'Yes. Brno is 130 km before Bratislava and available as an en-route stop. Request at booking for optimal routing.' },
-  { q: 'Can I continue to Vienna from Bratislava?', a: 'Yes. Vienna is just 65 km from Bratislava — one of the shortest capital-to-capital distances in Europe. PRESTIGO can extend your transfer to Vienna as a single booking.' },
-  { q: 'What is included in the fixed price?', a: 'Czech motorway vignette, fuel, and driver waiting time up to 60 minutes. One price, no additions.' },
-  { q: 'What vehicles are available?', a: 'Mercedes-Benz E-Class, S-Class, and V-Class. All are available for the Prague–Bratislava route.' },
+  { q: 'How long does a private transfer from Prague to Bratislava take?', a: 'Approximately 3.5 hours door-to-door via the D1 motorway east through Brno, then the D2 south across the Czech–Slovak border at Brodské and into Bratislava. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
+  { q: 'How much does a chauffeur from Prague to Bratislava cost?', a: 'Fixed fare from €545 in Mercedes E-Class (up to 3 passengers), €625 in V-Class (up to 6 passengers), or €810 in S-Class. Prices include fuel, both motorway vignettes, all tolls, and driver time. No hidden charges.' },
+  { q: 'Can I book a same-day round trip from Prague to Bratislava?', a: 'Yes, though most clients prefer to spend the night given the distance. A return on the same day receives a 10% discount. Wait-on-site time in Bratislava is charged at €60/hour for E-Class or €80/hour for S-Class. A typical day trip allows four to five hours on site between the Old Town, Bratislava Castle, and lunch on the Danube.' },
+  { q: 'Do you cross the Czech–Slovak border without problems?', a: 'Both countries have been inside the Schengen Area since 2007. There are no routine border checks at the Brodské crossing — the line on the map is invisible from the car. Carry travel documents for non-EU passengers as a precaution.' },
+  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+  { q: 'What language will the chauffeur speak?', a: 'Czech and Slovak are mutually intelligible — your chauffeur will be fluent in both, plus English. German is available on request. There is no language gap between the two countries; the only thing that changes at the border is the currency, and Slovakia uses the euro.' },
 ]
 
+const dayTripConfigurations = [
+  {
+    title: 'The Castle and Old Town',
+    body: 'Pickup at 7:30, arrive Bratislava 11:00. Four hours on site — Bratislava Castle on the hill, the coronation route through the Old Town (Staré Mesto), and lunch at a terrace on Hviezdoslavovo Square before the return to Prague by 18:30.',
+    price: 'From €1,090 in E-Class — based on four hours on site.',
+  },
+  {
+    title: 'The Devín Castle Afternoon',
+    body: 'Pickup at 8:00. Your chauffeur takes you straight to Devín Castle on the cliffs above the Danube–Morava confluence — the three-country viewpoint with Austria across the river. An hour at the ruins, then late lunch in the Old Town and the drive home.',
+    price: 'From €1,120 in E-Class — based on five hours on site.',
+  },
+  {
+    title: 'The Slavín and UFO Bridge Express',
+    body: 'A focused half-day. Slavín memorial for the panorama over the city, then the UFO observation deck on the SNP Bridge for the modern skyline. Three hours on site, back in Prague before dinner.',
+    price: 'From €1,030 in E-Class — based on three hours on site.',
+  },
+]
+
+const whyBook = [
+  {
+    title: 'Fixed fare, no surprises',
+    body: 'The price you see is the price you pay. Fuel, both vignettes, tolls, driver time. Nothing added at drop-off in Bratislava.',
+  },
+  {
+    title: 'Owned fleet, vetted chauffeurs',
+    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual in Czech and Slovak, trained for international travel.',
+  },
+  {
+    title: 'Anticipatory service',
+    body: 'If the D1 has a closure near Velké Meziříčí, your chauffeur reroutes via Znojmo without asking. If your flight into Prague is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
+  },
+]
+
+const relatedRoutes = [
+  { slug: 'prague-vienna', city: 'Vienna', distance: '330 km', duration: '3h 30min' },
+  { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
+  { slug: 'prague-budapest', city: 'Budapest', distance: '530 km', duration: '5h 30min' },
+  { slug: 'prague-graz', city: 'Graz', distance: '530 km', duration: '5h 15min' },
+]
 
 const serviceSchema = {
   '@type': 'Service',
@@ -141,19 +180,23 @@ export default function PragueBratislavaPage() {
     <main id="main-content">
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
+
+      {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Bratislava" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Bratislava</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Bratislava,<br /><span className="display-italic">Slovak capital direct.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>330 km east to Slovakia's compact capital on the Danube. Bratislava Castle, the Old Town's café culture, and Vienna just 65 km away — three and a half hours, one fixed price.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>330 km east to Slovakia&apos;s compact capital on the Danube. Bratislava Castle, the Old Town&apos;s café culture, and Vienna just 65 km away — three and a half hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
           </div>
         </div>
       </section>
+
+      {/* Highlights bar */}
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
@@ -161,16 +204,53 @@ export default function PragueBratislavaPage() {
           </div>
         </div>
       </section>
+
+      {/* Opening paragraph */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+            A private transfer from Prague to Bratislava is a three-and-a-half-hour drive across two countries that share a language, a history, and a clean motorway corridor — and every hour of that drive should feel like part of the trip, not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have made this run hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which gate to use at your hotel below Bratislava Castle or your apartment in Staré Mesto.
+          </p>
+          <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
+            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+          </p>
+        </div>
+      </section>
+
+      {/* The Route narrative */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Route</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Bratislava<br /><span className="display-italic">in three and a half hours.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east — the long Czech spine that runs through the Vysočina highlands and on to Brno, the natural midway point of the trip and a comfortable place for a coffee stop. From Brno, the route turns south onto the D2, the short and direct corridor that drops down to the Czech–Slovak border at Břeclav and Brodské. The crossing is invisible inside the Schengen Area — no stops, no document checks. The Slovak D2 continues straight into Bratislava, arriving at your address in the Old Town (Staré Mesto), below the castle, or in the EU institutions district along the Danube.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Total distance is approximately 330 kilometres. Driving time is three and a half hours in normal conditions. Add 20–30 minutes during Friday afternoon rush hour out of Prague.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur watches traffic on the D1 before every departure. If there is a construction delay near Velké Meziříčí or Jihlava — as there has been on and off across the long D1 modernisation — they reroute via Znojmo without asking. You are not paying for traffic; you are paying for time.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
-            <p className="label mb-6">The Service</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>PRESTIGO's Prague–Bratislava transfer crosses into Slovakia in comfort. Business visit, diplomatic trip, or a Central European city break — your driver handles everything.</p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Bratislava drop-off. The car, the chauffeur, the fuel, both vignettes, every toll. Business visit, EU meeting, or a weekend on the Danube — your driver handles the route while you focus on the destination.</p>
           </div>
           <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
         </div>
       </section>
+
+      {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Fleet</p>
@@ -181,6 +261,8 @@ export default function PragueBratislavaPage() {
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
+
+      {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <div>
@@ -200,28 +282,122 @@ export default function PragueBratislavaPage() {
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
                 {[
-                  { label: 'Border crossing', value: 'Czech-Slovak Schengen border near Hodonín. No passport check for EU citizens.' },
+                  { label: 'Border crossing', value: 'Czech-Slovak Schengen border at Břeclav/Brodské. No passport check for EU citizens.' },
                   { label: 'Tolls', value: 'Czech motorway vignette included. Slovak motorway vignette included in the quoted price.' },
                   { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Vienna connection', value: 'Vienna is 65 km from Bratislava — the shortest capital-to-capital distance in Europe. PRESTIGO can continue to Vienna as part of a single booking.' },
+                  { label: 'Vienna connection', value: 'Vienna is 65 km from Bratislava — the shortest capital-to-capital distance in Europe. Prestigo can continue to Vienna as part of a single booking.' },
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div>
         </div>
       </section>
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+
+      {/* Popular day-trip configurations */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Day Trips from Prague</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Bratislava is at the outer edge of comfortable day-trip distance from Prague — three and a half hours each way — but the compact size of the Slovak capital makes it possible to see the city in an afternoon and be back the same evening. Three configurations cover most requests.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {dayTripConfigurations.map((c) => (
+              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
+                <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
+              </div>
+            ))}
+          </div>
+          <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site — waiting time is billed in 15-minute increments at €60/hour (E-Class) or €80/hour (S-Class). Tell us your plan and we confirm a firm quote before you book.
+          </p>
+        </div>
+      </section>
+
+      {/* What to expect from your chauffeur */}
+      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
+          <div>
+            <p className="label mb-6">The Chauffeur</p>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+          </div>
+          <div className="flex flex-col gap-5">
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name. In Bratislava, the same protocol applies at hotels along Hviezdoslavovo Square or apartment doorways in Staré Mesto.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Conversation is a choice. If you want a quiet cabin for three hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Bratislava — the city&apos;s years as the joint capital of Czechoslovakia, the Habsburg coronation route through Staré Mesto, the EU institutions clustered along the river, or the three-country meeting point where Slovakia, Austria, and Hungary almost touch — your chauffeur knows it.
+            </p>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+              Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at the Devět Křížů rest area on the D1 between Vysočina and Brno, that is included.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why book with Prestigo */}
+      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why Prestigo</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
+            Why book with Prestigo<br /><span className="display-italic">for Prague to Bratislava.</span>
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {whyBook.map((w) => (
+              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+                <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
         </div>
       </section>
+
+      {/* Related routes */}
+      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+        <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Related Routes</p>
+          <h2 className="display text-[26px] md:text-[32px] mb-6">
+            Continue across<br /><span className="display-italic">Central Europe.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            Bratislava and Vienna are only 65 kilometres apart — the shortest capital-to-capital distance in Europe — and many Prestigo clients combine the two into a single booking. Brno sits halfway along the route and works as a standalone trip or an en-route stop. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {relatedRoutes.map((r) => (
+              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+                <div>
+                  <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
+                  <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
+                </div>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
+                  <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div><h2 className="display text-[28px] md:text-[36px]">Prague to Bratislava.<br /><span className="display-italic">From €545, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
           <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
         </div>
       </section>
+
       <Footer />
     </main>
   )
