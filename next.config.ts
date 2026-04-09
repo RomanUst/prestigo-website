@@ -2,6 +2,32 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   async redirects() {
+    // 20 long-distance route pages removed 2026-04-09 per SEO strategy
+    // — see /Users/romanustyugov/Desktop/founder prestigo/routes/03-noindex-rules-20-red-routes.md
+    // Permanent redirects preserve any accumulated link equity to the /routes hub.
+    const removedRedRoutes = [
+      'prague-erfurt',
+      'prague-augsburg',
+      'prague-frankfurt',
+      'prague-stuttgart',
+      'prague-cologne',
+      'prague-dusseldorf',
+      'prague-hamburg',
+      'prague-innsbruck',
+      'prague-kosice',
+      'prague-basel',
+      'prague-zurich',
+      'prague-bern',
+      'prague-geneva',
+      'prague-venice',
+      'prague-verona',
+      'prague-milan',
+      'prague-strasbourg',
+      'prague-paris',
+      'prague-brussels',
+      'prague-amsterdam',
+    ]
+
     return [
       {
         source: '/:path*',
@@ -9,6 +35,11 @@ const nextConfig: NextConfig = {
         destination: 'https://rideprestigo.com/:path*',
         permanent: true,
       },
+      ...removedRedRoutes.map((slug) => ({
+        source: `/routes/${slug}`,
+        destination: '/routes',
+        permanent: true,
+      })),
     ]
   },
   images: {

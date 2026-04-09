@@ -2,6 +2,9 @@ import { MetadataRoute } from 'next'
 
 const BASE = 'https://rideprestigo.com'
 
+// 30 indexed intercity routes (17 Green + 13 Yellow).
+// 20 long-distance routes removed 2026-04-09 per SEO strategy
+// — see /Users/romanustyugov/Desktop/founder prestigo/routes/03-noindex-rules-20-red-routes.md
 const routeSlugs = [
   'prague-vienna',
   'prague-karlovy-vary',
@@ -18,7 +21,6 @@ const routeSlugs = [
   'prague-linz',
   'prague-brno',
   'prague-passau',
-  'prague-erfurt',
   'prague-olomouc',
   'prague-wroclaw',
   'prague-regensburg',
@@ -30,29 +32,10 @@ const routeSlugs = [
   'prague-ostrava',
   'prague-munich',
   'prague-krakow',
-  'prague-augsburg',
   'prague-graz',
-  'prague-frankfurt',
   'prague-budapest',
-  'prague-innsbruck',
-  'prague-stuttgart',
-  'prague-kosice',
-  'prague-cologne',
-  'prague-dusseldorf',
   'prague-warsaw',
-  'prague-hamburg',
-  'prague-basel',
-  'prague-zurich',
   'prague-kutna-hora',
-  'prague-strasbourg',
-  'prague-venice',
-  'prague-bern',
-  'prague-verona',
-  'prague-geneva',
-  'prague-amsterdam',
-  'prague-brussels',
-  'prague-milan',
-  'prague-paris',
 ]
 
 export default function sitemap(): MetadataRoute.Sitemap {
