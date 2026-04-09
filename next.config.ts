@@ -40,6 +40,21 @@ const nextConfig: NextConfig = {
         destination: '/routes',
         permanent: true,
       })),
+      // Czech locale was never implemented. Any /cs or /cs/* request was
+      // hitting Next.js trailing-slash strip (308) → 404. Redirect cleanly
+      // to the homepage so crawlers see a single stable 301 and any
+      // accumulated link equity is preserved. Remove these rules if a
+      // real CS locale is added later.
+      {
+        source: '/cs',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/cs/:path*',
+        destination: '/',
+        permanent: true,
+      },
     ]
   },
   images: {
