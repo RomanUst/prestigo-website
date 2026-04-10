@@ -128,12 +128,16 @@ function makeRequest(body: Record<string, unknown>): Request {
   })
 }
 
-// Standard transfer body (non-airport, daytime, no return)
+// Standard transfer body (non-airport, daytime, no return).
+// NOTE: `hours` is omitted — the route's zod schema requires
+// `hours: z.number().int().min(1).max(24).optional().default(2)` so we must
+// either leave it unset (default kicks in) or send a value >= 1. Transfer trips
+// ignore `hours` internally anyway. Historical fixtures sent `hours: 0`, which
+// fails validation because zod `.default()` only applies to undefined, not 0.
 const baseTransferBody = {
   origin:      { lat: 50.08, lng: 14.42 },
   destination: { lat: 50.09, lng: 14.43 },
   tripType:    'transfer',
-  hours:       0,
   pickupDate:  '2026-05-10',
   pickupTime:  '12:00',
   returnDate:  null,
