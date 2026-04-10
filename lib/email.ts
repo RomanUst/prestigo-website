@@ -398,3 +398,376 @@ export async function sendEmergencyAlert(
     // Non-fatal — do not throw
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// ROUND-TRIP (Phase 27) — additive, one-way helpers above remain unchanged
+// ═══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Data shape for a round-trip confirmation email. The caller (Stripe webhook
+ * in Plan 27-04) constructs this from PaymentIntent.metadata after
+ * saveRoundTripBookings returns a fresh pair.
+ *
+ * Phase 27 D-05, D-06, D-07, D-08, D-09 locked decisions.
+ */
+export interface RoundTripEmailData {
+  outboundBookingReference: string
+  returnBookingReference: string
+  tripType: 'round_trip'
+  originAddress: string
+  destinationAddress: string
+  outboundPickupDate: string
+  outboundPickupTime: string
+  returnPickupDate: string
+  returnPickupTime: string
+  vehicleClass: string
+  passengers: number
+  luggage: number
+  distanceKm?: number
+  /** Pre-promo outbound amount in CZK (extras folded here) */
+  outboundAmountCzk: number
+  /** Pre-promo return amount in CZK */
+  returnAmountCzk: number
+  /** Post-promo combined amount — equals what Stripe actually charged */
+  combinedAmountCzk: number
+  /** Return discount percentage (e.g. 10 for 10%) */
+  returnDiscountPct: number
+  extraChildSeat: boolean
+  extraMeetGreet: boolean
+  extraLuggage: boolean
+  promoCode?: string
+  promoDiscountPct?: number
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  flightNumber?: string
+  terminal?: string
+  specialRequests?: string
+}
+
+/**
+ * Build one Google Calendar template URL per leg. Reuses the existing
+ * buildGoogleCalendarUrl helper by constructing a minimal BookingEmailData
+ * shim for each leg.
+ */
+function buildRoundTripCalendarUrls(data: RoundTripEmailData): {
+  outbound: string
+  return: string
+} {
+  const outboundShim: BookingEmailData = {
+    bookingReference: `${data.outboundBookingReference} (Outbound)`,
+    tripType: 'round_trip',
+    originAddress: data.originAddress,
+    destinationAddress: data.destinationAddress,
+    pickupDate: data.outboundPickupDate,
+    pickupTime: data.outboundPickupTime,
+    vehicleClass: data.vehicleClass,
+    passengers: data.passengers,
+    luggage: data.luggage,
+    amountCzk: data.outboundAmountCzk,
+    extraChildSeat: data.extraChildSeat,
+    extraMeetGreet: data.extraMeetGreet,
+    extraLuggage: data.extraLuggage,
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email,
+    phone: data.phone,
+  }
+  const returnShim: BookingEmailData = {
+    ...outboundShim,
+    bookingReference: `${data.returnBookingReference} (Return)`,
+    // Return leg route is swapped
+    originAddress: data.destinationAddress,
+    destinationAddress: data.originAddress,
+    pickupDate: data.returnPickupDate,
+    pickupTime: data.returnPickupTime,
+    amountCzk: data.returnAmountCzk,
+    // Extras belong to outbound only
+    extraChildSeat: false,
+    extraMeetGreet: false,
+    extraLuggage: false,
+  }
+  return {
+    outbound: buildGoogleCalendarUrl(outboundShim),
+    return: buildGoogleCalendarUrl(returnShim),
+  }
+}
+
+/**
+ * Build the round-trip confirmation HTML — ONE email with TWO journey blocks
+ * stacked vertically (per D-05), TWO Google Calendar ghost buttons (per D-07),
+ * per-leg prices with return-discount badge (per D-08), and a combined
+ * TOTAL PAID line. All user fields HTML-escaped (T-27-05 mitigation).
+ *
+ * Exported so downstream tests can inspect the rendered output directly.
+ */
+export function buildRoundTripConfirmationHtml(data: RoundTripEmailData): string {
+  const outboundRefSafe = escapeHtml(data.outboundBookingReference)
+  const returnRefSafe = escapeHtml(data.returnBookingReference)
+  const originSafe = escapeHtml(data.originAddress)
+  const destSafe = escapeHtml(data.destinationAddress)
+  const firstNameSafe = escapeHtml(data.firstName)
+  const flightSafe = data.flightNumber ? escapeHtml(data.flightNumber) : ''
+  const terminalSafe = data.terminal ? escapeHtml(data.terminal) : ''
+  const specialSafe = data.specialRequests ? escapeHtml(data.specialRequests) : ''
+
+  const vehicleLabel = escapeHtml(formatVehicleLabel(data.vehicleClass))
+  const outboundDateFmt = escapeHtml(formatPickupDate(data.outboundPickupDate))
+  const returnDateFmt = escapeHtml(formatPickupDate(data.returnPickupDate))
+  const outboundTimeSafe = escapeHtml(data.outboundPickupTime)
+  const returnTimeSafe = escapeHtml(data.returnPickupTime)
+
+  const outboundPriceCzk = formatCZK(data.outboundAmountCzk)
+  const returnPriceCzk = formatCZK(data.returnAmountCzk)
+  const combinedPriceCzk = formatCZK(data.combinedAmountCzk)
+  const combinedPriceEur = formatEUR(czkToEur(data.combinedAmountCzk))
+
+  // Two Google Calendar URLs — one per leg (D-07 hybrid CTA)
+  const calUrls = buildRoundTripCalendarUrls(data)
+
+  // Extras block — outbound only per RTPR-03
+  const selectedExtras = EXTRAS_CONFIG.filter((extra) => {
+    if (extra.key === 'childSeat') return data.extraChildSeat
+    if (extra.key === 'meetAndGreet') return data.extraMeetGreet
+    if (extra.key === 'extraLuggage') return data.extraLuggage
+    return false
+  })
+  const extrasHtml = selectedExtras.length === 0
+    ? ''
+    : `
+          <div style="padding: 0 32px 24px;">
+            <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">EXTRAS (OUTBOUND)</div>
+            <ul style="list-style: disc; padding-left: 18px; margin: 0;">
+              ${selectedExtras.map((e) => `<li style="margin: 4px 0; font-size: 14px; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">${escapeHtml(e.label)} — CZK ${e.price}</li>`).join('')}
+            </ul>
+          </div>
+        `
+
+  // Ride details (flight / terminal / special) — shared, shown once
+  const rideDetailsRows: string[] = []
+  if (flightSafe) rideDetailsRows.push(`<tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Flight number</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${flightSafe}</td></tr>`)
+  if (terminalSafe) rideDetailsRows.push(`<tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Terminal</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${terminalSafe}</td></tr>`)
+  if (specialSafe) rideDetailsRows.push(`<tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Special requests</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${specialSafe}</td></tr>`)
+  const rideDetailsHtml = rideDetailsRows.length === 0
+    ? ''
+    : `
+          <div style="padding: 0 32px 24px;">
+            <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">RIDE DETAILS</div>
+            <table style="width: 100%; border-collapse: collapse;">
+              ${rideDetailsRows.join('')}
+            </table>
+          </div>
+        `
+
+  // Promo line (only when applied)
+  const promoHtml = (data.promoCode && data.promoDiscountPct && data.promoDiscountPct > 0)
+    ? `
+          <div style="padding: 0 32px 8px; text-align: right;">
+            <span style="font-size: 12px; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">Promo ${escapeHtml(data.promoCode)} applied (−${data.promoDiscountPct}%)</span>
+          </div>
+        `
+    : ''
+
+  // Full HTML body — matches existing PRESTIGO design tokens (#B87333 copper,
+  // #F5F2EE offwhite, #2A2A2D card background, Montserrat + Cormorant Garamond,
+  // 9px/3px letter-spacing labels)
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>PRESTIGO Round-Trip Confirmation</title>
+</head>
+<body style="margin: 0; padding: 0; background: #1A1A1A; font-family: 'Montserrat', Arial, sans-serif;">
+  <div style="max-width: 640px; margin: 0 auto; background: #1A1A1A; padding: 48px 0;">
+    <div style="height: 2px; background: #B87333; margin: 0 32px 24px;"></div>
+    <div style="padding: 0 32px 32px;">
+      <span style="font-family: 'Cormorant Garamond', serif; font-size: 28px; color: #F5F2EE; letter-spacing: 4px;">PRESTIGO</span>
+    </div>
+
+    <div style="padding: 0 32px 24px;">
+      <h1 style="font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 32px; color: #F5F2EE; margin: 0 0 8px;">Your round-trip booking is confirmed.</h1>
+      <p style="font-size: 14px; color: #9A9690; margin: 0;">Thank you, ${firstNameSafe}. Both legs are booked and paid.</p>
+    </div>
+
+    <!-- Two booking reference boxes -->
+    <div style="padding: 0 32px 24px;">
+      <table style="width: 100%; border-collapse: separate; border-spacing: 12px 0;">
+        <tr>
+          <td style="width: 50%; padding: 16px; background: #2A2A2D; border-left: 3px solid #B87333;">
+            <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">OUTBOUND</div>
+            <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #F5F2EE;">${outboundRefSafe}</div>
+          </td>
+          <td style="width: 50%; padding: 16px; background: #2A2A2D; border-left: 3px solid #B87333;">
+            <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">RETURN</div>
+            <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #F5F2EE;">${returnRefSafe}</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- YOUR OUTBOUND JOURNEY (stacked section 1) -->
+    <div style="padding: 0 32px 24px;">
+      <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR OUTBOUND JOURNEY</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Route</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${originSafe} → ${destSafe}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Date</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${outboundDateFmt} at ${outboundTimeSafe}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Vehicle</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${vehicleLabel}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Passengers</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${data.passengers}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Leg price</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${outboundPriceCzk}</td></tr>
+      </table>
+    </div>
+
+    <!-- YOUR RETURN JOURNEY (stacked section 2 — swapped route) -->
+    <div style="padding: 0 32px 24px;">
+      <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR RETURN JOURNEY</div>
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Route</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${destSafe} → ${originSafe}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Date</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${returnDateFmt} at ${returnTimeSafe}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Vehicle</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${vehicleLabel}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Passengers</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${data.passengers}</td></tr>
+        <tr><td style="padding: 4px 0; color: #9A9690; font-size: 12px;">Leg price</td><td style="padding: 4px 0; color: #F5F2EE; font-size: 14px; text-align: right;">${returnPriceCzk} <span style="color: #B87333;">(−${data.returnDiscountPct}%)</span></td></tr>
+      </table>
+    </div>
+
+    ${rideDetailsHtml}
+    ${extrasHtml}
+    ${promoHtml}
+
+    <!-- TOTAL PAID -->
+    <div style="padding: 16px 32px; border-top: 1px solid #3A3A3A; border-bottom: 1px solid #3A3A3A; margin-bottom: 24px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+          <td style="color: #F5F2EE; font-size: 14px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase;">TOTAL PAID</td>
+          <td style="color: #F5F2EE; font-size: 18px; font-weight: 500; text-align: right;">${combinedPriceCzk} <span style="color: #9A9690; font-size: 13px;">(${combinedPriceEur})</span></td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- TWO Google Calendar ghost buttons (D-07 hybrid CTA: buttons + attached ICS) -->
+    <div style="padding: 0 32px 24px; text-align: center;">
+      <table style="width: 100%; border-collapse: separate; border-spacing: 12px 0;">
+        <tr>
+          <td style="width: 50%; text-align: center;">
+            <a href="${calUrls.outbound}" style="display: inline-block; padding: 12px 24px; border: 1px solid #B87333; color: #B87333; font-family: 'Montserrat', Arial, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; text-decoration: none;">ADD OUTBOUND</a>
+          </td>
+          <td style="width: 50%; text-align: center;">
+            <a href="${calUrls.return}" style="display: inline-block; padding: 12px 24px; border: 1px solid #B87333; color: #B87333; font-family: 'Montserrat', Arial, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase; text-decoration: none;">ADD RETURN</a>
+          </td>
+        </tr>
+      </table>
+      <p style="color: #9A9690; font-size: 11px; margin: 16px 0 0;">A calendar file with both trips is also attached to this email.</p>
+    </div>
+
+    <div style="padding: 24px 32px; border-top: 1px solid #3A3A3A;">
+      <p style="color: #9A9690; font-size: 12px; margin: 0 0 4px;">Questions? Reply to this email or contact roman@rideprestigo.com.</p>
+      <p style="color: #9A9690; font-size: 11px; margin: 0;">PRESTIGO Chauffeur Service · Prague</p>
+    </div>
+    <div style="height: 2px; background: #B87333; margin: 24px 32px 0;"></div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send the round-trip confirmation email to the client with the multi-event
+ * ICS attached. The `ics` string is produced by buildIcs in @/lib/ics
+ * (Plan 27-01) — this helper is oblivious to how it was generated.
+ *
+ * D-06 subject line: `Your PRESTIGO round-trip booking is confirmed — ${outboundRef}`
+ * D-07 attachment filename: `prestigo-round-trip-${outboundRef}.ics`
+ *
+ * Idempotency: NOT enforced here. Caller (Plan 27-04) MUST only call this
+ * after saveRoundTripBookings returns a non-null pair. Calling it twice
+ * WILL send two emails.
+ */
+export async function sendRoundTripClientConfirmation(
+  data: RoundTripEmailData,
+  ics: string
+): Promise<void> {
+  const html = buildRoundTripConfirmationHtml(data)
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.email],
+      replyTo: 'roman@rideprestigo.com',
+      subject: `Your PRESTIGO round-trip booking is confirmed — ${data.outboundBookingReference}`,
+      html,
+      attachments: [
+        {
+          filename: `prestigo-round-trip-${data.outboundBookingReference}.ics`,
+          content: ics,
+        },
+      ],
+    })
+    if (error) console.error('Resend round-trip client email error:', error)
+  } catch (err) {
+    console.error('Resend round-trip client email exception:', err)
+    // Non-fatal — do not throw
+  }
+}
+
+/**
+ * Send the manager alert for a round-trip booking as ONE plain-text email
+ * listing both legs + combined total. D-10 — parallel to sendManagerAlert,
+ * but consolidated (NOT two emails, anti-Pitfall-8).
+ */
+export async function sendRoundTripManagerAlert(data: RoundTripEmailData): Promise<void> {
+  const selectedExtras = EXTRAS_CONFIG
+    .filter((extra) => {
+      if (extra.key === 'childSeat') return data.extraChildSeat
+      if (extra.key === 'meetAndGreet') return data.extraMeetGreet
+      if (extra.key === 'extraLuggage') return data.extraLuggage
+      return false
+    })
+    .map((extra) => extra.label)
+  const extrasText = selectedExtras.length > 0 ? selectedExtras.join(', ') : 'None'
+
+  const promoText = (data.promoCode && data.promoDiscountPct && data.promoDiscountPct > 0)
+    ? `Promo: ${data.promoCode} (−${data.promoDiscountPct}%)`
+    : 'Promo: None'
+
+  const text = `New ROUND-TRIP booking received. Both legs confirmed & paid.
+
+─── OUTBOUND ───
+Booking Reference: ${data.outboundBookingReference}
+Route: ${data.originAddress} → ${data.destinationAddress}
+Pickup: ${data.outboundPickupDate} at ${data.outboundPickupTime}
+Leg price: ${formatCZK(data.outboundAmountCzk)}
+
+─── RETURN ───
+Booking Reference: ${data.returnBookingReference}
+Route: ${data.destinationAddress} → ${data.originAddress}
+Pickup: ${data.returnPickupDate} at ${data.returnPickupTime}
+Leg price: ${formatCZK(data.returnAmountCzk)} (−${data.returnDiscountPct}% discount)
+
+─── CLIENT ───
+Name: ${data.firstName} ${data.lastName}
+Email: ${data.email}
+Phone: ${data.phone}
+Vehicle: ${formatVehicleLabel(data.vehicleClass)}
+Passengers: ${data.passengers}
+Luggage: ${data.luggage}
+Flight: ${data.flightNumber || 'N/A'}
+Terminal: ${data.terminal || 'N/A'}
+Extras (outbound only): ${extrasText}
+Special Requests: ${data.specialRequests || 'None'}
+${promoText}
+
+─── TOTAL PAID ───
+${formatCZK(data.combinedAmountCzk)} (${formatEUR(czkToEur(data.combinedAmountCzk))})`
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [process.env.MANAGER_EMAIL!],
+      replyTo: 'roman@rideprestigo.com',
+      subject: `New round-trip booking: ${data.outboundBookingReference} — ${data.firstName} ${data.lastName}`,
+      text,
+    })
+    if (error) console.error('Resend round-trip manager alert error:', error)
+  } catch (err) {
+    console.error('Resend round-trip manager alert exception:', err)
+    // Non-fatal
+  }
+}
