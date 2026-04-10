@@ -167,6 +167,7 @@ export default function BookingWidget() {
       delete n.time
       return n
     })
+    setOpenPicker(null)
   }
 
   function handleDateSelect(d: Date | undefined) {
