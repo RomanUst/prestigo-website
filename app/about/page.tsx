@@ -151,6 +151,7 @@ export default function AboutPage() {
                 loading="lazy"
                 decoding="async"
                 className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full object-cover border border-anthracite-light"
+                style={{ objectPosition: 'center 15%' }}
               />
             </picture>
           </div>
