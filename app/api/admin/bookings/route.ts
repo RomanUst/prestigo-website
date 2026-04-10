@@ -35,8 +35,10 @@ export async function GET(request: Request) {
 
   const searchParams = new URL(request.url).searchParams
 
-  const page = Math.max(0, parseInt(searchParams.get('page') ?? '0', 10))
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') ?? '20', 10)))
+  const rawPage  = parseInt(searchParams.get('page')  ?? '0', 10)
+  const rawLimit = parseInt(searchParams.get('limit') ?? '20', 10)
+  const page  = Math.max(0,   isNaN(rawPage)  ? 0  : rawPage)
+  const limit = Math.min(100, Math.max(1, isNaN(rawLimit) ? 20 : rawLimit))
   const startDate = searchParams.get('startDate')
   const endDate = searchParams.get('endDate')
   const tripType = searchParams.get('tripType')
