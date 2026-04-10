@@ -3,7 +3,11 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { generateBookingReference } from '@/lib/booking-reference'
-import { czkToEur } from '@/lib/currency'
+import { czkToEur, eurToCzk } from '@/lib/currency'
+import { computeOutboundLegTotal } from '@/lib/server-pricing'
+import { computeExtrasTotal } from '@/lib/extras'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { dateDiffDays } from '@/lib/pricing'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -132,6 +136,9 @@ const manualBookingSchema = z.object({
   vehicle_class:       z.enum(['business', 'first_class', 'business_van']),
   passengers:          z.number().int().min(1).max(20),
   luggage:             z.number().int().min(0).max(20),
+  // amount_czk is client-provided but SERVER ALWAYS RECOMPUTES from pricing_config
+  // and rejects with 422 if the client figure diverges by more than ADMIN_PRICE_TOLERANCE_CZK.
+  // Prevents a compromised admin session from booking at arbitrary amounts.
   amount_czk:          z.number().int().positive(),
   client_first_name:   z.string().min(1).max(100),
   client_last_name:    z.string().min(1).max(100),
@@ -152,7 +159,12 @@ const manualBookingSchema = z.object({
   destination_lat:     z.number().nullable().optional(),
   destination_lng:     z.number().nullable().optional(),
   distance_km:         z.number().nullable().optional(),
+  // Optional airport flag — when true, server applies airport fee in recompute
+  is_airport:          z.boolean().optional(),
 })
+
+/** Max diff in CZK between client-sent and server-computed price before rejecting. */
+const ADMIN_PRICE_TOLERANCE_CZK = 2
 
 export async function POST(request: Request) {
   const { error } = await getAdminUser()
@@ -168,10 +180,89 @@ export async function POST(request: Request) {
     )
   }
 
-  const bookingReference = generateBookingReference()
-  const amount_eur = czkToEur(parsed.data.amount_czk)
-
   const d = parsed.data
+
+  // ── Server-side price recompute (HIGH-3 mitigation) ──
+  // Never trust the client-supplied amount_czk, even from an authenticated
+  // admin. If an admin session is hijacked (cookie theft, XSS, CSRF bypass),
+  // the attacker would otherwise be able to book at arbitrary prices, launder
+  // refunds, or corrupt revenue reporting. The server recomputes the fare
+  // from pricing_config and rejects any client amount that diverges by more
+  // than ADMIN_PRICE_TOLERANCE_CZK.
+  let rates
+  try {
+    rates = await getPricingConfig()
+  } catch (err) {
+    console.error('[admin/bookings.POST] failed to load pricing config:', err)
+    return NextResponse.json({ error: 'Pricing configuration unavailable' }, { status: 503 })
+  }
+
+  // Guard inputs required by the trip-type before computing
+  if (d.trip_type === 'transfer' && (d.distance_km === null || d.distance_km === undefined || d.distance_km <= 0)) {
+    return NextResponse.json(
+      { error: 'distance_km is required and must be positive for transfer trips' },
+      { status: 400 }
+    )
+  }
+  if (d.trip_type === 'hourly' && (d.hours === null || d.hours === undefined || d.hours <= 0)) {
+    return NextResponse.json(
+      { error: 'hours is required and must be positive for hourly trips' },
+      { status: 400 }
+    )
+  }
+  if (d.trip_type === 'daily' && !d.return_date) {
+    return NextResponse.json(
+      { error: 'return_date is required for daily trips' },
+      { status: 400 }
+    )
+  }
+
+  const days = d.return_date ? dateDiffDays(d.pickup_date, d.return_date) : 1
+
+  const outboundLegEur = computeOutboundLegTotal(
+    d.vehicle_class,
+    d.distance_km ?? null,
+    d.hours ?? 2,
+    days,
+    d.trip_type,
+    d.pickup_date,
+    d.pickup_time,
+    d.is_airport ?? false,
+    rates,
+  )
+
+  const extrasEur = computeExtrasTotal(
+    {
+      childSeat: d.extra_child_seat ?? false,
+      meetAndGreet: d.extra_meet_greet ?? false,
+      extraLuggage: d.extra_luggage ?? false,
+    },
+    {
+      childSeat: rates.globals.extraChildSeat,
+      meetAndGreet: rates.globals.extraMeetGreet,
+      extraLuggage: rates.globals.extraLuggage,
+    },
+  )
+
+  const computedTotalEur = outboundLegEur + extrasEur
+  const computedTotalCzk = eurToCzk(computedTotalEur)
+
+  if (Math.abs(computedTotalCzk - d.amount_czk) > ADMIN_PRICE_TOLERANCE_CZK) {
+    return NextResponse.json(
+      {
+        error: 'Price mismatch — server recompute diverges from submitted amount',
+        submittedCzk: d.amount_czk,
+        computedCzk: computedTotalCzk,
+      },
+      { status: 422 }
+    )
+  }
+
+  const bookingReference = generateBookingReference()
+  // From here on, use the SERVER-COMPUTED amount, never the client's value.
+  const authoritativeAmountCzk = computedTotalCzk
+  const amount_eur = computedTotalEur
+
   const row = {
     trip_type:           d.trip_type,
     pickup_date:         d.pickup_date,
@@ -181,7 +272,7 @@ export async function POST(request: Request) {
     vehicle_class:       d.vehicle_class,
     passengers:          d.passengers,
     luggage:             d.luggage,
-    amount_czk:          d.amount_czk,
+    amount_czk:          authoritativeAmountCzk,
     client_first_name:   d.client_first_name,
     client_last_name:    d.client_last_name,
     client_email:        d.client_email,
