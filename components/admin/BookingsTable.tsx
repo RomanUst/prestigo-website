@@ -205,10 +205,14 @@ export default function BookingsTable() {
   }, [localNotes, flushNotes])
 
   const handleCancel = useCallback(async (booking: Booking) => {
+    const cancelBody: { id: string; leg?: 'outbound' | 'return' } = { id: booking.id }
+    if (booking.leg !== null && booking.linked_booking_id !== null) {
+      cancelBody.leg = booking.leg
+    }
     const res = await fetch('/api/admin/bookings/cancel', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: booking.id }),
+      body: JSON.stringify(cancelBody),
     })
     if (!res.ok) {
       const data = await res.json().catch(() => ({ error: 'Unknown error' }))
@@ -306,6 +310,27 @@ export default function BookingsTable() {
               borderRadius: '2px',
               display: 'inline-block',
             }}>MANUAL</span>
+          )}
+          {(row.original.leg === 'return' || (row.original.leg === 'outbound' && row.original.linked_booking_id !== null)) && (
+            <span
+              data-testid={`leg-badge-${row.original.id}`}
+              style={{
+                marginLeft: '8px',
+                background: 'transparent',
+                color: 'var(--copper)',
+                border: '1px solid var(--copper)',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '11px',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                padding: '4px 8px',
+                borderRadius: '2px',
+                display: 'inline-block',
+              }}
+            >
+              {row.original.leg === 'return' ? 'RETURN' : 'OUTBOUND'}
+            </span>
           )}
         </span>
       ),
@@ -625,6 +650,26 @@ export default function BookingsTable() {
                           borderRadius: '2px',
                         }}>MANUAL</span>
                       )}
+                      {(booking.leg === 'return' || (booking.leg === 'outbound' && booking.linked_booking_id !== null)) && (
+                        <span
+                          data-testid={`leg-badge-mobile-${booking.id}`}
+                          style={{
+                            marginLeft: '8px',
+                            background: 'transparent',
+                            color: 'var(--copper)',
+                            border: '1px solid var(--copper)',
+                            fontFamily: 'var(--font-montserrat)',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            textTransform: 'uppercase' as const,
+                            letterSpacing: '0.08em',
+                            padding: '2px 6px',
+                            borderRadius: '2px',
+                          }}
+                        >
+                          {booking.leg === 'return' ? 'RETURN' : 'OUTBOUND'}
+                        </span>
+                      )}
                     </span>
                     <StatusBadge
                       variant={booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
@@ -719,6 +764,47 @@ export default function BookingsTable() {
                           label="EXTRA LUGGAGE"
                           value={booking.extra_luggage ? <StatusBadge variant="active" label="Yes" /> : '—'}
                         />
+                        {booking.leg === 'return' && booking.linked_booking?.booking_reference && (
+                          <DetailField
+                            label="PAIRED OUTBOUND"
+                            value={
+                              <button
+                                type="button"
+                                data-testid={`linked-ref-chip-mobile-${booking.id}`}
+                                aria-label={`Search for paired outbound booking ${booking.linked_booking.booking_reference}`}
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const ref = booking.linked_booking?.booking_reference
+                                  if (ref) {
+                                    setSearch(ref)
+                                    setDebouncedSearch(ref)
+                                    setPage(0)
+                                  }
+                                }}
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  border: '1px solid var(--copper)',
+                                  color: 'var(--copper)',
+                                  background: 'transparent',
+                                  borderRadius: '2px',
+                                  padding: '4px 12px',
+                                  fontFamily: 'var(--font-montserrat)',
+                                  fontSize: '11px',
+                                  fontWeight: 500,
+                                  letterSpacing: '0.12em',
+                                  textTransform: 'uppercase' as const,
+                                  cursor: 'pointer',
+                                }}
+                                onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8' }}
+                                onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+                              >
+                                {booking.linked_booking.booking_reference}
+                              </button>
+                            }
+                          />
+                        )}
                       </div>
 
                       {/* Operator notes */}
@@ -962,6 +1048,46 @@ export default function BookingsTable() {
                               ) : '—'
                             }
                           />
+                          {row.original.leg === 'return' && row.original.linked_booking?.booking_reference && (
+                            <DetailField
+                              label="PAIRED OUTBOUND"
+                              value={
+                                <button
+                                  type="button"
+                                  data-testid={`linked-ref-chip-${row.original.id}`}
+                                  aria-label={`Search for paired outbound booking ${row.original.linked_booking.booking_reference}`}
+                                  onClick={() => {
+                                    const ref = row.original.linked_booking?.booking_reference
+                                    if (ref) {
+                                      setSearch(ref)
+                                      setDebouncedSearch(ref)
+                                      setPage(0)
+                                    }
+                                  }}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    border: '1px solid var(--copper)',
+                                    color: 'var(--copper)',
+                                    background: 'transparent',
+                                    borderRadius: '2px',
+                                    padding: '4px 12px',
+                                    fontFamily: 'var(--font-montserrat)',
+                                    fontSize: '11px',
+                                    fontWeight: 500,
+                                    letterSpacing: '0.12em',
+                                    textTransform: 'uppercase',
+                                    cursor: 'pointer',
+                                  }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.8' }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.opacity = '1' }}
+                                >
+                                  {row.original.linked_booking.booking_reference}
+                                </button>
+                              }
+                            />
+                          )}
                         </div>
 
                         {/* Status transition */}
@@ -1216,8 +1342,60 @@ export default function BookingsTable() {
               Cancel Booking
             </h2>
 
-            {pendingCancel.payment_intent_id !== null ? (
-              /* Variant A: Stripe-paid */
+            {pendingCancel.payment_intent_id !== null && pendingCancel.leg !== null && pendingCancel.linked_booking_id !== null ? (
+              /* Variant C: Stripe-paid round-trip leg — partial refund */
+              (() => {
+                const legAmountCzk = pendingCancel.leg === 'outbound'
+                  ? pendingCancel.outbound_amount_czk
+                  : pendingCancel.return_amount_czk
+                const pairedLegLabel = pendingCancel.leg === 'outbound' ? 'return' : 'outbound'
+                const pairedRef = pendingCancel.linked_booking?.booking_reference ?? '—'
+                return (
+                  <>
+                    <p style={{
+                      fontSize: '13px',
+                      fontFamily: 'var(--font-montserrat)',
+                      fontWeight: 300,
+                      color: 'var(--warmgrey)',
+                      marginTop: '16px',
+                      lineHeight: 1.8,
+                    }}>
+                      This booking was paid online. Cancelling will issue a partial refund for this leg only. This action cannot be undone.
+                    </p>
+                    <p style={{
+                      fontSize: '13px',
+                      fontFamily: 'var(--font-montserrat)',
+                      fontWeight: 500,
+                      color: 'var(--offwhite)',
+                      marginTop: '12px',
+                    }}>
+                      Refund: {legAmountCzk ?? '—'} CZK for this leg only.
+                    </p>
+                    <p style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-montserrat)',
+                      fontWeight: 500,
+                      textTransform: 'uppercase',
+                      color: '#f87171',
+                      marginTop: '8px',
+                    }}>
+                      The paired {pairedLegLabel} booking {pairedRef} will NOT be affected and remains active.
+                    </p>
+                    <p style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-montserrat)',
+                      fontWeight: 500,
+                      textTransform: 'uppercase',
+                      color: '#f87171',
+                      marginTop: '8px',
+                    }}>
+                      PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG.
+                    </p>
+                  </>
+                )
+              })()
+            ) : pendingCancel.payment_intent_id !== null ? (
+              /* Variant A: Stripe-paid one-way — full refund (unchanged) */
               <>
                 <p style={{
                   fontSize: '13px',
@@ -1241,7 +1419,7 @@ export default function BookingsTable() {
                 </p>
               </>
             ) : (
-              /* Variant B: Manual */
+              /* Variant B: Manual (unchanged) */
               <p style={{
                 fontSize: '13px',
                 fontFamily: 'var(--font-montserrat)',
