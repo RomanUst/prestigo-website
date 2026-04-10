@@ -1472,6 +1472,7 @@ export default function BookingsTable() {
                     await handleCancel(pendingCancel)
                   } catch (err) {
                     setCancelError(err instanceof Error ? err.message : 'Cancel failed')
+                  } finally {
                     setCancelling(false)
                   }
                 }}
