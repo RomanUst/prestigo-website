@@ -189,6 +189,8 @@ export default function Step6Payment() {
   const pickupDate = useBookingStore((s) => s.pickupDate)
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const returnDate = useBookingStore((s) => s.returnDate)
+  const returnTime = useBookingStore((s) => s.returnTime)
+  const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
 
@@ -207,8 +209,14 @@ export default function Step6Payment() {
   const [promoError, setPromoError] = useState<string | null>(null)
 
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
+  const selectedReturnLegPrice =
+    vehicleClass && roundTripPriceBreakdown ? roundTripPriceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
-  const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
+  const isRoundTripMode = tripType === 'round_trip'
+
+  const outboundWithExtras = selectedPrice ? selectedPrice.base + extrasTotal : 0
+  const returnLegTotal = selectedReturnLegPrice ? selectedReturnLegPrice.total : 0
+  const totalEur = isRoundTripMode ? outboundWithExtras + returnLegTotal : outboundWithExtras
 
   const discountedTotalEur = promoDiscount > 0
     ? Math.round(totalEur * (1 - promoDiscount / 100))
@@ -290,6 +298,7 @@ export default function Step6Payment() {
               pickupDate: pickupDate ?? '',
               pickupTime: pickupTime ?? '',
               returnDate: returnDate ?? '',
+              returnTime: returnTime ?? '',
               distanceKm: distanceKm != null ? String(distanceKm) : '',
               extraChildSeat: String(extras.childSeat),
               extraMeetGreet: String(extras.meetAndGreet),
@@ -323,7 +332,7 @@ export default function Step6Payment() {
 
     fetchPaymentIntent()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalEur, selectedCurrency, promoCode])
+  }, [totalEur, selectedCurrency, promoCode, tripType, returnTime, roundTripPriceBreakdown])
 
   const options = useMemo(
     () =>

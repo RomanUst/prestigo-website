@@ -34,4 +34,11 @@ describe('Step6Payment', () => {
   describe('STEP6-06: Redirect to /book/confirmation on success', () => {
     it.todo('confirmPayment is called with return_url containing /book/confirmation')
   })
+
+  describe('STEP6-RT: Round-trip Step 6 support', () => {
+    it.todo('STEP6-RT-COMBINED-TOTAL: totalEur equals outbound + return when tripType=round_trip')
+    it.todo('STEP6-RT-RETURNTIME-IN-BODY: fetch body contains returnTime for round_trip')
+    it.todo('STEP6-RT-DISCOUNT-COMBINED: discountedTotalEur applies promo to combined total, not just outbound')
+    it.todo('STEP6-RT-PROMO-PERSIST: promoCode survives a store rehydrate (partialize)')
+  })
 })

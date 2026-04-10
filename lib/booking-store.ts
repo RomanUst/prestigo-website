@@ -124,6 +124,11 @@ export const useBookingStore = create<BookingStore>()(
         // coefficient updates to be ignored.
         extras: state.extras,
         passengerDetails: state.passengerDetails,
+        // Phase 26: persist promo across 3DS redirect / tab reload so an
+        // applied promo doesn't silently drop on the client. The server's
+        // claim_promo_code RPC will reject any stale code on the next POST.
+        promoCode: state.promoCode,
+        promoDiscount: state.promoDiscount,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
