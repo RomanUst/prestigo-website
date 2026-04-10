@@ -202,6 +202,31 @@ describe('/api/admin/bookings', () => {
     expect(res.status).toBe(200)
     expect(eqFn).toHaveBeenCalledWith('trip_type', 'hourly')
   })
+
+  it('Test 7: GET select string includes linked_booking join for RTAD-02 paired-reference', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'admin-uid', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+
+    // Build a proper chain with order (required by the GET handler after select)
+    const rangeFn = vi.fn().mockResolvedValue({ data: [], count: 0, error: null })
+    const orderFn = vi.fn().mockReturnValue({ range: rangeFn, gte: vi.fn().mockReturnValue({ range: rangeFn }), lte: vi.fn().mockReturnValue({ range: rangeFn }), eq: vi.fn().mockReturnValue({ range: rangeFn }), or: vi.fn().mockReturnValue({ range: rangeFn }) })
+    const captureFn = vi.fn().mockReturnValue({ order: orderFn })
+    supabaseServiceStub.from.mockReturnValueOnce({ select: captureFn })
+
+    const res = await GET(makeRequest())
+    expect(res.status).toBe(200)
+
+    // Assert the select string contains both '*' and the linked_booking join
+    expect(captureFn).toHaveBeenCalledTimes(1)
+    const selectArg = captureFn.mock.calls[0][0] as string
+    expect(selectArg).toContain('*')
+    expect(selectArg).toContain('linked_booking:linked_booking_id(booking_reference)')
+    // count: 'exact' option preserved
+    const selectOpts = captureFn.mock.calls[0][1]
+    expect(selectOpts).toMatchObject({ count: 'exact' })
+  })
 })
 
 describe('PATCH /api/admin/bookings', () => {

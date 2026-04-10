@@ -45,7 +45,7 @@ export async function GET(request: Request) {
   const supabase = createSupabaseServiceClient()
   let query = supabase
     .from('bookings')
-    .select('*', { count: 'exact' })
+    .select('*, linked_booking:linked_booking_id(booking_reference)', { count: 'exact' })
     .order('created_at', { ascending: false })
 
   if (startDate) query = query.gte('pickup_date', startDate)

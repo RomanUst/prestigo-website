@@ -45,6 +45,11 @@ interface Booking {
   status: string
   operator_notes: string | null
   created_at: string
+  leg: 'outbound' | 'return' | null
+  linked_booking_id: string | null
+  outbound_amount_czk: number | null
+  return_amount_czk: number | null
+  linked_booking: { booking_reference: string } | null
 }
 
 const vehicleClassMap: Record<string, string> = {
