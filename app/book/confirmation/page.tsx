@@ -6,6 +6,7 @@ import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { consumePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import Link from 'next/link'
+import { buildIcs, type IcsEvent } from '@/lib/ics'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -39,35 +40,56 @@ function pushGA4Event(eventName: string, params: Record<string, unknown>): void 
   w.dataLayer.push({ event: eventName, ...params })
 }
 
-function generateICSContent(booking: {
-  pickupDate: string
-  pickupTime: string
-  origin: string
-  destination: string
-  bookingReference: string
-}): string {
-  const dt = new Date(`${booking.pickupDate}T${booking.pickupTime}:00`)
-  const dtEnd = new Date(dt.getTime() + 60 * 60 * 1000)
-  const format = (d: Date) => d.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
-  const uid = `${booking.bookingReference}@prestigo.cz`
-  return [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//PRESTIGO//Booking//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
-    'BEGIN:VEVENT',
-    `UID:${uid}`,
-    `DTSTAMP:${format(new Date())}`,
-    `DTSTART:${format(dt)}`,
-    `DTEND:${format(dtEnd)}`,
-    `SUMMARY:PRESTIGO Transfer — ${booking.bookingReference}`,
-    `DESCRIPTION:Pickup: ${booking.origin}\\nDropoff: ${booking.destination}\\nRef: ${booking.bookingReference}`,
-    `LOCATION:${booking.origin}`,
-    'STATUS:CONFIRMED',
-    'END:VEVENT',
-    'END:VCALENDAR',
-  ].join('\r\n')
+/**
+ * Client-side ICS content generator. EXTENDED in Phase 27 to support two legs
+ * for round-trip bookings. Internally delegates to buildIcs from @/lib/ics
+ * (the single source of truth shared with the server-side email attachment
+ * path in lib/email.ts → sendRoundTripClientConfirmation).
+ *
+ * Phase 27 D-13: extend, not replace. The function name remains; the body
+ * no longer uses toISOString().replace('Z') which caused a pre-existing
+ * UTC-drift bug for Europe/Prague clients. buildIcs emits TZID=Europe/Prague
+ * with a VTIMEZONE block so calendar apps honor wall-clock times correctly.
+ */
+function generateICSContent(
+  outbound: {
+    pickupDate: string
+    pickupTime: string
+    origin: string
+    destination: string
+    bookingReference: string
+  },
+  returnLeg?: {
+    pickupDate: string
+    pickupTime: string
+    bookingReference: string
+  }
+): string {
+  const events: IcsEvent[] = [
+    {
+      uid: `${outbound.bookingReference}-outbound@prestigo.cz`,
+      date: outbound.pickupDate,
+      time: outbound.pickupTime,
+      durationMinutes: 60,
+      summary: `PRESTIGO ${returnLeg ? 'Outbound' : 'Transfer'} — ${outbound.bookingReference}`,
+      description: `Pickup: ${outbound.origin}\nDropoff: ${outbound.destination}\nRef: ${outbound.bookingReference}`,
+      location: outbound.origin,
+    },
+  ]
+  if (returnLeg) {
+    // Return leg: route is swapped — pickup is the outbound destination,
+    // dropoff is the outbound origin.
+    events.push({
+      uid: `${returnLeg.bookingReference}-return@prestigo.cz`,
+      date: returnLeg.pickupDate,
+      time: returnLeg.pickupTime,
+      durationMinutes: 60,
+      summary: `PRESTIGO Return — ${returnLeg.bookingReference}`,
+      description: `Pickup: ${outbound.destination}\nDropoff: ${outbound.origin}\nRef: ${returnLeg.bookingReference}`,
+      location: outbound.destination,
+    })
+  }
+  return buildIcs(events)
 }
 
 /**
@@ -84,8 +106,12 @@ function ConfirmationContent() {
   const searchParams = useSearchParams()
   const type = searchParams.get('type')
   const rawRef = searchParams.get('ref')
+  // D-11: param name is `returnRef` (NOT `ref2`)
+  const rawReturnRef = searchParams.get('returnRef')
   // Reject refs that don't match the expected format — prevents crafted URLs
   const ref = isValidRef(rawRef) ? rawRef : null
+  const returnRef = isValidRef(rawReturnRef) ? rawReturnRef : null
+  const isRoundTrip = Boolean(ref && returnRef)
   const isQuote = type === 'quote'
 
   const storeRef = useRef(useBookingStore.getState())
@@ -181,18 +207,29 @@ function ConfirmationContent() {
     resetBooking()
   }, [resetBooking, ref, isQuote])
 
-  const { origin, destination, pickupDate, pickupTime, vehicleClass, passengers, hours, tripType } =
+  const { origin, destination, pickupDate, pickupTime, vehicleClass, passengers, hours, tripType, returnDate, returnTime } =
     storeRef.current
 
   const handleDownloadICS = () => {
     if (!ref || !pickupDate || !pickupTime) return
-    const icsContent = generateICSContent({
-      pickupDate,
-      pickupTime,
-      origin: origin?.address ?? '',
-      destination: destination?.address ?? '',
-      bookingReference: ref,
-    })
+    const originAddr = origin?.address ?? ''
+    const destAddr = destination?.address ?? ''
+    const icsContent = generateICSContent(
+      {
+        pickupDate,
+        pickupTime,
+        origin: originAddr,
+        destination: destAddr,
+        bookingReference: ref,
+      },
+      isRoundTrip && returnRef && returnDate && returnTime
+        ? {
+            pickupDate: returnDate,
+            pickupTime: returnTime,
+            bookingReference: returnRef,
+          }
+        : undefined
+    )
     const blob = new Blob([icsContent], { type: 'text/calendar' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -253,33 +290,96 @@ function ConfirmationContent() {
           <span className="wordmark-go">GO</span>
         </span>
 
-        {/* Confirmation status label */}
-        <span className="label" style={{ display: 'block', marginBottom: 16 }}>
+        {/* Confirmation status — D-14: single h1 on the page */}
+        <h1 className="label" style={{ display: 'block', marginBottom: 16, fontFamily: 'inherit', fontWeight: 'inherit', fontSize: 'inherit', letterSpacing: 'inherit' }}>
           {isQuote ? 'QUOTE REQUEST SENT' : 'BOOKING CONFIRMED'}
-        </span>
-
-        {/* Reference label */}
-        <span
-          className="label"
-          style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
-        >
-          {isQuote ? 'YOUR REFERENCE' : 'YOUR BOOKING REFERENCE'}
-        </span>
-
-        {/* Booking reference — display size */}
-        <h1
-          style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontWeight: 300,
-            fontSize: 32,
-            lineHeight: 1.1,
-            color: 'var(--offwhite)',
-            marginBottom: 32,
-          }}
-          aria-label={`Booking reference ${ref}`}
-        >
-          {ref}
         </h1>
+
+        {/* Reference display — D-14: h1 stays BOOKING CONFIRMED above; refs use h2 inside sections */}
+        {!isRoundTrip && (
+          <section aria-labelledby="booking-ref-label">
+            <span
+              id="booking-ref-label"
+              className="label"
+              style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
+            >
+              {isQuote ? 'YOUR REFERENCE' : 'YOUR BOOKING REFERENCE'}
+            </span>
+            <h2
+              style={{
+                fontFamily: 'var(--font-cormorant)',
+                fontWeight: 300,
+                fontSize: 32,
+                lineHeight: 1.1,
+                color: 'var(--offwhite)',
+                marginBottom: 32,
+              }}
+            >
+              {ref}
+            </h2>
+          </section>
+        )}
+
+        {isRoundTrip && (
+          <div style={{ marginBottom: 32, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            <section
+              aria-labelledby="outbound-ref-label"
+              style={{
+                flex: '1 1 240px',
+                padding: 16,
+                background: 'var(--anthracite-mid)',
+                borderLeft: '3px solid #B87333',
+              }}
+            >
+              <span
+                id="outbound-ref-label"
+                className="label"
+                style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
+              >
+                OUTBOUND
+              </span>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-cormorant)',
+                  fontWeight: 300,
+                  fontSize: 22,
+                  color: 'var(--offwhite)',
+                  margin: 0,
+                }}
+              >
+                {ref}
+              </h2>
+            </section>
+            <section
+              aria-labelledby="return-ref-label"
+              style={{
+                flex: '1 1 240px',
+                padding: 16,
+                background: 'var(--anthracite-mid)',
+                borderLeft: '3px solid #B87333',
+              }}
+            >
+              <span
+                id="return-ref-label"
+                className="label"
+                style={{ display: 'block', marginBottom: 8, color: 'var(--warmgrey)' }}
+              >
+                RETURN
+              </span>
+              <h2
+                style={{
+                  fontFamily: 'var(--font-cormorant)',
+                  fontWeight: 300,
+                  fontSize: 22,
+                  color: 'var(--offwhite)',
+                  margin: 0,
+                }}
+              >
+                {returnRef}
+              </h2>
+            </section>
+          </div>
+        )}
 
         {/* Quote body copy — only for quote flow */}
         {isQuote && (
@@ -296,65 +396,127 @@ function ConfirmationContent() {
           </p>
         )}
 
-        {/* Booking summary card */}
-        <div
-          style={{
-            background: 'var(--anthracite-mid)',
-            borderRadius: 4,
-            padding: 24,
-            marginBottom: 32,
-          }}
-        >
-          <span className="label" style={{ display: 'block', marginBottom: 16 }}>
-            JOURNEY DETAILS
-          </span>
+        {/* Journey details — one-way: single card; round-trip: two stacked cards (D-12) */}
+        {!isRoundTrip && (
+          <div
+            style={{
+              background: 'var(--anthracite-mid)',
+              borderRadius: 4,
+              padding: 24,
+              marginBottom: 32,
+            }}
+          >
+            <span className="label" style={{ display: 'block', marginBottom: 16 }}>
+              JOURNEY DETAILS
+            </span>
 
-          {/* Route */}
-          {(origin?.address || destination?.address) && (
-            <p
+            {/* Route */}
+            {(origin?.address || destination?.address) && (
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  lineHeight: 1.5,
+                  marginBottom: 8,
+                }}
+              >
+                {tripType === 'hourly'
+                  ? `${hours} hours`
+                  : `${origin?.address ?? ''} \u2192 ${destination?.address ?? ''}`}
+              </p>
+            )}
+
+            {/* Date + time */}
+            {(pickupDate || pickupTime) && (
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  lineHeight: 1.5,
+                  marginBottom: 8,
+                }}
+              >
+                {[pickupDate, pickupTime ? `at ${pickupTime}` : null].filter(Boolean).join(' ')}
+              </p>
+            )}
+
+            {/* Vehicle + passengers */}
+            {vehicleLabel && (
+              <p
+                style={{
+                  fontSize: 14,
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  lineHeight: 1.5,
+                }}
+              >
+                {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+              </p>
+            )}
+          </div>
+        )}
+
+        {isRoundTrip && (
+          <>
+            <div
               style={{
-                fontSize: 14,
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-                lineHeight: 1.5,
-                marginBottom: 8,
+                background: 'var(--anthracite-mid)',
+                borderRadius: 4,
+                padding: 24,
+                marginBottom: 16,
               }}
             >
-              {tripType === 'hourly'
-                ? `${hours} hours`
-                : `${origin?.address ?? ''} \u2192 ${destination?.address ?? ''}`}
-            </p>
-          )}
+              <span className="label" style={{ display: 'block', marginBottom: 16 }}>
+                OUTBOUND JOURNEY
+              </span>
+              {(origin?.address || destination?.address) && (
+                <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
+                  {`${origin?.address ?? ''} \u2192 ${destination?.address ?? ''}`}
+                </p>
+              )}
+              {(pickupDate || pickupTime) && (
+                <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
+                  {[pickupDate, pickupTime ? `at ${pickupTime}` : null].filter(Boolean).join(' ')}
+                </p>
+              )}
+              {vehicleLabel && (
+                <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5 }}>
+                  {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+                </p>
+              )}
+            </div>
 
-          {/* Date + time */}
-          {(pickupDate || pickupTime) && (
-            <p
+            <div
               style={{
-                fontSize: 14,
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-                lineHeight: 1.5,
-                marginBottom: 8,
+                background: 'var(--anthracite-mid)',
+                borderRadius: 4,
+                padding: 24,
+                marginBottom: 32,
               }}
             >
-              {[pickupDate, pickupTime ? `at ${pickupTime}` : null].filter(Boolean).join(' ')}
-            </p>
-          )}
-
-          {/* Vehicle + passengers */}
-          {vehicleLabel && (
-            <p
-              style={{
-                fontSize: 14,
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-                lineHeight: 1.5,
-              }}
-            >
-              {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
-            </p>
-          )}
-        </div>
+              <span className="label" style={{ display: 'block', marginBottom: 16 }}>
+                RETURN JOURNEY
+              </span>
+              {(origin?.address || destination?.address) && (
+                <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
+                  {`${destination?.address ?? ''} \u2192 ${origin?.address ?? ''}`}
+                </p>
+              )}
+              {(returnDate || returnTime) && (
+                <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5, marginBottom: 8 }}>
+                  {[returnDate, returnTime ? `at ${returnTime}` : null].filter(Boolean).join(' ')}
+                </p>
+              )}
+              {vehicleLabel && (
+                <p style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.5 }}>
+                  {vehicleLabel} &middot; {passengers} {passengers === 1 ? 'passenger' : 'passengers'}
+                </p>
+              )}
+            </div>
+          </>
+        )}
 
         {/* Divider */}
         <div
