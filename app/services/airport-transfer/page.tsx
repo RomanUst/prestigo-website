@@ -21,7 +21,7 @@ const serviceSchema = {
   provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
   areaServed: 'Prague, Czech Republic',
   url: 'https://rideprestigo.com/services/airport-transfer',
-  offers: { '@type': 'Offer', price: '49', priceCurrency: 'EUR' },
+  offers: { '@type': 'Offer', price: '69', priceCurrency: 'EUR' },
 }
 
 const breadcrumbSchema = {
@@ -106,7 +106,7 @@ export default function AirportTransferPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>Starting from</p>
-            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€49</p>
+            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€69</p>
             <p className="body-text text-[11px] mt-1">Fixed price · PRG → Prague city centre</p>
           </div>
           <div className="flex flex-col gap-2">

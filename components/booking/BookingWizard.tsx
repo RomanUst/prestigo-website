@@ -157,7 +157,7 @@ export default function BookingWizard() {
       {/* Step content */}
       <div
         key={currentStep}
-        className={`animate-step-enter ${currentStep === 3 || currentStep === 6 ? '' : 'max-w-xl'}`}
+        className={`animate-step-enter ${currentStep === 3 || currentStep === 6 ? '' : 'max-w-xl'} ${currentStep > 1 && currentStep < 6 && currentStep !== 3 ? 'pb-24 md:pb-0' : ''}`}
       >
         {/* Step heading — full treatment for steps 1-6 */}
         {currentStep <= 6 ? (

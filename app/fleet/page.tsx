@@ -52,8 +52,8 @@ const vehicles: VehicleSpec[] = [
     description: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
     features: ['Leather interior', 'Dual-zone climate control', 'Onboard Wi-Fi', 'USB-C fast charging', 'Bottled water'],
     idealFor: 'Airport, city, solo business travel',
-    price: 'From €49',
-    priceAmount: '49',
+    price: 'From €69',
+    priceAmount: '69',
     photo: '/e-class-photo.png',
     photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
     specs: {

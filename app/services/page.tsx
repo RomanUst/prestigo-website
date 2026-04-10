@@ -21,7 +21,7 @@ const services = [
     title: 'Airport Transfer',
     description: 'Prague Václav Havel Airport — met on arrival, every time. Your driver monitors your flight in real time, holds your name board at Arrivals, and handles your luggage. Fixed price from the moment you book.',
     features: ['Flight tracking included', 'Meet & greet at Arrivals', 'Name board included', 'All terminals covered'],
-    price: 'From €49',
+    price: 'From €69',
     cta: 'LEARN MORE',
     href: '/services/airport-transfer',
     bookHref: '/book',
