@@ -8,6 +8,7 @@ import { computeOutboundLegTotal } from '@/lib/server-pricing'
 import { computeExtrasTotal } from '@/lib/extras'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { dateDiffDays } from '@/lib/pricing'
+import { enforceMaxBody } from '@/lib/request-guards'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -78,6 +79,9 @@ export async function GET(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const tooBig = enforceMaxBody(request, 5_000)
+  if (tooBig) return tooBig
+
   const { error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -127,6 +131,8 @@ export async function PATCH(request: Request) {
   return NextResponse.json({ ok: true })
 }
 
+const NO_CRLF = /^[^\r\n]*$/
+
 const manualBookingSchema = z.object({
   trip_type:           z.enum(['transfer', 'hourly', 'daily']),
   pickup_date:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -140,14 +146,15 @@ const manualBookingSchema = z.object({
   // and rejects with 422 if the client figure diverges by more than ADMIN_PRICE_TOLERANCE_CZK.
   // Prevents a compromised admin session from booking at arbitrary amounts.
   amount_czk:          z.number().int().positive(),
-  client_first_name:   z.string().min(1).max(100),
-  client_last_name:    z.string().min(1).max(100),
-  client_email:        z.string().email(),
-  client_phone:        z.string().min(1).max(50),
+  // Single-line PII fields: block CRLF to prevent header injection in email subjects.
+  client_first_name:   z.string().min(1).max(100).regex(NO_CRLF),
+  client_last_name:    z.string().min(1).max(100).regex(NO_CRLF),
+  client_email:        z.string().email().max(200).regex(NO_CRLF),
+  client_phone:        z.string().min(1).max(50).regex(NO_CRLF),
   hours:               z.number().int().min(1).max(24).optional(),
   return_date:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-  flight_number:       z.string().max(20).optional(),
-  terminal:            z.string().max(20).optional(),
+  flight_number:       z.string().max(20).regex(NO_CRLF).optional(),
+  terminal:            z.string().max(20).regex(NO_CRLF).optional(),
   special_requests:    z.string().max(1000).optional(),
   // Extras — populated when booking is created via the wizard
   extra_child_seat:    z.boolean().optional(),
@@ -167,6 +174,9 @@ const manualBookingSchema = z.object({
 const ADMIN_PRICE_TOLERANCE_CZK = 2
 
 export async function POST(request: Request) {
+  const tooBig = enforceMaxBody(request, 20_000)
+  if (tooBig) return tooBig
+
   const { error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })

@@ -8,6 +8,7 @@ import { eurToCzk } from '@/lib/currency'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { enforceMaxBody, NO_LINE_BREAKS } from '@/lib/request-guards'
 import {
   computeOutboundLegTotal,
   computeReturnLegTotal,
@@ -31,25 +32,45 @@ function getStripe(): Stripe {
 const TRIP_TYPES: TripType[] = ['transfer', 'hourly', 'daily', 'round_trip']
 
 // Defense-in-depth zod schema — validates primitives BEFORE any RPC or pricing call.
-// Uses .passthrough() on bookingData to allow PII and extra string fields without
-// listing each one explicitly. Amount-shaped fields (combinedTotal, amountEur, etc.)
-// are permitted in the passthrough but are never read — server always recomputes.
+// Uses .catchall() with a bounded string to allow PII + extras fields without
+// enumerating each one, while still enforcing a hard per-field length cap so a
+// client can't blow up memory with a single 10 MB field that passes .passthrough().
+// Amount-shaped fields (combinedTotal, amountEur, etc.) are tolerated but never
+// read — the server always recomputes.
+//
+// NO_LINE_BREAKS is enforced on email/name/phone/flight/terminal below to block
+// SMTP header injection downstream. Address fields and specialRequests allow
+// newlines (they're only embedded in HTML-escaped email bodies, not headers).
+const BOUNDED_STRING = z.string().max(2000)
+
 const createPaymentIntentSchema = z.object({
   bookingData: z.object({
     tripType: z.enum(['transfer', 'hourly', 'daily', 'round_trip']),
     vehicleClass: z.enum(['business', 'first_class', 'business_van']),
-    currency: z.string().optional(),
-    distanceKm: z.string().optional(),
-    hours: z.string().optional(),
+    currency: z.string().max(10).optional(),
+    distanceKm: z.string().max(20).optional(),
+    hours: z.string().max(5).optional(),
     pickupDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
     pickupTime: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal('')),
     returnDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().or(z.literal('')),
     returnTime: z.string().regex(/^\d{2}:\d{2}$/).optional().or(z.literal('')),
-    quoteMode: z.string().optional(),
-  }).passthrough(), // Allow extra string fields (PII, extras, addresses) without listing each
+    quoteMode: z.string().max(10).optional(),
+    // PII fields — strict length + anti header injection on single-line fields
+    firstName:   z.string().max(100).regex(NO_LINE_BREAKS).optional(),
+    lastName:    z.string().max(100).regex(NO_LINE_BREAKS).optional(),
+    email:       z.string().email().max(200).regex(NO_LINE_BREAKS).optional(),
+    phone:       z.string().max(30).regex(NO_LINE_BREAKS).optional(),
+    flightNumber: z.string().max(20).regex(NO_LINE_BREAKS).optional(),
+    terminal:     z.string().max(50).regex(NO_LINE_BREAKS).optional(),
+  }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
 export async function POST(req: Request) {
+  // 50 KB handles even the largest realistic booking payload. Anything
+  // beyond this is abusive — short-circuit before buffering the body.
+  const tooBig = enforceMaxBody(req, 50_000)
+  if (tooBig) return tooBig
+
   const { allowed, remaining, limit } = await checkRateLimit('/api/create-payment-intent', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(

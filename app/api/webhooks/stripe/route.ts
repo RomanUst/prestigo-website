@@ -46,6 +46,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Webhook Error: ${message}` }, { status: 400 })
   }
 
+  // ── MED-1: Event-level idempotency via stripe_processed_events ──
+  // payment_intent.succeeded is already idempotent via the
+  // (payment_intent_id, leg) UNIQUE on bookings, but charge.refunded
+  // and any future event types are not. This insert uses the PRIMARY
+  // KEY on event_id to atomically claim the event: on first delivery
+  // we insert and continue; on every subsequent retry Stripe will
+  // retry until we return 2xx, and the 23505 short-circuit here
+  // makes the retry a cheap no-op rather than re-running the handler.
+  {
+    const supabase = createSupabaseServiceClient()
+    const { error: claimErr } = await supabase
+      .from('stripe_processed_events')
+      .insert({ event_id: event.id, event_type: event.type })
+    if (claimErr) {
+      const code = (claimErr as { code?: string }).code
+      if (code === '23505') {
+        // Duplicate event — already processed, respond 2xx so Stripe stops retrying.
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+      // Transient DB error — let Stripe retry the whole event later.
+      console.error('[webhook] stripe_processed_events insert failed:', claimErr.message)
+      return NextResponse.json({ error: 'Transient DB error' }, { status: 500 })
+    }
+  }
+
   if (event.type === 'charge.refunded') {
     await handleChargeRefunded(event.data.object as Stripe.Charge)
     return NextResponse.json({ received: true })

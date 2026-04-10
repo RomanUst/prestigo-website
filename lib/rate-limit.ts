@@ -24,6 +24,21 @@ export interface RateLimitResult {
   allowed: boolean
   remaining: number
   limit: number
+  /** True when the check fell back to in-memory or was forcibly denied (Upstash down). */
+  degraded?: boolean
+}
+
+export interface RateLimitOptions {
+  /**
+   * If true and the distributed limiter (Upstash) is unavailable, the check
+   * returns `{ allowed: false, degraded: true }` instead of silently falling
+   * back to in-memory. Use for auth-critical paths like /admin/login where
+   * a brief outage should NOT open a brute-force window across serverless
+   * instances. For user-facing flows (calculate-price, contact), prefer the
+   * default fail-open behaviour so transient Upstash issues don't break
+   * the booking funnel.
+   */
+  failClosed?: boolean
 }
 
 // ── Upstash REST API (production) ─────────────────────────────────────────────
@@ -117,8 +132,19 @@ function checkInMemory(pathname: string, ip: string, limit: number): RateLimitRe
 /**
  * Check whether the given IP is within the rate limit for this route.
  * Returns `allowed: true` for routes that have no configured limit.
+ *
+ * Fail-open by default: if Upstash is unreachable, falls through to an
+ * in-memory per-instance counter. On Vercel this is per serverless instance,
+ * so an attacker hitting N cold-started instances gets N × limit attempts.
+ *
+ * Pass `failClosed: true` for auth-critical paths to deny the request when
+ * the distributed limiter is unavailable.
  */
-export async function checkRateLimit(pathname: string, ip: string): Promise<RateLimitResult> {
+export async function checkRateLimit(
+  pathname: string,
+  ip: string,
+  options: RateLimitOptions = {}
+): Promise<RateLimitResult> {
   const limit = LIMITS[pathname]
   if (!limit) return { allowed: true, remaining: Infinity, limit: Infinity }
 
@@ -126,7 +152,19 @@ export async function checkRateLimit(pathname: string, ip: string): Promise<Rate
   const upstash = await checkUpstash(key, limit)
   if (upstash !== null) return upstash
 
-  return checkInMemory(pathname, ip, limit)
+  // Upstash is down. Log every fallback so repeated occurrences are visible
+  // in Vercel logs (previously this was a single warn inside checkUpstash).
+  console.error('[rate-limit] Upstash unavailable — fallback path', {
+    pathname,
+    failClosed: Boolean(options.failClosed),
+  })
+
+  if (options.failClosed) {
+    return { allowed: false, remaining: 0, limit, degraded: true }
+  }
+
+  const result = checkInMemory(pathname, ip, limit)
+  return { ...result, degraded: true }
 }
 
 /** Extract the best available client IP from a Next.js Request */

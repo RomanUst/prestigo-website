@@ -13,8 +13,15 @@ export async function signIn(prevState: { error: string } | null, formData: Form
     headersList.get('x-real-ip') ??
     'unknown'
 
-  const { allowed } = await checkRateLimit('/admin/login', ip)
-  if (!allowed) {
+  // fail-closed: if the distributed limiter (Upstash) is unavailable, deny
+  // the login rather than fall back to an in-memory per-instance counter
+  // that would open a cross-instance brute-force window on Vercel.
+  const rl = await checkRateLimit('/admin/login', ip, { failClosed: true })
+  if (!rl.allowed) {
+    if (rl.degraded) {
+      console.error('[admin/login] rate limiter degraded — denying login', { ip })
+      return { error: 'Login is temporarily unavailable. Please try again shortly.' }
+    }
     return { error: 'Too many login attempts. Please try again in a minute.' }
   }
 

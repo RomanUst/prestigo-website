@@ -11,13 +11,27 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/create-payment-intent',
 ]
 
+// Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also
+// rejected. These are paths an attacker could attempt to reach from a
+// non-browser or proxy context that strips Origin. We accept a small amount
+// of false-positive risk (curl/Postman users) in exchange for closing the
+// no-Origin bypass — /api/webhooks/stripe is NOT in this list because Stripe
+// is explicitly a server-to-server caller.
+const CSRF_STRICT_ORIGIN_REQUIRED = [
+  '/api/admin',
+  '/api/create-payment-intent',
+]
+
 /**
  * CSRF protection via Origin header validation for all mutation endpoints.
  *
  * How it works:
- * - Browsers always include the `Origin` header on cross-origin requests.
+ * - Browsers always include the `Origin` header on cross-origin mutations.
  * - If the Origin is present but doesn't match an allowed origin → 403.
- * - If Origin is absent (server-to-server, curl) → allow through (not a browser CSRF vector).
+ * - For sensitive paths (CSRF_STRICT_ORIGIN_REQUIRED) a missing Origin is ALSO 403.
+ * - For less-sensitive mutation paths, a missing Origin is allowed through
+ *   (some legitimate non-browser callers may need this) — but those paths
+ *   still rely on auth + rate limiting for defense.
  * - Combined with Supabase SSR's SameSite=Lax cookies, this gives defence-in-depth.
  */
 function checkCsrf(request: NextRequest): NextResponse | null {
@@ -27,7 +41,14 @@ function checkCsrf(request: NextRequest): NextResponse | null {
   if (!MUTATION_METHODS.has(request.method)) return null
 
   const origin = request.headers.get('origin')
-  if (!origin) return null // no Origin header → server-to-server, not a browser CSRF attack
+  const strict = CSRF_STRICT_ORIGIN_REQUIRED.some(p => pathname.startsWith(p))
+
+  if (!origin) {
+    if (strict) {
+      return NextResponse.json({ error: 'Origin header required' }, { status: 403 })
+    }
+    return null // no Origin header → server-to-server, not a browser CSRF attack
+  }
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
 

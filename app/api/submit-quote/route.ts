@@ -5,11 +5,12 @@ import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { saveBooking, withRetry, buildBookingRow } from '@/lib/supabase'
 import { sendManagerAlert, sendEmergencyAlert } from '@/lib/email'
 import type { BookingEmailData } from '@/lib/email'
+import { enforceMaxBody, safeEmail, safeString } from '@/lib/request-guards'
 
 const submitQuoteSchema = z.object({
   tripType: z.enum(['transfer', 'hourly', 'daily']),
-  origin: z.string().min(1).max(300),
-  destination: z.string().min(1).max(300),
+  origin: safeString(300).min(1),
+  destination: safeString(300).min(1),
   pickupDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD'),
   pickupTime: z.string().regex(/^\d{2}:\d{2}$/, 'Must be HH:MM'),
   vehicleClass: z.enum(['economy', 'business', 'first_class', 'business_van']),
@@ -22,17 +23,18 @@ const submitQuoteSchema = z.object({
     childSeat: z.boolean().optional(),
     meetAndGreet: z.boolean().optional(),
     extraLuggage: z.boolean().optional(),
-  }).optional(),
+  }).strict().optional(),
   passengerDetails: z.object({
-    firstName: z.string().min(1).max(100),
-    lastName: z.string().min(1).max(100),
-    email: z.string().email().max(200),
-    phone: z.string().min(5).max(30),
-    flightNumber: z.string().max(20).optional(),
-    terminal: z.string().max(50).optional(),
+    firstName: safeString(100).min(1),
+    lastName:  safeString(100).min(1),
+    email:     safeEmail(200),
+    phone:     safeString(30).min(5),
+    flightNumber: safeString(20).optional(),
+    terminal:     safeString(50).optional(),
+    // specialRequests is free-form; newlines allowed, length capped.
     specialRequests: z.string().max(1000).optional(),
-  }),
-})
+  }).strict(),
+}).strict()
 
 function generateQuoteReference(): string {
   const now = new Date()
@@ -42,6 +44,10 @@ function generateQuoteReference(): string {
 }
 
 export async function POST(req: Request) {
+  // 20 KB is plenty for a quote submission (addresses + passenger details).
+  const tooBig = enforceMaxBody(req, 20_000)
+  if (tooBig) return tooBig
+
   const { allowed, remaining, limit } = await checkRateLimit('/api/submit-quote', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(

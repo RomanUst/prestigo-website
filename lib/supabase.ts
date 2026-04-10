@@ -15,6 +15,29 @@ export function createSupabaseServiceClient() {
   )
 }
 
+/**
+ * Least-privilege read-only client for tables with a `public_read` RLS policy
+ * (currently: pricing_config, pricing_globals, coverage_zones).
+ *
+ * Using the anon key here instead of the service_role key means a bug that
+ * accidentally calls `.delete()` or `.update()` on these tables silently
+ * no-ops instead of corrupting data. Prefer this client in route handlers
+ * that only need to READ public-config tables.
+ */
+export function createSupabasePublicReadClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false,
+      },
+    }
+  )
+}
+
 export async function withRetry<T>(
   fn: () => Promise<T>,
   maxAttempts = 3,

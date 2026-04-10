@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
+import { enforceMaxBody } from '@/lib/request-guards'
 import { buildPriceMap, dateDiffDays } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
-import { createSupabaseServiceClient } from '@/lib/supabase'
+import { createSupabasePublicReadClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 // Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
@@ -43,6 +44,10 @@ function isNearAirport(pt: { lat: number; lng: number } | null | undefined): boo
 }
 
 export async function POST(req: Request) {
+  // 5 KB is generous for a price lookup (two coords + flags).
+  const tooBig = enforceMaxBody(req, 5_000)
+  if (tooBig) return tooBig
+
   const { allowed, remaining, limit } = await checkRateLimit('/api/calculate-price', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(
@@ -103,8 +108,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
     }
 
-    // ZONES-04 + ZONES-05: Zone check for transfer trips only
-    const supabase = createSupabaseServiceClient()
+    // ZONES-04 + ZONES-05: Zone check for transfer trips only.
+    // Uses the least-privilege public-read client (anon key) so an accidental
+    // write to coverage_zones here would be silently no-op'd by RLS instead
+    // of succeeding via service_role privilege escalation.
+    const supabase = createSupabasePublicReadClient()
     const { data: zones } = await supabase
       .from('coverage_zones')
       .select('id, geojson')
