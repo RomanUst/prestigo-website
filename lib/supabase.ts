@@ -206,7 +206,13 @@ export function buildBookingRows(
     flight_number: null,
     terminal: null,
     special_requests: meta.specialRequests || null,
-  } as ReturnType<typeof buildBookingRow>
+    // Double-cast: `leg: 'return'` is intentionally incompatible with the
+    // outbound-shape leg: 'outbound' literal from buildBookingRow, so a
+    // direct `as` is rejected by TS strict mode. The runtime shape is
+    // byte-compatible with the DB row, which is what saveRoundTripBookings
+    // ultimately cares about. `as unknown as` is the TS-sanctioned escape
+    // hatch for this case (suggested by the compiler error itself).
+  } as unknown as ReturnType<typeof buildBookingRow>
 
   return { outbound, return: returnRow }
 }
