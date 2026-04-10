@@ -143,8 +143,8 @@ export default function AboutPage() {
             className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full border border-anthracite-light flex-shrink-0"
             style={{
               backgroundImage: `url('/roman-ustyugov-founder.jpg')`,
-              backgroundSize: '130%',
-              backgroundPosition: 'center 25%',
+              backgroundSize: '105%',
+              backgroundPosition: 'center -5%',
               backgroundRepeat: 'no-repeat',
             }}
             role="img"
