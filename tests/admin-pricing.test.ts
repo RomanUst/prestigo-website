@@ -56,6 +56,7 @@ const validPutBody = {
     extra_child_seat: 20,
     extra_meet_greet: 30,
     extra_luggage: 25,
+    return_discount_percent: 10,
     holiday_dates: [],
   },
 }
@@ -225,6 +226,7 @@ describe('/api/admin/pricing', () => {
             extra_child_seat: 20,
             extra_meet_greet: 30,
             extra_luggage: 25,
+            return_discount_percent: 10,
             holiday_dates: ['2026-12-25', '2026-12-31'],
           },
         }
@@ -267,5 +269,124 @@ describe('/api/admin/pricing', () => {
         expect(json).toHaveProperty('issues')
       })
     })
+  })
+})
+
+describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
+  it('GET returns globals.return_discount_percent from Supabase', async () => {
+    // Arrange: admin auth + supabase stub returns a row with return_discount_percent=15
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'admin-uid', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+
+    const configSelectFn = vi.fn().mockResolvedValue({ data: [], error: null })
+    const globalsSingleFn = vi.fn().mockResolvedValue({
+      data: {
+        id: 1,
+        airport_fee: 0,
+        night_coefficient: 1,
+        holiday_coefficient: 1,
+        extra_child_seat: 0,
+        extra_meet_greet: 0,
+        extra_luggage: 0,
+        holiday_dates: [],
+        return_discount_percent: 15,
+      },
+      error: null,
+    })
+    const globalsEqFn = vi.fn().mockReturnValue({ single: globalsSingleFn })
+    const globalsSelectFn = vi.fn().mockReturnValue({ eq: globalsEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: configSelectFn })
+      .mockReturnValueOnce({ select: globalsSelectFn })
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.globals.return_discount_percent).toBe(15)
+    expect(json.globals).not.toHaveProperty('return_discount_pct')
+  })
+
+  it('PUT accepts return_discount_percent and passes it to pricing_globals upsert', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'admin-uid', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+
+    const configUpsertFn = vi.fn().mockResolvedValue({ error: null })
+    const globalsUpsertFn = vi.fn().mockResolvedValue({ error: null })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ upsert: configUpsertFn })
+      .mockReturnValueOnce({ upsert: globalsUpsertFn })
+
+    const body = {
+      config: [
+        { vehicle_class: 'business',     rate_per_km: 50, hourly_rate: 1500, daily_rate: 12000, min_fare: 500 },
+        { vehicle_class: 'first_class',  rate_per_km: 80, hourly_rate: 2500, daily_rate: 20000, min_fare: 800 },
+        { vehicle_class: 'business_van', rate_per_km: 60, hourly_rate: 1800, daily_rate: 15000, min_fare: 600 },
+      ],
+      globals: {
+        airport_fee: 200,
+        night_coefficient: 1.3,
+        holiday_coefficient: 1.5,
+        extra_child_seat: 0,
+        extra_meet_greet: 400,
+        extra_luggage: 150,
+        return_discount_percent: 20,
+        holiday_dates: ['2026-12-25'],
+      },
+    }
+
+    const res = await PUT(new Request('http://localhost/api/admin/pricing', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }))
+
+    expect(res.status).toBe(200)
+    expect(globalsUpsertFn).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1, return_discount_percent: 20 }),
+      { onConflict: 'id' },
+    )
+  })
+
+  it('PUT rejects payload that uses the OLD column name return_discount_pct (regression guard)', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'admin-uid', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+
+    const body = {
+      config: [
+        { vehicle_class: 'business',     rate_per_km: 50, hourly_rate: 1500, daily_rate: 12000, min_fare: 500 },
+        { vehicle_class: 'first_class',  rate_per_km: 80, hourly_rate: 2500, daily_rate: 20000, min_fare: 800 },
+        { vehicle_class: 'business_van', rate_per_km: 60, hourly_rate: 1800, daily_rate: 15000, min_fare: 600 },
+      ],
+      globals: {
+        airport_fee: 200,
+        night_coefficient: 1.3,
+        holiday_coefficient: 1.5,
+        extra_child_seat: 0,
+        extra_meet_greet: 400,
+        extra_luggage: 150,
+        return_discount_pct: 20, // ← WRONG NAME — missing required return_discount_percent
+        holiday_dates: [],
+      },
+    }
+
+    const res = await PUT(new Request('http://localhost/api/admin/pricing', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    }))
+
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.error).toBe('Invalid payload')
+    // Zod issue path should mention return_discount_percent as required
+    expect(JSON.stringify(json.issues)).toContain('return_discount_percent')
   })
 })
