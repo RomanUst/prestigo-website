@@ -67,8 +67,13 @@ export default function Hero() {
               <a href="#book" className="btn-primary">
                 Book a transfer
               </a>
-              <a href="/corporate" className="btn-ghost">
-                Corporate accounts
+              <a
+                href="https://wa.me/420725986855?text=Hello%20PRESTIGO%2C%20I%20would%20like%20to%20book%20a%20transfer."
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-ghost"
+              >
+                Book via WhatsApp
               </a>
             </div>
           </div>
