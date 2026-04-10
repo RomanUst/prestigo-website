@@ -139,22 +139,17 @@ export default function AboutPage() {
       {/* Founder */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-start">
-          <div>
-            <picture>
-              <source srcSet="/roman-ustyugov-founder.avif" type="image/avif" />
-              <source srcSet="/roman-ustyugov-founder.webp" type="image/webp" />
-              <img
-                src={founder.image}
-                alt={founder.imageAlt}
-                width={220}
-                height={220}
-                loading="lazy"
-                decoding="async"
-                className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full object-cover border border-anthracite-light"
-                style={{ objectPosition: 'center 15%' }}
-              />
-            </picture>
-          </div>
+          <div
+            className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full border border-anthracite-light flex-shrink-0"
+            style={{
+              backgroundImage: `url('/roman-ustyugov-founder.jpg')`,
+              backgroundSize: '130%',
+              backgroundPosition: 'center 25%',
+              backgroundRepeat: 'no-repeat',
+            }}
+            role="img"
+            aria-label={founder.imageAlt}
+          />
           <div>
             <p className="label mb-6">Meet the founder</p>
             <span className="copper-line mb-8 block" />
