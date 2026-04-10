@@ -3,6 +3,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import Stripe from 'stripe'
+import { czkToEur } from '@/lib/currency'
 
 function getStripe() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -23,6 +24,7 @@ async function getAdminUser() {
 
 const cancelSchema = z.object({
   id: z.string().uuid(),
+  leg: z.enum(['outbound', 'return']).optional(),
 })
 
 const NON_CANCELLABLE_STATUSES = ['cancelled', 'completed']
@@ -45,7 +47,7 @@ export async function POST(request: Request) {
 
   const { data: booking, error: fetchError } = await supabase
     .from('bookings')
-    .select('id, status, payment_intent_id')
+    .select('id, status, payment_intent_id, outbound_amount_czk, return_amount_czk')
     .eq('id', parsed.data.id)
     .single()
 
@@ -62,15 +64,50 @@ export async function POST(request: Request) {
 
   // If online booking with Stripe payment, issue refund first
   if (booking.payment_intent_id) {
+    // Build refund params: per-leg partial for round-trip, full for one-way
+    let refundParams: Stripe.RefundCreateParams = {
+      payment_intent: booking.payment_intent_id,
+    }
+
+    if (parsed.data.leg) {
+      // Round-trip partial refund path (D-13)
+      const legAmountCzk = parsed.data.leg === 'outbound'
+        ? booking.outbound_amount_czk
+        : booking.return_amount_czk
+
+      if (legAmountCzk === null || legAmountCzk === undefined) {
+        return NextResponse.json(
+          { error: 'Cannot compute per-leg refund: missing leg amount' },
+          { status: 422 }
+        )
+      }
+
+      const legAmountCents = Math.round(czkToEur(legAmountCzk) * 100)
+
+      refundParams = {
+        payment_intent: booking.payment_intent_id,
+        amount: legAmountCents,
+        metadata: { leg: parsed.data.leg }, // Phase 27 webhook contract
+      }
+    }
+
     let refund
     try {
       const stripe = getStripe()
-      refund = await stripe.refunds.create({ payment_intent: booking.payment_intent_id })
+      refund = await stripe.refunds.create(refundParams)
     } catch (stripeError) {
+      // D-14: Stripe over-refund / already-refunded → 422, not 502
+      if (stripeError instanceof Stripe.errors.StripeInvalidRequestError) {
+        return NextResponse.json(
+          { error: 'Refund amount exceeds remaining refundable balance. Contact Stripe support.' },
+          { status: 422 }
+        )
+      }
       const msg = stripeError instanceof Error ? stripeError.message : 'Stripe refund failed'
       return NextResponse.json({ error: msg }, { status: 502 })
     }
 
+    // D-13: DB update scoped to `id` ONLY — never to payment_intent_id — so the paired leg is untouched
     const { error: dbError } = await supabase
       .from('bookings')
       .update({ status: 'cancelled' })
