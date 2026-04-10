@@ -50,6 +50,7 @@ interface PaymentFormProps {
   totalEur: number
   selectedCurrency: 'eur' | 'czk'
   bookingRef: string
+  returnBookingRef: string   // empty string for one-way, PRG-... for round-trip (D-11)
   // Snapshot data for the GA4 purchase event on the confirmation page.
   // Passed down so PaymentForm can persist it to sessionStorage immediately
   // before the Stripe redirect (which wipes in-memory Zustand state).
@@ -67,6 +68,7 @@ function PaymentForm({
   totalEur,
   selectedCurrency,
   bookingRef,
+  returnBookingRef,
   analyticsItems,
 }: PaymentFormProps) {
   const stripe = useStripe()
@@ -99,10 +101,16 @@ function PaymentForm({
       items: analyticsItems,
     })
 
+    // D-11: URL param name is `returnRef` (NOT `ref2`). Both validated via isValidRef
+    // on the confirmation page.
+    const confirmPath = returnBookingRef
+      ? `/book/confirmation?ref=${bookingRef}&returnRef=${returnBookingRef}`
+      : `/book/confirmation?ref=${bookingRef}`
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/book/confirmation?ref=${bookingRef}`,
+        return_url: `${window.location.origin}${confirmPath}`,
       },
       redirect: 'if_required',
     })
@@ -115,7 +123,7 @@ function PaymentForm({
       )
       setIsProcessing(false)
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      window.location.href = `${window.location.origin}/book/confirmation?ref=${bookingRef}`
+      window.location.href = `${window.location.origin}${confirmPath}`
     }
   }
 
@@ -202,6 +210,7 @@ export default function Step6Payment() {
   const [selectedCurrency, setSelectedCurrency] = useState<'eur' | 'czk'>('eur')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingRef, setBookingRef] = useState<string>('')
+  const [returnBookingRef, setReturnBookingRef] = useState<string>('')
   const [paymentError, setPaymentError] = useState<string | null>(null)
 
   const [promoInput, setPromoInput] = useState('')
@@ -324,6 +333,7 @@ export default function Step6Payment() {
         }
         setClientSecret(data.clientSecret)
         setBookingRef(data.bookingReference)
+        setReturnBookingRef(data.returnBookingReference || '')
       } catch (err) {
         console.error('create-payment-intent fetch error:', err)
         setPaymentError('Network error — please refresh and try again')
@@ -509,6 +519,7 @@ export default function Step6Payment() {
               totalEur={discountedTotalEur}
               selectedCurrency={selectedCurrency}
               bookingRef={bookingRef}
+              returnBookingRef={returnBookingRef}
               analyticsItems={analyticsItems}
             />
           </Elements>
