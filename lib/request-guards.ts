@@ -1,6 +1,78 @@
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 
+// ─────────────────────────────────────────────────────────────────────────────
+// PII-safe logging
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Whitelist of fields from Stripe PaymentIntent metadata (and related booking
+ * rows) that are SAFE to print to Vercel logs. Everything else — first/last
+ * name, email, phone, flight number, terminal, address — is considered PII
+ * and must not end up in log output where it could be indexed, retained, or
+ * surfaced to on-call staff who don't need it.
+ */
+const SAFE_META_KEYS = [
+  'bookingReference',
+  'returnBookingReference',
+  'booking_reference',
+  'tripType',
+  'trip_type',
+  'vehicleClass',
+  'vehicle_class',
+  'pickupDate',
+  'pickup_date',
+  'pickupTime',
+  'pickup_time',
+  'returnDate',
+  'return_date',
+  'returnTime',
+  'return_time',
+  'distanceKm',
+  'distance_km',
+  'hours',
+  'passengers',
+  'luggage',
+  'currency',
+  'amountEur',
+  'amount_eur',
+  'amountCzk',
+  'amount_czk',
+  'outboundAmountCzk',
+  'outbound_amount_czk',
+  'returnAmountCzk',
+  'return_amount_czk',
+  'discountPct',
+  'promoCode',
+  'leg',
+  'status',
+  'booking_source',
+  'booking_type',
+  'payment_intent_id',
+] as const
+
+/**
+ * Build a log-safe view of a PaymentIntent metadata or booking row by keeping
+ * ONLY the whitelisted fields above. Unknown fields are dropped rather than
+ * renamed/redacted, so accidentally introducing a new PII column cannot
+ * quietly leak to logs.
+ *
+ * Usage:
+ *   console.error('[webhook] booking save failed', safePiiSummary(meta))
+ */
+export function safePiiSummary(
+  obj: Record<string, unknown> | null | undefined
+): Record<string, unknown> {
+  if (!obj) return {}
+  const out: Record<string, unknown> = {}
+  for (const key of SAFE_META_KEYS) {
+    if (key in obj && obj[key] !== undefined) {
+      out[key] = obj[key]
+    }
+  }
+  return out
+}
+
 /**
  * Guard against oversized JSON bodies BEFORE parsing.
  *

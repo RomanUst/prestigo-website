@@ -17,6 +17,7 @@ import {
 } from '@/lib/email'
 import type { BookingEmailData, RoundTripEmailData } from '@/lib/email'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
+import { safePiiSummary } from '@/lib/request-guards'
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
 // NOTE: the env-var guard is intentionally placed AFTER new Stripe() so the test mock
@@ -93,14 +94,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ received: true })
     }
 
-    // Inconsistent metadata (tripType set but no return ref, or vice versa) — log + fall through
+    // Inconsistent metadata (tripType set but no return ref, or vice versa) — log + fall through.
+    // Routed through safePiiSummary so the log line cannot leak firstName/email/phone/address
+    // even if someone expands this call site later to include more context.
     if (meta.tripType === 'round_trip' || (meta.returnBookingReference && meta.returnBookingReference.length > 0)) {
       console.error(
         'payment_intent.succeeded: inconsistent round-trip metadata; falling back to one-way',
         {
-          bookingReference: meta.bookingReference || 'UNKNOWN',
+          ...safePiiSummary(meta),
           hasReturnRef: Boolean(meta.returnBookingReference),
-          tripType: meta.tripType,
         }
       )
     }

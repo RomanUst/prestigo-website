@@ -85,6 +85,15 @@ const nextConfig: NextConfig = {
             value: "nosniff",
           },
           {
+            // Modern browsers ignore this header (CSP is the replacement),
+            // but legacy Internet Explorer and some older Safari/Android
+            // versions shipped a buggy XSS auditor that could be abused to
+            // create its own XSS via side-channel. Explicitly disabling it
+            // is the OWASP-recommended value for modern applications.
+            key: "X-XSS-Protection",
+            value: "0",
+          },
+          {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
           },

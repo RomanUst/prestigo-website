@@ -50,32 +50,37 @@ export async function GET(request: Request) {
   const search = searchParams.get('search')
 
   const supabase = createSupabaseServiceClient()
-  let query = supabase
-    .from('bookings')
-    .select('*, linked_booking:linked_booking_id(booking_reference)', { count: 'exact' })
-    .order('created_at', { ascending: false })
 
-  if (startDate) query = query.gte('pickup_date', startDate)
-  if (endDate) query = query.lte('pickup_date', endDate)
-  if (tripType) query = query.eq('trip_type', tripType)
-  if (search) {
-    // Strip characters that have structural meaning in PostgREST filter expressions
-    // before interpolating into the .or() string.
-    const safeSearch = search.replace(/[^a-zA-Z0-9 \-]/g, '').slice(0, 100)
-    if (safeSearch) {
-      query = query.or(
-        `client_first_name.ilike.%${safeSearch}%,client_last_name.ilike.%${safeSearch}%,booking_reference.ilike.%${safeSearch}%`
-      )
-    }
+  // LOW-1 mitigation: route the search term through a parameterized RPC
+  // (admin_search_bookings) instead of building a PostgREST `.or()` filter
+  // from concatenated user input. Postgres binds p_query as a positional
+  // parameter, eliminating any chance of filter-expression injection if a
+  // future contributor relaxes the input whitelist.
+  //
+  // We still cap the search string length defensively.
+  const boundedSearch = search ? search.trim().slice(0, 100) : null
+
+  const { data, error: dbError } = await supabase
+    .rpc('admin_search_bookings', {
+      p_query:      boundedSearch,
+      p_start_date: startDate ?? null,
+      p_end_date:   endDate ?? null,
+      p_trip_type:  tripType ?? null,
+      p_offset:     page * limit,
+      p_limit:      limit,
+    })
+
+  if (dbError) {
+    console.error('[admin/bookings.GET] RPC failed:', dbError.message)
+    return NextResponse.json({ error: 'DB read failed' }, { status: 500 })
   }
 
-  query = query.range(page * limit, page * limit + limit - 1)
+  // admin_search_bookings returns a single row: { rows: JSONB[], total_count: bigint }
+  const row = Array.isArray(data) && data.length > 0 ? data[0] : null
+  const bookings = row?.rows ?? []
+  const total = row?.total_count != null ? Number(row.total_count) : 0
 
-  const { data, count, error: dbError } = await query
-
-  if (dbError) return NextResponse.json({ error: 'DB read failed' }, { status: 500 })
-
-  return NextResponse.json({ bookings: data, total: count ?? 0, page, limit })
+  return NextResponse.json({ bookings, total, page, limit })
 }
 
 export async function PATCH(request: Request) {
