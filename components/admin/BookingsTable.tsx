@@ -246,22 +246,26 @@ export default function BookingsTable() {
       if (debouncedSearch) params.set('search', debouncedSearch)
 
       const res = await fetch(`/api/admin/bookings?${params.toString()}`)
-      if (res.ok) {
-        const data = await res.json()
-        setBookings(data.bookings ?? [])
-        setTotal(data.total ?? 0)
-        // Seed localNotes for bookings that don't already have a local edit
-        const fetched = data.bookings ?? []
-        setLocalNotes(prev => {
-          const next = { ...prev }
-          fetched.forEach((b: Booking) => {
-            if (!(b.id in next)) {
-              next[b.id] = b.operator_notes ?? ''
-            }
-          })
-          return next
-        })
+      if (!res.ok) {
+        console.error('Failed to load bookings', res.status)
+        return
       }
+      const data = await res.json()
+      setBookings(data.bookings ?? [])
+      setTotal(data.total ?? 0)
+      // Seed localNotes for bookings that don't already have a local edit
+      const fetched = data.bookings ?? []
+      setLocalNotes(prev => {
+        const next = { ...prev }
+        fetched.forEach((b: Booking) => {
+          if (!(b.id in next)) {
+            next[b.id] = b.operator_notes ?? ''
+          }
+        })
+        return next
+      })
+    } catch (err) {
+      console.error('fetchBookings error', err)
     } finally {
       setLoading(false)
     }
