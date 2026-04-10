@@ -53,7 +53,7 @@ describe('PriceSummary', () => {
         priceBreakdown: outboundBreakdown,
         roundTripPriceBreakdown: returnLegBreakdown,
         quoteMode: false,
-        extras: { childSeat: false, meetAndGreet: false, extraLuggage: false },
+        extras: { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false },
         currentStep: 3,
       })
     })

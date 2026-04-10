@@ -153,12 +153,16 @@ export async function POST(req: Request) {
 
     const extrasTotalEur = computeExtrasTotal(
       {
+        infantSeat: false,
         childSeat: bookingData.extraChildSeat === 'true',
+        boosterSeat: false,
         meetAndGreet: bookingData.extraMeetGreet === 'true',
         extraLuggage: bookingData.extraLuggage === 'true',
       },
       {
+        infantSeat: 0,
         childSeat: rates.globals.extraChildSeat,
+        boosterSeat: 0,
         meetAndGreet: rates.globals.extraMeetGreet,
         extraLuggage: rates.globals.extraLuggage,
       }

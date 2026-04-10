@@ -1,24 +1,52 @@
 import type { Extras } from '@/types/booking'
 
-// TODO: set production extras prices — these are placeholders
 export const EXTRAS_PRICES: Record<keyof Extras, number> = {
-  childSeat: 15,
-  meetAndGreet: 25,
-  extraLuggage: 20,
+  infantSeat:    0,
+  childSeat:     0,
+  boosterSeat:   0,
+  meetAndGreet:  0,
+  extraLuggage:  0,
 }
 
-export const EXTRAS_CONFIG: { key: keyof Extras; label: string; description: string; price: number }[] = [
-  { key: 'childSeat', label: 'Child Seat', description: 'Safety seat for children up to 36 kg', price: EXTRAS_PRICES.childSeat },
-  { key: 'meetAndGreet', label: 'Meet & Greet', description: 'Name board at arrivals', price: EXTRAS_PRICES.meetAndGreet },
-  { key: 'extraLuggage', label: 'Extra Luggage', description: 'Additional luggage allowance', price: EXTRAS_PRICES.extraLuggage },
+export type ExtrasConfigItem = {
+  key: keyof Extras
+  label: string
+  description: string
+  price: number
+  alwaysSelected?: boolean
+}
+
+export const EXTRAS_CONFIG: ExtrasConfigItem[] = [
+  {
+    key: 'meetAndGreet',
+    label: 'Meet & Greet',
+    description: 'Driver with name board at arrivals — always included',
+    price: 0,
+    alwaysSelected: true,
+  },
+  {
+    key: 'infantSeat',
+    label: 'Infant Seat (0–9 kg)',
+    description: 'Rear-facing infant carrier for newborns and young infants',
+    price: 0,
+  },
+  {
+    key: 'childSeat',
+    label: 'Child Seat (18–36 kg)',
+    description: 'Forward-facing safety seat for toddlers and older children',
+    price: 0,
+  },
+  {
+    key: 'boosterSeat',
+    label: 'Booster Seat',
+    description: 'Booster cushion for children who have outgrown a child seat',
+    price: 0,
+  },
 ]
 
 export function computeExtrasTotal(
-  extras: Extras,
-  prices?: { childSeat: number; meetAndGreet: number; extraLuggage: number }
+  _extras: Extras,
+  _prices?: Record<keyof Extras, number>
 ): number {
-  const p = prices ?? EXTRAS_PRICES
-  return (extras.childSeat ? p.childSeat : 0)
-       + (extras.meetAndGreet ? p.meetAndGreet : 0)
-       + (extras.extraLuggage ? p.extraLuggage : 0)
+  return 0
 }

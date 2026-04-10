@@ -32,7 +32,7 @@ describe('BookingSummaryBlock', () => {
         priceBreakdown: outboundBreakdown,
         roundTripPriceBreakdown: returnLegBreakdown,
         returnDiscountPercent: 10,
-        extras: { childSeat: false, meetAndGreet: false, extraLuggage: false },
+        extras: { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false },
         promoCode: null,
         promoDiscount: 0,
       })
@@ -103,7 +103,7 @@ describe('BookingSummaryBlock', () => {
 
     it('SUM-RT-09: extras apply to outbound only — outbound €115, return still €90', () => {
       useBookingStore.setState({
-        extras: { childSeat: true, meetAndGreet: false, extraLuggage: false },
+        extras: { infantSeat: false, childSeat: true, boosterSeat: false, meetAndGreet: false, extraLuggage: false },
       })
       render(<BookingSummaryBlock selectedCurrency="eur" />)
       // Outbound €100 base + €15 child seat = €115
@@ -138,7 +138,7 @@ describe('BookingSummaryBlock', () => {
         priceBreakdown: outboundBreakdown,
         roundTripPriceBreakdown: null,
         returnDiscountPercent: 10,
-        extras: { childSeat: false, meetAndGreet: false, extraLuggage: false },
+        extras: { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: false, extraLuggage: false },
         promoCode: null,
         promoDiscount: 0,
       })

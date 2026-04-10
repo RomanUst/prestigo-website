@@ -8,19 +8,17 @@ export default function Step4Extras() {
   const extras = useBookingStore((s) => s.extras)
   const toggleExtra = useBookingStore((s) => s.toggleExtra)
 
-  const noneSelected = !extras.childSeat && !extras.meetAndGreet && !extras.extraLuggage
-
   return (
     <div className="max-w-xl">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {EXTRAS_CONFIG.map(({ key, label, description, price }) => {
-          const isSelected = extras[key as keyof Extras]
+        {EXTRAS_CONFIG.map(({ key, label, description, alwaysSelected }) => {
+          const isSelected = alwaysSelected || extras[key as keyof Extras]
           return (
             <button
               key={key}
               type="button"
               aria-pressed={isSelected}
-              onClick={() => toggleExtra(key as keyof Extras)}
+              onClick={alwaysSelected ? undefined : () => toggleExtra(key as keyof Extras)}
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -31,7 +29,7 @@ export default function Step4Extras() {
                 borderRadius: 4,
                 outline: isSelected ? '2px solid var(--copper)' : 'none',
                 outlineOffset: isSelected ? -2 : undefined,
-                cursor: 'pointer',
+                cursor: alwaysSelected ? 'default' : 'pointer',
                 textAlign: 'left',
                 transition: 'outline-color 0.2s ease',
               }}
@@ -52,12 +50,12 @@ export default function Step4Extras() {
                   style={{
                     fontSize: 14,
                     fontWeight: 300,
-                    color: 'var(--warmgrey)',
+                    color: 'var(--copper)',
                     fontFamily: 'var(--font-montserrat)',
                     lineHeight: 1.8,
                   }}
                 >
-                  +&euro;{price}
+                  Free
                 </span>
               </div>
               <span
@@ -74,20 +72,6 @@ export default function Step4Extras() {
           )
         })}
       </div>
-
-      {noneSelected && (
-        <p
-          style={{
-            marginTop: 16,
-            fontSize: 14,
-            fontWeight: 300,
-            color: 'var(--warmgrey)',
-            fontFamily: 'var(--font-montserrat)',
-          }}
-        >
-          No extras selected. Continue to passenger details.
-        </p>
-      )}
     </div>
   )
 }

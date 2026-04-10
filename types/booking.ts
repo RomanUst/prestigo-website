@@ -27,9 +27,11 @@ export interface PriceBreakdown {
 }
 
 export interface Extras {
-  childSeat: boolean
-  meetAndGreet: boolean
-  extraLuggage: boolean
+  infantSeat: boolean     // 0–9 kg, free
+  childSeat: boolean      // 18–36 kg, free
+  boosterSeat: boolean    // booster, free
+  meetAndGreet: boolean   // always included, free
+  extraLuggage: boolean   // kept for API compat, not shown in UI
 }
 
 export interface VehicleConfig {
