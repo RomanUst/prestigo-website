@@ -383,8 +383,15 @@ export default function AddressInputNew({
               // types[0] is often a generic "point_of_interest" — scan the full array.
               const PLACE_TYPE_LABELS: Record<string, string> = {
                 airport: 'AIRPORT',
+                international_airport: 'AIRPORT',
                 lodging: 'HOTEL',
                 hotel: 'HOTEL',
+                extended_stay_hotel: 'HOTEL',
+                inn: 'HOTEL',
+                train_station: 'TRAIN',
+                transit_station: 'TRANSIT',
+                tourist_attraction: 'ATTRACTION',
+                point_of_interest: 'ATTRACTION',
               }
               const placeType = types?.reduce<string | undefined>((found, t) => {
                 return found ?? PLACE_TYPE_LABELS[t]
