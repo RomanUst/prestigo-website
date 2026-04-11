@@ -40,7 +40,7 @@ export default function Footer() {
               {[
                 { label: 'Airport Transfer', href: '/services' },
                 { label: 'Intercity Routes', href: '/routes' },
-                { label: 'Multi-day Hire', href: '/book/multi-day' },
+                { label: 'Multi-day Hire', href: '/book/multi-day', isNew: true },
                 { label: 'Corporate Accounts', href: '/corporate' },
                 { label: 'VIP & Events', href: '/services' },
                 { label: 'Group Transfer', href: '/services' },
@@ -48,8 +48,11 @@ export default function Footer() {
                 { label: 'FAQ', href: '/faq' },
               ].map((s) => (
                 <li key={s.label}>
-                  <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
+                  <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors inline-flex items-center gap-2 py-2.5 -my-2.5">
                     {s.label}
+                    {s.isNew && (
+                      <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                    )}
                   </a>
                 </li>
               ))}
