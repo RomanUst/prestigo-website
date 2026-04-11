@@ -50,6 +50,14 @@ interface Booking {
   outbound_amount_czk: number | null
   return_amount_czk: number | null
   linked_booking: { booking_reference: string } | null
+  // Phase 32: flight status persisted columns (migration 033)
+  flight_iata: string | null
+  flight_status: string | null
+  flight_estimated_arrival: string | null
+  flight_delay_minutes: number | null
+  flight_departure_airport: string | null
+  flight_arrival_airport: string | null
+  flight_terminal: string | null
 }
 
 const vehicleClassMap: Record<string, string> = {
