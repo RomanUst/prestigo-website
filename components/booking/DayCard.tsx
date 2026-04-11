@@ -349,7 +349,7 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <AddressInput label="Base city" placeholder="City for hourly hire" value={day.hourly.city} onSelect={handleCitySelect} onClear={handleCityClear} ariaLabel={`Day ${index + 1} base city`} required />
+          <AddressInput label="Pickup location" placeholder="Pickup address" value={day.hourly.city} onSelect={handleCitySelect} onClear={handleCityClear} ariaLabel={`Day ${index + 1} pickup location`} required />
           <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'var(--font-montserrat)', fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
             Hours
             <select
