@@ -12,12 +12,13 @@
 
 /** Max requests per IP per 60-second window, keyed by route pathname */
 const LIMITS: Record<string, number> = {
-  '/api/calculate-price':       30, // users recalculate several times while booking
-  '/api/submit-quote':           5, // 5 quote submissions per minute is already suspicious
-  '/api/contact':                3, // 3 contact form submissions per minute
-  '/api/create-payment-intent': 10, // prevent cost abuse and promo-code enumeration
-  '/api/validate-promo':        20, // prevent promo code enumeration
-  '/admin/login':                5, // prevent brute force on admin credentials
+  '/api/calculate-price':        30, // users recalculate several times while booking
+  '/api/submit-quote':            5, // 5 quote submissions per minute is already suspicious
+  '/api/submit-multiday-quote':   5, // same as /api/submit-quote — public quote endpoint
+  '/api/contact':                 3, // 3 contact form submissions per minute
+  '/api/create-payment-intent':  10, // prevent cost abuse and promo-code enumeration
+  '/api/validate-promo':         20, // prevent promo code enumeration
+  '/admin/login':                 5, // prevent brute force on admin credentials
 }
 
 export interface RateLimitResult {

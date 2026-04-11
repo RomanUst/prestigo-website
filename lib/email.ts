@@ -771,3 +771,193 @@ ${formatCZK(data.combinedAmountCzk)} (${formatEUR(czkToEur(data.combinedAmountCz
     // Non-fatal
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Multi-day quote emails (Phase 31 — MULTIDAY-05)
+// Quotes are NOT persisted to Supabase — email is the sole record (D-11).
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface MultidayDaySummary {
+  index: number                           // 1-based day number for display
+  type: 'transfer' | 'hourly'
+  // Transfer fields (empty strings when type === 'hourly')
+  from?: string
+  to?: string
+  stops?: string[]                        // addresses only; []-safe
+  // Hourly fields (undefined when type === 'transfer')
+  city?: string
+  hours?: number
+}
+
+export interface MultidayEmailData {
+  quoteReference: string                  // e.g. 'MQ-20260411-ABC123'
+  days: MultidayDaySummary[]
+  startDate?: string                      // 'YYYY-MM-DD' or undefined
+  firstName: string
+  lastName: string
+  email: string
+  phone: string
+  specialRequests?: string
+}
+
+function formatMultidayStartDate(iso?: string): string {
+  if (!iso) return 'Flexible — to be confirmed'
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  if (!match) return iso
+  const [, y, m, d] = match
+  const date = new Date(Number(y), Number(m) - 1, Number(d))
+  return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
+}
+
+function buildMultidayDayRowHtml(day: MultidayDaySummary): string {
+  const dayLabel = `Day ${day.index}`
+  if (day.type === 'transfer') {
+    const from = escapeHtml(day.from ?? '')
+    const to = escapeHtml(day.to ?? '')
+    const stopCount = day.stops?.length ?? 0
+    const stopsHtml =
+      stopCount > 0
+        ? `<div style="color:#9A958F;font-size:12px;margin-top:4px;">Stops: ${day.stops!
+            .map((s) => escapeHtml(s))
+            .join(' · ')}</div>`
+        : ''
+    return `
+      <tr>
+        <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;vertical-align:top;width:72px;">
+          <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.2em;color:#D4924A;text-transform:uppercase;">${dayLabel}</div>
+        </td>
+        <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;color:#F5F2EE;">
+          <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.16em;color:#E8B87A;text-transform:uppercase;margin-bottom:4px;">Transfer</div>
+          <div style="font-size:14px;line-height:1.5;">${from} → ${to}</div>
+          ${stopsHtml}
+        </td>
+      </tr>
+    `
+  }
+  const city = escapeHtml(day.city ?? '')
+  const hours = Number.isFinite(day.hours) ? day.hours : 0
+  return `
+    <tr>
+      <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;vertical-align:top;width:72px;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.2em;color:#D4924A;text-transform:uppercase;">${dayLabel}</div>
+      </td>
+      <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;color:#F5F2EE;">
+        <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.16em;color:#E8B87A;text-transform:uppercase;margin-bottom:4px;">Hourly hire</div>
+        <div style="font-size:14px;line-height:1.5;">${city} — ${hours} ${hours === 1 ? 'hour' : 'hours'}</div>
+      </td>
+    </tr>
+  `
+}
+
+function buildMultidayOperatorHtml(data: MultidayEmailData): string {
+  const first = escapeHtml(data.firstName)
+  const last = escapeHtml(data.lastName)
+  const email = escapeHtml(data.email)
+  const phone = escapeHtml(data.phone)
+  const reference = escapeHtml(data.quoteReference)
+  const startDate = escapeHtml(formatMultidayStartDate(data.startDate))
+  const specialRequests = data.specialRequests ? escapeHtml(data.specialRequests) : ''
+  const rowsHtml = data.days.map(buildMultidayDayRowHtml).join('')
+
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#1C1C1E;font-family:'Montserrat',Helvetica,Arial,sans-serif;color:#F5F2EE;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1C1C1E;padding:32px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#141416;border:1px solid #3A3A3F;">
+        <tr><td style="padding:32px 24px;border-bottom:1px solid #3A3A3F;background:linear-gradient(180deg,#141416,#1C1C1E);">
+          <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;">PRESTIGO · Multi-day quote request</div>
+          <h1 style="margin:12px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#F5F2EE;">New multi-day quote</h1>
+          <div style="margin-top:8px;font-size:12px;color:#9A958F;">Reference ${reference}</div>
+        </td></tr>
+
+        <tr><td style="padding:24px;">
+          <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;margin-bottom:12px;">Client</div>
+          <div style="font-size:14px;line-height:1.6;">${first} ${last}</div>
+          <div style="font-size:13px;color:#9A958F;line-height:1.6;">${email} · ${phone}</div>
+          <div style="font-size:13px;color:#9A958F;margin-top:8px;">Start date: ${startDate}</div>
+        </td></tr>
+
+        <tr><td style="padding:0 24px 24px;">
+          <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;margin:16px 0 12px;">Itinerary (${data.days.length} ${data.days.length === 1 ? 'day' : 'days'})</div>
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #3A3A3F;">
+            ${rowsHtml}
+          </table>
+        </td></tr>
+
+        ${
+          specialRequests
+            ? `<tr><td style="padding:0 24px 24px;">
+                 <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;margin-bottom:8px;">Special requests</div>
+                 <div style="font-size:13px;color:#F5F2EE;line-height:1.6;white-space:pre-wrap;">${specialRequests}</div>
+               </td></tr>`
+            : ''
+        }
+
+        <tr><td style="padding:20px 24px;border-top:1px solid #3A3A3F;font-size:11px;color:#9A958F;">
+          Respond within 24 hours · Reference ${reference}
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`
+}
+
+function buildMultidayClientAckHtml(data: MultidayEmailData): string {
+  const first = escapeHtml(data.firstName)
+  const reference = escapeHtml(data.quoteReference)
+  return `<!doctype html>
+<html><body style="margin:0;padding:0;background:#1C1C1E;font-family:'Montserrat',Helvetica,Arial,sans-serif;color:#F5F2EE;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1C1C1E;padding:40px 0;">
+    <tr><td align="center">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#141416;border:1px solid #3A3A3F;">
+        <tr><td style="padding:40px 32px;text-align:center;background:linear-gradient(180deg,#141416,#1C1C1E);border-bottom:1px solid #3A3A3F;">
+          <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;">PRESTIGO</div>
+          <h1 style="margin:16px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;color:#F5F2EE;font-weight:400;">Your request is in our hands.</h1>
+        </td></tr>
+        <tr><td style="padding:32px;">
+          <p style="font-size:14px;line-height:1.7;color:#F5F2EE;margin:0 0 16px;">Dear ${first},</p>
+          <p style="font-size:14px;line-height:1.7;color:#F5F2EE;margin:0 0 16px;">Thank you for your multi-day chauffeur request. We have received your itinerary and our team will review it personally.</p>
+          <p style="font-size:14px;line-height:1.7;color:#F5F2EE;margin:0 0 16px;">You can expect a tailored quote by email <strong style="color:#E8B87A;">within 24 hours</strong>. If anything is urgent, please reply to this email and we&rsquo;ll respond immediately.</p>
+          <div style="margin:24px 0;padding:16px;border:1px solid #3A3A3F;background:#1C1C1E;text-align:center;">
+            <div style="font-size:10px;letter-spacing:0.2em;color:#9A958F;text-transform:uppercase;">Reference</div>
+            <div style="font-size:18px;color:#E8B87A;margin-top:4px;font-family:'Cormorant Garamond',Georgia,serif;">${reference}</div>
+          </div>
+          <p style="font-size:13px;line-height:1.6;color:#9A958F;margin:0;">— The PRESTIGO team</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`
+}
+
+export async function sendMultidayOperatorAlert(data: MultidayEmailData): Promise<void> {
+  const to = process.env.MANAGER_EMAIL
+  if (!to) {
+    console.warn('[email] MANAGER_EMAIL not set — skipping multi-day operator alert')
+    return
+  }
+  try {
+    await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [to],
+      subject: `New multi-day quote: ${data.quoteReference} — ${data.firstName} ${data.lastName}`,
+      html: buildMultidayOperatorHtml(data),
+      replyTo: data.email,
+    })
+  } catch (err) {
+    console.warn('[email] sendMultidayOperatorAlert failed (non-fatal)', err)
+  }
+}
+
+export async function sendMultidayClientAck(data: MultidayEmailData): Promise<void> {
+  try {
+    await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.email],
+      subject: `Your PRESTIGO multi-day quote request — ${data.quoteReference}`,
+      html: buildMultidayClientAckHtml(data),
+    })
+  } catch (err) {
+    console.warn('[email] sendMultidayClientAck failed (non-fatal)', err)
+  }
+}

@@ -1,17 +1,23 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { useBookingStore } from '@/lib/booking-store'
 import type { TripType } from '@/types/booking'
 
-const TRIP_TYPES: { value: TripType; label: string }[] = [
-  { value: 'transfer', label: 'TRANSFER' },
-  { value: 'hourly', label: 'HOURLY' },
-  { value: 'daily', label: 'DAILY' },
+type TripTabEntry =
+  | { kind: 'store'; value: TripType; label: string }
+  | { kind: 'navigate'; href: string; label: string }
+
+const TRIP_TYPES: TripTabEntry[] = [
+  { kind: 'store', value: 'transfer', label: 'TRANSFER' },
+  { kind: 'store', value: 'hourly', label: 'HOURLY' },
+  { kind: 'navigate', href: '/book/multi-day', label: 'MULTI-DAY' },
 ]
 
 export default function TripTypeTabs() {
   const tripType = useBookingStore((s) => s.tripType)
   const setTripType = useBookingStore((s) => s.setTripType)
+  const router = useRouter()
 
   return (
     <div
@@ -30,14 +36,24 @@ export default function TripTypeTabs() {
       className="[&::-webkit-scrollbar]:hidden"
     >
       {TRIP_TYPES.map((tab) => {
-        const isActive = tripType === tab.value || (tab.value === 'transfer' && tripType === 'round_trip')
+        const isActive =
+          tab.kind === 'store' &&
+          (tripType === tab.value || (tab.value === 'transfer' && tripType === 'round_trip'))
+
+        const handleClick = () => {
+          if (tab.kind === 'navigate') {
+            router.push(tab.href)
+          } else {
+            setTripType(tab.value)
+          }
+        }
 
         return (
           <button
-            key={tab.value}
+            key={tab.kind === 'store' ? tab.value : tab.href}
             role="tab"
             aria-selected={isActive}
-            onClick={() => setTripType(tab.value)}
+            onClick={handleClick}
             style={{
               fontFamily: 'var(--font-montserrat)',
               fontSize: '11px',
