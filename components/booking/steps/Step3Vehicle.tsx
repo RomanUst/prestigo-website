@@ -57,6 +57,11 @@ export default function Step3Vehicle() {
 
   const fetchPrice = useCallback(async () => {
     const s = useBookingStore.getState()
+    // STOP-01: forward only stops with a resolved place; null-place stops are
+    // filtered out (they cannot reach the Google Routes API safely — T-30-13).
+    const intermediates = s.stops
+      .filter((stop) => stop.place !== null)
+      .map((stop) => ({ lat: stop.place!.lat, lng: stop.place!.lng }))
     setLoading(true)
     try {
       const res = await fetch('/api/calculate-price', {
@@ -72,6 +77,7 @@ export default function Step3Vehicle() {
           pickupTime: s.pickupTime,
           returnTime: s.returnTime,
           isAirport: !!(s.origin?.placeId === PRG_CONFIG.placeId || s.destination?.placeId === PRG_CONFIG.placeId),
+          intermediates,
         }),
       })
       const data = await res.json()

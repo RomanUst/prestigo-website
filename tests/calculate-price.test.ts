@@ -89,15 +89,17 @@ const mockRates = {
   minFare:    { business: 2000, first_class: 3000, business_van: 2500 },
 }
 
-// Mock Supabase service client — returns one coverage zone so transfer path proceeds
-vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({
-    from: () => ({
-      select: () => ({
-        eq: () => Promise.resolve({ data: [pragueZone], error: null }),
-      }),
+// Mock Supabase clients — returns one coverage zone so transfer path proceeds
+const supabaseZoneClient = {
+  from: () => ({
+    select: () => ({
+      eq: () => Promise.resolve({ data: [pragueZone], error: null }),
     }),
   }),
+}
+vi.mock('@/lib/supabase', () => ({
+  createSupabaseServiceClient: () => supabaseZoneClient,
+  createSupabasePublicReadClient: () => supabaseZoneClient,
 }))
 
 // Mock getPricingConfig to return our controlled rates
@@ -292,5 +294,125 @@ describe('round-trip return leg pricing (RTPR-01, RTPR-02, RTPR-03)', () => {
 
     // Symmetric distance reuse: fetch called exactly once
     expect(global.fetch).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('STOP-01 + STOP-03: intermediates / waypoints', () => {
+  beforeEach(() => {
+    vi.stubEnv('GOOGLE_MAPS_API_KEY', 'test-key')
+    mockGoogleRoutes15km()
+  })
+
+  function getFetchBody(): Record<string, unknown> {
+    const call = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+    expect(call).toBeDefined()
+    const init = call[1] as RequestInit
+    return JSON.parse(init.body as string)
+  }
+
+  it('with intermediates=[], Google Routes body does NOT contain intermediates key', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    await POST(makeRequest({ ...baseTransferBody, intermediates: [] }))
+    const body = getFetchBody()
+    expect('intermediates' in body).toBe(false)
+  })
+
+  it('with one intermediate stop, Google Routes body contains the waypoint', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    await POST(
+      makeRequest({
+        ...baseTransferBody,
+        intermediates: [{ lat: 50.085, lng: 14.4 }],
+      })
+    )
+    const body = getFetchBody() as { intermediates?: Array<{ location: { latLng: { latitude: number; longitude: number } } }> }
+    expect(body.intermediates).toBeDefined()
+    expect(body.intermediates).toHaveLength(1)
+    expect(body.intermediates![0]).toEqual({
+      location: { latLng: { latitude: 50.085, longitude: 14.4 } },
+    })
+  })
+
+  it('with three intermediate stops, order is preserved (no optimization)', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    const stops = [
+      { lat: 50.081, lng: 14.41 },
+      { lat: 50.082, lng: 14.42 },
+      { lat: 50.083, lng: 14.43 },
+    ]
+    await POST(makeRequest({ ...baseTransferBody, intermediates: stops }))
+    const body = getFetchBody() as { intermediates: Array<{ location: { latLng: { latitude: number; longitude: number } } }> }
+    expect(body.intermediates).toHaveLength(3)
+    expect(body.intermediates[0].location.latLng.latitude).toBe(50.081)
+    expect(body.intermediates[1].location.latLng.latitude).toBe(50.082)
+    expect(body.intermediates[2].location.latLng.latitude).toBe(50.083)
+  })
+
+  it('Google Routes body NEVER contains optimizeWaypointOrder', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    await POST(
+      makeRequest({
+        ...baseTransferBody,
+        intermediates: [{ lat: 50.085, lng: 14.4 }],
+      })
+    )
+    const call = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0]
+    const rawBody = (call[1] as RequestInit).body as string
+    expect(rawBody).not.toMatch(/optimizeWaypointOrder/)
+  })
+
+  it('intermediates of length 6 returns 400 and does NOT call Google Routes', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    const tooMany = Array.from({ length: 6 }, (_, i) => ({ lat: 50 + i * 0.001, lng: 14 + i * 0.001 }))
+    const res = await POST(makeRequest({ ...baseTransferBody, intermediates: tooMany }))
+    expect(res.status).toBe(400)
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('intermediates containing lat=91 returns 400', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    const res = await POST(
+      makeRequest({ ...baseTransferBody, intermediates: [{ lat: 91, lng: 14 }] })
+    )
+    expect(res.status).toBe(400)
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('intermediates containing lng=181 returns 400', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    const res = await POST(
+      makeRequest({ ...baseTransferBody, intermediates: [{ lat: 50, lng: 181 }] })
+    )
+    expect(res.status).toBe(400)
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('omitting intermediates preserves legacy behavior (business base = 3000)', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    const res = await POST(makeRequest(baseTransferBody))
+    const json = await res.json()
+    expect(json.prices.business.base).toBe(3000)
+    const body = getFetchBody()
+    expect('intermediates' in body).toBe(false)
+  })
+
+  it('hourly tripType with intermediates=[] returns 200 and does not call Google', async () => {
+    const { POST } = await import('@/app/api/calculate-price/route')
+    const res = await POST(
+      makeRequest({
+        origin: null,
+        destination: null,
+        tripType: 'hourly',
+        hours: 3,
+        pickupDate: '2026-05-10',
+        pickupTime: '12:00',
+        returnDate: null,
+        returnTime: null,
+        isAirport: false,
+        intermediates: [],
+      })
+    )
+    expect(res.status).toBe(200)
+    expect(global.fetch).not.toHaveBeenCalled()
   })
 })

@@ -27,6 +27,12 @@ const calculatePriceSchema = z.object({
   pickupTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
   returnTime: z.string().regex(/^\d{2}:\d{2}$/).nullable().optional(),
   isAirport: z.boolean().optional().default(false),
+  intermediates: z.array(
+    z.object({
+      lat: z.number().finite().min(-90).max(90),
+      lng: z.number().finite().min(-180).max(180),
+    })
+  ).max(5).optional().default([]),
 })
 
 // Prague Václav Havel Airport coordinates
@@ -69,7 +75,7 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
-    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, returnTime, isAirport } = parsed.data
+    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, returnTime, isAirport, intermediates } = parsed.data
     // Detect airport server-side by coordinates (not by client-provided placeId,
     // which can mismatch between Places API versions).
     const airportFlag = isNearAirport(origin) || isNearAirport(destination) || isAirport === true
@@ -133,6 +139,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
     }
 
+    const googleBody: Record<string, unknown> = {
+      origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
+      destination: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } },
+      travelMode: 'DRIVE',
+    }
+
+    // STOP-01: attach waypoints when present. NEVER set optimizeWaypointOrder —
+    // chauffeur routes must follow the client-specified stop order (STATE.md
+    // architectural constraint).
+    if (intermediates && intermediates.length > 0) {
+      googleBody.intermediates = intermediates.map((stop) => ({
+        location: { latLng: { latitude: stop.lat, longitude: stop.lng } },
+      }))
+    }
+
     const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
       method: 'POST',
       headers: {
@@ -141,11 +162,7 @@ export async function POST(req: Request) {
         'X-Goog-FieldMask': 'routes.distanceMeters',
         'Referer': 'https://rideprestigo.com',
       },
-      body: JSON.stringify({
-        origin: { location: { latLng: { latitude: origin.lat, longitude: origin.lng } } },
-        destination: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } },
-        travelMode: 'DRIVE',
-      }),
+      body: JSON.stringify(googleBody),
     })
 
     if (!res.ok) {

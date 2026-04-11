@@ -6,6 +6,7 @@ import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInput from '@/components/booking/AddressInput'
 import Stepper from '@/components/booking/Stepper'
 import DurationSelector from '@/components/booking/DurationSelector'
+import StopList from '@/components/booking/StopList'
 import { useBookingStore } from '@/lib/booking-store'
 
 export default function Step1TripType() {
@@ -21,6 +22,10 @@ export default function Step1TripType() {
   const setLuggage = useBookingStore((s) => s.setLuggage)
   const swapOriginDestination = useBookingStore((s) => s.swapOriginDestination)
   const nextStep = useBookingStore((s) => s.nextStep)
+  const stops = useBookingStore((s) => s.stops)
+  const addStop = useBookingStore((s) => s.addStop)
+  const removeStop = useBookingStore((s) => s.removeStop)
+  const updateStop = useBookingStore((s) => s.updateStop)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [swapHovered, setSwapHovered] = useState(false)
@@ -33,12 +38,16 @@ export default function Step1TripType() {
     return errs
   }
 
+  const hasIncompleteStop = stops.some((stop) => stop.place === null)
+
   const isValid =
     origin !== null &&
     (tripType === 'hourly' ? hours >= 1 : destination !== null) &&
-    passengers >= 1
+    passengers >= 1 &&
+    !hasIncompleteStop
 
   const handleNext = () => {
+    if (!isValid) return
     const validationErrors = validateStep1()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
@@ -77,6 +86,7 @@ export default function Step1TripType() {
   }
 
   const showSwapIcon = tripType === 'transfer' || tripType === 'daily'
+  const showStops = tripType === 'transfer'
 
   // Continue button content (shared between desktop and mobile)
   const continueButton = (
@@ -84,7 +94,7 @@ export default function Step1TripType() {
       type="button"
       className="btn-primary"
       onClick={handleNext}
-      aria-disabled={!isValid}
+      aria-disabled={!isValid ? 'true' : 'false'}
       style={{
         opacity: isValid ? 1 : 0.4,
         cursor: isValid ? 'pointer' : 'not-allowed',
@@ -155,6 +165,16 @@ export default function Step1TripType() {
             hasError={!!errors.destination}
             errorMessage={errors.destination}
             ariaLabel="Destination"
+          />
+        )}
+
+        {/* Intermediate stops — only for transfer trips (STOP-01) */}
+        {showStops && (
+          <StopList
+            stops={stops}
+            onAdd={addStop}
+            onRemove={removeStop}
+            onUpdate={updateStop}
           />
         )}
 
