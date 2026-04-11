@@ -378,7 +378,17 @@ export default function AddressInputNew({
               const mainTextMatches = structuredFormat.mainText.matches
               const secondaryText = structuredFormat.secondaryText?.text
               const isActive = index === activeIndex
-              const placeType = types?.[0]
+
+              // Show a badge only for meaningful place types (airport / hotel).
+              // types[0] is often a generic "point_of_interest" — scan the full array.
+              const PLACE_TYPE_LABELS: Record<string, string> = {
+                airport: 'AIRPORT',
+                lodging: 'HOTEL',
+                hotel: 'HOTEL',
+              }
+              const placeType = types?.reduce<string | undefined>((found, t) => {
+                return found ?? PLACE_TYPE_LABELS[t]
+              }, undefined)
 
               // Highlight matched substrings in main_text with copper.
               // New API provides matches as [{endOffset}] — each match starts
