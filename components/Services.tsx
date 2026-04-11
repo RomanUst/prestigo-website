@@ -1,4 +1,13 @@
-const services = [
+interface Service {
+  label: string
+  title: string
+  body: string
+  detail: string
+  href: string
+  isNew?: boolean
+}
+
+const services: Service[] = [
   {
     label: 'Airport',
     title: 'Airport Transfer',
@@ -41,6 +50,14 @@ const services = [
     detail: 'Up to 8 passengers',
     href: '/services/group-transfers',
   },
+  {
+    label: 'Multi-day',
+    title: 'Multi-day Hire',
+    body: 'One dedicated chauffeur for your entire trip. Mix transfers and hourly days across Central Europe.',
+    detail: 'Custom itinerary · Quote within 24 h',
+    href: '/book/multi-day',
+    isNew: true,
+  },
 ]
 
 export default function Services() {
@@ -63,7 +80,12 @@ export default function Services() {
               key={s.label}
               className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group flex flex-col"
             >
-              <p className="label mb-4">{s.label}</p>
+              <div className="flex items-center gap-2 mb-4">
+                <p className="label">{s.label}</p>
+                {s.isNew && (
+                  <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                )}
+              </div>
               <h3 className="font-display font-light text-xl text-offwhite mb-3 group-hover:text-copper-pale transition-colors">
                 {s.title}
               </h3>

@@ -51,6 +51,15 @@ export default function Nav() {
               {link.label}
             </a>
           ))}
+          <a
+            href="/book/multi-day"
+            className={`font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
+              pathname === '/book/multi-day' ? 'text-offwhite' : 'text-warmgrey hover:text-offwhite'
+            }`}
+          >
+            Multi-day
+            <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+          </a>
           <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
             Book now
           </a>
@@ -96,6 +105,16 @@ export default function Nav() {
             {link.label}
           </a>
         ))}
+        <a
+          href="/book/multi-day"
+          onClick={() => setOpen(false)}
+          className={`font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 min-h-[44px] ${
+            pathname === '/book/multi-day' ? 'text-offwhite' : 'text-warmgrey hover:text-offwhite'
+          }`}
+        >
+          Multi-day
+          <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+        </a>
         <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-3">
           Book now
         </a>

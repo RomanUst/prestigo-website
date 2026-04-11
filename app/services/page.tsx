@@ -15,7 +15,20 @@ export const metadata: Metadata = {
   },
 }
 
-const services = [
+interface ServiceEntry {
+  label: string
+  title: string
+  description: string
+  features: string[]
+  price: string | null
+  cta: string
+  href: string
+  bookHref: string
+  bookCta: string
+  isNew?: boolean
+}
+
+const services: ServiceEntry[] = [
   {
     label: 'AIRPORT',
     title: 'Airport Transfer',
@@ -81,6 +94,18 @@ const services = [
     href: '/services/group-transfers',
     bookHref: '/contact',
     bookCta: 'GET QUOTE',
+  },
+  {
+    label: 'MULTI-DAY',
+    title: 'Multi-day Hire',
+    description: 'One dedicated chauffeur for your entire journey across Central Europe. Mix Transfer and Hourly days freely — Prague to Vienna, a five-day tour, a corporate roadshow. Fixed quote within 24 hours.',
+    features: ['Dedicated chauffeur for full duration', 'Mix transfers & hourly days', 'Driver accommodation & tolls included', 'Custom itinerary, fixed all-inclusive price'],
+    price: null,
+    cta: 'BUILD ITINERARY',
+    href: '/book/multi-day',
+    bookHref: '/book/multi-day',
+    bookCta: 'GET QUOTE',
+    isNew: true,
   },
 ]
 
@@ -201,7 +226,12 @@ export default function ServicesPage() {
               className={`py-14 md:py-16 border-b border-anthracite-light grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 ${i === 0 ? 'border-t' : ''}`}
             >
               <div>
-                <p className="label mb-4">{s.label}</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <p className="label">{s.label}</p>
+                  {s.isNew && (
+                    <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                  )}
+                </div>
                 <h2 className="display text-[28px] md:text-[34px] mb-4">{s.title}</h2>
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{s.description}</p>
                 {s.price && (
