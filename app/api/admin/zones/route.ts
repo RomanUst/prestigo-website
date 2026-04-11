@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
+import { enforceMaxBody } from '@/lib/request-guards'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -47,6 +48,9 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const tooBig = enforceMaxBody(request, 50_000)
+  if (tooBig) return tooBig
+
   const { error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -93,6 +97,9 @@ export async function DELETE(request: Request) {
 }
 
 export async function PATCH(request: Request) {
+  const tooBig = enforceMaxBody(request, 50_000)
+  if (tooBig) return tooBig
+
   const { error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
