@@ -15,7 +15,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    min: data.hourly_min_hours,
-    max: data.hourly_max_hours,
+    min: Number(data.hourly_min_hours),
+    max: Number(data.hourly_max_hours),
   })
 }
