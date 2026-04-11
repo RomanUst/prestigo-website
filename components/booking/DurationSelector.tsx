@@ -1,12 +1,68 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
 
-const DURATION_OPTIONS = [1, 2, 3, 4, 6, 8, 12]
+// Fallback range used while the fetch is in flight OR if the fetch fails.
+// Matches the legacy hardcoded DURATION_OPTIONS so behaviour is preserved when
+// /api/hourly-config is unreachable (D-02).
+const FALLBACK_MIN = 2
+const FALLBACK_MAX = 8
+
+function rangeInclusive(min: number, max: number): number[] {
+  const out: number[] = []
+  for (let h = min; h <= max; h++) out.push(h)
+  return out
+}
 
 export default function DurationSelector() {
   const hours = useBookingStore((s) => s.hours)
   const setHours = useBookingStore((s) => s.setHours)
+
+  const [range, setRange] = useState<{ min: number; max: number }>({
+    min: FALLBACK_MIN,
+    max: FALLBACK_MAX,
+  })
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function fetchConfig() {
+      try {
+        const res = await fetch('/api/hourly-config')
+        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+        const data = (await res.json()) as { min: number; max: number }
+        if (cancelled) return
+        if (
+          typeof data.min !== 'number' ||
+          typeof data.max !== 'number' ||
+          data.min >= data.max
+        ) {
+          // Malformed response — keep fallback.
+          return
+        }
+        setRange({ min: data.min, max: data.max })
+
+        // D-04: clamp out-of-range store value to min so price calculation always
+        // uses a value within the configured range. Read fresh state via getState()
+        // to avoid stale closure on the selector-derived `hours`.
+        const current = useBookingStore.getState().hours
+        if (current < data.min || current > data.max) {
+          setHours(data.min)
+        }
+      } catch {
+        // Network / JSON error — keep fallback range. Do NOT clamp store.hours
+        // because the user's stored value is still valid under the fallback.
+      }
+    }
+
+    fetchConfig()
+    return () => {
+      cancelled = true
+    }
+  }, [setHours])
+
+  const options = rangeInclusive(range.min, range.max)
 
   return (
     <div>
@@ -14,46 +70,34 @@ export default function DurationSelector() {
         DURATION
       </p>
 
-      <div
+      <select
+        aria-label="Duration"
+        value={hours}
+        onChange={(e) => setHours(Number(e.target.value))}
         style={{
-          display: 'flex',
-          border: '1px solid var(--anthracite-light)',
           width: '100%',
+          minHeight: '44px',
+          appearance: 'none',
+          WebkitAppearance: 'none',
+          MozAppearance: 'none',
+          background: 'var(--anthracite)',
+          border: '1px solid var(--anthracite-light)',
+          borderRadius: '2px',
+          color: 'var(--offwhite)',
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: '13px',
+          letterSpacing: '0.05em',
+          padding: '10px 14px',
+          cursor: 'pointer',
+          outline: 'none',
         }}
       >
-        {DURATION_OPTIONS.map((h, index) => {
-          const isActive = hours === h
-          const isLast = index === DURATION_OPTIONS.length - 1
-
-          return (
-            <button
-              key={h}
-              type="button"
-              aria-pressed={isActive}
-              aria-label={`${h} hours`}
-              onClick={() => setHours(h)}
-              style={{
-                flex: 1,
-                minHeight: '44px',
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: '9px',
-                fontWeight: 400,
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                border: 'none',
-                borderRight: isLast ? 'none' : '1px solid var(--anthracite-light)',
-                borderBottom: isActive ? '2px solid var(--copper)' : 'none',
-                background: isActive ? 'var(--anthracite)' : 'var(--anthracite-mid)',
-                color: isActive ? 'var(--offwhite)' : 'var(--warmgrey)',
-                cursor: 'pointer',
-                transition: 'color 0.2s ease, background 0.2s ease, border-color 0.2s ease',
-              }}
-            >
-              {h}h
-            </button>
-          )
-        })}
-      </div>
+        {options.map((h) => (
+          <option key={h} value={h}>
+            {h}h
+          </option>
+        ))}
+      </select>
     </div>
   )
 }
