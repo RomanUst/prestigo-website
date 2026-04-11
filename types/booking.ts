@@ -7,6 +7,11 @@ export interface PlaceResult {
   lng: number
 }
 
+export interface Stop {
+  id: string              // crypto.randomUUID() — stable React key, also used for remove
+  place: PlaceResult | null
+}
+
 export type VehicleClass = 'business' | 'first_class' | 'business_van'
 
 export interface PassengerDetails {
@@ -56,6 +61,8 @@ export interface BookingStore {
   hours: number
   passengers: number
   luggage: number
+  // Step 1 — stops (Phase 30)
+  stops: Stop[]
   // Navigation
   currentStep: number
   completedSteps: Set<number>
@@ -85,6 +92,9 @@ export interface BookingStore {
   nextStep: () => void
   prevStep: () => void
   swapOriginDestination: () => void
+  addStop: () => void
+  removeStop: (id: string) => void
+  updateStop: (id: string, place: PlaceResult | null) => void
   setPickupDate: (date: string | null) => void
   setPickupTime: (time: string | null) => void
   setReturnDate: (date: string | null) => void
