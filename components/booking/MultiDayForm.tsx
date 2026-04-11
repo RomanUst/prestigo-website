@@ -1,7 +1,33 @@
 'use client'
 
-import { useEffect, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { DayPicker } from 'react-day-picker'
 import DayCard, { createDay, type Day } from '@/components/booking/DayCard'
+
+function formatDateDisplay(iso: string): string {
+  if (!iso) return ''
+  const d = new Date(iso + 'T00:00:00')
+  if (Number.isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+}
+
+const calendarStyles = {
+  root: { fontFamily: 'var(--font-montserrat)', color: 'var(--offwhite)', background: 'transparent' },
+  caption_label: { color: 'var(--offwhite)', fontSize: 12, fontWeight: 400, fontFamily: 'var(--font-montserrat)', letterSpacing: '0.18em', textTransform: 'uppercase' as const },
+  weekday: { color: 'var(--warmgrey)', fontSize: 12, fontWeight: 400 },
+  day: { color: 'var(--offwhite)', fontSize: 13, width: 36, height: 36 },
+  day_button: { color: 'var(--offwhite)', fontSize: 13, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', border: 'none' },
+  nav: { color: 'var(--copper)' },
+  button_previous: { color: 'var(--copper)', border: '1px solid var(--copper)', background: 'transparent', cursor: 'pointer', width: 32, height: 32 },
+  button_next: { color: 'var(--copper)', border: '1px solid var(--copper)', background: 'transparent', cursor: 'pointer', width: 32, height: 32 },
+  chevron: { fill: 'var(--copper)', width: 16, height: 16 },
+}
+
+const calendarModifiers = {
+  selected: { background: 'var(--copper)', color: 'var(--anthracite)', borderRadius: 0 },
+  disabled: { color: 'var(--warmgrey)', opacity: 0.4, cursor: 'not-allowed' },
+  today: { outline: '1px solid var(--anthracite-light)', outlineOffset: '-2px' },
+}
 
 interface HourlyRange {
   min: number
@@ -60,6 +86,8 @@ function buildPayload(days: Day[], passenger: PassengerState, startDate: string)
       d.type === 'transfer'
         ? {
             type: 'transfer' as const,
+            date: d.date || undefined,
+            time: d.time,
             from: d.transfer.from!.address,
             to: d.transfer.to!.address,
             stops: d.transfer.stops.map((s) => ({
@@ -70,6 +98,8 @@ function buildPayload(days: Day[], passenger: PassengerState, startDate: string)
           }
         : {
             type: 'hourly' as const,
+            date: d.date || undefined,
+            time: d.time,
             city: d.hourly.city!.address,
             hours: d.hourly.hours,
           }
@@ -91,6 +121,38 @@ export default function MultiDayForm() {
   const [passenger, setPassenger] = useState<PassengerState>(INITIAL_PASSENGER)
   const [startDate, setStartDate] = useState<string>('')
   const [status, setStatus] = useState<SubmitStatus>({ kind: 'idle' })
+  const [openDatePicker, setOpenDatePicker] = useState(false)
+  const [todayStr, setTodayStr] = useState<string>('')
+  const dateFieldRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setTodayStr(new Date().toISOString().split('T')[0])
+  }, [])
+
+  useEffect(() => {
+    if (!openDatePicker) return
+    function handlePointerDown(e: MouseEvent) {
+      if (dateFieldRef.current && !dateFieldRef.current.contains(e.target as Node)) {
+        setOpenDatePicker(false)
+      }
+    }
+    function handleKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') setOpenDatePicker(false)
+    }
+    document.addEventListener('mousedown', handlePointerDown)
+    document.addEventListener('keydown', handleKey)
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown)
+      document.removeEventListener('keydown', handleKey)
+    }
+  }, [openDatePicker])
+
+  function handleDateSelect(d: Date | undefined) {
+    if (!d) { setStartDate(''); return }
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    setStartDate(iso)
+    setOpenDatePicker(false)
+  }
 
   useEffect(() => {
     let active = true
@@ -236,16 +298,61 @@ export default function MultiDayForm() {
 
   return (
     <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-      <label style={labelStyle}>
-        Start date (optional)
-        <input
-          type="date"
-          name="startDate"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          style={inputStyle}
-        />
-      </label>
+      <div ref={dateFieldRef} style={{ position: 'relative' }}>
+        <p
+          style={{
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '11px',
+            letterSpacing: '0.16em',
+            textTransform: 'uppercase',
+            color: 'var(--warmgrey)',
+            marginBottom: '8px',
+          }}
+        >
+          Start date <span style={{ color: 'var(--anthracite-light)' }}>(optional)</span>
+        </p>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={openDatePicker}
+          aria-label="Start date"
+          onClick={() => setOpenDatePicker((v) => !v)}
+          style={{
+            ...inputStyle,
+            minHeight: '48px',
+            textAlign: 'left',
+            cursor: 'pointer',
+            color: startDate ? 'var(--offwhite)' : 'var(--warmgrey)',
+          }}
+        >
+          {startDate ? formatDateDisplay(startDate) : 'Select date'}
+        </button>
+        {openDatePicker && (
+          <div
+            role="dialog"
+            aria-label="Select start date"
+            style={{
+              position: 'absolute',
+              top: 'calc(100% + 6px)',
+              left: 0,
+              zIndex: 50,
+              background: 'var(--anthracite)',
+              border: '1px solid var(--anthracite-light)',
+              padding: '16px',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
+            }}
+          >
+            <DayPicker
+              mode="single"
+              selected={startDate ? new Date(startDate + 'T00:00:00') : undefined}
+              onSelect={handleDateSelect}
+              disabled={todayStr ? { before: new Date(todayStr + 'T00:00:00') } : undefined}
+              styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}
+              modifiersStyles={calendarModifiers}
+            />
+          </div>
+        )}
+      </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
         {days.map((day, index) => (

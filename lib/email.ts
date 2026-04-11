@@ -780,11 +780,13 @@ ${formatCZK(data.combinedAmountCzk)} (${formatEUR(czkToEur(data.combinedAmountCz
 export interface MultidayDaySummary {
   index: number                           // 1-based day number for display
   type: 'transfer' | 'hourly'
-  // Transfer fields (empty strings when type === 'hourly')
+  date?: string                           // 'YYYY-MM-DD' or undefined
+  time?: string                           // 'HH:MM', default '09:00'
+  // Transfer fields
   from?: string
   to?: string
   stops?: string[]                        // addresses only; []-safe
-  // Hourly fields (undefined when type === 'transfer')
+  // Hourly fields
   city?: string
   hours?: number
 }
@@ -809,8 +811,20 @@ function formatMultidayStartDate(iso?: string): string {
   return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
+function formatDayDateTime(date?: string, time?: string): string {
+  const timePart = time || '09:00'
+  if (!date) return timePart
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(date)
+  if (!match) return `${date} ${timePart}`
+  const [, y, m, d] = match
+  const dateObj = new Date(Number(y), Number(m) - 1, Number(d))
+  const dateStr = dateObj.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  return `${dateStr} · ${timePart}`
+}
+
 function buildMultidayDayRowHtml(day: MultidayDaySummary): string {
   const dayLabel = `Day ${day.index}`
+  const datetime = escapeHtml(formatDayDateTime(day.date, day.time))
   if (day.type === 'transfer') {
     const from = escapeHtml(day.from ?? '')
     const to = escapeHtml(day.to ?? '')
@@ -825,6 +839,7 @@ function buildMultidayDayRowHtml(day: MultidayDaySummary): string {
       <tr>
         <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;vertical-align:top;width:72px;">
           <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.2em;color:#D4924A;text-transform:uppercase;">${dayLabel}</div>
+          <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:#9A958F;margin-top:4px;">${datetime}</div>
         </td>
         <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;color:#F5F2EE;">
           <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.16em;color:#E8B87A;text-transform:uppercase;margin-bottom:4px;">Transfer</div>
@@ -840,6 +855,7 @@ function buildMultidayDayRowHtml(day: MultidayDaySummary): string {
     <tr>
       <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;vertical-align:top;width:72px;">
         <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.2em;color:#D4924A;text-transform:uppercase;">${dayLabel}</div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:#9A958F;margin-top:4px;">${datetime}</div>
       </td>
       <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;color:#F5F2EE;">
         <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.16em;color:#E8B87A;text-transform:uppercase;margin-bottom:4px;">Hourly hire</div>

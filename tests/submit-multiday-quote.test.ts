@@ -33,12 +33,16 @@ const validBody = {
   days: [
     {
       type: 'transfer' as const,
+      date: '2026-05-01',
+      time: '09:00',
       from: 'Prague Airport',
       to: 'Hotel Alcron Prague',
       stops: [{ address: 'Wenceslas Square', lat: 50.08, lng: 14.42 }],
     },
     {
       type: 'hourly' as const,
+      date: '2026-05-02',
+      time: '10:00',
       city: 'Vienna',
       hours: 6,
     },

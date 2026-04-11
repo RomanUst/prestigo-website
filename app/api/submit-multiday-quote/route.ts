@@ -22,6 +22,8 @@ const stopSchema = z.object({
 
 const transferDaySchema = z.object({
   type: z.literal('transfer'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  time: z.string().regex(/^\d{2}:\d{2}$/),
   from: safeString(300).min(1),
   to: safeString(300).min(1),
   stops: z.array(stopSchema).max(5),   // STOP-01 cap reused
@@ -29,6 +31,8 @@ const transferDaySchema = z.object({
 
 const hourlyDaySchema = z.object({
   type: z.literal('hourly'),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  time: z.string().regex(/^\d{2}:\d{2}$/),
   city: safeString(300).min(1),
   hours: z.number().int().min(1).max(24),
 }).strict()
@@ -68,6 +72,8 @@ function toEmailData(
       return {
         index: i + 1,
         type: 'transfer' as const,
+        date: day.date,
+        time: day.time,
         from: day.from,
         to: day.to,
         stops: day.stops.map((s) => s.address),
@@ -76,6 +82,8 @@ function toEmailData(
     return {
       index: i + 1,
       type: 'hourly' as const,
+      date: day.date,
+      time: day.time,
       city: day.city,
       hours: day.hours,
     }
