@@ -109,6 +109,40 @@ describe('DurationSelector', () => {
     expect(setHoursMock).not.toHaveBeenCalled()
   })
 
+  it('keeps fallback [2..8] when response has non-numeric min/max', async () => {
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ min: '3', max: 6 }),
+      } as Response)
+    )
+    render(<DurationSelector />)
+    await new Promise((r) => setTimeout(r, 0))
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    expect(select.options.length).toBe(7) // fallback [2..8]
+  })
+
+  it('keeps fallback [2..8] when min >= max in response', async () => {
+    globalThis.fetch = vi.fn(() =>
+      Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ min: 5, max: 5 }),
+      } as Response)
+    )
+    render(<DurationSelector />)
+    await new Promise((r) => setTimeout(r, 0))
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    expect(select.options.length).toBe(7) // fallback [2..8]
+  })
+
+  it('does NOT clamp when fetch errors even if store.hours is out of fallback range', async () => {
+    globalThis.fetch = vi.fn(() => Promise.reject(new Error('network down')))
+    storeState = { hours: 15, setHours: setHoursMock }
+    render(<DurationSelector />)
+    await new Promise((r) => setTimeout(r, 0))
+    expect(setHoursMock).not.toHaveBeenCalled()
+  })
+
   it('keeps fallback [2..8] and does not clamp when fetch errors', async () => {
     globalThis.fetch = vi.fn(() => Promise.reject(new Error('network down')))
     storeState = { hours: 6, setHours: setHoursMock }

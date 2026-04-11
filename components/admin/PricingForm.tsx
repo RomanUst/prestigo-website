@@ -90,7 +90,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
     resolver: zodResolver(pricingSchema),
     defaultValues: initialData,
   })
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error' | 'range-error'>('idle')
   const [focusedInput, setFocusedInput] = useState<string | null>(null)
   const [holidayDates, setHolidayDates] = useState<string[]>(initialData.holidayDates ?? [])
   const [newDate, setNewDate] = useState('')
@@ -111,6 +111,8 @@ export default function PricingForm({ initialData }: PricingFormProps) {
     if (res.ok) {
       setSaveStatus('success')
       setTimeout(() => setSaveStatus('idle'), 3000)
+    } else if (res.status === 422) {
+      setSaveStatus('range-error')
     } else {
       setSaveStatus('error')
     }
@@ -564,6 +566,9 @@ export default function PricingForm({ initialData }: PricingFormProps) {
         )}
         {saveStatus === 'error' && (
           <span style={{ fontSize: '11px', color: '#f87171' }}>Save failed. Try again.</span>
+        )}
+        {saveStatus === 'range-error' && (
+          <span style={{ fontSize: '11px', color: '#f87171' }}>Minimum hours must be less than maximum hours.</span>
         )}
       </div>
     </form>

@@ -23,6 +23,7 @@ export default function DurationSelector() {
     min: FALLBACK_MIN,
     max: FALLBACK_MAX,
   })
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
@@ -39,9 +40,11 @@ export default function DurationSelector() {
           data.min >= data.max
         ) {
           // Malformed response — keep fallback.
+          setLoading(false)
           return
         }
         setRange({ min: data.min, max: data.max })
+        setLoading(false)
 
         // D-04: clamp out-of-range store value to min so price calculation always
         // uses a value within the configured range. Read fresh state via getState()
@@ -53,6 +56,7 @@ export default function DurationSelector() {
       } catch {
         // Network / JSON error — keep fallback range. Do NOT clamp store.hours
         // because the user's stored value is still valid under the fallback.
+        if (!cancelled) setLoading(false)
       }
     }
 
@@ -73,6 +77,7 @@ export default function DurationSelector() {
       <select
         aria-label="Duration"
         value={hours}
+        disabled={loading}
         onChange={(e) => setHours(Number(e.target.value))}
         style={{
           width: '100%',
@@ -88,8 +93,10 @@ export default function DurationSelector() {
           fontSize: '13px',
           letterSpacing: '0.05em',
           padding: '10px 14px',
-          cursor: 'pointer',
+          cursor: loading ? 'wait' : 'pointer',
           outline: 'none',
+          opacity: loading ? 0.5 : 1,
+          transition: 'opacity 0.2s ease',
         }}
       >
         {options.map((h) => (

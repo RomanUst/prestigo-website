@@ -49,6 +49,10 @@ export async function GET() {
     supabase.from('pricing_globals').select('*').eq('id', 1).single(),
   ])
 
+  if (configResult.error || globalsResult.error) {
+    return NextResponse.json({ error: 'DB read failed' }, { status: 500 })
+  }
+
   return NextResponse.json({
     config: configResult.data,
     globals: globalsResult.data,
