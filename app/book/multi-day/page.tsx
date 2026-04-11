@@ -378,12 +378,28 @@ export default function MultiDayPage() {
       <section
         aria-labelledby="multiday-examples-heading"
         style={{
-          maxWidth: '960px',
-          margin: '0 auto',
-          padding: '48px 24px 32px',
+          position: 'relative',
+          overflow: 'hidden',
           borderTop: '1px solid var(--anthracite-light)',
         }}
       >
+        {/* Background image */}
+        <img
+          src="/multi-day-itineraries-bg.png"
+          alt=""
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center',
+            display: 'block',
+            opacity: 0.22,
+          }}
+        />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '960px', margin: '0 auto', padding: '48px 24px 32px' }}>
         <h2
           id="multiday-examples-heading"
           style={{
@@ -490,6 +506,7 @@ export default function MultiDayPage() {
               </ol>
             </article>
           ))}
+        </div>
         </div>
       </section>
 
