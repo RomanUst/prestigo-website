@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { BookingStore, PlaceResult } from '@/types/booking'
+import type { BookingStore, PlaceResult, Stop } from '@/types/booking'
 
 export const useBookingStore = create<BookingStore>()(
   persist(
@@ -11,6 +11,7 @@ export const useBookingStore = create<BookingStore>()(
       hours: 2,
       passengers: 1,
       luggage: 0,
+      stops: [],
       currentStep: 1,
       completedSteps: new Set<number>(),
       pickupDate: null,
@@ -32,12 +33,14 @@ export const useBookingStore = create<BookingStore>()(
 
       setTripType: (type) => {
         const clearReturn = type !== 'round_trip'
+        const clearStops = type === 'round_trip' || type === 'hourly' || type === 'daily'
         set({
           tripType: type,
           priceBreakdown: null,
           distanceKm: null,
           quoteMode: false,
           ...(clearReturn ? { returnTime: null } : {}),
+          ...(clearStops ? { stops: [] } : {}),
         })
       },
       setOrigin: (place) => set({ origin: place, priceBreakdown: null, distanceKm: null, quoteMode: false }),
@@ -55,6 +58,27 @@ export const useBookingStore = create<BookingStore>()(
         const { origin, destination } = get()
         set({ origin: destination, destination: origin })
       },
+      addStop: () => set((s) => {
+        if (s.stops.length >= 5) return s  // STOP-01 max 5 enforcement
+        return {
+          stops: [...s.stops, { id: crypto.randomUUID(), place: null } as Stop],
+          priceBreakdown: null,
+          promoCode: null,
+          promoDiscount: 0,
+        }
+      }),
+      removeStop: (id: string) => set((s) => ({
+        stops: s.stops.filter((stop) => stop.id !== id),
+        priceBreakdown: null,
+        promoCode: null,
+        promoDiscount: 0,
+      })),
+      updateStop: (id: string, place: PlaceResult | null) => set((s) => ({
+        stops: s.stops.map((stop) => (stop.id === id ? { ...stop, place } : stop)),
+        priceBreakdown: null,
+        promoCode: null,
+        promoDiscount: 0,
+      })),
       setPickupDate: (date) => set({ pickupDate: date }),
       setPickupTime: (time) => set({ pickupTime: time }),
       setReturnDate: (date) => set({ returnDate: date }),
@@ -81,6 +105,7 @@ export const useBookingStore = create<BookingStore>()(
         hours: 2,
         passengers: 1,
         luggage: 0,
+        stops: [],
         currentStep: 1,
         completedSteps: new Set<number>(),
         pickupDate: null,
@@ -111,6 +136,7 @@ export const useBookingStore = create<BookingStore>()(
         hours: state.hours,
         passengers: state.passengers,
         luggage: state.luggage,
+        stops: state.stops,
         currentStep: state.currentStep,
         completedSteps: [...state.completedSteps],
         pickupDate: state.pickupDate,
