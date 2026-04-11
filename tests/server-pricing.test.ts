@@ -30,6 +30,8 @@ const FIXTURE_RATES: PricingConfig = {
     extraChildSeat: 10,
     extraMeetGreet: 15,
     extraLuggage: 5,
+    hourlyMinHours: 2,
+    hourlyMaxHours: 8,
   },
 }
 
