@@ -1,4 +1,6 @@
 import type { Metadata } from 'next'
+import Nav from '@/components/Nav'
+import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 
 export const metadata: Metadata = {
@@ -132,6 +134,8 @@ const FAQ = [
 
 export default function MultiDayPage() {
   return (
+    <>
+      <Nav />
     <main
       style={{
         minHeight: '100vh',
@@ -609,5 +613,7 @@ export default function MultiDayPage() {
         <MultiDayForm />
       </section>
     </main>
+      <Footer />
+    </>
   )
 }
