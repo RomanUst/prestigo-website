@@ -174,7 +174,7 @@ export default function MultiDayPage() {
           style={{
             position: 'absolute',
             inset: 0,
-            background: 'linear-gradient(to bottom, rgba(20,20,22,0.18) 0%, rgba(20,20,22,0.55) 50%, rgba(20,20,22,0.92) 100%)',
+            background: 'linear-gradient(to bottom, rgba(20,20,22,0.35) 0%, rgba(20,20,22,0.68) 50%, rgba(20,20,22,0.96) 100%)',
           }}
         />
         {/* Text content */}
