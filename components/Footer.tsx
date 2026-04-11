@@ -40,6 +40,7 @@ export default function Footer() {
               {[
                 { label: 'Airport Transfer', href: '/services' },
                 { label: 'Intercity Routes', href: '/routes' },
+                { label: 'Multi-day Hire', href: '/book/multi-day' },
                 { label: 'Corporate Accounts', href: '/corporate' },
                 { label: 'VIP & Events', href: '/services' },
                 { label: 'Group Transfer', href: '/services' },
