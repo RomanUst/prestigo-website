@@ -21,7 +21,15 @@ const pricingSchema = z.object({
     extra_meet_greet: z.number().min(0),
     extra_luggage: z.number().min(0),
     return_discount_percent: z.number().min(0).max(100),
-  }),
+    hourly_min_hours: z.number().int().positive(),
+    hourly_max_hours: z.number().int().positive(),
+  }).refine(
+    (g) => g.hourly_min_hours < g.hourly_max_hours,
+    {
+      message: 'Minimum hours must be less than maximum hours',
+      path: ['hourly_max_hours'],
+    }
+  ),
 })
 type PricingData = z.infer<typeof pricingSchema>
 
@@ -78,7 +86,7 @@ const headerLabelStyle: React.CSSProperties = {
 }
 
 export default function PricingForm({ initialData }: PricingFormProps) {
-  const { register, handleSubmit, watch, formState: { isSubmitting } } = useForm<PricingData>({
+  const { register, handleSubmit, watch, formState: { isSubmitting, errors } } = useForm<PricingData>({
     resolver: zodResolver(pricingSchema),
     defaultValues: initialData,
   })
@@ -286,6 +294,97 @@ export default function PricingForm({ initialData }: PricingFormProps) {
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Section C — Hourly Hire (min/max range for hourly tripType) */}
+      <div style={{ ...cardStyle, marginTop: '16px' }}>
+        <div style={headerLabelStyle}>HOURLY HIRE</div>
+        <div style={{
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: '11px',
+          color: 'var(--warmgrey)',
+          marginTop: '4px',
+          marginBottom: '16px',
+        }}>
+          Operator-controlled min and max hour range for Hourly trip type. Booking wizard
+          Step 2 dropdown renders one option per hour from MIN to MAX (inclusive, step 1).
+        </div>
+
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
+            gap: '16px',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.3em',
+                color: 'var(--warmgrey)',
+                marginBottom: '6px',
+              }}
+            >
+              MINIMUM HOURS
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="number"
+                step="1"
+                min="1"
+                style={getInputStyle('globals-hourly_min_hours')}
+                {...registerNumeric('globals.hourly_min_hours', 'globals-hourly_min_hours')}
+              />
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)' }}>
+                hours min
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.3em',
+                color: 'var(--warmgrey)',
+                marginBottom: '6px',
+              }}
+            >
+              MAXIMUM HOURS
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <input
+                type="number"
+                step="1"
+                min="1"
+                style={getInputStyle('globals-hourly_max_hours')}
+                {...registerNumeric('globals.hourly_max_hours', 'globals-hourly_max_hours')}
+              />
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: 'var(--warmgrey)' }}>
+                hours max
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {errors.globals?.hourly_max_hours?.message && (
+          <div
+            style={{
+              marginTop: '12px',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              color: '#f87171',
+            }}
+            role="alert"
+          >
+            {errors.globals.hourly_max_hours.message}
+          </div>
+        )}
       </div>
 
       {/* Section D — Holiday Dates */}
