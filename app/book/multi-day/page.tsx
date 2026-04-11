@@ -143,55 +143,91 @@ export default function MultiDayPage() {
       {/* ── Hero ── */}
       <section
         aria-labelledby="multiday-hero-heading"
-        style={{ maxWidth: '960px', margin: '0 auto', padding: '64px 24px 48px' }}
+        style={{
+          position: 'relative',
+          width: '100%',
+          minHeight: 'clamp(420px, 55vw, 680px)',
+          display: 'flex',
+          alignItems: 'flex-end',
+          overflow: 'hidden',
+          marginBottom: '0',
+        }}
       >
-        <p
+        {/* Background image */}
+        <img
+          src="/multi-day-hero.png"
+          alt=""
+          aria-hidden="true"
           style={{
-            fontFamily: 'var(--font-montserrat)',
-            fontSize: '11px',
-            letterSpacing: '0.32em',
-            textTransform: 'uppercase',
-            color: 'var(--copper-light)',
-            marginBottom: '16px',
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            objectPosition: 'center 40%',
+            display: 'block',
           }}
-        >
-          PRESTIGO · Multi-day chauffeur hire
-        </p>
-        <h1
-          id="multiday-hero-heading"
+        />
+        {/* Gradient overlay — bottom-heavy so text is readable */}
+        <div
+          aria-hidden="true"
           style={{
-            fontFamily: 'var(--font-cormorant)',
-            fontSize: 'clamp(36px, 6vw, 60px)',
-            fontWeight: 400,
-            lineHeight: 1.1,
-            marginBottom: '28px',
+            position: 'absolute',
+            inset: 0,
+            background: 'linear-gradient(to bottom, rgba(20,20,22,0.18) 0%, rgba(20,20,22,0.55) 50%, rgba(20,20,22,0.92) 100%)',
           }}
-        >
-          One chauffeur. Every day.<br />Wherever Central Europe takes you.
-        </h1>
-        <p
-          style={{
-            fontFamily: 'var(--font-montserrat)',
-            fontSize: '16px',
-            lineHeight: 1.8,
-            color: 'var(--warmgrey)',
-            maxWidth: '680px',
-            marginBottom: '20px',
-          }}
-        >
-          Some journeys don&rsquo;t fit into a single booking. A corporate roadshow spanning three cities. A family tour across Bohemia and Bavaria. A wedding weekend that moves between Prague and a countryside château. For these, you need a dedicated vehicle and a driver who knows your itinerary as well as you do.
-        </p>
-        <p
-          style={{
-            fontFamily: 'var(--font-montserrat)',
-            fontSize: '16px',
-            lineHeight: 1.8,
-            color: 'var(--warmgrey)',
-            maxWidth: '680px',
-          }}
-        >
-          Build your day-by-day itinerary below — mix Transfer and Hourly days freely, add intermediate stops, set departure times — and we&rsquo;ll return a fixed quote within 24 hours. No online payment required: once the itinerary is right, we confirm by email and the rest is taken care of.
-        </p>
+        />
+        {/* Text content */}
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: '960px', width: '100%', margin: '0 auto', padding: '48px 24px 56px' }}>
+          <p
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              letterSpacing: '0.32em',
+              textTransform: 'uppercase',
+              color: 'var(--copper-light)',
+              marginBottom: '16px',
+            }}
+          >
+            PRESTIGO · Multi-day chauffeur hire
+          </p>
+          <h1
+            id="multiday-hero-heading"
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: 'clamp(36px, 6vw, 60px)',
+              fontWeight: 400,
+              lineHeight: 1.1,
+              marginBottom: '28px',
+              color: 'var(--offwhite)',
+            }}
+          >
+            One chauffeur. Every day.<br />Wherever Central Europe takes you.
+          </h1>
+          <p
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '16px',
+              lineHeight: 1.8,
+              color: 'var(--warmgrey)',
+              maxWidth: '640px',
+              marginBottom: '20px',
+            }}
+          >
+            Some journeys don&rsquo;t fit into a single booking. A corporate roadshow spanning three cities. A family tour across Bohemia and Bavaria. A wedding weekend that moves between Prague and a countryside château. For these, you need a dedicated vehicle and a driver who knows your itinerary as well as you do.
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '16px',
+              lineHeight: 1.8,
+              color: 'var(--warmgrey)',
+              maxWidth: '640px',
+            }}
+          >
+            Build your day-by-day itinerary below — mix Transfer and Hourly days freely, add intermediate stops, set departure times — and we&rsquo;ll return a fixed quote within 24 hours. No online payment required: once the itinerary is right, we confirm by email and the rest is taken care of.
+          </p>
+        </div>
       </section>
 
       {/* ── What's included ── */}
