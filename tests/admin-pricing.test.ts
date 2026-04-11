@@ -58,6 +58,8 @@ const validPutBody = {
     extra_luggage: 25,
     return_discount_percent: 10,
     holiday_dates: [],
+    hourly_min_hours: 2,
+    hourly_max_hours: 8,
   },
 }
 
@@ -228,6 +230,8 @@ describe('/api/admin/pricing', () => {
             extra_luggage: 25,
             return_discount_percent: 10,
             holiday_dates: ['2026-12-25', '2026-12-31'],
+            hourly_min_hours: 2,
+            hourly_max_hours: 8,
           },
         }
 
@@ -337,6 +341,8 @@ describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
         extra_luggage: 150,
         return_discount_percent: 20,
         holiday_dates: ['2026-12-25'],
+        hourly_min_hours: 2,
+        hourly_max_hours: 8,
       },
     }
 
@@ -374,6 +380,8 @@ describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
         extra_luggage: 150,
         return_discount_pct: 20, // ← WRONG NAME — missing required return_discount_percent
         holiday_dates: [],
+        hourly_min_hours: 2,
+        hourly_max_hours: 8,
       },
     }
 
@@ -388,5 +396,75 @@ describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
     expect(json.error).toBe('Invalid payload')
     // Zod issue path should mention return_discount_percent as required
     expect(JSON.stringify(json.issues)).toContain('return_discount_percent')
+  })
+})
+
+describe('PUT /api/admin/pricing — hourly range (HOURLY-01)', () => {
+  beforeEach(() => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'admin-uid', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+    supabaseServiceStub.from.mockImplementation(() => ({
+      upsert: vi.fn(() => Promise.resolve({ error: null })),
+    }))
+  })
+
+  it('returns 200 when hourly_min_hours=2 and hourly_max_hours=8 (valid range)', async () => {
+    const res = await PUT(makeRequest('PUT', validPutBody))
+    expect(res.status).toBe(200)
+  })
+
+  it('returns 422 when hourly_min_hours > hourly_max_hours (min=8, max=2)', async () => {
+    const body = {
+      ...validPutBody,
+      globals: { ...validPutBody.globals, hourly_min_hours: 8, hourly_max_hours: 2 },
+    }
+    const res = await PUT(makeRequest('PUT', body))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(JSON.stringify(json)).toContain('hourly_min_hours')
+  })
+
+  it('returns 422 when hourly_min_hours === hourly_max_hours (equal values, min=5 max=5)', async () => {
+    const body = {
+      ...validPutBody,
+      globals: { ...validPutBody.globals, hourly_min_hours: 5, hourly_max_hours: 5 },
+    }
+    const res = await PUT(makeRequest('PUT', body))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(JSON.stringify(json)).toContain('hourly_min_hours')
+  })
+
+  it('returns 400 when hourly_min_hours=0 (fails positive() constraint)', async () => {
+    const body = {
+      ...validPutBody,
+      globals: { ...validPutBody.globals, hourly_min_hours: 0, hourly_max_hours: 8 },
+    }
+    const res = await PUT(makeRequest('PUT', body))
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json).toHaveProperty('issues')
+  })
+
+  it('returns 400 when hourly_min_hours=2.5 (fails int() constraint)', async () => {
+    const body = {
+      ...validPutBody,
+      globals: { ...validPutBody.globals, hourly_min_hours: 2.5, hourly_max_hours: 8 },
+    }
+    const res = await PUT(makeRequest('PUT', body))
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json).toHaveProperty('issues')
+  })
+
+  it('returns 400 when hourly_min_hours is missing entirely', async () => {
+    const { hourly_min_hours: _omit, ...globalsWithout } = validPutBody.globals
+    const body = { ...validPutBody, globals: globalsWithout }
+    const res = await PUT(makeRequest('PUT', body))
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json).toHaveProperty('issues')
   })
 })

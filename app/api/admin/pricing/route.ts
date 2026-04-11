@@ -32,6 +32,8 @@ const pricingPutSchema = z.object({
     extra_luggage: z.number().min(0),
     return_discount_percent: z.number().min(0).max(100),
     holiday_dates: z.array(z.string().regex(/^\d{4}-\d{2}-\d{2}$/)),
+    hourly_min_hours: z.number().int().positive(),
+    hourly_max_hours: z.number().int().positive(),
   }),
 })
 
@@ -67,6 +69,15 @@ export async function PUT(request: Request) {
     return NextResponse.json(
       { error: 'Invalid payload', issues: parsed.error.issues },
       { status: 400 }
+    )
+  }
+
+  // D-07: range check separate from schema to distinguish 400 (bad shape) from 422 (bad range)
+  const { hourly_min_hours, hourly_max_hours } = parsed.data.globals
+  if (hourly_min_hours >= hourly_max_hours) {
+    return NextResponse.json(
+      { error: 'hourly_min_hours must be less than hourly_max_hours' },
+      { status: 422 }
     )
   }
 
