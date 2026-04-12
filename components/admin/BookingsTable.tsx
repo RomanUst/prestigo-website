@@ -11,6 +11,7 @@ import {
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
+import { FlightStatusBlock } from './FlightStatusBlock'
 
 interface Booking {
   id: string
@@ -756,6 +757,15 @@ export default function BookingsTable() {
                   {/* Expanded details */}
                   {isExpanded && (
                     <div style={{ marginTop: 12, borderTop: '1px solid #3A3A3F', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
+                      {booking.flight_iata && (
+                        <FlightStatusBlock
+                          bookingId={booking.id}
+                          flightIata={booking.flight_iata}
+                          initialStatus={booking.flight_status}
+                          initialEstimatedArrival={booking.flight_estimated_arrival}
+                          initialDelayMinutes={booking.flight_delay_minutes}
+                        />
+                      )}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: 12 }}>
                         <DetailField label="ORIGIN" value={booking.origin_address} />
                         <DetailField label="DESTINATION" value={booking.destination_address} />
@@ -1014,6 +1024,15 @@ export default function BookingsTable() {
                           borderBottom: '1px solid var(--anthracite-light)',
                         }}
                       >
+                        {row.original.flight_iata && (
+                          <FlightStatusBlock
+                            bookingId={row.original.id}
+                            flightIata={row.original.flight_iata}
+                            initialStatus={row.original.flight_status}
+                            initialEstimatedArrival={row.original.flight_estimated_arrival}
+                            initialDelayMinutes={row.original.flight_delay_minutes}
+                          />
+                        )}
                         <div style={{
                           display: 'grid',
                           gridTemplateColumns: '1fr 1fr',
@@ -1046,8 +1065,6 @@ export default function BookingsTable() {
                           />
                           <DetailField label="FLIGHT" value={row.original.flight_number ?? '—'} />
                           <DetailField label="TERMINAL" value={row.original.terminal ?? '—'} />
-                          {/* TODO Phase 33: render flight_iata, flight_status, flight_estimated_arrival,
-                              flight_delay_minutes, flight_departure_airport, flight_arrival_airport, flight_terminal */}
                           <DetailField label="RETURN" value={row.original.return_date ?? '—'} />
                           <DetailField label="NOTES" value={row.original.special_requests ?? '—'} />
                           <DetailField
