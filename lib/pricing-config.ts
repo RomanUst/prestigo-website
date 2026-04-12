@@ -11,6 +11,7 @@ export type PricingGlobals = {
   returnDiscountPercent: number
   hourlyMinHours: number
   hourlyMaxHours: number
+  notificationFlags: Record<string, boolean> | null
 }
 
 export type PricingRates = {
@@ -35,7 +36,7 @@ export async function getPricingConfig(): Promise<PricingRates> {
       .select('vehicle_class, rate_per_km, hourly_rate, daily_rate, min_fare'),
     supabase
       .from('pricing_globals')
-      .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_meet_greet, extra_luggage, holiday_dates, return_discount_percent, hourly_min_hours, hourly_max_hours')
+      .select('airport_fee, night_coefficient, holiday_coefficient, extra_child_seat, extra_meet_greet, extra_luggage, holiday_dates, return_discount_percent, hourly_min_hours, hourly_max_hours, notification_flags')
       .eq('id', 1)
       .single(),
   ])
@@ -67,6 +68,8 @@ export async function getPricingConfig(): Promise<PricingRates> {
       returnDiscountPercent:  Number(globals.return_discount_percent ?? 10),
       hourlyMinHours:         Number(globals.hourly_min_hours ?? 2),
       hourlyMaxHours:         Number(globals.hourly_max_hours ?? 8),
+      // JSONB column — Supabase auto-parses, no Number() cast needed
+      notificationFlags:      globals.notification_flags as Record<string, boolean> | null ?? null,
     },
   }
 }
