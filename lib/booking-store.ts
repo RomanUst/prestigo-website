@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
-import type { BookingStore, PlaceResult, Stop } from '@/types/booking'
+import type { BookingStore, PlaceResult, Stop, FlightCheckResult } from '@/types/booking'
 
 export const useBookingStore = create<BookingStore>()(
   persist(
@@ -26,6 +26,7 @@ export const useBookingStore = create<BookingStore>()(
       quoteMode: false,
       extras: { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: true, extraLuggage: false },
       passengerDetails: null,
+      flightCheckResult: null,
       paymentIntentClientSecret: null,
       bookingReference: null,
       promoCode: null,
@@ -94,6 +95,7 @@ export const useBookingStore = create<BookingStore>()(
         extras: { ...s.extras, [key]: !s.extras[key] }
       })),
       setPassengerDetails: (d) => set({ passengerDetails: d }),
+      setFlightCheckResult: (r: FlightCheckResult | null) => set({ flightCheckResult: r }),
       setPaymentIntentClientSecret: (s) => set({ paymentIntentClientSecret: s }),
       setBookingReference: (ref) => set({ bookingReference: ref }),
       setPromoCode: (code) => set({ promoCode: code }),
@@ -120,6 +122,7 @@ export const useBookingStore = create<BookingStore>()(
         quoteMode: false,
         extras: { infantSeat: false, childSeat: false, boosterSeat: false, meetAndGreet: true, extraLuggage: false },
         passengerDetails: null,
+        flightCheckResult: null,
         paymentIntentClientSecret: null,
         bookingReference: null,
         promoCode: null,

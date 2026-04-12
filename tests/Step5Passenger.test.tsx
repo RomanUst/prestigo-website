@@ -32,4 +32,26 @@ describe('Step5Passenger', () => {
     it.todo('shows "Flight number is required for airport rides" after blur on empty Flight Number for airport ride')
     it.todo('clears error message when valid value entered and field blurred again')
   })
+
+  describe('FLIGHT-02: Check flight button and status block', () => {
+    it.todo('shows CHECK FLIGHT button when flight number is valid IATA format')
+    it.todo('hides CHECK FLIGHT button when flight number is fewer than 2 chars')
+    it.todo('shows status block with flight info after successful check')
+    it.todo('shows RE-CHECK FLIGHT after successful check')
+  })
+
+  describe('FLIGHT-03: Airport mismatch warning', () => {
+    it.todo('shows mismatch warning when neither airport is PRG')
+    it.todo('does not show mismatch warning when arrival airport is PRG')
+  })
+
+  describe('FLIGHT-04: Terminal auto-fill', () => {
+    it.todo('auto-fills terminal field when API returns terminal data')
+    it.todo('leaves terminal empty when API returns null terminal')
+  })
+
+  describe('FLIGHT-08: Error and graceful degradation', () => {
+    it.todo('shows error message when API returns ok: false')
+    it.todo('wizard remains operable after flight check error')
+  })
 })

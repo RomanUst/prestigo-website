@@ -48,6 +48,16 @@ export const VEHICLE_CONFIG: VehicleConfig[] = [
   { key: 'business_van', label: 'Business Van', maxPassengers: 6, maxLuggage: 6, image: '/v-class-photo.png' },
 ]
 
+export interface FlightCheckResult {
+  flight_iata: string
+  flight_status: string
+  flight_estimated_arrival: string | null
+  flight_delay_minutes: number | null
+  flight_departure_airport: string
+  flight_arrival_airport: string
+  flight_terminal: string | null
+}
+
 export interface BookingStore {
   // Step 1
   tripType: TripType
@@ -75,6 +85,7 @@ export interface BookingStore {
   extras: Extras
   // Step 5
   passengerDetails: PassengerDetails | null
+  flightCheckResult: FlightCheckResult | null
   // Actions
   setTripType: (type: TripType) => void
   setOrigin: (place: PlaceResult | null) => void
@@ -98,6 +109,7 @@ export interface BookingStore {
   setExtras: (e: Extras) => void
   toggleExtra: (key: keyof Extras) => void
   setPassengerDetails: (d: PassengerDetails) => void
+  setFlightCheckResult: (r: FlightCheckResult | null) => void
   // Step 6 / Payment
   paymentIntentClientSecret: string | null
   bookingReference: string | null
