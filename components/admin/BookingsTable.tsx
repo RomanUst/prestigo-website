@@ -1046,6 +1046,8 @@ export default function BookingsTable() {
                           />
                           <DetailField label="FLIGHT" value={row.original.flight_number ?? '—'} />
                           <DetailField label="TERMINAL" value={row.original.terminal ?? '—'} />
+                          {/* TODO Phase 33: render flight_iata, flight_status, flight_estimated_arrival,
+                              flight_delay_minutes, flight_departure_airport, flight_arrival_airport, flight_terminal */}
                           <DetailField label="RETURN" value={row.original.return_date ?? '—'} />
                           <DetailField label="NOTES" value={row.original.special_requests ?? '—'} />
                           <DetailField
