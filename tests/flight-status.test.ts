@@ -249,6 +249,7 @@ describe('FLIGHT-08: checkFlight typed error contract', () => {
   })
 
   it('FlightCheckError.message never contains appId or appKey query string values', async () => {
+    expect.assertions(2)
     mockFetch.mockRejectedValue(new Error('boom'))
     try {
       await checkFlight('OK123', '2026-04-15')
@@ -259,6 +260,7 @@ describe('FLIGHT-08: checkFlight typed error contract', () => {
   })
 
   it('FlightCheckError instances are instanceof Error AND instanceof FlightCheckError', async () => {
+    expect.assertions(2)
     mockFetch.mockRejectedValue(new Error('boom'))
     try {
       await checkFlight('OK123', '2026-04-15')
