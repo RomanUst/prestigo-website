@@ -10,6 +10,7 @@ const BASE = 'https://api.flightstats.com/flex/flightstatus/rest/v2/json'
 // Using explicit alternation avoids the ambiguity in /^[A-Z0-9]{2,3}\d{1,4}$/i where
 // e.g. "OK12345" would incorrectly match as carrier="OK1" + flight="2345".
 const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 
 export type FlightStatus =
   | 'scheduled'
@@ -102,11 +103,24 @@ export async function checkFlight(
     )
   }
 
+  if (!DATE_RE.test(date)) {
+    throw new FlightCheckError(
+      'INVALID_FORMAT',
+      `"${date}" is not a valid date (expected YYYY-MM-DD)`,
+    )
+  }
+
   const { carrier, flightNum } = splitIata(normalised)
   const [year, month, day] = date.split('-').map(Number)
 
   const appId  = process.env.FLIGHTSTATS_APP_ID
   const appKey = process.env.FLIGHTSTATS_APP_KEY
+  if (!appId || !appKey) {
+    throw new FlightCheckError(
+      'API_ERROR',
+      'FlightStats credentials are not configured (FLIGHTSTATS_APP_ID / FLIGHTSTATS_APP_KEY missing)',
+    )
+  }
 
   const url =
     `${BASE}/flight/status/${carrier}/${flightNum}/arr/${year}/${month}/${day}` +
