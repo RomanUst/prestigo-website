@@ -24,7 +24,7 @@ const STATUS_DISPLAY: Record<FlightStatus, { label: string; color: string }> = {
 }
 
 function formatArrivalTime(iso: string | null): string {
-  if (!iso) return '\u2014'
+  if (!iso || iso.length < 16) return '\u2014'
   return iso.slice(11, 16) // "2026-04-15T14:35:00.000" -> "14:35"
 }
 
