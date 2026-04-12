@@ -19,6 +19,7 @@ const LIMITS: Record<string, number> = {
   '/api/create-payment-intent':  10, // prevent cost abuse and promo-code enumeration
   '/api/validate-promo':         20, // prevent promo code enumeration
   '/admin/login':                 5, // prevent brute force on admin credentials
+  '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota
 }
 
 export interface RateLimitResult {
