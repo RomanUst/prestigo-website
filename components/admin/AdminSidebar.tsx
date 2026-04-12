@@ -10,6 +10,7 @@ const navItems = [
   { href: '/admin/pricing', label: 'Pricing' },
   { href: '/admin/zones', label: 'Zones' },
   { href: '/admin/bookings', label: 'Bookings' },
+  { href: '/admin/drivers', label: 'Drivers' },
   { href: '/admin/promo-codes', label: 'Promos' },
   { href: '/admin/stats', label: 'Stats' },
 ]
