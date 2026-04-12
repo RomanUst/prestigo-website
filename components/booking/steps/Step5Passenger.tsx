@@ -1,11 +1,29 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useBookingStore } from '@/lib/booking-store'
 import { PRG_CONFIG } from '@/types/booking'
+
+// Mirrors IATA_RE from lib/flight-status.ts (server-only module — cannot be imported client-side)
+const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
+
+const STATUS_DISPLAY: Record<string, { label: string; color: string }> = {
+  scheduled: { label: 'SCHEDULED', color: 'var(--copper)' },
+  active:    { label: 'ACTIVE',    color: 'var(--copper)' },
+  landed:    { label: 'LANDED',    color: '#27AE60' },
+  delayed:   { label: 'DELAYED',   color: '#E67E22' },
+  cancelled: { label: 'CANCELLED', color: '#C0392B' },
+  diverted:  { label: 'DIVERTED',  color: '#C0392B' },
+  unknown:   { label: 'UNKNOWN',   color: 'var(--warmgrey)' },
+}
+
+function formatArrivalTime(iso: string | null): string {
+  if (!iso) return '\u2014'
+  return iso.slice(11, 16) // "2026-04-15T14:35:00.000" -> "14:35"
+}
 
 const passengerSchema = (isAirport: boolean) =>
   z.object({
@@ -14,7 +32,9 @@ const passengerSchema = (isAirport: boolean) =>
     email: z.string().email('Enter a valid email address'),
     phone: z.string().min(7, 'Enter a valid phone number'),
     flightNumber: isAirport
-      ? z.string().min(1, 'Flight number is required for airport rides')
+      ? z.string()
+          .min(1, 'Flight number is required for airport rides')
+          .regex(IATA_RE, 'Invalid IATA format \u2014 e.g. BA256 or OK123')
       : z.string().optional(),
     terminal: z.string().optional(),
     specialRequests: z.string().max(500, 'Maximum 500 characters').optional(),
@@ -25,6 +45,9 @@ export default function Step5Passenger() {
   const destination = useBookingStore((s) => s.destination)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
   const setPassengerDetails = useBookingStore((s) => s.setPassengerDetails)
+  const setFlightCheckResult = useBookingStore((s) => s.setFlightCheckResult)
+  const flightCheckResult = useBookingStore((s) => s.flightCheckResult)
+  const pickupDate = useBookingStore((s) => s.pickupDate)
 
   const isAirportRide =
     origin?.placeId === PRG_CONFIG.placeId ||
@@ -33,6 +56,7 @@ export default function Step5Passenger() {
   const {
     register,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(passengerSchema(isAirportRide)),
@@ -50,6 +74,31 @@ export default function Step5Passenger() {
 
   const { firstName, lastName, email, phone, flightNumber, terminal, specialRequests } = watch()
 
+  const [flightCheckState, setFlightCheckState] = useState<'idle' | 'loading' | 'success' | 'error'>(
+    () => useBookingStore.getState().flightCheckResult ? 'success' : 'idle'
+  )
+  const [flightCheckError, setFlightCheckError] = useState<string | null>(null)
+
+  const watchedFlightNumber = watch('flightNumber')
+
+  // Track whether this is the initial mount — skip the reset effect on first render
+  // so that a pre-existing flightCheckResult (from Zustand) is not cleared on mount.
+  const isMounted = useRef(false)
+
+  // Reset status block when flight number is edited after a check
+  useEffect(() => {
+    if (!isMounted.current) {
+      isMounted.current = true
+      return
+    }
+    if (flightCheckState === 'success' || flightCheckState === 'error') {
+      setFlightCheckState('idle')
+      setFlightCheckResult(null)
+      setFlightCheckError(null)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watchedFlightNumber])
+
   useEffect(() => {
     setPassengerDetails({
       firstName: firstName ?? '',
@@ -62,8 +111,44 @@ export default function Step5Passenger() {
     })
   }, [firstName, lastName, email, phone, flightNumber, terminal, specialRequests, setPassengerDetails])
 
+  async function handleCheckFlight() {
+    const fn = (watchedFlightNumber ?? '').trim().toUpperCase()
+    const date = pickupDate ?? new Date().toISOString().slice(0, 10)
+    setFlightCheckState('loading')
+    setFlightCheckError(null)
+    try {
+      const res = await fetch(`/api/check-flight?flight=${encodeURIComponent(fn)}&date=${encodeURIComponent(date)}`)
+      const data = await res.json()
+      if (!data.ok) {
+        setFlightCheckState('error')
+        setFlightCheckError(data.error ?? 'unavailable')
+        return
+      }
+      setFlightCheckResult(data)
+      if (data.flight_terminal) {
+        setValue('terminal', data.flight_terminal, { shouldDirty: true })
+      }
+      setFlightCheckState('success')
+    } catch {
+      setFlightCheckState('error')
+      setFlightCheckError('unavailable')
+    }
+  }
+
+  const isCheckDisabled =
+    flightCheckState === 'loading' ||
+    !watchedFlightNumber ||
+    watchedFlightNumber.length < 2 ||
+    !IATA_RE.test(watchedFlightNumber)
+
+  const statusEntry = flightCheckResult
+    ? (STATUS_DISPLAY[flightCheckResult.flight_status.toLowerCase()] ?? STATUS_DISPLAY.unknown)
+    : null
+
   return (
     <div>
+      <style>{`@keyframes prestigo-spin { to { transform: rotate(360deg) } }`}</style>
+
       {/* Row 1: First Name + Last Name */}
       <div className="flex flex-col md:flex-row" style={{ gap: 24 }}>
         <div style={{ flex: 1 }}>
@@ -207,7 +292,7 @@ export default function Step5Passenger() {
               }}
             />
             {errors.flightNumber && (
-              <p id="flightNumber-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+              <p id="flightNumber-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 400, marginTop: 8 }}>
                 {errors.flightNumber.message}
               </p>
             )}
@@ -240,6 +325,118 @@ export default function Step5Passenger() {
             )}
           </div>
         </div>
+      )}
+
+      {/* Check Flight button — airport rides only, visible when IATA valid */}
+      {isAirportRide && (
+        <>
+          <button
+            type="button"
+            onClick={handleCheckFlight}
+            disabled={isCheckDisabled}
+            aria-label={
+              flightCheckState === 'success'
+                ? 'Re-check flight status'
+                : flightCheckState === 'loading'
+                ? 'Checking flight status'
+                : 'Check flight status'
+            }
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: 'var(--copper)',
+              color: 'var(--anthracite)',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 11,
+              fontWeight: 400,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase' as const,
+              padding: '0 24px',
+              border: 'none',
+              borderRadius: 4,
+              cursor: isCheckDisabled ? 'not-allowed' : 'pointer',
+              height: 44,
+              marginTop: 12,
+              opacity: isCheckDisabled ? 0.5 : 1,
+              transition: 'opacity 200ms ease-in',
+            }}
+          >
+            {flightCheckState === 'loading' && (
+              <span
+                aria-hidden="true"
+                style={{
+                  display: 'inline-block',
+                  width: 16,
+                  height: 16,
+                  border: '2px solid var(--anthracite)',
+                  borderTopColor: 'transparent',
+                  borderRadius: '50%',
+                  animation: 'prestigo-spin 0.8s linear infinite',
+                  marginRight: 8,
+                }}
+              />
+            )}
+            {flightCheckState === 'success'
+              ? 'RE-CHECK FLIGHT'
+              : flightCheckState === 'loading'
+              ? 'CHECKING\u2026'
+              : 'CHECK FLIGHT'}
+          </button>
+
+          {/* Status block */}
+          <div
+            role="status"
+            aria-live="polite"
+            style={{ marginTop: 8, transition: 'opacity 300ms ease-in' }}
+          >
+            {flightCheckState === 'success' && flightCheckResult && statusEntry && (
+              <>
+                {/* Line 1: checkmark + IATA + status label */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
+                  <span style={{ color: 'var(--copper-light)' }}>&#10003;</span>
+                  <span style={{ color: 'var(--offwhite)', fontSize: 14, fontWeight: 400 }}>
+                    {flightCheckResult.flight_iata}
+                  </span>
+                  <span style={{ color: 'var(--warmgrey)' }}> &mdash; </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.12em', color: statusEntry.color }}>
+                    {statusEntry.label}
+                  </span>
+                </div>
+
+                {/* Line 2: arrival time + delay */}
+                <div style={{ color: 'var(--warmgrey)', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
+                  Arrival: {formatArrivalTime(flightCheckResult.flight_estimated_arrival)}
+                  {' \u00b7 '}
+                  {flightCheckResult.flight_delay_minutes != null && flightCheckResult.flight_delay_minutes > 0 ? (
+                    <span style={{ color: '#E67E22' }}>
+                      +{flightCheckResult.flight_delay_minutes} min delay
+                    </span>
+                  ) : (
+                    'No delay'
+                  )}
+                </div>
+
+                {/* Line 3 (conditional): airport mismatch warning */}
+                {flightCheckResult.flight_arrival_airport !== 'PRG' &&
+                  flightCheckResult.flight_departure_airport !== 'PRG' && (
+                    <div style={{ color: '#E67E22', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
+                      &#9888; Airport mismatch: flight arrives at {flightCheckResult.flight_arrival_airport}, not PRG
+                    </div>
+                  )}
+              </>
+            )}
+
+            {flightCheckState === 'error' && (
+              <div
+                role="alert"
+                aria-live="assertive"
+                style={{ color: 'var(--warmgrey)', fontSize: 14, fontWeight: 400, marginTop: 8 }}
+              >
+                &#9888; Flight not found or check unavailable &mdash; you can proceed anyway
+              </div>
+            )}
+          </div>
+        </>
       )}
 
       {/* Row 5: Special Requests */}
