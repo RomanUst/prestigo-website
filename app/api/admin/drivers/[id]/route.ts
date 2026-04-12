@@ -1,16 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
-
-async function getAdminUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) return { user: null, error: '401' as const }
-  if (!user.app_metadata?.is_admin) return { user: null, error: '403' as const }
-  return { user, error: null }
-}
 
 const driverPatchSchema = z.object({
   name: z.string().min(1).optional(),
