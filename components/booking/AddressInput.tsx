@@ -2,15 +2,13 @@
 
 import { useState, useEffect, useRef, useCallback, useId } from 'react'
 import { Plane, X } from 'lucide-react'
-import usePlacesAutocomplete, { getDetails } from 'use-places-autocomplete'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import type { PlaceResult } from '@/types/booking'
 
-// Module-level singleton loader — shared across all AddressInput instances
+// Module-level singleton — shared across all AddressInput instances
 let loaderPromise: Promise<void> | null = null
 function ensureMapsLoaded(): Promise<void> {
-  // If Google Maps Places is already loaded (e.g. by APIProvider or <Script>), skip loader
-  if (typeof window !== 'undefined' && window.google?.maps?.places?.AutocompleteService) {
+  if (typeof window !== 'undefined' && window.google?.maps?.places?.AutocompleteSuggestion) {
     return Promise.resolve()
   }
   if (loaderPromise) return loaderPromise
@@ -21,6 +19,15 @@ function ensureMapsLoaded(): Promise<void> {
   })
   loaderPromise = importLibrary('places').then(() => undefined)
   return loaderPromise
+}
+
+interface Suggestion {
+  placeId: string
+  fullText: string
+  mainText: string
+  mainTextMatches: Array<{ startOffset: number; endOffset: number }>
+  secondaryText: string
+  types: string[]
 }
 
 interface AddressInputProps {
@@ -55,138 +62,158 @@ export default function AddressInput({
   required = false,
 }: AddressInputProps) {
   const [mapsLoaded, setMapsLoaded] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
+
   const uid = useId()
   const uidClean = uid.replace(/:/g, '')
   const inputId = useRef(`address-input-${uidClean}`)
   const listboxId = useRef(`address-listbox-${uidClean}`)
-  const containerRef = useRef<HTMLDivElement>(null)
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const sessionTokenRef = useRef<google.maps.places.AutocompleteSessionToken | null>(null)
+  // Store raw predictions so toPlace() is available on select without re-fetching
+  const rawPredictionsRef = useRef<google.maps.places.PlacePrediction[]>([])
   const prevValueRef = useRef(value)
-  // Tracks whether value→null transition was triggered by user typing (vs external clear)
   const isTypingClearRef = useRef(false)
 
-  const {
-    ready,
-    value: inputValue,
-    suggestions: { status, data },
-    setValue,
-    clearSuggestions,
-    init,
-  } = usePlacesAutocomplete({
-    initOnMount: false,
-    debounce: 300,
-    requestOptions: {},
-  })
-
-  // Load Google Maps on mount.
-  // Fast path: if Maps was already loaded by a <Script> tag (e.g. admin layout),
-  // skip the async loader and enable the input immediately.
+  // Load Maps JS API on mount
   useEffect(() => {
-    if (window.google?.maps?.places?.AutocompleteService) {
-      init()
-      setMapsLoaded(true)
-      return
-    }
     ensureMapsLoaded().then(() => {
-      init()
+      sessionTokenRef.current = new window.google.maps.places.AutocompleteSessionToken()
       setMapsLoaded(true)
     })
-  }, [init])
+  }, [])
 
-  // Sync inputValue when parent explicitly clears the value (null transition).
-  // Skip clearing the text when the transition was caused by user typing —
-  // in that case we want to keep what they just typed, not wipe it.
+  // Sync when parent clears value externally (not via typing)
   useEffect(() => {
     if (prevValueRef.current !== null && value === null && !isTypingClearRef.current) {
-      setValue('', false)
-      clearSuggestions()
+      setInputValue('')
+      setSuggestions([])
       setShowSuggestions(false)
     }
     isTypingClearRef.current = false
     prevValueRef.current = value
-  }, [value, setValue, clearSuggestions])
+  }, [value])
 
-  // Show suggestions when status is OK and input has 2+ chars
-  useEffect(() => {
-    if (status === 'OK' && inputValue.length >= 2) {
-      setShowSuggestions(true)
-      setActiveIndex(-1)
-    } else {
+  const fetchSuggestions = useCallback(async (text: string) => {
+    if (!mapsLoaded || text.length < 2) {
+      setSuggestions([])
       setShowSuggestions(false)
+      rawPredictionsRef.current = []
+      return
     }
-  }, [status, inputValue])
+    try {
+      const { suggestions: raw } =
+        await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions({
+          input: text,
+          sessionToken: sessionTokenRef.current ?? undefined,
+          includedRegionCodes: ['cz', 'at', 'de', 'sk', 'hu', 'pl'],
+          language: 'en',
+        })
+      // Store raw predictions for toPlace() access on select
+      rawPredictionsRef.current = raw
+        .map((s) => s.placePrediction)
+        .filter((p): p is google.maps.places.PlacePrediction => p != null)
+
+      const mapped: Suggestion[] = rawPredictionsRef.current.map((p) => {
+        const mainText = p.mainText?.text ?? p.text.text
+        const mainTextMatches = (p.mainText?.matches ?? []).map((m) => ({
+          startOffset: m.startOffset ?? 0,
+          endOffset: m.endOffset,
+        }))
+        return {
+          placeId: p.placeId,
+          fullText: p.text.text,
+          mainText,
+          mainTextMatches,
+          secondaryText: p.secondaryText?.text ?? '',
+          types: p.types ?? [],
+        }
+      })
+      setSuggestions(mapped)
+      setShowSuggestions(mapped.length > 0)
+      setActiveIndex(-1)
+    } catch {
+      setSuggestions([])
+      setShowSuggestions(false)
+      rawPredictionsRef.current = []
+    }
+  }, [mapsLoaded])
 
   const handleSelect = useCallback(
-    async (description: string, placeId: string) => {
-      setValue(description, false)
-      clearSuggestions()
+    async (suggestion: Suggestion) => {
+      setInputValue(suggestion.fullText)
+      setSuggestions([])
       setShowSuggestions(false)
       setActiveIndex(-1)
       try {
-        const details = await getDetails({ placeId, fields: ['geometry'] })
-        if (details && typeof details !== 'string' && details.geometry?.location) {
-          const lat = details.geometry.location.lat()
-          const lng = details.geometry.location.lng()
-          onSelect({ address: description, placeId, lat, lng })
+        const prediction = rawPredictionsRef.current.find((p) => p.placeId === suggestion.placeId)
+        if (!prediction) return
+        const place = prediction.toPlace()
+        await place.fetchFields({ fields: ['location'] })
+        if (place.location) {
+          onSelect({
+            address: suggestion.fullText,
+            placeId: suggestion.placeId,
+            lat: place.location.lat(),
+            lng: place.location.lng(),
+          })
         }
-      } catch (error) {
-        console.error('Place details error:', error)
+        // Rotate session token — each selection ends one billing session
+        sessionTokenRef.current = new window.google.maps.places.AutocompleteSessionToken()
+        rawPredictionsRef.current = []
+      } catch (err) {
+        console.error('Place details error:', err)
       }
     },
-    [setValue, clearSuggestions, onSelect]
+    [onSelect]
   )
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const text = e.target.value
-    setValue(text)
+    setInputValue(text)
     onTextChange?.(text)
-    // If user modifies text after a selection, clear the parent's value.
-    // Set the flag so the sync effect doesn't wipe the text they just typed.
     if (value !== null) {
       isTypingClearRef.current = true
       onClear()
     }
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => fetchSuggestions(text), 300)
   }
 
   const handleClear = () => {
     onClear()
-    setValue('', false)
-    clearSuggestions()
+    setInputValue('')
+    setSuggestions([])
     setShowSuggestions(false)
     setActiveIndex(-1)
+    rawPredictionsRef.current = []
   }
 
   const handleBlur = () => {
-    blurTimeoutRef.current = setTimeout(() => {
-      setShowSuggestions(false)
-    }, 200)
+    blurTimeoutRef.current = setTimeout(() => setShowSuggestions(false), 200)
   }
 
   const handleFocus = () => {
-    if (blurTimeoutRef.current) {
-      clearTimeout(blurTimeoutRef.current)
-    }
-    if (status === 'OK' && inputValue.length >= 2) {
-      setShowSuggestions(true)
-    }
+    if (blurTimeoutRef.current) clearTimeout(blurTimeoutRef.current)
+    if (suggestions.length > 0) setShowSuggestions(true)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!showSuggestions) return
-
     if (e.key === 'ArrowDown') {
       e.preventDefault()
-      setActiveIndex((prev) => Math.min(prev + 1, data.length - 1))
+      setActiveIndex((prev) => Math.min(prev + 1, suggestions.length - 1))
     } else if (e.key === 'ArrowUp') {
       e.preventDefault()
       setActiveIndex((prev) => Math.max(prev - 1, -1))
     } else if (e.key === 'Enter') {
       e.preventDefault()
-      if (activeIndex >= 0 && data[activeIndex]) {
-        const s = data[activeIndex]
-        handleSelect(s.description, s.place_id)
+      if (activeIndex >= 0 && suggestions[activeIndex]) {
+        handleSelect(suggestions[activeIndex])
       }
     } else if (e.key === 'Escape') {
       setShowSuggestions(false)
@@ -240,11 +267,51 @@ export default function AddressInput({
     )
   }
 
-  // Compute border color for editable input
   const borderColor = hasError ? '#C0392B' : 'var(--anthracite-light)'
 
+  const renderMainText = (s: Suggestion) => {
+    const { mainText, mainTextMatches } = s
+    if (!mainTextMatches || mainTextMatches.length === 0) {
+      return <span style={{ color: 'var(--warmgrey)', fontWeight: 300 }}>{mainText}</span>
+    }
+    const parts: React.ReactNode[] = []
+    let cursor = 0
+    for (const match of mainTextMatches) {
+      if (match.startOffset > cursor) {
+        parts.push(
+          <span key={`pre-${cursor}`} style={{ color: 'var(--warmgrey)', fontWeight: 300 }}>
+            {mainText.slice(cursor, match.startOffset)}
+          </span>
+        )
+      }
+      parts.push(
+        <span key={`match-${match.startOffset}`} style={{ color: 'var(--copper)', fontWeight: 400 }}>
+          {mainText.slice(match.startOffset, match.endOffset)}
+        </span>
+      )
+      cursor = match.endOffset
+    }
+    if (cursor < mainText.length) {
+      parts.push(
+        <span key="tail" style={{ color: 'var(--warmgrey)', fontWeight: 300 }}>
+          {mainText.slice(cursor)}
+        </span>
+      )
+    }
+    return parts
+  }
+
+  const PLACE_TYPE_LABELS: Record<string, string> = {
+    airport: 'AIRPORT',
+    international_airport: 'AIRPORT',
+    lodging: 'HOTEL',
+    hotel: 'HOTEL',
+    train_station: 'TRAIN',
+    transit_station: 'TRANSIT',
+  }
+
   return (
-    <div ref={containerRef} style={{ position: 'relative' }}>
+    <div style={{ position: 'relative' }}>
       <label htmlFor={inputId.current} className="label" style={{ display: 'block', marginBottom: '8px' }}>
         {label}
         {required && (
@@ -252,7 +319,6 @@ export default function AddressInput({
         )}
       </label>
 
-      {/* Input wrapper */}
       <div style={{ position: 'relative' }}>
         <input
           id={inputId.current}
@@ -291,7 +357,6 @@ export default function AddressInput({
           }}
         />
 
-        {/* Clear button — visible when a place is selected */}
         {value !== null && (
           <button
             type="button"
@@ -319,7 +384,6 @@ export default function AddressInput({
         )}
       </div>
 
-      {/* Autocomplete dropdown */}
       {showSuggestions && (
         <ul
           id={listboxId.current}
@@ -339,144 +403,82 @@ export default function AddressInput({
             overflowY: 'auto',
           }}
         >
-          {data.length === 0 ? (
-            <li
-              style={{
-                padding: '12px 16px',
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: '13px',
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-              }}
-            >
-              No results. Try a different address.
-            </li>
-          ) : (
-            data.map((suggestion, index) => {
-              const {
-                place_id,
-                description,
-                structured_formatting: { main_text, main_text_matched_substrings, secondary_text },
-                types,
-              } = suggestion
-              const isActive = index === activeIndex
-              const placeType = types?.[0]
-
-              // Render main_text with copper highlighting for matched substrings
-              const renderMainText = () => {
-                if (!main_text_matched_substrings || main_text_matched_substrings.length === 0) {
-                  return (
-                    <span style={{ color: 'var(--warmgrey)', fontWeight: 300 }}>{main_text}</span>
-                  )
-                }
-                const parts: React.ReactNode[] = []
-                let lastIndex = 0
-                for (const match of main_text_matched_substrings) {
-                  if (match.offset > lastIndex) {
-                    parts.push(
-                      <span
-                        key={`pre-${match.offset}`}
-                        style={{ color: 'var(--warmgrey)', fontWeight: 300 }}
-                      >
-                        {main_text.slice(lastIndex, match.offset)}
-                      </span>
-                    )
-                  }
-                  parts.push(
-                    <span
-                      key={`match-${match.offset}`}
-                      style={{ color: 'var(--copper)', fontWeight: 400 }}
-                    >
-                      {main_text.slice(match.offset, match.offset + match.length)}
-                    </span>
-                  )
-                  lastIndex = match.offset + match.length
-                }
-                if (lastIndex < main_text.length) {
-                  parts.push(
-                    <span
-                      key="tail"
-                      style={{ color: 'var(--warmgrey)', fontWeight: 300 }}
-                    >
-                      {main_text.slice(lastIndex)}
-                    </span>
-                  )
-                }
-                return parts
-              }
-
-              return (
-                <li
-                  key={place_id}
-                  id={`${listboxId.current}-option-${index}`}
-                  role="option"
-                  aria-selected={isActive}
-                  onMouseDown={() => handleSelect(description, place_id)}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  style={{
-                    minHeight: '44px',
-                    padding: '0 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    cursor: 'pointer',
-                    background: isActive ? 'var(--anthracite-light)' : 'transparent',
-                  }}
-                >
-                  <div style={{ flex: 1, minWidth: 0 }}>
+          {suggestions.map((s, index) => {
+            const isActive = index === activeIndex
+            const placeType = s.types.reduce<string | undefined>(
+              (found, t) => found ?? PLACE_TYPE_LABELS[t],
+              undefined
+            )
+            return (
+              <li
+                key={s.placeId}
+                id={`${listboxId.current}-option-${index}`}
+                role="option"
+                aria-selected={isActive}
+                onMouseDown={() => handleSelect(s)}
+                onMouseEnter={() => setActiveIndex(index)}
+                style={{
+                  minHeight: '44px',
+                  padding: '0 16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                  background: isActive ? 'var(--anthracite-light)' : 'transparent',
+                }}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-montserrat)',
+                      fontSize: '13px',
+                      lineHeight: 1.4,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {renderMainText(s)}
+                  </div>
+                  {s.secondaryText && (
                     <div
                       style={{
                         fontFamily: 'var(--font-montserrat)',
-                        fontSize: '13px',
+                        fontSize: '12px',
+                        fontWeight: 300,
+                        color: 'var(--warmgrey)',
                         lineHeight: 1.4,
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                       }}
                     >
-                      {renderMainText()}
+                      {s.secondaryText}
                     </div>
-                    {secondary_text && (
-                      <div
-                        style={{
-                          fontFamily: 'var(--font-montserrat)',
-                          fontSize: '12px',
-                          fontWeight: 300,
-                          color: 'var(--warmgrey)',
-                          lineHeight: 1.4,
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
-                        {secondary_text}
-                      </div>
-                    )}
-                  </div>
-                  {placeType && (
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-montserrat)',
-                        fontSize: '9px',
-                        fontWeight: 400,
-                        color: 'var(--warmgrey)',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.2em',
-                        marginLeft: '12px',
-                        flexShrink: 0,
-                      }}
-                    >
-                      {placeType.replace(/_/g, ' ')}
-                    </span>
                   )}
-                </li>
-              )
-            })
-          )}
+                </div>
+                {placeType && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-montserrat)',
+                      fontSize: '9px',
+                      fontWeight: 400,
+                      color: 'var(--warmgrey)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.2em',
+                      marginLeft: '12px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {placeType.replace(/_/g, ' ')}
+                  </span>
+                )}
+              </li>
+            )
+          })}
         </ul>
       )}
 
-      {/* Error message */}
       {hasError && errorMessage && (
         <p
           style={{
