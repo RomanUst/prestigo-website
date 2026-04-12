@@ -5,7 +5,7 @@ import { z } from 'zod'
 import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
 
 const driverCreateSchema = z.object({
-  name: z.string().min(1),
+  name: safeString(200).min(1),
   email: safeEmail(200),
   phone: safeString(200).optional(),
   vehicle_info: safeString(200).optional(),
