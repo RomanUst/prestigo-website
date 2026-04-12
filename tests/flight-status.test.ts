@@ -9,38 +9,38 @@ const { mockFetch } = vi.hoisted(() => ({
 vi.stubGlobal('fetch', mockFetch)
 
 // Set env vars BEFORE importing the module under test
-process.env.FLIGHTSTATS_APP_ID = 'test-app-id'
-process.env.FLIGHTSTATS_APP_KEY = 'test-app-key'
+process.env.AVIATIONSTACK_API_KEY = 'test-key'
 
 import { checkFlight, FlightCheckError } from '@/lib/flight-status'
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
-type FlightStatsEntry = {
-  status?: string
-  departureAirportFsCode?: string
-  arrivalAirportFsCode?: string
-  operationalTimes?: {
-    actualGateArrival?: { dateLocal?: string; dateUtc?: string }
-    estimatedGateArrival?: { dateLocal?: string; dateUtc?: string }
-    scheduledGateArrival?: { dateLocal?: string; dateUtc?: string }
+type AviationStackEntry = {
+  flight_status?: string
+  departure?: { iata: string }
+  arrival?: {
+    iata?: string
+    scheduled?: string | null
+    estimated?: string | null
+    actual?: string | null
+    delay?: number | null
+    terminal?: string | null
   }
-  delays?: { arrivalGateDelayMinutes?: number }
-  airportResources?: { arrivalTerminal?: string }
 }
 
-function buildResponse(entry: FlightStatsEntry = {}): Response {
+function buildResponse(entry: AviationStackEntry = {}): Response {
   const body = {
-    flightStatuses: [
+    data: [
       {
-        status: 'S',
-        departureAirportFsCode: 'LHR',
-        arrivalAirportFsCode: 'PRG',
-        operationalTimes: {
-          scheduledGateArrival: {
-            dateLocal: '2026-04-15T14:35:00.000',
-            dateUtc: '2026-04-15T12:35:00.000Z',
-          },
+        flight_status: 'scheduled',
+        departure: { iata: 'LHR' },
+        arrival: {
+          iata: 'PRG',
+          scheduled: '2026-04-15T14:35:00.000Z',
+          estimated: null,
+          actual: null,
+          delay: null,
+          terminal: null,
         },
         ...entry,
       },
@@ -136,53 +136,53 @@ describe('FLIGHT-01: checkFlight IATA format validation', () => {
   })
 })
 
-// ── FLIGHT-01: carrier/flight split + URL construction ───────────────────────
+// ── FLIGHT-01: AviationStack URL construction ────────────────────────────────
 
-describe('FLIGHT-01: checkFlight carrier/flight split + URL construction', () => {
-  it('splits EZY1234 as carrier=EZY flight=1234 in URL', async () => {
-    await checkFlight('EZY1234', '2026-04-15')
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/flight/status/EZY/1234/arr/'),
-      expect.anything(),
-    )
-  })
-
-  it('splits BA123 as carrier=BA flight=123 in URL', async () => {
-    await checkFlight('BA123', '2026-04-15')
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/flight/status/BA/123/arr/'),
-      expect.anything(),
-    )
-  })
-
-  it('splits S7300 as carrier=S7 flight=300 in URL', async () => {
-    await checkFlight('S7300', '2026-04-15')
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/flight/status/S7/300/arr/'),
-      expect.anything(),
-    )
-  })
-
-  it('uses bare integers for month/day (no zero-pad) — date 2026-04-05 yields /2026/4/5 in URL', async () => {
-    await checkFlight('OK123', '2026-04-05')
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/arr/2026/4/5'),
-      expect.anything(),
-    )
-  })
-
-  it('upper-cases lowercase input — "ok123" becomes OK123 in URL', async () => {
-    await checkFlight('ok123', '2026-04-15')
-    expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('/flight/status/OK/123/arr/'),
-      expect.anything(),
-    )
-  })
-
-  it('hits path /flight/status/{carrier}/{flightNum}/arr/{y}/{m}/{d} under base https://api.flightstats.com/flex/flightstatus/rest/v2/json', async () => {
+describe('FLIGHT-01: AviationStack URL construction', () => {
+  it('checkFlight("OK123", "2026-04-15") calls URL containing "api.aviationstack.com/v1/flights"', async () => {
     await checkFlight('OK123', '2026-04-15')
     expect(mockFetch).toHaveBeenCalledWith(
-      expect.stringContaining('https://api.flightstats.com/flex/flightstatus/rest/v2/json/flight/status/OK/123/arr/2026/4/15'),
+      expect.stringContaining('api.aviationstack.com/v1/flights'),
+      expect.anything(),
+    )
+  })
+
+  it('URL contains "flight_iata=OK123"', async () => {
+    await checkFlight('OK123', '2026-04-15')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('flight_iata=OK123'),
+      expect.anything(),
+    )
+  })
+
+  it('URL contains "flight_date=2026-04-15"', async () => {
+    await checkFlight('OK123', '2026-04-15')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('flight_date=2026-04-15'),
+      expect.anything(),
+    )
+  })
+
+  it('URL contains "access_key=test-key"', async () => {
+    await checkFlight('OK123', '2026-04-15')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('access_key=test-key'),
+      expect.anything(),
+    )
+  })
+
+  it('lower-case "ok123" is normalised — URL contains "flight_iata=OK123"', async () => {
+    await checkFlight('ok123', '2026-04-15')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('flight_iata=OK123'),
+      expect.anything(),
+    )
+  })
+
+  it('checkFlight("EZY1234", "2026-04-15") — URL contains "flight_iata=EZY1234" (not split into carrier/flight)', async () => {
+    await checkFlight('EZY1234', '2026-04-15')
+    expect(mockFetch).toHaveBeenCalledWith(
+      expect.stringContaining('flight_iata=EZY1234'),
       expect.anything(),
     )
   })
@@ -212,9 +212,9 @@ describe('FLIGHT-08: checkFlight typed error contract', () => {
     })
   })
 
-  it('throws FlightCheckError with code NOT_FOUND when flightStatuses is an empty array', async () => {
+  it('throws FlightCheckError with code NOT_FOUND when data is an empty array', async () => {
     mockFetch.mockResolvedValue(
-      new Response(JSON.stringify({ flightStatuses: [] }), {
+      new Response(JSON.stringify({ data: [] }), {
         status: 200,
         headers: { 'content-type': 'application/json' },
       }),
@@ -224,7 +224,7 @@ describe('FLIGHT-08: checkFlight typed error contract', () => {
     })
   })
 
-  it('throws FlightCheckError with code NOT_FOUND when flightStatuses is undefined', async () => {
+  it('throws FlightCheckError with code NOT_FOUND when data is undefined (no data key)', async () => {
     mockFetch.mockResolvedValue(
       new Response(JSON.stringify({}), {
         status: 200,
@@ -248,14 +248,13 @@ describe('FLIGHT-08: checkFlight typed error contract', () => {
     })
   })
 
-  it('FlightCheckError.message never contains appId or appKey query string values', async () => {
-    expect.assertions(2)
+  it('FlightCheckError.message never contains the API key value', async () => {
+    expect.assertions(1)
     mockFetch.mockRejectedValue(new Error('boom'))
     try {
       await checkFlight('OK123', '2026-04-15')
     } catch (e) {
-      expect((e as Error).message).not.toContain('test-app-id')
-      expect((e as Error).message).not.toContain('test-app-key')
+      expect((e as Error).message).not.toContain('test-key')
     }
   })
 
@@ -289,140 +288,150 @@ describe('FLIGHT-08: checkFlight typed error contract', () => {
 // ── FLIGHT-08: happy-path response parsing ────────────────────────────────────
 
 describe('FLIGHT-08: checkFlight happy-path response parsing', () => {
-  it('maps FlightStats status letter "S" to "scheduled"', async () => {
-    mockFetch.mockResolvedValue(buildResponse({ status: 'S' }))
+  it('maps AviationStack flight_status "scheduled" to "scheduled"', async () => {
+    mockFetch.mockResolvedValue(buildResponse({ flight_status: 'scheduled' }))
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.status).toBe('scheduled')
   })
 
-  it('maps "A" to "active", "L" to "landed", "C" to "cancelled", "D" to "diverted", "DN" to "diverted", "U" to "unknown"', async () => {
+  it('maps "active"→"active", "landed"→"landed", "cancelled"→"cancelled", "diverted"→"diverted", "incident"→"unknown"', async () => {
     const cases: Array<[string, string]> = [
-      ['A', 'active'],
-      ['L', 'landed'],
-      ['C', 'cancelled'],
-      ['D', 'diverted'],
-      ['DN', 'diverted'],
-      ['U', 'unknown'],
+      ['active',    'active'],
+      ['landed',    'landed'],
+      ['cancelled', 'cancelled'],
+      ['diverted',  'diverted'],
+      ['incident',  'unknown'],
     ]
-    for (const [fsStatus, expected] of cases) {
-      mockFetch.mockResolvedValue(buildResponse({ status: fsStatus }))
+    for (const [avStatus, expected] of cases) {
+      mockFetch.mockResolvedValue(buildResponse({ flight_status: avStatus }))
       const result = await checkFlight('OK123', '2026-04-15')
       expect(result.status).toBe(expected)
     }
   })
 
-  it('returns unknown for unrecognised status codes', async () => {
-    mockFetch.mockResolvedValue(buildResponse({ status: 'XYZ' }))
+  it('returns unknown for unrecognised flight_status values', async () => {
+    mockFetch.mockResolvedValue(buildResponse({ flight_status: 'XYZ' }))
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.status).toBe('unknown')
   })
 
-  it('prefers operationalTimes.actualGateArrival.dateLocal when present', async () => {
+  it('prefers arrival.actual when present (highest priority for estimatedArrival)', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        operationalTimes: {
-          actualGateArrival: { dateLocal: '2026-04-15T15:00:00.000' },
-          estimatedGateArrival: { dateLocal: '2026-04-15T14:45:00.000' },
-          scheduledGateArrival: { dateLocal: '2026-04-15T14:35:00.000' },
+        arrival: {
+          iata: 'PRG',
+          actual:    '2026-04-15T15:00:00.000Z',
+          estimated: '2026-04-15T14:45:00.000Z',
+          scheduled: '2026-04-15T14:35:00.000Z',
         },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
-    expect(result.estimatedArrival).toBe('2026-04-15T15:00:00.000')
+    expect(result.estimatedArrival).toBe('2026-04-15T15:00:00.000Z')
   })
 
-  it('falls back to estimatedGateArrival.dateLocal when actual is absent', async () => {
+  it('falls back to arrival.estimated when arrival.actual is absent', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        operationalTimes: {
-          estimatedGateArrival: { dateLocal: '2026-04-15T14:45:00.000' },
-          scheduledGateArrival: { dateLocal: '2026-04-15T14:35:00.000' },
+        arrival: {
+          iata: 'PRG',
+          actual:    null,
+          estimated: '2026-04-15T14:45:00.000Z',
+          scheduled: '2026-04-15T14:35:00.000Z',
         },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
-    expect(result.estimatedArrival).toBe('2026-04-15T14:45:00.000')
+    expect(result.estimatedArrival).toBe('2026-04-15T14:45:00.000Z')
   })
 
-  it('falls back to scheduledGateArrival.dateLocal when both actual and estimated are absent', async () => {
+  it('falls back to arrival.scheduled when both actual and estimated are absent', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        operationalTimes: {
-          scheduledGateArrival: { dateLocal: '2026-04-15T14:35:00.000' },
+        arrival: {
+          iata: 'PRG',
+          actual:    null,
+          estimated: null,
+          scheduled: '2026-04-15T14:35:00.000Z',
         },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
-    expect(result.estimatedArrival).toBe('2026-04-15T14:35:00.000')
+    expect(result.estimatedArrival).toBe('2026-04-15T14:35:00.000Z')
   })
 
-  it('returns estimatedArrival=null when all three timestamp fields are absent', async () => {
+  it('returns estimatedArrival=null when actual, estimated, and scheduled are all absent', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        operationalTimes: {},
+        arrival: {
+          iata: 'PRG',
+          actual:    null,
+          estimated: null,
+          scheduled: null,
+        },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.estimatedArrival).toBeNull()
   })
 
-  it('returns delayMinutes from delays.arrivalGateDelayMinutes', async () => {
+  it('returns delayMinutes from arrival.delay when present', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        delays: { arrivalGateDelayMinutes: 25 },
+        arrival: { iata: 'PRG', delay: 25 },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.delayMinutes).toBe(25)
   })
 
-  it('returns delayMinutes=null when delays object is absent', async () => {
-    mockFetch.mockResolvedValue(buildResponse({}))
+  it('returns delayMinutes=null when arrival.delay is absent', async () => {
+    mockFetch.mockResolvedValue(buildResponse())
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.delayMinutes).toBeNull()
   })
 
-  it('returns delayMinutes=null when delays.arrivalGateDelayMinutes is undefined', async () => {
+  it('returns delayMinutes=null when arrival.delay is explicitly null', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        delays: {},
+        arrival: { iata: 'PRG', delay: null },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.delayMinutes).toBeNull()
   })
 
-  it('returns terminal from airportResources.arrivalTerminal', async () => {
+  it('returns terminal from arrival.terminal when present', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        airportResources: { arrivalTerminal: '2' },
+        arrival: { iata: 'PRG', terminal: '2' },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.terminal).toBe('2')
   })
 
-  it('returns terminal=null when airportResources is absent', async () => {
-    mockFetch.mockResolvedValue(buildResponse({}))
+  it('returns terminal=null when arrival.terminal is absent', async () => {
+    mockFetch.mockResolvedValue(buildResponse())
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.terminal).toBeNull()
   })
 
-  it('returns terminal=null when airportResources.arrivalTerminal is undefined', async () => {
+  it('returns terminal=null when arrival.terminal is explicitly null', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        airportResources: {},
+        arrival: { iata: 'PRG', terminal: null },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')
     expect(result.terminal).toBeNull()
   })
 
-  it('returns departureAirport and arrivalAirport from departureAirportFsCode/arrivalAirportFsCode', async () => {
+  it('returns departureAirport from departure.iata and arrivalAirport from arrival.iata', async () => {
     mockFetch.mockResolvedValue(
       buildResponse({
-        departureAirportFsCode: 'LHR',
-        arrivalAirportFsCode: 'PRG',
+        departure: { iata: 'LHR' },
+        arrival:   { iata: 'PRG' },
       }),
     )
     const result = await checkFlight('OK123', '2026-04-15')

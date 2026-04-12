@@ -1,9 +1,9 @@
 // prestigo/lib/flight-status.ts
-// Phase 32: FlightStats Flex REST API v2 wrapper + typed error contract.
-// Server-only. No caching (that lives in /api/check-flight, Phase 33).
-// No logging of the full URL (appId/appKey leakage).
+// Phase 36: AviationStack GET /v1/flights wrapper. Server-only.
+// No caching (lives in /api/check-flight). Never log full URL (contains access_key).
 
-const BASE = 'https://api.flightstats.com/flex/flightstatus/rest/v2/json'
+const BASE = 'http://api.aviationstack.com/v1/flights'
+
 // IATA carrier codes: 2-3 alphanumeric chars where mixed alphanumeric carriers
 // are always exactly 2 chars (S7, 9W, B6). Pure-alpha carriers are 2-3 chars (OK, BA, EZY).
 // \d{1,4} after carrier = strictly 1-4 digit flight number.
@@ -22,8 +22,8 @@ export type FlightStatus =
 
 export interface FlightInfo {
   status: FlightStatus
-  estimatedArrival: string | null   // ISO local datetime e.g. "2026-04-15T14:35:00.000"
-  delayMinutes: number | null       // whole minutes from delays.arrivalGateDelayMinutes
+  estimatedArrival: string | null   // ISO datetime string e.g. "2026-04-15T14:35:00.000Z"
+  delayMinutes: number | null       // whole minutes from arrival.delay
   departureAirport: string          // IATA e.g. "LHR"
   arrivalAirport: string            // IATA e.g. "PRG"
   terminal: string | null           // arrival terminal, null when absent
@@ -31,8 +31,8 @@ export interface FlightInfo {
 
 export type FlightCheckErrorCode =
   | 'INVALID_FORMAT'   // IATA regex failed — no fetch call made
-  | 'NOT_FOUND'        // FlightStats returned empty flightStatuses array
-  | 'API_ERROR'        // Non-2xx HTTP response from FlightStats
+  | 'NOT_FOUND'        // AviationStack returned empty data array
+  | 'API_ERROR'        // Non-2xx HTTP response from AviationStack, or missing credentials
   | 'NETWORK_ERROR'    // fetch() rejected (DNS/timeout/connection)
   | 'PARSE_ERROR'      // response body was not valid JSON
 
@@ -47,47 +47,23 @@ export class FlightCheckError extends Error {
   }
 }
 
-const STATUS_MAP: Record<string, FlightStatus> = {
-  S:  'scheduled',
-  A:  'active',
-  L:  'landed',
-  C:  'cancelled',
-  D:  'diverted',
-  DN: 'diverted',
-  NO: 'unknown',
-  R:  'unknown',
-  U:  'unknown',
+interface AviationStackArrival {
+  iata: string
+  scheduled?: string | null
+  estimated?: string | null
+  actual?: string | null
+  delay?: number | null
+  terminal?: string | null
 }
 
-interface FlightStatsTime { dateLocal?: string; dateUtc?: string }
-interface FlightStatsEntry {
-  status: string
-  departureAirportFsCode: string
-  arrivalAirportFsCode: string
-  operationalTimes?: {
-    actualGateArrival?: FlightStatsTime
-    estimatedGateArrival?: FlightStatsTime
-    scheduledGateArrival?: FlightStatsTime
-  }
-  delays?: { arrivalGateDelayMinutes?: number }
-  airportResources?: { arrivalTerminal?: string }
-}
-interface FlightStatsResponse {
-  flightStatuses?: FlightStatsEntry[]
+interface AviationStackEntry {
+  flight_status: string
+  departure: { iata: string }
+  arrival: AviationStackArrival
 }
 
-/**
- * Splits a normalised IATA string into carrier code and flight number.
- * Rule (per 32-RESEARCH A5): take 3 chars as carrier if chars[2] is a letter,
- * otherwise take 2. Handles: OK, EZY, S7, 9W, BA, B6.
- */
-function splitIata(normalised: string): { carrier: string; flightNum: string } {
-  const third = normalised[2]
-  const carrierLen = third && /[A-Z]/.test(third) ? 3 : 2
-  return {
-    carrier:   normalised.slice(0, carrierLen),
-    flightNum: normalised.slice(carrierLen),
-  }
+interface AviationStackResponse {
+  data?: AviationStackEntry[]
 }
 
 export async function checkFlight(
@@ -110,76 +86,72 @@ export async function checkFlight(
     )
   }
 
-  const { carrier, flightNum } = splitIata(normalised)
-  const [year, month, day] = date.split('-').map(Number)
-
-  const appId  = process.env.FLIGHTSTATS_APP_ID
-  const appKey = process.env.FLIGHTSTATS_APP_KEY
-  if (!appId || !appKey) {
+  const key = process.env.AVIATIONSTACK_API_KEY
+  if (!key) {
     throw new FlightCheckError(
       'API_ERROR',
-      'FlightStats credentials are not configured (FLIGHTSTATS_APP_ID / FLIGHTSTATS_APP_KEY missing)',
+      'AviationStack credentials are not configured (AVIATIONSTACK_API_KEY missing)',
     )
   }
 
-  const url =
-    `${BASE}/flight/status/${carrier}/${flightNum}/arr/${year}/${month}/${day}` +
-    `?appId=${appId}&appKey=${appKey}`
+  const url = `${BASE}?access_key=${key}&flight_iata=${normalised}&flight_date=${date}`
 
   // Public identifier used in error messages — NEVER include the full url
-  // (which contains appId/appKey as query params).
-  const ref = `${carrier}${flightNum} on ${year}-${month}-${day}`
+  // (which contains access_key as a query param).
+  const ref = `${normalised} on ${date}`
 
   let res: Response
   try {
     res = await fetch(url, { cache: 'no-store' })
   } catch (err) {
-    throw new FlightCheckError('NETWORK_ERROR', `FlightStats unreachable for ${ref}`, err)
+    throw new FlightCheckError('NETWORK_ERROR', `AviationStack unreachable for ${ref}`, err)
   }
 
   if (!res.ok) {
     throw new FlightCheckError(
       'API_ERROR',
-      `FlightStats returned HTTP ${res.status} for ${ref}`,
+      `AviationStack returned HTTP ${res.status} for ${ref}`,
     )
   }
 
-  let body: FlightStatsResponse
+  let body: AviationStackResponse
   try {
-    body = await res.json() as FlightStatsResponse
+    body = await res.json() as AviationStackResponse
   } catch (err) {
     throw new FlightCheckError(
       'PARSE_ERROR',
-      `FlightStats response for ${ref} was not valid JSON`,
+      `AviationStack response for ${ref} was not valid JSON`,
       err,
     )
   }
 
-  const entries = body.flightStatuses
+  const entries = body.data
   if (!entries || entries.length === 0) {
     throw new FlightCheckError('NOT_FOUND', `No flight found for ${ref}`)
   }
 
   if (entries.length > 1) {
-    // Codeshare warning — surfaces in integration logs only.
-    console.warn(`[flight-status] multiple flightStatuses for ${ref} — using [0]`)
+    console.warn(`[flight-status] multiple data entries for ${ref} — using [0]`)
   }
 
   const entry = entries[0]
-  const ot    = entry.operationalTimes
+  const arr = entry.arrival
 
-  const estimatedArrival =
-    ot?.actualGateArrival?.dateLocal ??
-    ot?.estimatedGateArrival?.dateLocal ??
-    ot?.scheduledGateArrival?.dateLocal ??
-    null
+  const STATUS_MAP: Record<string, FlightStatus> = {
+    scheduled: 'scheduled',
+    active:    'active',
+    landed:    'landed',
+    cancelled: 'cancelled',
+    diverted:  'diverted',
+    incident:  'unknown',
+  }
 
   return {
-    status:           STATUS_MAP[entry.status] ?? 'unknown',
-    estimatedArrival,
-    delayMinutes:     entry.delays?.arrivalGateDelayMinutes ?? null,
-    departureAirport: entry.departureAirportFsCode,
-    arrivalAirport:   entry.arrivalAirportFsCode,
-    terminal:         entry.airportResources?.arrivalTerminal ?? null,
+    status:           STATUS_MAP[entry.flight_status] ?? 'unknown',
+    estimatedArrival: arr.actual ?? arr.estimated ?? arr.scheduled ?? null,
+    delayMinutes:     arr.delay ?? null,
+    departureAirport: entry.departure.iata,
+    arrivalAirport:   arr.iata,
+    terminal:         arr.terminal ?? null,
   }
 }
