@@ -7,6 +7,12 @@ export interface PlaceResult {
   lng: number
 }
 
+export interface Stop {
+  id: string
+  place: PlaceResult | null
+  waitMinutes?: number
+}
+
 export type VehicleClass = 'business' | 'first_class' | 'business_van'
 
 export interface PassengerDetails {
@@ -76,6 +82,7 @@ export interface BookingStore {
   hours: number
   passengers: number
   luggage: number
+  stops: Stop[]
   // Navigation
   currentStep: number
   completedSteps: Set<number>
@@ -103,6 +110,9 @@ export interface BookingStore {
   setHours: (h: number) => void
   setPassengers: (n: number) => void
   setLuggage: (n: number) => void
+  addStop: () => void
+  removeStop: (id: string) => void
+  updateStop: (id: string, place: PlaceResult | null) => void
   nextStep: () => void
   prevStep: () => void
   swapOriginDestination: () => void
