@@ -48,6 +48,16 @@ export const VEHICLE_CONFIG: VehicleConfig[] = [
   { key: 'business_van', label: 'Business Van', maxPassengers: 6, maxLuggage: 6, image: '/v-class-photo.png' },
 ]
 
+// Mirrors FlightStatus from lib/flight-status.ts (server-only module).
+// Keep in sync with STATUS_MAP entries in that file.
+export type FlightStatus =
+  | 'scheduled'
+  | 'active'
+  | 'landed'
+  | 'cancelled'
+  | 'diverted'
+  | 'unknown'
+
 export interface FlightCheckResult {
   flight_iata: string
   flight_status: string

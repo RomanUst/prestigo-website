@@ -6,15 +6,18 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useBookingStore } from '@/lib/booking-store'
 import { PRG_CONFIG } from '@/types/booking'
+import type { FlightStatus } from '@/types/booking'
 
 // Mirrors IATA_RE from lib/flight-status.ts (server-only module — cannot be imported client-side)
 const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
 
-const STATUS_DISPLAY: Record<string, { label: string; color: string }> = {
+// Record<FlightStatus, ...> ensures a compile error if FlightStatus gains/loses members
+// without a corresponding update here. 'delayed' is intentionally absent — it is not
+// a valid FlightStatus produced by the API (see STATUS_MAP in lib/flight-status.ts).
+const STATUS_DISPLAY: Record<FlightStatus, { label: string; color: string }> = {
   scheduled: { label: 'SCHEDULED', color: 'var(--copper)' },
   active:    { label: 'ACTIVE',    color: 'var(--copper)' },
   landed:    { label: 'LANDED',    color: '#27AE60' },
-  delayed:   { label: 'DELAYED',   color: '#E67E22' },
   cancelled: { label: 'CANCELLED', color: '#C0392B' },
   diverted:  { label: 'DIVERTED',  color: '#C0392B' },
   unknown:   { label: 'UNKNOWN',   color: 'var(--warmgrey)' },
@@ -142,7 +145,7 @@ export default function Step5Passenger() {
     !IATA_RE.test(watchedFlightNumber)
 
   const statusEntry = flightCheckResult
-    ? (STATUS_DISPLAY[flightCheckResult.flight_status.toLowerCase()] ?? STATUS_DISPLAY.unknown)
+    ? (STATUS_DISPLAY[flightCheckResult.flight_status.toLowerCase() as FlightStatus] ?? STATUS_DISPLAY.unknown)
     : null
 
   return (
