@@ -153,6 +153,11 @@ export const useBookingStore = create<BookingStore>()(
         // coefficient updates to be ignored.
         extras: state.extras,
         passengerDetails: state.passengerDetails,
+        // Phase 33: persist flight check result so the "RE-CHECK FLIGHT" label
+        // and status block survive page reload. The flight number is already
+        // persisted via passengerDetails; the result must match to avoid
+        // showing "CHECK FLIGHT" after reload even when a check was done.
+        flightCheckResult: state.flightCheckResult,
         // Phase 26: persist promo across 3DS redirect / tab reload so an
         // applied promo doesn't silently drop on the client. The server's
         // claim_promo_code RPC will reject any stale code on the next POST.
