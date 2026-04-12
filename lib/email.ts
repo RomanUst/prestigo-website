@@ -977,3 +977,123 @@ export async function sendMultidayClientAck(data: MultidayEmailData): Promise<vo
     console.warn('[email] sendMultidayClientAck failed (non-fatal)', err)
   }
 }
+
+interface StatusEmailBooking {
+  id: string
+  booking_reference: string
+  origin_address: string
+  destination_address: string | null
+  pickup_date: string
+  pickup_time: string
+  vehicle_class: string
+  client_first_name: string
+  client_last_name: string
+  client_email: string
+}
+
+function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, closingLine: string): string {
+  const formattedDate = formatPickupDate(booking.pickup_date)
+  const route = booking.destination_address
+    ? `${escapeHtml(booking.origin_address)} &rarr; ${escapeHtml(booking.destination_address)}`
+    : escapeHtml(booking.origin_address)
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(heading)} — Prestigo</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
+  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+
+      <!-- Header copper gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">${escapeHtml(heading)}</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
+      </div>
+
+      <!-- Journey section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${route}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formattedDate} at ${escapeHtml(booking.pickup_time)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Closing line -->
+      <div style="padding: 0 32px 32px; font-size: 14px; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">
+        ${escapeHtml(closingLine)}
+      </div>
+
+      <!-- Support contact -->
+      <div style="padding: 0 32px 24px; color: #9A958F; font-size: 14px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
+        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Promise<void> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'Prestigo <noreply@prestigo.cz>',
+      to: [booking.client_email],
+      subject: `Your booking ${escapeHtml(booking.booking_reference)} is confirmed — Prestigo`,
+      html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.'),
+    })
+    if (error) console.error('[booking-notify] confirmed email error:', error)
+  } catch (err) {
+    console.error('[booking-notify] confirmed email failed:', err)
+  }
+}
+
+export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Promise<void> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'Prestigo <noreply@prestigo.cz>',
+      to: [booking.client_email],
+      subject: `Booking ${escapeHtml(booking.booking_reference)} cancelled — Prestigo`,
+      html: buildStatusEmailHtml(booking, 'Booking Cancelled', 'If you have any questions, please contact us.'),
+    })
+    if (error) console.error('[booking-notify] cancelled email error:', error)
+  } catch (err) {
+    console.error('[booking-notify] cancelled email failed:', err)
+  }
+}

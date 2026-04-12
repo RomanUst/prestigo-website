@@ -9,6 +9,8 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { dateDiffDays } from '@/lib/pricing'
 import { enforceMaxBody } from '@/lib/request-guards'
+import { logEmail } from '@/lib/email-log'
+import { sendStatusConfirmedEmail, sendStatusCancelledEmail } from '@/lib/email'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -105,7 +107,7 @@ export async function PATCH(request: Request) {
   if (parsed.data.status !== undefined) {
     const { data: current, error: fetchError } = await supabase
       .from('bookings')
-      .select('status')
+      .select('*')
       .eq('id', parsed.data.id)
       .single()
 
@@ -113,17 +115,73 @@ export async function PATCH(request: Request) {
       return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
     }
 
-    const allowed = VALID_TRANSITIONS[current.status] ?? []
+    const previousStatus = current.status
+    const allowed = VALID_TRANSITIONS[previousStatus] ?? []
     if (!allowed.includes(parsed.data.status)) {
       return NextResponse.json(
-        { error: `Cannot transition from '${current.status}' to '${parsed.data.status}'` },
+        { error: `Cannot transition from '${previousStatus}' to '${parsed.data.status}'` },
         { status: 422 }
       )
     }
+
+    const updatePayload: Record<string, string> = {}
+    if (parsed.data.status !== undefined) updatePayload.status = parsed.data.status
+    if (parsed.data.operator_notes !== undefined) updatePayload.operator_notes = parsed.data.operator_notes
+
+    const { error: dbError } = await supabase
+      .from('bookings')
+      .update(updatePayload)
+      .eq('id', parsed.data.id)
+
+    if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+
+    // D-11: Only fire email when status actually changed
+    if (previousStatus !== parsed.data.status) {
+      // D-12: Check notification_flags from pricing_globals
+      const { data: flagsRow } = await supabase
+        .from('pricing_globals')
+        .select('notification_flags')
+        .eq('id', 1)
+        .single()
+
+      const flags = flagsRow?.notification_flags as Record<string, boolean> | null
+
+      const statusToFlagKey: Record<string, string> = {
+        confirmed: 'confirmed',
+        cancelled: 'cancelled',
+      }
+      const flagKey = statusToFlagKey[parsed.data.status]
+
+      // If flags is null, treat as all-enabled (per D-12)
+      const isEnabled = !flags || flags[flagKey] !== false
+
+      if (flagKey && isEnabled) {
+        // D-15: logEmail BEFORE Resend — dedup gate
+        const shouldSend = await logEmail({
+          bookingId: current.id,
+          emailType: `booking_${parsed.data.status}`,
+          recipient: current.client_email,
+        })
+
+        if (shouldSend) {
+          // D-09: fire-and-forget — void prefix, no await
+          if (parsed.data.status === 'confirmed') {
+            void sendStatusConfirmedEmail(current).catch(err =>
+              console.error('[booking-notify] confirmed:', err)
+            )
+          } else if (parsed.data.status === 'cancelled') {
+            void sendStatusCancelledEmail(current).catch(err =>
+              console.error('[booking-notify] cancelled:', err)
+            )
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ ok: true })
   }
 
   const updatePayload: Record<string, string> = {}
-  if (parsed.data.status !== undefined) updatePayload.status = parsed.data.status
   if (parsed.data.operator_notes !== undefined) updatePayload.operator_notes = parsed.data.operator_notes
 
   const { error: dbError } = await supabase
