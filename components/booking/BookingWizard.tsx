@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
-import { PRG_CONFIG } from '@/types/booking'
+import { isAirportPlace } from '@/types/booking'
 import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
@@ -42,9 +42,7 @@ export default function BookingWizard() {
   const destination = useBookingStore((s) => s.destination)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
 
-  const isAirportRide =
-    origin?.placeId === PRG_CONFIG.placeId ||
-    destination?.placeId === PRG_CONFIG.placeId
+  const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)
 
   const canProceed = (() => {
     switch (currentStep) {

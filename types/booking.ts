@@ -144,8 +144,40 @@ export interface BookingStore {
 }
 
 export const PRG_CONFIG = {
+  // Legacy Maps JS API placeId (AutocompleteService era)
   placeId: 'ChIJA_IVS6-UC0cRTZBQLvHG-ec',
+  // New Places API (AutocompleteSuggestion / Places API New REST) placeId
+  placeIdNew: 'ChIJyw1526e_C0cRrPakrNGArS8',
   address: 'Vaclav Havel Airport Prague (PRG)',
   lat: 50.1008,
   lng: 14.26,
+  // Radius (km) used by isAirportPlace proximity check
+  radiusKm: 3,
 } as const
+
+/**
+ * Returns true when `place` refers to Václav Havel Airport Prague.
+ *
+ * Uses a three-tier check so it is robust across Google Places API versions:
+ *   1. Known legacy placeId (AutocompleteService)
+ *   2. Known new placeId (AutocompleteSuggestion / Places API New)
+ *   3. Proximity fallback — within PRG_CONFIG.radiusKm km of the airport
+ *
+ * The proximity fallback handles any future placeId rotation by Google.
+ */
+export function isAirportPlace(place: PlaceResult | null): boolean {
+  if (!place) return false
+  if (place.placeId === PRG_CONFIG.placeId) return true
+  if (place.placeId === PRG_CONFIG.placeIdNew) return true
+  // Haversine distance (fast approximation sufficient for 3 km threshold)
+  const R = 6371 // Earth radius km
+  const dLat = ((place.lat - PRG_CONFIG.lat) * Math.PI) / 180
+  const dLng = ((place.lng - PRG_CONFIG.lng) * Math.PI) / 180
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((PRG_CONFIG.lat * Math.PI) / 180) *
+      Math.cos((place.lat * Math.PI) / 180) *
+      Math.sin(dLng / 2) ** 2
+  const distKm = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+  return distKm <= PRG_CONFIG.radiusKm
+}

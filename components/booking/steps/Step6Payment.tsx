@@ -6,7 +6,7 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { CheckCircle2 } from 'lucide-react'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
-import { PRG_CONFIG } from '@/types/booking'
+import { isAirportPlace } from '@/types/booking'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import BookingSummaryBlock from '../BookingSummaryBlock'
@@ -312,7 +312,7 @@ export default function Step6Payment() {
               extraChildSeat: String(extras.childSeat),
               extraMeetGreet: String(extras.meetAndGreet),
               extraLuggage: String(extras.extraLuggage),
-              isAirport: String(origin?.placeId === PRG_CONFIG.placeId || destination?.placeId === PRG_CONFIG.placeId),
+              isAirport: String(isAirportPlace(origin) || isAirportPlace(destination)),
               firstName: passengerDetails?.firstName ?? '',
               lastName: passengerDetails?.lastName ?? '',
               email: passengerDetails?.email ?? '',

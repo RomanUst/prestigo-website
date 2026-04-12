@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
-import { VEHICLE_CONFIG, PRG_CONFIG } from '@/types/booking'
+import { VEHICLE_CONFIG, isAirportPlace } from '@/types/booking'
 import VehicleCard from '@/components/booking/VehicleCard'
 import PriceSummary from '@/components/booking/PriceSummary'
 
@@ -76,7 +76,7 @@ export default function Step3Vehicle() {
           returnDate: s.returnDate,
           pickupTime: s.pickupTime,
           returnTime: s.returnTime,
-          isAirport: !!(s.origin?.placeId === PRG_CONFIG.placeId || s.destination?.placeId === PRG_CONFIG.placeId),
+          isAirport: !!(isAirportPlace(s.origin) || isAirportPlace(s.destination)),
           intermediates,
         }),
       })

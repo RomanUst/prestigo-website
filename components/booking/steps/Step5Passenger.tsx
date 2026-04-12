@@ -5,7 +5,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useBookingStore } from '@/lib/booking-store'
-import { PRG_CONFIG } from '@/types/booking'
+import { isAirportPlace } from '@/types/booking'
 import type { FlightStatus } from '@/types/booking'
 
 // Mirrors IATA_RE from lib/flight-status.ts (server-only module — cannot be imported client-side)
@@ -52,9 +52,7 @@ export default function Step5Passenger() {
   const flightCheckResult = useBookingStore((s) => s.flightCheckResult)
   const pickupDate = useBookingStore((s) => s.pickupDate)
 
-  const isAirportRide =
-    origin?.placeId === PRG_CONFIG.placeId ||
-    destination?.placeId === PRG_CONFIG.placeId
+  const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)
 
   const {
     register,
