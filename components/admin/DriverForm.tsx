@@ -78,7 +78,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
   }, [driver])
 
   function validateEmail(value: string): boolean {
-    return value.includes('@') && value.includes('.')
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim())
   }
 
   async function handleSubmit(e: React.FormEvent) {
