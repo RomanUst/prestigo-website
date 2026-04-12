@@ -36,13 +36,16 @@ export async function POST(request: Request) {
 
   // 4. Business logic — fetch booking from DB (pickup_date from DB, never from client, per D-12 / T-34-06)
   const supabase = createSupabaseServiceClient()
-  const { data: booking } = await supabase
+  const { data: booking, error: dbError } = await supabase
     .from('bookings')
     .select('flight_iata, pickup_date')
     .eq('id', parsed.data.bookingId)
     .single()
 
-  if (!booking?.flight_iata) {
+  if (dbError?.code === 'PGRST116' || !booking) {
+    return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+  }
+  if (!booking.flight_iata) {
     return NextResponse.json({ error: 'No flight number on this booking' }, { status: 422 })
   }
 
@@ -56,7 +59,11 @@ export async function POST(request: Request) {
       flight_arrival_airport:     info.arrivalAirport,
       flight_terminal:            info.terminal,
     }
-    await supabase.from('bookings').update(updatePayload).eq('id', parsed.data.bookingId)
+    const { error: updateError } = await supabase.from('bookings').update(updatePayload).eq('id', parsed.data.bookingId)
+    if (updateError) {
+      console.error('[flight-refresh] update failed', updateError.message)
+      return NextResponse.json({ ok: false, error: 'DB_UPDATE_FAILED' }, { status: 500 })
+    }
     return NextResponse.json({ ok: true, ...updatePayload })
   } catch (err) {
     const code = err instanceof FlightCheckError ? err.code : 'UNKNOWN'

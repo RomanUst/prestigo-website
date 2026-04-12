@@ -97,7 +97,7 @@ beforeEach(() => {
   mockEnforceMaxBody.mockReturnValue(null) // allowed
   mockGetUser.mockResolvedValue({ data: { user: ADMIN_USER }, error: null })
   mockEq.mockReturnValue({ single: mockSingle })
-  mockSingle.mockResolvedValue({ data: DEFAULT_BOOKING })
+  mockSingle.mockResolvedValue({ data: DEFAULT_BOOKING, error: null })
   mockCheckFlight.mockResolvedValue(DEFAULT_FLIGHT_INFO)
   mockUpdate.mockResolvedValue({ error: null })
   // Reset the from mock to return chainable methods
@@ -139,8 +139,16 @@ describe('FLIGHT-06: /api/admin/flight-refresh validation', () => {
     expect(body.error).toBe('Invalid payload')
   })
 
+  it('returns 404 when booking is not found (PGRST116)', async () => {
+    mockSingle.mockResolvedValue({ data: null, error: { code: 'PGRST116', message: 'No rows found' } })
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(404)
+    const body = await res.json()
+    expect(body).toMatchObject({ error: 'Booking not found' })
+  })
+
   it('returns 422 when booking has no flight_iata', async () => {
-    mockSingle.mockResolvedValue({ data: { flight_iata: null, pickup_date: '2026-04-15' } })
+    mockSingle.mockResolvedValue({ data: { flight_iata: null, pickup_date: '2026-04-15' }, error: null })
     const res = await POST(makeRequest())
     expect(res.status).toBe(422)
     const body = await res.json()
@@ -172,5 +180,13 @@ describe('FLIGHT-06: /api/admin/flight-refresh error handling', () => {
     expect(res.status).toBe(503)
     const body = await res.json()
     expect(body).toMatchObject({ ok: false, error: 'API_ERROR' })
+  })
+
+  it('returns 500 when DB update fails', async () => {
+    mockUpdate.mockResolvedValue({ error: { message: 'connection timeout' } })
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(500)
+    const body = await res.json()
+    expect(body).toMatchObject({ ok: false, error: 'DB_UPDATE_FAILED' })
   })
 })
