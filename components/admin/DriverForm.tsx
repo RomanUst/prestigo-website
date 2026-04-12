@@ -60,6 +60,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
   const [formError, setFormError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
   const nameRef = useRef<HTMLInputElement>(null)
+  const submittingRef = useRef(false)
 
   // Focus first input on mount
   useEffect(() => {
@@ -83,6 +84,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
+    if (submittingRef.current) return
     setNameError(null)
     setEmailError(null)
     setFormError(null)
@@ -98,6 +100,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
     }
     if (hasError) return
 
+    submittingRef.current = true
     setSaving(true)
     try {
       const isEdit = Boolean(driver)
@@ -127,6 +130,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
     } catch {
       setFormError('Something went wrong. Please try again.')
     } finally {
+      submittingRef.current = false
       setSaving(false)
     }
   }
