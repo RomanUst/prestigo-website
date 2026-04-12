@@ -17,6 +17,12 @@ const { supabaseAuthStub, supabaseServiceStub } = vi.hoisted(() => {
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(supabaseAuthStub)),
+  getAdminUser: vi.fn(async () => {
+    const { data: { user }, error } = await supabaseAuthStub.auth.getUser()
+    if (error || !user) return { user: null, error: '401' as const }
+    if (!user.app_metadata?.is_admin) return { user: null, error: '403' as const }
+    return { user, error: null }
+  }),
 }))
 
 vi.mock('@/lib/supabase', () => ({
