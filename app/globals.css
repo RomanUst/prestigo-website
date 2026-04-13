@@ -146,7 +146,7 @@ body {
   justify-content: center;
   font-family: var(--font-montserrat);
   font-weight: 400;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--offwhite);
@@ -170,7 +170,7 @@ body {
   justify-content: center;
   font-family: var(--font-montserrat);
   font-weight: 400;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--warmgrey);
@@ -194,7 +194,7 @@ body {
   justify-content: center;
   font-family: var(--font-montserrat);
   font-weight: 400;
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 0.35em;
   text-transform: uppercase;
   color: var(--warmgrey);

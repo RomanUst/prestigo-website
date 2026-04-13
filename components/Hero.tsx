@@ -95,7 +95,7 @@ export default function Hero() {
                   <p className="font-display font-light text-2xl text-offwhite mb-1 tracking-wide">
                     {stat.number}
                   </p>
-                  <p className="label" style={{ color: 'var(--warmgrey)', fontSize: '8px' }}>
+                  <p className="label" style={{ color: 'var(--warmgrey)', fontSize: '10px' }}>
                     {stat.label}
                   </p>
                 </div>

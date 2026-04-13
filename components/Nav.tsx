@@ -41,7 +41,7 @@ export default function Nav() {
             { label: 'Corporate', href: '/corporate' },
             { label: 'Contact', href: '/contact' },
           ].map((link) => (
-            <a
+            <Link
               key={link.label}
               href={link.href}
               className={`font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
@@ -50,13 +50,13 @@ export default function Nav() {
             >
               {link.label}
               {link.isNew && (
-                <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
               )}
-            </a>
+            </Link>
           ))}
-          <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
+          <Link href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '10px' }}>
             Book now
-          </a>
+          </Link>
         </div>
 
         {/* Mobile burger */}
@@ -75,6 +75,7 @@ export default function Nav() {
       {/* Mobile menu */}
       <div
         id="mobile-menu"
+        aria-hidden={!open}
         className={`md:hidden bg-anthracite-mid border-anthracite-light px-6 flex flex-col overflow-hidden transition-all duration-300 ease-out ${
           open ? 'max-h-[500px] py-4 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
         }`}
@@ -87,7 +88,7 @@ export default function Nav() {
           { label: 'Corporate', href: '/corporate' },
           { label: 'Contact', href: '/contact' },
         ].map((link) => (
-          <a
+          <Link
             key={link.label}
             href={link.href}
             onClick={() => setOpen(false)}
@@ -97,13 +98,13 @@ export default function Nav() {
           >
             {link.label}
             {link.isNew && (
-              <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+              <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
             )}
-          </a>
+          </Link>
         ))}
-        <a href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-3">
+        <Link href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-3">
           Book now
-        </a>
+        </Link>
       </div>
     </nav>
   )

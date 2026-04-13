@@ -26,7 +26,7 @@ const appearance = {
     colorText: '#F5F2EE',
     colorTextPlaceholder: '#9A958F',
     colorPrimary: '#B87333',
-    colorDanger: '#C0392B',
+    colorDanger: '#f87171',
     fontFamily: "'Montserrat', 'Helvetica Neue', sans-serif",
     fontSizeBase: '14px',
     fontWeightNormal: '300',

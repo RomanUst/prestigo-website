@@ -18,8 +18,8 @@ const STATUS_DISPLAY: Record<FlightStatus, { label: string; color: string }> = {
   scheduled: { label: 'SCHEDULED', color: 'var(--copper)' },
   active:    { label: 'ACTIVE',    color: 'var(--copper)' },
   landed:    { label: 'LANDED',    color: '#27AE60' },
-  cancelled: { label: 'CANCELLED', color: '#C0392B' },
-  diverted:  { label: 'DIVERTED',  color: '#C0392B' },
+  cancelled: { label: 'CANCELLED', color: '#f87171' },
+  diverted:  { label: 'DIVERTED',  color: '#f87171' },
   unknown:   { label: 'UNKNOWN',   color: 'var(--warmgrey)' },
 }
 
@@ -153,8 +153,9 @@ export default function Step5Passenger() {
       {/* Row 1: First Name + Last Name */}
       <div className="flex flex-col md:flex-row" style={{ gap: 24 }}>
         <div style={{ flex: 1 }}>
-          <p className="label" style={{ marginBottom: 8 }}>FIRST NAME</p>
+          <label htmlFor="firstName" className="label" style={{ display: 'block', marginBottom: 8 }}>FIRST NAME</label>
           <input
+            id="firstName"
             type="text"
             {...register('firstName')}
             aria-required="true"
@@ -163,26 +164,26 @@ export default function Step5Passenger() {
             style={{
               width: '100%',
               background: 'var(--anthracite-mid)',
-              border: `1px solid ${errors.firstName ? '#C0392B' : 'var(--anthracite-light)'}`,
+              border: `1px solid ${errors.firstName ? '#f87171' : 'var(--anthracite-light)'}`,
               padding: '12px 16px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: 14,
               fontWeight: 300,
               color: 'var(--offwhite)',
-              outline: 'none',
               borderRadius: 4,
             }}
           />
           {errors.firstName && (
-            <p id="firstName-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+            <p id="firstName-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
               {errors.firstName.message}
             </p>
           )}
         </div>
 
         <div style={{ flex: 1 }}>
-          <p className="label" style={{ marginBottom: 8 }}>LAST NAME</p>
+          <label htmlFor="lastName" className="label" style={{ display: 'block', marginBottom: 8 }}>LAST NAME</label>
           <input
+            id="lastName"
             type="text"
             {...register('lastName')}
             aria-required="true"
@@ -191,18 +192,17 @@ export default function Step5Passenger() {
             style={{
               width: '100%',
               background: 'var(--anthracite-mid)',
-              border: `1px solid ${errors.lastName ? '#C0392B' : 'var(--anthracite-light)'}`,
+              border: `1px solid ${errors.lastName ? '#f87171' : 'var(--anthracite-light)'}`,
               padding: '12px 16px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: 14,
               fontWeight: 300,
               color: 'var(--offwhite)',
-              outline: 'none',
               borderRadius: 4,
             }}
           />
           {errors.lastName && (
-            <p id="lastName-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+            <p id="lastName-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
               {errors.lastName.message}
             </p>
           )}
@@ -211,8 +211,9 @@ export default function Step5Passenger() {
 
       {/* Row 2: Email */}
       <div style={{ marginTop: 24 }}>
-        <p className="label" style={{ marginBottom: 8 }}>EMAIL</p>
+        <label htmlFor="email" className="label" style={{ display: 'block', marginBottom: 8 }}>EMAIL</label>
         <input
+          id="email"
           type="email"
           {...register('email')}
           aria-required="true"
@@ -221,18 +222,17 @@ export default function Step5Passenger() {
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.email ? '#C0392B' : 'var(--anthracite-light)'}`,
+            border: `1px solid ${errors.email ? '#f87171' : 'var(--anthracite-light)'}`,
             padding: '12px 16px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: 14,
             fontWeight: 300,
             color: 'var(--offwhite)',
-            outline: 'none',
             borderRadius: 4,
           }}
         />
         {errors.email && (
-          <p id="email-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+          <p id="email-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.email.message}
           </p>
         )}
@@ -240,8 +240,9 @@ export default function Step5Passenger() {
 
       {/* Row 3: Phone */}
       <div style={{ marginTop: 24 }}>
-        <p className="label" style={{ marginBottom: 8 }}>PHONE</p>
+        <label htmlFor="phone" className="label" style={{ display: 'block', marginBottom: 8 }}>PHONE</label>
         <input
+          id="phone"
           type="tel"
           {...register('phone')}
           aria-required="true"
@@ -250,18 +251,17 @@ export default function Step5Passenger() {
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.phone ? '#C0392B' : 'var(--anthracite-light)'}`,
+            border: `1px solid ${errors.phone ? '#f87171' : 'var(--anthracite-light)'}`,
             padding: '12px 16px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: 14,
             fontWeight: 300,
             color: 'var(--offwhite)',
-            outline: 'none',
             borderRadius: 4,
           }}
         />
         {errors.phone && (
-          <p id="phone-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+          <p id="phone-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.phone.message}
           </p>
         )}
@@ -271,8 +271,9 @@ export default function Step5Passenger() {
       {isAirportRide && (
         <div className="flex flex-col md:flex-row" style={{ gap: 24, marginTop: 24 }}>
           <div style={{ flex: 1 }}>
-            <p className="label" style={{ marginBottom: 8 }}>FLIGHT NUMBER</p>
+            <label htmlFor="flightNumber" className="label" style={{ display: 'block', marginBottom: 8 }}>FLIGHT NUMBER</label>
             <input
+              id="flightNumber"
               type="text"
               {...register('flightNumber')}
               aria-required={isAirportRide}
@@ -282,26 +283,26 @@ export default function Step5Passenger() {
               style={{
                 width: '100%',
                 background: 'var(--anthracite-mid)',
-                border: `1px solid ${errors.flightNumber ? '#C0392B' : 'var(--anthracite-light)'}`,
+                border: `1px solid ${errors.flightNumber ? '#f87171' : 'var(--anthracite-light)'}`,
                 padding: '12px 16px',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: 14,
                 fontWeight: 300,
                 color: 'var(--offwhite)',
-                outline: 'none',
                 borderRadius: 4,
               }}
             />
             {errors.flightNumber && (
-              <p id="flightNumber-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 400, marginTop: 8 }}>
+              <p id="flightNumber-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 400, marginTop: 8 }}>
                 {errors.flightNumber.message}
               </p>
             )}
           </div>
 
           <div style={{ flex: 1 }}>
-            <p className="label" style={{ marginBottom: 8 }}>TERMINAL (OPTIONAL)</p>
+            <label htmlFor="terminal" className="label" style={{ display: 'block', marginBottom: 8 }}>TERMINAL (OPTIONAL)</label>
             <input
+              id="terminal"
               type="text"
               {...register('terminal')}
               aria-describedby={errors.terminal ? 'terminal-error' : undefined}
@@ -309,18 +310,17 @@ export default function Step5Passenger() {
               style={{
                 width: '100%',
                 background: 'var(--anthracite-mid)',
-                border: `1px solid ${errors.terminal ? '#C0392B' : 'var(--anthracite-light)'}`,
+                border: `1px solid ${errors.terminal ? '#f87171' : 'var(--anthracite-light)'}`,
                 padding: '12px 16px',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: 14,
                 fontWeight: 300,
                 color: 'var(--offwhite)',
-                outline: 'none',
                 borderRadius: 4,
               }}
             />
             {errors.terminal && (
-              <p id="terminal-error" style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+              <p id="terminal-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
                 {errors.terminal.message}
               </p>
             )}
@@ -442,8 +442,9 @@ export default function Step5Passenger() {
 
       {/* Row 5: Special Requests */}
       <div style={{ marginTop: 24 }}>
-        <p className="label" style={{ marginBottom: 8 }}>SPECIAL REQUESTS</p>
+        <label htmlFor="specialRequests" className="label" style={{ display: 'block', marginBottom: 8 }}>SPECIAL REQUESTS</label>
         <textarea
+          id="specialRequests"
           {...register('specialRequests')}
           placeholder="Any special requirements for your journey"
           maxLength={500}
@@ -452,13 +453,12 @@ export default function Step5Passenger() {
           style={{
             width: '100%',
             background: 'var(--anthracite-mid)',
-            border: `1px solid ${errors.specialRequests ? '#C0392B' : 'var(--anthracite-light)'}`,
+            border: `1px solid ${errors.specialRequests ? '#f87171' : 'var(--anthracite-light)'}`,
             padding: '12px 16px',
             fontFamily: 'var(--font-montserrat)',
             fontSize: 14,
             fontWeight: 300,
             color: 'var(--offwhite)',
-            outline: 'none',
             borderRadius: 4,
             resize: 'vertical',
           }}
@@ -467,7 +467,7 @@ export default function Step5Passenger() {
           {(specialRequests ?? '').length}/500
         </p>
         {errors.specialRequests && (
-          <p style={{ color: '#C0392B', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
+          <p style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.specialRequests.message}
           </p>
         )}
