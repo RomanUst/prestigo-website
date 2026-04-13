@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
+import { render, screen } from '@testing-library/react'
 import { useBookingStore } from '@/lib/booking-store'
 import Step2DateTime from '@/components/booking/steps/Step2DateTime'
 
@@ -37,62 +37,26 @@ describe('Step2DateTime', () => {
     it.todo('changing pickup date clears return date if now invalid')
   })
 
-  describe('STEP2-04: Round trip return date picker', () => {
-    beforeEach(() => {
+  describe('STEP2-04: Return date section', () => {
+    it('does NOT render RETURN DATE label when tripType is round_trip', () => {
       resetStore({
         tripType: 'round_trip',
         pickupDate: '2026-05-10',
         pickupTime: '14:00',
       })
-    })
-
-    it('renders a RETURN DATE label when tripType is round_trip and pickupDate is set', () => {
       render(<Step2DateTime />)
-      expect(screen.getByText(/RETURN DATE/i)).toBeTruthy()
+      expect(screen.queryByText(/RETURN DATE/i)).toBeNull()
     })
 
-    it('renders a RETURN TIME listbox with 288 slots when returnDate is set', () => {
-      resetStore({
-        tripType: 'round_trip',
-        pickupDate: '2026-05-10',
-        pickupTime: '14:00',
-        returnDate: '2026-05-10',
-      })
-      render(<Step2DateTime />)
-      const listbox = screen.getByRole('listbox', { name: /return time/i })
-      expect(listbox).toBeTruthy()
-      const options = screen.getAllByRole('option')
-      // At least 288 options for the return time listbox (plus pickup time if shown)
-      expect(options.length).toBeGreaterThanOrEqual(288)
-    })
-
-    it('clicking a return time slot calls setReturnTime with the slot value', () => {
-      resetStore({
-        tripType: 'round_trip',
-        pickupDate: '2026-05-10',
-        pickupTime: '14:00',
-        returnDate: '2026-05-11',
-      })
-      render(<Step2DateTime />)
-      const returnListbox = screen.getByRole('listbox', { name: /return time/i })
-      const options = Array.from(returnListbox.querySelectorAll('[role="option"]'))
-      const option = options.find((el) => el.textContent === '10:00')
-      expect(option).toBeTruthy()
-      fireEvent.click(option!)
-      expect(useBookingStore.getState().returnTime).toBe('10:00')
-    })
-
-    it('shows inline error "Return must be after pickup" when return datetime <= pickup datetime', () => {
+    it('does NOT render return time listbox when tripType is round_trip', () => {
       resetStore({
         tripType: 'round_trip',
         pickupDate: '2026-05-10',
         pickupTime: '14:00',
         returnDate: '2026-05-10',
-        returnTime: '10:00',
       })
       render(<Step2DateTime />)
-      const alert = screen.getByRole('alert')
-      expect(alert.textContent).toContain('Return must be after pickup')
+      expect(screen.queryByRole('listbox', { name: /return time/i })).toBeNull()
     })
 
     it('does NOT render return date or return time sections when tripType is transfer', () => {

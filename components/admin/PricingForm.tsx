@@ -184,6 +184,7 @@ export default function PricingForm({ initialData }: PricingFormProps) {
 
         {/* Data rows */}
         {initialData.config.map((row, index) => {
+          // eslint-disable-next-line react-hooks/incompatible-library
           const minFareValue = watch(`config.${index}.min_fare`)
           return (
             <div

@@ -4,6 +4,9 @@ import { Client } from '@upstash/qstash'
 let _qstash: Client | null = null
 function getQStash(): Client {
   if (!_qstash) {
+    if (!process.env.QSTASH_TOKEN) {
+      console.warn('[qstash] QSTASH_TOKEN is not set — reminders will not be scheduled')
+    }
     _qstash = new Client({ token: process.env.QSTASH_TOKEN ?? '' })
   }
   return _qstash

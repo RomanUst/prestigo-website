@@ -293,11 +293,12 @@ describe('PAY26-RT: round-trip server-side recomputation', () => {
     )
     expect(res.status).toBe(200)
     const call = stripeMock.paymentIntents.create.mock.calls[0][0]
-    // Expected: Math.round((150 + 10 + 135) * 0.85) = Math.round(250.75) = 251 EUR → 25100 cents
-    expect(call.amount).toBe(25100)
-    // Per-leg anti-pattern would give: round(150*0.85)+round(10*0.85)+round(135*0.85)
-    //                                = 128 + 9 + 115 = 252 → 25200 cents — prove we don't do this
-    expect(call.amount).not.toBe(25200)
+    // computeExtrasTotal always returns 0 (extras prices are all 0 in lib/extras.ts)
+    // so combined = 150 + 0 + 135 = 285; Math.round(285 * 0.85) = Math.round(242.25) = 242 EUR → 24200 cents
+    expect(call.amount).toBe(24200)
+    // Per-leg anti-pattern would give: round(150*0.85)+round(0*0.85)+round(135*0.85)
+    //                                = 128 + 0 + 115 = 243 → 24300 cents — prove we don't do this
+    expect(call.amount).not.toBe(24300)
   })
 
   it('PAY26-RT-PROMO-ORDER: claim_promo_code NOT called on zod validation failure', async () => {

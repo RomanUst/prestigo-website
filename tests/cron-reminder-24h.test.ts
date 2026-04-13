@@ -16,6 +16,7 @@ const {
   mockLte,
   mockIn,
   mockOrder,
+  mockLimit,
 } = vi.hoisted(() => ({
   mockLogEmail:                  vi.fn(),
   mockSendClientReminderEmail:   vi.fn(),
@@ -27,6 +28,7 @@ const {
   mockLte:                       vi.fn(),
   mockIn:                        vi.fn(),
   mockOrder:                     vi.fn(),
+  mockLimit:                     vi.fn(),
 }))
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -44,6 +46,11 @@ vi.mock('@/lib/email-log', () => ({
 vi.mock('@/lib/email', () => ({
   sendClientReminderEmail: mockSendClientReminderEmail,
   sendDriverReminderEmail: mockSendDriverReminderEmail,
+  // Pure function — provide real implementation so route logic works unchanged
+  getAcceptedDriver: (assignments: Array<{ status: string; drivers?: unknown }> | null | undefined) => {
+    const a = (assignments ?? []).find(da => da.status === 'accepted')
+    return a?.drivers
+  },
 }))
 
 // ── Import route after mocks are set up ──────────────────────────────────────
@@ -112,8 +119,9 @@ beforeEach(() => {
   const mockEqForPricing = vi.fn().mockReturnValue({ single: mockSingle })
   const mockSelectForPricing = vi.fn().mockReturnValue({ eq: mockEqForPricing })
 
-  // bookings → gte().lte() or similar
-  mockOrder.mockResolvedValue({ data: [BASE_BOOKING], error: null })
+  // bookings → gte().lte().order().limit()
+  mockLimit.mockResolvedValue({ data: [BASE_BOOKING], error: null })
+  mockOrder.mockReturnValue({ limit: mockLimit })
   mockLte.mockReturnValue({ order: mockOrder })
   mockGte.mockReturnValue({ lte: mockLte })
   mockIn.mockReturnValue({ gte: mockGte })
@@ -185,7 +193,7 @@ describe('NOTIF-04/DRIVER-06: 24h reminder cron', () => {
 
   it('sends driver reminder when driver assigned+accepted', async () => {
     // Override booking list to include booking with driver
-    mockOrder.mockResolvedValue({ data: [BOOKING_WITH_DRIVER], error: null })
+    mockLimit.mockResolvedValue({ data: [BOOKING_WITH_DRIVER], error: null })
 
     const res = await GET(makeRequest('Bearer test-cron-secret'))
     expect(res.status).toBe(200)
@@ -218,7 +226,7 @@ describe('NOTIF-04/DRIVER-06: 24h reminder cron', () => {
 
     vi.clearAllMocks()
     mockLogEmail.mockResolvedValue(false)
-    mockOrder.mockResolvedValue({ data: [BASE_BOOKING], error: null })
+    mockLimit.mockResolvedValue({ data: [BASE_BOOKING], error: null })
 
     const res2 = await GET(makeRequest('Bearer test-cron-secret'))
     expect(res2.status).toBe(200)

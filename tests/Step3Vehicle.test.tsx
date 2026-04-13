@@ -51,9 +51,10 @@ describe('VehicleCard', () => {
       expect(screen.getByText('€185')).toBeInTheDocument()
     })
 
-    it('Round Trip button shows "Enter return details below" when no roundTripPrice', () => {
-      renderCard({ roundTripPrice: null })
-      expect(screen.getByText(/enter return details below/i)).toBeInTheDocument()
+    it('Round Trip button shows estimated combined price when roundTripPrice is null', () => {
+      renderCard({ roundTripPrice: null, price: basePrice, returnDiscountPercent: 15 })
+      // estimated return = round(100 * 0.85) = 85, combined = 100 + 85 = 185
+      expect(screen.getByText('€185')).toBeInTheDocument()
     })
 
     it('clicking One Way calls onSelectOneWay', async () => {

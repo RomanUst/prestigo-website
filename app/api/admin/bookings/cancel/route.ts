@@ -6,7 +6,7 @@ import Stripe from 'stripe'
 import { czkToEur } from '@/lib/currency'
 
 function getStripe() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   const opts: Record<string, unknown> = { maxNetworkRetries: 0 }
   if (typeof (Stripe as unknown as { createFetchHttpClient?: () => unknown }).createFetchHttpClient === 'function') {
     opts.httpClient = Stripe.createFetchHttpClient()

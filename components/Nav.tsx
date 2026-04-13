@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 export default function Nav() {
@@ -25,10 +26,10 @@ export default function Nav() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
 
         {/* Wordmark */}
-        <a href="/" className="wordmark tracking-[0.6em] inline-flex items-center h-16" aria-label="PRESTIGO — home">
+        <Link href="/" className="wordmark tracking-[0.6em] inline-flex items-center h-16" aria-label="PRESTIGO — home">
           <span className="wordmark-presti">PRESTI</span>
           <span className="wordmark-go">GO</span>
-        </a>
+        </Link>
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">

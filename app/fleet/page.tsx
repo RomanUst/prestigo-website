@@ -247,7 +247,7 @@ export default function FleetPage() {
       {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <img src="/hero-fleet.webp" alt="PRESTIGO Mercedes Fleet — Prague Chauffeur" className="w-full h-full object-cover" style={{ filter: 'brightness(0.38)' }} />
+          <Image src="/hero-fleet.webp" alt="PRESTIGO Mercedes Fleet — Prague Chauffeur" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Mercedes Fleet · Prague</p>

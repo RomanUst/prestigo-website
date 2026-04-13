@@ -287,8 +287,9 @@ export default function BookingsTable() {
 
   // Cleanup debounce timers on unmount
   useEffect(() => {
+    const debounceMap = notesDebounceRef.current
     return () => {
-      Object.values(notesDebounceRef.current).forEach(timer => clearTimeout(timer))
+      Object.values(debounceMap).forEach(timer => clearTimeout(timer))
     }
   }, [])
 

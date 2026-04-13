@@ -34,6 +34,7 @@ export default function GoogleAnalytics() {
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
       />
+      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
       <Script id="ga-consent-default" strategy="beforeInteractive">
         {`
           window.dataLayer = window.dataLayer || [];

@@ -8,7 +8,7 @@ vi.mock('next/navigation', () => ({
 
 // Mock next/link
 vi.mock('next/link', () => ({
-  default: ({ children, href, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ children, href, ...props }: { children: React.ReactNode; href: string; [k: string]: unknown }) => <a href={href} {...props as React.AnchorHTMLAttributes<HTMLAnchorElement>}>{children}</a>,
 }))
 
 // Mock signOut server action

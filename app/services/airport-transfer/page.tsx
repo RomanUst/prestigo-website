@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
@@ -82,7 +83,7 @@ export default function AirportTransferPage() {
       {/* Hero */}
       <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <img src="/hero-airport-transfer.webp" alt="Prague Airport Transfer — PRESTIGO" className="w-full h-full object-cover" style={{ filter: 'brightness(0.38)' }} />
+          <Image src="/hero-airport-transfer.webp" alt="Prague Airport Transfer — PRESTIGO" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Airport Transfer · Prague</p>

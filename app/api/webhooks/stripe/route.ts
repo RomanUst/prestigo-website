@@ -289,14 +289,13 @@ async function handleRoundTripSucceeded(
   // Phase 41 D-01/D-02: Schedule 2h QStash reminder for EACH leg (fire-and-forget)
   if (pair) {
     const supabase = createSupabaseServiceClient()
-    for (const legId of [pair.outbound_id, pair.return_id]) {
-      const { data: legRow } = await supabase
-        .from('bookings')
-        .select('pickup_utc')
-        .eq('id', legId)
-        .single()
-      if (legRow?.pickup_utc) {
-        void scheduleQStashReminder(legId, new Date(legRow.pickup_utc).getTime())
+    const { data: legs } = await supabase
+      .from('bookings')
+      .select('id, pickup_utc')
+      .in('id', [pair.outbound_id, pair.return_id])
+    for (const leg of legs ?? []) {
+      if (leg.pickup_utc) {
+        void scheduleQStashReminder(leg.id, new Date(leg.pickup_utc).getTime())
       }
     }
   }

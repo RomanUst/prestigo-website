@@ -1208,7 +1208,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
 export async function sendDriverAssignmentEmail(data: DriverAssignmentEmailData): Promise<void> {
   try {
     const formattedDate = formatPickupDate(data.pickupDate)
-    const { data: sent, error } = await getResend().emails.send({
+    const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.driverEmail],
       subject: `Trip assignment: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,
@@ -1290,6 +1290,24 @@ export async function sendDriverDeclineNotification(data: DriverDeclineNotificat
 // ═══════════════════════════════════════════════════════════════════════════
 // REMINDER EMAILS (Phase 41)
 // ═══════════════════════════════════════════════════════════════════════════
+
+/** Shape of a driver record returned from a joined driver_assignments query. */
+export interface DriverInfo {
+  name: string
+  email: string
+  vehicle_info: string
+}
+
+/**
+ * Extracts the accepted driver from a booking's driver_assignments array.
+ * Returns undefined if no assignment with status='accepted' is found.
+ */
+export function getAcceptedDriver(
+  driverAssignments: Array<{ status: string; drivers?: unknown }> | null | undefined
+): DriverInfo | undefined {
+  const assignment = (driverAssignments ?? []).find(da => da.status === 'accepted')
+  return assignment?.drivers as DriverInfo | undefined
+}
 
 export interface ReminderEmailBooking {
   booking_reference: string

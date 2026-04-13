@@ -53,7 +53,7 @@ const VEHICLE_LABELS: Record<string, string> = {
   business_van: 'Business Van',
 }
 
-export default function AdminStep6Create({ onClose, onCreated }: Props) {
+export default function AdminStep6Create({ onClose: _onClose, onCreated }: Props) {
   const tripType = useBookingStore(s => s.tripType)
   const origin = useBookingStore(s => s.origin)
   const destination = useBookingStore(s => s.destination)

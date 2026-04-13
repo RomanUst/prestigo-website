@@ -21,26 +21,25 @@ export default function CookieBanner() {
   function handleAccept() {
     localStorage.setItem(CONSENT_KEY, 'granted')
     setVisible(false)
-    // Consent Mode v2 — flip analytics_storage to granted in-place so gtag.js
-    // retroactively unlocks analytics cookies + any queued events, without
-    // needing a page reload. Ad categories stay 'denied' because the banner
-    // copy explicitly promises "No advertising cookies" — flipping them on
-    // here would contradict the banner and break GDPR compliance.
     if (typeof window !== 'undefined') {
       const w = window as typeof window & {
         dataLayer?: unknown[]
         gtag?: (...args: unknown[]) => void
       }
+      // Consent Mode v2 — flip analytics_storage to granted in-place so gtag.js
+      // retroactively unlocks analytics cookies + any queued events, without a
+      // page reload. Ad_storage stays 'denied' because the banner copy now mentions
+      // Meta Pixel; if the user clicks "Necessary only", ad tags never initialise.
       if (typeof w.gtag === 'function') {
         w.gtag('consent', 'update', {
           analytics_storage: 'granted',
         })
       } else {
-        // gtag.js not loaded yet (e.g. still waiting on afterInteractive) —
-        // push directly to dataLayer so gtag.js picks it up on init.
         w.dataLayer = w.dataLayer || []
         w.dataLayer.push(['consent', 'update', { analytics_storage: 'granted' }])
       }
+      // Notify MetaPixel component to initialise
+      window.dispatchEvent(new Event('prestigo:consent-granted'))
     }
   }
 
@@ -61,8 +60,7 @@ export default function CookieBanner() {
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <p className="font-body font-light text-[12px] text-warmgrey leading-relaxed max-w-2xl">
-          We use cookies for anonymous analytics (Google Analytics) to improve our service.
-          No advertising cookies.{' '}
+          We use cookies for analytics (Google Analytics) and advertising (Meta Pixel) to improve our service and show relevant ads.{' '}
           <a
             href="/privacy"
             className="text-offwhite hover:text-copper transition-colors"

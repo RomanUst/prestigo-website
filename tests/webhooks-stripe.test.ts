@@ -38,6 +38,11 @@ vi.mock('@/lib/ics', () => ({
   buildIcs: vi.fn().mockReturnValue('STUB-ICS'),
 }))
 
+// Mock lib/qstash — fire-and-forget, never throws in tests
+vi.mock('@/lib/qstash', () => ({
+  scheduleQStashReminder: vi.fn().mockResolvedValue(undefined),
+}))
+
 // Mock Stripe — use a constructor function because route does `new Stripe(...)`
 vi.mock('stripe', () => {
   return {
@@ -116,10 +121,17 @@ const ONE_WAY_ROWS = [
 function mockFromChain(rows: Array<Record<string, unknown>>) {
   const updateEq = vi.fn().mockResolvedValue({ data: null, error: null })
   const update = vi.fn().mockReturnValue({ eq: updateEq })
-  const selectEq = vi.fn().mockResolvedValue({ data: rows, error: null })
-  const select = vi.fn().mockReturnValue({ eq: selectEq })
-  supabaseServiceStub.from.mockReturnValue({ select, update })
-  return { update, updateEq, select, selectEq }
+  const inFn = vi.fn().mockResolvedValue({ data: [], error: null })
+  // .select().eq() for refund lookup must resolve with rows
+  const selectEqResolved = vi.fn().mockResolvedValue({ data: rows, error: null })
+  const select = vi.fn().mockReturnValue({ eq: selectEqResolved, in: inFn })
+  supabaseServiceStub.from.mockImplementation((table: string) => {
+    if (table === 'stripe_processed_events') {
+      return { insert: vi.fn().mockResolvedValue({ error: null }) }
+    }
+    return { select, update }
+  })
+  return { update, updateEq, select, selectEq: selectEqResolved }
 }
 
 const mockPaymentIntent = {
@@ -177,6 +189,22 @@ beforeEach(() => {
   ;(sendRoundTripClientConfirmation as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendRoundTripManagerAlert as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(buildIcs as ReturnType<typeof vi.fn>).mockReturnValue('STUB-ICS')
+
+  // Default: supabase.from('stripe_processed_events').insert(...) succeeds (no duplicate)
+  supabaseServiceStub.from.mockImplementation((table: string) => {
+    if (table === 'stripe_processed_events') {
+      return { insert: vi.fn().mockResolvedValue({ error: null }) }
+    }
+    // Default fallback for 'bookings' or any other table — no-op chains
+    // Supports: .select().eq().single(), .select().eq(), .select().in(), .update().eq()
+    const single = vi.fn().mockResolvedValue({ data: null, error: null })
+    const inFn = vi.fn().mockResolvedValue({ data: [], error: null })
+    const selectEq = vi.fn().mockReturnValue({ single })
+    const select = vi.fn().mockReturnValue({ eq: selectEq, in: inFn })
+    const updateEq = vi.fn().mockResolvedValue({ data: null, error: null })
+    const update = vi.fn().mockReturnValue({ eq: updateEq })
+    return { select, update }
+  })
 })
 
 describe('/api/webhooks/stripe', () => {
@@ -199,7 +227,7 @@ describe('/api/webhooks/stripe', () => {
       const res = await POST(makeRequest())
       expect(res.status).toBe(400)
       const json = await res.json()
-      expect(json.error).toContain('Webhook Error')
+      expect(json.error).toContain('Webhook signature verification failed')
     })
 
     it('returns { received: true } on valid event', async () => {

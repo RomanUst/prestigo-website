@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { PRG_CONFIG } from '@/types/booking'
 import type { FlightCheckResult } from '@/types/booking'
 import Step5Passenger from '@/components/booking/steps/Step5Passenger'
 

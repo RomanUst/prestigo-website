@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import type { VehicleConfig, PriceBreakdown } from '@/types/booking'
 import { eurToCzk, formatCZK } from '@/lib/currency'
 
@@ -66,12 +67,15 @@ export default function VehicleCard({
       }}
     >
       {/* Vehicle photo */}
-      <img
-        src={config.image}
-        alt={config.label}
-        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-        style={{ width: '100%', aspectRatio: '16/9', objectFit: 'cover', borderRadius: 4, marginBottom: 16 }}
-      />
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: 4, marginBottom: 16, overflow: 'hidden' }}>
+        <Image
+          src={config.image}
+          alt={config.label}
+          fill
+          style={{ objectFit: 'cover' }}
+          onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+        />
+      </div>
 
       {/* Class name */}
       <span

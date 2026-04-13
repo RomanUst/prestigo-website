@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
-import { sendClientReminderEmail, sendDriverReminderEmail } from '@/lib/email'
+import { sendClientReminderEmail, sendDriverReminderEmail, getAcceptedDriver } from '@/lib/email'
 import type { ReminderEmailBooking } from '@/lib/email'
 
 export const maxDuration = 300
@@ -31,7 +31,10 @@ export async function GET(request: Request) {
 
   // 3. Query bookings with pickup_utc in 24-25h window, status=confirmed
   const now = Date.now()
-  const windowStart = new Date(now + 24 * 3600 * 1000).toISOString()
+  // 23h–25h window (2h wide) instead of 24h–25h (1h) — prevents gaps when cron
+  // fires slightly late or pickups fall outside the narrow 1h slot.
+  // logEmail dedup prevents double-send on any overlap.
+  const windowStart = new Date(now + 23 * 3600 * 1000).toISOString()
   const windowEnd = new Date(now + 25 * 3600 * 1000).toISOString()
 
   const { data: bookings, error: dbError } = await supabase
@@ -49,6 +52,7 @@ export async function GET(request: Request) {
     .gte('pickup_utc', windowStart)
     .lte('pickup_utc', windowEnd)
     .order('pickup_utc', { ascending: true })
+    .limit(500)
 
   if (dbError) {
     console.error('[cron/reminder-24h] query failed:', dbError.message)
@@ -60,10 +64,7 @@ export async function GET(request: Request) {
 
   for (const booking of (bookings ?? [])) {
     try {
-      // Find accepted driver assignment (if any)
-      const acceptedAssignment = (booking.driver_assignments ?? [])
-        .find((da: { status: string }) => da.status === 'accepted')
-      const driver = acceptedAssignment?.drivers as { name: string; email: string; vehicle_info: string } | undefined
+      const driver = getAcceptedDriver(booking.driver_assignments)
 
       const reminderBooking: ReminderEmailBooking = {
         booking_reference: booking.booking_reference,
@@ -81,27 +82,15 @@ export async function GET(request: Request) {
         driver_vehicle_info: driver?.vehicle_info,
       }
 
-      // Client email: logEmail dedup → send
-      const shouldSendClient = await logEmail({
-        bookingId: booking.id,
-        emailType: 'reminder_24h',
-        recipient: booking.client_email,
-      })
-      if (shouldSendClient) {
-        await sendClientReminderEmail(reminderBooking, '24h')
-      }
-
-      // Driver email: only if assigned+accepted
-      if (driver?.email) {
-        const shouldSendDriver = await logEmail({
-          bookingId: booking.id,
-          emailType: 'reminder_24h',
-          recipient: driver.email,
-        })
-        if (shouldSendDriver) {
-          await sendDriverReminderEmail(reminderBooking, '24h')
-        }
-      }
+      // Client + driver dedup-check and send in parallel
+      await Promise.all([
+        logEmail({ bookingId: booking.id, emailType: 'reminder_24h', recipient: booking.client_email })
+          .then(ok => ok ? sendClientReminderEmail(reminderBooking, '24h') : undefined),
+        driver?.email
+          ? logEmail({ bookingId: booking.id, emailType: 'reminder_24h', recipient: driver.email })
+              .then(ok => ok ? sendDriverReminderEmail(reminderBooking, '24h') : undefined)
+          : undefined,
+      ])
 
       results.processed++
     } catch (err) {

@@ -8,18 +8,12 @@ const {
   mockSendDriverReminderEmail,
   mockReceiverVerify,
   mockFrom,
-  mockSelect,
-  mockEq,
-  mockSingle,
 } = vi.hoisted(() => ({
   mockLogEmail:                  vi.fn(),
   mockSendClientReminderEmail:   vi.fn(),
   mockSendDriverReminderEmail:   vi.fn(),
   mockReceiverVerify:            vi.fn(),
   mockFrom:                      vi.fn(),
-  mockSelect:                    vi.fn(),
-  mockEq:                        vi.fn(),
-  mockSingle:                    vi.fn(),
 }))
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -37,6 +31,11 @@ vi.mock('@/lib/email-log', () => ({
 vi.mock('@/lib/email', () => ({
   sendClientReminderEmail: mockSendClientReminderEmail,
   sendDriverReminderEmail: mockSendDriverReminderEmail,
+  // Pure function — provide real implementation so route logic works unchanged
+  getAcceptedDriver: (assignments: Array<{ status: string; drivers?: unknown }> | null | undefined) => {
+    const a = (assignments ?? []).find(da => da.status === 'accepted')
+    return a?.drivers
+  },
 }))
 
 vi.mock('@upstash/qstash', () => ({
@@ -56,7 +55,7 @@ import { POST } from '@/app/api/cron/reminder-2h/route'
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
 const BASE_BOOKING = {
-  id: 'booking-uuid-0002',
+  id: '00000000-0000-0000-0000-000000000002',
   booking_reference: 'PRG-002',
   status: 'confirmed',
   pickup_date: '2026-04-14',
@@ -100,7 +99,7 @@ const PRICING_GLOBALS_FLAGS_2H_OFF = {
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-function makeRequest(body: Record<string, unknown> = { booking_id: 'booking-uuid-0002' }) {
+function makeRequest(body: Record<string, unknown> = { booking_id: '00000000-0000-0000-0000-000000000002' }) {
   return new Request('http://localhost/api/cron/reminder-2h', {
     method: 'POST',
     body: JSON.stringify(body),

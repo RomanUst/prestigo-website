@@ -78,7 +78,7 @@ export default function Step5Passenger() {
   const [flightCheckState, setFlightCheckState] = useState<'idle' | 'loading' | 'success' | 'error'>(
     () => useBookingStore.getState().flightCheckResult ? 'success' : 'idle'
   )
-  const [flightCheckError, setFlightCheckError] = useState<string | null>(null)
+  const [_flightCheckError, setFlightCheckError] = useState<string | null>(null)
 
   const watchedFlightNumber = watch('flightNumber')
 

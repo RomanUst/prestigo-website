@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { X, Calculator } from 'lucide-react'
 import AddressInput from '@/components/booking/AddressInput'
 import { czkToEur, eurToCzk } from '@/lib/currency'
+import { IATA_RE } from '@/lib/iata-pattern'
 import type { PlaceResult } from '@/types/booking'
 
 const labelStyle: React.CSSProperties = {
@@ -81,6 +82,9 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [error, setError] = useState<string | null>(null)
   const [priceLoading, setPriceLoading] = useState(false)
   const [priceNote, setPriceNote] = useState<string | null>(null)
+  const [distanceKm, setDistanceKm] = useState<number | null>(null)
+  const [flightCheckLoading, setFlightCheckLoading] = useState(false)
+  const [flightCheckNote, setFlightCheckNote] = useState<string | null>(null)
 
   async function handleCalculatePrice() {
     if (!originPlace?.lat || !originPlace?.lng) {
@@ -121,11 +125,40 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
         } else {
           setPriceNote('Could not get price for this vehicle class.')
         }
+        if (data.distanceKm) setDistanceKm(data.distanceKm)
       }
     } catch {
       setPriceNote('Price calculation failed.')
     } finally {
       setPriceLoading(false)
+    }
+  }
+
+  async function handleCheckFlight() {
+    const fn = flightNumber.trim().toUpperCase()
+    if (!fn || !IATA_RE.test(fn)) {
+      setFlightCheckNote('Enter a valid IATA flight number (e.g. OK123, BA256).')
+      return
+    }
+    const date = pickupDate || new Date().toISOString().slice(0, 10)
+    setFlightCheckLoading(true)
+    setFlightCheckNote(null)
+    try {
+      const res = await fetch(`/api/check-flight?flight=${encodeURIComponent(fn)}&date=${encodeURIComponent(date)}`)
+      const data = await res.json()
+      if (!data.ok) {
+        setFlightCheckNote(`Flight not found or unavailable (${data.error ?? 'unknown'}) — you can proceed.`)
+        return
+      }
+      const arrivalTime = data.flight_estimated_arrival ? data.flight_estimated_arrival.slice(11, 16) : '—'
+      const delay = data.flight_delay_minutes ? ` · +${data.flight_delay_minutes} min delay` : ''
+      const status = (data.flight_status ?? 'unknown').toUpperCase()
+      if (data.flight_terminal && !terminal) setTerminal(data.flight_terminal)
+      setFlightCheckNote(`${fn} — ${status} · arrival ${arrivalTime}${delay}`)
+    } catch {
+      setFlightCheckNote('Flight check failed — you can proceed.')
+    } finally {
+      setFlightCheckLoading(false)
     }
   }
 
@@ -146,6 +179,12 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       return
     }
 
+    if (tripType === 'transfer' && !distanceKm) {
+      setError('Click the calculator button (⊞) to calculate the price and distance before submitting a transfer booking.')
+      setLoading(false)
+      return
+    }
+
     const payload: Record<string, unknown> = {
       trip_type: tripType,
       pickup_date: pickupDate,
@@ -162,6 +201,11 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
     }
 
     if (destinationPlace?.address) payload.destination_address = destinationPlace.address
+    if (originPlace?.lat) payload.origin_lat = originPlace.lat
+    if (originPlace?.lng) payload.origin_lng = originPlace.lng
+    if (destinationPlace?.lat) payload.destination_lat = destinationPlace.lat
+    if (destinationPlace?.lng) payload.destination_lng = destinationPlace.lng
+    if (distanceKm) payload.distance_km = distanceKm
     if (hours) payload.hours = Number(hours)
     if (returnDate) payload.return_date = returnDate
     if (flightNumber) payload.flight_number = flightNumber
@@ -192,6 +236,10 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       setLoading(false)
     }
   }
+
+  const isCheckDisabled = flightCheckLoading || !flightNumber
+  const isFlightNoteError = (note: string) =>
+    note.includes('not found') || note.includes('failed')
 
   return (
     <div
@@ -440,15 +488,54 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
               </Field>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                <Field label="FLIGHT NUMBER (optional)">
-                  <input
-                    type="text"
-                    value={flightNumber}
-                    onChange={(e) => setFlightNumber(e.target.value)}
-                    style={inputStyle}
-                    maxLength={20}
-                  />
-                </Field>
+                <div>
+                  <label style={labelStyle}>FLIGHT NUMBER (OPTIONAL)</label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <input
+                      type="text"
+                      value={flightNumber}
+                      onChange={(e) => { setFlightNumber(e.target.value); setFlightCheckNote(null) }}
+                      style={{ ...inputStyle, flex: 1 }}
+                      maxLength={20}
+                      placeholder="e.g. OK123"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleCheckFlight}
+                      disabled={isCheckDisabled}
+                      title="Check flight status"
+                      style={{
+                        background: 'var(--anthracite)',
+                        border: '1px solid var(--anthracite-light)',
+                        borderRadius: '2px',
+                        color: isCheckDisabled ? 'var(--warmgrey)' : 'var(--copper)',
+                        cursor: isCheckDisabled ? 'not-allowed' : 'pointer',
+                        padding: '6px 10px',
+                        fontFamily: 'var(--font-montserrat)',
+                        fontSize: '9px',
+                        fontWeight: 500,
+                        letterSpacing: '0.2em',
+                        textTransform: 'uppercase',
+                        whiteSpace: 'nowrap',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {flightCheckLoading ? '…' : 'CHECK'}
+                    </button>
+                  </div>
+                  {flightCheckNote && (
+                    <span style={{
+                      fontSize: '11px',
+                      fontFamily: 'var(--font-montserrat)',
+                      fontWeight: 300,
+                      color: isFlightNoteError(flightCheckNote) ? 'var(--warmgrey)' : 'var(--copper)',
+                      marginTop: '4px',
+                      display: 'block',
+                    }}>
+                      {flightCheckNote}
+                    </span>
+                  )}
+                </div>
                 <Field label="TERMINAL (optional)">
                   <input
                     type="text"

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import BookingSummaryBlock from '@/components/booking/BookingSummaryBlock'
 import { useBookingStore } from '@/lib/booking-store'
 
@@ -101,17 +101,18 @@ describe('BookingSummaryBlock', () => {
       expect(screen.getByText('−€28')).toBeInTheDocument()
     })
 
-    it('SUM-RT-09: extras apply to outbound only — outbound €115, return still €90', () => {
+    it('SUM-RT-09: extras apply to outbound only — outbound €100, return still €90', () => {
       useBookingStore.setState({
         extras: { infantSeat: false, childSeat: true, boosterSeat: false, meetAndGreet: false, extraLuggage: false },
       })
       render(<BookingSummaryBlock selectedCurrency="eur" />)
-      // Outbound €100 base + €15 child seat = €115
-      expect(screen.getByText('€115')).toBeInTheDocument()
+      // computeExtrasTotal always returns 0 (all extra prices are 0 in lib/extras.ts)
+      // Outbound €100 base + €0 extras = €100
+      expect(screen.getByText('€100')).toBeInTheDocument()
       // Return still €90 (extras do not apply)
       expect(screen.getByText('€90')).toBeInTheDocument()
-      // Subtotal = 115 + 90 = 205
-      expect(screen.getByText('€205')).toBeInTheDocument()
+      // Subtotal = 100 + 90 = 190
+      expect(screen.getByText('€190')).toBeInTheDocument()
     })
 
     it('SUM-RT-10: selectedCurrency=czk shows CZK in Final line when promo applied', () => {

@@ -313,7 +313,6 @@ export default function BookingWidget() {
               aria-haspopup="dialog"
               aria-expanded={openPicker === 'date'}
               aria-label="Pickup date"
-              aria-invalid={!!errors.date}
               onClick={() => setOpenPicker(openPicker === 'date' ? null : 'date')}
               style={{
                 ...inputStyle,
@@ -368,7 +367,6 @@ export default function BookingWidget() {
               aria-haspopup="dialog"
               aria-expanded={openPicker === 'time'}
               aria-label="Pickup time"
-              aria-invalid={!!errors.time}
               onClick={() => setOpenPicker(openPicker === 'time' ? null : 'time')}
               style={{
                 ...inputStyle,

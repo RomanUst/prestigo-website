@@ -54,7 +54,7 @@ describe('BookingWizard', () => {
       setupStep2State()
     })
 
-    it('returns false for round_trip when returnTime is null (all other fields set)', () => {
+    it('returns true for round_trip when pickupDate + pickupTime are set (returnTime not required at step 2)', () => {
       setupStep2State({
         tripType: 'round_trip',
         pickupDate: '2026-05-10',
@@ -64,20 +64,20 @@ describe('BookingWizard', () => {
       })
       render(<BookingWizard />)
       const continueBtn = getContinueButton()
-      expect(continueBtn).toBeDisabled()
+      expect(continueBtn).not.toBeDisabled()
     })
 
-    it('returns false for round_trip when returnDatetime <= pickupDatetime (same day, return earlier)', () => {
+    it('returns true for round_trip when pickupDate + pickupTime are set (returnDate may or may not be set)', () => {
       setupStep2State({
         tripType: 'round_trip',
         pickupDate: '2026-05-10',
         pickupTime: '14:00',
         returnDate: '2026-05-10',
-        returnTime: '14:00', // equal — not strictly after
+        returnTime: '14:00',
       })
       render(<BookingWizard />)
       const continueBtn = getContinueButton()
-      expect(continueBtn).toBeDisabled()
+      expect(continueBtn).not.toBeDisabled()
     })
 
     it('returns true for round_trip when all fields set and returnDatetime > pickupDatetime', () => {

@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
 import { Receiver } from '@upstash/qstash'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
-import { sendClientReminderEmail, sendDriverReminderEmail } from '@/lib/email'
+import { sendClientReminderEmail, sendDriverReminderEmail, getAcceptedDriver } from '@/lib/email'
+import { enforceMaxBody } from '@/lib/request-guards'
 import type { ReminderEmailBooking } from '@/lib/email'
+
+const bodySchema = z.object({ booking_id: z.string().min(1) })
 
 // Lazy singleton — mirrors qstash.ts pattern; avoids crash when signing keys absent in test/preview
 let _receiver: Receiver | null = null
@@ -18,6 +22,10 @@ function getReceiver(): Receiver {
 }
 
 export async function POST(request: Request) {
+  // 0. Body size guard (QStash payload is tiny; 1 KB is generous)
+  const sizeError = enforceMaxBody(request, 1024)
+  if (sizeError) return sizeError
+
   // 1. QStash signature verification — T-41-02
   const receiver = getReceiver()
 
@@ -30,11 +38,16 @@ export async function POST(request: Request) {
     return new Response('Unauthorized', { status: 401 })
   }
 
-  const { booking_id } = JSON.parse(rawBody) as { booking_id: string }
+  // 2. Validate body shape — returns 400 on missing/invalid booking_id
+  const parsed = bodySchema.safeParse(JSON.parse(rawBody))
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid payload' }, { status: 400 })
+  }
+  const { booking_id } = parsed.data
 
   const supabase = createSupabaseServiceClient()
 
-  // 2. Fetch booking
+  // 3. Fetch booking
   const { data: booking, error: fetchError } = await supabase
     .from('bookings')
     .select(`
@@ -74,9 +87,7 @@ export async function POST(request: Request) {
   }
 
   // 4. Build reminder data
-  const acceptedAssignment = (booking.driver_assignments ?? [])
-    .find((da: { status: string }) => da.status === 'accepted')
-  const driver = acceptedAssignment?.drivers as { name: string; email: string; vehicle_info: string } | undefined
+  const driver = getAcceptedDriver(booking.driver_assignments)
 
   const reminderBooking: ReminderEmailBooking = {
     booking_reference: booking.booking_reference,
@@ -94,27 +105,15 @@ export async function POST(request: Request) {
     driver_vehicle_info: driver?.vehicle_info,
   }
 
-  // 5. Client email: logEmail dedup → send
-  const shouldSendClient = await logEmail({
-    bookingId: booking.id,
-    emailType: 'reminder_2h',
-    recipient: booking.client_email,
-  })
-  if (shouldSendClient) {
-    await sendClientReminderEmail(reminderBooking, '2h')
-  }
-
-  // 6. Driver email: only if assigned+accepted
-  if (driver?.email) {
-    const shouldSendDriver = await logEmail({
-      bookingId: booking.id,
-      emailType: 'reminder_2h',
-      recipient: driver.email,
-    })
-    if (shouldSendDriver) {
-      await sendDriverReminderEmail(reminderBooking, '2h')
-    }
-  }
+  // 5. Client + driver dedup-check and send in parallel
+  await Promise.all([
+    logEmail({ bookingId: booking.id, emailType: 'reminder_2h', recipient: booking.client_email })
+      .then(ok => ok ? sendClientReminderEmail(reminderBooking, '2h') : undefined),
+    driver?.email
+      ? logEmail({ bookingId: booking.id, emailType: 'reminder_2h', recipient: driver.email })
+          .then(ok => ok ? sendDriverReminderEmail(reminderBooking, '2h') : undefined)
+      : undefined,
+  ])
 
   return NextResponse.json({ ok: true })
 }

@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
@@ -20,7 +21,7 @@ export default function NotFound() {
           <div className="flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book a Transfer</a>
             <a href="/services" className="btn-ghost">View Services</a>
-            <a href="/" className="btn-ghost">Back to Home</a>
+            <Link href="/" className="btn-ghost">Back to Home</Link>
           </div>
         </div>
       </section>

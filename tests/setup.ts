@@ -6,7 +6,7 @@ import { vi } from 'vitest'
 window.HTMLElement.prototype.scrollIntoView = vi.fn()
 
 vi.mock('@stripe/react-stripe-js', () => ({
-  Elements: ({ children }: any) => children,
+  Elements: ({ children }: { children: React.ReactNode }) => children,
   PaymentElement: () => React.createElement('div', { 'data-testid': 'payment-element' }),
   useStripe: () => ({
     confirmPayment: vi.fn().mockResolvedValue({ error: null }),

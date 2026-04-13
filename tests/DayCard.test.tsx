@@ -79,7 +79,7 @@ describe('DayCard (MULTIDAY-03)', () => {
 
   it('hourly day renders base city and hours <select>', () => {
     renderCard({ type: 'hourly' })
-    expect(screen.getByLabelText('Day 1 base city')).toBeInTheDocument()
+    expect(screen.getByLabelText('Day 1 pickup location')).toBeInTheDocument()
     expect(screen.getByLabelText('Day 1 hours')).toBeInTheDocument()
   })
 

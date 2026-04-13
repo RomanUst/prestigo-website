@@ -68,7 +68,7 @@ export default function AddressInputNew({
   hasError = false,
   errorMessage,
   ariaLabel,
-  neverDisabled = false,
+  neverDisabled: _neverDisabled = false,
   onTextChange,
   required = false,
 }: AddressInputNewProps) {
@@ -77,8 +77,8 @@ export default function AddressInputNew({
   const [sessionToken, setSessionToken] = useState<string>(() => makeSessionToken())
   const uid = useId()
   const uidClean = uid.replace(/:/g, '')
-  const inputId = useRef(`address-input-${uidClean}`)
-  const listboxId = useRef(`address-listbox-${uidClean}`)
+  const inputId = `address-input-${uidClean}`
+  const listboxId = `address-listbox-${uidClean}`
   const containerRef = useRef<HTMLDivElement>(null)
   const blurTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevValueRef = useRef(value)
@@ -265,7 +265,7 @@ export default function AddressInputNew({
 
   return (
     <div ref={containerRef} style={{ position: 'relative' }}>
-      <label htmlFor={inputId.current} className="label" style={{ display: 'block', marginBottom: '8px' }}>
+      <label htmlFor={inputId} className="label" style={{ display: 'block', marginBottom: '8px' }}>
         {label}
         {required && (
           <span aria-hidden="true" style={{ color: 'var(--copper-light)', marginLeft: '4px' }}>*</span>
@@ -275,7 +275,7 @@ export default function AddressInputNew({
       {/* Input wrapper */}
       <div style={{ position: 'relative' }}>
         <input
-          id={inputId.current}
+          id={inputId}
           type="text"
           value={inputValue}
           onChange={handleInputChange}
@@ -291,11 +291,12 @@ export default function AddressInputNew({
           aria-label={ariaLabel}
           aria-required={required || undefined}
           aria-invalid={hasError || undefined}
+          role="combobox"
           aria-autocomplete="list"
           aria-expanded={showSuggestions}
-          aria-controls={listboxId.current}
+          aria-controls={listboxId}
           aria-activedescendant={
-            activeIndex >= 0 ? `${listboxId.current}-option-${activeIndex}` : undefined
+            activeIndex >= 0 ? `${listboxId}-option-${activeIndex}` : undefined
           }
           style={{
             width: '100%',
@@ -342,7 +343,7 @@ export default function AddressInputNew({
       {/* Autocomplete dropdown */}
       {showSuggestions && (
         <ul
-          id={listboxId.current}
+          id={listboxId}
           role="listbox"
           aria-label={ariaLabel}
           style={{
@@ -439,7 +440,7 @@ export default function AddressInputNew({
               return (
                 <li
                   key={placeId}
-                  id={`${listboxId.current}-option-${index}`}
+                  id={`${listboxId}-option-${index}`}
                   role="option"
                   aria-selected={isActive}
                   onMouseDown={() => handleSelect(text.text, placeId)}

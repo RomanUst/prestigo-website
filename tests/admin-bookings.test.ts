@@ -10,6 +10,7 @@ const { supabaseAuthStub, supabaseServiceStub } = vi.hoisted(() => {
 
   const supabaseServiceStub = {
     from: vi.fn(),
+    rpc: vi.fn(),
   }
 
   return { supabaseAuthStub, supabaseServiceStub }
@@ -43,6 +44,15 @@ vi.mock('@/lib/booking-reference', () => ({
 
 vi.mock('@/lib/currency', () => ({
   czkToEur: vi.fn((czk: number) => Math.round(czk * 0.04)),
+  eurToCzk: vi.fn((_eur: number) => 1500),
+}))
+
+vi.mock('@/lib/server-pricing', () => ({
+  computeOutboundLegTotal: vi.fn(() => 60),
+}))
+
+vi.mock('@/lib/extras', () => ({
+  computeExtrasTotal: vi.fn(() => 0),
 }))
 
 vi.mock('stripe', () => {
@@ -87,23 +97,6 @@ function makeCancelRequest(body: Record<string, unknown>): Request {
   })
 }
 
-function makeQueryChain(overrides: {
-  rangeFn?: ReturnType<typeof vi.fn>
-  orFn?: ReturnType<typeof vi.fn>
-  eqFn?: ReturnType<typeof vi.fn>
-  gteFn?: ReturnType<typeof vi.fn>
-  lteFn?: ReturnType<typeof vi.fn>
-} = {}) {
-  const rangeFn = overrides.rangeFn ?? vi.fn().mockReturnValue(Promise.resolve({ data: [], count: 0, error: null }))
-  const orFn = overrides.orFn ?? vi.fn().mockReturnValue({ range: rangeFn })
-  const eqFn = overrides.eqFn ?? vi.fn().mockReturnValue({ range: rangeFn, or: orFn })
-  const lteFn = overrides.lteFn ?? vi.fn().mockReturnValue({ range: rangeFn, eq: eqFn, or: orFn })
-  const gteFn = overrides.gteFn ?? vi.fn().mockReturnValue({ range: rangeFn, lte: lteFn, eq: eqFn, or: orFn })
-  const orderFn = vi.fn().mockReturnValue({ range: rangeFn, gte: gteFn, lte: lteFn, eq: eqFn, or: orFn })
-  const selectFn = vi.fn().mockReturnValue({ order: orderFn, range: rangeFn, gte: gteFn, lte: lteFn, eq: eqFn, or: orFn })
-
-  return { selectFn, orderFn, rangeFn, orFn, eqFn, gteFn, lteFn }
-}
 
 const validPostPayload = {
   trip_type: 'transfer',
@@ -114,7 +107,9 @@ const validPostPayload = {
   vehicle_class: 'business',
   passengers: 2,
   luggage: 3,
+  // amount_czk matches eurToCzk mock return value (1500) so price check passes
   amount_czk: 1500,
+  distance_km: 20,
   client_first_name: 'Jan',
   client_last_name: 'Novak',
   client_email: 'jan@example.com',
@@ -122,7 +117,7 @@ const validPostPayload = {
 }
 
 beforeEach(() => {
-  vi.clearAllMocks()
+  vi.resetAllMocks()
 
   // Default to admin user
   supabaseAuthStub.auth.getUser.mockResolvedValue({
@@ -130,9 +125,37 @@ beforeEach(() => {
     error: null,
   })
 
-  // Default chain: returns empty bookings
-  const { selectFn } = makeQueryChain()
-  supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+  // Default rpc: returns empty result set (used by GET handler via admin_search_bookings)
+  supabaseServiceStub.rpc.mockResolvedValue({
+    data: [{ rows: [], total_count: 0 }],
+    error: null,
+  })
+
+  // Default from() chain: fully chainable so ancillary calls
+  // (pricing_globals, email_log) don't throw in PATCH/POST tests.
+  const makeChainable = (): Record<string, unknown> => {
+    const chain: Record<string, unknown> = {}
+    const chainFn = () => chain
+    chain.select   = vi.fn(chainFn)
+    chain.insert   = vi.fn(chainFn)
+    chain.update   = vi.fn(chainFn)
+    chain.upsert   = vi.fn(chainFn)
+    chain.delete   = vi.fn(chainFn)
+    chain.eq       = vi.fn(chainFn)
+    chain.neq      = vi.fn(chainFn)
+    chain.gte      = vi.fn(chainFn)
+    chain.lte      = vi.fn(chainFn)
+    chain.or       = vi.fn(chainFn)
+    chain.order    = vi.fn(chainFn)
+    chain.range    = vi.fn(() => Promise.resolve({ data: [], count: 0, error: null }))
+    chain.limit    = vi.fn(chainFn)
+    chain.single   = vi.fn(() => Promise.resolve({ data: null, error: null }))
+    chain.maybeSingle = vi.fn(() => Promise.resolve({ data: null, error: null }))
+    // Make the chain itself thenable so `await supabase.from(...).insert(...)` resolves
+    chain.then     = undefined
+    return chain
+  }
+  supabaseServiceStub.from.mockImplementation(() => makeChainable())
 })
 
 describe('/api/admin/bookings', () => {
@@ -157,10 +180,10 @@ describe('/api/admin/bookings', () => {
   })
 
   it('Test 3: returns 200 with { bookings, total, page, limit } for admin', async () => {
-    const rangeFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], count: 0, error: null }))
-    const orderFn = vi.fn().mockReturnValue({ range: rangeFn })
-    const selectFn = vi.fn().mockReturnValue({ order: orderFn })
-    supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
 
     const res = await GET(makeRequest())
     expect(res.status).toBe(200)
@@ -168,64 +191,67 @@ describe('/api/admin/bookings', () => {
     expect(json).toMatchObject({ bookings: [], total: 0, page: 0, limit: 20 })
   })
 
-  it('Test 4: page=1&limit=5 calls .range(5, 9)', async () => {
-    const rangeFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], count: 0, error: null }))
-    const orderFn = vi.fn().mockReturnValue({ range: rangeFn })
-    const selectFn = vi.fn().mockReturnValue({ order: orderFn })
-    supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+  it('Test 4: page=1&limit=5 passes p_offset=5, p_limit=5 to rpc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
 
     const res = await GET(makeRequest('http://localhost/api/admin/bookings?page=1&limit=5'))
     expect(res.status).toBe(200)
-    expect(rangeFn).toHaveBeenCalledWith(5, 9)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_offset: 5, p_limit: 5 }),
+    )
   })
 
-  it('Test 5: search=Smith calls .or() with ilike pattern', async () => {
-    const rangeFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], count: 0, error: null }))
-    const orFn = vi.fn().mockReturnValue({ range: rangeFn })
-    const orderFn = vi.fn().mockReturnValue({ range: rangeFn, or: orFn })
-    const selectFn = vi.fn().mockReturnValue({ order: orderFn })
-    supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+  it('Test 5: search=Smith passes p_query="Smith" to rpc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
 
     const res = await GET(makeRequest('http://localhost/api/admin/bookings?search=Smith'))
     expect(res.status).toBe(200)
-    expect(orFn).toHaveBeenCalledWith(expect.stringContaining('ilike.%Smith%'))
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_query: 'Smith' }),
+    )
   })
 
-  it('Test 6: tripType=hourly calls .eq("trip_type", "hourly")', async () => {
-    const rangeFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], count: 0, error: null }))
-    const eqFn = vi.fn().mockReturnValue({ range: rangeFn })
-    const orderFn = vi.fn().mockReturnValue({ range: rangeFn, eq: eqFn })
-    const selectFn = vi.fn().mockReturnValue({ order: orderFn })
-    supabaseServiceStub.from.mockReturnValue({ select: selectFn })
+  it('Test 6: tripType=hourly passes p_trip_type="hourly" to rpc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
 
     const res = await GET(makeRequest('http://localhost/api/admin/bookings?tripType=hourly'))
     expect(res.status).toBe(200)
-    expect(eqFn).toHaveBeenCalledWith('trip_type', 'hourly')
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_trip_type: 'hourly' }),
+    )
   })
 
-  it('Test 7: GET select string includes linked_booking join for RTAD-02 paired-reference', async () => {
+  it('Test 7: GET calls rpc("admin_search_bookings") with all expected params', async () => {
     supabaseAuthStub.auth.getUser.mockResolvedValue({
       data: { user: { id: 'admin-uid', app_metadata: { is_admin: true } } },
       error: null,
     })
 
-    // Build a proper chain with order (required by the GET handler after select)
-    const rangeFn = vi.fn().mockResolvedValue({ data: [], count: 0, error: null })
-    const orderFn = vi.fn().mockReturnValue({ range: rangeFn, gte: vi.fn().mockReturnValue({ range: rangeFn }), lte: vi.fn().mockReturnValue({ range: rangeFn }), eq: vi.fn().mockReturnValue({ range: rangeFn }), or: vi.fn().mockReturnValue({ range: rangeFn }) })
-    const captureFn = vi.fn().mockReturnValue({ order: orderFn })
-    supabaseServiceStub.from.mockReturnValueOnce({ select: captureFn })
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [{ id: 'b1', booking_reference: 'PRG-20260401-AA00BB' }], total_count: 1 }],
+      error: null,
+    })
 
-    const res = await GET(makeRequest())
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?page=0&limit=20'))
     expect(res.status).toBe(200)
-
-    // Assert the select string contains both '*' and the linked_booking join
-    expect(captureFn).toHaveBeenCalledTimes(1)
-    const selectArg = captureFn.mock.calls[0][0] as string
-    expect(selectArg).toContain('*')
-    expect(selectArg).toContain('linked_booking:linked_booking_id(booking_reference)')
-    // count: 'exact' option preserved
-    const selectOpts = captureFn.mock.calls[0][1]
-    expect(selectOpts).toMatchObject({ count: 'exact' })
+    const json = await res.json()
+    expect(json).toMatchObject({ total: 1, page: 0, limit: 20 })
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_offset: 0, p_limit: 20, p_query: null }),
+    )
   })
 })
 
@@ -356,13 +382,34 @@ describe('POST /api/admin/bookings', () => {
   })
 
   it('Test 5: returns 201 with { booking } for valid payload and correct DB fields', async () => {
+    // getPricingConfig() calls pricing_config then pricing_globals in Promise.all
+    const pricingConfigSelectFn = vi.fn().mockResolvedValue({
+      data: [{ vehicle_class: 'business', rate_per_km: '2', hourly_rate: '50', daily_rate: '400', min_fare: '100' }],
+      error: null,
+    })
+    const pricingGlobalsSingleFn = vi.fn().mockResolvedValue({
+      data: {
+        airport_fee: '200', night_coefficient: '1.2', holiday_coefficient: '1.5',
+        extra_child_seat: '10', extra_meet_greet: '15', extra_luggage: '10',
+        holiday_dates: [], return_discount_percent: '10',
+        hourly_min_hours: '2', hourly_max_hours: '8', notification_flags: null,
+      },
+      error: null,
+    })
+    const pricingGlobalsEqFn = vi.fn().mockReturnValue({ single: pricingGlobalsSingleFn })
+    const pricingGlobalsSelectFn = vi.fn().mockReturnValue({ eq: pricingGlobalsEqFn })
+
     const singleFn = vi.fn().mockResolvedValue({
       data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
       error: null,
     })
     const selectFn = vi.fn().mockReturnValue({ single: singleFn })
     const insertFn = vi.fn().mockReturnValue({ select: selectFn })
-    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: pricingConfigSelectFn })
+      .mockReturnValueOnce({ select: pricingGlobalsSelectFn })
+      .mockReturnValue({ insert: insertFn })
 
     const res = await POST(makePostRequest(validPostPayload))
     expect(res.status).toBe(201)
@@ -384,13 +431,34 @@ describe('POST /api/admin/bookings', () => {
   })
 
   it('Test 6: POST generates booking_reference matching PRG-YYYYMMDD-XXXX pattern', async () => {
+    // getPricingConfig() calls pricing_config then pricing_globals in Promise.all
+    const pricingConfigSelectFn = vi.fn().mockResolvedValue({
+      data: [{ vehicle_class: 'business', rate_per_km: '2', hourly_rate: '50', daily_rate: '400', min_fare: '100' }],
+      error: null,
+    })
+    const pricingGlobalsSingleFn = vi.fn().mockResolvedValue({
+      data: {
+        airport_fee: '200', night_coefficient: '1.2', holiday_coefficient: '1.5',
+        extra_child_seat: '10', extra_meet_greet: '15', extra_luggage: '10',
+        holiday_dates: [], return_discount_percent: '10',
+        hourly_min_hours: '2', hourly_max_hours: '8', notification_flags: null,
+      },
+      error: null,
+    })
+    const pricingGlobalsEqFn = vi.fn().mockReturnValue({ single: pricingGlobalsSingleFn })
+    const pricingGlobalsSelectFn = vi.fn().mockReturnValue({ eq: pricingGlobalsEqFn })
+
     const singleFn = vi.fn().mockResolvedValue({
       data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
       error: null,
     })
     const selectFn = vi.fn().mockReturnValue({ single: singleFn })
     const insertFn = vi.fn().mockReturnValue({ select: selectFn })
-    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: pricingConfigSelectFn })
+      .mockReturnValueOnce({ select: pricingGlobalsSelectFn })
+      .mockReturnValue({ insert: insertFn })
 
     await POST(makePostRequest(validPostPayload))
 

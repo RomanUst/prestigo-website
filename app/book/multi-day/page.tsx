@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
@@ -158,19 +159,12 @@ export default function MultiDayPage() {
         }}
       >
         {/* Background image */}
-        <img
+        <Image
           src="/multi-day-hero.png"
           alt=""
           aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center 40%',
-            display: 'block',
-          }}
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
         />
         {/* Gradient overlay — bottom-heavy so text is readable */}
         <div
@@ -388,20 +382,12 @@ export default function MultiDayPage() {
         }}
       >
         {/* Background image */}
-        <img
+        <Image
           src="/multi-day-itineraries-bg.png"
           alt=""
           aria-hidden="true"
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            objectPosition: 'center',
-            display: 'block',
-            opacity: 0.22,
-          }}
+          fill
+          style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.22 }}
         />
         <div style={{ position: 'relative', zIndex: 1, maxWidth: '960px', margin: '0 auto', padding: '48px 24px 32px' }}>
         <h2

@@ -54,7 +54,7 @@ export async function POST(req: Request) {
   const tooBig = enforceMaxBody(req, 5_000)
   if (tooBig) return tooBig
 
-  const { allowed, remaining, limit } = await checkRateLimit('/api/calculate-price', getClientIp(req))
+  const { allowed, limit } = await checkRateLimit('/api/calculate-price', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(
       { error: 'Too many requests' },
