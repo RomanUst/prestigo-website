@@ -11,6 +11,7 @@ import { dateDiffDays } from '@/lib/pricing'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendStatusConfirmedEmail, sendStatusCancelledEmail } from '@/lib/email'
+import { scheduleQStashReminder } from '@/lib/qstash'
 
 async function getAdminUser() {
   const supabase = await createClient()
@@ -175,6 +176,13 @@ export async function PATCH(request: Request) {
             )
           }
         }
+      }
+    }
+
+    // Phase 41 D-01: Schedule 2h QStash reminder on transition to confirmed (fire-and-forget)
+    if (previousStatus !== parsed.data.status && parsed.data.status === 'confirmed') {
+      if (current.pickup_utc) {
+        void scheduleQStashReminder(current.id, new Date(current.pickup_utc).getTime())
       }
     }
 

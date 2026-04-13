@@ -40,12 +40,13 @@ vi.mock('@/lib/email', () => ({
 }))
 
 vi.mock('@upstash/qstash', () => ({
-  Receiver: vi.fn().mockImplementation(() => ({
-    verify: mockReceiverVerify,
-  })),
-  Client: vi.fn().mockImplementation(() => ({
-    publishJSON: vi.fn().mockResolvedValue({ messageId: 'test-msg-id' }),
-  })),
+  // Must use regular function (not arrow) so that `new Receiver(...)` works with Reflect.construct
+  Receiver: vi.fn().mockImplementation(function () {
+    return { verify: mockReceiverVerify }
+  }),
+  Client: vi.fn().mockImplementation(function () {
+    return { publishJSON: vi.fn().mockResolvedValue({ messageId: 'test-msg-id' }) }
+  }),
 }))
 
 // ── Import route after mocks are set up ──────────────────────────────────────

@@ -18,6 +18,7 @@ import {
 import type { BookingEmailData, RoundTripEmailData } from '@/lib/email'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { safePiiSummary } from '@/lib/request-guards'
+import { scheduleQStashReminder } from '@/lib/qstash'
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
 // NOTE: the env-var guard is intentionally placed AFTER new Stripe() so the test mock
@@ -172,6 +173,19 @@ async function handleOneWaySucceeded(
   try { await sendManagerAlert(emailData) } catch (err) {
     console.error('sendManagerAlert unexpected error:', err)
   }
+
+  // Phase 41 D-01: Schedule 2h QStash reminder (fire-and-forget)
+  if (inserted.length > 0) {
+    const supabase = createSupabaseServiceClient()
+    const { data: savedBooking } = await supabase
+      .from('bookings')
+      .select('pickup_utc')
+      .eq('id', inserted[0].id)
+      .single()
+    if (savedBooking?.pickup_utc) {
+      void scheduleQStashReminder(inserted[0].id, new Date(savedBooking.pickup_utc).getTime())
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -270,6 +284,21 @@ async function handleRoundTripSucceeded(
   }
   try { await sendRoundTripManagerAlert(emailData) } catch (err) {
     console.error('sendRoundTripManagerAlert unexpected error:', err)
+  }
+
+  // Phase 41 D-01/D-02: Schedule 2h QStash reminder for EACH leg (fire-and-forget)
+  if (pair) {
+    const supabase = createSupabaseServiceClient()
+    for (const legId of [pair.outbound_id, pair.return_id]) {
+      const { data: legRow } = await supabase
+        .from('bookings')
+        .select('pickup_utc')
+        .eq('id', legId)
+        .single()
+      if (legRow?.pickup_utc) {
+        void scheduleQStashReminder(legId, new Date(legRow.pickup_utc).getTime())
+      }
+    }
   }
 }
 
