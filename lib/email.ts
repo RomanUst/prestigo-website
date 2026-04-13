@@ -1286,3 +1286,278 @@ export async function sendDriverDeclineNotification(data: DriverDeclineNotificat
     // Non-fatal — do not throw
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// REMINDER EMAILS (Phase 41)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface ReminderEmailBooking {
+  booking_reference: string
+  pickup_date: string        // 'YYYY-MM-DD'
+  pickup_time: string        // 'HH:MM'
+  origin_address: string
+  destination_address: string | null
+  vehicle_class: string
+  client_email: string
+  // Driver info (optional — only present if driver assigned+accepted)
+  driver_name?: string
+  driver_email?: string
+  driver_vehicle_info?: string
+  // Passenger info (for driver emails)
+  client_first_name?: string
+  client_last_name?: string
+  client_phone?: string
+}
+
+function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' | '2h'): string {
+  const formattedDate = formatPickupDate(booking.pickup_date)
+  const heading = horizon === '24h' ? 'Your Transfer Tomorrow' : 'Your Transfer in 2 Hours'
+  const closingLine = horizon === '24h'
+    ? 'We look forward to your trip.'
+    : 'Your driver will be at the pickup point shortly.'
+  const destination = booking.destination_address
+    ? escapeHtml(booking.destination_address)
+    : 'As directed'
+
+  const driverSection = booking.driver_name
+    ? `
+      <!-- YOUR DRIVER section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR DRIVER</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Name</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.driver_name)}</td>
+          </tr>
+          ${booking.driver_vehicle_info ? `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.driver_vehicle_info)}</td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+    `
+    : ''
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(heading)} — Prestigo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
+  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+
+      <!-- Header copper gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">${escapeHtml(heading)}</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
+      </div>
+
+      <!-- YOUR JOURNEY section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.origin_address)} &rarr; ${destination}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(booking.pickup_time)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
+          </tr>
+        </table>
+      </div>
+
+      ${driverSection}
+
+      <!-- Closing message -->
+      <div style="padding: 0 32px 24px;">
+        <p style="font-size: 14px; color: #9A958F; margin: 0;">${escapeHtml(closingLine)}</p>
+      </div>
+
+      <!-- Support contact -->
+      <div style="padding: 24px 32px; color: #9A958F; font-size: 14px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
+        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' | '2h'): string {
+  const formattedDate = formatPickupDate(booking.pickup_date)
+  const heading = horizon === '24h' ? 'Trip Reminder — Tomorrow' : 'Trip Reminder — 2 Hours'
+  const closingLine = horizon === '24h'
+    ? 'Please ensure you are ready at the pickup location.'
+    : 'Please head to the pickup location now.'
+  const destination = booking.destination_address
+    ? escapeHtml(booking.destination_address)
+    : 'As directed'
+  const passengerName = [booking.client_first_name, booking.client_last_name]
+    .filter(Boolean)
+    .map((s) => escapeHtml(s!))
+    .join(' ') || 'Not provided'
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${escapeHtml(heading)} — ${escapeHtml(booking.booking_reference)}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
+  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+
+      <!-- Header copper gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">${escapeHtml(heading)}</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
+      </div>
+
+      <!-- TRIP DETAILS section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">TRIP DETAILS</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(booking.pickup_time)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">From</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.origin_address)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">To</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${destination}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- PASSENGER section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">PASSENGER</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Name</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${passengerName}</td>
+          </tr>
+          ${booking.client_phone ? `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Phone</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.client_phone)}</td>
+          </tr>
+          ` : ''}
+        </table>
+      </div>
+
+      <!-- Closing message -->
+      <div style="padding: 0 32px 24px;">
+        <p style="font-size: 14px; color: #9A958F; margin: 0;">${escapeHtml(closingLine)}</p>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send client reminder email for 24h or 2h before pickup.
+ * Non-fatal — catches and logs errors, does not throw.
+ */
+export async function sendClientReminderEmail(
+  booking: ReminderEmailBooking,
+  horizon: '24h' | '2h'
+): Promise<void> {
+  try {
+    const subject = horizon === '24h'
+      ? 'Your transfer tomorrow — Prestigo'
+      : 'Your transfer in 2 hours — Prestigo'
+    const { error } = await getResend().emails.send({
+      from: 'Prestigo <noreply@prestigo.cz>',
+      to: [booking.client_email],
+      subject,
+      html: buildClientReminderHtml(booking, horizon),
+    })
+    if (error) console.error('[reminder] client email error:', error)
+  } catch (err) {
+    console.error('[reminder] client email failed:', err)
+  }
+}
+
+/**
+ * Send driver reminder email for 24h or 2h before pickup.
+ * Non-fatal — catches and logs errors, does not throw.
+ * Silently skips if driver_email is not set.
+ */
+export async function sendDriverReminderEmail(
+  booking: ReminderEmailBooking,
+  horizon: '24h' | '2h'
+): Promise<void> {
+  if (!booking.driver_email) return
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [booking.driver_email],
+      subject: `Trip reminder — ${booking.booking_reference}`,
+      html: buildDriverReminderHtml(booking, horizon),
+    })
+    if (error) console.error('[reminder] driver email error:', error)
+  } catch (err) {
+    console.error('[reminder] driver email failed:', err)
+  }
+}
