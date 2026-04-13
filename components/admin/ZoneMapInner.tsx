@@ -54,7 +54,7 @@ function DrawLayer({ drawRef, onPolygonComplete }: DrawLayerProps) {
     // FeatureId can be string | number — use loose equality for find
     draw.on('finish', (id) => {
       const snapshot = draw.getSnapshot()
-      // eslint-disable-next-line eqeqeq
+       
       const feature = snapshot.find((f) => f.id == id)
       if (feature && feature.geometry.type === 'Polygon') {
         onPolygonComplete(feature.geometry.coordinates as number[][][])

@@ -25,7 +25,7 @@ export default function BookingWizard() {
     if (!isDeeplink && useBookingStore.getState().currentStep > 1) {
       useBookingStore.setState({ currentStep: 1, completedSteps: new Set() })
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [])  
 
   // Scroll to top of booking section on step change
   useEffect(() => {
