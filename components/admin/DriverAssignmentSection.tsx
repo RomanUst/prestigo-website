@@ -65,7 +65,7 @@ export function DriverAssignmentSection({ bookingId }: DriverAssignmentSectionPr
         if (!cancelled) {
           if (driversRes.ok) {
             const data = await driversRes.json()
-            const activeDrivers: Driver[] = (data.drivers ?? [])
+            const activeDrivers: Driver[] = (data.data ?? [])
               .filter((d: { id: string; name: string; active?: boolean }) => d.active !== false)
               .map((d: { id: string; name: string }) => ({ id: d.id, name: d.name }))
             setDrivers(activeDrivers)
