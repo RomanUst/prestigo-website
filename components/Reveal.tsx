@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 
-type RevealVariant = 'up' | 'fade' | 'left' | 'right'
+type RevealVariant = 'up' | 'fade' | 'left' | 'right' | 'clip'
 
 interface RevealProps {
   children: React.ReactNode

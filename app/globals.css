@@ -153,7 +153,7 @@ body {
   border: 1px solid var(--copper);
   padding: 14px 32px;
   min-height: 44px;
-  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+  transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease, transform 0.15s ease-out;
   cursor: pointer;
   background: transparent;
   text-decoration: none;
@@ -162,6 +162,10 @@ body {
 .btn-primary:hover {
   background: var(--copper);
   color: var(--anthracite);
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
 }
 
 .btn-ghost {
@@ -177,7 +181,7 @@ body {
   border: 1px solid var(--anthracite-light);
   padding: 14px 32px;
   min-height: 44px;
-  transition: border-color 0.3s ease, color 0.3s ease;
+  transition: border-color 0.3s ease, color 0.3s ease, transform 0.15s ease-out;
   cursor: pointer;
   background: transparent;
   text-decoration: none;
@@ -186,6 +190,10 @@ body {
 .btn-ghost:hover {
   border-color: var(--warmgrey);
   color: var(--offwhite);
+}
+
+.btn-ghost:active {
+  transform: scale(0.97);
 }
 
 .btn-secondary {
@@ -201,7 +209,7 @@ body {
   border: 1px solid var(--anthracite-light);
   padding: 14px 32px;
   min-height: 44px;
-  transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease;
+  transition: border-color 0.3s ease, color 0.3s ease, background 0.3s ease, transform 0.15s ease-out;
   cursor: pointer;
   background: transparent;
   text-decoration: none;
@@ -210,6 +218,10 @@ body {
 .btn-secondary:hover {
   border-color: var(--copper);
   color: var(--offwhite);
+}
+
+.btn-secondary:active {
+  transform: scale(0.97);
 }
 
 /* ── Wordmark ───────────────────────────────────────── */
@@ -286,23 +298,28 @@ body {
 /* Used by components/Reveal.tsx — fires once via IntersectionObserver */
 
 @keyframes revealUp {
-  from { opacity: 0; transform: translateY(36px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateY(0);    filter: blur(0px); }
 }
 
 @keyframes revealLeft {
-  from { opacity: 0; transform: translateX(-28px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateX(-20px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateX(0);     filter: blur(0px); }
 }
 
 @keyframes revealRight {
-  from { opacity: 0; transform: translateX(28px); }
-  to   { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateX(20px); filter: blur(3px); }
+  to   { opacity: 1; transform: translateX(0);    filter: blur(0px); }
 }
 
 @keyframes revealFade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; filter: blur(2px); }
+  to   { opacity: 1; filter: blur(0px); }
+}
+
+@keyframes revealClip {
+  from { opacity: 0; clip-path: inset(0 0 100% 0); }
+  to   { opacity: 1; clip-path: inset(0 0 0% 0);   }
 }
 
 /* Pre-reveal state — element invisible before IntersectionObserver fires */
@@ -311,19 +328,23 @@ body {
 }
 
 .reveal-up {
-  animation: revealUp 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: revealUp 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .reveal-fade {
-  animation: revealFade 0.85s ease both;
+  animation: revealFade 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .reveal-left {
-  animation: revealLeft 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: revealLeft 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .reveal-right {
-  animation: revealRight 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: revealRight 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-clip {
+  animation: revealClip 0.85s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -333,10 +354,13 @@ body {
   .reveal-up,
   .reveal-fade,
   .reveal-left,
-  .reveal-right {
+  .reveal-right,
+  .reveal-clip {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
+    filter: none !important;
+    clip-path: none !important;
   }
 }
 
