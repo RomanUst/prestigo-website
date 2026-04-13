@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 export const metadata: Metadata = {
   title: 'Prague to Pardubice Private Transfer — From €180',
@@ -204,23 +205,23 @@ export default function PraguePardubicePage() {
       {/* Opening paragraph */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+          <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
             A private transfer from Prague to Pardubice is an hour and a half of clean motorway, and every kilometre of that drive should feel like part of the trip — not a logistics problem to solve with a train schedule. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven the D11 east hundreds of times. The fare is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your office in the industrial park, your suite at the racecourse, or your apartment near Pernštýnské Square in the Old Town.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change between Prague and East Bohemia.
-          </p>
+          </p></Reveal>
         </div>
       </section>
 
       {/* The Route narrative */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Pardubice<br /><span className="display-italic">in ninety minutes.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D11 motorway east directly toward Hradec Králové, then turns south onto Highway 37 for the final stretch into Pardubice. Depending on traffic and the exact drop-off, the chauffeur may route via Highway 17 or Highway 36 instead — all three options stay on fast, well-signed Czech roads. There is no border crossing. No foreign vignette. No passport check. The whole drive is inside the Czech Republic.
             </p>
@@ -230,27 +231,27 @@ export default function PraguePardubicePage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur watches traffic on the D11 before every departure. Friday afternoons out of Prague can add 10–15 minutes, and race-week traffic around the Pardubice racecourse is planned around in advance. You are not paying for traffic; you are paying for time.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Pardubice drop-off. The car, the chauffeur, the fuel, the vignette. Business meeting, racecourse day, or a walk through the Old Town — your driver handles the route while you focus on the destination.</p>
-          </div>
-          <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
         </div>
       </section>
 
       {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Fleet</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2>
+          <Reveal variant="up"><p className="label mb-6">Fleet</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
@@ -274,7 +275,7 @@ export default function PraguePardubicePage() {
       {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Pardubice,<br /><span className="display-italic">the route.</span></h2>
             <div className="flex flex-col gap-8 mt-10">
@@ -295,8 +296,8 @@ export default function PraguePardubicePage() {
                 </div>
               ))}
             </div>
-          </div>
-          <div className="flex flex-col gap-6 justify-start pt-[60px]">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-6 justify-start pt-[60px]">
             <div className="border border-anthracite-light p-8">
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
@@ -313,18 +314,18 @@ export default function PraguePardubicePage() {
                 ))}
               </div>
             </div>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* What to expect from your chauffeur */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
             <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at a meeting point a ten-minute walk away. If you are at Václav Havel Airport or central Prague, they are already in position with a Prestigo tablet displaying your name before you step outside.
             </p>
@@ -334,23 +335,23 @@ export default function PraguePardubicePage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear, say so. If you want to stop at one of the real D11 rest stops — the Sadská or Chýšť service areas are the usual midway break — for a coffee or a walk, that is included in the fare.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* Why book with Prestigo */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Why Prestigo</p>
+          <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
             Why book with Prestigo<br /><span className="display-italic">for Prague to Pardubice.</span>
-          </h2>
+          </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {whyBook.map((w) => (
-              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+            {whyBook.map((w, i) => (
+              <Reveal key={w.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8 flex flex-col gap-4">
                 <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -359,7 +360,7 @@ export default function PraguePardubicePage() {
       {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
           <div className="flex flex-col gap-0">
             {faqs.map((faq, i) => (
               <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
@@ -374,16 +375,16 @@ export default function PraguePardubicePage() {
       {/* Related routes */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Related Routes</p>
+          <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
             Continue across<br /><span className="display-italic">Bohemia and Moravia.</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Pardubice is the gateway to East Bohemia. Many clients combine it with Hradec Králové, extend onward to Olomouc and Brno, or pair the trip with a Kutná Hora detour. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
-          </p>
+          </p></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {relatedRoutes.map((r) => (
-              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+            {relatedRoutes.map((r, i) => (
+              <Reveal key={r.slug} variant="up" delay={i * 100}><a href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
                 <div>
                   <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
                   <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
@@ -392,7 +393,7 @@ export default function PraguePardubicePage() {
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
                 </div>
-              </a>
+              </a></Reveal>
             ))}
           </div>
         </div>
@@ -401,14 +402,14 @@ export default function PraguePardubicePage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <div>
+          <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">Prague to Pardubice.<br /><span className="display-italic">From €180, fixed.</span></h2>
             <p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4">
+          </div></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book Now</a>
             <a href="/routes" className="btn-ghost">All Routes</a>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 

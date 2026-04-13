@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 export const metadata: Metadata = {
   title: 'Prague to Bratislava Private Transfer — From €545',
@@ -200,7 +201,7 @@ export default function PragueBratislavaPage() {
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {highlights.map((h) => (<div key={h.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div>))}
+            {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div></Reveal>))}
           </div>
         </div>
       </section>
@@ -208,23 +209,23 @@ export default function PragueBratislavaPage() {
       {/* Opening paragraph */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+          <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
             A private transfer from Prague to Bratislava is a three-and-a-half-hour drive across two countries that share a language, a history, and a clean motorway corridor — and every hour of that drive should feel like part of the trip, not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have made this run hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which gate to use at your hotel below Bratislava Castle or your apartment in Staré Mesto.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
-          </p>
+          </p></Reveal>
         </div>
       </section>
 
       {/* The Route narrative */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Bratislava<br /><span className="display-italic">in three and a half hours.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east — the long Czech spine that runs through the Vysočina highlands and on to Brno, the natural midway point of the trip and a comfortable place for a coffee stop. From Brno, the route turns south onto the D2, the short and direct corridor that drops down to the Czech–Slovak border at Břeclav and Brodské. The crossing is invisible inside the Schengen Area — no stops, no document checks. The Slovak D2 continues straight into Bratislava, arriving at your address in the Old Town (Staré Mesto), below the castle, or in the EU institutions district along the Danube.
             </p>
@@ -234,29 +235,29 @@ export default function PragueBratislavaPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur watches traffic on the D1 before every departure. If there is a construction delay near Velké Meziříčí or Jihlava — as there has been on and off across the long D1 modernisation — they reroute via Znojmo without asking. You are not paying for traffic; you are paying for time.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Bratislava drop-off. The car, the chauffeur, the fuel, both vignettes, every toll. Business visit, EU meeting, or a weekend on the Danube — your driver handles the route while you focus on the destination.</p>
-          </div>
-          <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
         </div>
       </section>
 
       {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Fleet</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2>
+          <Reveal variant="up"><p className="label mb-6">Fleet</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {vehicles.map((v) => (<div key={v.name} className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /><div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div>))}
+            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /><div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div></Reveal>))}
           </div>
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
@@ -265,7 +266,7 @@ export default function PragueBratislavaPage() {
       {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Bratislava,<br /><span className="display-italic">the route.</span></h2>
             <div className="flex flex-col gap-8 mt-10">
@@ -276,8 +277,8 @@ export default function PragueBratislavaPage() {
                 { city: 'Bratislava', note: 'Drop-off at any Bratislava address, Bratislava Airport (BTS), or the Old Town.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
-          </div>
-          <div className="flex flex-col gap-6 justify-start pt-[60px]">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-6 justify-start pt-[60px]">
             <div className="border border-anthracite-light p-8">
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
@@ -289,25 +290,25 @@ export default function PragueBratislavaPage() {
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* Popular day-trip configurations */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Day Trips from Prague</p>
+          <Reveal variant="up"><p className="label mb-6">Day Trips from Prague</p>
           <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
           <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Bratislava is at the outer edge of comfortable day-trip distance from Prague — three and a half hours each way — but the compact size of the Slovak capital makes it possible to see the city in an afternoon and be back the same evening. Three configurations cover most requests.
-          </p>
+          </p></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {dayTripConfigurations.map((c) => (
-              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+            {dayTripConfigurations.map((c, i) => (
+              <Reveal key={c.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8 flex flex-col gap-4">
                 <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
                 <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
@@ -319,11 +320,11 @@ export default function PragueBratislavaPage() {
       {/* What to expect from your chauffeur */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
             <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name. In Bratislava, the same protocol applies at hotels along Hviezdoslavovo Square or apartment doorways in Staré Mesto.
             </p>
@@ -333,23 +334,23 @@ export default function PragueBratislavaPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at the Devět Křížů rest area on the D1 between Vysočina and Brno, that is included.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* Why book with Prestigo */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Why Prestigo</p>
+          <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
             Why book with Prestigo<br /><span className="display-italic">for Prague to Bratislava.</span>
-          </h2>
+          </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {whyBook.map((w) => (
-              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+            {whyBook.map((w, i) => (
+              <Reveal key={w.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8 flex flex-col gap-4">
                 <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -358,24 +359,24 @@ export default function PragueBratislavaPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
-          <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
+          <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<Reveal key={faq.q} variant="up" delay={i * 70}><div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div></Reveal>))}</div>
         </div>
       </section>
 
       {/* Related routes */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Related Routes</p>
+          <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
             Continue across<br /><span className="display-italic">Central Europe.</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Bratislava and Vienna are only 65 kilometres apart — the shortest capital-to-capital distance in Europe — and many Prestigo clients combine the two into a single booking. Brno sits halfway along the route and works as a standalone trip or an en-route stop. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
-          </p>
+          </p></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {relatedRoutes.map((r) => (
-              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+            {relatedRoutes.map((r, i) => (
+              <Reveal key={r.slug} variant="up" delay={i * 100}><a href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
                 <div>
                   <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
                   <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
@@ -384,7 +385,7 @@ export default function PragueBratislavaPage() {
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
                 </div>
-              </a>
+              </a></Reveal>
             ))}
           </div>
         </div>
@@ -393,8 +394,8 @@ export default function PragueBratislavaPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <div><h2 className="display text-[28px] md:text-[36px]">Prague to Bratislava.<br /><span className="display-italic">From €545, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
-          <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Bratislava.<br /><span className="display-italic">From €545, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>
 

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 export const metadata: Metadata = {
   title: 'Prague to Olomouc Private Transfer — From €460',
@@ -182,7 +183,7 @@ export default function PragueOlomoucPage() {
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {highlights.map((h) => (<div key={h.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div>))}
+            {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div></Reveal>))}
           </div>
         </div>
       </section>
@@ -190,23 +191,23 @@ export default function PragueOlomoucPage() {
       {/* Opening paragraph */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+          <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
             A private transfer from Prague to Olomouc is a three-hour drive across the width of the Czech Republic, and the distance should feel like part of the trip rather than an obstacle between you and Moravia. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who treat the D1 as a home road. The fare is fixed before you book. The car is at the kerb when you step outside. Your chauffeur already knows whether to aim for a hotel on Upper Square, a client office in the Holice industrial park, or a Palacký University faculty building on třída Svobody.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change between booking and drop-off.
-          </p>
+          </p></Reveal>
         </div>
       </section>
 
       {/* The Route narrative */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Olomouc<br /><span className="display-italic">in three hours.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east through the Vysočina highlands toward Brno. Somewhere past the midpoint, the landscape opens onto the rolling fields of the Hanácká plain and the road turns north onto the D46, arriving in Olomouc — the second-largest historical city centre in the Czech Republic after Prague itself. No border crossing; the whole route stays inside the Czech Republic, so there are no passport checks and no international toll charges.
             </p>
@@ -216,29 +217,29 @@ export default function PragueOlomoucPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Total distance is approximately 280 kilometres. Your chauffeur checks the D1 before every departure. When there is a lane closure near Velké Meziříčí, they reroute via the parallel R602 without asking. You are not paying for traffic; you are paying for time.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Olomouc drop-off. The car, the chauffeur, the fuel, the vignette, the tolls. Business visit, university meeting, or a weekend among the baroque fountains — your driver handles the route while you focus on the destination.</p>
-          </div>
-          <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
         </div>
       </section>
 
       {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Fleet</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2>
+          <Reveal variant="up"><p className="label mb-6">Fleet</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {vehicles.map((v) => (<div key={v.name} className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /><div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div>))}
+            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /><div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div></Reveal>))}
           </div>
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
@@ -247,7 +248,7 @@ export default function PragueOlomoucPage() {
       {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Olomouc,<br /><span className="display-italic">the route.</span></h2>
             <div className="flex flex-col gap-8 mt-10">
@@ -258,8 +259,8 @@ export default function PragueOlomoucPage() {
                 { city: 'Olomouc', note: 'Drop-off at any Olomouc address, the old town, university, or your hotel.', anchor: true, custom: false },
               ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
-          </div>
-          <div className="flex flex-col gap-6 justify-start pt-[60px]">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-6 justify-start pt-[60px]">
             <div className="border border-anthracite-light p-8">
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
@@ -271,18 +272,18 @@ export default function PragueOlomoucPage() {
                 ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* What to expect from your chauffeur */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
             <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur will meet you in front of your pickup address in central Prague — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are arriving at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name.
             </p>
@@ -292,23 +293,23 @@ export default function PragueOlomoucPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to break the drive with a real coffee at a proper rest stop on the D1 rather than a petrol station kiosk, your chauffeur already knows which exit to take.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* Why book with Prestigo */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Why Prestigo</p>
+          <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
             Why book with Prestigo<br /><span className="display-italic">for Prague to Olomouc.</span>
-          </h2>
+          </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {whyBook.map((w) => (
-              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+            {whyBook.map((w, i) => (
+              <Reveal key={w.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8 flex flex-col gap-4">
                 <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -317,24 +318,24 @@ export default function PragueOlomoucPage() {
       {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
-          <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div>))}</div>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
+          <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<Reveal key={faq.q} variant="up" delay={i * 70}><div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div></Reveal>))}</div>
         </div>
       </section>
 
       {/* Related routes */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Related Routes</p>
+          <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
             Continue across<br /><span className="display-italic">Moravia and beyond.</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Olomouc sits at the crossroads of Moravia, within easy reach of Brno, Ostrava, Zlín, and the Polish border. Many clients combine an Olomouc run with another Moravian city or extend into southern Poland. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
-          </p>
+          </p></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {relatedRoutes.map((r) => (
-              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+            {relatedRoutes.map((r, i) => (
+              <Reveal key={r.slug} variant="up" delay={i * 100}><a href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
                 <div>
                   <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
                   <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
@@ -343,7 +344,7 @@ export default function PragueOlomoucPage() {
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
                 </div>
-              </a>
+              </a></Reveal>
             ))}
           </div>
         </div>
@@ -352,8 +353,8 @@ export default function PragueOlomoucPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <div><h2 className="display text-[28px] md:text-[36px]">Prague to Olomouc.<br /><span className="display-italic">From €460, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div>
-          <div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Olomouc.<br /><span className="display-italic">From €460, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>
 

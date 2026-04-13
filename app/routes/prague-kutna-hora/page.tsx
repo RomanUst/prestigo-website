@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 export const metadata: Metadata = {
   title: 'Prague to Kutná Hora Private Transfer — From €115',
@@ -231,23 +232,23 @@ export default function PragueKutnaHoraPage() {
       {/* Opening paragraph */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
+          <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
             A private transfer from Prague to Kutná Hora is a one-hour drive through the rolling fields of Central Bohemia, and it is the closest piece of serious heritage you can reach from the capital. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who know the approach into the old town — where to drop you for the Cathedral of St. Barbara, where parking is tolerated near Sedlec, and which streets turn into pedestrian zones on weekends. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already has your day mapped out.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared coach tour. Not a train transfer with a ten-minute walk at the other end. A private Mercedes, one chauffeur, and a fare that does not change — from a city that, six centuries ago, rivalled Prague itself.
-          </p>
+          </p></Reveal>
         </div>
       </section>
 
       {/* The Route narrative */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Kutná Hora<br /><span className="display-italic">in one hour.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east, exits at Mirošovice, and follows Highway 38 through the Elbe lowlands by way of Kolín. There is no border crossing — Kutná Hora sits in the Central Bohemian region, entirely inside the Czech Republic. It is, in fact, the closest Green-tier destination on the Prestigo route map.
             </p>
@@ -257,27 +258,27 @@ export default function PragueKutnaHoraPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur watches traffic on the D1 before every departure. If the Mirošovice exit is congested — as it often is on Friday afternoons heading out of Prague — they reroute via Highway 333 without asking. You are not paying for traffic; you are paying for time.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* What's included */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">What's Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Kutná Hora drop-off. The car, the chauffeur, the fuel, the tolls, the vignette. Half-day visit, full day on site, or a quiet morning at the cathedral — your driver handles the route while you focus on the destination.</p>
-          </div>
-          <div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div>
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
         </div>
       </section>
 
       {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Fleet</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2>
+          <Reveal variant="up"><p className="label mb-6">Fleet</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
@@ -318,7 +319,7 @@ export default function PragueKutnaHoraPage() {
       {/* Journey timeline + Good to know */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">
               Prague to Kutná Hora,<br />
@@ -344,8 +345,8 @@ export default function PragueKutnaHoraPage() {
                 </div>
               ))}
             </div>
-          </div>
-          <div className="flex flex-col gap-6 justify-start pt-[60px]">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-6 justify-start pt-[60px]">
             <div className="border border-anthracite-light p-8">
               <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
               <div className="flex flex-col gap-5">
@@ -362,25 +363,25 @@ export default function PragueKutnaHoraPage() {
                 ))}
               </div>
             </div>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* Popular day-trip configurations */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Day Trips from Prague</p>
+          <Reveal variant="up"><p className="label mb-6">Day Trips from Prague</p>
           <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
           <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Kutná Hora is the closest Green destination on the Prestigo route map — one hour each way — which makes it the easiest day trip from Prague. Three configurations cover most of what clients ask for.
-          </p>
+          </p></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {dayTripConfigurations.map((c) => (
-              <div key={c.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+            {dayTripConfigurations.map((c, i) => (
+              <Reveal key={c.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8 flex flex-col gap-4">
                 <h3 className="font-display font-light text-[22px] text-offwhite">{c.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{c.body}</p>
                 <p className="font-body font-light text-[11px] mt-auto pt-4 border-t border-anthracite-light" style={{ color: 'var(--copper-light)' }}>{c.price}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
@@ -392,11 +393,11 @@ export default function PragueKutnaHoraPage() {
       {/* What to expect from your chauffeur */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
             <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
-          </div>
-          <div className="flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Your chauffeur will meet you in front of your pickup address — a central Prague hotel, a private apartment in Vinohrady, or Václav Havel Airport with a Prestigo tablet displaying your name in the arrivals hall. No parking lots. No meeting points ten minutes away.
             </p>
@@ -406,23 +407,23 @@ export default function PragueKutnaHoraPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Phone charger, bottled water, and WiFi are already in the cabin. If you want to stop at the OMV service area near Mirošovice for a coffee before the open road, that is included. Temperature, music, a quick detour through Kolín on the return — say so.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
       {/* Why book with Prestigo */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Why Prestigo</p>
+          <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
             Why book with Prestigo<br /><span className="display-italic">for Prague to Kutná Hora.</span>
-          </h2>
+          </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {whyBook.map((w) => (
-              <div key={w.title} className="border border-anthracite-light p-8 flex flex-col gap-4">
+            {whyBook.map((w, i) => (
+              <Reveal key={w.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8 flex flex-col gap-4">
                 <h3 className="font-display font-light text-[20px] text-offwhite">{w.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{w.body}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -431,7 +432,7 @@ export default function PragueKutnaHoraPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
           <div className="flex flex-col gap-0">
             {faqs.map((faq, i) => (
               <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
@@ -446,16 +447,16 @@ export default function PragueKutnaHoraPage() {
       {/* Related routes */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Related Routes</p>
+          <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
             Continue across<br /><span className="display-italic">Bohemia.</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Kutná Hora pairs naturally with other Bohemian heritage day trips. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
-          </p>
+          </p></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {relatedRoutes.map((r) => (
-              <a key={r.slug} href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
+            {relatedRoutes.map((r, i) => (
+              <Reveal key={r.slug} variant="up" delay={i * 100}><a href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex justify-between items-center hover:border-[var(--copper)] transition-colors">
                 <div>
                   <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Prague → {r.city}</p>
                   <p className="font-display font-light text-[18px] text-offwhite">{r.city}</p>
@@ -464,7 +465,7 @@ export default function PragueKutnaHoraPage() {
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.distance}</p>
                   <p className="font-body font-light text-[11px] text-warmgrey">{r.duration}</p>
                 </div>
-              </a>
+              </a></Reveal>
             ))}
           </div>
         </div>
@@ -473,17 +474,17 @@ export default function PragueKutnaHoraPage() {
       {/* CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <div>
+          <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
               Prague to Kutná Hora.<br />
               <span className="display-italic">From €115, fixed.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4">
+          </div></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book Now</a>
             <a href="/routes" className="btn-ghost">All Routes</a>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
