@@ -132,8 +132,8 @@ export default function Footer() {
               </li>
               <li>
                 <address className="body-text text-[11px] not-italic leading-relaxed">
-                  <span className="text-offwhite">chelautotrans s.r.o.</span><br />
-                  IČO: 05650801<br />
+                  <span className="text-offwhite">Roman Ustyugov</span><br />
+                  ICO: 05340071<br />
                   Spojovací 685, Vysoký Újezd<br />
                   Czech Republic
                 </address>
