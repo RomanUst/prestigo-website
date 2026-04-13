@@ -1208,7 +1208,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
 export async function sendDriverAssignmentEmail(data: DriverAssignmentEmailData): Promise<void> {
   try {
     const formattedDate = formatPickupDate(data.pickupDate)
-    const { error } = await getResend().emails.send({
+    const { data: sent, error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.driverEmail],
       subject: `Trip assignment: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,

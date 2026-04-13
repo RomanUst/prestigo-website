@@ -224,7 +224,11 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
     })
 
     expect(stubLogEmail).toHaveBeenCalledWith(
-      expect.objectContaining({ emailType: 'driver_assigned' })
+      expect.objectContaining({
+        bookingId: null,
+        emailType: expect.stringMatching(/^driver_assigned:/),
+        recipient: 'driver@example.com',
+      })
     )
     // sendDriverAssignmentEmail is fire-and-forget, give it a tick to run
     await new Promise((r) => setTimeout(r, 10))

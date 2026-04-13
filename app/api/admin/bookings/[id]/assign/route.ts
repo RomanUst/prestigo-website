@@ -86,10 +86,13 @@ export async function POST(
   const shouldSendEmail = config?.notification_flags?.driver_assigned !== false
 
   // 5e. Send assignment email (gated on notification_flags + logEmail dedup)
+  // Dedup key: assignment.id encoded in emailType so each new assignment gets
+  // its own 10-min dedup window, even for the same driver re-assigned to the
+  // same booking. bookingId=null avoids FK collision while still logging.
   if (shouldSendEmail) {
     const allowed = await logEmail({
-      bookingId,
-      emailType: 'driver_assigned',
+      bookingId: null,
+      emailType: `driver_assigned:${assignment.id}`,
       recipient: driver.email,
     })
 
