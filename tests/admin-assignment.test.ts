@@ -53,9 +53,9 @@ import { POST as assignPost } from '@/app/api/admin/bookings/[id]/assign/route'
 import { GET as assignmentGet } from '@/app/api/admin/bookings/[id]/assignment/route'
 import { POST as respondPost } from '@/app/api/driver/respond/route'
 
-const bookingId = 'b1b2b3b4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'
-const driverId = 'd1d2d3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'
-const assignmentToken = 't1t2t3t4-e5f6-4a7b-8c9d-0e1f2a3b4c5d'
+const bookingId = 'a0000001-0000-4000-8000-000000000001'
+const driverId = 'a0000002-0000-4000-8000-000000000002'
+const assignmentToken = 'a0000003-0000-4000-8000-000000000003'
 
 function makeAssignRequest(body: Record<string, unknown>): Request {
   return new Request(`http://localhost/api/admin/bookings/${bookingId}/assign`, {
