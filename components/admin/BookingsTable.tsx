@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { ChevronDown, ChevronUp, Search, X } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { FlightStatusBlock } from './FlightStatusBlock'
+import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
 
 interface Booking {
   id: string
@@ -1216,6 +1217,9 @@ export default function BookingsTable() {
                             onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
                           />
                         </div>
+
+                        {/* Driver Assignment */}
+                        <DriverAssignmentSection bookingId={row.original.id} />
 
                         {/* Cancel Booking button — only for cancellable statuses */}
                         {(row.original.status === 'pending' || row.original.status === 'confirmed') && (
