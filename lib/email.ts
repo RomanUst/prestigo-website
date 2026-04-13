@@ -1097,3 +1097,192 @@ export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Pro
     console.error('[booking-notify] cancelled email failed:', err)
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DRIVER ASSIGNMENT EMAILS (Phase 40)
+// ═══════════════════════════════════════════════════════════════════════════
+
+export interface DriverAssignmentEmailData {
+  driverName: string
+  driverEmail: string
+  bookingReference: string
+  pickupDate: string
+  pickupTime: string
+  originAddress: string
+  destinationAddress: string
+  passengerFirstName: string
+  passengerLastName: string
+  passengerPhone: string
+  acceptUrl: string
+  declineUrl: string
+}
+
+function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
+  const formattedDate = formatPickupDate(data.pickupDate)
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Assignment — PRESTIGO</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
+  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+
+      <!-- Header copper gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">You have been assigned a trip.</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(data.bookingReference)}</div>
+      </div>
+
+      <!-- TRIP DETAILS section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">TRIP DETAILS</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Pickup Date</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">From</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.originAddress)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">To</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.destinationAddress)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Passenger</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.passengerFirstName)} ${escapeHtml(data.passengerLastName)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Passenger Phone</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.passengerPhone)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- CTA buttons -->
+      <div style="text-align: center; padding: 24px 32px; display: flex; gap: 16px; justify-content: center;">
+        <a href="${escapeHtml(data.acceptUrl)}" style="display: inline-block; border: 1px solid #B87333; color: #B87333; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Montserrat', Arial, sans-serif; margin-right: 12px;">ACCEPT TRIP</a>
+        <a href="${escapeHtml(data.declineUrl)}" style="display: inline-block; border: 1px solid #CC3333; color: #CC3333; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Montserrat', Arial, sans-serif;">DECLINE TRIP</a>
+      </div>
+
+      <!-- Note about link expiry -->
+      <div style="padding: 0 32px 24px; text-align: center;">
+        <p style="font-size: 12px; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif; margin: 0;">These links are valid for 48 hours. Please respond as soon as possible.</p>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send driver assignment email with Accept/Decline CTA links.
+ * Non-fatal — catches and logs errors, does not throw.
+ */
+export async function sendDriverAssignmentEmail(data: DriverAssignmentEmailData): Promise<void> {
+  try {
+    const formattedDate = formatPickupDate(data.pickupDate)
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.driverEmail],
+      subject: `Trip assignment: ${data.bookingReference} - ${formattedDate} at ${data.pickupTime}`,
+      html: buildDriverAssignmentHtml(data),
+    })
+    if (error) console.error('[driver-assign] assignment email error:', error)
+  } catch (err) {
+    console.error('[driver-assign] assignment email exception:', err)
+    // Non-fatal — do not throw
+  }
+}
+
+export interface DriverDeclineNotificationData {
+  bookingReference: string
+  pickupDate: string
+  pickupTime: string
+  originAddress: string
+  destinationAddress: string
+  driverName: string
+}
+
+/**
+ * Send decline notification to MANAGER_EMAIL when a driver declines a trip.
+ * Non-fatal — catches and logs errors, does not throw.
+ */
+export async function sendDriverDeclineNotification(data: DriverDeclineNotificationData): Promise<void> {
+  const formattedDate = formatPickupDate(data.pickupDate)
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Driver Declined — ${escapeHtml(data.bookingReference)}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #1C1C1E; font-family: 'Montserrat', Arial, sans-serif;">
+  <div style="max-width: 600px; margin: 0 auto; padding: 32px; color: #F5F2EE;">
+    <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%); margin-bottom: 32px;"></div>
+    <h1 style="font-size: 20px; font-weight: 400; color: #F5F2EE; margin: 0 0 24px;">Driver Declined Assignment</h1>
+    <table style="width: 100%; border-collapse: collapse;">
+      <tr>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Booking Reference</td>
+        <td style="font-size: 14px; color: #B87333; padding: 8px 0; font-weight: 600;">${escapeHtml(data.bookingReference)}</td>
+      </tr>
+      <tr>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Pickup Date</td>
+        <td style="font-size: 14px; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}</td>
+      </tr>
+      <tr>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Route</td>
+        <td style="font-size: 14px; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}</td>
+      </tr>
+      <tr>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Declined By</td>
+        <td style="font-size: 14px; color: #CC3333; padding: 8px 0; font-weight: 600;">${escapeHtml(data.driverName)}</td>
+      </tr>
+    </table>
+    <p style="margin-top: 24px; font-size: 14px; color: #9A958F;">Please assign a different driver as soon as possible.</p>
+    <div style="height: 1px; background-color: #B87333; margin: 32px 0 16px;"></div>
+    <div style="text-align: center;">
+      <span style="font-size: 12px; letter-spacing: 0.4em; color: #F5F2EE;">PRESTI</span><span style="font-size: 12px; letter-spacing: 0.4em; color: #B87333;">GO</span>
+    </div>
+  </div>
+</body>
+</html>`
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [process.env.MANAGER_EMAIL!],
+      subject: `Driver declined: ${data.bookingReference}`,
+      html,
+    })
+    if (error) console.error('[driver-assign] decline notification error:', error)
+  } catch (err) {
+    console.error('[driver-assign] decline notification exception:', err)
+    // Non-fatal — do not throw
+  }
+}
