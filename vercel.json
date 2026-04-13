@@ -5,6 +5,10 @@
     {
       "path": "/api/cron/flight-refresh",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/reminder-24h",
+      "schedule": "0 6 * * *"
     }
   ]
 }
