@@ -137,7 +137,7 @@ export default async function DriverResponsePage({ searchParams }: PageProps) {
   // Fetch booking details
   const { data: booking } = await supabase
     .from('bookings')
-    .select('pickup_date, pickup_time, origin_address, destination_address, first_name, last_name, phone')
+    .select('pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone')
     .eq('id', assignment.booking_id)
     .single()
 
@@ -248,11 +248,11 @@ export default async function DriverResponsePage({ searchParams }: PageProps) {
 
             <span style={labelStyle}>Passenger</span>
             <span style={valueStyle}>
-              {booking.first_name} {booking.last_name}
+              {booking.client_first_name} {booking.client_last_name}
             </span>
 
             <span style={labelStyle}>Phone</span>
-            <span style={valueStyle}>{booking.phone}</span>
+            <span style={valueStyle}>{booking.client_phone}</span>
           </div>
         )}
 
