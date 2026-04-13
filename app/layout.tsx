@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Montserrat } from 'next/font/google'
+import { headers } from 'next/headers'
 import './globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
+import MetaPixel from '@/components/MetaPixel'
 import CookieBanner from '@/components/CookieBanner'
 
 const cormorant = Cormorant_Garamond({
@@ -63,9 +65,14 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Read the per-request nonce injected by middleware so we can pass it to
+  // <Script nonce={nonce}> components. Falls back to empty string on paths
+  // that bypass middleware (e.g. static file serving).
+  const nonce = (await headers()).get('x-nonce') ?? ''
+
   return (
     <html lang="en">
       <head>
@@ -78,13 +85,15 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://connect.facebook.net" />
       </head>
       <body className={`${cormorant.variable} ${montserrat.variable}`}>
         <a href="#main-content" className="skip-link btn-primary">
           Skip to content
         </a>
         {children}
-        <GoogleAnalytics />
+        <GoogleAnalytics nonce={nonce} />
+        <MetaPixel nonce={nonce} />
         <CookieBanner />
       </body>
     </html>

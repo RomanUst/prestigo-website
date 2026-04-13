@@ -24,6 +24,40 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
 ]
 
 /**
+ * Build a per-request Content-Security-Policy header.
+ *
+ * script-src uses a nonce + strict-dynamic instead of unsafe-inline:
+ *   - 'nonce-{nonce}': only script elements with this exact nonce attribute execute.
+ *   - 'strict-dynamic': scripts loaded by a nonce-bearing script inherit trust,
+ *     which allows GTM's dynamically injected tags without needing unsafe-inline.
+ *   - https: http: are CSP Level 1 fallbacks for browsers that predate
+ *     strict-dynamic (Safari <15.4, IE — negligible production share in 2026).
+ *
+ * style-src keeps unsafe-inline: inline styles are far lower risk (no code
+ * execution), and removing it would require auditing every Tailwind/Stripe
+ * element — not worth the disruption now.
+ */
+function buildCsp(nonce: string): string {
+  return [
+    "default-src 'self'",
+    // unsafe-eval is needed by React dev tools for stack-trace reconstruction.
+    // It is intentionally excluded from production builds.
+    process.env.NODE_ENV === 'development'
+      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https: http:`
+      : `script-src 'nonce-${nonce}' 'strict-dynamic' https: http:`,
+    "frame-src https://js.stripe.com https://hooks.stripe.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    // GA4 Enhanced Measurement may load tracking pixels from google-analytics.com
+    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    // places.googleapis.com: Places API (New) REST endpoint (AddressInputNew);
+    // maps.googleapis.com: legacy JS SDK path.
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com",
+    "report-uri /api/csp-report",
+  ].join('; ')
+}
+
+/**
  * CSRF protection via Origin header validation for all mutation endpoints.
  *
  * How it works:
@@ -73,7 +107,19 @@ function checkCsrf(request: NextRequest): NextResponse | null {
 export async function middleware(request: NextRequest) {
   const csrfError = checkCsrf(request)
   if (csrfError) return csrfError
-  return await updateSession(request)
+
+  // Generate a cryptographically random nonce per request.
+  // btoa + randomUUID works in the Edge runtime (no Buffer/Node.js required).
+  const nonce = btoa(crypto.randomUUID())
+
+  // Forward nonce to server components via request header so layout.tsx can
+  // read it with headers() and pass it to <Script nonce={nonce}> components.
+  const reqHeaders = new Headers(request.headers)
+  reqHeaders.set('x-nonce', nonce)
+
+  const response = await updateSession(request, reqHeaders)
+  response.headers.set('Content-Security-Policy', buildCsp(nonce))
+  return response
 }
 
 export const config = {

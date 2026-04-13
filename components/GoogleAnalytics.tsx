@@ -1,5 +1,3 @@
-'use client'
-
 import Script from 'next/script'
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
@@ -25,7 +23,7 @@ const CONSENT_KEY = 'prestigo_cookie_consent'
  * and treated every user as unknown consent state, which breaks attribution
  * and conversion modeling downstream in Google Ads.
  */
-export default function GoogleAnalytics() {
+export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
   if (!GA_ID) return null
 
   return (
@@ -33,9 +31,21 @@ export default function GoogleAnalytics() {
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
+        nonce={nonce}
       />
-      {/* eslint-disable-next-line @next/next/no-before-interactive-script-outside-document */}
-      <Script id="ga-consent-default" strategy="beforeInteractive">
+      {/*
+        Consent defaults must be pushed to dataLayer before gtag('config') fires.
+        Using afterInteractive (not beforeInteractive) avoids React hydration
+        mismatch: browsers strip nonce attributes from DOM elements after CSP
+        processing ("nonce hiding"), so beforeInteractive scripts in the initial
+        HTML cause React to see nonce="" vs the server-rendered value.
+        afterInteractive scripts are injected by Next.js client-side runtime and
+        never reconciled by React — no mismatch. Next.js guarantees execution
+        order for same-strategy scripts in JSX order, so consent-default fires
+        before ga-init. wait_for_update:500 gives Google 500 ms to receive the
+        consent signal before processing events.
+      */}
+      <Script id="ga-consent-default" strategy="afterInteractive" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
@@ -50,7 +60,7 @@ export default function GoogleAnalytics() {
           });
         `}
       </Script>
-      <Script id="ga-init" strategy="afterInteractive">
+      <Script id="ga-init" strategy="afterInteractive" nonce={nonce}>
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
