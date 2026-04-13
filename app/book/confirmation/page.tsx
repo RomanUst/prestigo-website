@@ -7,6 +7,7 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { consumePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import Link from 'next/link'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
+import { trackMetaEvent } from '@/components/MetaPixel'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -200,6 +201,40 @@ function ConfirmationContent() {
           currency,
           items,
           affiliation: 'PRESTIGO',
+        })
+
+        // Meta Pixel — client-side Purchase (fires only if user consented)
+        trackMetaEvent(
+          'Purchase',
+          {
+            value: totalEur,
+            currency,
+            content_type: 'product',
+            content_ids: [ref],
+            content_name: items[0]?.item_name ?? 'Chauffeur Transfer',
+          },
+          ref, // eventId — matched server-side for deduplication
+        )
+
+        // Meta CAPI — server-side Purchase (non-blocking, hashes PII server-side)
+        void fetch('/api/meta-capi', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event_name: 'Purchase',
+            event_id: ref,
+            url: window.location.href,
+            email: snap.passengerDetails?.email,
+            first_name: snap.passengerDetails?.firstName,
+            last_name: snap.passengerDetails?.lastName,
+            phone: snap.passengerDetails?.phone,
+            custom_data: {
+              value: totalEur,
+              currency,
+              content_type: 'product',
+              content_ids: [ref],
+            },
+          }),
         })
       }
     }
