@@ -282,6 +282,64 @@ body {
   }
 }
 
+/* ── Scroll Reveal ─────────────────────────────────── */
+/* Used by components/Reveal.tsx — fires once via IntersectionObserver */
+
+@keyframes revealUp {
+  from { opacity: 0; transform: translateY(36px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes revealLeft {
+  from { opacity: 0; transform: translateX(-28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes revealRight {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes revealFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Pre-reveal state — element invisible before IntersectionObserver fires */
+.reveal-hidden {
+  opacity: 0;
+}
+
+.reveal-up {
+  animation: revealUp 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-fade {
+  animation: revealFade 0.85s ease both;
+}
+
+.reveal-left {
+  animation: revealLeft 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.reveal-right {
+  animation: revealRight 0.95s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-hidden {
+    opacity: 1 !important;
+  }
+  .reveal-up,
+  .reveal-fade,
+  .reveal-left,
+  .reveal-right {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* ── Google Places autocomplete dropdown ────────────── */
 /* Ensure .pac-container appears above admin modal overlay (z-index: 50) */
 .pac-container {

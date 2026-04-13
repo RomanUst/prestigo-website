@@ -1,3 +1,5 @@
+import Reveal from '@/components/Reveal'
+
 const steps = [
   {
     number: '01',
@@ -21,34 +23,36 @@ export default function HowItWorks() {
     <section id="how-it-works" aria-labelledby="how-it-works-heading" className="bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
-        <div className="mb-14">
+        <Reveal variant="up" className="mb-14">
           <p className="label mb-6">How it works</p>
           <span className="copper-line mb-8 block" />
           <h2 id="how-it-works-heading" className="display text-[36px] md:text-[44px]">
             Three steps.<br />
             <span className="display-italic">Zero surprises.</span>
           </h2>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
           {steps.map((step, i) => (
-            <div key={i} className="relative">
-              <div className="flex items-start gap-5">
-                <span
-                  className="font-display font-light text-[48px] leading-none"
-                  style={{ color: 'var(--anthracite-light)' }}
-                >
-                  {step.number}
-                </span>
-                <div className="pt-2">
-                  <p className="label mb-3">{step.title}</p>
-                  <p className="body-text">{step.body}</p>
+            <Reveal key={i} variant="up" delay={i * 120}>
+              <div className="relative">
+                <div className="flex items-start gap-5">
+                  <span
+                    className="font-display font-light text-[48px] leading-none"
+                    style={{ color: 'var(--anthracite-light)' }}
+                  >
+                    {step.number}
+                  </span>
+                  <div className="pt-2">
+                    <p className="label mb-3">{step.title}</p>
+                    <p className="body-text">{step.body}</p>
+                  </div>
                 </div>
+                {i < steps.length - 1 && (
+                  <div className="hidden md:block absolute top-6 right-0 w-px h-16 bg-gradient-to-b from-anthracite-light to-transparent" />
+                )}
               </div>
-              {i < steps.length - 1 && (
-                <div className="hidden md:block absolute top-6 right-0 w-px h-16 bg-gradient-to-b from-anthracite-light to-transparent" />
-              )}
-            </div>
+            </Reveal>
           ))}
         </div>
       </div>

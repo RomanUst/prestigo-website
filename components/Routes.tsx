@@ -1,3 +1,5 @@
+import Reveal from '@/components/Reveal'
+
 const routes = [
   { from: 'Prague', to: 'Vienna', slug: 'prague-vienna', distance: '330 km', duration: '~3.5 h', price: 'From €485' },
   { from: 'Prague', to: 'Berlin', slug: 'prague-berlin', distance: '350 km', duration: '~4 h', price: 'From €580' },
@@ -12,53 +14,56 @@ export default function Routes() {
     <section id="routes" aria-labelledby="routes-heading" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
-        <div className="mb-14">
+        <Reveal variant="up" className="mb-14">
           <p className="label mb-6">Intercity routes</p>
           <span className="copper-line mb-8 block" />
           <h2 id="routes-heading" className="display text-[36px] md:text-[44px]">
             Central Europe,<br />
             <span className="display-italic">at your pace.</span>
           </h2>
-        </div>
+        </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-anthracite-light">
-          {routes.map((r) => (
-            <a
-              key={`${r.from}-${r.to}`}
-              href={`/routes/${r.slug}`}
-              className="bg-anthracite-mid px-8 py-6 flex items-center justify-between hover:bg-anthracite transition-colors group"
-            >
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="font-display font-light text-lg text-offwhite">
-                    {r.from}
-                    <span className="text-copper-pale italic mx-2">→</span>
-                    {r.to}
-                  </p>
-                  <p className="body-text text-[11px] mt-1">{r.distance} · {r.duration}</p>
+          {routes.map((r, i) => (
+            <Reveal key={`${r.from}-${r.to}`} variant="up" delay={i * 70} className="bg-anthracite-mid">
+              <a
+                href={`/routes/${r.slug}`}
+                className="flex items-center justify-between px-8 py-6 hover:bg-anthracite transition-colors group"
+              >
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="font-display font-light text-lg text-offwhite">
+                      {r.from}
+                      <span className="text-copper-pale italic mx-2">→</span>
+                      {r.to}
+                    </p>
+                    <p className="body-text text-[11px] mt-1">{r.distance} · {r.duration}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="text-right">
-                <p className="font-body font-light text-[11px] tracking-[0.1em] text-copper group-hover:text-copper-light transition-colors">
-                  {r.price}
-                </p>
-                <span className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey group-hover:text-offwhite transition-colors mt-1 block py-1">
-                  More details →
-                </span>
-              </div>
-            </a>
+                <div className="text-right">
+                  <p className="font-body font-light text-[11px] tracking-[0.1em] text-copper group-hover:text-copper-light transition-colors">
+                    {r.price}
+                  </p>
+                  <span className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey group-hover:text-offwhite transition-colors mt-1 block py-1">
+                    More details →
+                  </span>
+                </div>
+              </a>
+            </Reveal>
           ))}
         </div>
 
-        <p className="body-text text-[11px] mt-6 text-center">
-          All prices include tolls, waiting time, and meet &amp; greet. Fixed — guaranteed at booking.
-        </p>
+        <Reveal variant="fade" delay={150}>
+          <p className="body-text text-[11px] mt-6 text-center">
+            All prices include tolls, waiting time, and meet &amp; greet. Fixed — guaranteed at booking.
+          </p>
+        </Reveal>
 
-        <div className="mt-10 flex justify-center">
+        <Reveal variant="fade" delay={200} className="mt-10 flex justify-center">
           <a href="/routes" className="btn-ghost" style={{ borderColor: 'var(--copper)', color: 'var(--copper)' }}>
             View all routes
           </a>
-        </div>
+        </Reveal>
       </div>
     </section>
   )
