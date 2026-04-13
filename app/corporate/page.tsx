@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 type FormState = 'idle' | 'sending' | 'success'
 
@@ -180,12 +181,14 @@ export default function CorporatePage() {
                 title: 'Reporting Dashboard',
                 body: 'View all bookings, travellers, costs, and routes in one place. Export for expense reporting at any time.',
               },
-            ].map((b) => (
-              <div key={b.title} className="border border-anthracite-light p-8">
+            ].map((b, i) => (
+              <Reveal key={b.title} variant="up" delay={i * 100}>
+              <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-6 block" />
                 <h2 className="font-display font-light text-[22px] text-offwhite mb-3">{b.title}</h2>
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{b.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -194,7 +197,9 @@ export default function CorporatePage() {
       {/* For whom */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14">Built for…</h2>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {[
               {
@@ -209,11 +214,13 @@ export default function CorporatePage() {
                 title: 'Event & conference organisers',
                 body: 'Coordinating multi-vehicle group movements for delegations and incentive travel.',
               },
-            ].map((c) => (
-              <div key={c.title} className="border border-anthracite-light p-8">
+            ].map((c, i) => (
+              <Reveal key={c.title} variant="up" delay={i * 120}>
+              <div className="border border-anthracite-light p-8">
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{c.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{c.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -222,18 +229,22 @@ export default function CorporatePage() {
       {/* How it works */}
       <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14">How it works</h2>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               { step: '01', title: 'Apply', body: 'Fill in the form below. We\'ll set up your account within 24 hours.' },
               { step: '02', title: 'Book', body: 'Your team books online or via the account manager. No per-trip approval needed.' },
               { step: '03', title: 'Invoice', body: 'One monthly invoice. Pay by bank transfer or card. Full GDPR-compliant data handling.' },
-            ].map((s) => (
-              <div key={s.step} className="border border-anthracite-light p-8">
+            ].map((s, i) => (
+              <Reveal key={s.step} variant="up" delay={i * 120}>
+              <div className="border border-anthracite-light p-8">
                 <p className="font-body font-light text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: 'var(--copper)' }}>{s.step}</p>
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-3">{s.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{s.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -242,11 +253,14 @@ export default function CorporatePage() {
       {/* Who uses corporate accounts */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
+          <Reveal variant="up">
           <div className="md:col-span-2">
             <p className="label mb-6">Who uses a PRESTIGO corporate account</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Built for the firms <span className="display-italic">Prague works with.</span></h2>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div className="md:col-span-3 flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Our corporate clients are the law firms, consulting practices, investment houses, embassies, global employers, and event agencies that move people through Prague on a weekly basis. A typical account might book two or three airport runs on a Monday morning, a half-day roadshow for a visiting executive mid-week, and an evening dinner transfer on Friday — all without a single phone call, approval chain, or per-trip invoice.
@@ -258,17 +272,20 @@ export default function CorporatePage() {
               We keep account sizes deliberately modest so every client receives the same level of attention. PRESTIGO corporate isn&rsquo;t a volume programme with tiered service — every account is handled as if it were our largest.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Typical usage patterns */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <div className="mb-14">
             <p className="label mb-6">Typical usage patterns</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">What a week on a<br /><span className="display-italic">PRESTIGO account looks like.</span></h2>
           </div>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
@@ -283,12 +300,14 @@ export default function CorporatePage() {
                 title: 'The board-meeting V-Class',
                 body: 'Four directors arriving on separate flights within ninety minutes. Rather than four E-Class transfers, the account manager books a single V-Class to circulate through Terminal 1, collect each passenger at their gate, and deliver the group directly to the meeting venue in Old Town. One fixed fee, one arrival time, one invoice line.',
               },
-            ].map((item) => (
-              <div key={item.title} className="border border-anthracite-light p-8">
+            ].map((item, i) => (
+              <Reveal key={item.title} variant="up" delay={i * 120}>
+              <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-5 block" />
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -297,6 +316,7 @@ export default function CorporatePage() {
       {/* Onboarding + Compliance */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <Reveal variant="up">
           <div>
             <p className="label mb-6">Onboarding in 48 hours</p>
             <span className="copper-line mb-8 block" />
@@ -305,6 +325,8 @@ export default function CorporatePage() {
               The application form below takes roughly three minutes to complete. Within the same working day we assign your account manager, draft a service agreement, and send it over for countersignature. Once signed, we configure your account in our dispatch system, invite your travellers, and run a test booking free of charge so your first real trip is never the first trip. Most accounts are live and making bookings inside 48 hours of the initial enquiry.
             </p>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div>
             <p className="label mb-6">Compliance, insurance &amp; invoicing</p>
             <span className="copper-line mb-8 block" />
@@ -313,21 +335,26 @@ export default function CorporatePage() {
               PRESTIGO is operated by chelautotrans s.r.o. (Czech company ID 05650801), a fully licensed and VAT-registered Czech operator. Every invoice is issued with VAT, trip-level breakdown, and a unique reference per booking. We carry commercial passenger-liability and fully comprehensive vehicle insurance, and can provide certificates on request for security or procurement teams. Traveller data is handled under GDPR with a clear retention policy and is never shared with third parties.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <p className="label mb-6">Corporate account questions</p>
           <span className="copper-line mb-8 block" />
           <h2 className="display text-[28px] md:text-[36px] mb-12">Questions from finance, travel &amp; procurement.</h2>
+          </Reveal>
           <div className="flex flex-col gap-0">
             {corporateFaqs.map((faq, i) => (
-              <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
+              <Reveal key={faq.q} variant="up" delay={i * 60}>
+              <div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
                 <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -338,6 +365,7 @@ export default function CorporatePage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
 
           {/* Testimonial */}
+          <Reveal variant="up">
           <div className="md:col-span-2 flex flex-col justify-center">
             <span className="copper-line mb-8 block" />
             <blockquote className="font-display font-light italic text-[22px] md:text-[26px] text-offwhite leading-[1.5]">
@@ -345,8 +373,10 @@ export default function CorporatePage() {
             </blockquote>
             <p className="body-text text-[11px] mt-6">S. Novák · Senior Partner · Prague</p>
           </div>
+          </Reveal>
 
           {/* Form */}
+          <Reveal variant="up" delay={150}>
           <div className="md:col-span-3">
             {state === 'success' ? (
               <div className="border border-anthracite-light p-10 flex flex-col gap-6">
@@ -405,6 +435,7 @@ export default function CorporatePage() {
               </form>
             )}
           </div>
+          </Reveal>
         </div>
       </section>
 

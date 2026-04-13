@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 const SERVICES_DESCRIPTION = 'Prague chauffeur services: airport transfers, intercity routes, corporate accounts, VIP events, city rides. Fixed price, flight tracking, instant booking.'
 
@@ -221,8 +222,8 @@ export default function ServicesPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-0">
           {services.map((s, i) => (
+            <Reveal key={s.title} variant="up" delay={i * 80}>
             <div
-              key={s.title}
               className={`py-14 md:py-16 border-b border-anthracite-light grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 ${i === 0 ? 'border-t' : ''}`}
             >
               <div>
@@ -259,6 +260,7 @@ export default function ServicesPage() {
                 </div>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -266,14 +268,18 @@ export default function ServicesPage() {
       {/* Trust block */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14 text-center">Why PRESTIGO</h2>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {trust.map((t) => (
-              <div key={t.title} className="border border-anthracite-light p-8">
+            {trust.map((t, i) => (
+              <Reveal key={t.title} variant="up" delay={i * 120}>
+              <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-6 block" />
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{t.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{t.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -282,15 +288,19 @@ export default function ServicesPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <p className="label mb-6">Service questions</p>
           <span className="copper-line mb-8 block" />
           <h2 className="display text-[28px] md:text-[36px] mb-12">How PRESTIGO services work.</h2>
+          </Reveal>
           <div className="flex flex-col gap-0">
             {servicesFaqs.map((faq, i) => (
-              <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
+              <Reveal key={faq.q} variant="up" delay={i * 70}>
+              <div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
                 <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -299,15 +309,19 @@ export default function ServicesPage() {
       {/* CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
+          <Reveal variant="up">
           <p className="label mb-6">Ready to book?</p>
           <span className="copper-line mb-8 block mx-auto" />
           <h2 className="display text-[32px] md:text-[42px] mb-4">
             Choose your service and book<br />
             <span className="display-italic">in under 60 seconds.</span>
           </h2>
+          </Reveal>
+          <Reveal variant="fade" delay={150}>
           <div className="mt-10">
             <a href="/book" className="btn-primary">Book a Transfer</a>
           </div>
+          </Reveal>
         </div>
       </section>
 

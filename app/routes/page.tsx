@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
+import Reveal from '@/components/Reveal'
 
 const ROUTES_DESCRIPTION = 'Private chauffeur from Prague to 30 Central European destinations. Vienna €485, Berlin €580, Munich €635, Budapest €885. Fixed price, door-to-door.'
 
@@ -94,12 +95,12 @@ export default function RoutesPage() {
       {/* Planning intercity travel */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
-          <div className="md:col-span-2">
+          <Reveal variant="up"><div className="md:col-span-2">
             <p className="label mb-6">Planning intercity travel</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Why a private transfer <span className="display-italic">beats the train.</span></h2>
-          </div>
-          <div className="md:col-span-3 flex flex-col gap-5">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><div className="md:col-span-3 flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Intercity rail in Central Europe is excellent — but it stops at the station, not at your hotel door. For most of our clients, the hidden cost of a Prague&ndash;Vienna or Prague&ndash;Berlin trip isn&rsquo;t the ticket. It&rsquo;s the two taxis on either side, the hour spent dragging luggage through a terminus, the rigid departure window, and the wasted time between meetings when the schedule slips.
             </p>
@@ -109,7 +110,7 @@ export default function RoutesPage() {
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Every intercity route on this page is operated with the same fleet, the same vetted chauffeurs, and the same service standard as our airport transfers. Prices are quoted per vehicle, not per passenger — so two people share the same fare as one, and a V-Class with six passengers and full luggage still travels for a single fixed total.
             </p>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 
@@ -140,7 +141,7 @@ export default function RoutesPage() {
               return (
                 <div key={country} className="flex flex-col">
                   {/* Country H2 */}
-                  <div className="mb-10" id={`routes-${countryId}`}>
+                  <Reveal variant="up"><div className="mb-10" id={`routes-${countryId}`}>
                     <p className="label mb-4">Destination country</p>
                     <span className="copper-line mb-6 block" />
                     <h2 className="display text-[32px] md:text-[44px]">
@@ -152,7 +153,7 @@ export default function RoutesPage() {
                         : `${routes.length} private chauffeur routes from Prague into ${country}, sorted by distance.`}
                       {' '}Every route is a single fixed fare, door-to-door, with flight tracking on the return leg where applicable.
                     </p>
-                  </div>
+                  </div></Reveal>
                   <div className="flex flex-col gap-0">
           {routes.map((r, i) => {
             const hasImage = Boolean(r.image)
@@ -203,8 +204,8 @@ export default function RoutesPage() {
             )
             if (hasImage && r.image) {
               return (
+                <Reveal key={r.slug} variant="up" delay={i * 80}>
                 <div
-                  key={r.slug}
                   className={`relative overflow-hidden border-b border-anthracite-light -mx-6 md:-mx-12 ${i === 0 ? 'border-t' : ''}`}
                   style={{
                     backgroundImage: `url(${r.image})`,
@@ -218,15 +219,17 @@ export default function RoutesPage() {
                     {cardContent}
                   </div>
                 </div>
+                </Reveal>
               )
             }
             return (
+              <Reveal key={r.slug} variant="up" delay={i * 80}>
               <div
-                key={r.slug}
                 className={`py-14 md:py-16 border-b border-anthracite-light grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 ${i === 0 ? 'border-t' : ''}`}
               >
                 {cardContent}
               </div>
+              </Reveal>
             )
           })}
                   </div>
@@ -240,18 +243,18 @@ export default function RoutesPage() {
       {/* How it works */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[36px] mb-14">How it works</h2>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-14">How it works</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               { step: '01', title: 'Book', body: 'Select your route and vehicle. Fixed price confirmed instantly.' },
               { step: '02', title: 'Travel', body: 'Your chauffeur collects you at the agreed time and location.' },
               { step: '03', title: 'Arrive', body: 'Door-to-door delivery. No transfers, no terminals, no waiting.' },
-            ].map((s) => (
-              <div key={s.step} className="border border-anthracite-light p-8">
+            ].map((s, i) => (
+              <Reveal key={s.step} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8">
                 <p className="font-body font-light text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: 'var(--copper)' }}>{s.step}</p>
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-3">{s.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{s.body}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -260,11 +263,11 @@ export default function RoutesPage() {
       {/* Border crossings, tolls, paperwork */}
       <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <div className="mb-14">
+          <Reveal variant="up"><div className="mb-14">
             <p className="label mb-6">Borders, tolls &amp; paperwork</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Crossing borders<br /><span className="display-italic">without the friction.</span></h2>
-          </div>
+          </div></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
@@ -279,12 +282,12 @@ export default function RoutesPage() {
                 title: 'Documentation for corporate travel',
                 body: 'For corporate and diplomatic clients we can prepare a detailed trip confirmation in advance, including vehicle plate, driver name and licence number, insurance reference, and estimated route — useful for security teams, embassies, and venues with advance-notification requirements.',
               },
-            ].map((item) => (
-              <div key={item.title} className="border border-anthracite-light p-8">
+            ].map((item, i) => (
+              <Reveal key={item.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-5 block" />
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -293,15 +296,15 @@ export default function RoutesPage() {
       {/* Luggage, pets, child seats */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
-          <div>
+          <Reveal variant="up"><div>
             <p className="label mb-6">Luggage, pets &amp; children</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px] mb-6">Travel with everything <span className="display-italic">you need.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Intercity transfers usually mean more luggage than a city run — ski bags, golf clubs, sample cases, presentation materials, or the full suitcase complement of a family relocating between capitals. Every PRESTIGO class is matched to a realistic luggage load, and when in doubt we upgrade you at the same price rather than squeeze a trip.
             </p>
-          </div>
-          <ul className="flex flex-col gap-4">
+          </div></Reveal>
+          <Reveal variant="up" delay={150}><ul className="flex flex-col gap-4">
             {[
               { t: 'E-Class luggage', b: '2 large suitcases + 2 cabin bags, or 3 large cases for 2 passengers.' },
               { t: 'S-Class luggage', b: '2 large suitcases + 2 cabin bags. Same capacity, with executive rear legroom and massage seats.' },
@@ -318,23 +321,22 @@ export default function RoutesPage() {
                 </div>
               </li>
             ))}
-          </ul>
+          </ul></Reveal>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-20 border-t border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2></Reveal>
           <div className="flex flex-col gap-0">
             {faqs.map((faq, i) => (
-              <div
-                key={faq.q}
+              <Reveal key={faq.q} variant="up" delay={i * 60}><div
                 className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}
               >
                 <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p>
-              </div>
+              </div></Reveal>
             ))}
           </div>
         </div>
@@ -343,17 +345,17 @@ export default function RoutesPage() {
       {/* CTA */}
       <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <div>
+          <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
               Not seeing your destination?<br />
               <span className="display-italic">We go anywhere.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">PRESTIGO covers all destinations across Central Europe.</p>
-          </div>
-          <div className="flex flex-col sm:flex-row gap-4">
+          </div></Reveal>
+          <Reveal variant="fade" delay={100}><div className="flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book a Route</a>
             <a href="/contact" className="btn-ghost">Request Custom Route</a>
-          </div>
+          </div></Reveal>
         </div>
       </section>
 

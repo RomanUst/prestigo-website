@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
+import Reveal from '@/components/Reveal'
 
 const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO."
 
@@ -89,6 +90,7 @@ export default function AboutPage() {
       {/* Brand story */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <Reveal variant="up">
           <div>
             <h2 className="display text-[28px] md:text-[36px] mb-8">Why PRESTIGO exists</h2>
             <div className="flex flex-col gap-6">
@@ -103,6 +105,8 @@ export default function AboutPage() {
               </p>
             </div>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div className="flex items-center">
             <div className="w-full border border-anthracite-light p-10">
               <span className="copper-line mb-8 block" />
@@ -111,17 +115,21 @@ export default function AboutPage() {
               </blockquote>
             </div>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Our story */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
+          <Reveal variant="up">
           <div className="md:col-span-2">
             <p className="label mb-6">Our story</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">From one car, <span className="display-italic">to a standard.</span></h2>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div className="md:col-span-3 flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               PRESTIGO began the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they&rsquo;d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.
@@ -133,12 +141,14 @@ export default function AboutPage() {
               Today, PRESTIGO operates a curated Mercedes-Benz fleet out of Prague with a small team of vetted chauffeurs who&rsquo;ve each been with us long enough to be trusted with any booking. We have deliberately kept the operation compact: we would rather refuse work than dilute the standard.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Founder */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-start">
+          <Reveal variant="up">
           <div
             className="w-[200px] h-[200px] md:w-[240px] md:h-[240px] rounded-full border border-anthracite-light flex-shrink-0"
             style={{
@@ -150,6 +160,8 @@ export default function AboutPage() {
             role="img"
             aria-label={founder.imageAlt}
           />
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div>
             <p className="label mb-6">Meet the founder</p>
             <span className="copper-line mb-8 block" />
@@ -182,12 +194,14 @@ export default function AboutPage() {
               </div>
             </div>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* What discretion means */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <Reveal variant="up">
           <div>
             <p className="label mb-6">On discretion</p>
             <span className="copper-line mb-8 block" />
@@ -196,6 +210,8 @@ export default function AboutPage() {
               &ldquo;Discretion&rdquo; is one of those words every premium operator puts on their website and very few define. At PRESTIGO, discretion is a set of concrete practices, not a marketing line. It is the reason we hesitate to photograph our own vehicles with clients inside them, the reason our chauffeurs don&rsquo;t carry company-branded clothing to dinner pickups, and the reason nothing that happens in the cabin is ever repeated — to colleagues, to family, or to a social feed.
             </p>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <ul className="flex flex-col gap-4">
             {[
               { t: 'No social posting — ever', b: 'Our drivers do not photograph clients, vehicles with clients inside, or the addresses we collect from. There is no internal chat group sharing stories. We don&rsquo;t have one.' },
@@ -213,15 +229,19 @@ export default function AboutPage() {
               </li>
             ))}
           </ul>
+          </Reveal>
         </div>
       </section>
 
       {/* Local knowledge */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <p className="label mb-6">Local knowledge, international standards</p>
           <span className="copper-line mb-8 block" />
           <h2 className="display text-[28px] md:text-[36px] mb-10">Prague is our home. <span className="display-italic">That is the advantage.</span></h2>
+          </Reveal>
+          <Reveal variant="fade" delay={100}>
           <div className="flex flex-col gap-6">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Most of the global chauffeur brands that operate in Prague are platforms — they list local drivers, collect a fee, and disappear the moment something goes wrong. PRESTIGO is the opposite. We are based in Prague, we employ our drivers directly, and we live with every decision about service the next day. That is what &ldquo;locally-rooted&rdquo; actually means.
@@ -233,20 +253,25 @@ export default function AboutPage() {
               None of this is written in a policy document. It is learned by driving the city for years, and then choosing to stay with one operator who asks the right questions. It is the single biggest reason PRESTIGO is consistent at the edges — where other services begin to fray.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Principles */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14">What we stand for</h2>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {principles.map((p) => (
-              <div key={p.title} className="border border-anthracite-light p-8">
+            {principles.map((p, i) => (
+              <Reveal key={p.title} variant="up" delay={i * 120}>
+              <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-6 block" />
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-3">{p.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{p.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -255,6 +280,7 @@ export default function AboutPage() {
       {/* Chauffeurs */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <Reveal variant="up">
           <div>
             <p className="label mb-6">Our Chauffeurs</p>
             <span className="copper-line mb-8 block" />
@@ -263,6 +289,8 @@ export default function AboutPage() {
               Every PRESTIGO chauffeur is personally vetted, trained in executive transport protocols, and fluent in English. They carry a name board, arrive early, and say only what needs to be said.
             </p>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div className="flex flex-col justify-center gap-4">
             {requirements.map((r) => (
               <div key={r} className="flex items-start gap-4 py-4 border-b border-anthracite-light last:border-0">
@@ -271,20 +299,25 @@ export default function AboutPage() {
               </div>
             ))}
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* CTA */}
       <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px]">
             Travel with PRESTIGO.<br />
             <span className="display-italic">Experience the difference.</span>
           </h2>
+          </Reveal>
+          <Reveal variant="fade" delay={150}>
           <div className="flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book a Transfer</a>
             <a href="/corporate" className="btn-ghost">Corporate Accounts</a>
           </div>
+          </Reveal>
         </div>
       </section>
 

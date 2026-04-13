@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 // Static page — regenerate at most once per hour so updates to the fleet
 // copy propagate without forcing on-demand SSR on every request.
@@ -266,8 +267,8 @@ export default function FleetPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-16">
           {vehicles.map((v, i) => (
+            <Reveal key={v.model} variant="up" delay={i * 150}>
             <div
-              key={v.model}
               className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 pb-16 ${i < vehicles.length - 1 ? 'border-b border-anthracite-light' : ''}`}
             >
               {/* Photo */}
@@ -330,6 +331,7 @@ export default function FleetPage() {
                 </p>
               </div>
             </div>
+            </Reveal>
           ))}
         </div>
       </section>
@@ -337,14 +339,18 @@ export default function FleetPage() {
       {/* Standards */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <h2 className="display text-[28px] md:text-[36px] mb-14">Every vehicle, every time</h2>
+          <Reveal variant="up" className="mb-14">
+            <h2 className="display text-[28px] md:text-[36px]">Every vehicle, every time</h2>
+          </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {standards.map((s) => (
-              <div key={s.title}>
+            {standards.map((s, i) => (
+              <Reveal key={s.title} variant="up" delay={i * 100}>
+              <div>
                 <span className="copper-line mb-5 block" />
                 <h3 className="font-body font-medium text-[11px] tracking-[0.15em] uppercase text-offwhite mb-2">{s.title}</h3>
                 <p className="body-text text-[12px]">{s.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -353,11 +359,14 @@ export default function FleetPage() {
       {/* Why Mercedes-Benz */}
       <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <Reveal variant="up">
           <div>
             <p className="label mb-6">Why Mercedes-Benz exclusively</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px] mb-8">One marque. Three silhouettes. <span className="display-italic">Zero compromise.</span></h2>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <div className="flex flex-col gap-6">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               PRESTIGO operates a pure Mercedes-Benz fleet — not because it&rsquo;s the easy choice, but because it&rsquo;s the right one. For executive transport in Central Europe, Mercedes remains the undisputed standard: the E-Class is the default business sedan of every capital from Prague to Warsaw, the S-Class defines the upper tier of ground luxury, and the V-Class is the only premium van our corporate clients recognise on sight.
@@ -369,17 +378,20 @@ export default function FleetPage() {
               We refresh vehicles on a rolling schedule, well before the cosmetic or mechanical standard begins to slip. Our clients travel in a car that feels current — because it is.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* Maintenance & safety */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <div className="mb-14">
             <p className="label mb-6">Maintenance &amp; Safety</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Prepared before<br /><span className="display-italic">every journey.</span></h2>
           </div>
+          </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
               {
@@ -394,12 +406,14 @@ export default function FleetPage() {
                 title: 'Daily pre-trip inspection',
                 body: 'Tyre pressure, fluid levels, lights, and cabin cleanliness are checked before the first assignment of the day — and again between back-to-back executive bookings.',
               },
-            ].map((item) => (
-              <div key={item.title} className="border border-anthracite-light p-8">
+            ].map((item, i) => (
+              <Reveal key={item.title} variant="up" delay={i * 120}>
+              <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-5 block" />
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -408,6 +422,7 @@ export default function FleetPage() {
       {/* Technology onboard */}
       <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
+          <Reveal variant="up">
           <div>
             <p className="label mb-6">Technology onboard</p>
             <span className="copper-line mb-8 block" />
@@ -416,6 +431,8 @@ export default function FleetPage() {
               Our passengers often arrive at the car with work still to finish — or nerves still to settle after a long flight. The cabin of every PRESTIGO vehicle is prepared for both. Whether you need to take a video call between meetings or simply close your eyes for an hour, the interior adapts to you, not the other way around.
             </p>
           </div>
+          </Reveal>
+          <Reveal variant="up" delay={150}>
           <ul className="flex flex-col gap-5">
             {[
               { t: 'Unlimited mobile Wi-Fi', b: 'Enterprise-grade 5G router in every vehicle. Multiple devices, full bandwidth, no data caps.' },
@@ -434,15 +451,19 @@ export default function FleetPage() {
               </li>
             ))}
           </ul>
+          </Reveal>
         </div>
       </section>
 
       {/* Selection criteria */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <p className="label mb-6">How we choose a class for your journey</p>
           <span className="copper-line mb-8 block" />
           <h2 className="display text-[28px] md:text-[36px] mb-10">Matching vehicle to <span className="display-italic">occasion.</span></h2>
+          </Reveal>
+          <Reveal variant="fade" delay={100}>
           <div className="flex flex-col gap-6">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               The right vehicle depends on the trip, not the price list. A solo executive arriving from London City with a briefcase and a carry-on is best served by an E-Class — efficient, quiet, and perfectly appointed for a ninety-minute airport run. A visiting principal with protocol requirements and an aide will prefer the S-Class, where rear legroom, massage seats, and the near-silent cabin become genuinely useful. A family of five with skis and luggage, or a four-person board arriving for a half-day roadshow, belongs in the V-Class — the only vehicle in the fleet that comfortably seats six adults with full luggage.
@@ -451,21 +472,26 @@ export default function FleetPage() {
               If you&rsquo;re unsure which class fits your booking, note your passenger count, luggage, and journey length in the booking form and our dispatcher will confirm the right pairing within minutes. For recurring corporate travel, we maintain vehicle preferences against your account profile so every trip is matched automatically.
             </p>
           </div>
+          </Reveal>
         </div>
       </section>
 
       {/* FAQ */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <Reveal variant="up">
           <p className="label mb-6">Fleet questions</p>
           <span className="copper-line mb-8 block" />
           <h2 className="display text-[28px] md:text-[36px] mb-12">About the vehicles.</h2>
+          </Reveal>
           <div className="flex flex-col gap-0">
             {fleetFaqs.map((faq, i) => (
-              <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
+              <Reveal key={faq.q} variant="up" delay={i * 80}>
+              <div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
                 <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p>
               </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -474,12 +500,16 @@ export default function FleetPage() {
       {/* CTA */}
       <section className="bg-anthracite py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
+          <Reveal variant="up">
           <h2 className="display text-[32px] md:text-[42px] mb-4">
             Choose your vehicle.<br />
             <span className="display-italic">Book online.</span>
           </h2>
           <p className="body-text text-[13px] mt-4 mb-10">Select your preferred class at checkout.</p>
+          </Reveal>
+          <Reveal variant="fade" delay={150}>
           <a href="/book" className="btn-primary">Book a Transfer</a>
+          </Reveal>
         </div>
       </section>
 

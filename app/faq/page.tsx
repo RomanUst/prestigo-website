@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Reveal from '@/components/Reveal'
 
 export const metadata: Metadata = {
   title: 'FAQ — Prague Chauffeur Service: Prices, Booking & More',
@@ -170,8 +171,8 @@ export default function FaqPage() {
       {/* FAQ sections */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-3xl mx-auto px-6 md:px-12 flex flex-col gap-16">
-          {sections.map((section) => (
-            <div key={section.title}>
+          {sections.map((section, i) => (
+            <Reveal key={section.title} variant="up" delay={i * 100}><div>
               <p className="label mb-8">{section.title}</p>
               <div className="flex flex-col gap-0">
                 {section.faqs.map((faq, i) => (
@@ -184,7 +185,7 @@ export default function FaqPage() {
                   </div>
                 ))}
               </div>
-            </div>
+            </div></Reveal>
           ))}
         </div>
       </section>
@@ -192,20 +193,20 @@ export default function FaqPage() {
       {/* CTA */}
       <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
-          <h2 className="display text-[28px] md:text-[36px] mb-4">
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-4">
             Still have a question?<br />
             <span className="display-italic">We respond within the hour.</span>
-          </h2>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
+          </h2></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
             <a href="/contact" className="btn-primary">Contact Us</a>
             <a href="/book" className="btn-ghost">Book a Transfer</a>
-          </div>
-          <p className="font-body font-light text-[12px] text-warmgrey mt-6">
+          </div></Reveal>
+          <Reveal variant="fade" delay={250}><p className="font-body font-light text-[12px] text-warmgrey mt-6">
             Or email us at{' '}
             <a href="mailto:info@rideprestigo.com" className="hover:text-offwhite transition-colors">
               info@rideprestigo.com
             </a>
-          </p>
+          </p></Reveal>
         </div>
       </section>
 
