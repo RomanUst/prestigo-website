@@ -8,7 +8,7 @@ const vehicles = [
     passengers: '3 pax',
     bags: '2 bags',
     features: ['Leather interior', 'Tinted windows', 'Climate control', 'Wi-Fi on request'],
-    photo: '/e-class-photo.png',
+    photo: '/e-class-photo.webp',
     photoAlt: 'Mercedes-Benz E-Class — Prague chauffeur service',
   },
   {
@@ -17,7 +17,7 @@ const vehicles = [
     passengers: '3 pax',
     bags: '2 bags',
     features: ['Executive rear seats', 'Ambient lighting', 'Champagne service', 'Privacy screen'],
-    photo: '/s-class-photo.png',
+    photo: '/s-class-photo.webp',
     photoAlt: 'Mercedes-Benz S-Class — Prague chauffeur service',
   },
   {
@@ -26,7 +26,7 @@ const vehicles = [
     passengers: '6 pax',
     bags: '6 bags',
     features: ['Facing seats', 'Extra luggage space', 'Conference seating', 'USB charging'],
-    photo: '/v-class-photo.png',
+    photo: '/v-class-photo.webp',
     photoAlt: 'Mercedes-Benz V-Class — Prague chauffeur service',
   },
 ]

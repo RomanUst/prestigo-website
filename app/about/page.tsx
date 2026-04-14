@@ -1,8 +1,13 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
+import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
 import Reveal from '@/components/Reveal'
+import Divider from '@/components/Divider'
 
 const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO."
 
@@ -14,6 +19,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/about',
     title: "About PRESTIGO — Prague's Premium Chauffeur Service",
     description: ABOUT_DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/hero-about.png', width: 1200, height: 630 }],
   },
 }
 
@@ -73,8 +79,11 @@ export default function AboutPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchemaGraph) }} />
 
       {/* Hero */}
-      <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
+        <div className="absolute inset-0">
+          <Image src="/hero-about.png" alt="About PRESTIGO — Prague's Premium Chauffeur Service" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">About PRESTIGO</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
@@ -87,8 +96,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Brand story */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
@@ -119,8 +130,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Our story */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
           <Reveal variant="up">
           <div className="md:col-span-2">
@@ -145,8 +158,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Founder */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-[auto_1fr] gap-10 md:gap-16 items-start">
           <Reveal variant="up">
           <div
@@ -198,8 +213,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* What discretion means */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
@@ -233,8 +250,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Local knowledge */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <p className="label mb-6">Local knowledge, international standards</p>
@@ -257,8 +276,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Principles */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14">What we stand for</h2>
@@ -277,8 +298,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Chauffeurs */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
@@ -303,8 +326,10 @@ export default function AboutPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px]">

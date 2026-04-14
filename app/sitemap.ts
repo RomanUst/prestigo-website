@@ -11,48 +11,44 @@ const BASE = 'https://rideprestigo.com'
 // lastModified is resolved per-page from `git log -1` on the corresponding
 // source file at build time. Uniform build-time lastmod is discounted by
 // Google; real per-page dates let Search Console see genuine freshness signals.
+//
+// changeFrequency and priority are omitted: Google has stated it largely ignores
+// these hints, and removing them keeps the sitemap clean and future-proof.
 
 type SitemapEntry = MetadataRoute.Sitemap[number]
 
-const entry = (
-  urlPath: string,
-  sourceFile: string,
-  changeFrequency: SitemapEntry['changeFrequency'],
-  priority: number,
-): SitemapEntry => ({
+const entry = (urlPath: string, sourceFile: string): SitemapEntry => ({
   url: urlPath === '' ? BASE : `${BASE}${urlPath}`,
   lastModified: lastModFor(sourceFile),
-  changeFrequency,
-  priority,
 })
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routeEntries: MetadataRoute.Sitemap = ROUTES.map((r) =>
-    entry(`/routes/${r.slug}`, `app/routes/${r.slug}/page.tsx`, 'monthly', 0.85),
+    entry(`/routes/${r.slug}`, `app/routes/${r.slug}/page.tsx`),
   )
 
   return [
-    entry('', 'app/page.tsx', 'weekly', 1),
-    entry('/book', 'app/book/page.tsx', 'weekly', 0.95),
-    entry('/services', 'app/services/page.tsx', 'monthly', 0.9),
-    entry('/services/airport-transfer', 'app/services/airport-transfer/page.tsx', 'monthly', 0.85),
-    entry('/services/intercity-routes', 'app/services/intercity-routes/page.tsx', 'monthly', 0.85),
-    entry('/services/vip-events', 'app/services/vip-events/page.tsx', 'monthly', 0.85),
-    entry('/services/city-rides', 'app/services/city-rides/page.tsx', 'monthly', 0.85),
-    entry('/services/group-transfers', 'app/services/group-transfers/page.tsx', 'monthly', 0.85),
-    entry('/fleet', 'app/fleet/page.tsx', 'monthly', 0.8),
-    entry('/routes', 'app/routes/page.tsx', 'monthly', 0.9),
+    entry('', 'app/page.tsx'),
+    entry('/book', 'app/book/page.tsx'),
+    entry('/services', 'app/services/page.tsx'),
+    entry('/services/airport-transfer', 'app/services/airport-transfer/page.tsx'),
+    entry('/services/intercity-routes', 'app/services/intercity-routes/page.tsx'),
+    entry('/services/vip-events', 'app/services/vip-events/page.tsx'),
+    entry('/services/city-rides', 'app/services/city-rides/page.tsx'),
+    entry('/services/group-transfers', 'app/services/group-transfers/page.tsx'),
+    entry('/fleet', 'app/fleet/page.tsx'),
+    entry('/routes', 'app/routes/page.tsx'),
     ...routeEntries,
     // Comparison + guide pages — AI-search-optimised editorial for LLM citation
-    entry('/compare/prague-vienna-transfer-vs-train', 'app/compare/prague-vienna-transfer-vs-train/page.tsx', 'monthly', 0.75),
-    entry('/compare/prague-airport-taxi-vs-chauffeur', 'app/compare/prague-airport-taxi-vs-chauffeur/page.tsx', 'monthly', 0.75),
-    entry('/guides/prague-airport-to-city-center', 'app/guides/prague-airport-to-city-center/page.tsx', 'monthly', 0.75),
-    entry('/corporate', 'app/corporate/page.tsx', 'monthly', 0.8),
-    entry('/about', 'app/about/page.tsx', 'yearly', 0.6),
-    entry('/authors/roman-ustyugov', 'app/authors/roman-ustyugov/page.tsx', 'yearly', 0.5),
-    entry('/faq', 'app/faq/page.tsx', 'monthly', 0.7),
-    entry('/contact', 'app/contact/page.tsx', 'yearly', 0.7),
-    entry('/privacy', 'app/privacy/page.tsx', 'yearly', 0.3),
-    entry('/terms', 'app/terms/page.tsx', 'yearly', 0.3),
+    entry('/compare/prague-vienna-transfer-vs-train', 'app/compare/prague-vienna-transfer-vs-train/page.tsx'),
+    entry('/compare/prague-airport-taxi-vs-chauffeur', 'app/compare/prague-airport-taxi-vs-chauffeur/page.tsx'),
+    entry('/guides/prague-airport-to-city-center', 'app/guides/prague-airport-to-city-center/page.tsx'),
+    entry('/corporate', 'app/corporate/page.tsx'),
+    entry('/about', 'app/about/page.tsx'),
+    entry('/authors/roman-ustyugov', 'app/authors/roman-ustyugov/page.tsx'),
+    entry('/faq', 'app/faq/page.tsx'),
+    entry('/contact', 'app/contact/page.tsx'),
+    entry('/privacy', 'app/privacy/page.tsx'),
+    entry('/terms', 'app/terms/page.tsx'),
   ]
 }

@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
+import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
   title: 'Intercity Routes from Prague — Vienna, Berlin, Munich',
@@ -10,6 +15,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/services/intercity-routes',
     title: 'Intercity Routes from Prague — Vienna, Berlin, Munich | PRESTIGO',
     description: 'Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door.',
+    images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
   },
 }
 
@@ -70,8 +76,11 @@ export default function IntercityRoutesPage() {
       <Nav />
 
       {/* Hero */}
-      <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
+        <div className="absolute inset-0">
+          <Image src="/hero-intercity-routes.png" alt="Intercity Routes from Prague — PRESTIGO" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Intercity Routes · Central Europe</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
@@ -88,8 +97,10 @@ export default function IntercityRoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Popular routes */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Popular routes</p>
           <span className="copper-line mb-10 block" />
@@ -115,8 +126,10 @@ export default function IntercityRoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Features */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Why choose a private transfer</p>
           <span className="copper-line mb-10 block" />
@@ -132,8 +145,10 @@ export default function IntercityRoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* vs train comparison */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Private transfer vs. train</p>
           <span className="copper-line mb-10 block" />
@@ -164,8 +179,10 @@ export default function IntercityRoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <p className="label mb-6">Ready to go?</p>
           <span className="copper-line mb-8 block mx-auto" />

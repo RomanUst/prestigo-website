@@ -24,7 +24,7 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
 ]
 
 /**
- * Build a per-request Content-Security-Policy header.
+ * Build a per-request Content-Security-Policy header for dynamic routes.
  *
  * script-src uses a nonce + strict-dynamic instead of unsafe-inline:
  *   - 'nonce-{nonce}': only script elements with this exact nonce attribute execute.
@@ -55,6 +55,42 @@ function buildCsp(nonce: string): string {
     "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com",
     "report-uri /api/csp-report",
   ].join('; ')
+}
+
+/**
+ * CSP for static/edge-cached routes (marketing pages).
+ *
+ * Nonce-based CSP is incompatible with edge caching: the nonce in the cached
+ * HTML would be stale relative to the per-request nonce injected by middleware,
+ * causing browsers to block the Next.js runtime chunks. These pages contain no
+ * user-supplied content, so unsafe-inline is an acceptable trade-off.
+ */
+function buildCspStatic(): string {
+  return [
+    "default-src 'self'",
+    process.env.NODE_ENV === 'development'
+      ? "script-src 'unsafe-inline' 'unsafe-eval' https: http:"
+      : "script-src 'unsafe-inline' https: http:",
+    "frame-src https://js.stripe.com https://hooks.stripe.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com",
+    "report-uri /api/csp-report",
+  ].join('; ')
+}
+
+/**
+ * Routes that require per-request dynamic rendering (auth, booking, API).
+ * Everything else is a static marketing page served from the edge cache.
+ */
+function isDynamicPath(pathname: string): boolean {
+  return (
+    pathname.startsWith('/book') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/api') ||
+    pathname.startsWith('/driver')
+  )
 }
 
 /**
@@ -108,18 +144,24 @@ export async function middleware(request: NextRequest) {
   const csrfError = checkCsrf(request)
   if (csrfError) return csrfError
 
-  // Generate a cryptographically random nonce per request.
-  // btoa + randomUUID works in the Edge runtime (no Buffer/Node.js required).
-  const nonce = btoa(crypto.randomUUID())
+  const { pathname } = request.nextUrl
 
-  // Forward nonce to server components via request header so layout.tsx can
-  // read it with headers() and pass it to <Script nonce={nonce}> components.
-  const reqHeaders = new Headers(request.headers)
-  reqHeaders.set('x-nonce', nonce)
-
-  const response = await updateSession(request, reqHeaders)
-  response.headers.set('Content-Security-Policy', buildCsp(nonce))
-  return response
+  if (isDynamicPath(pathname)) {
+    // Dynamic routes: generate a per-request nonce for strict CSP.
+    // btoa + randomUUID works in the Edge runtime (no Buffer/Node.js required).
+    const nonce = btoa(crypto.randomUUID())
+    const reqHeaders = new Headers(request.headers)
+    reqHeaders.set('x-nonce', nonce)
+    const response = await updateSession(request, reqHeaders)
+    response.headers.set('Content-Security-Policy', buildCsp(nonce))
+    return response
+  } else {
+    // Static/cacheable routes: no nonce (nonce + edge caching are incompatible).
+    // x-nonce is absent, so layout.tsx falls back to nonce='' safely.
+    const response = await updateSession(request, new Headers(request.headers))
+    response.headers.set('Content-Security-Policy', buildCspStatic())
+    return response
+  }
 }
 
 export const config = {

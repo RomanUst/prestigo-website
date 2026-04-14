@@ -10,7 +10,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { dateDiffDays } from '@/lib/pricing'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
-import { sendStatusConfirmedEmail, sendStatusCancelledEmail } from '@/lib/email'
+import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
 
 async function getAdminUser() {
@@ -150,6 +150,7 @@ export async function PATCH(request: Request) {
       const statusToFlagKey: Record<string, string> = {
         confirmed: 'confirmed',
         cancelled: 'cancelled',
+        completed: 'completed',
       }
       const flagKey = statusToFlagKey[parsed.data.status]
 
@@ -173,6 +174,10 @@ export async function PATCH(request: Request) {
           } else if (parsed.data.status === 'cancelled') {
             void sendStatusCancelledEmail(current).catch(err =>
               console.error('[booking-notify] cancelled:', err)
+            )
+          } else if (parsed.data.status === 'completed') {
+            void sendPostTripEmail(current).catch(err =>
+              console.error('[booking-notify] post-trip:', err)
             )
           }
         }

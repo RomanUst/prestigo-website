@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 
 export const dynamic = 'force-static'
 
+import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
 import Reveal from '@/components/Reveal'
+import Divider from '@/components/Divider'
 
 const ROUTES_DESCRIPTION = 'Private chauffeur from Prague to 30 Central European destinations. Vienna €485, Berlin €580, Munich €635, Budapest €885. Fixed price, door-to-door.'
 
@@ -81,8 +83,11 @@ export default function RoutesPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
-      <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
+        <div className="absolute inset-0">
+          <Image src="/hero-intercity-routes.png" alt="PRESTIGO intercity routes — private chauffeur Central Europe" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Intercity Routes</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
@@ -95,8 +100,10 @@ export default function RoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Planning intercity travel */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
           <Reveal variant="up" className="md:col-span-2"><div>
             <p className="label mb-6">Planning intercity travel</p>
@@ -116,6 +123,8 @@ export default function RoutesPage() {
           </div></Reveal>
         </div>
       </section>
+
+      <Divider />
 
       {/* Route sections — grouped by country to replace 30 H2s with 7 country
           H2s and route H3s nested beneath, collapsing the H2 count from 54 to
@@ -243,8 +252,10 @@ export default function RoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* How it works */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-14">How it works</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -263,8 +274,10 @@ export default function RoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Border crossings, tolls, paperwork */}
-      <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><div className="mb-14">
             <p className="label mb-6">Borders, tolls &amp; paperwork</p>
@@ -296,8 +309,10 @@ export default function RoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Luggage, pets, child seats */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up"><div>
             <p className="label mb-6">Luggage, pets &amp; children</p>
@@ -309,7 +324,7 @@ export default function RoutesPage() {
           </div></Reveal>
           <Reveal variant="up" delay={150}><ul className="flex flex-col gap-4">
             {[
-              { t: 'E-Class luggage', b: '2 large suitcases + 2 cabin bags, or 3 large cases for 2 passengers.' },
+              { t: 'E-Class luggage', b: '2 large suitcases + 2 cabin bags.' },
               { t: 'S-Class luggage', b: '2 large suitcases + 2 cabin bags. Same capacity, with executive rear legroom and massage seats.' },
               { t: 'V-Class luggage', b: 'Up to 6 large suitcases and 6 cabin bags with all seats occupied — effectively unlimited for 2 or 3 passengers.' },
               { t: 'Pets welcome', b: 'Small pets travel free in a carrier; larger dogs accepted by arrangement in the V-Class. Please note at booking.' },
@@ -328,8 +343,60 @@ export default function RoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
+      {/* Long-distance / red routes — noindex, quote on request */}
+      <section className="bg-anthracite-mid py-14 md:py-16">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Long-distance transfers</p>
+          <span className="copper-line mb-8 block" />
+          <h2 className="display text-[24px] md:text-[30px] mb-4">
+            Quote on <span className="display-italic">request.</span>
+          </h2>
+          <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
+            The following destinations are priced individually based on route, timing, and overnight requirements. Expect a written quote within 2 hours.
+          </p>
+          <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            {[
+              { label: 'Erfurt', href: '/routes/prague-to-erfurt' },
+              { label: 'Frankfurt', href: '/routes/prague-to-frankfurt' },
+              { label: 'Augsburg', href: '/routes/prague-to-augsburg' },
+              { label: 'Stuttgart', href: '/routes/prague-to-stuttgart' },
+              { label: 'Cologne', href: '/routes/prague-to-cologne' },
+              { label: 'Düsseldorf', href: '/routes/prague-to-dusseldorf' },
+              { label: 'Hamburg', href: '/routes/prague-to-hamburg' },
+              { label: 'Innsbruck', href: '/routes/prague-to-innsbruck' },
+              { label: 'Košice', href: '/routes/prague-to-kosice' },
+              { label: 'Basel', href: '/routes/prague-to-basel' },
+              { label: 'Zürich', href: '/routes/prague-to-zurich' },
+              { label: 'Bern', href: '/routes/prague-to-bern' },
+              { label: 'Geneva', href: '/routes/prague-to-geneva' },
+              { label: 'Venice', href: '/routes/prague-to-venice' },
+              { label: 'Verona', href: '/routes/prague-to-verona' },
+              { label: 'Milan', href: '/routes/prague-to-milan' },
+              { label: 'Strasbourg', href: '/routes/prague-to-strasbourg' },
+              { label: 'Paris', href: '/routes/prague-to-paris' },
+              { label: 'Brussels', href: '/routes/prague-to-brussels' },
+              { label: 'Amsterdam', href: '/routes/prague-to-amsterdam' },
+            ].map((r) => (
+              <li key={r.href}>
+                <a
+                  href={r.href}
+                  className="flex items-center justify-between border border-anthracite-light px-4 py-3 hover:border-copper/40 transition-colors group"
+                >
+                  <span className="font-body font-light text-[12px] text-warmgrey group-hover:text-offwhite transition-colors">Prague → {r.label}</span>
+                  <span className="font-body text-[10px]" style={{ color: 'var(--copper)' }}>→</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <Divider />
+
       {/* FAQ */}
-      <section className="bg-anthracite py-16 md:py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2></Reveal>
           <div className="flex flex-col gap-0">
@@ -345,8 +412,10 @@ export default function RoutesPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">

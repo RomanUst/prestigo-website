@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import Reveal from '@/components/Reveal'
 
 const routes = [
@@ -11,8 +12,15 @@ const routes = [
 
 export default function Routes() {
   return (
-    <section id="routes" aria-labelledby="routes-heading" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
+    <section id="routes" aria-labelledby="routes-heading" className="relative overflow-hidden bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
+      <Image
+        src="/multi-day-itineraries-bg.png"
+        alt=""
+        aria-hidden="true"
+        fill
+        style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.22 }}
+      />
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12">
 
         <Reveal variant="up" className="mb-14">
           <p className="label mb-6">Intercity routes</p>

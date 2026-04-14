@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
+import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
   title: 'FAQ — Prague Chauffeur Service: Prices, Booking & More',
@@ -156,8 +160,10 @@ export default function FaqPage() {
       <Nav />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
+      <Divider />
+
       {/* Hero */}
-      <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
+      <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Frequently Asked Questions</p>
           <span className="copper-line mb-8 block" />
@@ -190,8 +196,10 @@ export default function FaqPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-4">
             Still have a question?<br />

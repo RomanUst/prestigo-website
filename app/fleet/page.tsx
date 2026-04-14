@@ -3,10 +3,9 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
+import Divider from '@/components/Divider'
 
-// Static page — regenerate at most once per hour so updates to the fleet
-// copy propagate without forcing on-demand SSR on every request.
-export const revalidate = 3600
+export const dynamic = 'force-static'
 
 const FLEET_DESCRIPTION = 'Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared.'
 
@@ -53,13 +52,13 @@ const vehicles: VehicleSpec[] = [
     description: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
     features: ['Leather interior', 'Dual-zone climate control', 'Onboard Wi-Fi', 'USB-C fast charging', 'Bottled water'],
     idealFor: 'Airport, city, solo business travel',
-    price: 'From €69',
-    priceAmount: '69',
-    photo: '/e-class-photo.png',
+    price: 'From €49',
+    priceAmount: '49',
+    photo: '/e-class-photo.webp',
     photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 3,
-      luggage: '3 large cases + 2 cabin bags',
+      luggage: '2 large cases + 2 cabin bags',
       fuelType: 'hybrid',
       transmission: 'automatic',
       driveType: 'rwd',
@@ -76,13 +75,13 @@ const vehicles: VehicleSpec[] = [
     description: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
     features: ['Premium Nappa leather', 'Rear massage seats', 'Ambient lighting', 'Executive rear package', 'Champagne on request'],
     idealFor: 'VIP, diplomatic, extended intercity',
-    price: 'From €89',
-    priceAmount: '89',
-    photo: '/s-class-photo.png',
+    price: 'From €98',
+    priceAmount: '98',
+    photo: '/s-class-photo.webp',
     photoAlt: 'Mercedes-Benz S-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 3,
-      luggage: '3 large cases + 2 cabin bags',
+      luggage: '2 large cases + 2 cabin bags',
       fuelType: 'hybrid',
       transmission: 'automatic',
       driveType: 'awd',
@@ -99,9 +98,9 @@ const vehicles: VehicleSpec[] = [
     description: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
     features: ['6 captain seats', 'Full luggage capacity', 'Rear privacy glass', 'Fold-out table', 'Individual reading lights'],
     idealFor: 'Groups, families, conference transfers',
-    price: 'From €69',
-    priceAmount: '69',
-    photo: '/v-class-photo.png',
+    price: 'From €85',
+    priceAmount: '85',
+    photo: '/v-class-photo.webp',
     photoAlt: 'Mercedes-Benz V-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 6,
@@ -202,7 +201,7 @@ const fleetFaqs = [
   },
   {
     q: 'How many passengers and how much luggage fit in each class?',
-    a: 'The Mercedes E-Class seats up to 3 passengers and carries 3 large suitcases plus 2 cabin bags comfortably in its 540-litre boot — the right choice for a solo traveller or couple with full airport luggage. The S-Class has the same 3-passenger limit but adds executive-package rear legroom and massage seats; the boot is 550 litres, so luggage capacity is effectively identical to the E-Class. The V-Class seats up to 6 passengers in individual captain chairs and takes 6 large cases plus 6 cabin bags without compromise thanks to its 1,410-litre cargo area — the only fleet choice for families, board transfers, and multi-bag intercity trips. If you are carrying skis, golf bags, or oversized items, book the V-Class and tell us at booking.',
+    a: 'The Mercedes E-Class seats up to 3 passengers and carries 2 large suitcases plus 2 cabin bags comfortably in its 540-litre boot — the right choice for a solo traveller or couple with full airport luggage. The S-Class has the same 3-passenger limit but adds executive-package rear legroom and massage seats; the boot is 550 litres, so luggage capacity is effectively identical to the E-Class. The V-Class seats up to 6 passengers in individual captain chairs and takes 6 large cases plus 6 cabin bags without compromise thanks to its 1,410-litre cargo area — the only fleet choice for families, board transfers, and multi-bag intercity trips. If you are carrying skis, golf bags, or oversized items, book the V-Class and tell us at booking.',
   },
   {
     q: 'Are the vehicles insured and licensed for international travel?',
@@ -246,7 +245,7 @@ export default function FleetPage() {
       <Nav />
 
       {/* Hero */}
-      <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
           <Image src="/hero-fleet.webp" alt="PRESTIGO Mercedes Fleet — Prague Chauffeur" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
@@ -305,14 +304,7 @@ export default function FleetPage() {
                   {[
                     ['Seats', `${v.specs.seating} passengers`],
                     ['Luggage', v.specs.luggage],
-                    ['Configuration', v.specs.vehicleConfiguration],
-                    ['Fuel type', v.specs.fuelType.charAt(0).toUpperCase() + v.specs.fuelType.slice(1)],
-                    ['Transmission', v.specs.transmission.charAt(0).toUpperCase() + v.specs.transmission.slice(1)],
-                    ['Drive', v.specs.driveType.toUpperCase()],
-                    ['Model year', `${v.specs.modelYearFrom}+`],
-                    ['Wheelbase', v.specs.wheelbase],
-                    ['Cargo volume', v.specs.cargoVolume],
-                  ].filter(([, val]) => Boolean(val)).map(([label, val]) => (
+                  ].map(([label, val]) => (
                     <div key={String(label)} className="flex flex-col">
                       <dt className="font-body font-medium uppercase tracking-[0.12em] text-warmgrey/80" style={{ fontSize: '9px' }}>{label}</dt>
                       <dd className="font-body font-light text-offwhite mt-1">{val}</dd>
@@ -336,8 +328,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Standards */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up" className="mb-14">
             <h2 className="display text-[28px] md:text-[36px]">Every vehicle, every time</h2>
@@ -356,8 +350,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Why Mercedes-Benz */}
-      <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
@@ -382,8 +378,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Maintenance & safety */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <div className="mb-14">
@@ -419,8 +417,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Technology onboard */}
-      <section className="bg-anthracite py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
@@ -455,8 +455,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Selection criteria */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <p className="label mb-6">How we choose a class for your journey</p>
@@ -476,8 +478,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* FAQ */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <p className="label mb-6">Fleet questions</p>
@@ -497,8 +501,10 @@ export default function FleetPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <Reveal variant="up">
           <h2 className="display text-[32px] md:text-[42px] mb-4">

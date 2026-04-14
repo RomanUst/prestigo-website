@@ -1579,3 +1579,118 @@ export async function sendDriverReminderEmail(
     console.error('[reminder] driver email failed:', err)
   }
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+// POST-TRIP THANK-YOU + REVIEW REQUEST EMAIL
+// ═══════════════════════════════════════════════════════════════════════════
+
+function buildPostTripHtml(booking: StatusEmailBooking): string {
+  const formattedDate = formatPickupDate(booking.pickup_date)
+  const route = booking.destination_address
+    ? `${escapeHtml(booking.origin_address)} &rarr; ${escapeHtml(booking.destination_address)}`
+    : escapeHtml(booking.origin_address)
+  const firstName = escapeHtml(booking.client_first_name)
+  const reviewUrl = process.env.GOOGLE_REVIEW_URL ?? 'https://g.page/r/CdQIkiuHQ1UOEBM/review'
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thank you for riding with Prestigo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
+  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+
+      <!-- Header copper gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 26px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 8px;">Thank You, ${firstName}</h1>
+      <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 14px; color: #9A958F; text-align: center; margin: 0 32px 32px; line-height: 1.7;">It was a pleasure to have you on board. We hope your journey was everything you expected — and more.</p>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
+      </div>
+
+      <!-- Journey summary -->
+      <div style="padding: 0 32px 32px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${route}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Date</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formattedDate} at ${escapeHtml(booking.pickup_time)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Vehicle</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- Review request -->
+      <div style="background-color: #2A2A2D; margin: 0 32px 32px; padding: 32px; text-align: center;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 16px;">SHARE YOUR EXPERIENCE</div>
+        <p style="font-size: 14px; color: #9A958F; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review helps other travellers discover Prestigo.</p>
+        <a href="${escapeHtml(reviewUrl)}"
+           style="display: inline-block; background-color: #B87333; color: #F5F2EE; padding: 16px 36px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Montserrat', Arial, sans-serif;">
+          LEAVE A REVIEW
+        </a>
+      </div>
+
+      <!-- Book again hint -->
+      <div style="padding: 0 32px 32px; text-align: center;">
+        <p style="font-size: 14px; color: #9A958F; margin: 0; line-height: 1.7;">
+          Planning another trip? Book at
+          <a href="https://rideprestigo.com" style="color: #B87333; text-decoration: none;">rideprestigo.com</a>
+          or contact us at
+          <a href="mailto:info@rideprestigo.com" style="color: #B87333; text-decoration: none;">info@rideprestigo.com</a>.
+        </p>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send post-trip thank-you + review request to the client.
+ * Triggered when admin marks a booking as completed.
+ * Non-fatal — catches and logs errors, does not throw.
+ */
+export async function sendPostTripEmail(booking: StatusEmailBooking): Promise<void> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'Prestigo <noreply@prestigo.cz>',
+      to: [booking.client_email],
+      subject: `Thank you for riding with Prestigo — ${escapeHtml(booking.booking_reference)}`,
+      html: buildPostTripHtml(booking),
+    })
+    if (error) console.error('[booking-notify] post-trip email error:', error)
+  } catch (err) {
+    console.error('[booking-notify] post-trip email failed:', err)
+  }
+}

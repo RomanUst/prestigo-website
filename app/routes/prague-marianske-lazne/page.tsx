@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
+import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
   title: 'Prague to Mariánské Lázně Private Transfer — From €270',
@@ -23,8 +27,8 @@ const highlights = [
 ]
 
 const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '3 bags', price: 'From €270', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '3 bags', price: 'From €405', photo: '/s-class-photo.png' },
+  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €270', photo: '/e-class-photo.png' },
+  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €405', photo: '/s-class-photo.png' },
   { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €315', photo: '/v-class-photo.png' },
 ]
 
@@ -105,7 +109,7 @@ const serviceSchema = {
       {
         '@type': 'Offer',
         name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 3 suitcases',
+        description: 'Up to 3 passengers, 2 suitcases',
         price: '270',
         priceCurrency: 'EUR',
         availability: 'https://schema.org/InStock',
@@ -165,7 +169,7 @@ export default function PragueMarianskeLaznePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
 
       {/* Hero */}
-      <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/photohero.png" alt="Mariánské Lázně" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Mariánské Lázně</p>
@@ -179,8 +183,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Highlights bar */}
-      <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div></Reveal>))}
@@ -188,8 +194,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Opening paragraph */}
-      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
             A private transfer from Prague to Mariánské Lázně is a two-hour drive west across Bohemia, and every hour of that drive should feel like part of the cure — not a logistics problem. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have covered this route for spa guests, weekend travellers, and business clients hundreds of times. The price is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your spa hotel near the Main Colonnade.
@@ -200,8 +208,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* The Route narrative */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
@@ -221,8 +231,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* What's included */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
@@ -233,20 +245,24 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Fleet */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Fleet</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /><div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div></Reveal>))}
+            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div></Reveal>))}
           </div>
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
         </div>
       </section>
 
+      <Divider />
+
       {/* Journey timeline + Good to know */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
@@ -276,8 +292,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* What to expect from your chauffeur */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
@@ -297,8 +315,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Why book with Prestigo */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
@@ -315,16 +335,20 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* FAQ */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<Reveal key={faq.q} variant="up" delay={i * 70}><div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div></Reveal>))}</div>
         </div>
       </section>
 
+      <Divider />
+
       {/* Related routes */}
-      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
@@ -350,8 +374,10 @@ export default function PragueMarianskeLaznePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Final CTA */}
-      <section className="bg-anthracite py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Mariánské Lázně.<br /><span className="display-italic">From €270, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>

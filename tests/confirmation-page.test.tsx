@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
 import type { ReactNode } from 'react'
 
+// fetch is called with a relative URL (/api/meta-capi) inside a useEffect on the
+// confirmation page. jsdom has no base URL so Node's URL parser rejects it with
+// ERR_INVALID_URL. Mock fetch globally so those fire-and-forget calls resolve
+// silently without polluting the test output with unhandled rejections.
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true }))
+
 const { useSearchParamsMock } = vi.hoisted(() => {
   const useSearchParamsMock = vi.fn(() => new URLSearchParams('ref=PRG-20260415-ABCDEF&type=paid'))
   return { useSearchParamsMock }

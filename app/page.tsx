@@ -57,11 +57,6 @@ const localBusinessSchema = {
     addressLocality: 'Vysoký Újezd',
     addressCountry: 'CZ',
   },
-  geo: {
-    '@type': 'GeoCoordinates',
-    latitude: '50.0755',
-    longitude: '14.4378',
-  },
   image: 'https://rideprestigo.com/photohero.png',
   logo: {
     '@type': 'ImageObject',

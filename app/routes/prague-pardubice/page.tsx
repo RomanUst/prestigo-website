@@ -1,8 +1,12 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
+import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
   title: 'Prague to Pardubice Private Transfer — From €180',
@@ -23,8 +27,8 @@ const highlights = [
 ]
 
 const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '3 bags', price: 'From €180', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '3 bags', price: 'From €270', photo: '/s-class-photo.png' },
+  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €180', photo: '/e-class-photo.png' },
+  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €270', photo: '/s-class-photo.png' },
   { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €210', photo: '/v-class-photo.png' },
 ]
 
@@ -105,7 +109,7 @@ const serviceSchema = {
       {
         '@type': 'Offer',
         name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 3 suitcases',
+        description: 'Up to 3 passengers, 2 suitcases',
         price: '180',
         priceCurrency: 'EUR',
         availability: 'https://schema.org/InStock',
@@ -165,7 +169,7 @@ export default function PraguePardubicePage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
 
       {/* Hero */}
-      <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
           <Image src="/photohero.png" alt="Pardubice" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
         </div>
@@ -186,8 +190,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Highlights bar */}
-      <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {highlights.map((h) => (
@@ -202,8 +208,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Opening paragraph */}
-      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
             A private transfer from Prague to Pardubice is an hour and a half of clean motorway, and every kilometre of that drive should feel like part of the trip — not a logistics problem to solve with a train schedule. Prestigo runs a fleet of black Mercedes vehicles and bilingual chauffeurs who have driven the D11 east hundreds of times. The fare is fixed before you book. The car is waiting when you step outside. The chauffeur already knows which entrance to use at your office in the industrial park, your suite at the racecourse, or your apartment near Pernštýnské Square in the Old Town.
@@ -214,8 +222,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* The Route narrative */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
@@ -235,8 +245,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* What's included */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
@@ -247,15 +259,17 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Fleet */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Fleet</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
-                <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /><div style={{ position: 'absolute', bottom: 0, right: 0, width: 120, height: 120, background: 'radial-gradient(circle at bottom right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 40%, transparent 75%)' }} /></div>
+                <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} /></div>
                 <div className="p-8 flex flex-col gap-6 flex-1">
                   <div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div>
                   <div className="flex flex-col gap-2">
@@ -272,8 +286,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Journey timeline + Good to know */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
@@ -318,8 +334,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* What to expect from your chauffeur */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
@@ -339,8 +357,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Why book with Prestigo */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
@@ -357,8 +377,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* FAQ */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
           <div className="flex flex-col gap-0">
@@ -372,8 +394,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Related routes */}
-      <section className="bg-anthracite py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
@@ -399,8 +423,10 @@ export default function PraguePardubicePage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Final CTA */}
-      <section className="bg-anthracite py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">Prague to Pardubice.<br /><span className="display-italic">From €180, fixed.</span></h2>

@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
@@ -27,6 +30,7 @@ interface ServiceEntry {
   bookHref: string
   bookCta: string
   isNew?: boolean
+  image?: string
 }
 
 const services: ServiceEntry[] = [
@@ -40,6 +44,7 @@ const services: ServiceEntry[] = [
     href: '/services/airport-transfer',
     bookHref: '/book',
     bookCta: 'BOOK NOW',
+    image: '/hero-airport-transfer.webp',
   },
   {
     label: 'CITY-TO-CITY',
@@ -51,6 +56,7 @@ const services: ServiceEntry[] = [
     href: '/services/intercity-routes',
     bookHref: '/routes',
     bookCta: 'VIEW ROUTES',
+    image: '/hero-intercity-routes.png',
   },
   {
     label: 'CORPORATE',
@@ -62,6 +68,7 @@ const services: ServiceEntry[] = [
     href: '/services/corporate-accounts',
     bookHref: '/corporate',
     bookCta: 'SET UP ACCOUNT',
+    image: '/hero-corporate-accounts.png',
   },
   {
     label: 'VIP',
@@ -73,17 +80,19 @@ const services: ServiceEntry[] = [
     href: '/services/vip-events',
     bookHref: '/contact',
     bookCta: 'ENQUIRE',
+    image: '/hero-vip-events.png',
   },
   {
     label: 'CITY',
     title: 'Prague City Rides',
     description: 'Hourly hire within Prague. Business meetings, theatre, private dinner at a Michelin-starred restaurant. Your chauffeur knows the city — not just the roads.',
     features: ['Hourly hire from 2 hours', 'Local knowledge included', 'Airport-quality service, city rates', 'Ideal for sightseeing & leisure'],
-    price: 'From €80/hour',
+    price: 'From €49',
     cta: 'LEARN MORE',
     href: '/services/city-rides',
     bookHref: '/book',
     bookCta: 'BOOK NOW',
+    image: '/hero-city-rides.png',
   },
   {
     label: 'GROUP',
@@ -95,6 +104,7 @@ const services: ServiceEntry[] = [
     href: '/services/group-transfers',
     bookHref: '/contact',
     bookCta: 'GET QUOTE',
+    image: '/hero-group-transfers.png',
   },
   {
     label: 'MULTI-DAY',
@@ -107,6 +117,7 @@ const services: ServiceEntry[] = [
     bookHref: '/book/multi-day',
     bookCta: 'GET QUOTE',
     isNew: true,
+    image: '/multi-day-hero.png',
   },
 ]
 
@@ -220,49 +231,88 @@ export default function ServicesPage() {
 
       {/* Service cards */}
       <section className="bg-anthracite py-16 md:py-24">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-0">
-          {services.map((s, i) => (
-            <Reveal key={s.title} variant="up" delay={i * 80}>
-            <div
-              className={`py-14 md:py-16 border-b border-anthracite-light grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 ${i === 0 ? 'border-t' : ''}`}
-            >
-              <div>
-                <div className="flex items-center gap-3 mb-4">
-                  <p className="label">{s.label}</p>
-                  {s.isNew && (
-                    <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+        {/* top divider */}
+        <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--copper) 50%, transparent 100%)' }} />
+        <div className="flex flex-col gap-0">
+          {services.map((s, i) => {
+            const cardContent = (
+              <>
+                <div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <p className="label">{s.label}</p>
+                    {s.isNew && (
+                      <span className="font-body font-light text-[8px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                    )}
+                  </div>
+                  <h2 className="display text-[28px] md:text-[34px] mb-4">{s.title}</h2>
+                  <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{s.description}</p>
+                  {s.price && (
+                    <p className="font-body font-light text-[13px] mt-6" style={{ color: 'var(--copper-light)' }}>
+                      {s.price}
+                    </p>
                   )}
                 </div>
-                <h2 className="display text-[28px] md:text-[34px] mb-4">{s.title}</h2>
-                <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{s.description}</p>
-                {s.price && (
-                  <p className="font-body font-light text-[13px] mt-6" style={{ color: 'var(--copper-light)' }}>
-                    {s.price}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col justify-between gap-8">
-                <ul className="flex flex-col gap-3">
-                  {s.features.map((f) => (
-                    <li key={f} className="flex items-start gap-3">
-                      <span className="mt-[6px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
-                      <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex flex-wrap gap-3">
-                  <a href={s.href} className="btn-primary self-start">
-                    {s.cta}
-                  </a>
-                  <a href={s.bookHref} className="btn-secondary self-start">
-                    {s.bookCta}
-                  </a>
+                <div className="flex flex-col justify-between gap-8">
+                  <ul className="flex flex-col gap-3">
+                    {s.features.map((f) => (
+                      <li key={f} className="flex items-start gap-3">
+                        <span className="mt-[6px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
+                        <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <div className="flex flex-wrap gap-3">
+                    <a href={s.href} className="btn-primary self-start">
+                      {s.cta}
+                    </a>
+                    <a href={s.bookHref} className="btn-secondary self-start">
+                      {s.bookCta}
+                    </a>
+                  </div>
+                </div>
+              </>
+            )
+
+            const divider = (
+              <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--copper) 50%, transparent 100%)' }} />
+            )
+
+            if (s.image) {
+              return (
+                <Reveal key={s.title} variant="up" delay={i * 80}>
+                <div
+                  className="relative overflow-hidden"
+                  style={{
+                    backgroundImage: `url(${s.image})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    minHeight: '460px',
+                  }}
+                >
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(28,28,30,0.92) 30%, rgba(28,28,30,0.55) 100%)' }} />
+                  <div className="relative z-10 max-w-7xl mx-auto py-14 md:py-16 px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+                    {cardContent}
+                  </div>
+                </div>
+                {divider}
+                </Reveal>
+              )
+            }
+
+            return (
+              <Reveal key={s.title} variant="up" delay={i * 80}>
+              <div>
+                <div className="max-w-7xl mx-auto py-14 md:py-16 px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+                  {cardContent}
                 </div>
               </div>
-            </div>
-            </Reveal>
-          ))}
+              {divider}
+              </Reveal>
+            )
+          })}
         </div>
+        {/* bottom divider */}
+        <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--copper) 50%, transparent 100%)' }} />
       </section>
 
       {/* Trust block */}

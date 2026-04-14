@@ -73,6 +73,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
+        <meta property="og:type" content="website" />
         <meta property="og:image" content="https://rideprestigo.com/photohero.png" />
         {/* Hero image is the LCP element — preload the 24 KB AVIF directly
             rather than the 1.42 MB PNG. AVIF is supported by ~96% of global

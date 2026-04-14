@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
+import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
   title: 'VIP & Events Chauffeur Prague — Diplomatic & Private',
@@ -10,6 +15,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/services/vip-events',
     title: 'VIP & Events Chauffeur Prague — Diplomatic & Private | PRESTIGO',
     description: 'VIP chauffeur service in Prague for diplomatic visits, private events, luxury hotel transfers, and multi-vehicle coordination.',
+    images: [{ url: 'https://rideprestigo.com/hero-vip-events.png', width: 1200, height: 630 }],
   },
 }
 
@@ -69,8 +75,11 @@ export default function VipEventsPage() {
       <Nav />
 
       {/* Hero */}
-      <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
+        <div className="absolute inset-0">
+          <Image src="/hero-vip-events.png" alt="VIP & Events Chauffeur Prague — PRESTIGO" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">VIP & Events · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
@@ -87,8 +96,10 @@ export default function VipEventsPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* On request callout */}
-      <section className="bg-anthracite-mid py-10 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>Pricing</p>
@@ -106,8 +117,10 @@ export default function VipEventsPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Features */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Our commitment</p>
           <span className="copper-line mb-10 block" />
@@ -123,8 +136,10 @@ export default function VipEventsPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Occasions */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Occasions we serve</p>
           <span className="copper-line mb-10 block" />
@@ -139,8 +154,10 @@ export default function VipEventsPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <p className="label mb-6">Discuss your requirements</p>
           <span className="copper-line mb-8 block mx-auto" />
