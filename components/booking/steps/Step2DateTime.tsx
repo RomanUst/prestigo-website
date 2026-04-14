@@ -12,6 +12,8 @@ const MINUTES: string[] = Array.from({ length: 12 }, (_, i) =>
   (i * 5).toString().padStart(2, '0')
 )
 
+const MIN_LEAD_HOURS = 12
+
 // Common DayPicker inline styles for the Prestigo dark theme
 const calendarStyles = {
   root: {
@@ -99,9 +101,10 @@ interface TimeCellProps {
   isSelected: boolean
   onSelect: (value: string) => void
   scrollIntoView?: boolean
+  disabled?: boolean
 }
 
-function TimeCell({ value, isSelected, onSelect, scrollIntoView }: TimeCellProps) {
+function TimeCell({ value, isSelected, onSelect, scrollIntoView, disabled }: TimeCellProps) {
   const ref = useRef<HTMLLIElement>(null)
 
   useEffect(() => {
@@ -115,7 +118,8 @@ function TimeCell({ value, isSelected, onSelect, scrollIntoView }: TimeCellProps
       ref={ref}
       role="option"
       aria-selected={isSelected}
-      onClick={() => onSelect(value)}
+      aria-disabled={disabled}
+      onClick={() => { if (!disabled) onSelect(value) }}
       style={{
         minHeight: 44,
         padding: '0 16px',
@@ -126,22 +130,23 @@ function TimeCell({ value, isSelected, onSelect, scrollIntoView }: TimeCellProps
         fontSize: 14,
         fontWeight: 400,
         letterSpacing: '0.05em',
-        color: isSelected ? 'var(--offwhite)' : 'var(--warmgrey)',
-        background: isSelected ? 'var(--anthracite-mid)' : 'transparent',
-        borderLeft: isSelected ? '4px solid var(--copper)' : '4px solid transparent',
-        cursor: 'pointer',
+        color: disabled ? 'var(--warmgrey)' : isSelected ? 'var(--offwhite)' : 'var(--warmgrey)',
+        opacity: disabled ? 0.35 : 1,
+        background: isSelected && !disabled ? 'var(--anthracite-mid)' : 'transparent',
+        borderLeft: isSelected && !disabled ? '4px solid var(--copper)' : '4px solid transparent',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         transition: 'background 0.15s ease, color 0.15s ease',
         listStyle: 'none',
       }}
       onMouseEnter={(e) => {
-        if (!isSelected) {
+        if (!isSelected && !disabled) {
           const el = e.currentTarget
           el.style.background = 'var(--anthracite-mid)'
           el.style.color = 'var(--offwhite)'
         }
       }}
       onMouseLeave={(e) => {
-        if (!isSelected) {
+        if (!isSelected && !disabled) {
           const el = e.currentTarget
           el.style.background = 'transparent'
           el.style.color = 'var(--warmgrey)'
@@ -162,19 +167,47 @@ export default function Step2DateTime() {
   const setPickupTime = useBookingStore((s) => s.setPickupTime)
   const setReturnDate = useBookingStore((s) => s.setReturnDate)
 
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  // Minimum booking: current time + MIN_LEAD_HOURS
+  const now = new Date()
+  const minBookingDT = new Date(now.getTime() + MIN_LEAD_HOURS * 60 * 60 * 1000)
+  const minBookingDate = new Date(minBookingDT.getFullYear(), minBookingDT.getMonth(), minBookingDT.getDate())
+  const minBookingDateStr =
+    `${minBookingDT.getFullYear()}-` +
+    `${String(minBookingDT.getMonth() + 1).padStart(2, '0')}-` +
+    `${String(minBookingDT.getDate()).padStart(2, '0')}`
+
+  // Effective earliest hour/minute on the minimum date
+  // Ceiling to next 5-min slot; handle overflow (e.g. :58 → :60 → next hour)
+  const minMinuteCeiled = Math.ceil(minBookingDT.getMinutes() / 5) * 5
+  const effectiveMinHour = minMinuteCeiled >= 60 ? minBookingDT.getHours() + 1 : minBookingDT.getHours()
+  const effectiveMinMinute = minMinuteCeiled >= 60 ? 0 : minMinuteCeiled
 
   const pickupDateObj = pickupDate ? new Date(pickupDate + 'T00:00:00') : undefined
 
-  // Minimum return date: the day after pickup (or today if no pickup selected)
-  const returnDateMin = pickupDate ? new Date(pickupDate + 'T00:00:00') : today
+  // Minimum return date: the pickup date itself (or min booking date if no pickup)
+  const returnDateMin = pickupDate ? new Date(pickupDate + 'T00:00:00') : minBookingDate
   const returnDateObj = returnDate ? new Date(returnDate + 'T00:00:00') : undefined
 
   // Derive selected hour and minute from pickupTime (stored as "HH:MM")
   const [selectedHour, selectedMinute] = pickupTime
     ? pickupTime.split(':')
     : [null, null]
+
+  // Whether the selected pickup date is the earliest allowed date (needs per-hour/minute blocking)
+  const isMinDay = pickupDate === minBookingDateStr
+
+  function isHourDisabled(h: string): boolean {
+    if (!isMinDay) return false
+    return parseInt(h, 10) < effectiveMinHour
+  }
+
+  function isMinuteDisabled(m: string): boolean {
+    if (!isMinDay || !selectedHour) return false
+    const hr = parseInt(selectedHour, 10)
+    if (hr > effectiveMinHour) return false
+    if (hr < effectiveMinHour) return true
+    return parseInt(m, 10) < effectiveMinMinute
+  }
 
   // Snap a raw minute value to the nearest 5-minute increment (floor)
   function snapMinute(raw: string | null): string {
@@ -247,7 +280,7 @@ export default function Step2DateTime() {
             mode="single"
             selected={pickupDateObj}
             onSelect={handlePickupDateSelect}
-            disabled={{ before: today }}
+            disabled={{ before: minBookingDate }}
             styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}
             modifiersStyles={modifiersStyles}
           />
@@ -309,6 +342,7 @@ export default function Step2DateTime() {
                       isSelected={selectedHour === h}
                       onSelect={handleHourSelect}
                       scrollIntoView
+                      disabled={isHourDisabled(h)}
                     />
                   ))}
                 </ul>
@@ -345,6 +379,7 @@ export default function Step2DateTime() {
                       isSelected={selectedMinute === m}
                       onSelect={handleMinuteSelect}
                       scrollIntoView
+                      disabled={isMinuteDisabled(m)}
                     />
                   ))}
                 </ul>

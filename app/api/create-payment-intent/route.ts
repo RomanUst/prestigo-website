@@ -143,6 +143,18 @@ export async function POST(req: Request) {
       }
     }
 
+    // Business rule: bookings must be at least 12 hours in advance
+    if (bookingData.pickupDate && bookingData.pickupTime) {
+      const pickupDT = new Date(`${bookingData.pickupDate}T${bookingData.pickupTime}:00`)
+      const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
+      if (!isFinite(pickupDT.getTime()) || pickupDT < minAllowedDT) {
+        return NextResponse.json(
+          { error: 'Bookings must be made at least 12 hours in advance.' },
+          { status: 422 }
+        )
+      }
+    }
+
     let rates
     try {
       rates = await getPricingConfig()

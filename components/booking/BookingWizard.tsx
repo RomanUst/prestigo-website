@@ -48,12 +48,14 @@ export default function BookingWizard() {
     switch (currentStep) {
       case 1:
         return true // Step 1 handles its own validation and Continue button
-      case 2:
-        return (
-          pickupDate !== null &&
-          pickupTime !== null &&
-          (tripType !== 'daily' || returnDate !== null)
-        )
+      case 2: {
+        if (!pickupDate || !pickupTime) return false
+        if (tripType === 'daily' && !returnDate) return false
+        // Enforce 12-hour lead time
+        const pickupDT = new Date(`${pickupDate}T${pickupTime}:00`)
+        const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
+        return pickupDT >= minAllowedDT
+      }
       case 3:
         return vehicleClass !== null && (tripType !== 'round_trip' || (returnDate !== null && returnTime !== null))
       case 4:

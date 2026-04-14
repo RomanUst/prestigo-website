@@ -24,7 +24,7 @@ const sections = [
       },
       {
         q: 'How far in advance do I need to book?',
-        a: 'We recommend booking at least 4 hours in advance. For same-day bookings, call directly on +420 725 986 855.',
+        a: 'Bookings must be made at least 12 hours in advance. For last-minute transfers, call directly on +420 725 986 855.',
       },
       {
         q: 'Can I book for someone else?',

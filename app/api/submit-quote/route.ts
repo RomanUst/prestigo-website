@@ -74,6 +74,16 @@ export async function POST(req: Request) {
     }
     const body = parsed.data
 
+    // Business rule: bookings must be at least 12 hours in advance
+    const pickupDT = new Date(`${body.pickupDate}T${body.pickupTime}:00`)
+    const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
+    if (!isFinite(pickupDT.getTime()) || pickupDT < minAllowedDT) {
+      return NextResponse.json(
+        { error: 'Bookings must be made at least 12 hours in advance.' },
+        { status: 422 }
+      )
+    }
+
     const quoteReference = generateQuoteReference()
 
     // Normalize body into metadata-style Record<string, string> for buildBookingRow
