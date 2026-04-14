@@ -47,9 +47,6 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'PRESTIGO — Premium Chauffeur Service Prague',
-    description:
-      'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
     images: ['/photohero.png'],
   },
   icons: {

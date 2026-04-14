@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Divider from '@/components/Divider'
 import ContactForm from '@/components/ContactForm'
 
 export const metadata: Metadata = {
@@ -34,7 +38,7 @@ export default function ContactPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
 
       {/* Hero */}
-      <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
           <Image src="/hero-contact.webp" alt="Contact PRESTIGO — Premium Chauffeur Prague" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)', objectPosition: '30% 15%' }} />
         </div>
@@ -129,8 +133,10 @@ export default function ContactPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* What to expect */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">What happens next</p>
           <span className="copper-line mb-10 block" />
@@ -162,8 +168,10 @@ export default function ContactPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Common enquiries */}
-      <section className="bg-anthracite py-16 md:py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div>
             <p className="label mb-6">Common enquiries</p>
@@ -184,7 +192,7 @@ export default function ContactPage() {
                 },
                 {
                   q: 'I need to cancel or change a booking.',
-                  a: 'Contact us via WhatsApp or email with your booking reference. Cancellations made at least 2 hours before departure are free of charge.',
+                  a: 'Contact us via WhatsApp or email with your booking reference. Cancellations made at least 1 hour before departure are free of charge.',
                 },
               ].map((item) => (
                 <div key={item.q} className="border-b border-anthracite-light pb-8 last:border-0 last:pb-0">

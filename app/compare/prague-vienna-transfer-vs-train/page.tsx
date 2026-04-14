@@ -99,7 +99,7 @@ const tableRows: Array<{ label: string; prestigo: string; railjet: string; flixb
   { label: '4 passenger total', prestigo: '€485 (E) or €560 (V)', railjet: '€59.60–€236', flixbus: '€40–€72', rental: '€200–€370 (7-seat van)' },
   { label: '6 passenger total', prestigo: '€560 (V-Class, fixed)', railjet: '€89.40–€354', flixbus: '€60–€108', rental: '€250–€420 (7-seat van)' },
   { label: 'Luggage allowance', prestigo: 'Unlimited — V-Class takes 6 large + 6 cabin', railjet: 'No formal limit; racks fill at peak; max 90×60×40 cm', flixbus: '1 cabin bag + 1 checked bag per passenger', rental: 'Whatever fits the car' },
-  { label: 'Flexibility / cancellation', prestigo: 'Free up to 2 h before', railjet: 'Sparschiene €14.90 non-refundable; flex €59+ changeable', flixbus: 'Paid cancellation 15 min before', rental: 'Depends on operator; drop-off fee non-refundable' },
+  { label: 'Flexibility / cancellation', prestigo: 'Free up to 1 h before', railjet: 'Sparschiene €14.90 non-refundable; flex €59+ changeable', flixbus: 'Paid cancellation 15 min before', rental: 'Depends on operator; drop-off fee non-refundable' },
   { label: 'Flight tracking on return', prestigo: 'Yes — free', railjet: 'No', flixbus: 'No', rental: 'N/A' },
   { label: 'Wi-Fi / power / comfort', prestigo: '5G router, water, climate preset, silent cabin', railjet: 'Wi-Fi, power at every seat, restaurant car', flixbus: 'Wi-Fi, power, tight seats, no restaurant', rental: 'Whatever you rent' },
   { label: 'Stops en route', prestigo: 'Brno, Mikulov, Lednice, anywhere — free', railjet: 'Pardubice, Brno, Břeclav (fixed)', flixbus: 'Fixed stops only', rental: 'Wherever you like' },

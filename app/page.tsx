@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import BookingSection from '@/components/BookingSection'
@@ -8,6 +11,7 @@ import Fleet from '@/components/Fleet'
 import Routes from '@/components/Routes'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
+import Divider from '@/components/Divider'
 
 // Canonical and openGraph URL are both set to the exact form the server
 // actually returns (no trailing slash, matching next.config behaviour) so
@@ -33,8 +37,8 @@ const localBusinessSchema = {
   '@type': ['LocalBusiness', 'TaxiService'],
   '@id': 'https://rideprestigo.com/#business',
   name: 'PRESTIGO',
-  legalName: 'chelautotrans s.r.o.',
-  taxID: '05650801',
+  legalName: 'Roman Ustyugov',
+  taxID: '05340071',
   description:
     'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
   url: 'https://rideprestigo.com',
@@ -59,6 +63,12 @@ const localBusinessSchema = {
     longitude: '14.4378',
   },
   image: 'https://rideprestigo.com/photohero.png',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://rideprestigo.com/logo.png',
+    width: 300,
+    height: 60,
+  },
   founder: {
     '@type': 'Person',
     '@id': 'https://rideprestigo.com/authors/roman-ustyugov#person',
@@ -128,11 +138,17 @@ export default function Home() {
       />
       <Nav />
       <Hero />
+      <Divider />
       <BookingSection />
+      <Divider />
       <HowItWorks />
+      <Divider />
       <Services />
+      <Divider />
       <Fleet />
+      <Divider />
       <Routes />
+      <Divider />
       <Testimonials />
       <Footer />
     </main>
