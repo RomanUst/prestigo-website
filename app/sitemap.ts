@@ -37,7 +37,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/services', 'app/services/page.tsx', 'monthly', 0.9),
     entry('/services/airport-transfer', 'app/services/airport-transfer/page.tsx', 'monthly', 0.85),
     entry('/services/intercity-routes', 'app/services/intercity-routes/page.tsx', 'monthly', 0.85),
-    entry('/services/corporate-accounts', 'app/services/corporate-accounts/page.tsx', 'monthly', 0.85),
     entry('/services/vip-events', 'app/services/vip-events/page.tsx', 'monthly', 0.85),
     entry('/services/city-rides', 'app/services/city-rides/page.tsx', 'monthly', 0.85),
     entry('/services/group-transfers', 'app/services/group-transfers/page.tsx', 'monthly', 0.85),
