@@ -123,34 +123,34 @@ export default function Step1TripType() {
           ariaLabel="Pickup location"
         />
 
-        {/* Swap icon — only for transfer and daily */}
-        {showSwapIcon && (
-          <div style={{ display: 'flex', justifyContent: 'center', marginTop: '-20px', marginBottom: '-20px' }}>
-            <button
-              type="button"
-              onClick={swapOriginDestination}
-              aria-label="Swap origin and destination"
-              onMouseEnter={() => setSwapHovered(true)}
-              onMouseLeave={() => setSwapHovered(false)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '32px',
-                height: '32px',
-                background: 'var(--anthracite)',
-                border: '1px solid var(--anthracite-light)',
-                cursor: 'pointer',
-                color: swapHovered ? 'var(--copper)' : 'var(--warmgrey)',
-                transition: 'color 0.2s ease',
-                zIndex: 1,
-                position: 'relative',
-              }}
-            >
-              <ArrowUpDown size={16} />
-            </button>
-          </div>
-        )}
+        {/* Swap icon — visible for transfer/daily, hidden (but space reserved) for hourly
+            to prevent CLS when switching trip type tabs */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '-20px', marginBottom: '-20px', visibility: showSwapIcon ? 'visible' : 'hidden' }}>
+          <button
+            type="button"
+            onClick={swapOriginDestination}
+            aria-label="Swap origin and destination"
+            tabIndex={showSwapIcon ? 0 : -1}
+            onMouseEnter={() => setSwapHovered(true)}
+            onMouseLeave={() => setSwapHovered(false)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '32px',
+              height: '32px',
+              background: 'var(--anthracite)',
+              border: '1px solid var(--anthracite-light)',
+              cursor: 'pointer',
+              color: swapHovered ? 'var(--copper)' : 'var(--warmgrey)',
+              transition: 'color 0.2s ease',
+              zIndex: 1,
+              position: 'relative',
+            }}
+          >
+            <ArrowUpDown size={16} />
+          </button>
+        </div>
 
         {/* Destination or Duration */}
         {tripType === 'hourly' ? (
