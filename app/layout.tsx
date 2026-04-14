@@ -5,6 +5,7 @@ import './globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import MetaPixel from '@/components/MetaPixel'
 import CookieBanner from '@/components/CookieBanner'
+import EngagementTracker from '@/components/EngagementTracker'
 
 const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
@@ -97,6 +98,7 @@ export default async function RootLayout({
         <GoogleAnalytics nonce={nonce} />
         <MetaPixel nonce={nonce} />
         <CookieBanner />
+        <EngagementTracker />
       </body>
     </html>
   )
