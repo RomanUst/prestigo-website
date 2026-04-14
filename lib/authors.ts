@@ -62,7 +62,12 @@ export const AUTHORS = {
       '@id': 'https://rideprestigo.com/#business',
       name: 'PRESTIGO',
     },
-    sameAs: [] as string[],
+    sameAs: [
+      // GEO/entity disambiguation — add real URLs as they are created:
+      // 'https://www.linkedin.com/in/roman-ustyugov/',   ← LinkedIn profile
+      // 'https://www.youtube.com/@RomanUstyugov',         ← YouTube channel
+      // 'https://www.wikidata.org/wiki/Q...',             ← Wikidata entity
+    ] as string[],
   },
 } satisfies Record<string, Author>
 

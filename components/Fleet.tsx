@@ -6,7 +6,7 @@ const vehicles = [
     model: 'Mercedes-Benz E-Class',
     category: 'Business',
     passengers: '3 pax',
-    bags: '3 bags',
+    bags: '2 bags',
     features: ['Leather interior', 'Tinted windows', 'Climate control', 'Wi-Fi on request'],
     photo: '/e-class-photo.png',
     photoAlt: 'Mercedes-Benz E-Class — Prague chauffeur service',
@@ -15,7 +15,7 @@ const vehicles = [
     model: 'Mercedes-Benz S-Class',
     category: 'First Class',
     passengers: '3 pax',
-    bags: '3 bags',
+    bags: '2 bags',
     features: ['Executive rear seats', 'Ambient lighting', 'Champagne service', 'Privacy screen'],
     photo: '/s-class-photo.png',
     photoAlt: 'Mercedes-Benz S-Class — Prague chauffeur service',
@@ -58,7 +58,7 @@ export default function Fleet() {
                     height={260}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     sizes="(max-width: 768px) 100vw, 400px"
-                    loading="lazy"
+                    loading={i === 0 ? 'eager' : 'lazy'}
                   />
                 </div>
 

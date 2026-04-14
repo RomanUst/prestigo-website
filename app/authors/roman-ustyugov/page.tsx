@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
@@ -82,6 +85,28 @@ export default function RomanUstyugovPage() {
             <p className="body-text text-[13px] mt-5 max-w-xl" style={{ lineHeight: '1.9' }}>
               {author.bioShort}
             </p>
+            {/* Social / entity links — populated from authors.ts sameAs array */}
+            {author.sameAs.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-6">
+                {author.sameAs.map((url) => {
+                  const isLinkedIn = url.includes('linkedin.com')
+                  const isYouTube = url.includes('youtube.com')
+                  const label = isLinkedIn ? 'LinkedIn' : isYouTube ? 'YouTube' : 'Profile'
+                  return (
+                    <a
+                      key={url}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 font-body font-light text-[11px] tracking-[0.1em] uppercase border border-anthracite-light px-4 py-2.5 hover:border-copper/50 hover:text-offwhite transition-colors"
+                      style={{ color: 'var(--warmgrey)' }}
+                    >
+                      {label} ↗
+                    </a>
+                  )
+                })}
+              </div>
+            )}
           </div>
         </div>
       </section>
