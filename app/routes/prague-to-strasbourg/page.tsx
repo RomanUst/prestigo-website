@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Strasbourg — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Strasbourg. 715 km, approx 7.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-strasbourg' },
+  alternates: {
+    canonical: '/routes/prague-to-strasbourg',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-strasbourg',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-strasbourg',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-strasbourg',

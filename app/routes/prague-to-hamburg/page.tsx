@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Hamburg — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Hamburg. 680 km, approx 7 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-hamburg' },
+  alternates: {
+    canonical: '/routes/prague-to-hamburg',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-hamburg',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-hamburg',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-hamburg',

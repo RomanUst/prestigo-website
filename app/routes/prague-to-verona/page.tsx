@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Verona — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Verona. 830 km, approx 9 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-verona' },
+  alternates: {
+    canonical: '/routes/prague-to-verona',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-verona',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-verona',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-verona',

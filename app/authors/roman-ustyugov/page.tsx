@@ -21,7 +21,13 @@ const DESCRIPTION =
 export const metadata: Metadata = {
   title: 'Roman Ustyugov — Founder of PRESTIGO Chauffeur Service',
   description: DESCRIPTION,
-  alternates: { canonical: `/authors/${author.slug}` },
+  alternates: {
+    canonical: `/authors/${author.slug}`,
+    languages: {
+      en: CANONICAL,
+      'x-default': CANONICAL,
+    },
+  },
   openGraph: {
     url: CANONICAL,
     title: 'Roman Ustyugov — Founder of PRESTIGO Chauffeur Service',

@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Graz Private Transfer — From €745',
   description: 'Book a private chauffeur from Prague to Graz. 450 km door-to-door in a Mercedes-Benz. Fixed price from €745, Styria\'s capital.',
-  alternates: { canonical: '/routes/prague-graz' },
+  alternates: {
+    canonical: '/routes/prague-graz',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-graz',
+      'x-default': 'https://rideprestigo.com/routes/prague-graz',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-graz',
     title: 'Prague to Graz Private Transfer — From €745',

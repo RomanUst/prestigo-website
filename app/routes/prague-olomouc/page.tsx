@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Olomouc Private Transfer — From €460',
   description: 'Book a private chauffeur from Prague to Olomouc. 280 km door-to-door in a Mercedes-Benz. Fixed price from €460, Moravia\'s historic capital.',
-  alternates: { canonical: '/routes/prague-olomouc' },
+  alternates: {
+    canonical: '/routes/prague-olomouc',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-olomouc',
+      'x-default': 'https://rideprestigo.com/routes/prague-olomouc',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-olomouc',
     title: 'Prague to Olomouc Private Transfer — From €460',

@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Český Krumlov Private Transfer — From €290',
   description: 'Book a private chauffeur from Prague to Český Krumlov. 175 km door-to-door in a Mercedes-Benz. Fixed price from €290, UNESCO castle town.',
-  alternates: { canonical: '/routes/prague-cesky-krumlov' },
+  alternates: {
+    canonical: '/routes/prague-cesky-krumlov',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
+      'x-default': 'https://rideprestigo.com/routes/prague-cesky-krumlov',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
     title: 'Prague to Český Krumlov Private Transfer — From €290',

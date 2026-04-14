@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Dresden Private Transfer | Door-to-Door in 2 Hours | Prestigo',
   description: 'Private chauffeured transfer from Prague to Dresden in Mercedes E/S/V-Class. Fixed price from €250. 2 hours door-to-door via D8. Same-day return.',
-  alternates: { canonical: '/routes/prague-dresden' },
+  alternates: {
+    canonical: '/routes/prague-dresden',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-dresden',
+      'x-default': 'https://rideprestigo.com/routes/prague-dresden',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-dresden',
     title: 'Prague to Dresden Private Transfer — Prestigo',

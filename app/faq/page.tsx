@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'FAQ — Prague Chauffeur Service: Prices, Booking & More',
   description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
-  alternates: { canonical: '/faq' },
+  alternates: {
+    canonical: '/faq',
+    languages: {
+      en: 'https://rideprestigo.com/faq',
+      'x-default': 'https://rideprestigo.com/faq',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/faq',
     title: 'FAQ — PRESTIGO Prague Chauffeur Service | Prices, Booking & More',

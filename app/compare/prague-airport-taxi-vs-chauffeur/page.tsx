@@ -20,7 +20,13 @@ const DESCRIPTION = 'Prague airport taxi vs private chauffeur in 2026: Uber is t
 export const metadata: Metadata = {
   title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
   description: DESCRIPTION,
-  alternates: { canonical: '/compare/prague-airport-taxi-vs-chauffeur' },
+  alternates: {
+    canonical: '/compare/prague-airport-taxi-vs-chauffeur',
+    languages: {
+      en: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
+      'x-default': 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
     title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',

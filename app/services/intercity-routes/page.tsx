@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Intercity Routes from Prague — Vienna, Berlin, Munich',
   description: 'Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door, available 24/7.',
-  alternates: { canonical: '/services/intercity-routes' },
+  alternates: {
+    canonical: '/services/intercity-routes',
+    languages: {
+      en: 'https://rideprestigo.com/services/intercity-routes',
+      'x-default': 'https://rideprestigo.com/services/intercity-routes',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services/intercity-routes',
     title: 'Intercity Routes from Prague — Vienna, Berlin, Munich | PRESTIGO',

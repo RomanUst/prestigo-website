@@ -12,7 +12,13 @@ const FLEET_DESCRIPTION = 'Mercedes E-Class, S-Class and V-Class chauffeur cars 
 export const metadata: Metadata = {
   title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
   description: FLEET_DESCRIPTION,
-  alternates: { canonical: '/fleet' },
+  alternates: {
+    canonical: '/fleet',
+    languages: {
+      en: 'https://rideprestigo.com/fleet',
+      'x-default': 'https://rideprestigo.com/fleet',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/fleet',
     title: 'Our Fleet — Mercedes Chauffeur Cars Prague',

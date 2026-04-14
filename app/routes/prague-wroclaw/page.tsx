@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Wrocław Private Transfer — From €470',
   description: 'Book a private chauffeur from Prague to Wrocław. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, Poland\'s city of dwarfs.',
-  alternates: { canonical: '/routes/prague-wroclaw' },
+  alternates: {
+    canonical: '/routes/prague-wroclaw',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-wroclaw',
+      'x-default': 'https://rideprestigo.com/routes/prague-wroclaw',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-wroclaw',
     title: 'Prague to Wrocław Private Transfer — From €470',

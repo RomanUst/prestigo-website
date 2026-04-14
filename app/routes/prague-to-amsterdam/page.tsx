@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Amsterdam — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Amsterdam. 915 km, approx 9.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-amsterdam' },
+  alternates: {
+    canonical: '/routes/prague-to-amsterdam',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-amsterdam',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-amsterdam',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-amsterdam',

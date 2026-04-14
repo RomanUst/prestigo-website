@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Kutná Hora Private Transfer — From €115',
   description: 'Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €115, UNESCO old town, Sedlec Ossuary.',
-  alternates: { canonical: '/routes/prague-kutna-hora' },
+  alternates: {
+    canonical: '/routes/prague-kutna-hora',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-kutna-hora',
+      'x-default': 'https://rideprestigo.com/routes/prague-kutna-hora',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-kutna-hora',
     title: 'Prague to Kutná Hora Private Transfer — From €115',

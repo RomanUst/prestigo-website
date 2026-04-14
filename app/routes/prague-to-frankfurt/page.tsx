@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Frankfurt — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Frankfurt. 455 km, approx 5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-frankfurt' },
+  alternates: {
+    canonical: '/routes/prague-to-frankfurt',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-frankfurt',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-frankfurt',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-frankfurt',

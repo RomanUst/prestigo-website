@@ -9,7 +9,13 @@ export const metadata: Metadata = {
   title: 'Privacy Policy — PRESTIGO Premium Chauffeur Prague',
   description:
     'How PRESTIGO collects, uses, and protects your personal data. GDPR-compliant privacy policy for our premium chauffeur service in Prague and Central Europe.',
-  alternates: { canonical: '/privacy' },
+  alternates: {
+    canonical: '/privacy',
+    languages: {
+      en: 'https://rideprestigo.com/privacy',
+      'x-default': 'https://rideprestigo.com/privacy',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/privacy',
     title: 'Privacy Policy — PRESTIGO Premium Chauffeur Prague',

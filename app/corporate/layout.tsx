@@ -7,6 +7,10 @@ export const metadata: Metadata = {
   description: CORPORATE_DESCRIPTION,
   alternates: {
     canonical: '/corporate',
+    languages: {
+      en: 'https://rideprestigo.com/corporate',
+      'x-default': 'https://rideprestigo.com/corporate',
+    },
   },
   openGraph: {
     url: 'https://rideprestigo.com/corporate',

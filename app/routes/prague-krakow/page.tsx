@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Kraków Private Transfer — From €635',
   description: 'Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €635, Poland\'s royal capital.',
-  alternates: { canonical: '/routes/prague-krakow' },
+  alternates: {
+    canonical: '/routes/prague-krakow',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-krakow',
+      'x-default': 'https://rideprestigo.com/routes/prague-krakow',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-krakow',
     title: 'Prague to Kraków Private Transfer — From €635',

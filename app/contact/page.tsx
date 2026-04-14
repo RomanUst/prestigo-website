@@ -11,7 +11,13 @@ import ContactForm from '@/components/ContactForm'
 export const metadata: Metadata = {
   title: 'Contact — PRESTIGO Premium Chauffeur Prague',
   description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
-  alternates: { canonical: '/contact' },
+  alternates: {
+    canonical: '/contact',
+    languages: {
+      en: 'https://rideprestigo.com/contact',
+      'x-default': 'https://rideprestigo.com/contact',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/contact',
     title: 'Contact — PRESTIGO Premium Chauffeur Prague',

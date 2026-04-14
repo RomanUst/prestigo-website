@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Budapest Private Transfer — From €885',
   description: 'Book a private chauffeur from Prague to Budapest. 535 km door-to-door in a Mercedes-Benz. Fixed price from €885, Pearl of the Danube.',
-  alternates: { canonical: '/routes/prague-budapest' },
+  alternates: {
+    canonical: '/routes/prague-budapest',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-budapest',
+      'x-default': 'https://rideprestigo.com/routes/prague-budapest',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-budapest',
     title: 'Prague to Budapest Private Transfer — From €885',

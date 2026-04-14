@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Group Transfers Prague — Minivan & Multi-Car',
   description: 'Group chauffeur transfers in Prague. Minivans and multi-car coordination for conferences, incentive travel, and corporate events. Up to 50 passengers.',
-  alternates: { canonical: '/services/group-transfers' },
+  alternates: {
+    canonical: '/services/group-transfers',
+    languages: {
+      en: 'https://rideprestigo.com/services/group-transfers',
+      'x-default': 'https://rideprestigo.com/services/group-transfers',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services/group-transfers',
     title: 'Group Transfers Prague — Minivan & Multi-Car | PRESTIGO',

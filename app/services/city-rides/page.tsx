@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague City Rides — Hourly Chauffeur Hire',
   description: 'Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €49/hour.',
-  alternates: { canonical: '/services/city-rides' },
+  alternates: {
+    canonical: '/services/city-rides',
+    languages: {
+      en: 'https://rideprestigo.com/services/city-rides',
+      'x-default': 'https://rideprestigo.com/services/city-rides',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services/city-rides',
     title: 'Prague City Rides — Hourly Chauffeur Hire | PRESTIGO',

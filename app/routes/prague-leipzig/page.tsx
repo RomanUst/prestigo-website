@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Leipzig Private Transfer — From €270',
   description: 'Book a private chauffeur from Prague to Leipzig. Door-to-door in a Mercedes-Benz. Fixed price from €270, Bach city and trade fair capital.',
-  alternates: { canonical: '/routes/prague-leipzig' },
+  alternates: {
+    canonical: '/routes/prague-leipzig',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-leipzig',
+      'x-default': 'https://rideprestigo.com/routes/prague-leipzig',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-leipzig',
     title: 'Prague to Leipzig Private Transfer — From €270',

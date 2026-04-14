@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Mariánské Lázně Private Transfer — From €270',
   description: 'Book a private chauffeur from Prague to Mariánské Lázně. 165 km door-to-door in a Mercedes-Benz. Fixed price from €270, West Bohemia spa town.',
-  alternates: { canonical: '/routes/prague-marianske-lazne' },
+  alternates: {
+    canonical: '/routes/prague-marianske-lazne',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-marianske-lazne',
+      'x-default': 'https://rideprestigo.com/routes/prague-marianske-lazne',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-marianske-lazne',
     title: 'Prague to Mariánské Lázně Private Transfer — From €270',

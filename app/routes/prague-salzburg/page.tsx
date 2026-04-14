@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Salzburg Private Transfer — From €505',
   description: 'Book a private chauffeur from Prague to Salzburg. 305 km door-to-door in a Mercedes-Benz. Fixed price from €505, Mozart\'s city.',
-  alternates: { canonical: '/routes/prague-salzburg' },
+  alternates: {
+    canonical: '/routes/prague-salzburg',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-salzburg',
+      'x-default': 'https://rideprestigo.com/routes/prague-salzburg',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-salzburg',
     title: 'Prague to Salzburg Private Transfer — From €505',

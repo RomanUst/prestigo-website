@@ -20,7 +20,13 @@ const DESCRIPTION = 'Prague Airport (PRG) to city centre in 2026: every option w
 export const metadata: Metadata = {
   title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
   description: DESCRIPTION,
-  alternates: { canonical: '/guides/prague-airport-to-city-center' },
+  alternates: {
+    canonical: '/guides/prague-airport-to-city-center',
+    languages: {
+      en: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
+      'x-default': 'https://rideprestigo.com/guides/prague-airport-to-city-center',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
     title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',

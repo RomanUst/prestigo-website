@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Passau Private Transfer — From €365',
   description: 'Book a private chauffeur from Prague to Passau. 220 km door-to-door in a Mercedes-Benz. Fixed price from €365, Three Rivers City.',
-  alternates: { canonical: '/routes/prague-passau' },
+  alternates: {
+    canonical: '/routes/prague-passau',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-passau',
+      'x-default': 'https://rideprestigo.com/routes/prague-passau',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-passau',
     title: 'Prague to Passau Private Transfer — From €365',

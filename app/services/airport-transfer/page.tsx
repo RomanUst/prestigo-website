@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Airport Transfer Prague — PRG Václav Havel',
   description: 'Prague airport transfer with flight tracking, meet & greet, and fixed price. All terminals covered. Available 24/7. Book your PRG transfer online in seconds.',
-  alternates: { canonical: '/services/airport-transfer' },
+  alternates: {
+    canonical: '/services/airport-transfer',
+    languages: {
+      en: 'https://rideprestigo.com/services/airport-transfer',
+      'x-default': 'https://rideprestigo.com/services/airport-transfer',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services/airport-transfer',
     title: 'Airport Transfer Prague — PRG Václav Havel | PRESTIGO',

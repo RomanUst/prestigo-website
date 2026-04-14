@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Basel — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Basel. 680 km, approx 7.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-basel' },
+  alternates: {
+    canonical: '/routes/prague-to-basel',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-basel',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-basel',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-basel',

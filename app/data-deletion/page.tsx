@@ -6,7 +6,13 @@ export const metadata: Metadata = {
   title: 'Data Deletion — PRESTIGO Premium Chauffeur Prague',
   description:
     'How to request deletion of your personal data from PRESTIGO. GDPR data erasure request instructions.',
-  alternates: { canonical: '/data-deletion' },
+  alternates: {
+    canonical: '/data-deletion',
+    languages: {
+      en: 'https://rideprestigo.com/data-deletion',
+      'x-default': 'https://rideprestigo.com/data-deletion',
+    },
+  },
   robots: { index: false },
 }
 

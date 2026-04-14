@@ -11,7 +11,13 @@ const SERVICES_DESCRIPTION = 'Prague chauffeur services: airport transfers, inte
 export const metadata: Metadata = {
   title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',
   description: SERVICES_DESCRIPTION,
-  alternates: { canonical: '/services' },
+  alternates: {
+    canonical: '/services',
+    languages: {
+      en: 'https://rideprestigo.com/services',
+      'x-default': 'https://rideprestigo.com/services',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services',
     title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',

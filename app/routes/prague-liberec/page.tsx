@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Liberec Private Chauffeur — From €175',
   description: 'Book a private chauffeur from Prague to Liberec. 105 km door-to-door in a Mercedes-Benz. Fixed price from €175, Jizera Mountains gateway.',
-  alternates: { canonical: '/routes/prague-liberec' },
+  alternates: {
+    canonical: '/routes/prague-liberec',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-liberec',
+      'x-default': 'https://rideprestigo.com/routes/prague-liberec',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-liberec',
     title: 'Prague to Liberec Private Chauffeur — From €175',

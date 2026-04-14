@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Hradec Králové Private Transfer — From €190',
   description: 'Book a private chauffeur from Prague to Hradec Králové. 115 km on the D11 in a Mercedes-Benz. Fixed price from €190.',
-  alternates: { canonical: '/routes/prague-hradec-kralove' },
+  alternates: {
+    canonical: '/routes/prague-hradec-kralove',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-hradec-kralove',
+      'x-default': 'https://rideprestigo.com/routes/prague-hradec-kralove',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-hradec-kralove',
     title: 'Prague to Hradec Králové Private Transfer — From €190',

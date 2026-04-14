@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Venice — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Venice. 780 km, approx 8.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-venice' },
+  alternates: {
+    canonical: '/routes/prague-to-venice',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-venice',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-venice',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-venice',

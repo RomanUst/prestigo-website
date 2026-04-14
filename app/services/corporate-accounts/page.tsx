@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Corporate Chauffeur Accounts Prague',
   description: 'Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch. Set up in 24 hours.',
-  alternates: { canonical: '/corporate' },
+  alternates: {
+    canonical: '/corporate',
+    languages: {
+      en: 'https://rideprestigo.com/corporate',
+      'x-default': 'https://rideprestigo.com/corporate',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services/corporate-accounts',
     title: 'Corporate Chauffeur Accounts Prague | PRESTIGO',

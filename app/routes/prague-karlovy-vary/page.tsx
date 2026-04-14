@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Karlovy Vary Private Transfer — From €215',
   description: 'Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €215, spa town luxury transfer.',
-  alternates: { canonical: '/routes/prague-karlovy-vary' },
+  alternates: {
+    canonical: '/routes/prague-karlovy-vary',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-karlovy-vary',
+      'x-default': 'https://rideprestigo.com/routes/prague-karlovy-vary',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-karlovy-vary',
     title: 'Prague to Karlovy Vary Private Transfer — From €215',

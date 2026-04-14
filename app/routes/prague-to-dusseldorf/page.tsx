@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Düsseldorf — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Düsseldorf. 640 km, approx 7 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-dusseldorf' },
+  alternates: {
+    canonical: '/routes/prague-to-dusseldorf',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-dusseldorf',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-dusseldorf',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-dusseldorf',

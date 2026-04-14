@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Regensburg Private Transfer — From €470',
   description: 'Book a private chauffeur from Prague to Regensburg. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, medieval Danube city.',
-  alternates: { canonical: '/routes/prague-regensburg' },
+  alternates: {
+    canonical: '/routes/prague-regensburg',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-regensburg',
+      'x-default': 'https://rideprestigo.com/routes/prague-regensburg',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-regensburg',
     title: 'Prague to Regensburg Private Transfer — From €470',

@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Paris — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Paris. 1,050 km, approx 11 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-paris' },
+  alternates: {
+    canonical: '/routes/prague-to-paris',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-paris',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-paris',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-paris',

@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to České Budějovice Private Transfer — From €255',
   description: 'Book a private chauffeur from Prague to České Budějovice. 155 km door-to-door in a Mercedes-Benz. Fixed price from €255, South Bohemia capital.',
-  alternates: { canonical: '/routes/prague-ceske-budejovice' },
+  alternates: {
+    canonical: '/routes/prague-ceske-budejovice',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-ceske-budejovice',
+      'x-default': 'https://rideprestigo.com/routes/prague-ceske-budejovice',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-ceske-budejovice',
     title: 'Prague to České Budějovice Private Transfer — From €255',

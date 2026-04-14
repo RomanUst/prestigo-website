@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Nuremberg Private Transfer — From €595',
   description: 'Book a private chauffeur from Prague to Nuremberg. 360 km door-to-door in a Mercedes-Benz. Fixed price from €595, Franconia\'s medieval city.',
-  alternates: { canonical: '/routes/prague-nuremberg' },
+  alternates: {
+    canonical: '/routes/prague-nuremberg',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-nuremberg',
+      'x-default': 'https://rideprestigo.com/routes/prague-nuremberg',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-nuremberg',
     title: 'Prague to Nuremberg Private Transfer — From €595',

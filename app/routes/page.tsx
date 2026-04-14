@@ -14,7 +14,13 @@ const ROUTES_DESCRIPTION = 'Private chauffeur from Prague to 30 Central European
 export const metadata: Metadata = {
   title: 'Prague Private Chauffeur — 30 Intercity Routes',
   description: ROUTES_DESCRIPTION,
-  alternates: { canonical: '/routes' },
+  alternates: {
+    canonical: '/routes',
+    languages: {
+      en: 'https://rideprestigo.com/routes',
+      'x-default': 'https://rideprestigo.com/routes',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes',
     title: 'Prague Private Chauffeur — 30 Intercity Routes',

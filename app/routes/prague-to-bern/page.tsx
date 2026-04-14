@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Bern — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Bern. 780 km, approx 8.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-bern' },
+  alternates: {
+    canonical: '/routes/prague-to-bern',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-bern',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-bern',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-bern',

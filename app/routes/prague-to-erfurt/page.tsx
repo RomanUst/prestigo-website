@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Erfurt — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Erfurt. 250 km, approx 3 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-erfurt' },
+  alternates: {
+    canonical: '/routes/prague-to-erfurt',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-erfurt',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-erfurt',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-erfurt',

@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Bratislava Private Transfer — From €545',
   description: 'Book a private chauffeur from Prague to Bratislava. 330 km door-to-door in a Mercedes-Benz. Fixed price from €545, Slovakia\'s capital.',
-  alternates: { canonical: '/routes/prague-bratislava' },
+  alternates: {
+    canonical: '/routes/prague-bratislava',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-bratislava',
+      'x-default': 'https://rideprestigo.com/routes/prague-bratislava',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-bratislava',
     title: 'Prague to Bratislava Private Transfer — From €545',

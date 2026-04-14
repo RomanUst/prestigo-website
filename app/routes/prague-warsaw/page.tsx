@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Warsaw Private Transfer — From €1,090',
   description: 'Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €1,090, Polish capital.',
-  alternates: { canonical: '/routes/prague-warsaw' },
+  alternates: {
+    canonical: '/routes/prague-warsaw',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-warsaw',
+      'x-default': 'https://rideprestigo.com/routes/prague-warsaw',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-warsaw',
     title: 'Prague to Warsaw Private Transfer — From €1,090',

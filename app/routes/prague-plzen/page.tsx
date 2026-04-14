@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Plzeň Private Transfer — From €150',
   description: 'Book a private chauffeur from Prague to Plzeň. 90 km on the D5 in a Mercedes-Benz. Fixed price from €150, Pilsner Urquell brewery capital.',
-  alternates: { canonical: '/routes/prague-plzen' },
+  alternates: {
+    canonical: '/routes/prague-plzen',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-plzen',
+      'x-default': 'https://rideprestigo.com/routes/prague-plzen',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-plzen',
     title: 'Prague to Plzeň Private Transfer — From €150',

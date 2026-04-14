@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Ostrava Private Transfer — From €610',
   description: 'Book a private chauffeur from Prague to Ostrava. 370 km door-to-door in a Mercedes-Benz. Fixed price from €610, Moravian-Silesian capital.',
-  alternates: { canonical: '/routes/prague-ostrava' },
+  alternates: {
+    canonical: '/routes/prague-ostrava',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-ostrava',
+      'x-default': 'https://rideprestigo.com/routes/prague-ostrava',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-ostrava',
     title: 'Prague to Ostrava Private Transfer — From €610',

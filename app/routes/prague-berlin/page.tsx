@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Berlin Private Transfer | Door-to-Door in 4 Hours | Prestigo',
   description: 'Private chauffeured transfer from Prague to Berlin in Mercedes E/S/V-Class. Fixed price from €580. 4 hours door-to-door via D8, A17 and A13.',
-  alternates: { canonical: '/routes/prague-berlin' },
+  alternates: {
+    canonical: '/routes/prague-berlin',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-berlin',
+      'x-default': 'https://rideprestigo.com/routes/prague-berlin',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-berlin',
     title: 'Prague to Berlin Private Transfer — Prestigo',

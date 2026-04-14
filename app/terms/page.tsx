@@ -9,7 +9,13 @@ export const metadata: Metadata = {
   title: 'Terms of Service — PRESTIGO Premium Chauffeur Prague',
   description:
     'Terms and conditions for PRESTIGO chauffeur services. Booking policy, cancellation, payment terms, liability, and governing law.',
-  alternates: { canonical: '/terms' },
+  alternates: {
+    canonical: '/terms',
+    languages: {
+      en: 'https://rideprestigo.com/terms',
+      'x-default': 'https://rideprestigo.com/terms',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/terms',
     title: 'Terms of Service — PRESTIGO Premium Chauffeur Prague',

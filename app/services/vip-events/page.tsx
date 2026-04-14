@@ -10,7 +10,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'VIP & Events Chauffeur Prague — Diplomatic & Private',
   description: 'VIP chauffeur service in Prague for diplomatic visits, private events, luxury hotel transfers, and multi-vehicle coordination. Discretion guaranteed.',
-  alternates: { canonical: '/services/vip-events' },
+  alternates: {
+    canonical: '/services/vip-events',
+    languages: {
+      en: 'https://rideprestigo.com/services/vip-events',
+      'x-default': 'https://rideprestigo.com/services/vip-events',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/services/vip-events',
     title: 'VIP & Events Chauffeur Prague — Diplomatic & Private | PRESTIGO',

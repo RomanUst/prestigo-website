@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Milan — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Milan. 1,010 km, approx 11 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-milan' },
+  alternates: {
+    canonical: '/routes/prague-to-milan',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-milan',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-milan',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-milan',

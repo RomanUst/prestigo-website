@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Zlín Private Transfer — From €510',
   description: 'Book a private chauffeur from Prague to Zlín. 310 km door-to-door in a Mercedes-Benz. Fixed price from €510, Baťa\'s functionalist city.',
-  alternates: { canonical: '/routes/prague-zlin' },
+  alternates: {
+    canonical: '/routes/prague-zlin',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-zlin',
+      'x-default': 'https://rideprestigo.com/routes/prague-zlin',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-zlin',
     title: 'Prague to Zlín Private Transfer — From €510',

@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Linz Private Transfer — From €320',
   description: 'Book a private chauffeur from Prague to Linz. 195 km door-to-door in a Mercedes-Benz. Fixed price from €320, Upper Austria capital.',
-  alternates: { canonical: '/routes/prague-linz' },
+  alternates: {
+    canonical: '/routes/prague-linz',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-linz',
+      'x-default': 'https://rideprestigo.com/routes/prague-linz',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-linz',
     title: 'Prague to Linz Private Transfer — From €320',

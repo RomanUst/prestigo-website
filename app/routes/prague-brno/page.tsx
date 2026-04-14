@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Brno Private Transfer — From €340',
   description: 'Book a private chauffeur from Prague to Brno. 205 km on the D1 in a Mercedes-Benz. Fixed price from €340, Moravia\'s capital.',
-  alternates: { canonical: '/routes/prague-brno' },
+  alternates: {
+    canonical: '/routes/prague-brno',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-brno',
+      'x-default': 'https://rideprestigo.com/routes/prague-brno',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-brno',
     title: 'Prague to Brno Private Transfer — From €340',

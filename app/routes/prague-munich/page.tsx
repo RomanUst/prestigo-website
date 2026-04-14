@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Munich Private Transfer — From €635',
   description: 'Book a private chauffeur from Prague to Munich. 385 km door-to-door in a Mercedes-Benz. Fixed price from €635, Bavarian capital.',
-  alternates: { canonical: '/routes/prague-munich' },
+  alternates: {
+    canonical: '/routes/prague-munich',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-munich',
+      'x-default': 'https://rideprestigo.com/routes/prague-munich',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-munich',
     title: 'Prague to Munich Private Transfer — From €635',

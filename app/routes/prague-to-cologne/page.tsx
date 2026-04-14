@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Cologne — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Cologne. 610 km, approx 6.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-cologne' },
+  alternates: {
+    canonical: '/routes/prague-to-cologne',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-cologne',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-cologne',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-cologne',

@@ -20,7 +20,13 @@ const DESCRIPTION = 'Prague to Vienna 2026: private chauffeur vs RailJet vs Regi
 export const metadata: Metadata = {
   title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
   description: DESCRIPTION,
-  alternates: { canonical: '/compare/prague-vienna-transfer-vs-train' },
+  alternates: {
+    canonical: '/compare/prague-vienna-transfer-vs-train',
+    languages: {
+      en: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
+      'x-default': 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
     title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',

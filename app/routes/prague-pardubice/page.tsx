@@ -11,7 +11,13 @@ import Divider from '@/components/Divider'
 export const metadata: Metadata = {
   title: 'Prague to Pardubice Private Transfer — From €180',
   description: 'Book a private chauffeur from Prague to Pardubice. 110 km on the D11 in a Mercedes-Benz. Fixed price from €180, East Bohemia door-to-door.',
-  alternates: { canonical: '/routes/prague-pardubice' },
+  alternates: {
+    canonical: '/routes/prague-pardubice',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-pardubice',
+      'x-default': 'https://rideprestigo.com/routes/prague-pardubice',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-pardubice',
     title: 'Prague to Pardubice Private Transfer — From €180',

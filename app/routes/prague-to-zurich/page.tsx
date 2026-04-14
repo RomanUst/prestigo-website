@@ -6,7 +6,13 @@ import Footer from '@/components/Footer'
 export const metadata: Metadata = {
   title: 'Private Transfer Prague to Zürich — PRESTIGO Chauffeur',
   description: 'Long-distance private chauffeur transfer from Prague to Zürich. 690 km, approx 7.5 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: { canonical: '/routes/prague-to-zurich' },
+  alternates: {
+    canonical: '/routes/prague-to-zurich',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-to-zurich',
+      'x-default': 'https://rideprestigo.com/routes/prague-to-zurich',
+    },
+  },
   robots: { index: false, follow: true },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-to-zurich',
