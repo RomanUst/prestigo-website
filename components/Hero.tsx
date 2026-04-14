@@ -76,6 +76,11 @@ export default function Hero() {
                 Book via WhatsApp
               </a>
             </div>
+
+            {/* Price anchor */}
+            <p className="animate-on-load delay-600 mt-5 font-body font-light text-[11px] tracking-[0.12em] uppercase" style={{ color: 'var(--warmgrey)' }}>
+              Airport transfers from <span style={{ color: 'var(--copper)' }}>€69</span> — fixed price, no surcharges
+            </p>
           </div>
 
           {/* Right — stat cards + quote */}

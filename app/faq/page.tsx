@@ -24,7 +24,7 @@ const sections = [
     faqs: [
       {
         q: 'How do I book a PRESTIGO transfer?',
-        a: 'Book online at prestigo.com/book. Select your route, vehicle, and date. Confirmation is instant — no waiting for a callback.',
+        a: 'Book online at rideprestigo.com/book. Select your route, vehicle, and date. Confirmation is instant — no waiting for a callback.',
       },
       {
         q: 'How far in advance do I need to book?',
