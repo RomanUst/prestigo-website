@@ -14,7 +14,13 @@ const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to in
 export const metadata: Metadata = {
   title: "About PRESTIGO — Prague's Premium Chauffeur Service",
   description: ABOUT_DESCRIPTION,
-  alternates: { canonical: '/about' },
+  alternates: {
+    canonical: '/about',
+    languages: {
+      en: 'https://rideprestigo.com/about',
+      'x-default': 'https://rideprestigo.com/about',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/about',
     title: "About PRESTIGO — Prague's Premium Chauffeur Service",
@@ -68,6 +74,18 @@ const aboutPageSchemaGraph = {
       description: ABOUT_DESCRIPTION,
       mainEntity: { '@id': 'https://rideprestigo.com/#business' },
       about: personSchemaFor('roman-ustyugov'),
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://rideprestigo.com/#org',
+      name: 'PRESTIGO',
+      url: 'https://rideprestigo.com',
+      foundingDate: '2016',
+      founder: {
+        '@type': 'Person',
+        '@id': 'https://rideprestigo.com/authors/roman-ustyugov#person',
+        name: 'Roman Ustyugov',
+      },
     },
   ],
 }
@@ -145,7 +163,7 @@ export default function AboutPage() {
           <Reveal variant="up" delay={150}>
           <div className="md:col-span-3 flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              PRESTIGO began the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they&rsquo;d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.
+              PRESTIGO began in 2016 the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they&rsquo;d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               The founding principle was that the standard has to be set at the edges, not the centre. Anyone can run a good airport transfer on a sunny Tuesday afternoon. The real test is the 04:00 pickup in a snowstorm, the last-minute rerouting when a meeting runs long, the visiting principal with a protocol team, the family of five with skis and a nervous dog. If the service holds at the edges, the centre takes care of itself.

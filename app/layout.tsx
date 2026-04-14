@@ -81,9 +81,13 @@ export default async function RootLayout({
             component's negotiated fallback via /_next/image. */}
         <link rel="preload" as="image" href="/photohero.avif" fetchPriority="high" type="image/avif" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="preconnect" href="https://connect.facebook.net" />
+        <link rel="dns-prefetch" href="https://connect.facebook.net" />
       </head>
       <body className={`${cormorant.variable} ${montserrat.variable}`}>
         <a href="#main-content" className="skip-link btn-primary">

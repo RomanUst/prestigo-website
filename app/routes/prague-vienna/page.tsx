@@ -13,7 +13,13 @@ const PRAGUE_VIENNA_DESCRIPTION = 'Private chauffeur Prague to Vienna: 330 km do
 export const metadata: Metadata = {
   title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
   description: PRAGUE_VIENNA_DESCRIPTION,
-  alternates: { canonical: '/routes/prague-vienna' },
+  alternates: {
+    canonical: '/routes/prague-vienna',
+    languages: {
+      en: 'https://rideprestigo.com/routes/prague-vienna',
+      'x-default': 'https://rideprestigo.com/routes/prague-vienna',
+    },
+  },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-vienna',
     title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
@@ -105,7 +111,7 @@ const serviceSchema = {
     '@id': 'https://rideprestigo.com/#business',
     name: 'Prestigo',
     url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
+    telephone: '+420725986855',
     email: 'info@rideprestigo.com',
     priceRange: '€€€',
     areaServed: 'Prague, Czech Republic',

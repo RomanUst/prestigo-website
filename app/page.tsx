@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   description: HOME_DESCRIPTION,
   alternates: {
     canonical: HOME_URL,
+    languages: {
+      en: HOME_URL,
+      'x-default': HOME_URL,
+    },
   },
   openGraph: {
     url: HOME_URL,
@@ -80,6 +84,7 @@ const localBusinessSchema = {
     '5-star hotel partner transport',
     'Executive Mercedes-Benz fleet',
   ],
+  foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
   sameAs: [
     'https://www.instagram.com/rideprestigo/',

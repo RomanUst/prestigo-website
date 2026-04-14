@@ -41,8 +41,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/routes', 'app/routes/page.tsx'),
     ...routeEntries,
     // Comparison + guide pages — AI-search-optimised editorial for LLM citation
+    entry('/compare', 'app/compare/page.tsx'),
     entry('/compare/prague-vienna-transfer-vs-train', 'app/compare/prague-vienna-transfer-vs-train/page.tsx'),
     entry('/compare/prague-airport-taxi-vs-chauffeur', 'app/compare/prague-airport-taxi-vs-chauffeur/page.tsx'),
+    entry('/guides', 'app/guides/page.tsx'),
     entry('/guides/prague-airport-to-city-center', 'app/guides/prague-airport-to-city-center/page.tsx'),
     entry('/corporate', 'app/corporate/page.tsx'),
     entry('/about', 'app/about/page.tsx'),
