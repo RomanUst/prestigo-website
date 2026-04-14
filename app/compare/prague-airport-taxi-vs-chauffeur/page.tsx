@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
@@ -210,6 +213,12 @@ const pageSchemaGraph = {
       '@id': 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur#article',
       headline: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
       description: DESCRIPTION,
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://rideprestigo.com/hero-airport-transfer.webp',
+        width: 1200,
+        height: 630,
+      },
       about: { '@type': 'Service', name: 'Prague airport transfer' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
       author: personSchemaFor('roman-ustyugov'),

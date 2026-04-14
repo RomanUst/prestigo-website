@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
@@ -305,6 +308,12 @@ const pageSchemaGraph = {
       '@id': 'https://rideprestigo.com/guides/prague-airport-to-city-center#article',
       headline: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
       description: DESCRIPTION,
+      image: {
+        '@type': 'ImageObject',
+        url: 'https://rideprestigo.com/hero-airport-transfer.webp',
+        width: 1200,
+        height: 630,
+      },
       about: { '@type': 'Place', name: 'Václav Havel Airport Prague' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
       author: personSchemaFor('roman-ustyugov'),

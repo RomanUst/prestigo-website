@@ -1,7 +1,11 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
   title: 'Airport Transfer Prague — PRG Václav Havel',
@@ -49,8 +53,8 @@ const features = [
     body: 'The price you see at booking is the price you pay. No surge pricing, no hidden tolls, no surprises at the end of the journey.',
   },
   {
-    title: 'All Terminals',
-    body: 'Terminal 1 and Terminal 2 — both covered, every flight, every airline. Domestic and international arrivals.',
+    title: 'Terminal 1 & Terminal 2',
+    body: 'Terminal 2 handles Schengen arrivals — flights from Germany, Austria, France, the Netherlands, and most EU routes. Terminal 1 covers all non-Schengen arrivals: UK, US, Middle East, and long-haul. Both terminals are covered on every booking. Enter your flight number and your driver automatically meets you in the correct Arrivals hall with your name board — no parking lots, no ride-hail zones.',
   },
 ]
 
@@ -71,6 +75,10 @@ const faqs = [
     q: 'Can I book for early morning or late night arrivals?',
     a: 'Yes. PRESTIGO operates 24/7, 365 days a year. Early morning departures and late-night arrivals are standard.',
   },
+  {
+    q: 'How does PRESTIGO compare to taking an Uber from the airport?',
+    a: 'Uber has held the exclusive official taxi rank at PRG since September 2023. A standard Uber to central Prague runs CZK 650–800 (~€26–32) — lower than PRESTIGO\'s starting price. The difference is how you are collected: your PRESTIGO driver is inside the Arrivals hall with a name board before you reach the exit. Uber requires walking 120 metres to the designated P11 pickup zone and waiting for a vehicle to be assigned. For solo travellers with light luggage arriving off-peak, Uber is a practical option. For business arrivals, families, or anyone with luggage and a tight connection, the meet & greet and flight tracking more than justify the difference.',
+  },
 ]
 
 export default function AirportTransferPage() {
@@ -81,7 +89,7 @@ export default function AirportTransferPage() {
       <Nav />
 
       {/* Hero */}
-      <section className="relative border-b border-anthracite-light overflow-hidden" style={{ minHeight: '560px' }}>
+      <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
           <Image src="/hero-airport-transfer.webp" alt="Prague Airport Transfer — PRESTIGO" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
@@ -89,7 +97,7 @@ export default function AirportTransferPage() {
           <p className="label mb-6">Airport Transfer · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Prague Airport.<br />
+            Prague Airport Transfer.<br />
             <span className="display-italic">Met on arrival, every time.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -102,8 +110,10 @@ export default function AirportTransferPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Price callout */}
-      <section className="bg-anthracite-mid py-10 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>Starting from</p>
@@ -121,8 +131,10 @@ export default function AirportTransferPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* Features */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">What's included</p>
           <span className="copper-line mb-10 block" />
@@ -138,14 +150,16 @@ export default function AirportTransferPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* How it works */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">How it works</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
-              { step: '01', title: 'Book online', body: 'Enter your flight number, pickup address, and passenger details. Confirmed in seconds.' },
+              { step: '01', title: 'Book online', body: 'Enter your flight number, destination address, and passenger details. Select your vehicle class — E-Class, V-Class, or S-Class. Fixed price confirmed in seconds.' },
               { step: '02', title: 'We track your flight', body: 'Your driver monitors your flight live. If it is delayed, your driver adjusts automatically.' },
               { step: '03', title: 'Arrive, relax', body: 'Your chauffeur is waiting at Arrivals with your name board. From here, everything is handled.' },
             ].map((s) => (
@@ -159,8 +173,88 @@ export default function AirportTransferPage() {
         </div>
       </section>
 
+      <Divider />
+
+      {/* Journey times */}
+      <section className="bg-anthracite py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Journey times from PRG</p>
+          <span className="copper-line mb-10 block" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-14">
+            <div>
+              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                Prague Václav Havel Airport sits 20 km northwest of the city centre. Journey time from the terminal to your hotel or address depends on your destination and the time of day. The figures below reflect typical daytime conditions — allow 5–10 minutes extra during morning or evening rush hours.
+              </p>
+              <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>
+                Your price is fixed at booking regardless of traffic. No meter running, no surge, no negotiation at the end.
+              </p>
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                { place: 'Old Town (Staré Město) / Wenceslas Square', time: '~25 min' },
+                { place: 'Vinohrady / Žižkov', time: '~30 min' },
+                { place: 'Smíchov / Anděl', time: '~25 min' },
+                { place: 'Holešovice / Letná', time: '~30 min' },
+                { place: 'Karlín', time: '~32 min' },
+                { place: 'Nusle / Pankrác', time: '~28 min' },
+              ].map((r) => (
+                <div key={r.place} className="flex items-center justify-between border-b border-anthracite-light py-3">
+                  <span className="font-body font-light text-[12px] text-offwhite tracking-wide">{r.place}</span>
+                  <span className="font-body font-light text-[12px] tracking-[0.1em]" style={{ color: 'var(--copper)' }}>{r.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Vehicle classes */}
+      <section className="bg-anthracite-mid py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Choose your vehicle</p>
+          <span className="copper-line mb-10 block" />
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+            {[
+              {
+                name: 'E-Class',
+                tag: 'Standard premium',
+                cap: 'Up to 3 passengers · 3 bags',
+                price: 'From €69',
+                body: 'The Mercedes E-Class is the everyday vehicle for Prague airport arrivals — quiet, spacious, and immaculate. The right choice for solo travellers, couples, and business arrivals who want comfort without excess.',
+              },
+              {
+                name: 'V-Class',
+                tag: 'Group & family',
+                cap: 'Up to 6 passengers · 6 bags',
+                price: 'From €89',
+                body: 'The Mercedes V-Class seats up to six with full luggage. Ideal for families, groups, and corporate arrivals where one vehicle and one fixed price covers everyone.',
+              },
+              {
+                name: 'S-Class',
+                tag: 'Executive flagship',
+                cap: 'Up to 3 passengers · 3 bags',
+                price: 'From €120',
+                body: 'The Mercedes S-Class is reserved for VIP, diplomatic, and senior executive arrivals. Rear-seat comfort, ambient lighting, and the most refined cabin in the current Mercedes range.',
+              },
+            ].map((v) => (
+              <div key={v.name} className="border border-anthracite-light p-8">
+                <span className="copper-line mb-6 block" />
+                <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--warmgrey)' }}>{v.tag}</p>
+                <h3 className="font-display font-light text-[22px] text-offwhite mb-1">Mercedes {v.name}</h3>
+                <p className="font-body font-light text-[11px] tracking-wide mb-4" style={{ color: 'var(--copper)' }}>{v.price} · {v.cap}</p>
+                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{v.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
       {/* FAQ */}
-      <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
+      <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Questions</p>
           <span className="copper-line mb-10 block" />
@@ -175,8 +269,10 @@ export default function AirportTransferPage() {
         </div>
       </section>
 
+      <Divider />
+
       {/* CTA */}
-      <section className="bg-anthracite-mid py-20 border-t border-anthracite-light">
+      <section className="bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <p className="label mb-6">Ready to book?</p>
           <span className="copper-line mb-8 block mx-auto" />

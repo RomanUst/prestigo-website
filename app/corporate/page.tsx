@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-static'
+
 import { useState } from 'react'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -151,7 +153,7 @@ export default function CorporatePage() {
           <p className="label mb-6">Corporate Accounts</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Your company travels.<br />
+            Corporate chauffeur accounts.<br />
             <span className="display-italic">We make it effortless.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
