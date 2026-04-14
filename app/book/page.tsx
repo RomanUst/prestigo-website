@@ -3,6 +3,58 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import BookingWizard from '@/components/booking/BookingWizard'
 
+const bookingSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Service',
+      '@id': 'https://rideprestigo.com/book#service',
+      name: 'Prague Chauffeur Transfer — Online Booking',
+      description: 'Book a private chauffeur transfer in Prague online. Fixed price, instant confirmation, Mercedes E-Class, S-Class, or V-Class. Airport transfers and intercity routes from €49.',
+      provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+      url: 'https://rideprestigo.com/book',
+      serviceType: 'Chauffeur Transfer',
+      areaServed: { '@type': 'Place', name: 'Prague, Czech Republic' },
+      offers: {
+        '@type': 'Offer',
+        price: '49',
+        priceCurrency: 'EUR',
+        availability: 'https://schema.org/InStock',
+        priceSpecification: {
+          '@type': 'PriceSpecification',
+          price: '49',
+          priceCurrency: 'EUR',
+          valueAddedTaxIncluded: true,
+          description: 'Starting price for E-Class airport transfer',
+        },
+      },
+      potentialAction: {
+        '@type': 'ReserveAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://rideprestigo.com/book',
+          actionPlatform: [
+            'https://schema.org/DesktopWebPlatform',
+            'https://schema.org/MobileWebPlatform',
+          ],
+        },
+        result: {
+          '@type': 'Reservation',
+          name: 'Prague Chauffeur Transfer Reservation',
+        },
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+        { '@type': 'ListItem', position: 2, name: 'Book a Transfer', item: 'https://rideprestigo.com/book' },
+      ],
+    },
+  ],
+}
+
 export const metadata: Metadata = {
   title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
   description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
@@ -17,6 +69,7 @@ const guarantees = [
 export default function BookPage() {
   return (
     <main id="main-content">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(bookingSchema) }} />
       <Nav />
 
       {/* Header */}

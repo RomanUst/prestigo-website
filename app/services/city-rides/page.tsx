@@ -42,19 +42,19 @@ const breadcrumbSchema = {
 
 const features = [
   {
-    title: 'Hourly Hire from 2 Hours',
+    title: 'How does hourly chauffeur hire in Prague work?',
     body: 'Book by the hour, from a minimum of 2 hours. Your chauffeur stays with you for the full duration — no meters, no rush.',
   },
   {
-    title: 'Local Knowledge Included',
+    title: 'Does the driver know Prague well?',
     body: 'Our chauffeurs know Prague deeply. Recommend a restaurant, suggest a detour, navigate around an event — consider it part of the service.',
   },
   {
-    title: 'Airport-Quality, City Rates',
+    title: 'How does a city ride differ from an airport transfer?',
     body: 'The same fleet, the same service standard, and the same professionalism as our airport transfers — now available for city journeys.',
   },
   {
-    title: 'Flexible Itinerary',
+    title: 'Can I add stops or change my plans mid-journey?',
     body: 'Your itinerary, your pace. Whether it is three business meetings and a hotel, or a private tour of Malá Strana, your chauffeur adapts.',
   },
 ]

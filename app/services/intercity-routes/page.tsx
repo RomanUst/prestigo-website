@@ -51,19 +51,19 @@ const popularRoutes = [
 
 const features = [
   {
-    title: 'Fixed Price Per Route',
+    title: 'What does a private transfer from Prague cost?',
     body: 'Every intercity route has a published fixed price. No meter, no tolls added on top. What you see when you book is what you pay.',
   },
   {
-    title: 'Door-to-Door',
+    title: 'What does door-to-door service mean in practice?',
     body: 'Your driver picks you up from your hotel, office, or home — and drops you at your exact destination. No stations, no connections.',
   },
   {
-    title: 'Work the Whole Way',
+    title: 'Can I work or take calls during a long transfer?',
     body: 'Leather seating, USB charging, onboard Wi-Fi. Four hours to Vienna is a productive morning — or a quiet one, entirely your choice.',
   },
   {
-    title: 'Available 24/7',
+    title: 'Can I book a transfer for early morning or late at night?',
     body: 'Early morning departures for business meetings. Late-night returns after events. Intercity transfers run around the clock.',
   },
 ]

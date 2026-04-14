@@ -41,19 +41,19 @@ const breadcrumbSchema = {
 
 const features = [
   {
-    title: 'Flight Tracking',
+    title: 'What happens if my flight is delayed?',
     body: 'Your driver monitors your flight in real time. If your flight is delayed, your driver adjusts — no extra charge, no phone calls needed.',
   },
   {
-    title: 'Meet & Greet at Arrivals',
+    title: 'How does my driver find me at Prague Airport?',
     body: 'Your chauffeur holds a name board at the Arrivals hall. No searching, no stress. From the moment you land, everything is handled.',
   },
   {
-    title: 'Fixed Price',
+    title: 'What is the price of an airport transfer from Prague?',
     body: 'The price you see at booking is the price you pay. No surge pricing, no hidden tolls, no surprises at the end of the journey.',
   },
   {
-    title: 'Terminal 1 & Terminal 2',
+    title: 'Which terminal does my driver meet me at?',
     body: 'Terminal 2 handles Schengen arrivals — flights from Germany, Austria, France, the Netherlands, and most EU routes. Terminal 1 covers all non-Schengen arrivals: UK, US, Middle East, and long-haul. Both terminals are covered on every booking. Enter your flight number and your driver automatically meets you in the correct Arrivals hall with your name board — no parking lots, no ride-hail zones.',
   },
 ]

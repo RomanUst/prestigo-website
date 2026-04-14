@@ -41,19 +41,19 @@ const breadcrumbSchema = {
 
 const features = [
   {
-    title: 'Diplomatic Protocol Awareness',
+    title: 'How does PRESTIGO handle diplomatic and VIP transfers?',
     body: 'Our senior chauffeurs understand the requirements of diplomatic and high-protocol engagements. Discretion, punctuality, and professional conduct — without exception.',
   },
   {
-    title: 'Multi-Vehicle Coordination',
+    title: 'Can you provide multiple cars for a large event?',
     body: 'For events requiring multiple vehicles, we coordinate fleet logistics to ensure every car arrives precisely on time, in sequence, without visible operational complexity.',
   },
   {
-    title: 'Discretion Guaranteed',
+    title: 'How is passenger privacy protected?',
     body: 'Confidentiality is non-negotiable. Our chauffeurs sign NDAs on request. Your guests, your routes, and your schedule remain entirely private.',
   },
   {
-    title: 'Advance Route Reconnaissance',
+    title: 'How do you prepare the route for a VIP arrival?',
     body: 'For high-security or time-critical movements, we conduct route reconnaissance in advance — identifying alternative routes, timing constraints, and access points.',
   },
 ]

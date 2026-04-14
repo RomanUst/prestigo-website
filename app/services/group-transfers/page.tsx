@@ -41,19 +41,19 @@ const breadcrumbSchema = {
 
 const features = [
   {
-    title: 'Minivan & Multi-Car Fleet',
+    title: 'What vehicles are available for group transfers?',
     body: 'From an 8-seat Mercedes V-Class to a coordinated fleet of executive saloons. We match the vehicle configuration to your group size and logistics.',
   },
   {
-    title: 'Precise Timing',
+    title: 'How do you manage group pickup timing?',
     body: 'Conference delegations cannot afford lateness. We build timing buffers, monitor flight arrivals, and coordinate vehicle dispatch to the minute.',
   },
   {
-    title: 'Custom Itineraries',
+    title: 'Can you handle multiple stops for a group?',
     body: 'Airport to hotel. Hotel to venue. Venue to dinner. Dinner to airport. We manage the full movement schedule so your team can focus on the event.',
   },
   {
-    title: 'Up to 50 Passengers',
+    title: 'How large a group can PRESTIGO transport?',
     body: 'Small incentive groups or full conference delegations — we scale to your requirements and maintain the same standard across every vehicle in the fleet.',
   },
 ]

@@ -30,6 +30,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     entry('', 'app/page.tsx'),
     entry('/book', 'app/book/page.tsx'),
+    entry('/book/multi-day', 'app/book/multi-day/page.tsx'),
     entry('/services', 'app/services/page.tsx'),
     entry('/services/airport-transfer', 'app/services/airport-transfer/page.tsx'),
     entry('/services/intercity-routes', 'app/services/intercity-routes/page.tsx'),

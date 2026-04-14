@@ -28,13 +28,20 @@ export function lastModFor(relativePath: string): Date {
 
   let date: Date | null = null
 
-  // 1) Git: most recent commit that touched this file
+  // 1) Git: oldest (creation) commit that introduced this file.
+  //    Using the oldest commit rather than the most recent prevents a single
+  //    chore/batch commit from resetting all pages to the same lastmod date,
+  //    which Google discounts as non-meaningful. Creation date is a stable,
+  //    accurate proxy for "when this page was published."
   try {
-    const iso = execSync(`git log -1 --format=%cI -- "${relativePath}"`, {
-      cwd: PROJECT_ROOT,
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim()
+    const iso = execSync(
+      `git log --follow --format="%cI" -- "${relativePath}" | tail -1`,
+      {
+        cwd: PROJECT_ROOT,
+        encoding: 'utf8',
+        shell: '/bin/sh',
+      },
+    ).trim()
     if (iso) {
       const parsed = new Date(iso)
       if (!Number.isNaN(parsed.getTime())) date = parsed
