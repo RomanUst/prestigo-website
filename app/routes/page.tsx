@@ -1,4 +1,7 @@
 import type { Metadata } from 'next'
+
+export const dynamic = 'force-static'
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
@@ -95,12 +98,12 @@ export default function RoutesPage() {
       {/* Planning intercity travel */}
       <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
-          <Reveal variant="up"><div className="md:col-span-2">
+          <Reveal variant="up" className="md:col-span-2"><div>
             <p className="label mb-6">Planning intercity travel</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Why a private transfer <span className="display-italic">beats the train.</span></h2>
           </div></Reveal>
-          <Reveal variant="up" delay={150}><div className="md:col-span-3 flex flex-col gap-5">
+          <Reveal variant="up" delay={150} className="md:col-span-3"><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Intercity rail in Central Europe is excellent — but it stops at the station, not at your hotel door. For most of our clients, the hidden cost of a Prague&ndash;Vienna or Prague&ndash;Berlin trip isn&rsquo;t the ticket. It&rsquo;s the two taxis on either side, the hour spent dragging luggage through a terminus, the rigid departure window, and the wasted time between meetings when the schedule slips.
             </p>
