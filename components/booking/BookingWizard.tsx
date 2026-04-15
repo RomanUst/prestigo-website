@@ -65,8 +65,7 @@ export default function BookingWizard() {
           !!passengerDetails?.firstName &&
           !!passengerDetails?.lastName &&
           !!passengerDetails?.email &&
-          !!passengerDetails?.phone &&
-          (!isAirportRide || !!passengerDetails?.flightNumber)
+          !!passengerDetails?.phone
         )
       default:
         return true // Step 6 will add its own validation later

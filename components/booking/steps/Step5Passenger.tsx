@@ -28,20 +28,18 @@ function formatArrivalTime(iso: string | null): string {
   return iso.slice(11, 16) // "2026-04-15T14:35:00.000" -> "14:35"
 }
 
-const passengerSchema = (isAirport: boolean) =>
-  z.object({
-    firstName: z.string().min(1, 'First name is required'),
-    lastName: z.string().min(1, 'Last name is required'),
-    email: z.string().email('Enter a valid email address'),
-    phone: z.string().min(7, 'Enter a valid phone number'),
-    flightNumber: isAirport
-      ? z.string()
-          .min(1, 'Flight number is required for airport rides')
-          .regex(IATA_RE, 'Invalid IATA format \u2014 e.g. BA256 or OK123')
-      : z.string().optional(),
-    terminal: z.string().optional(),
-    specialRequests: z.string().max(500, 'Maximum 500 characters').optional(),
-  })
+const passengerSchema = z.object({
+  firstName: z.string().min(1, 'First name is required'),
+  lastName: z.string().min(1, 'Last name is required'),
+  email: z.string().email('Enter a valid email address'),
+  phone: z.string().min(7, 'Enter a valid phone number'),
+  flightNumber: z.string().optional().refine(
+    (val) => !val || IATA_RE.test(val),
+    'Invalid IATA format \u2014 e.g. BA256 or OK123'
+  ),
+  terminal: z.string().optional(),
+  specialRequests: z.string().max(500, 'Maximum 500 characters').optional(),
+})
 
 export default function Step5Passenger() {
   const origin = useBookingStore((s) => s.origin)
@@ -60,7 +58,7 @@ export default function Step5Passenger() {
     setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(passengerSchema(isAirportRide)),
+    resolver: zodResolver(passengerSchema),
     mode: 'onBlur',
     defaultValues: {
       firstName: passengerDetails?.firstName ?? '',
@@ -271,7 +269,7 @@ export default function Step5Passenger() {
       {isAirportRide && (
         <div className="flex flex-col md:flex-row" style={{ gap: 24, marginTop: 24 }}>
           <div style={{ flex: 1 }}>
-            <label htmlFor="flightNumber" className="label" style={{ display: 'block', marginBottom: 8 }}>FLIGHT NUMBER</label>
+            <label htmlFor="flightNumber" className="label" style={{ display: 'block', marginBottom: 8 }}>FLIGHT NUMBER (OPTIONAL)</label>
             <input
               id="flightNumber"
               type="text"

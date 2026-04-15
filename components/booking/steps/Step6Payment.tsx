@@ -350,6 +350,7 @@ export default function Step6Payment() {
         ? {
             clientSecret,
             appearance,
+            locale: 'en' as const,
             paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
             wallets: { applePay: 'auto' as const, googlePay: 'auto' as const },
             fields: { billingDetails: { address: 'never' as const } },
