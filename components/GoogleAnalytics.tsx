@@ -74,12 +74,28 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
             // send_page_view:false — page_view is fired manually below (returning
             // visitors) or by CookieBanner after consent interaction (new visitors).
             gtag('config', '${GA_ID}', { send_page_view: false });
-            // Returning visitor: consent already resolved in localStorage —
-            // fire page_view immediately with the correct consent state.
             var __c;
             try { __c = localStorage.getItem('${CONSENT_KEY}'); } catch(e) {}
             if (__c === 'granted' || __c === 'necessary') {
+              // Returning visitor: consent already resolved — fire immediately.
+              window.__prestigoPageViewFired = true;
               gtag('event', 'page_view');
+            } else {
+              // New visitor: wait for CookieBanner interaction.
+              // Fallback: if they leave without clicking the banner, fire
+              // page_view on visibilitychange so the visit is still counted
+              // (cookieless / modeled — analytics_storage stays 'denied').
+              window.__prestigoPageViewFired = false;
+              function __pvFallback() {
+                if (document.visibilityState === 'hidden' && !window.__prestigoPageViewFired) {
+                  window.__prestigoPageViewFired = true;
+                  gtag('event', 'page_view');
+                }
+                if (window.__prestigoPageViewFired) {
+                  document.removeEventListener('visibilitychange', __pvFallback);
+                }
+              }
+              document.addEventListener('visibilitychange', __pvFallback);
             }
           }
         `}

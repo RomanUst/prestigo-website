@@ -25,7 +25,10 @@ export default function CookieBanner() {
       const w = window as typeof window & {
         dataLayer?: unknown[]
         gtag?: (...args: unknown[]) => void
+        __prestigoPageViewFired?: boolean
       }
+      // Mark fired so the visibilitychange fallback doesn't double-count.
+      w.__prestigoPageViewFired = true
       // Consent Mode v2 — flip analytics_storage to granted so gtag.js
       // unlocks analytics cookies without a page reload.
       if (typeof w.gtag === 'function') {
@@ -45,13 +48,16 @@ export default function CookieBanner() {
   function handleNecessary() {
     localStorage.setItem(CONSENT_KEY, 'necessary')
     setVisible(false)
-    // analytics_storage stays 'denied' — cookieless mode.
-    // Still fire page_view so GA4 registers the session (modeled, no cookie).
+    // analytics_storage stays 'denied' — cookieless/modeled mode.
+    // Still fire page_view so GA4 registers the session.
     if (typeof window !== 'undefined') {
       const w = window as typeof window & {
         gtag?: (...args: unknown[]) => void
         dataLayer?: unknown[]
+        __prestigoPageViewFired?: boolean
       }
+      // Mark fired so the visibilitychange fallback doesn't double-count.
+      w.__prestigoPageViewFired = true
       if (typeof w.gtag === 'function') {
         w.gtag('event', 'page_view')
       } else {
