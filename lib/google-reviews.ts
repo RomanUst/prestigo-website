@@ -47,18 +47,22 @@ export const HARDCODED_TESTIMONIALS: HardcodedReview[] = [
   },
 ]
 
-interface PlaceDetailsResponse {
-  status: string
-  result?: {
-    reviews?: Array<{
-      author_name: string
-      rating: number
-      text: string
-      time: number
-      relative_time_description: string
-      profile_photo_url?: string
-    }>
+// Places API New (v1) response shape
+interface PlacesApiV1Review {
+  rating: number
+  text?: { text: string; languageCode: string }
+  originalText?: { text: string; languageCode: string }
+  relativePublishTimeDescription: string
+  publishTime: string
+  authorAttribution?: {
+    displayName: string
+    uri?: string
+    photoUri?: string
   }
+}
+
+interface PlacesApiV1Response {
+  reviews?: PlacesApiV1Review[]
 }
 
 async function fetchGoogleReviews(): Promise<GoogleReview[]> {
@@ -68,35 +72,38 @@ async function fetchGoogleReviews(): Promise<GoogleReview[]> {
   if (!placeId || !apiKey) return []
 
   try {
-    const url = new URL('https://maps.googleapis.com/maps/api/place/details/json')
-    url.searchParams.set('place_id', placeId)
-    url.searchParams.set('fields', 'reviews')
-    url.searchParams.set('key', apiKey)
-
-    const res = await fetch(url.toString(), { cache: 'no-store' })
+    // Places API New (v1) — supports Service Area Businesses; Legacy endpoint returns NOT_FOUND for SABs
+    const res = await fetch(
+      `https://places.googleapis.com/v1/places/${placeId}`,
+      {
+        cache: 'no-store',
+        headers: {
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': 'reviews',
+        },
+      },
+    )
     if (!res.ok) return []
 
-    const json = (await res.json()) as PlaceDetailsResponse
-    if (json.status !== 'OK') return []
-
-    const rawReviews = json.result?.reviews ?? []
+    const json = (await res.json()) as PlacesApiV1Response
+    const rawReviews = json.reviews ?? []
 
     return rawReviews
       .filter(
         (r) =>
           typeof r?.rating === 'number' &&
           r.rating >= 4 &&
-          typeof r?.text === 'string' &&
-          r.text.trim().length > 0,
+          typeof r?.text?.text === 'string' &&
+          r.text.text.trim().length > 0,
       )
       .map<GoogleReview>((r) => ({
         source: 'google',
-        author: r.author_name,
+        author: r.authorAttribution?.displayName ?? 'Google reviewer',
         rating: r.rating,
-        text: r.text,
-        time: r.time,
-        relativeTime: r.relative_time_description,
-        profilePhotoUrl: r.profile_photo_url,
+        text: r.text!.text,
+        time: new Date(r.publishTime).getTime() / 1000,
+        relativeTime: r.relativePublishTimeDescription,
+        profilePhotoUrl: r.authorAttribution?.photoUri,
       }))
   } catch {
     return []

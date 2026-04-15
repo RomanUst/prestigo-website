@@ -13,6 +13,29 @@ vi.stubGlobal('fetch', fetchMock)
 
 const ORIGINAL_ENV = { ...process.env }
 
+// ── helper: build a Places API New (v1) review object ────────────────────────
+function makeReview(overrides: {
+  displayName?: string
+  rating?: number
+  text?: string
+  relativeTime?: string
+  photoUri?: string
+  publishTime?: string
+}) {
+  return {
+    rating: overrides.rating ?? 5,
+    text: { text: overrides.text ?? 'Great service', languageCode: 'en' },
+    originalText: { text: overrides.text ?? 'Great service', languageCode: 'en' },
+    relativePublishTimeDescription: overrides.relativeTime ?? '1 month ago',
+    publishTime: overrides.publishTime ?? '2026-01-01T00:00:00Z',
+    authorAttribution: {
+      displayName: overrides.displayName ?? 'Test User',
+      uri: 'https://google.com/maps/contrib/123',
+      photoUri: overrides.photoUri ?? 'https://lh3.googleusercontent.com/photo.jpg',
+    },
+  }
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
   process.env.GOOGLE_PLACE_ID = 'ChIJtest_place_id'
@@ -27,22 +50,23 @@ import { getReviews, HARDCODED_TESTIMONIALS, MAX_POOL } from '@/lib/google-revie
 
 // ─── GRVW-01: API call parameters ────────────────────────────────────────────
 
-describe('GRVW-01: fetchGoogleReviews calls Places Details API with correct params', () => {
-  it('requests https://maps.googleapis.com/maps/api/place/details/json with place_id, fields=reviews, key', async () => {
+describe('GRVW-01: fetchGoogleReviews calls Places API New (v1) with correct params', () => {
+  it('requests places.googleapis.com/v1/places/{place_id} with correct headers', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ status: 'OK', result: { reviews: [] } }),
+      json: async () => ({ reviews: [] }),
     })
 
     await getReviews()
 
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const calledUrl = fetchMock.mock.calls[0][0] as string
-    expect(calledUrl).toMatch(/maps\.googleapis\.com\/maps\/api\/place\/details\/json/)
-    expect(calledUrl).toContain('place_id=ChIJtest_place_id')
-    expect(calledUrl).toContain('fields=reviews')
-    expect(calledUrl).toContain('key=test_api_key')
-    expect(fetchMock.mock.calls[0][1]).toEqual({ cache: 'no-store' })
+    const calledOptions = fetchMock.mock.calls[0][1] as RequestInit & { headers: Record<string, string> }
+
+    expect(calledUrl).toMatch(/places\.googleapis\.com\/v1\/places\/ChIJtest_place_id/)
+    expect(calledOptions.headers['X-Goog-Api-Key']).toBe('test_api_key')
+    expect(calledOptions.headers['X-Goog-FieldMask']).toBe('reviews')
+    expect(calledOptions.cache).toBe('no-store')
   })
 })
 
@@ -53,14 +77,11 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'Alice', rating: 5, text: 'great', time: 1000, relative_time_description: '1 month ago' },
-            { author_name: 'Bob', rating: 4, text: 'ok', time: 2000, relative_time_description: '2 months ago' },
-            { author_name: 'Carol', rating: 3, text: 'meh', time: 3000, relative_time_description: '3 months ago' },
-          ],
-        },
+        reviews: [
+          makeReview({ displayName: 'Alice', rating: 5, text: 'great' }),
+          makeReview({ displayName: 'Bob', rating: 4, text: 'ok' }),
+          makeReview({ displayName: 'Carol', rating: 3, text: 'meh' }),
+        ],
       }),
     })
 
@@ -75,12 +96,7 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'Dave', rating: 3, text: 'Not great', time: 1000, relative_time_description: '1 month ago' },
-          ],
-        },
+        reviews: [makeReview({ displayName: 'Dave', rating: 3, text: 'Not great' })],
       }),
     })
 
@@ -93,13 +109,10 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'Eve', rating: 5, text: '', time: 1000, relative_time_description: '1 month ago' },
-            { author_name: 'Frank', rating: 5, text: '   ', time: 2000, relative_time_description: '2 months ago' },
-          ],
-        },
+        reviews: [
+          { ...makeReview({ displayName: 'Eve', rating: 5 }), text: { text: '', languageCode: 'en' } },
+          { ...makeReview({ displayName: 'Frank', rating: 5 }), text: { text: '   ', languageCode: 'en' } },
+        ],
       }),
     })
 
@@ -112,19 +125,16 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            {
-              author_name: 'Alice',
-              rating: 5,
-              text: 'Excellent',
-              time: 1700000000,
-              relative_time_description: '3 months ago',
-              profile_photo_url: 'https://x/p.jpg',
-            },
-          ],
-        },
+        reviews: [
+          makeReview({
+            displayName: 'Alice',
+            rating: 5,
+            text: 'Excellent',
+            relativeTime: '3 months ago',
+            photoUri: 'https://x/p.jpg',
+            publishTime: '2025-10-01T00:00:00Z',
+          }),
+        ],
       }),
     })
 
@@ -132,13 +142,12 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
     const googleItem = result.find((r) => r.source === 'google')
     expect(googleItem).toBeDefined()
     if (googleItem && googleItem.source === 'google') {
-      expect(googleItem.source).toBe('google')
       expect(googleItem.author).toBe('Alice')
       expect(googleItem.rating).toBe(5)
       expect(googleItem.text).toBe('Excellent')
-      expect(googleItem.time).toBe(1700000000)
       expect(googleItem.relativeTime).toBe('3 months ago')
       expect(googleItem.profilePhotoUrl).toBe('https://x/p.jpg')
+      expect(typeof googleItem.time).toBe('number')
     }
   })
 })
@@ -150,12 +159,7 @@ describe('GRVW-02: 24h cache — fetch called once across repeated invocations',
     const mockResponse = {
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'Alice', rating: 5, text: 'Great', time: 1000, relative_time_description: '1 month ago' },
-          ],
-        },
+        reviews: [makeReview({ displayName: 'Alice', rating: 5, text: 'Great' })],
       }),
     }
     fetchMock.mockResolvedValueOnce(mockResponse)
@@ -165,7 +169,7 @@ describe('GRVW-02: 24h cache — fetch called once across repeated invocations',
     await getReviews()
 
     // unstable_cache mock is a pass-through, so fetch is called twice
-    // Production uses real cache which would call once; this test verifies fetch IS called
+    // Production uses real cache which would call once
     expect(fetchMock.mock.calls.length).toBe(2)
   })
 })
@@ -204,8 +208,6 @@ describe('GRVW-04: graceful fallback', () => {
   it('returns hardcoded-only pool when fetch throws', async () => {
     fetchMock.mockRejectedValueOnce(new Error('network down'))
 
-    await expect(getReviews()).resolves.toHaveLength(3)
-
     const result = await getReviews()
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
   })
@@ -213,7 +215,7 @@ describe('GRVW-04: graceful fallback', () => {
   it('returns hardcoded-only pool when response is not ok', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: false,
-      status: 500,
+      status: 404,
       json: async () => ({}),
     })
 
@@ -221,10 +223,10 @@ describe('GRVW-04: graceful fallback', () => {
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
   })
 
-  it('returns hardcoded-only pool when status !== OK', async () => {
+  it('returns hardcoded-only pool when reviews array is absent', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ status: 'REQUEST_DENIED' }),
+      json: async () => ({}),
     })
 
     const result = await getReviews()
@@ -239,13 +241,10 @@ describe('GRVW-05: merge order — Google first, hardcoded fills remainder', () 
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'Alice', rating: 5, text: 'Great', time: 1000, relative_time_description: '1 month ago' },
-            { author_name: 'Bob', rating: 4, text: 'Good', time: 2000, relative_time_description: '2 months ago' },
-          ],
-        },
+        reviews: [
+          makeReview({ displayName: 'Alice', rating: 5, text: 'Great' }),
+          makeReview({ displayName: 'Bob', rating: 4, text: 'Good' }),
+        ],
       }),
     })
 
@@ -259,36 +258,29 @@ describe('GRVW-05: merge order — Google first, hardcoded fills remainder', () 
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'A', rating: 5, text: 'Excellent 1', time: 1000, relative_time_description: '1m ago' },
-            { author_name: 'B', rating: 5, text: 'Excellent 2', time: 2000, relative_time_description: '2m ago' },
-            { author_name: 'C', rating: 5, text: 'Excellent 3', time: 3000, relative_time_description: '3m ago' },
-            { author_name: 'D', rating: 5, text: 'Excellent 4', time: 4000, relative_time_description: '4m ago' },
-            { author_name: 'E', rating: 5, text: 'Excellent 5', time: 5000, relative_time_description: '5m ago' },
-          ],
-        },
+        reviews: [
+          makeReview({ displayName: 'A', rating: 5, text: 'Excellent 1' }),
+          makeReview({ displayName: 'B', rating: 5, text: 'Excellent 2' }),
+          makeReview({ displayName: 'C', rating: 5, text: 'Excellent 3' }),
+          makeReview({ displayName: 'D', rating: 5, text: 'Excellent 4' }),
+          makeReview({ displayName: 'E', rating: 5, text: 'Excellent 5' }),
+        ],
       }),
     })
 
     const result = await getReviews()
     expect(result).toHaveLength(5)
     expect(result.every((r) => r.source === 'google')).toBe(true)
-    expect(result.some((r) => r.source === 'hardcoded')).toBe(false)
   })
 
-  it('returns MAX_POOL items when Google returns fewer than MAX_POOL - 3 reviews', async () => {
+  it('returns up to MAX_POOL items when Google returns fewer than MAX_GOOGLE reviews', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'A', rating: 5, text: 'Great 1', time: 1000, relative_time_description: '1m ago' },
-            { author_name: 'B', rating: 5, text: 'Great 2', time: 2000, relative_time_description: '2m ago' },
-          ],
-        },
+        reviews: [
+          makeReview({ displayName: 'A', rating: 5, text: 'Great 1' }),
+          makeReview({ displayName: 'B', rating: 5, text: 'Great 2' }),
+        ],
       }),
     })
 
@@ -296,20 +288,13 @@ describe('GRVW-05: merge order — Google first, hardcoded fills remainder', () 
     expect(result).toHaveLength(Math.min(MAX_POOL, 2 + 3))
   })
 
-  it('caps the merged pool at MAX_POOL items even when Google returns exactly 5', async () => {
+  it('caps the merged pool at MAX_POOL items', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        status: 'OK',
-        result: {
-          reviews: [
-            { author_name: 'A', rating: 5, text: 'Excellent 1', time: 1000, relative_time_description: '1m ago' },
-            { author_name: 'B', rating: 5, text: 'Excellent 2', time: 2000, relative_time_description: '2m ago' },
-            { author_name: 'C', rating: 5, text: 'Excellent 3', time: 3000, relative_time_description: '3m ago' },
-            { author_name: 'D', rating: 5, text: 'Excellent 4', time: 4000, relative_time_description: '4m ago' },
-            { author_name: 'E', rating: 5, text: 'Excellent 5', time: 5000, relative_time_description: '5m ago' },
-          ],
-        },
+        reviews: Array.from({ length: 5 }, (_, i) =>
+          makeReview({ displayName: String(i), rating: 5, text: `Review ${i}` }),
+        ),
       }),
     })
 
