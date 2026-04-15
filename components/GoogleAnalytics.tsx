@@ -42,8 +42,9 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
         afterInteractive scripts are injected by Next.js client-side runtime and
         never reconciled by React — no mismatch. Next.js guarantees execution
         order for same-strategy scripts in JSX order, so consent-default fires
-        before ga-init. wait_for_update:500 gives Google 500 ms to receive the
-        consent signal before processing events.
+        before ga-init. wait_for_update:2500 gives Google 2.5 s to receive the
+        consent signal before processing events — enough time for a new visitor
+        to read and click the cookie banner before the first pageview is sent.
       */}
       <Script id="ga-consent-default" strategy="afterInteractive" nonce={nonce}>
         {`
@@ -56,7 +57,7 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
             ad_user_data: 'denied',
             ad_personalization: 'denied',
             analytics_storage: __prestigoConsent === 'granted' ? 'granted' : 'denied',
-            wait_for_update: 500
+            wait_for_update: 2500
           });
         `}
       </Script>
@@ -65,7 +66,10 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          gtag('config', '${GA_ID}');
+          // Skip tracking on admin pages to keep GA4 data clean.
+          if (!window.location.pathname.startsWith('/admin')) {
+            gtag('config', '${GA_ID}');
+          }
         `}
       </Script>
     </>

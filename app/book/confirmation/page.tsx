@@ -588,7 +588,7 @@ function ConfirmationContent() {
             ADD TO CALENDAR
           </button>
           <a
-            href="mailto:info@rideprestige.com"
+            href="mailto:info@rideprestigo.com"
             className="btn-ghost"
             style={{ textDecoration: 'none' }}
             aria-label="Contact us with questions"
