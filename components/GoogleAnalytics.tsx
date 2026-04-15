@@ -34,21 +34,18 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
         nonce={nonce}
       />
       {/*
-        Consent-first page_view pattern (no arbitrary timeout):
+        Consent Mode v2 with wait_for_update:2500.
 
-        1. gtag('consent', 'default') is set BEFORE gtag('config') so Google
-           knows the consent state before any event is processed.
-        2. gtag('config') is called with send_page_view:false — GA4 does NOT
-           auto-fire a page_view on load.
-        3. Page_view is fired manually in two cases:
-           a. Returning visitor (consent already in localStorage) — fired
-              immediately at the bottom of ga-init, with consent already set.
-           b. New visitor — fired by CookieBanner after the user clicks
-              "Accept all" or "Necessary only", so consent is always resolved
-              before the first hit is sent. No wait_for_update needed.
+        GA4 waits 2.5 s before processing the first pageview, giving new
+        visitors enough time to interact with the cookie banner. Returning
+        visitors already have analytics_storage:'granted' in localStorage so
+        their pageview fires immediately with full cookie attribution.
 
-        This eliminates the race between page_view and consent state that
-        caused 100% bounce rate for new visitors in cookieless mode.
+        Data from Apr 13–14 confirms this approach produces realistic
+        bounce rates (~30%). The more complex consent-first / visibilitychange
+        pattern was reverted: it introduced mobile double-counting (switching
+        apps triggers visibilitychange:hidden before the user accepts consent)
+        and 0 engaged sessions on deploy days due to mid-session JS reloads.
       */}
       <Script id="ga-consent-default" strategy="afterInteractive" nonce={nonce}>
         {`
@@ -60,7 +57,8 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
             ad_storage: 'denied',
             ad_user_data: 'denied',
             ad_personalization: 'denied',
-            analytics_storage: __prestigoConsent === 'granted' ? 'granted' : 'denied'
+            analytics_storage: __prestigoConsent === 'granted' ? 'granted' : 'denied',
+            wait_for_update: 2500
           });
         `}
       </Script>
@@ -71,32 +69,7 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
           gtag('js', new Date());
           // Skip tracking on admin pages to keep GA4 data clean.
           if (!window.location.pathname.startsWith('/admin')) {
-            // send_page_view:false — page_view is fired manually below (returning
-            // visitors) or by CookieBanner after consent interaction (new visitors).
-            gtag('config', '${GA_ID}', { send_page_view: false });
-            var __c;
-            try { __c = localStorage.getItem('${CONSENT_KEY}'); } catch(e) {}
-            if (__c === 'granted' || __c === 'necessary') {
-              // Returning visitor: consent already resolved — fire immediately.
-              window.__prestigoPageViewFired = true;
-              gtag('event', 'page_view');
-            } else {
-              // New visitor: wait for CookieBanner interaction.
-              // Fallback: if they leave without clicking the banner, fire
-              // page_view on visibilitychange so the visit is still counted
-              // (cookieless / modeled — analytics_storage stays 'denied').
-              window.__prestigoPageViewFired = false;
-              function __pvFallback() {
-                if (document.visibilityState === 'hidden' && !window.__prestigoPageViewFired) {
-                  window.__prestigoPageViewFired = true;
-                  gtag('event', 'page_view');
-                }
-                if (window.__prestigoPageViewFired) {
-                  document.removeEventListener('visibilitychange', __pvFallback);
-                }
-              }
-              document.addEventListener('visibilitychange', __pvFallback);
-            }
+            gtag('config', '${GA_ID}');
           }
         `}
       </Script>
