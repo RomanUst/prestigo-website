@@ -17,10 +17,10 @@ import Divider from '@/components/Divider'
 // actually returns (no trailing slash, matching next.config behaviour) so
 // Search Console sees a single, consistent home URL.
 const HOME_URL = 'https://rideprestigo.com'
-const HOME_DESCRIPTION = 'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.'
+const HOME_DESCRIPTION = 'Prague chauffeur service with fixed prices, flight tracking and meet & greet. Airport transfers, intercity routes, corporate accounts. Book online in 60 seconds.'
 
 export const metadata: Metadata = {
-  title: 'PRESTIGO — Premium Chauffeur Service Prague',
+  title: 'Prague Chauffeur Service | PRESTIGO — Premium Private Transfers',
   description: HOME_DESCRIPTION,
   alternates: {
     canonical: HOME_URL,
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: HOME_URL,
-    title: 'PRESTIGO — Premium Chauffeur Service Prague',
+    title: 'Prague Chauffeur Service | PRESTIGO — Premium Private Transfers',
     description: HOME_DESCRIPTION,
   },
 }

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 
 const words = [
-  'Chauffeur',
+  'Chauffeur Service',
   'Airport Transfer',
   'Private Driver',
   'Luxury Transport',
