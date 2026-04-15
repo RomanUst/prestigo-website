@@ -26,17 +26,16 @@ export default function CookieBanner() {
         dataLayer?: unknown[]
         gtag?: (...args: unknown[]) => void
       }
-      // Consent Mode v2 — flip analytics_storage to granted in-place so gtag.js
-      // retroactively unlocks analytics cookies + any queued events, without a
-      // page reload. Ad_storage stays 'denied' because the banner copy now mentions
-      // Meta Pixel; if the user clicks "Necessary only", ad tags never initialise.
+      // Consent Mode v2 — flip analytics_storage to granted so gtag.js
+      // unlocks analytics cookies without a page reload.
       if (typeof w.gtag === 'function') {
-        w.gtag('consent', 'update', {
-          analytics_storage: 'granted',
-        })
+        w.gtag('consent', 'update', { analytics_storage: 'granted' })
+        // Consent-first page_view: fire now that consent is resolved.
+        w.gtag('event', 'page_view')
       } else {
         w.dataLayer = w.dataLayer || []
         w.dataLayer.push(['consent', 'update', { analytics_storage: 'granted' }])
+        w.dataLayer.push(['event', 'page_view'])
       }
       // Notify MetaPixel component to initialise
       window.dispatchEvent(new Event('prestigo:consent-granted'))
@@ -46,8 +45,20 @@ export default function CookieBanner() {
   function handleNecessary() {
     localStorage.setItem(CONSENT_KEY, 'necessary')
     setVisible(false)
-    // No gtag update needed — default is already 'denied' for everything
-    // except session-level cookieless pings, which is exactly what we want.
+    // analytics_storage stays 'denied' — cookieless mode.
+    // Still fire page_view so GA4 registers the session (modeled, no cookie).
+    if (typeof window !== 'undefined') {
+      const w = window as typeof window & {
+        gtag?: (...args: unknown[]) => void
+        dataLayer?: unknown[]
+      }
+      if (typeof w.gtag === 'function') {
+        w.gtag('event', 'page_view')
+      } else {
+        w.dataLayer = w.dataLayer || []
+        w.dataLayer.push(['event', 'page_view'])
+      }
+    }
   }
 
   if (!visible) return null

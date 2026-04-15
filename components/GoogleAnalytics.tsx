@@ -34,17 +34,21 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
         nonce={nonce}
       />
       {/*
-        Consent defaults must be pushed to dataLayer before gtag('config') fires.
-        Using afterInteractive (not beforeInteractive) avoids React hydration
-        mismatch: browsers strip nonce attributes from DOM elements after CSP
-        processing ("nonce hiding"), so beforeInteractive scripts in the initial
-        HTML cause React to see nonce="" vs the server-rendered value.
-        afterInteractive scripts are injected by Next.js client-side runtime and
-        never reconciled by React — no mismatch. Next.js guarantees execution
-        order for same-strategy scripts in JSX order, so consent-default fires
-        before ga-init. wait_for_update:2500 gives Google 2.5 s to receive the
-        consent signal before processing events — enough time for a new visitor
-        to read and click the cookie banner before the first pageview is sent.
+        Consent-first page_view pattern (no arbitrary timeout):
+
+        1. gtag('consent', 'default') is set BEFORE gtag('config') so Google
+           knows the consent state before any event is processed.
+        2. gtag('config') is called with send_page_view:false — GA4 does NOT
+           auto-fire a page_view on load.
+        3. Page_view is fired manually in two cases:
+           a. Returning visitor (consent already in localStorage) — fired
+              immediately at the bottom of ga-init, with consent already set.
+           b. New visitor — fired by CookieBanner after the user clicks
+              "Accept all" or "Necessary only", so consent is always resolved
+              before the first hit is sent. No wait_for_update needed.
+
+        This eliminates the race between page_view and consent state that
+        caused 100% bounce rate for new visitors in cookieless mode.
       */}
       <Script id="ga-consent-default" strategy="afterInteractive" nonce={nonce}>
         {`
@@ -56,8 +60,7 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
             ad_storage: 'denied',
             ad_user_data: 'denied',
             ad_personalization: 'denied',
-            analytics_storage: __prestigoConsent === 'granted' ? 'granted' : 'denied',
-            wait_for_update: 2500
+            analytics_storage: __prestigoConsent === 'granted' ? 'granted' : 'denied'
           });
         `}
       </Script>
@@ -68,7 +71,16 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
           gtag('js', new Date());
           // Skip tracking on admin pages to keep GA4 data clean.
           if (!window.location.pathname.startsWith('/admin')) {
-            gtag('config', '${GA_ID}');
+            // send_page_view:false — page_view is fired manually below (returning
+            // visitors) or by CookieBanner after consent interaction (new visitors).
+            gtag('config', '${GA_ID}', { send_page_view: false });
+            // Returning visitor: consent already resolved in localStorage —
+            // fire page_view immediately with the correct consent state.
+            var __c;
+            try { __c = localStorage.getItem('${CONSENT_KEY}'); } catch(e) {}
+            if (__c === 'granted' || __c === 'necessary') {
+              gtag('event', 'page_view');
+            }
           }
         `}
       </Script>
