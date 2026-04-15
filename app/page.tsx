@@ -41,8 +41,8 @@ const localBusinessSchema = {
   '@type': ['LocalBusiness', 'TaxiService'],
   '@id': 'https://rideprestigo.com/#business',
   name: 'PRESTIGO',
-  legalName: 'Roman Ustyugov',
-  taxID: '05340071',
+  legalName: 'chelautotrans s.r.o.',
+  taxID: '05650801',
   description:
     'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
   url: 'https://rideprestigo.com',

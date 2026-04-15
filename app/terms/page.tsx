@@ -30,7 +30,7 @@ const sections = [
     title: 'Scope of Services',
     content: (
       <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-        PRESTIGO is a trading name of Roman&nbsp;Ustyugov (ICO:&nbsp;05340071,
+        PRESTIGO is a trading name of chelautotrans&nbsp;s.r.o. (I&#268;O:&nbsp;05650801,
         registered at Spojovac&iacute;&nbsp;685, Vysok&yacute;&nbsp;&Uacute;jezd, Czech
         Republic). We provide premium chauffeur and private transfer services in Prague and
         Central Europe, including airport transfers, intercity routes, corporate

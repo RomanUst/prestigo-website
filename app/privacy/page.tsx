@@ -31,9 +31,9 @@ const sections = [
     content: (
       <>
         <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-          The controller of your personal data is <strong className="text-offwhite">Roman Ustyugov</strong>, trading
+          The controller of your personal data is <strong className="text-offwhite">chelautotrans s.r.o.</strong>, trading
           as PRESTIGO, with registered office at Spojovac&iacute; 685, Vysok&yacute; &Uacute;jezd, Czech Republic,
-          ICO:&nbsp;05340071.
+          I&#268;O:&nbsp;05650801.
         </p>
         <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>
           For any questions regarding the processing of your personal data, contact us
