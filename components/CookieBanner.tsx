@@ -134,9 +134,11 @@ export default function CookieBanner() {
       aria-labelledby="consent-title"
       className="fixed inset-0 z-[400] flex items-end sm:items-center justify-center"
     >
-      {/* Backdrop: blocks clicks on page content. */}
+      {/* Backdrop: blocks clicks but stays translucent so the site's hero
+          headings remain readable — reinforces the premium brand behind the
+          choice rather than hiding it. */}
       <div
-        className="absolute inset-0 bg-black/75 backdrop-blur-sm"
+        className="absolute inset-0 bg-anthracite/40 backdrop-blur-[2px]"
         aria-hidden="true"
       />
 
@@ -145,18 +147,27 @@ export default function CookieBanner() {
         className="relative w-full sm:max-w-lg bg-anthracite border border-anthracite-light shadow-2xl flex flex-col max-h-[90vh] sm:max-h-[85vh] sm:rounded-sm"
         style={{ animation: 'fadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards' }}
       >
-        {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-anthracite-light flex-shrink-0">
+        {/* Header — wordmark + welcome copy. Mirrors the site's own brand
+            presentation so the first touchpoint feels consistent. */}
+        <div className="px-6 pt-7 pb-5 border-b border-anthracite-light flex-shrink-0 text-center">
+          <div
+            className="wordmark text-[14px] tracking-[0.6em] inline-flex items-center justify-center mb-4"
+            aria-label="PRESTIGO"
+          >
+            <span className="wordmark-presti">PRESTI</span>
+            <span className="wordmark-go">GO</span>
+          </div>
+          <span className="copper-line mx-auto mb-4" aria-hidden="true" />
           <h2
             id="consent-title"
-            className="font-display font-light text-[24px] sm:text-[26px] text-offwhite leading-tight"
+            className="font-display font-light italic text-[28px] sm:text-[32px] text-offwhite leading-tight"
           >
-            Privacy Preferences
+            Welcome aboard.
           </h2>
           <p className="mt-3 font-body font-light text-[12px] text-warmgrey leading-relaxed">
-            This site uses third-party technologies to operate the booking
-            flow, measure performance, and show relevant ads. You may revoke
-            or change your choice at any time.{' '}
+            Before your journey begins, a quick word on privacy. We use
+            third-party technologies to run the booking flow and refine the
+            experience. You may revoke or change your choice at any time.{' '}
             <a
               href="/privacy"
               className="text-copper-light hover:text-copper underline underline-offset-2"
