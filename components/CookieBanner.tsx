@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react'
 
 /**
- * Granular consent modal — blocking overlay inspired by Usercentrics/OneTrust.
+ * Granular consent modal — two-step design inspired by Blacklane's
+ * Usercentrics implementation.
+ *
+ * Step 1 (collapsed): short description + two actions — "Accept all" and
+ *   "More information". No Reject button; this is the default funnel path.
+ * Step 2 (expanded): per-category toggles (all pre-enabled) + "Accept all"
+ *   and "Save settings". Services tab lists individual vendors.
  *
  * Storage migration:
  *   Legacy key 'prestigo_cookie_consent' stored a single enum ('granted'|'necessary'|'denied').
@@ -53,9 +59,12 @@ export function getConsent(): ConsentState | null {
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [tab, setTab] = useState<'categories' | 'services'>('categories')
-  const [analytics, setAnalytics] = useState(false)
-  const [marketing, setMarketing] = useState(false)
+  // Default all toggles on — matches Blacklane pattern. User opts OUT via
+  // toggles, never needs a "Reject" button.
+  const [analytics, setAnalytics] = useState(true)
+  const [marketing, setMarketing] = useState(true)
 
   useEffect(() => {
     if (!getConsent()) setVisible(true)
@@ -114,7 +123,6 @@ export default function CookieBanner() {
   }
 
   const handleAcceptAll = () => applyConsent({ analytics: true, marketing: true })
-  const handleRejectAll = () => applyConsent({ analytics: false, marketing: false })
   const handleSave = () => applyConsent({ analytics, marketing })
 
   if (!visible) return null
@@ -146,97 +154,107 @@ export default function CookieBanner() {
             Privacy Preferences
           </h2>
           <p className="mt-3 font-body font-light text-[12px] text-warmgrey leading-relaxed">
-            We use cookies and similar technologies to operate the booking flow,
-            measure performance, and show relevant ads on Instagram and Google.
-            You can change or withdraw your choice anytime.{' '}
+            This site uses third-party technologies to operate the booking
+            flow, measure performance, and show relevant ads. You may revoke
+            or change your choice at any time.{' '}
             <a
               href="/privacy"
               className="text-copper-light hover:text-copper underline underline-offset-2"
             >
               Privacy Policy
             </a>
+            {' · '}
+            <a
+              href="/terms"
+              className="text-copper-light hover:text-copper underline underline-offset-2"
+            >
+              Legal Notice
+            </a>
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex border-b border-anthracite-light flex-shrink-0">
-          <button
-            type="button"
-            onClick={() => setTab('categories')}
-            className={`flex-1 px-4 py-3 font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
-              tab === 'categories'
-                ? 'text-copper border-b-2 border-copper -mb-px'
-                : 'text-warmgrey hover:text-offwhite'
-            }`}
-          >
-            Categories
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab('services')}
-            className={`flex-1 px-4 py-3 font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
-              tab === 'services'
-                ? 'text-copper border-b-2 border-copper -mb-px'
-                : 'text-warmgrey hover:text-offwhite'
-            }`}
-          >
-            Services
-          </button>
-        </div>
+        {/* Expanded view: tabs + toggle list. Hidden on first render. */}
+        {expanded && (
+          <>
+            <div className="flex border-b border-anthracite-light flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setTab('categories')}
+                className={`flex-1 px-4 py-3 font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
+                  tab === 'categories'
+                    ? 'text-copper border-b-2 border-copper -mb-px'
+                    : 'text-warmgrey hover:text-offwhite'
+                }`}
+              >
+                Categories
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('services')}
+                className={`flex-1 px-4 py-3 font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors ${
+                  tab === 'services'
+                    ? 'text-copper border-b-2 border-copper -mb-px'
+                    : 'text-warmgrey hover:text-offwhite'
+                }`}
+              >
+                Services
+              </button>
+            </div>
 
-        {/* Body (scrollable) */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {tab === 'categories' ? (
-            <div className="space-y-5">
-              <CategoryRow
-                title="Essential"
-                description="Required for booking, payments, fraud prevention, and core site functionality. Always on."
-                checked
-                disabled
-              />
-              <CategoryRow
-                title="Analytics"
-                description="Google Analytics 4 — helps us understand how visitors use the site so we can improve it. Data is aggregated and anonymous."
-                checked={analytics}
-                onChange={setAnalytics}
-              />
-              <CategoryRow
-                title="Marketing"
-                description="Meta Pixel and Google Ads conversion tracking — measures ad performance and lets us show relevant offers on Instagram, Facebook, and Google."
-                checked={marketing}
-                onChange={setMarketing}
-              />
+            <div className="flex-1 overflow-y-auto px-6 py-4">
+              {tab === 'categories' ? (
+                <div className="space-y-5">
+                  <CategoryRow
+                    title="Essential"
+                    description="Required for booking, payments, fraud prevention, and core site functionality. Always on."
+                    checked
+                    disabled
+                  />
+                  <CategoryRow
+                    title="Analytics"
+                    description="Google Analytics 4 — helps us understand how visitors use the site so we can improve it. Data is aggregated and anonymous."
+                    checked={analytics}
+                    onChange={setAnalytics}
+                  />
+                  <CategoryRow
+                    title="Marketing"
+                    description="Meta Pixel and Google Ads conversion tracking — measures ad performance and lets us show relevant offers on Instagram, Facebook, and Google."
+                    checked={marketing}
+                    onChange={setMarketing}
+                  />
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <ServiceRow
+                    title="Stripe"
+                    category="Essential"
+                    description="Payment processing and fraud prevention."
+                  />
+                  <ServiceRow
+                    title="Supabase"
+                    category="Essential"
+                    description="Booking database, authentication, and session management."
+                  />
+                  <ServiceRow
+                    title="Google Maps"
+                    category="Essential"
+                    description="Address autocomplete and route distance calculation."
+                  />
+                  <ServiceRow
+                    title="Google Analytics 4"
+                    category="Analytics"
+                    description="Traffic statistics and user behaviour analysis. Consent Mode v2 — runs anonymously if declined."
+                  />
+                  <ServiceRow
+                    title="Meta Pixel"
+                    category="Marketing"
+                    description="Ad conversion tracking on Instagram and Facebook."
+                  />
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-5">
-              <ServiceRow
-                title="Stripe"
-                category="Essential"
-                description="Payment processing and fraud prevention."
-              />
-              <ServiceRow
-                title="Supabase"
-                category="Essential"
-                description="Booking database, authentication, and session management."
-              />
-              <ServiceRow
-                title="Google Maps"
-                category="Essential"
-                description="Address autocomplete and route distance calculation."
-              />
-              <ServiceRow
-                title="Google Analytics 4"
-                category="Analytics"
-                description="Traffic statistics and user behaviour analysis. Consent Mode v2 — runs anonymously if declined."
-              />
-              <ServiceRow
-                title="Meta Pixel"
-                category="Marketing"
-                description="Ad conversion tracking on Instagram and Facebook."
-              />
-            </div>
-          )}
-        </div>
+          </>
+        )}
 
         {/* Footer */}
         <div className="px-6 py-4 border-t border-anthracite-light flex flex-col gap-2 flex-shrink-0">
@@ -247,7 +265,7 @@ export default function CookieBanner() {
           >
             Accept all
           </button>
-          <div className="grid grid-cols-2 gap-2">
+          {expanded ? (
             <button
               type="button"
               onClick={handleSave}
@@ -255,14 +273,15 @@ export default function CookieBanner() {
             >
               Save settings
             </button>
+          ) : (
             <button
               type="button"
-              onClick={handleRejectAll}
+              onClick={() => setExpanded(true)}
               className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 border border-anthracite-light text-warmgrey hover:text-offwhite hover:border-offwhite/40 transition-colors"
             >
-              Reject all
+              More information
             </button>
-          </div>
+          )}
         </div>
       </div>
     </div>
