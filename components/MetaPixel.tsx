@@ -5,7 +5,10 @@ import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
-const CONSENT_KEY = 'prestigo_cookie_consent'
+// Legacy single-enum key is still mirrored by CookieBanner for backwards compat.
+const LEGACY_CONSENT_KEY = 'prestigo_cookie_consent'
+// New per-category key. Marketing === true required to load the pixel.
+const CONSENT_V2_KEY = 'prestigo_consent_v2'
 
 declare global {
   interface Window {
@@ -50,10 +53,17 @@ export default function MetaPixel({ nonce }: { nonce?: string }) {
   const pathname = usePathname()
   const isFirstRender = useRef(true)
 
-  // Check stored consent on mount + listen for live grant
+  // Check stored consent on mount + listen for live grant.
+  // Prefer the per-category v2 key (marketing flag), fall back to legacy enum.
   useEffect(() => {
     try {
-      if (localStorage.getItem(CONSENT_KEY) === 'granted') setConsented(true)
+      const v2 = localStorage.getItem(CONSENT_V2_KEY)
+      if (v2) {
+        const parsed = JSON.parse(v2) as { marketing?: boolean }
+        if (parsed?.marketing) setConsented(true)
+      } else if (localStorage.getItem(LEGACY_CONSENT_KEY) === 'granted') {
+        setConsented(true)
+      }
     } catch {}
 
     const handler = () => setConsented(true)
