@@ -54,9 +54,12 @@ export default function CookieBanner() {
       aria-label="Cookie consent"
       className="fixed bottom-0 left-0 right-0 z-[300] border-t border-anthracite-light bg-anthracite-mid/95 backdrop-blur-md"
     >
-      <div className="max-w-7xl mx-auto px-6 md:px-12 py-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <p className="font-body font-light text-[12px] text-warmgrey leading-relaxed max-w-2xl">
-          We use cookies for analytics (Google Analytics) and advertising (Meta Pixel) to improve our service and show relevant ads.{' '}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-12 py-3 sm:py-5 flex items-center justify-between gap-3 sm:gap-4">
+        {/* Mobile: only Privacy Policy link. Desktop: full description. */}
+        <p className="font-body font-light text-[11px] sm:text-[12px] text-warmgrey leading-relaxed min-w-0">
+          <span className="hidden sm:inline">
+            We use cookies for analytics (Google Analytics) and advertising (Meta Pixel) to improve our service and show relevant ads.{' '}
+          </span>
           <a
             href="/privacy"
             className="text-offwhite hover:text-copper transition-colors"
@@ -64,16 +67,18 @@ export default function CookieBanner() {
             Privacy&nbsp;Policy
           </a>
         </p>
-        <div className="flex items-center gap-3 flex-shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
           <button
             onClick={handleNecessary}
-            className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-5 py-2.5 border border-anthracite-light text-warmgrey hover:text-offwhite hover:border-offwhite/30 transition-colors"
+            className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-3 sm:px-5 py-2 sm:py-2.5 border border-anthracite-light text-warmgrey hover:text-offwhite hover:border-offwhite/30 transition-colors whitespace-nowrap"
           >
-            Necessary only
+            {/* Shorter label on mobile to keep banner single-line */}
+            <span className="sm:hidden">Decline</span>
+            <span className="hidden sm:inline">Necessary only</span>
           </button>
           <button
             onClick={handleAccept}
-            className="btn-primary text-[10px] px-5 py-2.5"
+            className="btn-primary text-[10px] px-3 sm:px-5 py-2 sm:py-2.5 whitespace-nowrap"
           >
             Accept all
           </button>
