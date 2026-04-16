@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/guides',
     title: 'Prague Travel Guides — Airport, Routes & Transport (2026)',
     description: DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/photohero.png', width: 1200, height: 630 }],
   },
 }
 

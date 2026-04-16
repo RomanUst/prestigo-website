@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-budapest',
     title: 'Prague to Budapest Private Transfer — From €885',
     description: 'Book a private chauffeur from Prague to Budapest. 535 km door-to-door in a Mercedes-Benz. Fixed price from €885, Pearl of the Danube.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

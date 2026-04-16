@@ -58,20 +58,26 @@ const popularRoutes = [
 const features = [
   {
     title: 'What does a private transfer from Prague cost?',
-    body: 'Every intercity route has a published fixed price. No meter, no tolls added on top. What you see when you book is what you pay.',
+    body: 'Every intercity route has a confirmed fixed price before you book. The figure includes fuel, driver time, all motorway tolls, and where applicable, Czech and Austrian or German motorway vignettes. Nothing is added at drop-off. For reference, the E-Class fare for Prague to Vienna is €485, Prague to Berlin €580, and Prague to Dresden €250 — all locked in at the time of booking, regardless of traffic conditions or fuel costs on the day of travel.',
   },
   {
     title: 'What does door-to-door service mean in practice?',
-    body: 'Your driver picks you up from your hotel, office, or home — and drops you at your exact destination. No stations, no connections.',
+    body: 'Your driver arrives at your hotel lobby, office reception, or home address and handles your luggage from that moment. At the destination you are taken to your exact address — a specific hotel, a conference centre, or a private residence. There are no station transfers, no shared coaches, and no need to navigate an unfamiliar city after four hours on the road. The entire journey is a single, uninterrupted movement from your door to theirs.',
   },
   {
     title: 'Can I work or take calls during a long transfer?',
-    body: 'Leather seating, USB charging, onboard Wi-Fi. Four hours to Vienna is a productive morning — or a quiet one, entirely your choice.',
+    body: 'Each vehicle carries USB-A and USB-C charging, a phone holder, and onboard Wi-Fi. The S-Class and V-Class also carry chilled bottled water. The separation between driver and passenger compartment means calls, video meetings, and confidential conversations remain private throughout. Four hours Prague to Vienna is genuinely productive time — it is common for passengers on the corporate account to spend the first two hours on calls and the second two in documents, arriving at the destination with the morning\'s work done.',
   },
   {
     title: 'Can I book a transfer for early morning or late at night?',
-    body: 'Early morning departures for business meetings. Late-night returns after events. Intercity transfers run around the clock.',
+    body: 'Intercity departures run at any hour. A 04:30 departure from Prague for a 09:00 meeting in Vienna is one of the most common booking patterns on the corporate account — it allows passengers to arrive rested rather than disrupted by a first-flight-of-the-morning connection through a hub airport. Late returns after a dinner that runs until midnight in a destination city are equally routine. The driver confirms the booking the evening before and sends a departure reminder one hour ahead.',
   },
+]
+
+const editorial = [
+  'Central Europe is compact by the standards of long-haul travel, but public transport connections are rarely convenient when time and comfort matter. Vienna is 3.5 hours from Prague by road, but the direct Railjet train takes 4 hours 20 minutes and arrives at Wien Hauptbahnhof — a further 30 minutes from most business hotels in the First or Fourth District by taxi or U-Bahn. Berlin by train from Praha hlavní nádraží is 4 hours 40 minutes on the direct EC service, which runs twice daily with limited luggage space and no guaranteed quiet zone.',
+  'A private transfer covers the same ground in fewer total hours, with the vehicle at your door at departure and your exact destination address at the other end. The difference in door-to-door journey time — accounting for the walk or taxi to the station, the waiting time, and the onward journey at the destination — is typically 45 minutes to two hours in favour of the private transfer, depending on the destination city and the time of day.',
+  'PRESTIGO operates 30 confirmed routes from Prague, each with a published fixed price. The fleet is exclusively Mercedes: E-Class for solo and paired travel, S-Class for those who want the additional space and specification of a full executive saloon, and V-Class for groups of up to seven passengers with full luggage. Every route can be extended into a return trip, with a return discount applied automatically at booking.',
 ]
 
 export default function IntercityRoutesPage() {
@@ -146,6 +152,21 @@ export default function IntercityRoutesPage() {
                 <h2 className="font-display font-light text-[22px] text-offwhite mb-3">{f.title}</h2>
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{f.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Editorial — service depth */}
+      <section className="bg-anthracite py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Private transfer vs. public transport</p>
+          <span className="copper-line mb-10 block" />
+          <div className="max-w-3xl flex flex-col gap-6">
+            {editorial.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{para}</p>
             ))}
           </div>
         </div>

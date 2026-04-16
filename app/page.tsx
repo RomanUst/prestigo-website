@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 
 export const dynamic = 'force-static'
 
+import { getCachedAggregateRating } from '@/lib/google-reviews'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import BookingSection from '@/components/BookingSection'
@@ -20,7 +21,7 @@ const HOME_URL = 'https://rideprestigo.com'
 const HOME_DESCRIPTION = 'Prague chauffeur service with fixed prices, flight tracking and meet & greet. Airport transfers, intercity routes, corporate accounts. Book online in 60 seconds.'
 
 export const metadata: Metadata = {
-  title: 'Prague Chauffeur Service | PRESTIGO — Premium Private Transfers',
+  title: { absolute: 'Prague Chauffeur & Airport Transfers | PRESTIGO' },
   description: HOME_DESCRIPTION,
   alternates: {
     canonical: HOME_URL,
@@ -59,7 +60,14 @@ const localBusinessSchema = {
     '@type': 'PostalAddress',
     streetAddress: 'Spojovací 685',
     addressLocality: 'Vysoký Újezd',
+    postalCode: '252 16',
+    addressRegion: 'Central Bohemian Region',
     addressCountry: 'CZ',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 49.9836,
+    longitude: 14.2001,
   },
   image: 'https://rideprestigo.com/photohero.png',
   logo: {
@@ -87,6 +95,7 @@ const localBusinessSchema = {
   foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
   sameAs: [
+    'https://share.google/BtnnbvoiytbjW0Gry',
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',
   ],
@@ -125,12 +134,27 @@ const websiteSchema = {
   },
 }
 
-export default function Home() {
+export default async function Home() {
+  const aggregateRating = await getCachedAggregateRating()
+
+  const schema = aggregateRating
+    ? {
+        ...localBusinessSchema,
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: aggregateRating.ratingValue.toFixed(1),
+          reviewCount: aggregateRating.reviewCount,
+          bestRating: '5',
+          worstRating: '1',
+        },
+      }
+    : localBusinessSchema
+
   return (
     <main id="main-content">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(localBusinessSchema) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
       />
       <script
         type="application/ld+json"

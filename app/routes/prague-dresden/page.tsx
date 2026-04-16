@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-dresden',
     title: 'Prague to Dresden Private Transfer — Prestigo',
     description: 'Private chauffeured Mercedes from Prague to Dresden. Fixed price from €250. 2 hours door-to-door via D8.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

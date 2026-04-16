@@ -48,20 +48,26 @@ const breadcrumbSchema = {
 const features = [
   {
     title: 'What vehicles are available for group transfers?',
-    body: 'From an 8-seat Mercedes V-Class to a coordinated fleet of executive saloons. We match the vehicle configuration to your group size and logistics.',
+    body: 'For groups of up to seven passengers, the Mercedes V-Class is the standard vehicle — eight seats, 1,410 litres of cargo capacity with the rear seat configuration adjusted, and the same interior specification as the executive saloons. For groups between eight and twenty passengers, we deploy multiple V-Class vehicles in coordinated convoy. For larger conference delegations up to fifty passengers, we operate a mixed fleet of saloons and minivans, with vehicle-to-guest assignment managed by seniority and luggage volume.',
   },
   {
     title: 'How do you manage group pickup timing?',
-    body: 'Conference delegations cannot afford lateness. We build timing buffers, monitor flight arrivals, and coordinate vehicle dispatch to the minute.',
+    body: 'Conference groups produce complex arrival patterns: a dozen flights across two days, a mix of Schengen and non-Schengen arrivals at Terminal 1 and Terminal 2, and hotel allocations spread across three properties. We receive the full arrival schedule, assign a chauffeur to each flight with a fifteen-minute customs and baggage buffer built in, and dispatch vehicles to the correct terminal at the correct time. Passengers who miss a connection receive an updated vehicle assignment within minutes of the rebooking being confirmed.',
   },
   {
     title: 'Can you handle multiple stops for a group?',
-    body: 'Airport to hotel. Hotel to venue. Venue to dinner. Dinner to airport. We manage the full movement schedule so your team can focus on the event.',
+    body: 'A typical conference movement schedule includes airport arrivals on day one, a hotel-to-venue shuttle on the morning of the main event, a venue-to-dinner transfer in the evening, and a return airport run on departure day. PRESTIGO manages the full schedule under a single logistics brief. Each movement has a confirmed vehicle, a confirmed chauffeur, a confirmed pickup time, and a confirmed drop-off point. Your events team receives a written movement schedule for their records on the morning of day one.',
   },
   {
     title: 'How large a group can PRESTIGO transport?',
-    body: 'Small incentive groups or full conference delegations — we scale to your requirements and maintain the same standard across every vehicle in the fleet.',
+    body: 'We have operated groups as small as four passengers in a single V-Class and delegations as large as forty-eight passengers across eight vehicles coordinated simultaneously at two airport terminals. The operational approach does not change with scale: a movement brief, confirmed vehicle and chauffeur assignments, a lead coordinator available to your events team throughout, and direct contact for any real-time adjustment. We do not sub-contract to third-party operators for groups under fifty passengers.',
   },
+]
+
+const editorial = [
+  'Group transfers fail for predictable reasons. The vehicle is late because no one monitored the flight arrival in real time. The driver cannot locate the group because the airport pickup point was never confirmed in writing. The hotel is twenty minutes from the conference venue but the movement schedule allocated fifteen. A guest held at the back of the baggage claim takes longer than expected, and the vehicle departs without them.',
+  'PRESTIGO group operations are built around the failure modes rather than the ideal scenario. Every flight on a group arrival schedule is monitored from the moment it departs the origin airport. Pickup confirmation is sent to each arriving passenger\'s mobile number in advance. Movement schedules include a five-minute buffer at every stage. A lead coordinator is reachable by your events team from two hours before the first pickup to two hours after the last drop-off.',
+  'For Prague group transfers, one detail is worth noting in advance: Václav Havel Airport has two separate terminals. Terminal 2 handles Schengen arrivals and has its own building west of the main structure. Terminal 1 handles non-Schengen arrivals in the lower level of the central building. An international delegation arriving on mixed Schengen and non-Schengen flights will be split between terminals, with separate arrivals halls and a ten-minute walk between them. We build terminal-split logistics into every group brief as standard.',
 ]
 
 const groupTypes = [
@@ -137,6 +143,21 @@ export default function GroupTransfersPage() {
                 <h2 className="font-display font-light text-[22px] text-offwhite mb-3">{f.title}</h2>
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{f.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Editorial — service depth */}
+      <section className="bg-anthracite py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">How we plan your group movement</p>
+          <span className="copper-line mb-10 block" />
+          <div className="max-w-3xl flex flex-col gap-6">
+            {editorial.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{para}</p>
             ))}
           </div>
         </div>

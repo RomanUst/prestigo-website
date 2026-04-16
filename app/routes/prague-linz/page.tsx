@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-linz',
     title: 'Prague to Linz Private Transfer — From €320',
     description: 'Book a private chauffeur from Prague to Linz. 195 km door-to-door in a Mercedes-Benz. Fixed price from €320, Upper Austria capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

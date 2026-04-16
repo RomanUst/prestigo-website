@@ -16,6 +16,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/corporate',
     title: 'Corporate Chauffeur Accounts Prague | PRESTIGO',
     description: CORPORATE_DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/hero-corporate-accounts.png', width: 1200, height: 630 }],
   },
 }
 

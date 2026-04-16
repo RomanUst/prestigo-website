@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-marianske-lazne',
     title: 'Prague to Mariánské Lázně Private Transfer — From €270',
     description: 'Book a private chauffeur from Prague to Mariánské Lázně. 165 km door-to-door in a Mercedes-Benz. Fixed price from €270, West Bohemia spa town.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

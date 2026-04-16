@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/services/airport-transfer',
     title: 'Airport Transfer Prague — PRG Václav Havel | PRESTIGO',
     description: 'Prague airport transfer with flight tracking, meet & greet, and fixed price. All terminals covered. Available 24/7.',
+    images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
   },
 }
 
@@ -87,11 +88,22 @@ const faqs = [
   },
 ]
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+}
+
 export default function AirportTransferPage() {
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
       {/* Hero */}

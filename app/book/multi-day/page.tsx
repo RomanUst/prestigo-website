@@ -8,6 +8,19 @@ export const metadata: Metadata = {
   title: 'Multi-day Chauffeur Hire | PRESTIGO',
   description:
     'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
+  alternates: {
+    canonical: 'https://rideprestigo.com/book/multi-day',
+    languages: {
+      en: 'https://rideprestigo.com/book/multi-day',
+      'x-default': 'https://rideprestigo.com/book/multi-day',
+    },
+  },
+  openGraph: {
+    url: 'https://rideprestigo.com/book/multi-day',
+    title: 'Multi-day Chauffeur Hire | PRESTIGO',
+    description: 'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
+    images: [{ url: 'https://rideprestigo.com/multi-day-hero.png', width: 1200, height: 630 }],
+  },
 }
 
 const INCLUDES = [

@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
     title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
     description: DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
   },
 }
 

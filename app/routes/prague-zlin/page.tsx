@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-zlin',
     title: 'Prague to Zlín Private Transfer — From €510',
     description: 'Book a private chauffeur from Prague to Zlín. 310 km door-to-door in a Mercedes-Benz. Fixed price from €510, Baťa\'s functionalist city.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

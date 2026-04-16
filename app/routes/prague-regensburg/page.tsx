@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-regensburg',
     title: 'Prague to Regensburg Private Transfer — From €470',
     description: 'Book a private chauffeur from Prague to Regensburg. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, medieval Danube city.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

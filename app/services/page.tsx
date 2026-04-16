@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/services',
     title: 'Chauffeur Services Prague — Airport, Intercity & Corporate',
     description: SERVICES_DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/photohero.png', width: 1200, height: 630 }],
   },
 }
 

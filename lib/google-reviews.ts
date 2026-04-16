@@ -47,7 +47,53 @@ export const HARDCODED_TESTIMONIALS: HardcodedReview[] = [
   },
 ]
 
-// Places API New (v1) response shape
+// Places API New (v1) — aggregate rating response shape
+interface PlacesApiV1AggregateResponse {
+  rating?: number
+  userRatingCount?: number
+}
+
+async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
+  const placeId = process.env.GOOGLE_PLACE_ID
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+
+  if (!placeId || !apiKey) return null
+
+  try {
+    const res = await fetch(
+      `https://places.googleapis.com/v1/places/${placeId}`,
+      {
+        cache: 'no-store',
+        headers: {
+          'X-Goog-Api-Key': apiKey,
+          'X-Goog-FieldMask': 'rating,userRatingCount',
+        },
+      },
+    )
+    if (!res.ok) return null
+
+    const json = (await res.json()) as PlacesApiV1AggregateResponse
+    if (!json.rating || !json.userRatingCount) return null
+
+    return {
+      ratingValue: Math.round(json.rating * 10) / 10,
+      reviewCount: json.userRatingCount,
+    }
+  } catch {
+    return null
+  }
+}
+
+export const getCachedAggregateRating = unstable_cache(
+  fetchAggregateRating,
+  ['google-aggregate-rating'],
+  {
+    tags: ['google-reviews'],
+    revalidate: CACHE_TTL_SECONDS,
+  },
+)
+
+// Places API New (v1) — review response shape
 interface PlacesApiV1Review {
   rating: number
   text?: { text: string; languageCode: string }

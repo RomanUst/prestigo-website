@@ -9,7 +9,7 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
-  title: 'Prague to Berlin Private Transfer | Door-to-Door in 4 Hours | Prestigo',
+  title: 'Prague to Berlin Chauffeur Transfer — From €580',
   description: 'Private chauffeured transfer from Prague to Berlin in Mercedes E/S/V-Class. Fixed price from €580. 4 hours door-to-door via D8, A17 and A13.',
   alternates: {
     canonical: '/routes/prague-berlin',
@@ -20,8 +20,9 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: 'https://rideprestigo.com/routes/prague-berlin',
-    title: 'Prague to Berlin Private Transfer — Prestigo',
+    title: 'Prague to Berlin Chauffeur Transfer — From €580 | PRESTIGO',
     description: 'Private chauffeured Mercedes from Prague to Berlin. Fixed price from €580. 4 hours door-to-door via D8, A17 and A13.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

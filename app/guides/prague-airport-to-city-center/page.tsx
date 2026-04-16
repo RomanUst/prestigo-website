@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
     title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
     description: DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
   },
 }
 
@@ -447,6 +448,12 @@ export default function GuidePragueAirportPage() {
                 <p className="font-body font-light text-[12px] mt-4 text-warmgrey" style={{ lineHeight: '1.85' }}>
                   <strong className="text-offwhite">How to book:</strong> {opt.booking}
                 </p>
+                {opt.name.includes('PRESTIGO') && (
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <a href="/services/airport-transfer" className="font-body font-light text-[11px] tracking-[0.12em] uppercase border border-anthracite-light px-4 py-2 text-offwhite hover:border-copper transition-colors">Airport transfer details</a>
+                    <a href="/book" className="font-body font-light text-[11px] tracking-[0.12em] uppercase border border-anthracite-light px-4 py-2 text-offwhite hover:border-copper transition-colors">Book your transfer</a>
+                  </div>
+                )}
               </div>
             ))}
           </div>

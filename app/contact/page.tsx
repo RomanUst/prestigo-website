@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/contact',
     title: 'Contact — PRESTIGO Premium Chauffeur Prague',
     description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
+    images: [{ url: 'https://rideprestigo.com/hero-contact.webp', width: 1200, height: 630 }],
   },
 }
 

@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-kutna-hora',
     title: 'Prague to Kutná Hora Private Transfer — From €115',
     description: 'Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €115, UNESCO old town, Sedlec Ossuary.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

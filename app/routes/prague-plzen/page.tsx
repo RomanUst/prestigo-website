@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-plzen',
     title: 'Prague to Plzeň Private Transfer — From €150',
     description: 'Book a private chauffeur from Prague to Plzeň. 90 km on the D5 in a Mercedes-Benz. Fixed price from €150, Pilsner Urquell brewery capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

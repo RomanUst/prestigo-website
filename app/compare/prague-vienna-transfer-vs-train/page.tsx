@@ -31,6 +31,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
     title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
     description: DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/vienna.png', width: 1200, height: 630 }],
   },
 }
 

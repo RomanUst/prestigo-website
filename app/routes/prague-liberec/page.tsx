@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-liberec',
     title: 'Prague to Liberec Private Chauffeur — From €175',
     description: 'Book a private chauffeur from Prague to Liberec. 105 km door-to-door in a Mercedes-Benz. Fixed price from €175, Jizera Mountains gateway.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

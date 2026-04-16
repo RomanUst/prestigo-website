@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-nuremberg',
     title: 'Prague to Nuremberg Private Transfer — From €595',
     description: 'Book a private chauffeur from Prague to Nuremberg. 360 km door-to-door in a Mercedes-Benz. Fixed price from €595, Franconia\'s medieval city.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

@@ -10,19 +10,19 @@ const bookingSchema = {
       '@type': 'Service',
       '@id': 'https://rideprestigo.com/book#service',
       name: 'Prague Chauffeur Transfer — Online Booking',
-      description: 'Book a private chauffeur transfer in Prague online. Fixed price, instant confirmation, Mercedes E-Class, S-Class, or V-Class. Airport transfers and intercity routes from €49.',
+      description: 'Book a private chauffeur transfer in Prague online. Fixed price, instant confirmation, Mercedes E-Class, S-Class, or V-Class. Airport transfers and intercity routes from €69.',
       provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
       url: 'https://rideprestigo.com/book',
       serviceType: 'Chauffeur Transfer',
       areaServed: { '@type': 'Place', name: 'Prague, Czech Republic' },
       offers: {
         '@type': 'Offer',
-        price: '49',
+        price: '69',
         priceCurrency: 'EUR',
         availability: 'https://schema.org/InStock',
         priceSpecification: {
           '@type': 'PriceSpecification',
-          price: '49',
+          price: '69',
           priceCurrency: 'EUR',
           valueAddedTaxIncluded: true,
           description: 'Starting price for E-Class airport transfer',
@@ -58,6 +58,19 @@ const bookingSchema = {
 export const metadata: Metadata = {
   title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
   description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
+  alternates: {
+    canonical: 'https://rideprestigo.com/book',
+    languages: {
+      en: 'https://rideprestigo.com/book',
+      'x-default': 'https://rideprestigo.com/book',
+    },
+  },
+  openGraph: {
+    url: 'https://rideprestigo.com/book',
+    title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
+    description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
+    images: [{ url: 'https://rideprestigo.com/photohero.png', width: 1200, height: 630 }],
+  },
 }
 
 const guarantees = [

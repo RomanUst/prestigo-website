@@ -8,7 +8,7 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
 export const metadata: Metadata = {
-  title: 'FAQ — Prague Chauffeur Service: Prices, Booking & More',
+  title: 'FAQ: Prague Chauffeur Prices & Booking',
   description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
   alternates: {
     canonical: '/faq',
@@ -21,6 +21,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/faq',
     title: 'FAQ — PRESTIGO Prague Chauffeur Service | Prices, Booking & More',
     description: 'Frequently asked questions about PRESTIGO: how to book, pricing, cancellation, flight delays, vehicle options, corporate accounts, and more.',
+    images: [{ url: 'https://rideprestigo.com/photohero.png', width: 1200, height: 630 }],
   },
 }
 

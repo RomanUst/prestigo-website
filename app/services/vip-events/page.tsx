@@ -48,20 +48,26 @@ const breadcrumbSchema = {
 const features = [
   {
     title: 'How does PRESTIGO handle diplomatic and VIP transfers?',
-    body: 'Our senior chauffeurs understand the requirements of diplomatic and high-protocol engagements. Discretion, punctuality, and professional conduct — without exception.',
+    body: 'Senior PRESTIGO chauffeurs operate in protocol-sensitive environments as a matter of routine. This means presenting credentials on request, understanding the distinction between a security advance team and a close-protection detail, positioning the vehicle so the principal exits on the pavement side without crossing traffic, and maintaining radio silence when required. A written briefing covering the guest\'s profile, schedule, and specific instructions is standard for senior VIP engagements. We do not assume preferences; we are briefed on them.',
   },
   {
     title: 'Can you provide multiple cars for a large event?',
-    body: 'For events requiring multiple vehicles, we coordinate fleet logistics to ensure every car arrives precisely on time, in sequence, without visible operational complexity.',
+    body: 'For events requiring multiple vehicles — a gala arrival across three cars, or an incentive group requiring six vehicles across two hotels — we coordinate the full fleet logistics from a single point of contact. The operational brief specifies vehicle order, chauffeur-to-guest assignment, timing intervals between arrivals, and the holding area for vehicles between runs. Your events team communicates with one coordinator. One invoice covers the entire operation. One escalation point handles any real-time adjustment on the day.',
   },
   {
     title: 'How is passenger privacy protected?',
-    body: 'Confidentiality is non-negotiable. Our chauffeurs sign NDAs on request. Your guests, your routes, and your schedule remain entirely private.',
+    body: 'Chauffeurs assigned to VIP engagements do not discuss passengers, routes, timing, or any detail of the assignment — with anyone. NDAs are available on request and signed as standard for sensitive accounts. Fleet vehicles carry no PRESTIGO signage on assignments where anonymity is required. Photographs of passengers or vehicles are not permitted. The operational record of a journey is retained for billing purposes only and is never shared with third parties under any circumstances.',
   },
   {
     title: 'How do you prepare the route for a VIP arrival?',
-    body: 'For high-security or time-critical movements, we conduct route reconnaissance in advance — identifying alternative routes, timing constraints, and access points.',
+    body: 'For any movement where disruption must be anticipated rather than reacted to, we conduct advance route reconnaissance. A PRESTIGO chauffeur drives the route at the same time of day as the engagement, notes the likely variables — road works, event-related closures in the Old Town, VIP motorcade restrictions near the Castle district or embassies — and prepares a primary and secondary route with confirmed timings for each. On the day, the primary route is taken unless conditions on the ground require the secondary. The principal or their team is informed of any deviation and given a revised ETA.',
   },
+]
+
+const editorial = [
+  'A VIP transfer is not an airport transfer in a more expensive vehicle. It is a coordinated operational movement in which the ground transport element is one component of a larger schedule — one that may involve a hotel concierge team, a security detail, a corporate host, and an itinerary with zero tolerance for delay or improvisation.',
+  'PRESTIGO has operated VIP-protocol transfers in Prague since 2016. In that time we have worked alongside concierge teams at the Four Seasons, the Mandarin Oriental, and the Augustine, and we have managed transfers for diplomatic missions requiring coordination with embassy security staff in the Hradčany district. Client names are not disclosed. The nature of past engagements is referenced because it is operationally relevant: our experience is practical, not theoretical.',
+  'Enquiries for VIP and event bookings are handled directly by the senior team, not through the standard online booking flow. We request a brief covering the date, principal or group profile, movement schedule, and any specific requirements. From that brief we produce a logistics plan and a confirmed price. The process typically takes under four hours from first contact to confirmed quote.',
 ]
 
 const occasions = [
@@ -137,6 +143,21 @@ export default function VipEventsPage() {
                 <h2 className="font-display font-light text-[22px] text-offwhite mb-3">{f.title}</h2>
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{f.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Editorial — service depth */}
+      <section className="bg-anthracite py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">How VIP transfers work at PRESTIGO</p>
+          <span className="copper-line mb-10 block" />
+          <div className="max-w-3xl flex flex-col gap-6">
+            {editorial.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{para}</p>
             ))}
           </div>
         </div>

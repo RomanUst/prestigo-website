@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-leipzig',
     title: 'Prague to Leipzig Private Transfer — From €270',
     description: 'Book a private chauffeur from Prague to Leipzig. Door-to-door in a Mercedes-Benz. Fixed price from €270, Bach city and trade fair capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

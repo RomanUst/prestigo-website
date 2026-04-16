@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-brno',
     title: 'Prague to Brno Private Transfer — From €340',
     description: 'Book a private chauffeur from Prague to Brno. 205 km on the D1 in a Mercedes-Benz. Fixed price from €340, Moravia\'s capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

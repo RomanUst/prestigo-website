@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-graz',
     title: 'Prague to Graz Private Transfer — From €745',
     description: 'Book a private chauffeur from Prague to Graz. 450 km door-to-door in a Mercedes-Benz. Fixed price from €745, Styria\'s capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

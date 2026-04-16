@@ -23,6 +23,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/fleet',
     title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
     description: FLEET_DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/hero-fleet.webp', width: 1200, height: 630 }],
   },
 }
 
@@ -165,7 +166,7 @@ const vehicleListSchema = {
         unitText: 'passengers',
       },
       cargoVolume: v.specs.cargoVolume
-        ? { '@type': 'QuantitativeValue', value: parseInt(v.specs.cargoVolume), unitText: 'L' }
+        ? { '@type': 'QuantitativeValue', value: parseInt(v.specs.cargoVolume.replace(/,/g, '')), unitText: 'L' }
         : undefined,
       wheelbase: v.specs.wheelbase,
       numberOfAxles: 2,

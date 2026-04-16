@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-bratislava',
     title: 'Prague to Bratislava Private Transfer — From €545',
     description: 'Book a private chauffeur from Prague to Bratislava. 330 km door-to-door in a Mercedes-Benz. Fixed price from €545, Slovakia\'s capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

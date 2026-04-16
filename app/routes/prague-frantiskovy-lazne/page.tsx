@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-frantiskovy-lazne',
     title: 'Prague to Františkovy Lázně Private Transfer — From €290',
     description: 'Book a private chauffeur from Prague to Františkovy Lázně. 175 km door-to-door in a Mercedes-Benz. Fixed price from €290, West Bohemia spa triangle.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

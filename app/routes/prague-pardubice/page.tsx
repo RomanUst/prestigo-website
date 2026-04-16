@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-pardubice',
     title: 'Prague to Pardubice Private Transfer — From €180',
     description: 'Book a private chauffeur from Prague to Pardubice. 110 km on the D11 in a Mercedes-Benz. Fixed price from €180, East Bohemia door-to-door.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

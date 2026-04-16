@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
     title: 'Prague to Český Krumlov Private Transfer — From €290',
     description: 'Book a private chauffeur from Prague to Český Krumlov. 175 km door-to-door in a Mercedes-Benz. Fixed price from €290, UNESCO castle town.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

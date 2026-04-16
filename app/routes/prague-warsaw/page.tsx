@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-warsaw',
     title: 'Prague to Warsaw Private Transfer — From €1,090',
     description: 'Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €1,090, Polish capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

@@ -49,20 +49,26 @@ const breadcrumbSchema = {
 const features = [
   {
     title: 'How does hourly chauffeur hire in Prague work?',
-    body: 'Book by the hour, from a minimum of 2 hours. Your chauffeur stays with you for the full duration — no meters, no rush.',
+    body: 'Book by the hour from a minimum of two hours, with no upper limit. Your chauffeur arrives at the agreed address, and from that moment the vehicle and their time are entirely yours. There are no meters running and no base-to-destination charges. Whether you have four meetings in four locations or a single dinner with a long wait in between, the rate is a fixed hourly figure confirmed at booking. Additional hours can be added on the day simply by informing your driver.',
   },
   {
     title: 'Does the driver know Prague well?',
-    body: 'Our chauffeurs know Prague deeply. Recommend a restaurant, suggest a detour, navigate around an event — consider it part of the service.',
+    body: 'Our Prague chauffeurs know the city at the level that comes from years of operating within it. They know that Pařížská is one-way and when the pedestrian crossing restriction at Old Town Square applies. They know the Palace Hotel approach requires Panská rather than Jindřišská, and that Bílkova is faster than Kozí for reaching the riverside embankment at Dvořákovo nábřeží. A recommendation for a wine bar in Vinohrady or a tailor in Malá Strana is given when asked, never otherwise.',
   },
   {
     title: 'How does a city ride differ from an airport transfer?',
-    body: 'The same fleet, the same service standard, and the same professionalism as our airport transfers — now available for city journeys.',
+    body: 'Airport transfers are point-to-point: pickup at Arrivals, drop-off at your Prague address. City rides are everything else — the same Mercedes fleet, the same chauffeur standard, the same confirmation and communication — applied to a four-stop business day across Vinohrady, Smíchov, and the Old Town, or a private evening beginning at the National Theatre\'s Nová scéna and ending at dinner at La Degustation. The service is identical. The itinerary is entirely yours to define.',
   },
   {
     title: 'Can I add stops or change my plans mid-journey?',
-    body: 'Your itinerary, your pace. Whether it is three business meetings and a hotel, or a private tour of Malá Strana, your chauffeur adapts.',
+    body: 'Your plans can change without consequence. A stop at a pharmacy on the way to the hotel, a detour to collect a colleague from Wenceslas Square, a decision to extend the evening by ninety minutes — none of these require a new booking or a renegotiated price. The hourly rate covers the full duration of your time with the vehicle. Changes are handled by informing your chauffeur directly, not by navigating an app or calling a dispatch centre.',
   },
+]
+
+const editorial = [
+  'Prague is a compact city for walking, but it is not always a practical one for self-navigation — particularly for visitors managing luggage, working to a schedule where arriving late is not an option, or unfamiliar with which streets permit through traffic at which hours. The Old Town\'s pedestrian zones are extensive, and many of Prague\'s best hotels sit on streets that require local knowledge to reach efficiently.',
+  'An hourly chauffeur removes these variables. Your driver holds the knowledge of which streets accept vehicles at which hours, where to wait without a parking enforcement risk, and which route avoids the Christmas market overflow on Staroměstské náměstí or the construction closure on Revoluční. In a city where a ten-minute walk can take thirty minutes with luggage and two wrong turns, this is a material advantage.',
+  'The minimum booking is two hours. Within that window you can cover an airport arrival, a hotel check-in, and a lunch meeting in the Old Town with no pressure on timing. For a business visitor arriving at PRG and needing to reach two central Prague offices before an afternoon departure, a three-hour city ride from terminal arrival to drop-back at departures is often the most efficient arrangement available — one booking, no transitions, no time lost.',
 ]
 
 const useCases = [
@@ -138,6 +144,21 @@ export default function CityRidesPage() {
                 <h2 className="font-display font-light text-[22px] text-offwhite mb-3">{f.title}</h2>
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{f.body}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Editorial — service depth */}
+      <section className="bg-anthracite-mid py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Why hire by the hour in Prague</p>
+          <span className="copper-line mb-10 block" />
+          <div className="max-w-3xl flex flex-col gap-6">
+            {editorial.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{para}</p>
             ))}
           </div>
         </div>

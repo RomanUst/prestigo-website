@@ -22,6 +22,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-ceske-budejovice',
     title: 'Prague to České Budějovice Private Transfer — From €255',
     description: 'Book a private chauffeur from Prague to České Budějovice. 155 km door-to-door in a Mercedes-Benz. Fixed price from €255, South Bohemia capital.',
+    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
   },
 }
 

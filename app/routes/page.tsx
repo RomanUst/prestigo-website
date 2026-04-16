@@ -25,6 +25,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes',
     title: 'Prague Private Chauffeur — 30 Intercity Routes',
     description: ROUTES_DESCRIPTION,
+    images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
   },
 }
 

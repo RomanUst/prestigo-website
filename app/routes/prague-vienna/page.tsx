@@ -11,7 +11,7 @@ import Divider from '@/components/Divider'
 const PRAGUE_VIENNA_DESCRIPTION = 'Private chauffeur Prague to Vienna: 330 km door-to-door in a Mercedes E-Class, S-Class or V-Class. Fixed price from €485, stops available.'
 
 export const metadata: Metadata = {
-  title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
+  title: 'Prague to Vienna Chauffeur Transfer — From €485',
   description: PRAGUE_VIENNA_DESCRIPTION,
   alternates: {
     canonical: '/routes/prague-vienna',
@@ -24,6 +24,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/routes/prague-vienna',
     title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
     description: PRAGUE_VIENNA_DESCRIPTION,
+    images: [{ url: "https://rideprestigo.com/vienna.png", width: 1200, height: 630 }],
   },
 }
 
@@ -105,7 +106,7 @@ const serviceSchema = {
   '@id': 'https://rideprestigo.com/routes/prague-vienna#service',
   name: 'Private Chauffeur Transfer from Prague to Vienna',
   serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Vienna in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 15 minutes door-to-door via the D1 motorway and the E65. Distance 295 km.',
+  description: 'Chauffeured private transfer from Prague to Vienna in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 30 minutes door-to-door via the D1 motorway, D52, and A5. Distance 330 km.',
   provider: {
     '@type': 'LocalBusiness',
     '@id': 'https://rideprestigo.com/#business',

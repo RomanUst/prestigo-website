@@ -4,13 +4,54 @@
 
 ## Key Pages
 
-- [Prague Airport Transfer](/services/airport-transfer): From €49, meet-and-greet, 60-min free wait, flight tracking.
-- [Intercity Routes](/routes): Vienna (€485), Berlin (€580), Munich (€635), Budapest (€885), 25+ destinations.
-- [FAQ](/faq): Booking, pricing, cancellation, vehicle questions.
-- [Prague Airport Guide](/guides/prague-airport-to-city-center): Full 2026 comparison of all transport options from PRG.
-- [Corporate Accounts](/corporate): Monthly invoicing, dedicated account manager, priority dispatch.
+- [Prague Airport Transfer](https://rideprestigo.com/services/airport-transfer): From €69, meet-and-greet, 60-min free wait, flight tracking.
+- [Intercity Routes](https://rideprestigo.com/routes): Vienna (€485), Berlin (€580), Munich (€635), Budapest (€885), 30+ destinations.
+- [FAQ](https://rideprestigo.com/faq): Booking, pricing, cancellation, vehicle questions.
+- [Prague Airport Guide](https://rideprestigo.com/guides/prague-airport-to-city-center): Full 2026 comparison of all transport options from PRG.
+- [Corporate Accounts](https://rideprestigo.com/corporate): Monthly invoicing, dedicated account manager, priority dispatch.
+
+## Routes
+
+- [Prague to Vienna](https://rideprestigo.com/routes/prague-vienna): From €485.
+- [Prague to Berlin](https://rideprestigo.com/routes/prague-berlin): From €580.
+- [Prague to Munich](https://rideprestigo.com/routes/prague-munich): From €635.
+- [Prague to Budapest](https://rideprestigo.com/routes/prague-budapest): From €885.
+- [Prague to Nuremberg](https://rideprestigo.com/routes/prague-nuremberg): From €595.
+- [Prague to Dresden](https://rideprestigo.com/routes/prague-dresden): From €250.
+- [Prague to Salzburg](https://rideprestigo.com/routes/prague-salzburg): From €505.
+- [Prague to Kraków](https://rideprestigo.com/routes/prague-krakow): From €635.
+- [Prague to Warsaw](https://rideprestigo.com/routes/prague-warsaw): From €1,090.
+- [Prague to Bratislava](https://rideprestigo.com/routes/prague-bratislava): From €545.
+- [Prague to Graz](https://rideprestigo.com/routes/prague-graz): From €745.
+- [Prague to Linz](https://rideprestigo.com/routes/prague-linz): From €320.
+- [Prague to Leipzig](https://rideprestigo.com/routes/prague-leipzig): From €270.
+- [Prague to Regensburg](https://rideprestigo.com/routes/prague-regensburg): From €470.
+- [Prague to Passau](https://rideprestigo.com/routes/prague-passau): From €365.
+- [Prague to Wrocław](https://rideprestigo.com/routes/prague-wroclaw): From €470.
+- [Prague to Ostrava](https://rideprestigo.com/routes/prague-ostrava): From €610.
+- [Prague to Brno](https://rideprestigo.com/routes/prague-brno): From €340.
+- [Prague to Zlín](https://rideprestigo.com/routes/prague-zlin): From €510.
+- [Prague to Olomouc](https://rideprestigo.com/routes/prague-olomouc): From €460.
+- [Prague to Karlovy Vary](https://rideprestigo.com/routes/prague-karlovy-vary): From €215.
+- [Prague to Mariánské Lázně](https://rideprestigo.com/routes/prague-marianske-lazne): From €270.
+- [Prague to Františkovy Lázně](https://rideprestigo.com/routes/prague-frantiskovy-lazne): From €290.
+- [Prague to Plzeň](https://rideprestigo.com/routes/prague-plzen): From €150.
+- [Prague to Liberec](https://rideprestigo.com/routes/prague-liberec): From €175.
+- [Prague to Hradec Králové](https://rideprestigo.com/routes/prague-hradec-kralove): From €190.
+- [Prague to Pardubice](https://rideprestigo.com/routes/prague-pardubice): From €180.
+- [Prague to Kutná Hora](https://rideprestigo.com/routes/prague-kutna-hora): From €115.
+- [Prague to Český Krumlov](https://rideprestigo.com/routes/prague-cesky-krumlov): From €290.
+- [Prague to České Budějovice](https://rideprestigo.com/routes/prague-ceske-budejovice): From €255.
+
+## Services
+
+- [City Rides Prague](https://rideprestigo.com/services/city-rides): Hourly hire, point-to-point city transfers.
+- [Group Transfers](https://rideprestigo.com/services/group-transfers): Up to 50 passengers, Mercedes V-Class fleet.
+- [VIP & Events](https://rideprestigo.com/services/vip-events): Galas, private events, hotel-to-venue coordination.
+- [Fleet](https://rideprestigo.com/fleet): Mercedes E-Class, S-Class, V-Class — full spec and pricing.
 
 ## Optional
 
-- [Privacy Policy](/privacy)
-- [Terms](/terms)
+- [About](https://rideprestigo.com/about): Founded 2016, Roman Ustyugov, ICO 05650801.
+- [Privacy Policy](https://rideprestigo.com/privacy)
+- [Terms](https://rideprestigo.com/terms)
