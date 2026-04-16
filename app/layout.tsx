@@ -5,7 +5,7 @@ import './globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import MetaPixel from '@/components/MetaPixel'
 import CookieBanner from '@/components/CookieBanner'
-// import EngagementTracker from '@/components/EngagementTracker' // disabled: suspected cause of 0 engaged sessions since Apr 15 00:03 UTC
+import EngagementTracker from '@/components/EngagementTracker'
 
 const cormorant = Cormorant_Garamond({
   variable: '--font-cormorant',
@@ -76,11 +76,11 @@ export default async function RootLayout({
       <head>
         <meta property="og:type" content="website" />
         <meta property="og:image" content="https://rideprestigo.com/photohero.png" />
-        {/* Hero image is the LCP element — preload the 24 KB AVIF directly
-            rather than the 1.42 MB PNG. AVIF is supported by ~96% of global
-            traffic in 2026; the remaining clients still get the Image
-            component's negotiated fallback via /_next/image. */}
-        <link rel="preload" as="image" href="/photohero.avif" fetchPriority="high" type="image/avif" />
+        {/* Hero image LCP preload is handled by <Image priority fetchPriority="high">
+            in Hero.tsx — Next.js auto-generates a preload with the correct
+            /_next/image srcset that the browser actually requests.
+            A manual preload here would target /photohero.avif (raw) while
+            <Image> loads /_next/image?url=... causing a wasted preload. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -98,7 +98,7 @@ export default async function RootLayout({
         <GoogleAnalytics nonce={nonce} />
         <MetaPixel nonce={nonce} />
         <CookieBanner />
-        {/* <EngagementTracker /> */}
+        <EngagementTracker />
       </body>
     </html>
   )

@@ -47,12 +47,14 @@ function buildCsp(nonce: string): string {
       : `script-src 'nonce-${nonce}' 'strict-dynamic' https: http:`,
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    // GA4 Enhanced Measurement may load tracking pixels from google-analytics.com
-    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com",
+    // GA4 Enhanced Measurement may load tracking pixels from google-analytics.com.
+    // Meta Pixel fires image beacons to www.facebook.com/tr/ and privacy_sandbox endpoints.
+    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
     // places.googleapis.com: Places API (New) REST endpoint (AddressInputNew);
     // maps.googleapis.com: legacy JS SDK path.
-    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com",
+    // www.facebook.com: Meta Pixel event API and fbevents.js XHR calls.
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com",
     "report-uri /api/csp-report",
   ].join('; ')
 }
@@ -73,9 +75,9 @@ function buildCspStatic(): string {
       : "script-src 'unsafe-inline' https: http:",
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com",
+    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com",
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com",
     "report-uri /api/csp-report",
   ].join('; ')
 }
