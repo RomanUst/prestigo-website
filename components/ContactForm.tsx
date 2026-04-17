@@ -13,12 +13,39 @@ const services = [
 
 type FormState = 'idle' | 'sending' | 'success' | 'error'
 
+// Fires a GA4 event — safe whether gtag.js has loaded yet or not. The dataLayer
+// fallback is replayed by gtag.js once it initialises, so events submitted
+// before the tag is ready are never lost.
+function pushGA4Event(eventName: string, params: Record<string, unknown>): void {
+  if (typeof window === 'undefined') return
+  const w = window as typeof window & {
+    dataLayer?: unknown[]
+    gtag?: (...args: unknown[]) => void
+  }
+  if (typeof w.gtag === 'function') {
+    w.gtag('event', eventName, params)
+    return
+  }
+  w.dataLayer = w.dataLayer || []
+  w.dataLayer.push(['event', eventName, params])
+  w.dataLayer.push({ event: eventName, ...params })
+}
+
 export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
   const [state, setState] = useState<FormState>('idle')
+  const [formStartFired, setFormStartFired] = useState(false)
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    // Fire form_start once on the user's first real interaction. GA4 Enhanced
+    // Measurement autocaptures this for most forms but misses Next.js SPA forms
+    // because focus/input events are attached before gtag.js initialises.
+    if (!formStartFired) {
+      setFormStartFired(true)
+      pushGA4Event('form_start', { form_id: 'contact', form_name: 'Contact form' })
+    }
     setForm(f => ({ ...f, [k]: e.target.value }))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,8 +66,20 @@ export default function ContactForm() {
 
       if (!res.ok) throw new Error('Failed')
 
+      // GA4 key event: generate_lead fires only after server confirms the
+      // message was accepted — keeps lead counts honest. form_submit goes
+      // alongside for funnel-continuity reporting.
+      pushGA4Event('form_submit', { form_id: 'contact', form_name: 'Contact form' })
+      pushGA4Event('generate_lead', {
+        lead_source: 'contact_form',
+        service: form.service || 'unspecified',
+        currency: 'EUR',
+        value: 0,
+      })
+
       setState('success')
       setForm({ name: '', email: '', phone: '', service: '', message: '' })
+      setFormStartFired(false)
     } catch {
       setState('error')
     }
