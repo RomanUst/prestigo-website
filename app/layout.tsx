@@ -3,6 +3,7 @@ import { Cormorant_Garamond, Montserrat } from 'next/font/google'
 import { headers } from 'next/headers'
 import './globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
+import Clarity from '@/components/Clarity'
 import MetaPixel from '@/components/MetaPixel'
 import CookieBanner from '@/components/CookieBanner'
 import EngagementTracker from '@/components/EngagementTracker'
@@ -96,6 +97,7 @@ export default async function RootLayout({
         </a>
         {children}
         <GoogleAnalytics nonce={nonce} />
+        <Clarity nonce={nonce} />
         <MetaPixel nonce={nonce} />
         <CookieBanner />
         <EngagementTracker />
