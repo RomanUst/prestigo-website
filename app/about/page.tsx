@@ -12,7 +12,7 @@ import Divider from '@/components/Divider'
 const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO."
 
 export const metadata: Metadata = {
-  title: "About PRESTIGO — Prague's Premium Chauffeur Service",
+  title: { absolute: 'About PRESTIGO — Prague Chauffeur Service' },
   description: ABOUT_DESCRIPTION,
   alternates: {
     canonical: '/about',

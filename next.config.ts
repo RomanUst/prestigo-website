@@ -35,6 +35,13 @@ const nextConfig: NextConfig = {
         destination: 'https://rideprestigo.com/:path*',
         permanent: true,
       },
+      // Short-form URL used in Google Ads, social links, and external references.
+      // The canonical page lives at /services/airport-transfer.
+      {
+        source: '/airport-transfer',
+        destination: '/services/airport-transfer',
+        permanent: true,
+      },
       ...removedRedRoutes.map((slug) => ({
         source: `/routes/${slug}`,
         destination: '/routes',

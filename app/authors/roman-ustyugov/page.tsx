@@ -19,7 +19,7 @@ const DESCRIPTION =
   'Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides.'
 
 export const metadata: Metadata = {
-  title: 'Roman Ustyugov — Founder of PRESTIGO Chauffeur Service',
+  title: { absolute: 'Roman Ustyugov — Founder, PRESTIGO Prague' },
   description: DESCRIPTION,
   alternates: {
     canonical: `/authors/${author.slug}`,
