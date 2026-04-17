@@ -285,6 +285,33 @@ export default function Step2DateTime() {
             modifiersStyles={modifiersStyles}
           />
 
+          {/* Lead-time notice — same-day and short-notice bookings are blocked
+              by MIN_LEAD_HOURS. Without an explanation, users who arrive from
+              an "airport transfer today" ad just see a greyed-out calendar
+              and bounce. This tells them why and gives them a working
+              alternative (WhatsApp). */}
+          <p
+            style={{
+              marginTop: 12,
+              fontSize: 11,
+              fontWeight: 300,
+              color: 'var(--warmgrey)',
+              lineHeight: 1.6,
+            }}
+          >
+            Online bookings require at least {MIN_LEAD_HOURS} hours advance notice.
+            For urgent or same-day transfers, message us on{' '}
+            <a
+              href="https://wa.me/420725986855?text=Hello%20PRESTIGO%2C%20I%20need%20an%20urgent%20transfer."
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#25D366', textDecoration: 'underline', textUnderlineOffset: 3 }}
+            >
+              WhatsApp
+            </a>
+            .
+          </p>
+
           {/* Return date — Daily Hire only */}
           {tripType === 'daily' && (
             <div style={{ marginTop: 32 }}>
