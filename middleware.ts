@@ -158,9 +158,10 @@ export async function middleware(request: NextRequest) {
     response.headers.set('Content-Security-Policy', buildCsp(nonce))
     return response
   } else {
-    // Static/cacheable routes: no nonce (nonce + edge caching are incompatible).
-    // x-nonce is absent, so layout.tsx falls back to nonce='' safely.
-    const response = await updateSession(request, new Headers(request.headers))
+    // Static/cacheable marketing routes: skip Supabase auth roundtrip entirely.
+    // No page under this branch reads user session, so getUser() on every
+    // request only adds ~500-1000ms of TTFB. Only set the CSP header.
+    const response = NextResponse.next({ request: { headers: request.headers } })
     response.headers.set('Content-Security-Policy', buildCspStatic())
     return response
   }
