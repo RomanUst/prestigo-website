@@ -30,15 +30,18 @@ export default function Step1TripType() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [swapHovered, setSwapHovered] = useState(false)
 
-  // Validation
+  const hasIncompleteStop = stops.some((stop) => stop.place === null)
+
+  // Validation — surfaces inline errors next to each offending field so the
+  // user knows *why* Continue is disabled. Previously handleNext silently
+  // returned on invalid state, which looked like a broken button.
   function validateStep1(): Record<string, string> {
     const errs: Record<string, string> = {}
     if (!origin) errs.origin = 'Pickup location is required to continue.'
     if (tripType !== 'hourly' && !destination) errs.destination = 'Destination is required to continue.'
+    if (hasIncompleteStop) errs.stops = 'Please complete or remove all intermediate stops.'
     return errs
   }
-
-  const hasIncompleteStop = stops.some((stop) => stop.place === null)
 
   const isValid =
     origin !== null &&
@@ -47,7 +50,6 @@ export default function Step1TripType() {
     !hasIncompleteStop
 
   const handleNext = () => {
-    if (!isValid) return
     const validationErrors = validateStep1()
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
@@ -170,12 +172,28 @@ export default function Step1TripType() {
 
         {/* Intermediate stops — only for transfer trips (STOP-01) */}
         {showStops && (
-          <StopList
-            stops={stops}
-            onAdd={addStop}
-            onRemove={removeStop}
-            onUpdate={updateStop}
-          />
+          <>
+            <StopList
+              stops={stops}
+              onAdd={addStop}
+              onRemove={removeStop}
+              onUpdate={updateStop}
+            />
+            {errors.stops && (
+              <p
+                role="alert"
+                style={{
+                  marginTop: '-8px',
+                  fontSize: 12,
+                  fontWeight: 300,
+                  color: '#ff8a7a',
+                  lineHeight: 1.4,
+                }}
+              >
+                {errors.stops}
+              </p>
+            )}
+          </>
         )}
 
         {/* Passengers + Luggage row */}
