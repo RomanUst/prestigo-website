@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace } from '@/types/booking'
+import { computeExtrasTotal } from '@/lib/extras'
 import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
@@ -41,6 +42,76 @@ export default function BookingWizard() {
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
+  const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
+  const extras = useBookingStore((s) => s.extras)
+  const promoDiscount = useBookingStore((s) => s.promoDiscount)
+
+  // GA4 funnel events — fire once per step per session so we can see drop-off
+  // between Vehicle → Checkout → Payment → Purchase. Uses a ref-backed Set
+  // because StrictMode double-invocation would otherwise double-count.
+  const funnelFiredRef = useRef<Set<string>>(new Set())
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const w = window as typeof window & {
+      dataLayer?: unknown[]
+      gtag?: (...args: unknown[]) => void
+    }
+    const push = (eventName: string, params: Record<string, unknown>) => {
+      if (funnelFiredRef.current.has(eventName)) return
+      funnelFiredRef.current.add(eventName)
+      if (typeof w.gtag === 'function') {
+        w.gtag('event', eventName, params)
+      } else {
+        w.dataLayer = w.dataLayer || []
+        w.dataLayer.push(['event', eventName, params])
+      }
+    }
+
+    const VEHICLE_LABELS: Record<string, string> = {
+      business: 'Business',
+      first_class: 'First Class',
+      business_van: 'Business Van',
+    }
+    const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
+    const extrasTotal = computeExtrasTotal(extras)
+    const baseTotal = selectedPrice ? selectedPrice.base + extrasTotal : 0
+    const totalEur =
+      promoDiscount > 0 ? Math.round(baseTotal * (1 - promoDiscount / 100)) : baseTotal
+    const currency = selectedPrice?.currency ?? 'EUR'
+    const items = vehicleClass
+      ? [
+          {
+            item_id: vehicleClass,
+            item_name: VEHICLE_LABELS[vehicleClass] ?? vehicleClass,
+            item_category: tripType ?? 'transfer',
+            item_variant: tripType ?? 'transfer',
+            price: totalEur,
+            quantity: 1,
+          },
+        ]
+      : []
+
+    if (currentStep === 3) {
+      push('view_item_list', {
+        item_list_name: 'Vehicle Selection',
+        currency,
+        items: priceBreakdown
+          ? (Object.entries(priceBreakdown) as Array<[string, { base: number; currency: string }]>).map(([k, v]) => ({
+              item_id: k,
+              item_name: VEHICLE_LABELS[k] ?? k,
+              item_category: tripType ?? 'transfer',
+              item_variant: tripType ?? 'transfer',
+              price: v.base,
+              quantity: 1,
+            }))
+          : [],
+      })
+    } else if (currentStep === 5 && vehicleClass) {
+      push('begin_checkout', { currency, value: totalEur, items })
+    } else if (currentStep === 6 && vehicleClass) {
+      push('add_payment_info', { currency, value: totalEur, items, payment_type: 'stripe' })
+    }
+  }, [currentStep, vehicleClass, priceBreakdown, extras, promoDiscount, tripType])
 
   const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)
 
