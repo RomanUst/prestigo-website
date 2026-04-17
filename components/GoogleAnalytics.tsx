@@ -51,14 +51,12 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
-          var __prestigoConsent;
-          try { __prestigoConsent = localStorage.getItem('${CONSENT_KEY}'); } catch (e) {}
           gtag('consent', 'default', {
             ad_storage: 'denied',
             ad_user_data: 'denied',
             ad_personalization: 'denied',
-            analytics_storage: __prestigoConsent === 'granted' ? 'granted' : 'denied',
-            wait_for_update: 2500
+            analytics_storage: 'granted',
+            wait_for_update: 20000
           });
         `}
       </Script>
