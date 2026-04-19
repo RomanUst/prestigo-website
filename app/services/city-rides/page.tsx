@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import HourlyBookingSection from '@/components/HourlyBookingSection'
 
 export const metadata: Metadata = {
   title: 'Prague City Rides — Hourly Chauffeur Hire',
@@ -93,14 +94,14 @@ export default function CityRidesPage() {
           <Image src="/hero-city-rides.png" alt="Prague City Rides — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">City Rides · Prague</p>
+          <p className="label mb-6">Hourly Car Rental with Chauffeur · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
             Prague at your pace.<br />
             <span className="display-italic">Your chauffeur waits.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Hourly hire within Prague. Business meetings, theatre, private dinner at a Michelin-starred restaurant. Your chauffeur knows the city — not just the roads — and stays with you for as long as you need.
+            Rent a car with a private chauffeur by the hour in Prague. Minimum 2 hours, no upper limit. Business meetings, theatre, private dinner at a Michelin-starred restaurant — your vehicle and driver stay with you for as long as you need.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/book" className="btn-primary">Book a City Ride</a>
@@ -129,6 +130,11 @@ export default function CityRidesPage() {
           </div>
         </div>
       </section>
+
+      <Divider />
+
+      {/* Booking widget — hourly default */}
+      <HourlyBookingSection />
 
       <Divider />
 

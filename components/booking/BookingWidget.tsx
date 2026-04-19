@@ -8,7 +8,7 @@ import AddressInputLegacy from '@/components/booking/AddressInput'
 import AddressInputNew from '@/components/booking/AddressInputNew'
 import DurationSelector from '@/components/booking/DurationSelector'
 import { useBookingStore } from '@/lib/booking-store'
-import type { PlaceResult } from '@/types/booking'
+import type { PlaceResult, TripType } from '@/types/booking'
 
 // Hour / minute lists for the custom time picker (5-minute increments)
 const WIDGET_HOURS: string[] = Array.from({ length: 24 }, (_, i) =>
@@ -91,10 +91,17 @@ const widgetModifiersStyles = {
 const AddressInput =
   process.env.NEXT_PUBLIC_USE_NEW_PLACES_API === '1' ? AddressInputNew : AddressInputLegacy
 
-export default function BookingWidget() {
+export default function BookingWidget({ defaultTripType }: { defaultTripType?: TripType } = {}) {
   const router = useRouter()
   const tripType = useBookingStore((s) => s.tripType)
+  const setTripType = useBookingStore((s) => s.setTripType)
   const uid = useId().replace(/:/g, '')
+
+  useEffect(() => {
+    if (defaultTripType && useBookingStore.getState().tripType !== defaultTripType) {
+      setTripType(defaultTripType)
+    }
+  }, [defaultTripType, setTripType])
   const dateId = `booking-date-${uid}`
   const timeId = `booking-time-${uid}`
 
