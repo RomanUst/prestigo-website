@@ -275,10 +275,12 @@ export default function ComparePragueViennaPage() {
             <span className="display-italic">the honest comparison.</span>
           </h1>
           <p className="body-text text-[14px] mt-6 max-w-2xl" style={{ lineHeight: '1.9' }}>
-            Every number on this page is verified against ÖBB, RegioJet, FlixBus, and our own dispatch
-            records as of April 2026. We drive this route hundreds of times a year and we have no incentive
-            to oversell the private transfer — for half of travellers, the train is the right answer. This
-            guide tells you which half you are in, to the euro and to the minute.
+            Prague to Vienna by train (ÖBB RailJet, RegioJet) costs €15–€30 per person on Sparschiene fares
+            and takes 5h 15min city-centre to city-centre; a private chauffeur (Prestigo) costs from €485 in
+            a Mercedes-Benz E-Class for up to three passengers, runs 3h 15min door-to-door, and includes
+            luggage and flexible stops. Bus (RegioJet, FlixBus) from €10 covers the same corridor. Every
+            number on this page is verified against ÖBB, RegioJet, FlixBus, and our own dispatch records
+            as of April 2026.
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline

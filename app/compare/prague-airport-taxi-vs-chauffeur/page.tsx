@@ -261,10 +261,11 @@ export default function CompareAirportTaxiPage() {
             <span className="display-italic">or private chauffeur?</span>
           </h1>
           <p className="body-text text-[14px] mt-6 max-w-2xl" style={{ lineHeight: '1.9' }}>
-            The game changed in September 2023: Uber is now the exclusive official taxi at Václav Havel Airport
-            until 2028, Fix Taxi and AAA Taxi are no longer at the rank, and most guides you&rsquo;ll find online
-            are still quoting outdated fares. This is the honest 2026 comparison across all six realistic ways
-            into Prague, with real pricing, profile-based recommendations, and current scam alerts.
+            For Prague&rsquo;s Václav Havel Airport (PRG), a private chauffeur at €69–€120 fixed — with
+            meet-and-greet, free flight tracking, and 60 minutes of free wait — is the right choice for
+            families, business travellers, and anyone with real luggage. An Uber (€26–32, CZK 650–800 from
+            the official kiosk) wins for solo travellers going straight to the city centre. Fix Taxi and
+            AAA Taxi no longer operate at the rank; Uber is the exclusive official taxi at PRG until 2028.
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline
