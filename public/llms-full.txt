@@ -1,0 +1,197 @@
+# PRESTIGO — Premium Chauffeur Service in Prague
+
+> PRESTIGO is a boutique chauffeur service in Prague, Czech Republic, operating an all-Mercedes-Benz fleet (E-Class, S-Class, V-Class) for airport transfers, intercity routes across Central Europe, hourly city hire, corporate accounts, VIP events, and group transfers. Fixed pricing, 24/7 availability, meet-and-greet at Václav Havel Airport (PRG), 60 minutes of complimentary wait time included.
+
+- **Website:** https://rideprestigo.com
+- **Phone / WhatsApp:** +420 725 986 855
+- **Email:** info@rideprestigo.com
+- **Base:** Prague, Czech Republic
+- **Languages:** English, Czech
+- **Founded:** 2026
+- **Legal entity:** chelautotrans s.r.o. (trading as PRESTIGO), IČO 05650801, Spojovací 685, Vysoký Újezd, Czech Republic
+
+---
+
+## Founder
+
+**Roman Ustyugov** — Founder & Chief Experience Officer. Personally curates every aspect of the service: driver selection, route planning, vehicle standards, and the hospitality protocols that separate Prestigo from commodity transfer services. Positioning: "The first person in Prague who is already on your side." Public profile: https://rideprestigo.com/authors/roman-ustyugov.
+
+---
+
+## Fleet
+
+All vehicles are late-model Mercedes-Benz, fully insured, non-smoking, equipped with Wi-Fi and phone chargers.
+
+### Mercedes-Benz E-Class — Business Sedan
+- Seating: up to 3 passengers
+- Luggage: 2 large cases + 2 cabin bags
+- Ideal for: airport transfers, city rides, solo business travel
+- Starting price: €49
+- Transmission: automatic · Fuel: hybrid · Drive: RWD
+
+### Mercedes-Benz S-Class — Executive Sedan
+- Seating: up to 3 passengers
+- Luggage: 2 large cases + 2 cabin bags
+- Ideal for: VIP travel, diplomatic missions, extended intercity routes
+- Starting price: €98
+- Transmission: automatic · Fuel: hybrid · Drive: RWD
+
+### Mercedes-Benz V-Class — Executive Van
+- Seating: up to 6 passengers
+- Luggage: 6 large cases + 6 cabin bags
+- Ideal for: groups, families, conference transfers
+- Starting price: €85
+- Transmission: automatic · Fuel: diesel
+
+For larger groups (up to 50 passengers), Prestigo operates a V-Class convoy model via the Group Transfers service.
+
+---
+
+## Services
+
+### Airport Transfer (Václav Havel Airport, PRG)
+- Meet-and-greet at Arrivals with a name board
+- Real-time flight tracking — delays cost nothing extra
+- 60 minutes of free waiting on arrival
+- Fixed price, all tolls included
+- From €69 (E-Class)
+- Page: https://rideprestigo.com/services/airport-transfer
+
+### Intercity Routes
+- 30+ fixed-price routes across Central Europe
+- Door-to-door, no transfers, no waiting at stations
+- Page: https://rideprestigo.com/services/intercity-routes
+
+### City Rides & Hourly Hire
+- Point-to-point transfers within Prague
+- Hourly chauffeur hire — driver stays with you for meetings, shopping, events
+- Page: https://rideprestigo.com/services/city-rides
+
+### Corporate Accounts
+- Monthly invoicing (no per-ride card charges)
+- Dedicated account manager
+- Priority dispatch, preferred driver assignment
+- Custom reporting and cost centre allocation
+- Page: https://rideprestigo.com/corporate
+
+### VIP & Events
+- Galas, private events, weddings, film production
+- Hotel-to-venue coordination, multi-car convoys
+- Discreet drivers, branded or unbranded service
+- Page: https://rideprestigo.com/services/vip-events
+
+### Group Transfers
+- Up to 50 passengers via V-Class fleet
+- Conference, wedding, sports team, incentive travel
+- Single dispatch contact, synchronised arrivals
+- Page: https://rideprestigo.com/services/group-transfers
+
+---
+
+## Intercity Route Prices (from €, one-way, fixed)
+
+Austria: Vienna €485 · Salzburg €505 · Graz €745 · Linz €320
+Germany: Berlin €580 · Munich €635 · Nuremberg €595 · Dresden €250 · Leipzig €270 · Regensburg €470 · Passau €365
+Poland: Kraków €635 · Warsaw €1,090 · Wrocław €470
+Hungary: Budapest €885
+Slovakia: Bratislava €545
+Czech Republic: Brno €340 · Ostrava €610 · Plzeň €150 · Liberec €175 · Karlovy Vary €215 · Mariánské Lázně €270 · Františkovy Lázně €290 · Český Krumlov €290 · České Budějovice €255 · Olomouc €460 · Zlín €510 · Hradec Králové €190 · Pardubice €180 · Kutná Hora €115
+
+Full route list with per-page detail: https://rideprestigo.com/routes
+
+---
+
+## Operating Details
+
+- **Hours:** 24/7, every day of the year
+- **Minimum lead time:** 12 hours for online bookings; last-minute via phone/WhatsApp +420 725 986 855
+- **Booking confirmation:** instant — no callback wait
+- **Payment:** card at booking (Stripe) or corporate monthly invoicing
+- **Currencies:** EUR, CZK
+- **Driver communication:** contact number provided before pickup
+- **Vehicle amenities:** Wi-Fi, phone charger, bottled water
+
+---
+
+## Pricing Policy
+
+- **Fixed pricing.** The price shown at booking is the price paid. No surge, no hidden tolls, no extras unless requested.
+- **Tolls included** on all routes.
+- **No waiting-time fee** at airport pickups (first 60 minutes).
+- **Free child seats** on request at booking (infant, toddler, booster).
+- **Multi-stop and hourly rates** are configured per booking.
+
+---
+
+## Cancellation & Changes
+
+- **Free cancellation** up to 1 hour before scheduled pickup.
+- **Later cancellations** may incur a fee.
+- **Time changes** — unlimited before the journey; contact the assigned driver or use the booking portal.
+- **Flight cancellations** — full refund or free reschedule.
+
+---
+
+## Frequently Asked Questions
+
+**How do I book?** Online at https://rideprestigo.com/book — select route, vehicle, date, confirm. Instant confirmation. For bookings under 12 hours out, call +420 725 986 855.
+
+**Is the price fixed?** Yes. No surge pricing, no hidden tolls, no extras unless requested.
+
+**Are tolls included?** Yes, on every route.
+
+**What happens if my flight is delayed?** The driver monitors your flight in real time. Delays cost nothing extra.
+
+**How will I find my driver at the airport?** The driver waits at Arrivals with a name board. Contact number sent before landing.
+
+**Can I book for someone else?** Yes. Enter the passenger's name at checkout.
+
+**Do you offer corporate accounts?** Yes — monthly invoicing, dedicated account manager, priority dispatch. https://rideprestigo.com/corporate
+
+**Can I request a specific vehicle?** Yes, at the time of booking.
+
+**Is there Wi-Fi?** Yes, in every vehicle, plus phone chargers on request.
+
+**What languages do drivers speak?** English and Czech. Other languages available on request for corporate and VIP bookings.
+
+---
+
+## Service Area
+
+- **Primary:** Prague and Václav Havel Airport (PRG)
+- **Intercity:** 30+ fixed-price routes across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic
+- **Door-to-door:** pickup and drop-off at any address — hotel, residence, office, venue, station, airport
+
+---
+
+## Comparison & Guides (Editorial)
+
+- Prague Airport Taxi vs Chauffeur: https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur
+- Prague → Vienna Transfer vs Train: https://rideprestigo.com/compare/prague-vienna-transfer-vs-train
+- Prague Airport to City Centre — Full Guide: https://rideprestigo.com/guides/prague-airport-to-city-center
+
+---
+
+## Contact
+
+- **Phone / WhatsApp:** +420 725 986 855 (24/7)
+- **Email:** info@rideprestigo.com
+- **Booking:** https://rideprestigo.com/book
+- **Contact form:** https://rideprestigo.com/contact
+- **Instagram:** https://www.instagram.com/rideprestigo/
+- **Facebook:** https://www.facebook.com/profile.php?id=61574283117859
+
+---
+
+## Legal
+
+- **Trading name:** PRESTIGO
+- **Legal entity:** chelautotrans s.r.o.
+- **IČO (company ID):** 05650801
+- **Registered address:** Spojovací 685, Vysoký Újezd, Czech Republic
+- **Privacy Policy:** https://rideprestigo.com/privacy
+- **Terms of Service:** https://rideprestigo.com/terms
+
+---
+
+*Last updated: 2026-04-20*
