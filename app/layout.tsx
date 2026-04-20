@@ -54,6 +54,9 @@ export const metadata: Metadata = {
   icons: {
     apple: '/apple-touch-icon.png',
   },
+  other: {
+    'facebook-domain-verification': 'ka67mchks8rv6d7vd0mxut21zt3lc5',
+  },
   robots: {
     index: true,
     follow: true,
