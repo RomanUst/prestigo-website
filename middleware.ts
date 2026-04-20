@@ -30,8 +30,9 @@ const CSRF_STRICT_ORIGIN_REQUIRED = [
  *   - 'nonce-{nonce}': only script elements with this exact nonce attribute execute.
  *   - 'strict-dynamic': scripts loaded by a nonce-bearing script inherit trust,
  *     which allows GTM's dynamically injected tags without needing unsafe-inline.
- *   - https: http: are CSP Level 1 fallbacks for browsers that predate
- *     strict-dynamic (Safari <15.4, IE — negligible production share in 2026).
+ *   - https: is a CSP Level 1 fallback for browsers that predate strict-dynamic
+ *     (Safari <15.4 — effectively extinct in 2026). http: is intentionally NOT
+ *     listed so mixed-content scripts cannot be injected even on legacy browsers.
  *
  * style-src keeps unsafe-inline: inline styles are far lower risk (no code
  * execution), and removing it would require auditing every Tailwind/Stripe
@@ -43,8 +44,8 @@ function buildCsp(nonce: string): string {
     // unsafe-eval is needed by React dev tools for stack-trace reconstruction.
     // It is intentionally excluded from production builds.
     process.env.NODE_ENV === 'development'
-      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https: http:`
-      : `script-src 'nonce-${nonce}' 'strict-dynamic' https: http:`,
+      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https:`
+      : `script-src 'nonce-${nonce}' 'strict-dynamic' https:`,
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     // GA4 Enhanced Measurement may load tracking pixels from google-analytics.com.
@@ -71,8 +72,8 @@ function buildCspStatic(): string {
   return [
     "default-src 'self'",
     process.env.NODE_ENV === 'development'
-      ? "script-src 'unsafe-inline' 'unsafe-eval' https: http:"
-      : "script-src 'unsafe-inline' https: http:",
+      ? "script-src 'unsafe-inline' 'unsafe-eval' https:"
+      : "script-src 'unsafe-inline' https:",
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms",
