@@ -80,7 +80,7 @@ const aboutPageSchemaGraph = {
       '@id': 'https://rideprestigo.com/#org',
       name: 'PRESTIGO',
       url: 'https://rideprestigo.com',
-      foundingDate: '2016',
+      foundingDate: '2026',
       founder: {
         '@type': 'Person',
         '@id': 'https://rideprestigo.com/authors/roman-ustyugov#person',

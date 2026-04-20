@@ -92,7 +92,7 @@ const localBusinessSchema = {
     '5-star hotel partner transport',
     'Executive Mercedes-Benz fleet',
   ],
-  foundingDate: '2016',
+  foundingDate: '2026',
   slogan: 'The first person in Prague who is already on your side.',
   sameAs: [
     'https://share.google/BtnnbvoiytbjW0Gry',
