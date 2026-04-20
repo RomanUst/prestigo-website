@@ -95,7 +95,7 @@ const localBusinessSchema = {
   foundingDate: '2026',
   slogan: 'The first person in Prague who is already on your side.',
   sameAs: [
-    'https://share.google/BtnnbvoiytbjW0Gry',
+    'https://share.google/RLjntprJWb5RXWSxL',
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',
   ],

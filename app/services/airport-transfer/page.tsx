@@ -119,7 +119,7 @@ export default function AirportTransferPage() {
             <span className="display-italic">Met on arrival, every time.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Your driver monitors your flight in real time, holds your name board at Arrivals, and handles your luggage. Fixed price. No surprises. From the moment you land, everything is handled.
+            Prestigo Prague Airport Transfer is a fixed-price chauffeur service from Václav Havel Airport (PRG) to any Prague address, starting at €69. Your driver tracks your flight in real time, waits up to 60 minutes free at Arrivals with a name board, handles your luggage, and drives you in a Mercedes-Benz E-Class, S-Class, or V-Class.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/book" className="btn-primary">Book Airport Transfer</a>

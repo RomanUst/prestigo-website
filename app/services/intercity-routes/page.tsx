@@ -100,7 +100,7 @@ export default function IntercityRoutesPage() {
             <span className="display-italic">In a Mercedes.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Door-to-door private transfers across Central Europe. Prague to Vienna, Berlin, Munich, Budapest and beyond — fixed price, no connections, a chauffeur who knows the road.
+            Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic — Vienna from €485, Berlin from €580, Munich from €635, Budapest from €885. All tolls and vignettes included, Mercedes-Benz fleet, no connections.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/routes" className="btn-primary">View All Routes</a>

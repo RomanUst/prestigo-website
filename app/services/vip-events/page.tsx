@@ -99,7 +99,7 @@ export default function VipEventsPage() {
             <span className="display-italic">can go wrong.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Diplomatic visits. Private openings. Luxury hotel arrivals. Multi-vehicle coordination for events where every detail matters and the margin for error is zero.
+            Prestigo VIP and event transport coordinates private chauffeur service for diplomatic visits, luxury hotel arrivals, private openings, galas, and film production across Prague. Discreet drivers, synchronised arrival windows, live dispatch contact, and a zero-error protocol for events where timing, confidentiality, and presentation matter. Single-vehicle or full-fleet convoys on request.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/contact" className="btn-primary">Enquire About VIP Service</a>

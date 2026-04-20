@@ -101,7 +101,7 @@ export default function CityRidesPage() {
             <span className="display-italic">Your chauffeur waits.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Rent a car with a private chauffeur by the hour in Prague. Minimum 2 hours, no upper limit. Business meetings, theatre, private dinner at a Michelin-starred restaurant — your vehicle and driver stay with you for as long as you need.
+            Prestigo Prague city rides offer hourly chauffeur hire in a Mercedes-Benz E-Class, S-Class, or V-Class, with a 2-hour minimum and no upper limit. Your driver and vehicle stay with you for the full duration — business meetings, theatre, shopping, private dining, or airport waits. Hourly rate is fixed at booking.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/book" className="btn-primary">Book a City Ride</a>

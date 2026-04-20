@@ -99,7 +99,7 @@ export default function GroupTransfersPage() {
             <span className="display-italic">On schedule.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Conference delegations. Incentive travel. Corporate off-sites. Minivans, multiple vehicles, precise timing. We coordinate the full movement schedule so your group arrives together, on time, every time.
+            Prestigo group transfers move up to 50 passengers in a coordinated Mercedes-Benz V-Class fleet across Prague and Central Europe — conference delegations, incentive programmes, corporate off-sites, wedding parties, sports teams. Single dispatch contact, synchronised arrivals, full movement schedule. Fixed pricing per vehicle, door-to-door from hotels, airports, or venues.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/contact" className="btn-primary">Request Group Quote</a>

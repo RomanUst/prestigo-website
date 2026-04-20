@@ -202,7 +202,7 @@ export default function PragueViennaPage() {
           <p className="label mb-6">Prague → Vienna</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Vienna,<br /><span className="display-italic">door to door.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>330 km through Moravia and Lower Austria, arriving in Vienna's Innere Stadt. Fixed fare from €485. Your chauffeur is already waiting.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Prague to Vienna by private chauffeur is a 330 km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo&rsquo;s fixed fare starts at €485 in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
