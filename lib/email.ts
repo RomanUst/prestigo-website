@@ -1073,7 +1073,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
 export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Promise<void> {
   try {
     const { error } = await getResend().emails.send({
-      from: 'Prestigo <noreply@prestigo.cz>',
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
       subject: `Your booking ${escapeHtml(booking.booking_reference)} is confirmed — Prestigo`,
       html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.'),
@@ -1087,7 +1087,7 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
 export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Promise<void> {
   try {
     const { error } = await getResend().emails.send({
-      from: 'Prestigo <noreply@prestigo.cz>',
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
       subject: `Booking ${escapeHtml(booking.booking_reference)} cancelled — Prestigo`,
       html: buildStatusEmailHtml(booking, 'Booking Cancelled', 'If you have any questions, please contact us.'),
@@ -1546,7 +1546,7 @@ export async function sendClientReminderEmail(
       ? 'Your transfer tomorrow — Prestigo'
       : 'Your transfer in 2 hours — Prestigo'
     const { error } = await getResend().emails.send({
-      from: 'Prestigo <noreply@prestigo.cz>',
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
       subject,
       html: buildClientReminderHtml(booking, horizon),
@@ -1684,7 +1684,7 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
 export async function sendPostTripEmail(booking: StatusEmailBooking): Promise<void> {
   try {
     const { error } = await getResend().emails.send({
-      from: 'Prestigo <noreply@prestigo.cz>',
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
       subject: `Thank you for riding with Prestigo — ${escapeHtml(booking.booking_reference)}`,
       html: buildPostTripHtml(booking),
