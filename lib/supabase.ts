@@ -69,6 +69,9 @@ export function buildBookingRow(
     payment_intent_id: paymentIntentId,
     leg: 'outbound' as const, // webhooks and quote submissions always create the outbound leg
     booking_type: bookingType,
+    // Paid bookings start as 'confirmed' — Stripe already validated the charge.
+    // Quotes stay 'pending' until an operator prices them and sends a payment link.
+    status: bookingType === 'confirmed' ? 'confirmed' : 'pending',
     trip_type: meta.tripType,
     origin_address: meta.originAddress ?? meta.origin ?? null,
     origin_lat: meta.originLat ? parseFloat(meta.originLat) : null,
@@ -172,6 +175,7 @@ export function buildBookingRows(
     payment_intent_id: paymentIntentId,
     leg: 'return' as const,
     booking_type: 'confirmed' as const,
+    status: 'confirmed',
     trip_type: 'round_trip',
     // Origin ↔ destination SWAPPED: return trip goes destination → origin
     origin_address: meta.destinationAddress ?? null,
