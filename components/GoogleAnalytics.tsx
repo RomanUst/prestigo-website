@@ -66,8 +66,11 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
           // Skip tracking on admin pages to keep GA4 data clean.
+          // send_page_view: false — AnalyticsPageView fires page_view on every
+          // client-side route change (including the initial load) so we don't
+          // double-count.
           if (!window.location.pathname.startsWith('/admin')) {
-            gtag('config', '${GA_ID}');
+            gtag('config', '${GA_ID}', { send_page_view: false });
           }
         `}
       </Script>
