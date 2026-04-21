@@ -19,6 +19,13 @@ import type { BookingEmailData, RoundTripEmailData } from '@/lib/email'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { safePiiSummary } from '@/lib/request-guards'
 import { scheduleQStashReminder } from '@/lib/qstash'
+import { sendGa4Purchase } from '@/lib/analytics-server'
+
+const VEHICLE_LABELS: Record<string, string> = {
+  business: 'Business',
+  first_class: 'First Class',
+  business_van: 'Business Van',
+}
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
 // NOTE: the env-var guard is intentionally placed AFTER new Stripe() so the test mock
@@ -186,6 +193,29 @@ async function handleOneWaySucceeded(
       void scheduleQStashReminder(inserted[0].id, new Date(savedBooking.pickup_utc).getTime())
     }
   }
+
+  // Server-side GA4 purchase event — authoritative fallback that does not
+  // depend on client JS, consent timing, or sessionStorage surviving the
+  // Stripe redirect. Dedupes with the client event by transaction_id.
+  const amountEurFromMeta = meta.amountEur ? parseFloat(meta.amountEur) : null
+  const valueEur = amountEurFromMeta ?? Math.round(paymentIntent.amount / 100)
+  const currency = (paymentIntent.currency || 'eur').toUpperCase()
+  const vehicleClass = meta.vehicleClass || 'transfer'
+  void sendGa4Purchase({
+    transactionId: bookingReference,
+    valueEur,
+    currency,
+    items: [
+      {
+        item_id: vehicleClass,
+        item_name: VEHICLE_LABELS[vehicleClass] ?? 'Chauffeur Transfer',
+        item_category: meta.tripType || 'transfer',
+        item_variant: meta.tripType || 'transfer',
+        price: valueEur,
+        quantity: 1,
+      },
+    ],
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -299,6 +329,29 @@ async function handleRoundTripSucceeded(
       }
     }
   }
+
+  // Server-side GA4 purchase event — combined amount for both legs. Uses the
+  // outbound booking reference as transaction_id to match the client-side event.
+  const combinedValueEur = meta.amountEur
+    ? parseFloat(meta.amountEur)
+    : Math.round(paymentIntent.amount / 100)
+  const currency = (paymentIntent.currency || 'eur').toUpperCase()
+  const vehicleClass = meta.vehicleClass || 'transfer'
+  void sendGa4Purchase({
+    transactionId: outboundRef,
+    valueEur: combinedValueEur,
+    currency,
+    items: [
+      {
+        item_id: vehicleClass,
+        item_name: VEHICLE_LABELS[vehicleClass] ?? 'Chauffeur Transfer',
+        item_category: 'round_trip',
+        item_variant: 'round_trip',
+        price: combinedValueEur,
+        quantity: 1,
+      },
+    ],
+  })
 }
 
 // ─────────────────────────────────────────────────────────────────────────
