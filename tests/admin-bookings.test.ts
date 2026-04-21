@@ -390,7 +390,6 @@ describe('POST /api/admin/bookings', () => {
     const pricingGlobalsSingleFn = vi.fn().mockResolvedValue({
       data: {
         airport_fee: '200', night_coefficient: '1.2', holiday_coefficient: '1.5',
-        extra_child_seat: '10', extra_meet_greet: '15', extra_luggage: '10',
         holiday_dates: [], return_discount_percent: '10',
         hourly_min_hours: '2', hourly_max_hours: '8', notification_flags: null,
       },
@@ -439,7 +438,6 @@ describe('POST /api/admin/bookings', () => {
     const pricingGlobalsSingleFn = vi.fn().mockResolvedValue({
       data: {
         airport_fee: '200', night_coefficient: '1.2', holiday_coefficient: '1.5',
-        extra_child_seat: '10', extra_meet_greet: '15', extra_luggage: '10',
         holiday_dates: [], return_discount_percent: '10',
         hourly_min_hours: '2', hourly_max_hours: '8', notification_flags: null,
       },

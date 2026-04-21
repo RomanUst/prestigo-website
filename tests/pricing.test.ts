@@ -92,7 +92,6 @@ describe('pricing module', () => {
     nightCoefficient: 1.2,
     holidayCoefficient: 1.5,
     extraChildSeat: 0,
-    extraMeetGreet: 0,
     extraLuggage: 0,
     holidayDates: [],
     returnDiscountPercent: 10,

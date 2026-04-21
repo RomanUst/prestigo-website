@@ -28,7 +28,6 @@ const FIXTURE_RATES: PricingConfig = {
     holidayDates: ['2026-12-25'],
     returnDiscountPercent: 10,
     extraChildSeat: 10,
-    extraMeetGreet: 15,
     extraLuggage: 5,
     hourlyMinHours: 2,
     hourlyMaxHours: 8,

@@ -329,7 +329,7 @@ export async function POST(request: Request) {
       infantSeat: 0,
       childSeat: rates.globals.extraChildSeat,
       boosterSeat: 0,
-      meetAndGreet: rates.globals.extraMeetGreet,
+      meetAndGreet: 0,
       extraLuggage: rates.globals.extraLuggage,
     },
   )

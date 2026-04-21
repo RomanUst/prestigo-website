@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { z } from 'zod'
-import { calculatePrice, dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
+import { dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
@@ -175,7 +175,7 @@ export async function POST(req: Request) {
         infantSeat: 0,
         childSeat: rates.globals.extraChildSeat,
         boosterSeat: 0,
-        meetAndGreet: rates.globals.extraMeetGreet,
+        meetAndGreet: 0,
         extraLuggage: rates.globals.extraLuggage,
       }
     )
@@ -184,22 +184,20 @@ export async function POST(req: Request) {
     const pickupTimeOrNull = bookingData.pickupTime || null
     const pickupDateOrNull = bookingData.pickupDate || null
 
-    let outboundLegEur: number
     let returnLegEur: number = 0
 
+    const outboundLegEur = computeOutboundLegTotal(
+      vehicleClass,
+      distanceKm,
+      hours,
+      days,
+      tripType === 'round_trip' ? 'transfer' : tripType,
+      pickupDateOrNull,
+      pickupTimeOrNull,
+      isAirport,
+      rates,
+    )
     if (tripType === 'round_trip') {
-      // Round-trip: use server-pricing helpers for BOTH legs
-      outboundLegEur = computeOutboundLegTotal(
-        vehicleClass,
-        distanceKm,
-        hours,
-        days,
-        'transfer', // round_trip uses transfer pricing for the outbound leg
-        pickupDateOrNull,
-        pickupTimeOrNull,
-        isAirport,
-        rates,
-      )
       returnLegEur = computeReturnLegTotal(
         vehicleClass,
         distanceKm as number, // guarded above
@@ -208,18 +206,6 @@ export async function POST(req: Request) {
         isAirport,
         rates,
       )
-    } else {
-      // One-way: PRESERVE existing behavior (calculatePrice + manual coefficient)
-      // to keep PROMO-04 tests green byte-for-byte
-      const basePrice = calculatePrice(tripType, vehicleClass, distanceKm, hours, days, rates)
-      let adjustedBase = basePrice.base
-      const isNight = pickupTimeOrNull
-        ? (() => { const h = parseInt(pickupTimeOrNull.split(':')[0], 10); return h >= 22 || h < 6 })()
-        : false
-      const coefficient = isNight ? rates.globals.nightCoefficient : 1.0
-      adjustedBase = Math.round(adjustedBase * coefficient)
-      if (isAirport) adjustedBase += rates.globals.airportFee
-      outboundLegEur = adjustedBase
     }
 
     const totalEur = outboundLegEur + extrasTotalEur + returnLegEur

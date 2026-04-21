@@ -59,7 +59,6 @@ const DEFAULT_PRICING = {
     nightCoefficient: 1.3,
     holidayCoefficient: 1.2,
     extraChildSeat: 10,
-    extraMeetGreet: 15,
     extraLuggage: 5,
     holidayDates: [],
     returnDiscountPercent: 10,

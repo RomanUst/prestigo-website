@@ -75,7 +75,6 @@ const mockGlobals = {
   nightCoefficient: 1.5,
   holidayCoefficient: 1.3,
   extraChildSeat: 1000,
-  extraMeetGreet: 2000,
   extraLuggage: 500,
   holidayDates: ['2026-12-25', '2026-01-01'],
   returnDiscountPercent: 10,

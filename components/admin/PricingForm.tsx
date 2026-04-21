@@ -18,7 +18,6 @@ const pricingSchema = z.object({
     night_coefficient: z.number().positive(),
     holiday_coefficient: z.number().positive(),
     extra_child_seat: z.number().min(0),
-    extra_meet_greet: z.number().min(0),
     extra_luggage: z.number().min(0),
     return_discount_percent: z.number().min(0).max(100),
     hourly_min_hours: z.number().int().positive(),
@@ -52,7 +51,6 @@ const GLOBALS_FIELDS: Array<{
   { key: 'night_coefficient', label: 'NIGHT COEFFICIENT', suffix: 'x multiplier' },
   { key: 'holiday_coefficient', label: 'HOLIDAY COEFFICIENT', suffix: 'x multiplier' },
   { key: 'extra_child_seat', label: 'CHILD SEAT', suffix: 'EUR / booking' },
-  { key: 'extra_meet_greet', label: 'MEET & GREET', suffix: 'EUR / booking' },
   { key: 'extra_luggage', label: 'EXTRA LUGGAGE', suffix: 'EUR / booking' },
   { key: 'return_discount_percent', label: 'ROUND TRIP DISCOUNT', suffix: '% off total' },
 ]

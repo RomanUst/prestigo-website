@@ -54,7 +54,6 @@ const validPutBody = {
     night_coefficient: 1.2,
     holiday_coefficient: 1.5,
     extra_child_seat: 20,
-    extra_meet_greet: 30,
     extra_luggage: 25,
     return_discount_percent: 10,
     holiday_dates: [],
@@ -120,7 +119,6 @@ describe('/api/admin/pricing', () => {
         night_coefficient: '1.0000',
         holiday_coefficient: '1.0000',
         extra_child_seat: '15.00',
-        extra_meet_greet: '25.00',
         extra_luggage: '20.00',
       }
 
@@ -226,7 +224,6 @@ describe('/api/admin/pricing', () => {
             night_coefficient: 1.2,
             holiday_coefficient: 1.5,
             extra_child_seat: 20,
-            extra_meet_greet: 30,
             extra_luggage: 25,
             return_discount_percent: 10,
             holiday_dates: ['2026-12-25', '2026-12-31'],
@@ -292,7 +289,6 @@ describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
         night_coefficient: 1,
         holiday_coefficient: 1,
         extra_child_seat: 0,
-        extra_meet_greet: 0,
         extra_luggage: 0,
         holiday_dates: [],
         return_discount_percent: 15,
@@ -337,7 +333,6 @@ describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
         night_coefficient: 1.3,
         holiday_coefficient: 1.5,
         extra_child_seat: 0,
-        extra_meet_greet: 400,
         extra_luggage: 150,
         return_discount_percent: 20,
         holiday_dates: ['2026-12-25'],
@@ -376,7 +371,6 @@ describe('return_discount_percent — RTAD-01 regression (Phase 28)', () => {
         night_coefficient: 1.3,
         holiday_coefficient: 1.5,
         extra_child_seat: 0,
-        extra_meet_greet: 400,
         extra_luggage: 150,
         return_discount_pct: 20, // ← WRONG NAME — missing required return_discount_percent
         holiday_dates: [],
