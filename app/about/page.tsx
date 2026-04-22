@@ -153,15 +153,15 @@ export default function AboutPage() {
       {/* Our story */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
-          <Reveal variant="up">
-          <div className="md:col-span-2">
+          <Reveal variant="up" className="md:col-span-2">
+          <div>
             <p className="label mb-6">Our story</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">From one car, <span className="display-italic">to a standard.</span></h2>
           </div>
           </Reveal>
-          <Reveal variant="up" delay={150}>
-          <div className="md:col-span-3 flex flex-col gap-5">
+          <Reveal variant="up" delay={150} className="md:col-span-3">
+          <div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               PRESTIGO began in 2016 the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they&rsquo;d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.
             </p>
