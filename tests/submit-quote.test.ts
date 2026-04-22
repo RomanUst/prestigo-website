@@ -28,7 +28,7 @@ const mockQuoteBody = {
   tripType: 'transfer',
   origin: 'Prague Airport',
   destination: 'Hotel Alcron',
-  pickupDate: '2026-04-15',
+  pickupDate: '2026-12-25',
   pickupTime: '14:00',
   vehicleClass: 'business',
   passengers: 2,
