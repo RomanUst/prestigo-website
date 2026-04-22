@@ -122,7 +122,7 @@ describe('Confirmation Page — one-way', () => {
     if (!btn) throw new Error('ADD TO CALENDAR button not found')
     fireEvent.click(btn)
     expect(buildIcsMock).toHaveBeenCalledTimes(1)
-    const events = buildIcsMock.mock.calls[0][0] as Array<{ uid: string; date: string; time: string }>
+    const events = (buildIcsMock.mock.calls as unknown as Array<unknown[]>)[0][0] as Array<{ uid: string; date: string; time: string }>
     expect(events).toHaveLength(1)
     expect(events[0].uid).toContain('PRG-20260415-ABCDEF')
     expect(events[0].date).toBe('2026-04-15')
@@ -187,7 +187,7 @@ describe('Confirmation Page — round-trip', () => {
     expect(btns.length).toBe(1)
     fireEvent.click(btns[0])
     expect(buildIcsMock).toHaveBeenCalledTimes(1)
-    const events = buildIcsMock.mock.calls[0][0] as Array<{ uid: string; date: string; time: string; summary: string; location: string }>
+    const events = (buildIcsMock.mock.calls as unknown as Array<unknown[]>)[0][0] as Array<{ uid: string; date: string; time: string; summary: string; location: string }>
     expect(events).toHaveLength(2)
     expect(events[0].uid).toContain('PRG-20260415-ABCDEF')
     expect(events[0].date).toBe('2026-04-15')

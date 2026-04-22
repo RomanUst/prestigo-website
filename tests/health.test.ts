@@ -5,7 +5,7 @@ const { supabaseStub, resendStub } = vi.hoisted(() => {
   const supabaseStub = {
     from: vi.fn(() => ({
       select: vi.fn(() => ({
-        limit: vi.fn(() => Promise.resolve({ error: null })),
+        limit: vi.fn(() => Promise.resolve({ error: null as null | { message: string } })),
       })),
     })),
   }

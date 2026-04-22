@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import VehicleCard from '@/components/booking/VehicleCard'
@@ -6,8 +6,8 @@ import { VEHICLE_CONFIG } from '@/types/booking'
 
 const config = VEHICLE_CONFIG[0] // business class
 
-const basePrice = { base: 100, total: 100, night: 0, holiday: 0, extras: 0 }
-const returnPrice = { base: 85, total: 85, night: 0, holiday: 0, extras: 0 }
+const basePrice = { base: 100, total: 100, night: 0, holiday: 0, extras: 0, currency: 'EUR' }
+const returnPrice = { base: 85, total: 85, night: 0, holiday: 0, extras: 0, currency: 'EUR' }
 
 function renderCard(overrides: Partial<Parameters<typeof VehicleCard>[0]> = {}) {
   const defaultProps = {

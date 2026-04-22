@@ -129,7 +129,7 @@ describe('lib/supabase — round-trip', () => {
       payment_intent_id: 'pi_xyz',
       leg: 'return' as const,
       booking_type: 'confirmed' as const,
-    } as ReturnType<typeof buildBookingRow>
+    } as unknown as ReturnType<typeof buildBookingRow>
 
     it('Test 8: happy path returns IDs and RPC was called once with correct args', async () => {
       rpcMock.mockResolvedValueOnce({

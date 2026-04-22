@@ -31,6 +31,7 @@ const FIXTURE_RATES: PricingConfig = {
     extraLuggage: 5,
     hourlyMinHours: 2,
     hourlyMaxHours: 8,
+    notificationFlags: null,
   },
 }
 

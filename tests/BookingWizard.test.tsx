@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { useBookingStore } from '@/lib/booking-store'
 import BookingWizard from '@/components/booking/BookingWizard'

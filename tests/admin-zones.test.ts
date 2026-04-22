@@ -99,7 +99,7 @@ describe('/api/admin/zones', () => {
         error: { message: 'No session' },
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(401)
     })
 
@@ -109,7 +109,7 @@ describe('/api/admin/zones', () => {
         error: null,
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(403)
     })
 
@@ -119,9 +119,14 @@ describe('/api/admin/zones', () => {
         select: vi.fn().mockReturnValue({
           order: vi.fn().mockReturnValue(Promise.resolve({ data: zones, error: null })),
         }),
+        insert: vi.fn(),
+        delete: vi.fn(),
+        update: vi.fn(),
+        eq: vi.fn(),
+        order: vi.fn(),
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(200)
       const json = await res.json()
       expect(json.zones).toEqual(zones)
@@ -136,7 +141,7 @@ describe('/api/admin/zones', () => {
 
     it('Test 5: calls insert() for valid zone body', async () => {
       const insertFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], error: null }))
-      supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+      supabaseServiceStub.from.mockReturnValue({ select: vi.fn(), insert: insertFn, delete: vi.fn(), update: vi.fn(), eq: vi.fn(), order: vi.fn() })
 
       const res = await POST(makeRequest('POST', undefined, validZone))
       expect(res.status).toBe(201)
@@ -155,7 +160,7 @@ describe('/api/admin/zones', () => {
     it('Test 7: calls delete().eq() with the given id', async () => {
       const eqFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], error: null }))
       const deleteFn = vi.fn().mockReturnValue({ eq: eqFn })
-      supabaseServiceStub.from.mockReturnValue({ delete: deleteFn })
+      supabaseServiceStub.from.mockReturnValue({ select: vi.fn(), insert: vi.fn(), delete: deleteFn, update: vi.fn(), eq: vi.fn(), order: vi.fn() })
 
       const res = await DELETE(
         makeRequest('DELETE', 'http://localhost/api/admin/zones?id=a1b2c3d4-e5f6-7890-abcd-ef1234567890')
@@ -170,7 +175,7 @@ describe('/api/admin/zones', () => {
     it('Test 8: calls update({ active: false }).eq() for valid toggle body', async () => {
       const eqFn = vi.fn().mockReturnValue(Promise.resolve({ data: [], error: null }))
       const updateFn = vi.fn().mockReturnValue({ eq: eqFn })
-      supabaseServiceStub.from.mockReturnValue({ update: updateFn })
+      supabaseServiceStub.from.mockReturnValue({ select: vi.fn(), insert: vi.fn(), delete: vi.fn(), update: updateFn, eq: vi.fn(), order: vi.fn() })
 
       const validUuid = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890'
       const res = await PATCH(

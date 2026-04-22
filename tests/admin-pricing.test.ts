@@ -88,7 +88,7 @@ describe('/api/admin/pricing', () => {
         error: { message: 'No session' },
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(401)
     })
 
@@ -98,7 +98,7 @@ describe('/api/admin/pricing', () => {
         error: null,
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(403)
     })
   })
@@ -139,7 +139,7 @@ describe('/api/admin/pricing', () => {
         }
       })
 
-      const res = await GET(makeRequest('GET'))
+      const res = await GET()
       expect(res.status).toBe(200)
       const json = await res.json()
       expect(json).toHaveProperty('config')
