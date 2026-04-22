@@ -124,6 +124,7 @@ export default function BookingWizard() {
         if (tripType === 'daily' && !returnDate) return false
         // Enforce 12-hour lead time
         const pickupDT = new Date(`${pickupDate}T${pickupTime}:00`)
+        // eslint-disable-next-line react-hooks/purity
         const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
         return pickupDT >= minAllowedDT
       }

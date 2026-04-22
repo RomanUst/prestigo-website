@@ -36,9 +36,8 @@ function send(event: string, params: Record<string, unknown>) {
 
 export default function EngagementTracker() {
   const pathname = usePathname()
-  const startRef = useRef<number>(Date.now())
+  const startRef = useRef<number>(0)
 
-  // Reset timer on route change
   useEffect(() => {
     startRef.current = Date.now()
   }, [pathname])
