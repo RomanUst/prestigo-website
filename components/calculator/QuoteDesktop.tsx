@@ -1,11 +1,11 @@
 'use client'
 
-import Link from 'next/link'
 import { useCalculatorStore } from '@/lib/calculator-store'
 import QuoteStep1Route from './QuoteStep1Route'
 import QuoteStep2Date from './QuoteStep2Date'
 import QuoteStep3Pax from './QuoteStep3Pax'
 import QuoteStep4Class from './QuoteStep4Class'
+import QuoteResult from './QuoteResult'
 
 interface QuoteDesktopProps {
   onBook?: () => void
@@ -19,19 +19,12 @@ export default function QuoteDesktop({ onBook = noop, 'data-testid': testId }: Q
   const priceBreakdown = useCalculatorStore((s) => s.priceBreakdown)
   const vehicleClass = useCalculatorStore((s) => s.vehicleClass)
   const quoteMode = useCalculatorStore((s) => s.quoteMode)
-
-  const allFieldsValid = useCalculatorStore((s) => {
-    const { from, to, serviceType, date, time } = s
-    const routeReady =
-      (serviceType === 'transfer' && from !== null && to !== null) ||
-      (serviceType === 'hourly' && from !== null)
-    return routeReady && date !== null && time !== null
-  })
-
-  const selectedPrice =
-    vehicleClass && priceBreakdown && priceBreakdown[vehicleClass]
-      ? priceBreakdown[vehicleClass].total
-      : null
+  const from = useCalculatorStore((s) => s.from)
+  const to = useCalculatorStore((s) => s.to)
+  const date = useCalculatorStore((s) => s.date)
+  const time = useCalculatorStore((s) => s.time)
+  const passengers = useCalculatorStore((s) => s.passengers)
+  const serviceType = useCalculatorStore((s) => s.serviceType)
 
   return (
     <div
@@ -64,106 +57,20 @@ export default function QuoteDesktop({ onBook = noop, 'data-testid': testId }: Q
           flexShrink: 0,
           position: 'sticky',
           top: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '16px',
-          background: 'var(--anthracite-mid)',
-          border: '1px solid var(--anthracite-light)',
-          padding: '24px',
         }}
       >
-        {/* Price display area */}
-        {priceBreakdown === null && !quoteMode ? (
-          /* Skeleton */
-          <div
-            className="skeleton-shimmer"
-            style={{ height: '80px', width: '100%' }}
-          />
-        ) : quoteMode ? (
-          /* Quote mode fallback */
-          <div>
-            <h3
-              style={{
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: '14px',
-                fontWeight: 400,
-                color: 'var(--offwhite)',
-                marginBottom: '8px',
-                letterSpacing: '0.03em',
-              }}
-            >
-              Unable to calculate fare automatically
-            </h3>
-            <p
-              style={{
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: '13px',
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-                lineHeight: 1.75,
-                marginBottom: '16px',
-              }}
-            >
-              Enter your details and we&apos;ll confirm your price by email.
-            </p>
-            <Link
-              href="/contact"
-              className="btn-primary"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                width: '100%',
-                minHeight: 44,
-                textAlign: 'center',
-              }}
-            >
-              GET A CUSTOM QUOTE →
-            </Link>
-          </div>
-        ) : selectedPrice !== null ? (
-          /* Show selected vehicle price */
-          <div
-            style={{
-              fontFamily: 'Cormorant Garamond, serif',
-              fontSize: '32px',
-              fontWeight: 300,
-              color: 'var(--copper)',
-              lineHeight: 1.1,
-            }}
-          >
-            €{selectedPrice}
-          </div>
-        ) : (
-          /* No vehicle class selected yet */
-          <p
-            style={{
-              fontFamily: 'var(--font-montserrat)',
-              fontSize: '13px',
-              fontWeight: 300,
-              color: 'var(--warmgrey)',
-            }}
-          >
-            Select a vehicle class to see your fare
-          </p>
-        )}
-
-        {/* Book CTA */}
-        <button
-          type="button"
-          className="btn-primary"
-          disabled={!allFieldsValid}
-          onClick={allFieldsValid ? onBook : undefined}
-          aria-disabled={!allFieldsValid}
-          style={{
-            width: '100%',
-            minHeight: 44,
-            opacity: allFieldsValid ? 1 : 0.4,
-            cursor: allFieldsValid ? 'pointer' : 'not-allowed',
-          }}
-        >
-          BOOK NOW — PAY ONLINE
-        </button>
+        <QuoteResult
+          onBook={onBook}
+          priceBreakdown={priceBreakdown}
+          vehicleClass={vehicleClass}
+          quoteMode={quoteMode}
+          from={from}
+          to={to}
+          date={date}
+          time={time}
+          passengers={passengers}
+          serviceType={serviceType}
+        />
       </div>
     </div>
   )

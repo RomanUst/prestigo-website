@@ -169,14 +169,14 @@ export default function QuoteStep3Pax({ onNext, onBack }: QuoteStepProps) {
           onChange={setPassengers}
         />
         <Stepper
-          label="CHILD SEATS  (+€15 each)"
+          label="CHILD SEATS"
           value={childSeats}
           min={0}
           max={3}
           onChange={setChildSeats}
         />
         <Stepper
-          label="EXTRA STOPS  (+€20 each)"
+          label="EXTRA STOPS"
           value={extraStops}
           min={0}
           max={5}
