@@ -32,6 +32,9 @@ const FIXTURE_RATES: PricingConfig = {
     hourlyMinHours: 2,
     hourlyMaxHours: 8,
     notificationFlags: null,
+    airportPromoActive: false,
+    airportRegularPriceEur: 69,
+    airportPromoPriceEur: 59,
   },
 }
 

@@ -98,6 +98,9 @@ describe('pricing module', () => {
     hourlyMinHours: 2,
     hourlyMaxHours: 8,
     notificationFlags: null,
+    airportPromoActive: false,
+    airportRegularPriceEur: 69,
+    airportPromoPriceEur: 59,
   }
 
   const testPrices = { business: { base: 28, extras: 0, total: 28, currency: 'EUR' } }
