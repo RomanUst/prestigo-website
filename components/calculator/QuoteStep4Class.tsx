@@ -182,7 +182,7 @@ export default function QuoteStep4Class({ onNext, onBack }: QuoteStepProps) {
       </div>
 
       {/* Footer */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="quote-step-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <button
           type="button"
           className="btn-primary"

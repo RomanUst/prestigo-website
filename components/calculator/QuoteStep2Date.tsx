@@ -255,7 +255,7 @@ export default function QuoteStep2Date({ onNext, onBack }: QuoteStepProps) {
       </div>
 
       {/* Footer */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="quote-step-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <button
           type="button"
           className="btn-primary"

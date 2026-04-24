@@ -204,7 +204,7 @@ export default function QuoteStep1Route({ onNext, showBack: _showBack = false }:
       )}
 
       {/* Footer */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <div className="quote-step-footer" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         {serviceType === 'daily' ? (
           <Link
             href="/book/multi-day"
