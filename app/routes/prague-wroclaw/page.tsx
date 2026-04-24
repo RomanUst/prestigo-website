@@ -1,43 +1,37 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const metadata: Metadata = {
-  title: 'Prague to Wrocław Private Transfer — From €470',
-  description: 'Book a private chauffeur from Prague to Wrocław. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, Poland\'s city of dwarfs.',
-  alternates: {
-    canonical: '/routes/prague-wroclaw',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-wroclaw',
-      'x-default': 'https://rideprestigo.com/routes/prague-wroclaw',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-wroclaw')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Wrocław Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Wrocław. 285 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Poland's city of dwarfs.`,
+    alternates: {
+      canonical: '/routes/prague-wroclaw',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-wroclaw',
+        'x-default': 'https://rideprestigo.com/routes/prague-wroclaw',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-wroclaw',
-    title: 'Prague to Wrocław Private Transfer — From €470',
-    description: 'Book a private chauffeur from Prague to Wrocław. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, Poland\'s city of dwarfs.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-wroclaw',
+      title: `Prague to Wrocław Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Wrocław. 285 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Poland's city of dwarfs.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
-
-const highlights = [
-  { label: 'Distance', value: '~285 km' },
-  { label: 'Duration', value: '~3 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€470', copper: true },
-]
-
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €470', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €700', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €540', photo: '/v-class-photo.png' },
-]
 
 const inclusions = [
   'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
@@ -52,7 +46,7 @@ const inclusions = [
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Wrocław take?', a: 'Approximately 3 hours door-to-door via the D11 motorway north to Hradec Králové, then Highway 33 northeast to the Czech–Polish border at Náchod/Kudowa-Zdrój, then the Polish DK8 and S8 expressways into Wrocław. Traffic around Prague during rush hour can add 15–20 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Wrocław cost?', a: 'Fixed fare from €470 in Mercedes E-Class (up to 3 passengers), €540 in V-Class (up to 6 passengers), or €700 in S-Class. Prices include fuel, Czech vignette, Polish tolls, and driver time. No hidden charges.' },
+  { q: 'How much does a chauffeur from Prague to Wrocław cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, Czech vignette, Polish tolls, and driver time. No hidden charges.' },
   { q: 'Can I book a same-day round trip from Prague to Wrocław?', a: 'Yes, and it is the standard pattern on this route. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most clients book a 10–12 hour round trip to cover the Rynek, the Racławice Panorama, and lunch near Ostrów Tumski.' },
   { q: 'Do you cross the Czech–Polish border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Náchod/Kudowa-Zdrój is invisible — no routine checks, no passport control. All Prestigo vehicles carry the Czech vignette and pre-paid Polish tolls, and the chauffeur holds an international chauffeur licence recognised across the EU.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
@@ -81,95 +75,50 @@ const relatedRoutes = [
   { slug: 'prague-warsaw', city: 'Warsaw', distance: '680 km', duration: '6h 45min' },
 ]
 
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-wroclaw#service',
-  name: 'Private Chauffeur Transfer from Prague to Wrocław',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Wrocław in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 30 minutes door-to-door via the R10, D11, and Polish A8 motorways. Distance 285 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
-    {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
-    },
-    {
-      '@type': 'City',
-      name: 'Wrocław',
-      addressCountry: 'PL',
-    },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+export default async function PragueWroclawPage() {
+  const route = await getRoutePrice('prague-wroclaw')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const highlights = [
+    { label: 'Distance', value: '~285 km' },
+    { label: 'Duration', value: '~3 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
+
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-wroclaw')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '470',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-wroclaw#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-wroclaw#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '700',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-wroclaw#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '540',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-wroclaw#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-wroclaw#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Wrocław', item: 'https://rideprestigo.com/routes/prague-wroclaw' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-wroclaw#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-wroclaw#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Wrocław', item: 'https://rideprestigo.com/routes/prague-wroclaw' },
-      ],
-    },
-  ],
-}
-
-export default function PragueWroclawPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -207,7 +156,7 @@ export default function PragueWroclawPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Wrocław covers 285 km and takes approximately 3 hours door to door. Fixed fare starts at €470 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €540; the S-Class is available from €700 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Liberec or Jelenia Góra — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Wrocław covers 285 km and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver&apos;s time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Liberec or Jelenia Góra — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -232,7 +181,7 @@ export default function PragueWroclawPage() {
               Total distance is approximately 285 kilometres. Driving time is three hours in normal conditions. Add 15–20 minutes on Friday afternoons leaving Prague. On weekends with heavy Polish border traffic, your chauffeur can reroute via Liberec and the Bogatynia crossing — a slightly longer drive through the Jizera Mountains but a cleaner run into Lower Silesia.
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Wrocław itself is worth the drive. The Rynek is one of the largest medieval market squares in Europe. The bronze Wrocław dwarves — boguszów krasnale, roughly six hundred of them — began as a single protest figurine in the 1980s and now turn every walk into a hunt. Cathedral Island (Ostrów Tumski), the Centennial Hall with its pioneering reinforced-concrete dome listed by UNESCO, and the immense Racławice Panorama in its purpose-built rotunda complete the short list. Your chauffeur watches traffic on the D11 before every departure. You are not paying for traffic; you are paying for time.
+              Wrocław itself is worth the drive. The Rynek is one of the largest medieval market squares in Europe. The bronze Wrocław dwarves — roughly six hundred of them — began as a single protest figurine in the 1980s and now turn every walk into a hunt. Cathedral Island (Ostrów Tumski), the Centennial Hall with its pioneering reinforced-concrete dome listed by UNESCO, and the immense Racławice Panorama in its purpose-built rotunda complete the short list. Your chauffeur watches traffic on the D11 before every departure. You are not paying for traffic; you are paying for time.
             </p>
           </div></Reveal>
         </div>
@@ -386,7 +335,7 @@ export default function PragueWroclawPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Wrocław.<br /><span className="display-italic">From €470, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Wrocław.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

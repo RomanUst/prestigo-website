@@ -1,45 +1,38 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-const PRAGUE_VIENNA_DESCRIPTION = 'Private chauffeur Prague to Vienna: 330 km door-to-door in a Mercedes E-Class, S-Class or V-Class. Fixed price from €485, stops available.'
-
-export const metadata: Metadata = {
-  title: 'Prague to Vienna Chauffeur Transfer — From €485',
-  description: PRAGUE_VIENNA_DESCRIPTION,
-  alternates: {
-    canonical: '/routes/prague-vienna',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-vienna',
-      'x-default': 'https://rideprestigo.com/routes/prague-vienna',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-vienna')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const desc = `Private chauffeured transfer from Prague to Vienna: 330 km door-to-door in a Mercedes E-Class, S-Class or V-Class. Fixed price from €${ePrice}, stops available.`
+  return {
+    title: `Prague to Vienna Chauffeur Transfer — From €${ePrice}`,
+    description: desc,
+    alternates: {
+      canonical: '/routes/prague-vienna',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-vienna',
+        'x-default': 'https://rideprestigo.com/routes/prague-vienna',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-vienna',
-    title: 'Prague to Vienna Private Chauffeur Transfer — From €485',
-    description: PRAGUE_VIENNA_DESCRIPTION,
-    images: [{ url: "https://rideprestigo.com/vienna.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-vienna',
+      title: `Prague to Vienna Private Chauffeur Transfer — From €${ePrice}`,
+      description: desc,
+      images: [{ url: "https://rideprestigo.com/vienna.png", width: 1200, height: 630 }],
+    },
+  }
 }
-
-const highlights = [
-  { label: 'Distance', value: '330 km' },
-  { label: 'Duration', value: '~3.5 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€485', copper: true },
-]
-
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €485', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €725', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €560', photo: '/v-class-photo.png' },
-]
 
 const inclusions = [
   'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
@@ -54,7 +47,7 @@ const inclusions = [
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Vienna take?', a: 'Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Vienna cost?', a: 'Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €560 in V-Class (up to 6 passengers), or €725 in S-Class. Prices include fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.' },
+  { q: 'How much does a chauffeur from Prague to Vienna cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.' },
   { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking from €40/hour. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
   { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
@@ -65,17 +58,17 @@ const dayTripConfigurations = [
   {
     title: 'The Schönbrunn and Belvedere Day',
     body: 'Pickup at 7:00, arrive Vienna 10:30. Three hours at Schloss Schönbrunn — the state apartments, the Gloriette, the gardens — then a transfer across the city for two hours at the Upper Belvedere with the Klimt collection. Return to Prague by 21:00.',
-    price: 'From €950 — based on six hours on site.',
+    price: 'Round-trip day visit — contact us for a quote.',
   },
   {
     title: 'The Innere Stadt and Opera Evening',
     body: 'A late-morning pickup, lunch at a Stephansplatz Konditorei, an afternoon at the Albertina or Kunsthistorisches Museum, and a 19:00 curtain at the Wiener Staatsoper. Your chauffeur waits during the performance and drives you back overnight.',
-    price: 'From €1,000 — based on eight hours on site.',
+    price: 'Round-trip with evening — contact us for a quote.',
   },
   {
     title: 'The Naschmarkt and MuseumsQuartier Afternoon',
     body: 'Pickup at 8:00, arrive Vienna 11:30. A wander through the Naschmarkt food stalls, lunch at a Saturday flea-market terrace, and a slow afternoon at the Leopold Museum and mumok in the MuseumsQuartier before the return drive.',
-    price: 'From €900 — based on five hours on site.',
+    price: 'Round-trip day visit — contact us for a quote.',
   },
 ]
 
@@ -101,95 +94,50 @@ const relatedRoutes = [
   { slug: 'prague-salzburg', city: 'Salzburg', distance: '385 km', duration: '4h' },
 ]
 
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-vienna#service',
-  name: 'Private Chauffeur Transfer from Prague to Vienna',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Vienna in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 30 minutes door-to-door via the D1 motorway, D52, and A5. Distance 330 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420725986855',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
-    {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
-    },
-    {
-      '@type': 'City',
-      name: 'Vienna',
-      addressCountry: 'AT',
-    },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+export default async function PragueViennaPage() {
+  const route = await getRoutePrice('prague-vienna')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const highlights = [
+    { label: 'Distance', value: '330 km' },
+    { label: 'Duration', value: '~3.5 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
+
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-vienna')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '485',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-vienna#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-vienna#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '725',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-vienna#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '560',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-vienna#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-vienna#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Vienna', item: 'https://rideprestigo.com/routes/prague-vienna' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-vienna#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-vienna#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Vienna', item: 'https://rideprestigo.com/routes/prague-vienna' },
-      ],
-    },
-  ],
-}
-
-export default function PragueViennaPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -202,7 +150,7 @@ export default function PragueViennaPage() {
           <p className="label mb-6">Prague → Vienna</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Vienna,<br /><span className="display-italic">door to door.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Prague to Vienna by private chauffeur is a 330 km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo&rsquo;s fixed fare starts at €485 in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Prague to Vienna by private chauffeur is a 330 km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo&rsquo;s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
@@ -227,7 +175,7 @@ export default function PragueViennaPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Vienna covers 330 km via the D1 and D52 motorways, continuing on the A5 into Vienna, and takes approximately 3.5 hours door to door. Fixed fare starts at €485 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €560; the S-Class is available from €725 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. Stops en route — Brno, Bratislava, or a vineyard in South Moravia — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Vienna covers 330 km via the D1 and D52 motorways, continuing on the A5 into Vienna, and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver&apos;s time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. Stops en route — Brno, Bratislava, or a vineyard in South Moravia — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -264,7 +212,7 @@ export default function PragueViennaPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">What's Included</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Vienna drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Austrian vignette, every toll. Business meeting, opera evening, or a long weekend in the Habsburg capital — your driver handles the route while you focus on the destination.</p>
           </div></Reveal>
@@ -432,7 +380,7 @@ export default function PragueViennaPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Vienna.<br /><span className="display-italic">From €485, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Vienna.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

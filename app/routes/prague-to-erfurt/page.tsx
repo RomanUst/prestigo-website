@@ -1,24 +1,32 @@
 import type { Metadata } from 'next'
-export const dynamic = 'force-static'
+
+export const revalidate = 120
+
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+import { getRoutePrice } from '@/lib/route-prices'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const metadata: Metadata = {
-  title: 'Private Transfer Prague to Erfurt — PRESTIGO Chauffeur',
-  description: 'Long-distance private chauffeur transfer from Prague to Erfurt. 250 km, approx 3 hours. Mercedes E, V, or S-Class. Quote on request.',
-  alternates: {
-    canonical: '/routes/prague-to-erfurt',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-to-erfurt',
-      'x-default': 'https://rideprestigo.com/routes/prague-to-erfurt',
-    },
-  },
-  robots: { index: false, follow: true },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-to-erfurt',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-to-erfurt')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
     title: 'Private Transfer Prague to Erfurt — PRESTIGO Chauffeur',
-    description: 'Long-distance private transfer from Prague to Erfurt. 250 km door-to-door in Mercedes. Quote on request.',
-  },
+    description: `Long-distance private chauffeur transfer from Prague to Erfurt. 250 km, approx 3 hours. Mercedes E, V, or S-Class. From €${ePrice}.`,
+    alternates: {
+      canonical: '/routes/prague-to-erfurt',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-to-erfurt',
+        'x-default': 'https://rideprestigo.com/routes/prague-to-erfurt',
+      },
+    },
+    robots: { index: false, follow: true },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-to-erfurt',
+      title: 'Private Transfer Prague to Erfurt — PRESTIGO Chauffeur',
+      description: 'Long-distance private transfer from Prague to Erfurt. 250 km door-to-door in Mercedes. Quote on request.',
+    },
+  }
 }
 
 const breadcrumbSchema = {
@@ -31,7 +39,12 @@ const breadcrumbSchema = {
   ],
 }
 
-export default function PragueToErfurtPage() {
+export default async function PragueToErfurtPage() {
+  const route = await getRoutePrice('prague-to-erfurt')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
@@ -57,7 +70,7 @@ export default function PragueToErfurtPage() {
             </div>
             <div>
               <p className="label mb-1">From</p>
-              <p className="font-body font-light text-[14px]" style={{ color: 'var(--copper-light)' }}>€415 (E-Class)</p>
+              <p className="font-body font-light text-[14px]" style={{ color: 'var(--copper-light)' }}>€{ePrice} (E-Class)</p>
             </div>
           </div>
         </div>
@@ -76,7 +89,7 @@ export default function PragueToErfurtPage() {
           </p>
           <ul className="flex flex-col gap-4 mb-8">
             {[
-              'Vehicle class. Indicative fares: from €415 in Mercedes E-Class, €540 in V-Class, or €625 in S-Class. Your actual quote depends on the specifics below.',
+              `Vehicle class. Indicative fares: from €${ePrice} in Mercedes E-Class, €${vPrice} in V-Class, or €${sPrice} in S-Class. Your actual quote depends on the specifics below.`,
               'Time of year. Winter routes may add time for weather conditions.',
               'Overnight requirements. EU driver regulation 561/2006 limits continuous driving to 4.5 hours before a 45-minute break, and 9 hours total in a day.',
               'Return or one-way. Same-day return on this distance is possible but unusual; most bookings are one-way.',

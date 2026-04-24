@@ -1,43 +1,37 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const metadata: Metadata = {
-  title: 'Prague to Warsaw Private Transfer — From €1,090',
-  description: 'Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €1,090, Polish capital.',
-  alternates: {
-    canonical: '/routes/prague-warsaw',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-warsaw',
-      'x-default': 'https://rideprestigo.com/routes/prague-warsaw',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-warsaw')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Warsaw Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Polish capital.`,
+    alternates: {
+      canonical: '/routes/prague-warsaw',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-warsaw',
+        'x-default': 'https://rideprestigo.com/routes/prague-warsaw',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-warsaw',
-    title: 'Prague to Warsaw Private Transfer — From €1,090',
-    description: 'Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €1,090, Polish capital.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-warsaw',
+      title: `Prague to Warsaw Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Polish capital.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
-
-const highlights = [
-  { label: 'Distance', value: '~660 km' },
-  { label: 'Duration', value: '~7 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€1,090', copper: true },
-]
-
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €1,090', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €1,615', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €1,255', photo: '/v-class-photo.png' },
-]
 
 const inclusions = [
   'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
@@ -52,7 +46,7 @@ const inclusions = [
 
 const faqs = [
   { q: 'How long does the Prague to Warsaw transfer take?', a: 'Approximately 7 hours door-to-door. The primary route takes the Czech D1 east through Brno to Ostrava, crosses the Polish border near Cieszyn, then follows the A1 north and the S8 east to Warsaw. Traffic on the Polish A4 toll section around Katowice can add 20–30 minutes during weekday rush hour.' },
-  { q: 'How much does a chauffeur from Prague to Warsaw cost?', a: 'Fixed fare from €1,090 in Mercedes E-Class (up to 3 passengers), €1,255 in V-Class (up to 6 passengers), or €1,615 in S-Class. Prices include fuel, the Czech vignette, Polish tolls, and driver time. No hidden charges.' },
+  { q: 'How much does a chauffeur from Prague to Warsaw cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, the Czech vignette, Polish tolls, and driver time. No hidden charges.' },
   { q: 'Can I book a same-day round trip from Prague to Warsaw?', a: 'Technically yes, but the round trip is roughly 14 hours on the road, which is heavy for a single day. Most clients overnight in Warsaw and book the return for the following day. A return within 12 hours receives a 10% discount; a return the next morning is billed as two one-way transfers.' },
   { q: 'Is there a border crossing between Prague and Warsaw?', a: 'Yes, the Czech–Polish Schengen border, typically crossed at Chotěbuz/Cieszyn near Český Těšín or alternatively at Náchod/Kudowa-Zdrój on the northern route. There are no passport checks for EU citizens. Non-EU passengers should carry valid travel documents in case of a random inspection.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
@@ -81,95 +75,50 @@ const relatedRoutes = [
   { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
 ]
 
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-warsaw#service',
-  name: 'Private Chauffeur Transfer from Prague to Warsaw',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Warsaw in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 7 hours door-to-door via the D1 motorway, the Polish A1, and the S8. Distance 660 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
-    {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
-    },
-    {
-      '@type': 'City',
-      name: 'Warsaw',
-      addressCountry: 'PL',
-    },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+export default async function PragueWarsawPage() {
+  const route = await getRoutePrice('prague-warsaw')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const highlights = [
+    { label: 'Distance', value: '~660 km' },
+    { label: 'Duration', value: '~7 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
+
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-warsaw')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '1090',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-warsaw#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-warsaw#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '1615',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-warsaw#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '1255',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-warsaw#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-warsaw#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Warsaw', item: 'https://rideprestigo.com/routes/prague-warsaw' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-warsaw#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-warsaw#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Warsaw', item: 'https://rideprestigo.com/routes/prague-warsaw' },
-      ],
-    },
-  ],
-}
-
-export default function PragueWarsawPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -182,7 +131,7 @@ export default function PragueWarsawPage() {
           <p className="label mb-6">Prague → Warsaw</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Warsaw,<br /><span className="display-italic">Polish capital.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>660 km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland's economic heart — seven hours, one fixed price.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>660 km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland&apos;s economic heart — seven hours, one fixed price.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
@@ -207,7 +156,7 @@ export default function PragueWarsawPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Warsaw covers 660 km and takes approximately 7 hours door to door. Fixed fare starts at €1,090 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €1,255; the S-Class is available from €1,615 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Wrocław or Łódź — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Warsaw covers 660 km and takes approximately 7 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver&apos;s time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Wrocław or Łódź — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a train with a change in Katowice. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -232,7 +181,7 @@ export default function PragueWarsawPage() {
               An alternative northern routing runs the D11 out of Prague through Hradec Králové, crosses the border at Náchod/Kudowa-Zdrój, and joins the S8 northeast past Wrocław and Łódź. Your chauffeur picks the faster option on the morning of the drive based on live traffic. Total distance is approximately 660 kilometres on either path.
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Warsaw on arrival is a city rebuilt from the ground up. The Old Town was reconstructed after the Second World War and is listed by UNESCO for that reconstruction alone. The Royal Castle on Plac Zamkowy, Łazienki Park, the Palace of Culture and Science, and the Warsaw Uprising Museum are all within a short drive of any central drop-off. Frédéric Chopin's heart rests in a pillar of the Holy Cross Church on Krakowskie Przedmieście. Watch for weekday congestion on the Polish A4 toll section near Katowice — your chauffeur routes around it if needed. You are not paying for traffic; you are paying for time.
+              Warsaw on arrival is a city rebuilt from the ground up. The Old Town was reconstructed after the Second World War and is listed by UNESCO for that reconstruction alone. The Royal Castle on Plac Zamkowy, Łazienki Park, the Palace of Culture and Science, and the Warsaw Uprising Museum are all within a short drive of any central drop-off. Frédéric Chopin&apos;s heart rests in a pillar of the Holy Cross Church on Krakowskie Przedmieście. Watch for weekday congestion on the Polish A4 toll section near Katowice — your chauffeur routes around it if needed. You are not paying for traffic; you are paying for time.
             </p>
           </div></Reveal>
         </div>
@@ -244,7 +193,7 @@ export default function PragueWarsawPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">What's Included</p>
+            <p className="label mb-6">What&apos;s Included</p>
             <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Warsaw drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Polish tolls. Business meeting, embassy visit, or a long weekend in the Polish capital — your driver handles the route while you focus on the destination.</p>
           </div></Reveal>
@@ -386,7 +335,7 @@ export default function PragueWarsawPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Warsaw.<br /><span className="display-italic">From €1,090, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Warsaw.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

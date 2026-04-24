@@ -1,43 +1,37 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const metadata: Metadata = {
-  title: 'Prague to Zlín Private Transfer — From €510',
-  description: 'Book a private chauffeur from Prague to Zlín. 310 km door-to-door in a Mercedes-Benz. Fixed price from €510, Baťa\'s functionalist city.',
-  alternates: {
-    canonical: '/routes/prague-zlin',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-zlin',
-      'x-default': 'https://rideprestigo.com/routes/prague-zlin',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-zlin')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Zlín Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Zlín. 310 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Baťa's functionalist city.`,
+    alternates: {
+      canonical: '/routes/prague-zlin',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-zlin',
+        'x-default': 'https://rideprestigo.com/routes/prague-zlin',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-zlin',
-    title: 'Prague to Zlín Private Transfer — From €510',
-    description: 'Book a private chauffeur from Prague to Zlín. 310 km door-to-door in a Mercedes-Benz. Fixed price from €510, Baťa\'s functionalist city.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-zlin',
+      title: `Prague to Zlín Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Zlín. 310 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Baťa's functionalist city.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
-
-const highlights = [
-  { label: 'Distance', value: '~310 km' },
-  { label: 'Duration', value: '~3.5 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€510', copper: true },
-]
-
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €510', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €760', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €590', photo: '/v-class-photo.png' },
-]
 
 const inclusions = [
   'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
@@ -52,7 +46,7 @@ const inclusions = [
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Zlín take?', a: 'Approximately 3.5 hours door-to-door via the D1 motorway east through Brno, then the D55 south or Highway 50 east into Zlín. Friday afternoon traffic leaving Prague can add 20–30 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Zlín cost?', a: 'Fixed fare from €510 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €760 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
+  { q: 'How much does a chauffeur from Prague to Zlín cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database.' },
   { q: 'Can I book a same-day round trip from Prague to Zlín?', a: 'Yes. A same-day return is workable — most clients book a 9–11 hour round trip that allows three to four hours on site in Zlín. Book both legs together for a 10% discount on the return. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
   { q: 'Is there a border crossing on the way to Zlín?', a: 'No. The Prague–Zlín route is entirely within the Czech Republic. No passport checks, no vignette changes, no customs. The Czech motorway vignette is included in the quoted price.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
@@ -81,95 +75,50 @@ const relatedRoutes = [
   { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 30min' },
 ]
 
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-zlin#service',
-  name: 'Private Chauffeur Transfer from Prague to Zlín',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Zlín in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 30 minutes door-to-door via the D1 motorway and the D55. Distance 310 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
-    {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
-    },
-    {
-      '@type': 'City',
-      name: 'Zlín',
-      addressCountry: 'CZ',
-    },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+export default async function PragueZlinPage() {
+  const route = await getRoutePrice('prague-zlin')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const highlights = [
+    { label: 'Distance', value: '~310 km' },
+    { label: 'Duration', value: '~3.5 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
+
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-zlin')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '510',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-zlin#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-zlin#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '760',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-zlin#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '590',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-zlin#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-zlin#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Zlín', item: 'https://rideprestigo.com/routes/prague-zlin' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-zlin#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-zlin#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Zlín', item: 'https://rideprestigo.com/routes/prague-zlin' },
-      ],
-    },
-  ],
-}
-
-export default function PragueZlinPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -207,7 +156,7 @@ export default function PragueZlinPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Zlín covers 310 km and takes approximately 3.5 hours door to door. Fixed fare starts at €510 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €590; the S-Class is available from €760 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Uherské Hradiště — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Zlín covers 310 km and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver&apos;s time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Uherské Hradiště — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -386,7 +335,7 @@ export default function PragueZlinPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Zlín.<br /><span className="display-italic">From €510, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Zlín.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>
