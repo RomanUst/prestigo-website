@@ -1,49 +1,38 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import TierLadder from '@/components/pricing/TierLadder'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { buildAirportTransferJsonLd } from '@/lib/jsonld'
+import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 
-export const metadata: Metadata = {
-  title: 'Airport Transfer Prague — PRG Václav Havel',
-  description: 'Prague airport transfer with flight tracking, meet & greet, and fixed price. All terminals covered. Available 24/7. Book your PRG transfer online in seconds.',
-  alternates: {
-    canonical: '/services/airport-transfer',
-    languages: {
-      en: 'https://rideprestigo.com/services/airport-transfer',
-      'x-default': 'https://rideprestigo.com/services/airport-transfer',
+export async function generateMetadata(): Promise<Metadata> {
+  const { globals } = await getPricingConfig()
+  const businessPrice = globals.airportPromoActive
+    ? globals.airportPromoPriceEur
+    : globals.airportRegularPriceEur
+  return {
+    title: 'Airport Transfer Prague — PRG Václav Havel',
+    description: `Prague airport transfer with flight tracking, meet & greet, and fixed price from €${businessPrice}. All terminals covered. Available 24/7. Book your PRG transfer online in seconds.`,
+    alternates: {
+      canonical: '/services/airport-transfer',
+      languages: {
+        en: 'https://rideprestigo.com/services/airport-transfer',
+        'x-default': 'https://rideprestigo.com/services/airport-transfer',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/services/airport-transfer',
-    title: 'Airport Transfer Prague — PRG Václav Havel | PRESTIGO',
-    description: 'Prague airport transfer with flight tracking, meet & greet, and fixed price. All terminals covered. Available 24/7.',
-    images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
-  },
-}
-
-const serviceSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: 'Airport Transfer Prague',
-  description: 'Premium airport transfer service at Prague Václav Havel Airport. Flight tracking, meet & greet, name board, fixed price.',
-  provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
-  areaServed: 'Prague, Czech Republic',
-  url: 'https://rideprestigo.com/services/airport-transfer',
-  offers: { '@type': 'Offer', price: '69', priceCurrency: 'EUR' },
-}
-
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://rideprestigo.com/services' },
-    { '@type': 'ListItem', position: 3, name: 'Airport Transfer', item: 'https://rideprestigo.com/services/airport-transfer' },
-  ],
+    openGraph: {
+      url: 'https://rideprestigo.com/services/airport-transfer',
+      title: 'Airport Transfer Prague — PRG Václav Havel | PRESTIGO',
+      description: `Prague airport transfer with flight tracking, meet & greet, and fixed price from €${businessPrice}. All terminals covered. Available 24/7.`,
+      images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const features = [
@@ -84,25 +73,48 @@ const faqs = [
   },
   {
     q: 'How does PRESTIGO compare to taking an Uber from the airport?',
-    a: 'Uber has held the exclusive official taxi rank at PRG since September 2023. A standard Uber to central Prague runs CZK 650–800 (~€26–32) — lower than PRESTIGO\'s starting price. The difference is how you are collected: your PRESTIGO driver is inside the Arrivals hall with a name board before you reach the exit. Uber requires walking 120 metres to the designated P11 pickup zone and waiting for a vehicle to be assigned. For solo travellers with light luggage arriving off-peak, Uber is a practical option. For business arrivals, families, or anyone with luggage and a tight connection, the meet & greet and flight tracking more than justify the difference.',
+    a: 'Uber has held the exclusive official taxi rank at PRG since September 2023. A standard Uber to central Prague runs CZK 650–800 — lower than PRESTIGO\'s starting price. The difference is how you are collected: your PRESTIGO driver is inside the Arrivals hall with a name board before you reach the exit. Uber requires walking 120 metres to the designated P11 pickup zone and waiting for a vehicle to be assigned. For solo travellers with light luggage arriving off-peak, Uber is a practical option. For business arrivals, families, or anyone with luggage and a tight connection, the meet & greet and flight tracking more than justify the difference.',
   },
 ]
 
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: faqs.map((item) => ({
-    '@type': 'Question',
-    name: item.q,
-    acceptedAnswer: { '@type': 'Answer', text: item.a },
-  })),
-}
+export default async function AirportTransferPage() {
+  const { globals } = await getPricingConfig()
+  const sClassAirport = AIRPORT_FALLBACK.sClass
+  const vClassAirport = AIRPORT_FALLBACK.vClass
+  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport)
 
-export default function AirportTransferPage() {
+  const pageSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      ...airportJsonLd['@graph'],
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://rideprestigo.com/services' },
+          { '@type': 'ListItem', position: 3, name: 'Airport Transfer', item: 'https://rideprestigo.com/services/airport-transfer' },
+        ],
+      },
+    ],
+  }
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: { '@type': 'Answer', text: item.a },
+    })),
+  }
+
+  const businessPrice = globals.airportPromoActive
+    ? globals.airportPromoPriceEur
+    : globals.airportRegularPriceEur
+
   return (
     <main id="main-content">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
@@ -119,7 +131,7 @@ export default function AirportTransferPage() {
             <span className="display-italic">Met on arrival, every time.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prestigo Prague Airport Transfer is a fixed-price chauffeur service from Václav Havel Airport (PRG) to any Prague address, starting at €69. Your driver tracks your flight in real time, waits up to 60 minutes free at Arrivals with a name board, handles your luggage, and drives you in a Mercedes-Benz E-Class, S-Class, or V-Class.
+            Prestigo Prague Airport Transfer is a fixed-price chauffeur service from Václav Havel Airport (PRG) to any Prague address, starting at €{businessPrice}. Your driver tracks your flight in real time, waits up to 60 minutes free at Arrivals with a name board, handles your luggage, and drives you in a Mercedes-Benz E-Class, S-Class, or V-Class.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/book" className="btn-primary">Book Airport Transfer</a>
@@ -130,22 +142,10 @@ export default function AirportTransferPage() {
 
       <Divider />
 
-      {/* Price callout */}
+      {/* Tier Ladder — replaces static price callout */}
       <section className="bg-anthracite-mid py-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-          <div>
-            <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>Starting from</p>
-            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€69</p>
-            <p className="body-text text-[11px] mt-1">Fixed price · PRG → Prague city centre</p>
-          </div>
-          <div className="flex flex-col gap-2">
-            {['Flight tracking included', 'Meet & greet at Arrivals', 'Name board included', 'All terminals covered', 'Waiting time included'].map((f) => (
-              <div key={f} className="flex items-center gap-3">
-                <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
-                <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
-              </div>
-            ))}
-          </div>
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <TierLadder config={globals} sClassPrice={sClassAirport} vClassPrice={vClassAirport} />
         </div>
       </section>
 
@@ -154,7 +154,7 @@ export default function AirportTransferPage() {
       {/* Features */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">What's included</p>
+          <p className="label mb-6">What&apos;s included</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {features.map((f) => (
@@ -239,21 +239,21 @@ export default function AirportTransferPage() {
                 name: 'E-Class',
                 tag: 'Standard premium',
                 cap: 'Up to 3 passengers · 3 bags',
-                price: 'From €69',
+                price: `From €${businessPrice}`,
                 body: 'The Mercedes E-Class is the everyday vehicle for Prague airport arrivals — quiet, spacious, and immaculate. The right choice for solo travellers, couples, and business arrivals who want comfort without excess.',
               },
               {
                 name: 'V-Class',
                 tag: 'Group & family',
                 cap: 'Up to 6 passengers · 6 bags',
-                price: 'From €89',
+                price: `From €${vClassAirport}`,
                 body: 'The Mercedes V-Class seats up to six with full luggage. Ideal for families, groups, and corporate arrivals where one vehicle and one fixed price covers everyone.',
               },
               {
                 name: 'S-Class',
                 tag: 'Executive flagship',
                 cap: 'Up to 3 passengers · 3 bags',
-                price: 'From €120',
+                price: `From €${sClassAirport}`,
                 body: 'The Mercedes S-Class is reserved for VIP, diplomatic, and senior executive arrivals. Rear-seat comfort, ambient lighting, and the most refined cabin in the current Mercedes range.',
               },
             ].map((v) => (

@@ -79,6 +79,12 @@ export default function Fleet() {
                       </li>
                     ))}
                   </ul>
+                  <a
+                    href="/services/airport-transfer"
+                    className="inline-block mt-4 font-body font-light text-[10px] tracking-[0.18em] uppercase text-copper hover:text-copper-light transition-colors"
+                  >
+                    See pricing →
+                  </a>
                 </div>
               </div>
             </Reveal>

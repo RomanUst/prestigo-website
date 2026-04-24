@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,168 +12,115 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Pardubice Private Transfer — From €180',
-  description: 'Book a private chauffeur from Prague to Pardubice. 110 km on the D11 in a Mercedes-Benz. Fixed price from €180, East Bohemia door-to-door.',
-  alternates: {
-    canonical: '/routes/prague-pardubice',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-pardubice',
-      'x-default': 'https://rideprestigo.com/routes/prague-pardubice',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-pardubice')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Pardubice Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Pardubice. 110 km on the D11 in a Mercedes-Benz. Fixed price from €${ePrice}, East Bohemia door-to-door.`,
+    alternates: {
+      canonical: '/routes/prague-pardubice',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-pardubice',
+        'x-default': 'https://rideprestigo.com/routes/prague-pardubice',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-pardubice',
-    title: 'Prague to Pardubice Private Transfer — From €180',
-    description: 'Book a private chauffeur from Prague to Pardubice. 110 km on the D11 in a Mercedes-Benz. Fixed price from €180, East Bohemia door-to-door.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-pardubice',
+      title: `Prague to Pardubice Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Pardubice. 110 km on the D11 in a Mercedes-Benz. Fixed price from €${ePrice}, East Bohemia door-to-door.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~110 km' },
-  { label: 'Duration', value: '~1.5 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€180', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €180', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €270', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €210', photo: '/v-class-photo.png' },
-]
+export default async function PraguePardubicePage() {
+  const route = await getRoutePrice('prague-pardubice')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech, trained for business and event travel across Bohemia.',
-  'Fuel, the Czech motorway vignette, and all tolls. Nothing is charged on top of the quoted fare.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~110 km' },
+    { label: 'Duration', value: '~1.5 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Pardubice take?', a: 'Approximately 1.5 hours door-to-door via the D11 motorway east from Prague. The D11 is one of the newer Czech motorways, well-maintained and fast outside peak hours. Add 10–15 minutes during Friday afternoon rush hour out of Prague.' },
-  { q: 'How much does a chauffeur from Prague to Pardubice cost?', a: 'Fixed fare from €180 in Mercedes E-Class (up to 3 passengers), €210 in V-Class (up to 6 passengers), or €270 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Pardubice?', a: 'Yes. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Many clients book a 5–6 hour round trip to cover a meeting, a racecourse visit, or a walk through the Old Town.' },
-  { q: 'Is there a border crossing between Prague and Pardubice?', a: 'No. Both cities are in the Czech Republic. The drive is entirely on Czech motorways — the D11 east, then Highway 37 south — with no border checks and no foreign vignette required.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, French, or Italian can be arranged on request at no additional charge — please mention the preferred language at booking.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, no meter running on the D11.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for Bohemian business and event travel.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'For October Velká Pardubická race day pickups, the chauffeur knows the parking constraints around the racecourse. To combine Pardubice with Hradec Králové (25 minutes away) in the same day, that is included.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech, trained for business and event travel across Bohemia.',
+    'Fuel, the Czech motorway vignette, and all tolls. Nothing is charged on top of the quoted fare.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '120 km', duration: '1h 30min' },
-  { slug: 'prague-kutna-hora', city: 'Kutná Hora', distance: '80 km', duration: '1h 10min' },
-  { slug: 'prague-olomouc', city: 'Olomouc', distance: '280 km', duration: '2h 45min' },
-  { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Pardubice take?', a: 'Approximately 1.5 hours door-to-door via the D11 motorway east from Prague. The D11 is one of the newer Czech motorways, well-maintained and fast outside peak hours. Add 10–15 minutes during Friday afternoon rush hour out of Prague.' },
+    { q: 'How much does a chauffeur from Prague to Pardubice cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Pardubice?', a: 'Yes. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Many clients book a 5–6 hour round trip to cover a meeting, a racecourse visit, or a walk through the Old Town.' },
+    { q: 'Is there a border crossing between Prague and Pardubice?', a: 'No. Both cities are in the Czech Republic. The drive is entirely on Czech motorways — the D11 east, then Highway 37 south — with no border checks and no foreign vignette required.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, French, or Italian can be arranged on request at no additional charge — please mention the preferred language at booking.' },
+  ]
 
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-pardubice#service',
-  name: 'Private Chauffeur Transfer from Prague to Pardubice',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Pardubice in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 1 hour 15 minutes door-to-door via the D11 motorway direct. Distance 110 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const whyBook = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, no meter running on the D11.',
     },
     {
-      '@type': 'City',
-      name: 'Pardubice',
-      addressCountry: 'CZ',
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for Bohemian business and event travel.',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'Anticipatory service',
+      body: 'For October Velká Pardubická race day pickups, the chauffeur knows the parking constraints around the racecourse. To combine Pardubice with Hradec Králové (25 minutes away) in the same day, that is included.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '120 km', duration: '1h 30min' },
+    { slug: 'prague-kutna-hora', city: 'Kutná Hora', distance: '80 km', duration: '1h 10min' },
+    { slug: 'prague-olomouc', city: 'Olomouc', distance: '280 km', duration: '2h 45min' },
+    { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-pardubice')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '180',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-pardubice#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-pardubice#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '270',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-pardubice#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '210',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-pardubice#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-pardubice#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Pardubice', item: 'https://rideprestigo.com/routes/prague-pardubice' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-pardubice#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-pardubice#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Pardubice', item: 'https://rideprestigo.com/routes/prague-pardubice' },
-      ],
-    },
-  ],
-}
-
-export default function PraguePardubicePage() {
   return (
     <main id="main-content">
       <Nav />
@@ -221,7 +172,7 @@ export default function PraguePardubicePage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Pardubice covers 110 km via the D11 motorway and takes approximately 1.5 hours door to door. Fixed fare starts at €180 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €210; the S-Class is available from €270 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Poděbrady or Kolín — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Pardubice covers 110 km via the D11 motorway and takes approximately 1.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Poděbrady or Kolín — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change between Prague and East Bohemia.
@@ -436,7 +387,7 @@ export default function PraguePardubicePage() {
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
-            <h2 className="display text-[28px] md:text-[36px]">Prague to Pardubice.<br /><span className="display-italic">From €180, fixed.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">Prague to Pardubice.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2>
             <p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p>
           </div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">

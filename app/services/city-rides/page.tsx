@@ -1,40 +1,34 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import HourlyBookingSection from '@/components/HourlyBookingSection'
+import { getPricingConfig } from '@/lib/pricing-config'
 
-export const metadata: Metadata = {
-  title: 'Prague City Rides — Hourly Chauffeur Hire',
-  description: 'Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €49/hour.',
-  alternates: {
-    canonical: '/services/city-rides',
-    languages: {
-      en: 'https://rideprestigo.com/services/city-rides',
-      'x-default': 'https://rideprestigo.com/services/city-rides',
+export async function generateMetadata(): Promise<Metadata> {
+  const { hourlyRate } = await getPricingConfig()
+  const from = hourlyRate['business'] ?? 49
+  return {
+    title: 'City Rides — Hourly Chauffeur in Prague | PRESTIGO',
+    description: `Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €${from}/hour.`,
+    alternates: {
+      canonical: '/services/city-rides',
+      languages: {
+        en: 'https://rideprestigo.com/services/city-rides',
+        'x-default': 'https://rideprestigo.com/services/city-rides',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/services/city-rides',
-    title: 'Prague City Rides — Hourly Chauffeur Hire | PRESTIGO',
-    description: 'Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €49/hour.',
-    images: [{ url: 'https://rideprestigo.com/hero-city-rides.png', width: 1200, height: 630 }],
-  },
-}
-
-const serviceSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: 'Prague City Rides — Hourly Chauffeur Hire',
-  description: 'Hourly chauffeur hire within Prague for business meetings, sightseeing, leisure, and events. Airport-quality service at city rates.',
-  provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
-  areaServed: 'Prague, Czech Republic',
-  url: 'https://rideprestigo.com/services/city-rides',
-  offers: { '@type': 'Offer', price: '49', priceCurrency: 'EUR' },
+    openGraph: {
+      url: 'https://rideprestigo.com/services/city-rides',
+      title: 'Prague City Rides — Hourly Chauffeur Hire | PRESTIGO',
+      description: `Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €${from}/hour.`,
+      images: [{ url: 'https://rideprestigo.com/hero-city-rides.png', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const breadcrumbSchema = {
@@ -81,7 +75,23 @@ const useCases = [
   { title: 'Airport Connection', body: 'If your hourly hire ends at the airport, we transition seamlessly to our airport transfer service.' },
 ]
 
-export default function CityRidesPage() {
+export default async function CityRidesPage() {
+  const { hourlyRate } = await getPricingConfig()
+  const businessHourly = hourlyRate['business'] ?? 49
+  const firstClassHourly = hourlyRate['first_class'] ?? 120
+  const vClassHourly = hourlyRate['business_van'] ?? 76
+
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Prague City Rides — Hourly Chauffeur Hire',
+    description: 'Hourly chauffeur hire within Prague for business meetings, sightseeing, leisure, and events. Airport-quality service at city rates.',
+    provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+    areaServed: 'Prague, Czech Republic',
+    url: 'https://rideprestigo.com/services/city-rides',
+    offers: { '@type': 'Offer', price: String(businessHourly), priceCurrency: 'EUR' },
+  }
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
@@ -117,16 +127,30 @@ export default function CityRidesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>Starting from</p>
-            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€49<span className="text-[24px]">/hr</span></p>
+            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€{businessHourly}<span className="text-[24px]">/hr</span></p>
             <p className="body-text text-[11px] mt-1">Minimum 2 hours · Fixed hourly rate</p>
           </div>
           <div className="flex flex-col gap-2">
-            {['Minimum 2-hour booking', 'Chauffeur waits throughout', 'Multiple stops included', 'Prague-wide coverage', 'Available 24/7'].map((f) => (
+            {[
+              'Minimum 2-hour booking',
+              'Chauffeur waits throughout',
+              'Multiple stops included',
+              'Prague-wide coverage',
+              'Available 24/7',
+            ].map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                 <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
               </div>
             ))}
+          </div>
+          <div className="flex flex-col gap-3 text-right">
+            <p className="font-body font-light text-[11px] text-warmgrey">
+              Business Van (V-Class): €{vClassHourly}/hr
+            </p>
+            <p className="font-body font-light text-[11px] text-warmgrey">
+              First Class (S-Class): €{firstClassHourly}/hr
+            </p>
           </div>
         </div>
       </section>
@@ -141,7 +165,7 @@ export default function CityRidesPage() {
       {/* Features */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">What's included</p>
+          <p className="label mb-6">What&apos;s included</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {features.map((f) => (

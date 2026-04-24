@@ -1,10 +1,14 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
+import TierLadder from '@/components/pricing/TierLadder'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { getAllRoutes } from '@/lib/route-prices'
+import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 
 const SERVICES_DESCRIPTION = 'Prague chauffeur services: airport transfers, intercity routes, corporate accounts, VIP events, city rides. Fixed price, flight tracking, instant booking.'
 
@@ -40,94 +44,6 @@ interface ServiceEntry {
   image?: string
 }
 
-const services: ServiceEntry[] = [
-  {
-    label: 'AIRPORT',
-    title: 'Airport Transfer',
-    description: 'Prague Václav Havel Airport — met on arrival, every time. Your driver monitors your flight in real time, holds your name board at Arrivals, and handles your luggage. Fixed price from the moment you book.',
-    features: ['Flight tracking included', 'Meet & greet at Arrivals', 'Name board included', 'All terminals covered'],
-    price: 'From €69',
-    cta: 'LEARN MORE',
-    href: '/services/airport-transfer',
-    bookHref: '/book',
-    bookCta: 'BOOK NOW',
-    image: '/hero-airport-transfer.webp',
-  },
-  {
-    label: 'HOURLY',
-    title: 'Hourly Car Rental with Chauffeur',
-    description: 'Rent a car with a private chauffeur by the hour in Prague. Minimum 2 hours, no upper limit. Business meetings, theatre, private dinner at a Michelin-starred restaurant. Your driver waits and the vehicle is yours throughout — multiple stops included, no meters running.',
-    features: ['Hourly hire from 2 hours', 'Private chauffeur & Mercedes', 'Multiple stops included', 'Airport-quality service, city rates'],
-    price: 'From €49/hr',
-    cta: 'LEARN MORE',
-    href: '/services/city-rides',
-    bookHref: '/book',
-    bookCta: 'BOOK NOW',
-    image: '/hero-city-rides.png',
-  },
-  {
-    label: 'CITY-TO-CITY',
-    title: 'Intercity Routes',
-    description: 'Prague to Vienna in 3.5 hours. Prague to Berlin in 4. Door-to-door, in a Mercedes, with a driver who knows the road. Work the whole way or simply watch Europe pass by.',
-    features: ['Fixed price per route', 'Prague → Vienna, Berlin, Munich, Budapest, Bratislava, Salzburg, Dresden', 'Available 24/7', 'Business or leisure'],
-    price: 'From €180',
-    cta: 'LEARN MORE',
-    href: '/services/intercity-routes',
-    bookHref: '/routes',
-    bookCta: 'VIEW ROUTES',
-    image: '/hero-intercity-routes.png',
-  },
-  {
-    label: 'CORPORATE',
-    title: 'Corporate Accounts',
-    description: 'A dedicated account for your company. Monthly invoicing, consolidated reporting, a named account manager. Your travel manager books once, PRESTIGO handles everything else.',
-    features: ['Monthly consolidated invoicing', 'Dedicated account manager', 'Priority dispatch', 'Corporate reporting dashboard'],
-    price: null,
-    cta: 'LEARN MORE',
-    href: '/services/corporate-accounts',
-    bookHref: '/corporate',
-    bookCta: 'SET UP ACCOUNT',
-    image: '/hero-corporate-accounts.png',
-  },
-  {
-    label: 'VIP',
-    title: 'VIP & Events',
-    description: 'Diplomatic visits. Private openings. Luxury hotel arrivals. Multi-vehicle coordination for events where every detail matters and nothing can go wrong.',
-    features: ['Diplomatic protocol awareness', 'Multi-vehicle coordination', 'Discretion guaranteed', 'Advance route reconnaissance available'],
-    price: null,
-    cta: 'LEARN MORE',
-    href: '/services/vip-events',
-    bookHref: '/contact',
-    bookCta: 'ENQUIRE',
-    image: '/hero-vip-events.png',
-  },
-  {
-    label: 'GROUP',
-    title: 'Group Transfers',
-    description: 'Conference delegations. Incentive travel. Corporate off-sites. Minivans, multiple vehicles, precise timing. Everyone arrives together, on schedule.',
-    features: ['Minivan & multi-car coordination', 'Up to 50 passengers', 'Conference & events specialists', 'Custom itineraries'],
-    price: null,
-    cta: 'LEARN MORE',
-    href: '/services/group-transfers',
-    bookHref: '/contact',
-    bookCta: 'GET QUOTE',
-    image: '/hero-group-transfers.png',
-  },
-  {
-    label: 'MULTI-DAY',
-    title: 'Multi-day Hire',
-    description: 'One dedicated chauffeur for your entire journey across Central Europe. Mix Transfer and Hourly days freely — Prague to Vienna, a five-day tour, a corporate roadshow. Fixed quote within 24 hours.',
-    features: ['Dedicated chauffeur for full duration', 'Mix transfers & hourly days', 'Driver accommodation & tolls included', 'Custom itinerary, fixed all-inclusive price'],
-    price: null,
-    cta: 'BUILD ITINERARY',
-    href: '/book/multi-day',
-    bookHref: '/book/multi-day',
-    bookCta: 'GET QUOTE',
-    isNew: true,
-    image: '/multi-day-hero.png',
-  },
-]
-
 const trust = [
   {
     title: 'Fixed Price',
@@ -143,67 +59,6 @@ const trust = [
   },
 ]
 
-// Substantive answers aimed at AI engines (ChatGPT, Perplexity, Claude,
-// Google AI Overviews). FAQPage rich results no longer surface for non-gov
-// sites (Aug 2023 deprecation), but the markup still fuels passage-level
-// citation in generative search.
-const servicesFaqs = [
-  {
-    q: 'What services does PRESTIGO offer in Prague?',
-    a: 'PRESTIGO operates six distinct chauffeur services out of Prague. Airport transfers cover every terminal at Václav Havel Airport (PRG) with meet-and-greet, flight tracking, and a fixed fare from €49. Intercity routes cover 30 destinations across Central Europe with fixed per-vehicle pricing from €115 (Kutná Hora) up to €1,090 (Warsaw). Corporate accounts provide monthly invoicing, a dedicated account manager, and priority dispatch for companies that move people regularly. VIP and event services handle diplomatic visits, private openings, and multi-vehicle coordination. City rides are hourly hire within Prague from €80/hour. Group transfers coordinate up to 50 passengers across multiple vehicles with custom itineraries. Every service is delivered with the same late-model Mercedes fleet, the same vetted chauffeurs, and the same fixed-price guarantee.',
-  },
-  {
-    q: 'How much does a Prague chauffeur service cost?',
-    a: 'Prices are fixed per vehicle, not per passenger, and are confirmed before you book. An airport transfer in a Mercedes E-Class starts at €49; an S-Class is €89 and a V-Class for up to six passengers is €69. Intercity routes range from €115 (Prague to Kutná Hora, 70 km) through €485 (Prague to Vienna, 295 km), €580 (Prague to Berlin, 350 km), €635 (Prague to Munich, 385 km), and €885 (Prague to Budapest, 535 km) — all in an E-Class, with S-Class and V-Class priced higher. Hourly hire within Prague is €80/hour with a two-hour minimum. Every quoted price already includes fuel, all motorway tolls and vignettes, driver time, waiting allowance, bottled water, Wi-Fi, and child seats on request. There are no hidden fees, no surge pricing, and no per-trip booking charges.',
-  },
-  {
-    q: 'Do you track flights and wait if a flight is delayed?',
-    a: 'Yes — flight tracking is included in every airport transfer booking at no extra cost. Your driver monitors your flight against live air-traffic-control data from the moment you confirm the booking. If your flight lands early, the chauffeur is already in the arrivals hall with a name board. If the flight is delayed by minutes or hours, the pickup automatically shifts to the new arrival time and you pay nothing extra — waiting on flight delay is always free, with no hourly cap. If the flight is cancelled outright, we cancel the booking at no charge and rebook automatically for your next scheduled arrival. For airport collections we include 60 minutes of free waiting from the actual landing time (enough to clear customs, collect luggage, and reach the meeting point); for scheduled transfers we include 15 minutes of free waiting at the pickup address.',
-  },
-  {
-    q: 'Which cities and routes do you cover from Prague?',
-    a: 'PRESTIGO operates 30 indexed intercity routes from Prague across seven countries. In the Czech Republic we cover Kutná Hora, Plzeň, Karlovy Vary, Brno, Olomouc, Ostrava, Zlín, Český Krumlov, České Budějovice, Hradec Králové, Pardubice, Liberec, Mariánské Lázně, and Františkovy Lázně. Internationally we run to Vienna, Salzburg, Linz, and Graz (Austria); Berlin, Dresden, Leipzig, Munich, Nuremberg, Regensburg, and Passau (Germany); Bratislava (Slovakia); Budapest (Hungary); Kraków, Wrocław, and Warsaw (Poland). Every route is priced and detailed on its own dedicated page at /routes/prague-[city]. Destinations outside these 30 are available on request by contacting dispatch — we will quote a fixed fare within one business day for any point in the Schengen area.',
-  },
-  {
-    q: 'Can I book a one-way transfer, round trip, or multi-day hire?',
-    a: 'All three are supported. One-way is the default for both airport and intercity routes — book it for a specific date and time and pay the fixed fare. Round trips can be booked in a single confirmation and receive a 10 % discount on the return leg when both legs are pre-scheduled. Multi-day hire and multi-stop itineraries work as hourly or daily packages: your chauffeur and vehicle are dedicated for the duration, available for scheduled transfers, spontaneous city rides, and waiting time between stops. Typical use cases are diplomatic visits, roadshows across Central Europe, film or photo crews needing a moving base, or a family spending three days in Prague with day trips to Kutná Hora and Karlovy Vary. For multi-day hire, email dispatch with your itinerary and we will quote a single all-inclusive fare.',
-  },
-  {
-    q: 'How do I book and how quickly will I get confirmation?',
-    a: 'You can book in three ways. The fastest is the online booking form at /book — choose your route, vehicle class, and time, pay by card, and receive confirmation by email and SMS within ten seconds. The second is WhatsApp or phone on +420 725 986 855 — dispatch answers 24/7 and can confirm a booking while you are still on the call. The third is email to info@rideprestigo.com for complex itineraries, corporate accounts, or quotes that need a bespoke fare. Same-day bookings are accepted up to two hours before pickup (subject to driver availability); last-minute bookings inside that window are possible by phone. Corporate accounts receive priority dispatch and can be confirmed against a standing authorisation without repeated approvals. Every booking receives a confirmation email with driver name, photo, vehicle plate, and a live status link.',
-  },
-]
-
-const servicesFaqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  '@id': 'https://rideprestigo.com/services#faq',
-  mainEntity: servicesFaqs.map((f) => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
-}
-
-const serviceListSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'ItemList',
-  name: 'PRESTIGO Chauffeur Services Prague',
-  itemListElement: services.map((s, i) => ({
-    '@type': 'ListItem',
-    position: i + 1,
-    item: {
-      '@type': 'Service',
-      name: s.title,
-      description: s.description,
-      provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
-      areaServed: 'Prague, Czech Republic',
-      url: `https://rideprestigo.com${s.href}`,
-      ...(s.price ? { offers: { '@type': 'Offer', price: s.price.replace(/[^0-9]/g, ''), priceCurrency: 'EUR' } } : {}),
-    },
-  })),
-}
-
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
@@ -213,7 +68,169 @@ const breadcrumbSchema = {
   ],
 }
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const { globals, hourlyRate } = await getPricingConfig()
+  const routes = await getAllRoutes('display_order')
+  const cheapestIntercity = routes.length > 0 ? Math.min(...routes.map(r => r.eClassEur)) : AIRPORT_FALLBACK.regular
+  const airportFrom = globals.airportPromoActive ? globals.airportPromoPriceEur : globals.airportRegularPriceEur
+  const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
+
+  // Named route lookups for FAQ copy
+  const budapest = routes.find(r => r.slug === 'prague-budapest')?.eClassEur ?? 885
+  const vienna = routes.find(r => r.slug === 'prague-vienna')?.eClassEur ?? 485
+  const berlin = routes.find(r => r.slug === 'prague-berlin')?.eClassEur ?? 580
+  const munich = routes.find(r => r.slug === 'prague-munich')?.eClassEur ?? 635
+  const kutnaHora = routes.find(r => r.slug === 'prague-kutna-hora')?.eClassEur ?? 115
+
+  const services: ServiceEntry[] = [
+    {
+      label: 'AIRPORT',
+      title: 'Airport Transfer',
+      description: 'Prague Václav Havel Airport — met on arrival, every time. Your driver monitors your flight in real time, holds your name board at Arrivals, and handles your luggage. Fixed price from the moment you book.',
+      features: ['Flight tracking included', 'Meet & greet at Arrivals', 'Name board included', 'All terminals covered'],
+      price: `From €${airportFrom}`,
+      cta: 'LEARN MORE',
+      href: '/services/airport-transfer',
+      bookHref: '/book',
+      bookCta: 'BOOK NOW',
+      image: '/hero-airport-transfer.webp',
+    },
+    {
+      label: 'HOURLY',
+      title: 'Hourly Car Rental with Chauffeur',
+      description: 'Rent a car with a private chauffeur by the hour in Prague. Minimum 2 hours, no upper limit. Business meetings, theatre, private dinner at a Michelin-starred restaurant. Your driver waits and the vehicle is yours throughout — multiple stops included, no meters running.',
+      features: ['Hourly hire from 2 hours', 'Private chauffeur & Mercedes', 'Multiple stops included', 'Airport-quality service, city rates'],
+      price: `From €${hourlyFrom}/hr`,
+      cta: 'LEARN MORE',
+      href: '/services/city-rides',
+      bookHref: '/book',
+      bookCta: 'BOOK NOW',
+      image: '/hero-city-rides.png',
+    },
+    {
+      label: 'CITY-TO-CITY',
+      title: 'Intercity Routes',
+      description: 'Prague to Vienna in 3.5 hours. Prague to Berlin in 4. Door-to-door, in a Mercedes, with a driver who knows the road. Work the whole way or simply watch Europe pass by.',
+      features: ['Fixed price per route', 'Prague → Vienna, Berlin, Munich, Budapest, Bratislava, Salzburg, Dresden', 'Available 24/7', 'Business or leisure'],
+      price: `From €${cheapestIntercity}`,
+      cta: 'LEARN MORE',
+      href: '/services/intercity-routes',
+      bookHref: '/routes',
+      bookCta: 'VIEW ROUTES',
+      image: '/hero-intercity-routes.png',
+    },
+    {
+      label: 'CORPORATE',
+      title: 'Corporate Accounts',
+      description: 'A dedicated account for your company. Monthly invoicing, consolidated reporting, a named account manager. Your travel manager books once, PRESTIGO handles everything else.',
+      features: ['Monthly consolidated invoicing', 'Dedicated account manager', 'Priority dispatch', 'Corporate reporting dashboard'],
+      price: null,
+      cta: 'LEARN MORE',
+      href: '/services/corporate-accounts',
+      bookHref: '/corporate',
+      bookCta: 'SET UP ACCOUNT',
+      image: '/hero-corporate-accounts.png',
+    },
+    {
+      label: 'VIP',
+      title: 'VIP & Events',
+      description: 'Diplomatic visits. Private openings. Luxury hotel arrivals. Multi-vehicle coordination for events where every detail matters and nothing can go wrong.',
+      features: ['Diplomatic protocol awareness', 'Multi-vehicle coordination', 'Discretion guaranteed', 'Advance route reconnaissance available'],
+      price: null,
+      cta: 'LEARN MORE',
+      href: '/services/vip-events',
+      bookHref: '/contact',
+      bookCta: 'ENQUIRE',
+      image: '/hero-vip-events.png',
+    },
+    {
+      label: 'GROUP',
+      title: 'Group Transfers',
+      description: 'Conference delegations. Incentive travel. Corporate off-sites. Minivans, multiple vehicles, precise timing. Everyone arrives together, on schedule.',
+      features: ['Minivan & multi-car coordination', 'Up to 50 passengers', 'Conference & events specialists', 'Custom itineraries'],
+      price: null,
+      cta: 'LEARN MORE',
+      href: '/services/group-transfers',
+      bookHref: '/contact',
+      bookCta: 'GET QUOTE',
+      image: '/hero-group-transfers.png',
+    },
+    {
+      label: 'MULTI-DAY',
+      title: 'Multi-day Hire',
+      description: 'One dedicated chauffeur for your entire journey across Central Europe. Mix Transfer and Hourly days freely — Prague to Vienna, a five-day tour, a corporate roadshow. Fixed quote within 24 hours.',
+      features: ['Dedicated chauffeur for full duration', 'Mix transfers & hourly days', 'Driver accommodation & tolls included', 'Custom itinerary, fixed all-inclusive price'],
+      price: null,
+      cta: 'BUILD ITINERARY',
+      href: '/book/multi-day',
+      bookHref: '/book/multi-day',
+      bookCta: 'GET QUOTE',
+      isNew: true,
+      image: '/multi-day-hero.png',
+    },
+  ]
+
+  // Substantive answers aimed at AI engines (ChatGPT, Perplexity, Claude,
+  // Google AI Overviews). FAQPage rich results no longer surface for non-gov
+  // sites (Aug 2023 deprecation), but the markup still fuels passage-level
+  // citation in generative search.
+  const servicesFaqs = [
+    {
+      q: 'What services does PRESTIGO offer in Prague?',
+      a: `PRESTIGO operates six distinct chauffeur services out of Prague. Airport transfers cover every terminal at Václav Havel Airport (PRG) with meet-and-greet, flight tracking, and a fixed fare from €${airportFrom}. Intercity routes cover 30 destinations across Central Europe with fixed per-vehicle pricing from €${kutnaHora} (Kutná Hora) up to €${budapest} (Warsaw). Corporate accounts provide monthly invoicing, a dedicated account manager, and priority dispatch for companies that move people regularly. VIP and event services handle diplomatic visits, private openings, and multi-vehicle coordination. City rides are hourly hire within Prague from €${hourlyFrom}/hour. Group transfers coordinate up to 50 passengers across multiple vehicles with custom itineraries. Every service is delivered with the same late-model Mercedes fleet, the same vetted chauffeurs, and the same fixed-price guarantee.`,
+    },
+    {
+      q: 'How much does a Prague chauffeur service cost?',
+      a: `Prices are fixed per vehicle, not per passenger, and are confirmed before you book. An airport transfer in a Mercedes E-Class starts at €${airportFrom}; an S-Class is €${AIRPORT_FALLBACK.sClass} and a V-Class for up to six passengers is €${AIRPORT_FALLBACK.vClass}. Intercity routes range from €${kutnaHora} (Prague to Kutná Hora, 70 km) through €${vienna} (Prague to Vienna, 295 km), €${berlin} (Prague to Berlin, 350 km), €${munich} (Prague to Munich, 385 km), and €${budapest} (Prague to Budapest, 535 km) — all in an E-Class, with S-Class and V-Class priced higher. Hourly hire within Prague is €${hourlyFrom}/hour with a two-hour minimum. Every quoted price already includes fuel, all motorway tolls and vignettes, driver time, waiting allowance, bottled water, Wi-Fi, and child seats on request. There are no hidden fees, no surge pricing, and no per-trip booking charges.`,
+    },
+    {
+      q: 'Do you track flights and wait if a flight is delayed?',
+      a: 'Yes — flight tracking is included in every airport transfer booking at no extra cost. Your driver monitors your flight against live air-traffic-control data from the moment you confirm the booking. If your flight lands early, the chauffeur is already in the arrivals hall with a name board. If the flight is delayed by minutes or hours, the pickup automatically shifts to the new arrival time and you pay nothing extra — waiting on flight delay is always free, with no hourly cap. If the flight is cancelled outright, we cancel the booking at no charge and rebook automatically for your next scheduled arrival. For airport collections we include 60 minutes of free waiting from the actual landing time (enough to clear customs, collect luggage, and reach the meeting point); for scheduled transfers we include 15 minutes of free waiting at the pickup address.',
+    },
+    {
+      q: 'Which cities and routes do you cover from Prague?',
+      a: 'PRESTIGO operates 30 indexed intercity routes from Prague across seven countries. In the Czech Republic we cover Kutná Hora, Plzeň, Karlovy Vary, Brno, Olomouc, Ostrava, Zlín, Český Krumlov, České Budějovice, Hradec Králové, Pardubice, Liberec, Mariánské Lázně, and Františkovy Lázně. Internationally we run to Vienna, Salzburg, Linz, and Graz (Austria); Berlin, Dresden, Leipzig, Munich, Nuremberg, Regensburg, and Passau (Germany); Bratislava (Slovakia); Budapest (Hungary); Kraków, Wrocław, and Warsaw (Poland). Every route is priced and detailed on its own dedicated page at /routes/prague-[city]. Destinations outside these 30 are available on request by contacting dispatch — we will quote a fixed fare within one business day for any point in the Schengen area.',
+    },
+    {
+      q: 'Can I book a one-way transfer, round trip, or multi-day hire?',
+      a: 'All three are supported. One-way is the default for both airport and intercity routes — book it for a specific date and time and pay the fixed fare. Round trips can be booked in a single confirmation and receive a 10 % discount on the return leg when both legs are pre-scheduled. Multi-day hire and multi-stop itineraries work as hourly or daily packages: your chauffeur and vehicle are dedicated for the duration, available for scheduled transfers, spontaneous city rides, and waiting time between stops. Typical use cases are diplomatic visits, roadshows across Central Europe, film or photo crews needing a moving base, or a family spending three days in Prague with day trips to Kutná Hora and Karlovy Vary. For multi-day hire, email dispatch with your itinerary and we will quote a single all-inclusive fare.',
+    },
+    {
+      q: 'How do I book and how quickly will I get confirmation?',
+      a: 'You can book in three ways. The fastest is the online booking form at /book — choose your route, vehicle class, and time, pay by card, and receive confirmation by email and SMS within ten seconds. The second is WhatsApp or phone on +420 725 986 855 — dispatch answers 24/7 and can confirm a booking while you are still on the call. The third is email to info@rideprestigo.com for complex itineraries, corporate accounts, or quotes that need a bespoke fare. Same-day bookings are accepted up to two hours before pickup (subject to driver availability); last-minute bookings inside that window are possible by phone. Corporate accounts receive priority dispatch and can be confirmed against a standing authorisation without repeated approvals. Every booking receives a confirmation email with driver name, photo, vehicle plate, and a live status link.',
+    },
+  ]
+
+  const serviceListSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: 'PRESTIGO Chauffeur Services Prague',
+    itemListElement: services.map((s, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'Service',
+        name: s.title,
+        description: s.description,
+        provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+        areaServed: 'Prague, Czech Republic',
+        url: `https://rideprestigo.com${s.href}`,
+        ...(s.price ? { offers: { '@type': 'Offer', price: s.price.replace(/[^0-9]/g, ''), priceCurrency: 'EUR' } } : {}),
+      },
+    })),
+  }
+
+  const servicesFaqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    '@id': 'https://rideprestigo.com/services#faq',
+    mainEntity: servicesFaqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  }
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceListSchema) }} />
@@ -234,6 +251,14 @@ export default function ServicesPage() {
             From Prague Václav Havel Airport to anywhere in Central Europe — PRESTIGO chauffeurs deliver every trip with fixed pricing, flight tracking, and the quiet confidence of a service built for executives.
           </p>
         </div>
+      </section>
+
+      {/* TIER-02: TierLadder immediately after hero, before service cards */}
+      <section style={{ padding: '3rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <h2 className="font-display text-[32px] md:text-[40px]" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          Airport transfers
+        </h2>
+        <TierLadder config={globals} sClassPrice={AIRPORT_FALLBACK.sClass} vClassPrice={AIRPORT_FALLBACK.vClass} />
       </section>
 
       {/* Service cards */}

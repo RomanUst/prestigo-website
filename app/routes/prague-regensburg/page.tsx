@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Regensburg Private Transfer — From €470',
-  description: 'Book a private chauffeur from Prague to Regensburg. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, medieval Danube city.',
-  alternates: {
-    canonical: '/routes/prague-regensburg',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-regensburg',
-      'x-default': 'https://rideprestigo.com/routes/prague-regensburg',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-regensburg')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Regensburg Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Regensburg. 285 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, medieval Danube city.`,
+    alternates: {
+      canonical: '/routes/prague-regensburg',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-regensburg',
+        'x-default': 'https://rideprestigo.com/routes/prague-regensburg',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-regensburg',
-    title: 'Prague to Regensburg Private Transfer — From €470',
-    description: 'Book a private chauffeur from Prague to Regensburg. 285 km door-to-door in a Mercedes-Benz. Fixed price from €470, medieval Danube city.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-regensburg',
+      title: `Prague to Regensburg Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Regensburg. 285 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, medieval Danube city.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~285 km' },
-  { label: 'Duration', value: '~3 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€470', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €470', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €700', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €540', photo: '/v-class-photo.png' },
-]
+export default async function PragueRegensburgPage() {
+  const route = await getRoutePrice('prague-regensburg')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. German on request.',
-  'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~285 km' },
+    { label: 'Duration', value: '~3 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Regensburg take?', a: 'Approximately 3 hours door-to-door via the D5 motorway southwest through Plzeň, the Czech–German border at Rozvadov/Waidhaus, and the A93 south from the A6 junction. Friday afternoon traffic out of Prague or construction on the A93 corridor can add 15–20 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Regensburg cost?', a: 'Fixed fare from €470 in Mercedes E-Class (up to 3 passengers), €540 in V-Class (up to 6 passengers), or €700 in S-Class. Prices include fuel, the Czech vignette, the German toll vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Regensburg?', a: 'Yes, and it is a comfortable day trip at roughly three hours each way. Most clients book a 6–8 hour round trip with four to five hours on the ground — enough for the Altstadt, the Stone Bridge, lunch on the Danube, and a visit to the Cathedral. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
-  { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Rozvadov/Waidhaus is invisible — no routine checks, no document stops. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Cathedral and Stone Bridge Day',
-    body: 'Pickup at 8:00, arrive Regensburg around 11:00. Four hours in the Altstadt — Dom St. Peter with its stained-glass windows, the 12th-century Steinerne Brücke, and a lunch stop at one of the riverside terraces near the Salzstadel. Return to Prague by 18:30.',
-    price: 'From €850 — based on four hours on site.',
-  },
-  {
-    title: 'The Walhalla Excursion',
-    body: 'Pickup at 9:30 for a late-morning arrival at the Walhalla memorial east of the city in Donaustauf. After an hour at the hall of fame above the Danube, your chauffeur continues into Regensburg for a late lunch and a short walk along the Old Town before the return.',
-    price: 'From €800 — based on three hours on site.',
-  },
-  {
-    title: 'The Danube Riverside and Old Town Day',
-    body: 'Pickup at 7:30, arrive Regensburg by 10:30. Five unhurried hours on foot — the Stone Bridge, the old Wurstkuchl sausage kitchen, the Schloss Thurn und Taxis grounds, and an afternoon coffee on the Danube promenade. Return to Prague by 19:30.',
-    price: 'From €900 — based on five hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. German on request.',
+    'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the A93 has a closure near Cham, your chauffeur reroutes via Schwandorf and the A6 without asking. For Walhalla memorial visits, the chauffeur knows the seasonal access windows and parks at the lower lot so you are not walking the full hill in bad weather. You should not have to manage the trip — that is the job.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Regensburg take?', a: 'Approximately 3 hours door-to-door via the D5 motorway southwest through Plzeň, the Czech–German border at Rozvadov/Waidhaus, and the A93 south from the A6 junction. Friday afternoon traffic out of Prague or construction on the A93 corridor can add 15–20 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Regensburg cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech vignette, the German toll vignette, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Regensburg?', a: 'Yes, and it is a comfortable day trip at roughly three hours each way. Most clients book a 6–8 hour round trip with four to five hours on the ground — enough for the Altstadt, the Stone Bridge, lunch on the Danube, and a visit to the Cathedral. If you need the chauffeur to move around the city with you, add hourly city rental.' },
+    { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Rozvadov/Waidhaus is invisible — no routine checks, no document stops. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-munich', city: 'Munich', distance: '380 km', duration: '4h' },
-  { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '300 km', duration: '3h' },
-  { slug: 'prague-passau', city: 'Passau', distance: '250 km', duration: '3h' },
-  { slug: 'prague-plzen', city: 'Plzeň', distance: '90 km', duration: '1h' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-regensburg#service',
-  name: 'Private Chauffeur Transfer from Prague to Regensburg',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Regensburg in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 3 hours 30 minutes door-to-door via the D5 motorway and the A93. Distance 285 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Cathedral and Stone Bridge Day',
+      body: 'Pickup at 8:00, arrive Regensburg around 11:00. Four hours in the Altstadt — Dom St. Peter with its stained-glass windows, the 12th-century Steinerne Brücke, and a lunch stop at one of the riverside terraces near the Salzstadel. Return to Prague by 18:30.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Regensburg',
-      addressCountry: 'DE',
+      title: 'The Walhalla Excursion',
+      body: 'Pickup at 9:30 for a late-morning arrival at the Walhalla memorial east of the city in Donaustauf. After an hour at the hall of fame above the Danube, your chauffeur continues into Regensburg for a late lunch and a short walk along the Old Town before the return.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'The Danube Riverside and Old Town Day',
+      body: 'Pickup at 7:30, arrive Regensburg by 10:30. Five unhurried hours on foot — the Stone Bridge, the old Wurstkuchl sausage kitchen, the Schloss Thurn und Taxis grounds, and an afternoon coffee on the Danube promenade. Return to Prague by 19:30.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the A93 has a closure near Cham, your chauffeur reroutes via Schwandorf and the A6 without asking. For Walhalla memorial visits, the chauffeur knows the seasonal access windows and parks at the lower lot so you are not walking the full hill in bad weather. You should not have to manage the trip — that is the job.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-munich', city: 'Munich', distance: '380 km', duration: '4h' },
+    { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '300 km', duration: '3h' },
+    { slug: 'prague-passau', city: 'Passau', distance: '250 km', duration: '3h' },
+    { slug: 'prague-plzen', city: 'Plzeň', distance: '90 km', duration: '1h' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-regensburg')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '470',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-regensburg#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-regensburg#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '700',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-regensburg#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '540',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-regensburg#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-regensburg#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Regensburg', item: 'https://rideprestigo.com/routes/prague-regensburg' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-regensburg#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-regensburg#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Regensburg', item: 'https://rideprestigo.com/routes/prague-regensburg' },
-      ],
-    },
-  ],
-}
-
-export default function PragueRegensburgPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -225,7 +176,7 @@ export default function PragueRegensburgPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Regensburg covers 285 km via the D5 and A93 motorways and takes approximately 3 hours door to door. Fixed fare starts at €470 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €540; the S-Class is available from €700 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Waidhaus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Regensburg covers 285 km via the D5 and A93 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Waidhaus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -337,7 +288,7 @@ export default function PragueRegensburgPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -429,7 +380,7 @@ export default function PragueRegensburgPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Regensburg.<br /><span className="display-italic">From €470, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Regensburg.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

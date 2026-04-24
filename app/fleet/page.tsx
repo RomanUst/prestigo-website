@@ -5,7 +5,7 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 const FLEET_DESCRIPTION = 'Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared.'
 
@@ -33,8 +33,6 @@ type VehicleSpec = {
   description: string
   features: string[]
   idealFor: string
-  price: string
-  priceAmount: string
   photo: string
   photoAlt: string
   // Structured spec table for Vehicle schema + on-page display
@@ -59,8 +57,6 @@ const vehicles: VehicleSpec[] = [
     description: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
     features: ['Leather interior', 'Dual-zone climate control', 'Onboard Wi-Fi', 'USB-C fast charging', 'Bottled water'],
     idealFor: 'Airport, city, solo business travel',
-    price: 'From €49',
-    priceAmount: '49',
     photo: '/e-class-photo.webp',
     photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
     specs: {
@@ -82,8 +78,6 @@ const vehicles: VehicleSpec[] = [
     description: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
     features: ['Premium Nappa leather', 'Rear massage seats', 'Ambient lighting', 'Executive rear package', 'Champagne on request'],
     idealFor: 'VIP, diplomatic, extended intercity',
-    price: 'From €98',
-    priceAmount: '98',
     photo: '/s-class-photo.webp',
     photoAlt: 'Mercedes-Benz S-Class — PRESTIGO chauffeur service Prague',
     specs: {
@@ -105,8 +99,6 @@ const vehicles: VehicleSpec[] = [
     description: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
     features: ['6 captain seats', 'Full luggage capacity', 'Rear privacy glass', 'Fold-out table', 'Individual reading lights'],
     idealFor: 'Groups, families, conference transfers',
-    price: 'From €85',
-    priceAmount: '85',
     photo: '/v-class-photo.webp',
     photoAlt: 'Mercedes-Benz V-Class — PRESTIGO chauffeur service Prague',
     specs: {
@@ -140,9 +132,6 @@ const vehicleListSchema = {
     '@type': 'ListItem',
     position: i + 1,
     item: {
-      // Upgraded from Product → Vehicle: unlocks vehicleSeatingCapacity,
-      // fuelType, vehicleTransmission, driveWheelConfiguration, cargoVolume,
-      // and modelDate for richer entity signals.
       '@type': 'Vehicle',
       '@id': `https://rideprestigo.com/fleet#${v.model.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       name: v.model,
@@ -170,20 +159,6 @@ const vehicleListSchema = {
         : undefined,
       wheelbase: v.specs.wheelbase,
       numberOfAxles: 2,
-      offers: {
-        '@type': 'Offer',
-        price: v.priceAmount,
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        seller: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
-        areaServed: { '@type': 'City', name: 'Prague' },
-        priceSpecification: {
-          '@type': 'PriceSpecification',
-          price: v.priceAmount,
-          priceCurrency: 'EUR',
-          valueAddedTaxIncluded: true,
-        },
-      },
     },
   })),
 }
@@ -197,10 +172,6 @@ const breadcrumbSchema = {
   ],
 }
 
-// Substantive, 130–170 word answers optimised for LLM citation. These pages
-// won't earn Google rich results (FAQ rich snippets for non-gov/health sites
-// were deprecated August 2023), but FAQPage markup remains a strong signal
-// for ChatGPT, Perplexity, Claude, and Google AI Overviews passage extraction.
 const fleetFaqs = [
   {
     q: 'Which Mercedes-Benz models does PRESTIGO operate?',
@@ -306,7 +277,7 @@ export default function FleetPage() {
                   ))}
                 </ul>
 
-                {/* Spec table — aligns with Vehicle schema (seating, fuel, transmission, cargo, etc.) */}
+                {/* Spec table */}
                 <dl className="border-t border-anthracite-light pt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-[11px]">
                   {[
                     ['Seats', `${v.specs.seating} passengers`],
@@ -320,7 +291,7 @@ export default function FleetPage() {
                 </dl>
 
                 <div className="flex items-center gap-6">
-                  <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>{v.price}</p>
+                  <a href="/services/airport-transfer" className="tier-cta" style={{ display: 'inline-block', marginTop: '0.5rem' }}>See pricing →</a>
                   <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
                     Book {v.model.split(' ').pop()}
                   </a>

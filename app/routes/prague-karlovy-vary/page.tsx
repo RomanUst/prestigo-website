@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Karlovy Vary Private Transfer — From €215',
-  description: 'Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €215, spa town luxury transfer.',
-  alternates: {
-    canonical: '/routes/prague-karlovy-vary',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-karlovy-vary',
-      'x-default': 'https://rideprestigo.com/routes/prague-karlovy-vary',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-karlovy-vary')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Karlovy Vary Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, spa town luxury transfer.`,
+    alternates: {
+      canonical: '/routes/prague-karlovy-vary',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-karlovy-vary',
+        'x-default': 'https://rideprestigo.com/routes/prague-karlovy-vary',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-karlovy-vary',
-    title: 'Prague to Karlovy Vary Private Transfer — From €215',
-    description: 'Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €215, spa town luxury transfer.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-karlovy-vary',
+      title: `Prague to Karlovy Vary Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, spa town luxury transfer.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~130 km' },
-  { label: 'Duration', value: '~1.5 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: 'From €215', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €215', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €320', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €250', photo: '/v-class-photo.png' },
-]
+export default async function PragueKarlovyVaryPage() {
+  const route = await getRoutePrice('prague-karlovy-vary')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. Other languages on request.',
-  'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~130 km' },
+    { label: 'Duration', value: '~1.5 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Karlovy Vary take?', a: 'Approximately 1 hour 30 minutes door-to-door via the D6 motorway. The route runs entirely inside the Czech Republic and rarely congests outside of Friday afternoons in summer. Prague rush-hour traffic can add 10–15 minutes to the first leg.' },
-  { q: 'How much does a chauffeur from Prague to Karlovy Vary cost?', a: 'Fixed fare from €215 in Mercedes E-Class (up to 3 passengers), €250 in V-Class (up to 6 passengers), or €320 in S-Class. Prices include fuel, the Czech vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Karlovy Vary?', a: 'Yes — this is the most natural day-trip route we run. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most clients book a 4–6 hour round trip to cover the Mill Colonnade, a lunch at the Grandhotel Pupp, and a walk through the spa quarter.' },
-  { q: 'Is there a border crossing on the Prague to Karlovy Vary route?', a: 'No. The entire journey is inside the Czech Republic on the D6 motorway. No documents are required beyond what your chauffeur carries as standard. The single Czech motorway vignette is included in the fare.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German, Russian, or other languages can be arranged on request at no extra charge — mention your preference when booking.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Colonnades and Becherovka',
-    body: 'Pickup at 8:30, arrive Karlovy Vary around 10:00. Ninety minutes walking the Mlýnská Kolonáda and tasting the thermal springs from a lázeňský pohárek, then a guided tour at the Jan Becher Museum to trace the history of Becherovka. Back in Prague before lunch.',
-    price: 'From €400 — based on three hours on site.',
-  },
-  {
-    title: 'Grandhotel Pupp and the Mill Colonnade',
-    body: 'Pickup at 9:00, arrive in time for a late coffee at the Grandhotel Pupp café, lunch in the dining room, and an afternoon across the Mlýnská Kolonáda, Hotel Imperial, and the Diana funicular. Return to Prague by early evening.',
-    price: 'From €500 — based on five hours on site.',
-  },
-  {
-    title: 'Loket Castle or the Film Festival',
-    body: 'A full day in the region: Karlovy Vary in the morning, lunch, and either a short drive onward to Loket Castle on the Ohře river or an evening slot at the Karlovy Vary International Film Festival (late June to early July). Your chauffeur stays with you throughout.',
-    price: 'From €600 — based on seven hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. Other languages on request.',
+    'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, nothing added at the return leg.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the full West Bohemian spa region.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the D6 has a closure near Lubenec, your chauffeur reroutes via the older Route 6 without asking. If you want to extend to Mariánské Lázně or Františkovy Lázně in the same day, that is included in the same booking.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Karlovy Vary take?', a: 'Approximately 1 hour 30 minutes door-to-door via the D6 motorway. The route runs entirely inside the Czech Republic and rarely congests outside of Friday afternoons in summer. Prague rush-hour traffic can add 10–15 minutes to the first leg.' },
+    { q: 'How much does a chauffeur from Prague to Karlovy Vary cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech vignette, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Karlovy Vary?', a: 'Yes — this is the most natural day-trip route we run. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most clients book a 4–6 hour round trip to cover the Mill Colonnade, a lunch at the Grandhotel Pupp, and a walk through the spa quarter.' },
+    { q: 'Is there a border crossing on the Prague to Karlovy Vary route?', a: 'No. The entire journey is inside the Czech Republic on the D6 motorway. No documents are required beyond what your chauffeur carries as standard. The single Czech motorway vignette is included in the fare.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German, Russian, or other languages can be arranged on request at no extra charge — mention your preference when booking.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-marianske-lazne', city: 'Mariánské Lázně', distance: '170 km', duration: '2h' },
-  { slug: 'prague-frantiskovy-lazne', city: 'Františkovy Lázně', distance: '185 km', duration: '2h 15min' },
-  { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 15min' },
-  { slug: 'prague-dresden', city: 'Dresden', distance: '150 km', duration: '2h' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#service',
-  name: 'Private Chauffeur Transfer from Prague to Karlovy Vary',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Karlovy Vary in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 1 hour 30 minutes door-to-door via the R6 motorway through Cheb direction. Distance 130 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Colonnades and Becherovka',
+      body: 'Pickup at 8:30, arrive Karlovy Vary around 10:00. Ninety minutes walking the Mlýnská Kolonáda and tasting the thermal springs from a lázeňský pohárek, then a guided tour at the Jan Becher Museum to trace the history of Becherovka. Back in Prague before lunch.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Karlovy Vary',
-      addressCountry: 'CZ',
+      title: 'Grandhotel Pupp and the Mill Colonnade',
+      body: 'Pickup at 9:00, arrive in time for a late coffee at the Grandhotel Pupp café, lunch in the dining room, and an afternoon across the Mlýnská Kolonáda, Hotel Imperial, and the Diana funicular. Return to Prague by early evening.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'Loket Castle or the Film Festival',
+      body: 'A full day in the region: Karlovy Vary in the morning, lunch, and either a short drive onward to Loket Castle on the Ohře river or an evening slot at the Karlovy Vary International Film Festival (late June to early July). Your chauffeur stays with you throughout.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, nothing added at the return leg.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the full West Bohemian spa region.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the D6 has a closure near Lubenec, your chauffeur reroutes via the older Route 6 without asking. If you want to extend to Mariánské Lázně or Františkovy Lázně in the same day, that is included in the same booking.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-marianske-lazne', city: 'Mariánské Lázně', distance: '170 km', duration: '2h' },
+    { slug: 'prague-frantiskovy-lazne', city: 'Františkovy Lázně', distance: '185 km', duration: '2h 15min' },
+    { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 15min' },
+    { slug: 'prague-dresden', city: 'Dresden', distance: '150 km', duration: '2h' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-karlovy-vary')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '215',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-karlovy-vary#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '320',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-karlovy-vary#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '250',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-karlovy-vary#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Karlovy Vary', item: 'https://rideprestigo.com/routes/prague-karlovy-vary' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-karlovy-vary#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Karlovy Vary', item: 'https://rideprestigo.com/routes/prague-karlovy-vary' },
-      ],
-    },
-  ],
-}
-
-export default function PragueKarlovyVaryPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -248,7 +199,7 @@ export default function PragueKarlovyVaryPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Karlovy Vary covers 130 km via the D6 motorway and takes approximately 1.5 hours door to door. Fixed fare starts at €215 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €250; the S-Class is available from €320 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Kladno or Rakovník — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Karlovy Vary covers 130 km via the D6 motorway and takes approximately 1.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Kladno or Rakovník — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -409,7 +360,7 @@ export default function PragueKarlovyVaryPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -504,7 +455,7 @@ export default function PragueKarlovyVaryPage() {
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
               Prague to Karlovy Vary.<br />
-              <span className="display-italic">From €215, fixed.</span>
+              <span className="display-italic">From €{ePrice}, fixed.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p>
           </div></Reveal>

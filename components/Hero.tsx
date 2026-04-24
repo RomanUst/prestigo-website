@@ -1,7 +1,9 @@
 import Image from 'next/image'
 import HeroTypewriter from './HeroTypewriter'
 
-export default function Hero() {
+type Props = { airportPrice: number }
+
+export default function Hero({ airportPrice }: Props) {
   return (
     <section className="relative min-h-dvh flex flex-col justify-start overflow-hidden">
 
@@ -79,7 +81,7 @@ export default function Hero() {
 
             {/* Price anchor */}
             <p className="animate-on-load delay-600 mt-5 font-body font-light text-[11px] tracking-[0.12em] uppercase" style={{ color: 'var(--warmgrey)' }}>
-              Airport transfers from <span style={{ color: 'var(--copper)' }}>€69</span> — fixed price, no surcharges
+              Airport transfers from <span style={{ color: 'var(--copper)' }}>€{airportPrice}</span> — fixed price, no surcharges
             </p>
           </div>
 

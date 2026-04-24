@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Kutná Hora Private Transfer — From €115',
-  description: 'Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €115, UNESCO old town, Sedlec Ossuary.',
-  alternates: {
-    canonical: '/routes/prague-kutna-hora',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-kutna-hora',
-      'x-default': 'https://rideprestigo.com/routes/prague-kutna-hora',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-kutna-hora')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Kutná Hora Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, UNESCO old town, Sedlec Ossuary.`,
+    alternates: {
+      canonical: '/routes/prague-kutna-hora',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-kutna-hora',
+        'x-default': 'https://rideprestigo.com/routes/prague-kutna-hora',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-kutna-hora',
-    title: 'Prague to Kutná Hora Private Transfer — From €115',
-    description: 'Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €115, UNESCO old town, Sedlec Ossuary.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-kutna-hora',
+      title: `Prague to Kutná Hora Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, UNESCO old town, Sedlec Ossuary.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~70 km' },
-  { label: 'Duration', value: '~1 hour' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€115', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €115', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €170', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €135', photo: '/v-class-photo.png' },
-]
+export default async function PragueKutnaHoraPage() {
+  const route = await getRoutePrice('prague-kutna-hora')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. Additional languages on request.',
-  'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~70 km' },
+    { label: 'Duration', value: '~1 hour' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Kutná Hora take?', a: 'Approximately one hour door-to-door via the D1 motorway east out of Prague and Highway 38 through Kolín. It is the shortest drive of any Prestigo heritage route. Even with morning traffic leaving Prague, the full journey rarely exceeds 75 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Kutná Hora cost?', a: 'Fixed fare from €115 in Mercedes E-Class (up to 3 passengers), €135 in V-Class (up to 6 passengers), or €170 in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip and have the chauffeur wait?', a: 'Yes — and it is the standard pattern for this route. Kutná Hora is the easiest day trip from Prague, and most clients book the chauffeur to wait on site while they visit. A six-hour round trip covers St. Barbara, Sedlec, and a slow lunch without feeling rushed. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
-  { q: 'Is there a border crossing on the way to Kutná Hora?', a: 'No. Kutná Hora is entirely within the Czech Republic, about 70 kilometres east of Prague in the Central Bohemian region. No border formalities, no vignettes beyond the Czech one, no passport checks.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. Additional languages — German, Italian, French, Russian — are available on request when you book in advance.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Cathedral and Italian Court',
-    body: 'A half-day focused on the historic core. Pickup at 9:00, arrive in Kutná Hora by 10:00. Three hours for the Cathedral of St. Barbara, the Italian Court (Vlašský Dvůr) where Bohemian kings once minted the Prague groschen, and a walk along the Barborská terrace. Back in Prague by 14:00.',
-    price: 'From €250 — based on three hours on site.',
-  },
-  {
-    title: 'The Sedlec Ossuary and Cathedral Combo',
-    body: 'The classic pairing. Pickup at 8:30, first stop at the Sedlec Ossuary before the coach crowds arrive, then across town to the Cathedral of St. Barbara and the medieval silver-mining quarter. Lunch in the old town, return to Prague late afternoon.',
-    price: 'From €350 — based on five hours on site.',
-  },
-  {
-    title: 'The Silver Mining and Historic Centre Day',
-    body: 'A full day for travellers who want the full story. The Czech Museum of Silver and a guided descent into the medieval Hrádek mine, then the Cathedral of St. Barbara, the Italian Court, and the Stone House. The chauffeur stays with you throughout and handles parking between the sites.',
-    price: 'From €400 — based on six hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. Additional languages on request.',
+    'Fuel, all tolls, and the Czech motorway vignette. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, nothing added at the return leg.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and familiar with the historic streets of Kutná Hora.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the D1 has the usual Mirošovice exit congestion, your chauffeur reroutes via Highway 333 without asking. For Sedlec Ossuary visits, the chauffeur knows the timed-entry windows and the parking constraints around the church, and plans the arrival accordingly.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Kutná Hora take?', a: 'Approximately one hour door-to-door via the D1 motorway east out of Prague and Highway 38 through Kolín. It is the shortest drive of any Prestigo heritage route. Even with morning traffic leaving Prague, the full journey rarely exceeds 75 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Kutná Hora cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, tolls, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip and have the chauffeur wait?', a: 'Yes — and it is the standard pattern for this route. Kutná Hora is the easiest day trip from Prague, and most clients book the chauffeur to wait on site while they visit. A six-hour round trip covers St. Barbara, Sedlec, and a slow lunch without feeling rushed. If you need the chauffeur to move around the city with you, add hourly city rental.' },
+    { q: 'Is there a border crossing on the way to Kutná Hora?', a: 'No. Kutná Hora is entirely within the Czech Republic, about 70 kilometres east of Prague in the Central Bohemian region. No border formalities, no vignettes beyond the Czech one, no passport checks.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. Additional languages — German, Italian, French, Russian — are available on request when you book in advance.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-pardubice', city: 'Pardubice', distance: '105 km', duration: '1h 15min' },
-  { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '115 km', duration: '1h 20min' },
-  { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 15min' },
-  { slug: 'prague-karlovy-vary', city: 'Karlovy Vary', distance: '130 km', duration: '1h 30min' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-kutna-hora#service',
-  name: 'Private Chauffeur Transfer from Prague to Kutná Hora',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Kutná Hora in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 1 hour door-to-door via the D1 and D11 motorways followed by the R35. Distance 70 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Cathedral and Italian Court',
+      body: 'A half-day focused on the historic core. Pickup at 9:00, arrive in Kutná Hora by 10:00. Three hours for the Cathedral of St. Barbara, the Italian Court (Vlašský Dvůr) where Bohemian kings once minted the Prague groschen, and a walk along the Barborská terrace. Back in Prague by 14:00.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Kutná Hora',
-      addressCountry: 'CZ',
+      title: 'The Sedlec Ossuary and Cathedral Combo',
+      body: 'The classic pairing. Pickup at 8:30, first stop at the Sedlec Ossuary before the coach crowds arrive, then across town to the Cathedral of St. Barbara and the medieval silver-mining quarter. Lunch in the old town, return to Prague late afternoon.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'The Silver Mining and Historic Centre Day',
+      body: 'A full day for travellers who want the full story. The Czech Museum of Silver and a guided descent into the medieval Hrádek mine, then the Cathedral of St. Barbara, the Italian Court, and the Stone House. The chauffeur stays with you throughout and handles parking between the sites.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, nothing added at the return leg.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and familiar with the historic streets of Kutná Hora.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the D1 has the usual Mirošovice exit congestion, your chauffeur reroutes via Highway 333 without asking. For Sedlec Ossuary visits, the chauffeur knows the timed-entry windows and the parking constraints around the church, and plans the arrival accordingly.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-pardubice', city: 'Pardubice', distance: '105 km', duration: '1h 15min' },
+    { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '115 km', duration: '1h 20min' },
+    { slug: 'prague-cesky-krumlov', city: 'Český Krumlov', distance: '170 km', duration: '2h 15min' },
+    { slug: 'prague-karlovy-vary', city: 'Karlovy Vary', distance: '130 km', duration: '1h 30min' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-kutna-hora')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '115',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-kutna-hora#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-kutna-hora#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '170',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-kutna-hora#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '135',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-kutna-hora#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-kutna-hora#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Kutná Hora', item: 'https://rideprestigo.com/routes/prague-kutna-hora' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-kutna-hora#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-kutna-hora#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Kutná Hora', item: 'https://rideprestigo.com/routes/prague-kutna-hora' },
-      ],
-    },
-  ],
-}
-
-export default function PragueKutnaHoraPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -248,7 +199,7 @@ export default function PragueKutnaHoraPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Kutná Hora covers 70 km and takes approximately 1 hour door to door. Fixed fare starts at €115 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €135; the S-Class is available from €170 for executive or VIP travel. Every booking includes the driver's time, fuel, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. There are no motorway tolls on this route — the road runs through Central Bohemia without a vignette requirement. Nothing is added at drop-off. Stops en route or extended waiting time at the Sedlec Ossuary or Cathedral of St. Barbara are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Kutná Hora covers 70 km and takes approximately 1 hour door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. There are no motorway tolls on this route — the road runs through Central Bohemia without a vignette requirement. Nothing is added at drop-off. Stops en route or extended waiting time at the Sedlec Ossuary or Cathedral of St. Barbara are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared coach tour. Not a train transfer with a ten-minute walk at the other end. A private Mercedes, one chauffeur, and a fare that does not change — from a city that, six centuries ago, rivalled Prague itself.
@@ -409,7 +360,7 @@ export default function PragueKutnaHoraPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -511,7 +462,7 @@ export default function PragueKutnaHoraPage() {
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
               Prague to Kutná Hora.<br />
-              <span className="display-italic">From €115, fixed.</span>
+              <span className="display-italic">From €{ePrice}, fixed.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p>
           </div></Reveal>

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Český Krumlov Private Transfer — From €290',
-  description: 'Book a private chauffeur from Prague to Český Krumlov. 175 km door-to-door in a Mercedes-Benz. Fixed price from €290, UNESCO castle town.',
-  alternates: {
-    canonical: '/routes/prague-cesky-krumlov',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
-      'x-default': 'https://rideprestigo.com/routes/prague-cesky-krumlov',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-cesky-krumlov')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Český Krumlov Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Český Krumlov. 175 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, UNESCO castle town.`,
+    alternates: {
+      canonical: '/routes/prague-cesky-krumlov',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
+        'x-default': 'https://rideprestigo.com/routes/prague-cesky-krumlov',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
-    title: 'Prague to Český Krumlov Private Transfer — From €290',
-    description: 'Book a private chauffeur from Prague to Český Krumlov. 175 km door-to-door in a Mercedes-Benz. Fixed price from €290, UNESCO castle town.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-cesky-krumlov',
+      title: `Prague to Český Krumlov Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Český Krumlov. 175 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, UNESCO castle town.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~175 km' },
-  { label: 'Duration', value: '~2.5 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€290', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €290', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €430', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €335', photo: '/v-class-photo.png' },
-]
+export default async function PragueCeskyKrumlovPage() {
+  const route = await getRoutePrice('prague-cesky-krumlov')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. German on request.',
-  'Fuel, the Czech motorway vignette, and all tolls. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~175 km' },
+    { label: 'Duration', value: '~2.5 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Český Krumlov take?', a: 'Approximately 2.5 hours door-to-door via Highway 3 and the D3 motorway south through Tábor and České Budějovice. Friday afternoon rush hour out of Prague can add 15–20 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Český Krumlov cost?', a: 'Fixed fare from €290 in Mercedes E-Class (up to 3 passengers), €335 in V-Class (up to 6 passengers), or €430 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip with waiting time?', a: 'Yes — this is the standard booking pattern for Český Krumlov. Your chauffeur waits on site while you explore the Old Town and Castle, then drives you back the same evening. A return booked together receives a 10% discount on the return leg. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
-  { q: 'Do you cross any border?', a: 'No. The entire route runs inside the Czech Republic — Prague, Tábor, České Budějovice, and Český Krumlov are all in Bohemia. No passport checks, no vignettes beyond the Czech one, which is included.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German is available on request at no extra charge.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Castle and Old Town Day',
-    body: 'Pickup at 8:00, arrive Český Krumlov around 10:30. A guided walk through the Castle complex — the Upper Castle, the Baroque Theatre, the Castle Gardens — followed by lunch in the Old Town below the Vltava bend. Return to Prague by 18:00.',
-    price: 'From €600 — based on five hours on site.',
-  },
-  {
-    title: 'The Schiele Art Centrum and Latrán Afternoon',
-    body: 'Later pickup at 9:30 for a focused afternoon at the Egon Schiele Art Centrum, followed by an unhurried walk through the Latrán quarter on the far bank of the Vltava. Coffee, galleries, and river views before the drive back.',
-    price: 'From €550 — based on four hours on site.',
-  },
-  {
-    title: 'The Vltava Raft and Lunch',
-    body: 'A morning departure for a midday rafting loop through the Old Town on the Vltava, then lunch at a riverside restaurant with the Castle on the skyline. Your chauffeur handles the handoff between the put-in point and the pickup pier.',
-    price: 'From €650 — based on six hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. German on request.',
+    'Fuel, the Czech motorway vignette, and all tolls. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance Bohemia routes.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the D3 closures near Tábor cause delays, your chauffeur knows the parallel Highway 3 routing. If you want to combine with České Budějovice or Hluboká Castle in the same day, that is included.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Český Krumlov take?', a: 'Approximately 2.5 hours door-to-door via Highway 3 and the D3 motorway south through Tábor and České Budějovice. Friday afternoon rush hour out of Prague can add 15–20 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Český Krumlov cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip with waiting time?', a: 'Yes — this is the standard booking pattern for Český Krumlov. Your chauffeur waits on site while you explore the Old Town and Castle, then drives you back the same evening. A return booked together receives a 10% discount on the return leg. If you need the chauffeur to move around the city with you, add hourly city rental.' },
+    { q: 'Do you cross any border?', a: 'No. The entire route runs inside the Czech Republic — Prague, Tábor, České Budějovice, and Český Krumlov are all in Bohemia. No passport checks, no vignettes beyond the Czech one, which is included.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent Czech and English as standard. German is available on request at no extra charge.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-ceske-budejovice', city: 'České Budějovice', distance: '155 km', duration: '2h' },
-  { slug: 'prague-linz', city: 'Linz', distance: '230 km', duration: '2h 45min' },
-  { slug: 'prague-passau', city: 'Passau', distance: '240 km', duration: '3h' },
-  { slug: 'prague-salzburg', city: 'Salzburg', distance: '360 km', duration: '4h 15min' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-cesky-krumlov#service',
-  name: 'Private Chauffeur Transfer from Prague to Český Krumlov',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Český Krumlov in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 2 hours 15 minutes door-to-door via the D3 motorway. Distance 175 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Castle and Old Town Day',
+      body: 'Pickup at 8:00, arrive Český Krumlov around 10:30. A guided walk through the Castle complex — the Upper Castle, the Baroque Theatre, the Castle Gardens — followed by lunch in the Old Town below the Vltava bend. Return to Prague by 18:00.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Český Krumlov',
-      addressCountry: 'CZ',
+      title: 'The Schiele Art Centrum and Latrán Afternoon',
+      body: 'Later pickup at 9:30 for a focused afternoon at the Egon Schiele Art Centrum, followed by an unhurried walk through the Latrán quarter on the far bank of the Vltava. Coffee, galleries, and river views before the drive back.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'The Vltava Raft and Lunch',
+      body: 'A morning departure for a midday rafting loop through the Old Town on the Vltava, then lunch at a riverside restaurant with the Castle on the skyline. Your chauffeur handles the handoff between the put-in point and the pickup pier.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance Bohemia routes.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the D3 closures near Tábor cause delays, your chauffeur knows the parallel Highway 3 routing. If you want to combine with České Budějovice or Hluboká Castle in the same day, that is included.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-ceske-budejovice', city: 'České Budějovice', distance: '155 km', duration: '2h' },
+    { slug: 'prague-linz', city: 'Linz', distance: '230 km', duration: '2h 45min' },
+    { slug: 'prague-passau', city: 'Passau', distance: '240 km', duration: '3h' },
+    { slug: 'prague-salzburg', city: 'Salzburg', distance: '360 km', duration: '4h 15min' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-cesky-krumlov')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '290',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-cesky-krumlov#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-cesky-krumlov#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '430',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-cesky-krumlov#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '335',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-cesky-krumlov#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-cesky-krumlov#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Český Krumlov', item: 'https://rideprestigo.com/routes/prague-cesky-krumlov' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-cesky-krumlov#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-cesky-krumlov#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Český Krumlov', item: 'https://rideprestigo.com/routes/prague-cesky-krumlov' },
-      ],
-    },
-  ],
-}
-
-export default function PragueCeskyKrumlovPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -225,7 +176,7 @@ export default function PragueCeskyKrumlovPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Český Krumlov covers 175 km and takes approximately 2.5 hours door to door. Fixed fare starts at €290 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €335; the S-Class is available from €430 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Třeboň — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Český Krumlov covers 175 km and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Třeboň — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -337,7 +288,7 @@ export default function PragueCeskyKrumlovPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -429,7 +380,7 @@ export default function PragueCeskyKrumlovPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Český Krumlov.<br /><span className="display-italic">From €290, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Český Krumlov.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

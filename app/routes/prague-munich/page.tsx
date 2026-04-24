@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Munich Private Transfer — From €635',
-  description: 'Book a private chauffeur from Prague to Munich. 385 km door-to-door in a Mercedes-Benz. Fixed price from €635, Bavarian capital.',
-  alternates: {
-    canonical: '/routes/prague-munich',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-munich',
-      'x-default': 'https://rideprestigo.com/routes/prague-munich',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-munich')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Munich Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Munich. 385 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Bavarian capital.`,
+    alternates: {
+      canonical: '/routes/prague-munich',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-munich',
+        'x-default': 'https://rideprestigo.com/routes/prague-munich',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-munich',
-    title: 'Prague to Munich Private Transfer — From €635',
-    description: 'Book a private chauffeur from Prague to Munich. 385 km door-to-door in a Mercedes-Benz. Fixed price from €635, Bavarian capital.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-munich',
+      title: `Prague to Munich Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Munich. 385 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Bavarian capital.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~385 km' },
-  { label: 'Duration', value: '~4 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€635', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €635', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €945', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €730', photo: '/v-class-photo.png' },
-]
+export default async function PragueMunichPage() {
+  const route = await getRoutePrice('prague-munich')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. German on request.',
-  'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~385 km' },
+    { label: 'Duration', value: '~4 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Munich take?', a: 'Approximately 4 hours door-to-door via the D5 motorway through Plzeň, the Czech-German border at Rozvadov/Waidhaus, then the A6 west, the A93 south past Regensburg, and the A9 into central Munich. Friday afternoon traffic on the A99 ring around Munich can add 20–30 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Munich cost?', a: 'Fixed fare from €635 in Mercedes E-Class (up to 3 passengers), €730 in V-Class (up to 6 passengers), or €945 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Munich?', a: 'Yes, though it is a long day. A round trip is roughly 8 hours of driving, so most clients depart Prague at 6:00 to give themselves four to six hours on the ground in Munich before the return. A same-day return receives a 10% discount. If you need the chauffeur to move around with you, add hourly city rental from €40/hour.' },
-  { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Czech-German border at Rozvadov/Waidhaus has no routine checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Bavaria.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Bavarian hotel concierges, Oktoberfest pickups, or business meetings in Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Marienplatz and Hofbräuhaus Day',
-    body: 'Pickup at 6:00, arrive Munich around 10:00. Four hours in the Altstadt — the Glockenspiel on Marienplatz at 11:00, the Viktualienmarkt for lunch, then a stein at the Hofbräuhaus before the return. Back in Prague by 20:00.',
-    price: 'From €1,100 — based on four hours on site.',
-  },
-  {
-    title: 'The BMW Welt and Olympiapark Morning',
-    body: 'Pickup at 6:30, arrive at BMW Welt for the 10:00 opening. Three hours in the museum and the showroom, then a walk through the 1972 Olympiapark. Lunch in Schwabing before the chauffeur turns the car back toward Prague.',
-    price: 'From €1,050 — based on three hours on site.',
-  },
-  {
-    title: 'The Pinakothek Galleries Day',
-    body: 'Pickup at 6:00, arrive Maxvorstadt around 10:00. Five hours across the Alte, Neue, and Pinakothek der Moderne — the strongest museum quarter in southern Germany — with a coffee break at the Café in the Alte Pinakothek. Departure at 15:30, home before 20:00.',
-    price: 'From €1,150 — based on five hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. German on request.',
+    'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, the Czech vignette, the German toll, driver time. Nothing added at drop-off in Munich.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the long Bavaria run.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the A93 has a closure near Regensburg, your chauffeur reroutes via Bayreuth without asking. If your flight into MUC is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Munich take?', a: 'Approximately 4 hours door-to-door via the D5 motorway through Plzeň, the Czech-German border at Rozvadov/Waidhaus, then the A6 west, the A93 south past Regensburg, and the A9 into central Munich. Friday afternoon traffic on the A99 ring around Munich can add 20–30 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Munich cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Munich?', a: 'Yes, though it is a long day. A round trip is roughly 8 hours of driving, so most clients depart Prague at 6:00 to give themselves four to six hours on the ground in Munich before the return. A same-day return receives a 10% discount. If you need the chauffeur to move around with you, add hourly city rental.' },
+    { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. The Czech-German border at Rozvadov/Waidhaus has no routine checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Bavaria.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Bavarian hotel concierges, Oktoberfest pickups, or business meetings in Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '290 km', duration: '3h' },
-  { slug: 'prague-regensburg', city: 'Regensburg', distance: '290 km', duration: '3h 15min' },
-  { slug: 'prague-passau', city: 'Passau', distance: '230 km', duration: '2h 45min' },
-  { slug: 'prague-salzburg', city: 'Salzburg', distance: '470 km', duration: '4h 45min' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-munich#service',
-  name: 'Private Chauffeur Transfer from Prague to Munich',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Munich in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 4 hours 15 minutes door-to-door via the D5, A6, and A9 motorways. Distance 385 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Marienplatz and Hofbräuhaus Day',
+      body: 'Pickup at 6:00, arrive Munich around 10:00. Four hours in the Altstadt — the Glockenspiel on Marienplatz at 11:00, the Viktualienmarkt for lunch, then a stein at the Hofbräuhaus before the return. Back in Prague by 20:00.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Munich',
-      addressCountry: 'DE',
+      title: 'The BMW Welt and Olympiapark Morning',
+      body: 'Pickup at 6:30, arrive at BMW Welt for the 10:00 opening. Three hours in the museum and the showroom, then a walk through the 1972 Olympiapark. Lunch in Schwabing before the chauffeur turns the car back toward Prague.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'The Pinakothek Galleries Day',
+      body: 'Pickup at 6:00, arrive Maxvorstadt around 10:00. Five hours across the Alte, Neue, and Pinakothek der Moderne — the strongest museum quarter in southern Germany — with a coffee break at the Café in the Alte Pinakothek. Departure at 15:30, home before 20:00.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, the Czech vignette, the German toll, driver time. Nothing added at drop-off in Munich.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the long Bavaria run.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the A93 has a closure near Regensburg, your chauffeur reroutes via Bayreuth without asking. If your flight into MUC is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '290 km', duration: '3h' },
+    { slug: 'prague-regensburg', city: 'Regensburg', distance: '290 km', duration: '3h 15min' },
+    { slug: 'prague-passau', city: 'Passau', distance: '230 km', duration: '2h 45min' },
+    { slug: 'prague-salzburg', city: 'Salzburg', distance: '470 km', duration: '4h 45min' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-munich')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '635',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-munich#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-munich#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '945',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-munich#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '730',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-munich#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-munich#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Munich', item: 'https://rideprestigo.com/routes/prague-munich' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-munich#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-munich#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Munich', item: 'https://rideprestigo.com/routes/prague-munich' },
-      ],
-    },
-  ],
-}
-
-export default function PragueMunichPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -225,7 +176,7 @@ export default function PragueMunichPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Munich covers 385 km via the D5 and A93 motorways and takes approximately 4 hours door to door. Fixed fare starts at €635 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €730; the S-Class is available from €945 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Munich covers 385 km via the D5 and A93 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -337,7 +288,7 @@ export default function PragueMunichPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -429,7 +380,7 @@ export default function PragueMunichPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Munich.<br /><span className="display-italic">From €635, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Munich.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

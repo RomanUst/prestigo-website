@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import { getAllRoutes } from '@/lib/route-prices'
 
 export const metadata: Metadata = {
   title: 'Intercity Routes from Prague — Vienna, Berlin, Munich',
@@ -33,7 +34,6 @@ const serviceSchema = {
   provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
   areaServed: 'Central Europe',
   url: 'https://rideprestigo.com/services/intercity-routes',
-  offers: { '@type': 'Offer', price: '180', priceCurrency: 'EUR' },
 }
 
 const breadcrumbSchema = {
@@ -46,19 +46,10 @@ const breadcrumbSchema = {
   ],
 }
 
-const popularRoutes = [
-  { from: 'Prague', to: 'Vienna', slug: 'prague-vienna', duration: '3.5 hrs', price: 'From €485' },
-  { from: 'Prague', to: 'Berlin', slug: 'prague-berlin', duration: '4 hrs', price: 'From €580' },
-  { from: 'Prague', to: 'Munich', slug: 'prague-munich', duration: '4 hrs', price: 'From €635' },
-  { from: 'Prague', to: 'Budapest', slug: 'prague-budapest', duration: '5.5 hrs', price: 'From €885' },
-  { from: 'Prague', to: 'Bratislava', slug: 'prague-bratislava', duration: '3.5 hrs', price: 'From €545' },
-  { from: 'Prague', to: 'Dresden', slug: 'prague-dresden', duration: '1.5 hrs', price: 'From €250' },
-]
-
 const features = [
   {
     title: 'What does a private transfer from Prague cost?',
-    body: 'Every intercity route has a confirmed fixed price before you book. The figure includes fuel, driver time, all motorway tolls, and where applicable, Czech and Austrian or German motorway vignettes. Nothing is added at drop-off. For reference, the E-Class fare for Prague to Vienna is €485, Prague to Berlin €580, and Prague to Dresden €250 — all locked in at the time of booking, regardless of traffic conditions or fuel costs on the day of travel.',
+    body: 'Every intercity route has a confirmed fixed price before you book. The figure includes fuel, driver time, all motorway tolls, and where applicable, Czech and Austrian or German motorway vignettes. Nothing is added at drop-off. Current prices are shown on each route page and are loaded from our live pricing database.',
   },
   {
     title: 'What does door-to-door service mean in practice?',
@@ -80,7 +71,10 @@ const editorial = [
   'PRESTIGO operates 30 confirmed routes from Prague, each with a published fixed price. The fleet is exclusively Mercedes: E-Class for solo and paired travel, S-Class for those who want the additional space and specification of a full executive saloon, and V-Class for groups of up to seven passengers with full luggage. Every route can be extended into a return trip, with a return discount applied automatically at booking.',
 ]
 
-export default function IntercityRoutesPage() {
+export default async function IntercityRoutesPage() {
+  const allRoutes = await getAllRoutes('display_order')
+  const popularRoutes = allRoutes.slice(0, 6)
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
@@ -100,7 +94,7 @@ export default function IntercityRoutesPage() {
             <span className="display-italic">In a Mercedes.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic — Vienna from €485, Berlin from €580, Munich from €635, Budapest from €885. All tolls and vignettes included, Mercedes-Benz fleet, no connections.
+            Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic. All tolls and vignettes included, Mercedes-Benz fleet, no connections.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/routes" className="btn-primary">View All Routes</a>
@@ -118,14 +112,14 @@ export default function IntercityRoutesPage() {
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-anthracite-light">
             {popularRoutes.map((r) => (
-              <a key={`${r.from}-${r.to}`} href={`/routes/${r.slug}`} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group block">
+              <a key={r.slug} href={`/routes/${r.slug}`} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group block">
                 <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>
-                  {r.from} → {r.to}
+                  {r.fromLabel} → {r.toLabel}
                 </p>
-                <p className="font-display font-light text-[28px] text-offwhite mb-1">{r.to}</p>
+                <p className="font-display font-light text-[28px] text-offwhite mb-1">{r.toLabel}</p>
                 <div className="flex items-center justify-between mt-4">
-                  <span className="font-body font-light text-[11px] text-warmgrey tracking-wide">{r.duration}</span>
-                  <span className="font-body font-light text-[11px] tracking-wide" style={{ color: 'var(--copper-light)' }}>{r.price}</span>
+                  <span className="font-body font-light text-[11px] text-warmgrey tracking-wide">{r.distanceKm} km</span>
+                  <span className="font-body font-light text-[11px] tracking-wide" style={{ color: 'var(--copper-light)' }}>{`From €${r.eClassEur}`}</span>
                 </div>
               </a>
             ))}

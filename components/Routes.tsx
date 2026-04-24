@@ -1,16 +1,10 @@
 import Image from 'next/image'
 import Reveal from '@/components/Reveal'
+import type { RoutePrice } from '@/lib/route-prices'
 
-const routes = [
-  { from: 'Prague', to: 'Vienna', slug: 'prague-vienna', distance: '330 km', duration: '~3.5 h', price: 'From €485' },
-  { from: 'Prague', to: 'Berlin', slug: 'prague-berlin', distance: '350 km', duration: '~4 h', price: 'From €580' },
-  { from: 'Prague', to: 'Munich', slug: 'prague-munich', distance: '380 km', duration: '~4.5 h', price: 'From €635' },
-  { from: 'Prague', to: 'Budapest', slug: 'prague-budapest', distance: '530 km', duration: '~6 h', price: 'From €885' },
-  { from: 'Prague', to: 'Bratislava', slug: 'prague-bratislava', distance: '330 km', duration: '~3.5 h', price: 'From €545' },
-  { from: 'Prague', to: 'Salzburg', slug: 'prague-salzburg', distance: '410 km', duration: '~5 h', price: 'From €505' },
-]
+type Props = { routes: RoutePrice[] }
 
-export default function Routes() {
+export default function Routes({ routes }: Props) {
   return (
     <section id="routes" aria-labelledby="routes-heading" className="relative overflow-hidden bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <Image
@@ -33,7 +27,7 @@ export default function Routes() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-anthracite-light">
           {routes.map((r, i) => (
-            <Reveal key={`${r.from}-${r.to}`} variant="up" delay={i * 70} className="bg-anthracite-mid">
+            <Reveal key={`${r.fromLabel}-${r.toLabel}`} variant="up" delay={i * 70} className="bg-anthracite-mid">
               <a
                 href={`/routes/${r.slug}`}
                 className="flex items-center justify-between px-8 py-6 hover:bg-anthracite transition-colors group"
@@ -41,16 +35,16 @@ export default function Routes() {
                 <div className="flex items-center gap-4">
                   <div>
                     <p className="font-display font-light text-lg text-offwhite">
-                      {r.from}
+                      {r.fromLabel}
                       <span className="text-copper-pale italic mx-2">→</span>
-                      {r.to}
+                      {r.toLabel}
                     </p>
-                    <p className="body-text text-[11px] mt-1">{r.distance} · {r.duration}</p>
+                    <p className="body-text text-[11px] mt-1">{r.distanceKm} km</p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="font-body font-light text-[11px] tracking-[0.1em] text-copper group-hover:text-copper-light transition-colors">
-                    {r.price}
+                    {`From €${r.eClassEur}`}
                   </p>
                   <span className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey group-hover:text-offwhite transition-colors mt-1 block py-1">
                     More details →

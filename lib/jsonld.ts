@@ -1,6 +1,6 @@
-// Phase 45: JSON-LD factory for route pages and airport transfer page.
-// buildRouteJsonLd — used by all /routes/{slug} pages (Plans 45-02, 45-02b)
-// buildAirportTransferJsonLd — used by /services/airport-transfer (Plan 45-03)
+// Phase 45: JSON-LD factory for route and airport-transfer pages.
+// Consumed by Plan 45-02 (route pages) and Plan 45-03 (airport-transfer page).
+// Prices come from DB (RoutePrice / PricingGlobals) — no hardcoded € values.
 
 import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingGlobals } from '@/lib/pricing-config'

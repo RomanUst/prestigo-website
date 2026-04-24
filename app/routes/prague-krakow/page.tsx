@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Kraków Private Transfer — From €635',
-  description: 'Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €635, Poland\'s royal capital.',
-  alternates: {
-    canonical: '/routes/prague-krakow',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-krakow',
-      'x-default': 'https://rideprestigo.com/routes/prague-krakow',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-krakow')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Kraków Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Poland's royal capital.`,
+    alternates: {
+      canonical: '/routes/prague-krakow',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-krakow',
+        'x-default': 'https://rideprestigo.com/routes/prague-krakow',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-krakow',
-    title: 'Prague to Kraków Private Transfer — From €635',
-    description: 'Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €635, Poland\'s royal capital.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-krakow',
+      title: `Prague to Kraków Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Poland's royal capital.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~385 km' },
-  { label: 'Duration', value: '~4 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€635', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €635', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €945', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €730', photo: '/v-class-photo.png' },
-]
+export default async function PragueKrakowPage() {
+  const route = await getRoutePrice('prague-krakow')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. Polish on request.',
-  'Fuel, Czech motorway vignette, and all Polish toll motorway charges including the A4. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~385 km' },
+    { label: 'Duration', value: '~4 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Kraków take?', a: 'Approximately 4 to 4.5 hours door-to-door. The route runs east on the D1 through Brno, then northeast toward Ostrava on the D1/D48, across the Schengen border at Český Těšín/Cieszyn, and east on the Polish A1 and A4 into Kraków. Friday afternoon departures out of Prague can add 20 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Kraków cost?', a: 'Fixed fare from €635 in Mercedes E-Class (up to 3 passengers), €730 in V-Class (up to 6 passengers), or €945 in S-Class. Prices include fuel, the Czech vignette, and all Polish toll sections including the A4. No hidden charges.' },
-  { q: 'Is a same-day round trip from Prague to Kraków possible?', a: 'Technically yes, but the driving alone is 8 to 9 hours round trip. Most Prestigo clients overnight in Kraków and book the return for the following day. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
-  { q: 'Do you cross the Polish border without problems?', a: 'Both countries are inside the Schengen Area. The Czech–Polish border is crossed at Český Těšín on the Czech side and Cieszyn on the Polish side — no routine checks. All Prestigo vehicles are registered for international travel and the chauffeur holds a valid international chauffeur licence recognised in Poland.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak Polish?', a: 'Polish is available on request — mention it at booking and Prestigo will assign a chauffeur with working Polish. Every Prestigo chauffeur speaks fluent English and Czech as standard, which is more than enough for the drive itself and for most interactions in Kraków.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Wawel Castle and Old Town Day',
-    body: 'Pickup at 6:30, arrive Kraków around 11:00. Five hours on foot: Wawel Castle and Cathedral, the Rynek Główny and Cloth Hall, lunch at a restaurant off the main square, the Jagiellonian University quarter. Return to Prague late evening.',
-    price: 'From €1,150 — based on five hours on site.',
-  },
-  {
-    title: 'The Auschwitz-Birkenau Memorial Day',
-    body: 'Pickup at 6:00. Your chauffeur drives directly to the Auschwitz-Birkenau State Museum in Oświęcim, 70 km west of Kraków. Four hours at the memorial with a booked, timed-entry guided tour. A quiet return drive to Prague. Handled with discretion.',
-    price: 'From €1,100 — based on four hours on site.',
-  },
-  {
-    title: 'Wieliczka Salt Mine and Old Town',
-    body: 'Pickup at 6:30, arrive Wieliczka around 11:00 for a two-hour underground tour of the UNESCO salt mine. Then into central Kraków for four hours at Rynek Główny and Kazimierz, the former Jewish quarter, before the return leg to Prague.',
-    price: 'From €1,150 — based on six hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. Polish on request.',
+    'Fuel, Czech motorway vignette, and all Polish toll motorway charges including the A4. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, the Czech vignette, Polish motorway tolls, driver time, border crossing. Nothing added at drop-off.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the A4 has a closure near Katowice, your chauffeur reroutes via Bielsko-Biała without asking. For Auschwitz-Birkenau visits, the chauffeur knows the timed-entry windows and builds the arrival around them, not around the drive.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Kraków take?', a: 'Approximately 4 to 4.5 hours door-to-door. The route runs east on the D1 through Brno, then northeast toward Ostrava on the D1/D48, across the Schengen border at Český Těšín/Cieszyn, and east on the Polish A1 and A4 into Kraków. Friday afternoon departures out of Prague can add 20 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Kraków cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech vignette, and all Polish toll sections including the A4. No hidden charges.` },
+    { q: 'Is a same-day round trip from Prague to Kraków possible?', a: 'Technically yes, but the driving alone is 8 to 9 hours round trip. Most Prestigo clients overnight in Kraków and book the return for the following day. If you need the chauffeur to move around the city with you, add hourly city rental.' },
+    { q: 'Do you cross the Polish border without problems?', a: 'Both countries are inside the Schengen Area. The Czech–Polish border is crossed at Český Těšín on the Czech side and Cieszyn on the Polish side — no routine checks. All Prestigo vehicles are registered for international travel and the chauffeur holds a valid international chauffeur licence recognised in Poland.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak Polish?', a: 'Polish is available on request — mention it at booking and Prestigo will assign a chauffeur with working Polish. Every Prestigo chauffeur speaks fluent English and Czech as standard, which is more than enough for the drive itself and for most interactions in Kraków.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-ostrava', city: 'Ostrava', distance: '370 km', duration: '3h 30min' },
-  { slug: 'prague-wroclaw', city: 'Wrocław', distance: '280 km', duration: '3h 15min' },
-  { slug: 'prague-warsaw', city: 'Warsaw', distance: '680 km', duration: '7h' },
-  { slug: 'prague-brno', city: 'Brno', distance: '200 km', duration: '2h' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-krakow#service',
-  name: 'Private Chauffeur Transfer from Prague to Kraków',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Kraków in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 4 hours 30 minutes door-to-door via the D1 motorway and the Polish S1/A4 through the Náchod border crossing. Distance 385 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Wawel Castle and Old Town Day',
+      body: 'Pickup at 6:30, arrive Kraków around 11:00. Five hours on foot: Wawel Castle and Cathedral, the Rynek Główny and Cloth Hall, lunch at a restaurant off the main square, the Jagiellonian University quarter. Return to Prague late evening.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Kraków',
-      addressCountry: 'PL',
+      title: 'The Auschwitz-Birkenau Memorial Day',
+      body: 'Pickup at 6:00. Your chauffeur drives directly to the Auschwitz-Birkenau State Museum in Oświęcim, 70 km west of Kraków. Four hours at the memorial with a booked, timed-entry guided tour. A quiet return drive to Prague. Handled with discretion.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'Wieliczka Salt Mine and Old Town',
+      body: 'Pickup at 6:30, arrive Wieliczka around 11:00 for a two-hour underground tour of the UNESCO salt mine. Then into central Kraków for four hours at Rynek Główny and Kazimierz, the former Jewish quarter, before the return leg to Prague.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, the Czech vignette, Polish motorway tolls, driver time, border crossing. Nothing added at drop-off.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the A4 has a closure near Katowice, your chauffeur reroutes via Bielsko-Biała without asking. For Auschwitz-Birkenau visits, the chauffeur knows the timed-entry windows and builds the arrival around them, not around the drive.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-ostrava', city: 'Ostrava', distance: '370 km', duration: '3h 30min' },
+    { slug: 'prague-wroclaw', city: 'Wrocław', distance: '280 km', duration: '3h 15min' },
+    { slug: 'prague-warsaw', city: 'Warsaw', distance: '680 km', duration: '7h' },
+    { slug: 'prague-brno', city: 'Brno', distance: '200 km', duration: '2h' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-krakow')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '635',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-krakow#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-krakow#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '945',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-krakow#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '730',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-krakow#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-krakow#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Kraków', item: 'https://rideprestigo.com/routes/prague-krakow' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-krakow#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-krakow#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Kraków', item: 'https://rideprestigo.com/routes/prague-krakow' },
-      ],
-    },
-  ],
-}
-
-export default function PragueKrakowPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -225,7 +176,7 @@ export default function PragueKrakowPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Kraków covers 385 km and takes approximately 4 hours door to door. Fixed fare starts at €635 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €730; the S-Class is available from €945 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ostrava or Katowice — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Kraków covers 385 km and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ostrava or Katowice — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, one border crossing handled for you, and a fare that does not change.
@@ -337,7 +288,7 @@ export default function PragueKrakowPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -429,7 +380,7 @@ export default function PragueKrakowPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Kraków.<br /><span className="display-italic">From €635, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Kraków.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

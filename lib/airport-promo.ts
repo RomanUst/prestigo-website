@@ -1,30 +1,29 @@
-// Phase 44: airport-promo helper (D-14, PRICE-07).
-// Pure function — no DB calls. Caller provides PricingGlobals (already loaded via
-// getPricingConfig()) plus S-Class and V-Class airport prices (sourced from
-// pricing_config by caller — see D-08: S stays €120, V stays €76).
+// Phase 45: Airport promo price helper.
+// Computes the effective price per vehicle class taking into account
+// whether the airport promo is currently active.
+// NEVER put € + number literals in app/** or components/**.
 
 import type { PricingGlobals } from '@/lib/pricing-config'
 
+type VehicleClass = 'business' | 'first_class' | 'business_van'
+
 /**
- * Returns the effective airport price for a vehicle class.
+ * Returns the effective airport price for the given vehicle class.
  *
- * - 'business'     → promo price when config.airportPromoActive, otherwise regular
- * - 'first_class'  → sClassPrice (fixed; no promo mechanism per D-08)
- * - 'business_van' → vClassPrice (fixed; no promo mechanism per D-08)
- * - other          → 0
+ * - business   → airportPromoPriceEur (when promo active) or airportRegularPriceEur
+ * - first_class → sClassPrice (always fixed, no promo)
+ * - business_van → vClassPrice (always fixed, no promo)
  */
 export function getEffectiveAirportPrice(
-  vehicleClass: string,
+  vehicleClass: VehicleClass,
   config: PricingGlobals,
   sClassPrice: number,
   vClassPrice: number,
 ): number {
-  if (vehicleClass === 'business') {
-    return config.airportPromoActive
-      ? config.airportPromoPriceEur
-      : config.airportRegularPriceEur
-  }
   if (vehicleClass === 'first_class') return sClassPrice
   if (vehicleClass === 'business_van') return vClassPrice
-  return 0
+  // business tier
+  return config.airportPromoActive
+    ? config.airportPromoPriceEur
+    : config.airportRegularPriceEur
 }

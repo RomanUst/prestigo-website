@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Dresden Private Transfer | Door-to-Door in 2 Hours | Prestigo',
-  description: 'Private chauffeured transfer from Prague to Dresden in Mercedes E/S/V-Class. Fixed price from €250. 2 hours door-to-door via D8. Same-day return.',
-  alternates: {
-    canonical: '/routes/prague-dresden',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-dresden',
-      'x-default': 'https://rideprestigo.com/routes/prague-dresden',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-dresden')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: 'Prague to Dresden Private Transfer | Door-to-Door in 2 Hours | Prestigo',
+    description: `Private chauffeured transfer from Prague to Dresden in Mercedes E/S/V-Class. Fixed price from €${ePrice}. 2 hours door-to-door via D8. Same-day return.`,
+    alternates: {
+      canonical: '/routes/prague-dresden',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-dresden',
+        'x-default': 'https://rideprestigo.com/routes/prague-dresden',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-dresden',
-    title: 'Prague to Dresden Private Transfer — Prestigo',
-    description: 'Private chauffeured Mercedes from Prague to Dresden. Fixed price from €250. 2 hours door-to-door via D8.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-dresden',
+      title: 'Prague to Dresden Private Transfer — Prestigo',
+      description: `Private chauffeured Mercedes from Prague to Dresden. Fixed price from €${ePrice}. 2 hours door-to-door via D8.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~150 km' },
-  { label: 'Duration', value: '~2 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€250', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €250', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €370', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €285', photo: '/v-class-photo.png' },
-]
+export default async function PragueDresdenPage() {
+  const route = await getRoutePrice('prague-dresden')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. German on request.',
-  'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~150 km' },
+    { label: 'Duration', value: '~2 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Dresden take?', a: 'Approximately 2 hours door-to-door via the D8 motorway through Ústí nad Labem and the A17 after the German border. Traffic around Prague during rush hour can add 15–20 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Dresden cost?', a: 'Fixed fare from €250 in Mercedes E-Class (up to 3 passengers), €285 in V-Class (up to 6 passengers), or €370 in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Dresden?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Dresden with you during the visit, add hourly city rental to the booking from €40/hour. Most clients book a 6–8 hour round trip to cover the Old Masters Gallery, Frauenkirche, and lunch along the Elbe.' },
-  { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Gallery Day',
-    body: 'Pickup at 8:30, arrive Dresden 10:30. Four hours at the Zwinger — Old Masters Gallery, Porcelain Collection, Mathematisch-Physikalischer Salon — with a lunch stop near Neumarkt. Return to Prague by 17:00.',
-    price: 'From €500 — based on four hours on site.',
-  },
-  {
-    title: 'The Elbe Cruise Handoff',
-    body: 'Pickup at 7:00 in Prague. Your chauffeur delivers you directly to the Terrassenufer landing stage for a Sächsische Dampfschiffahrt river cruise, then meets you at the return pier in Pirna or Bad Schandau for the drive back.',
-    price: 'From €350 — one-way plus pier pickup.',
-  },
-  {
-    title: 'The Frauenkirche and Green Vault',
-    body: 'Timed-entry tickets for the Green Vault are limited — your chauffeur pre-checks the arrival window so you walk in on time. After the Vault, half an hour at the Frauenkirche and dinner at a Neumarkt terrace before the return.',
-    price: 'From €550 — based on five hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. German on request.',
+    'Fuel, all tolls, and the German toll vignette. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the D8 has a closure, your chauffeur reroutes without asking. If your flight into Prague is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Dresden take?', a: 'Approximately 2 hours door-to-door via the D8 motorway through Ústí nad Labem and the A17 after the German border. Traffic around Prague during rush hour can add 15–20 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Dresden cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Dresden?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Dresden with you during the visit, add hourly city rental to the booking. Most clients book a 6–8 hour round trip to cover the Old Masters Gallery, Frauenkirche, and lunch along the Elbe.' },
+    { q: 'Do you cross the German border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-leipzig', city: 'Leipzig', distance: '165 km', duration: '2h 15min' },
-  { slug: 'prague-berlin', city: 'Berlin', distance: '350 km', duration: '3h 45min' },
-  { slug: 'prague-karlovy-vary', city: 'Karlovy Vary', distance: '130 km', duration: '1h 30min' },
-  { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '360 km', duration: '4h' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-dresden#service',
-  name: 'Private Chauffeur Transfer from Prague to Dresden',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Dresden in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 2 hours door-to-door via the D8 motorway through Ústí nad Labem and the A17 after the German border. Distance 150 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Gallery Day',
+      body: 'Pickup at 8:30, arrive Dresden 10:30. Four hours at the Zwinger — Old Masters Gallery, Porcelain Collection, Mathematisch-Physikalischer Salon — with a lunch stop near Neumarkt. Return to Prague by 17:00.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Dresden',
-      addressCountry: 'DE',
+      title: 'The Elbe Cruise Handoff',
+      body: 'Pickup at 7:00 in Prague. Your chauffeur delivers you directly to the Terrassenufer landing stage for a Sächsische Dampfschiffahrt river cruise, then meets you at the return pier in Pirna or Bad Schandau for the drive back.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'The Frauenkirche and Green Vault',
+      body: 'Timed-entry tickets for the Green Vault are limited — your chauffeur pre-checks the arrival window so you walk in on time. After the Vault, half an hour at the Frauenkirche and dinner at a Neumarkt terrace before the return.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the D8 has a closure, your chauffeur reroutes without asking. If your flight into Prague is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-leipzig', city: 'Leipzig', distance: '165 km', duration: '2h 15min' },
+    { slug: 'prague-berlin', city: 'Berlin', distance: '350 km', duration: '3h 45min' },
+    { slug: 'prague-karlovy-vary', city: 'Karlovy Vary', distance: '130 km', duration: '1h 30min' },
+    { slug: 'prague-nuremberg', city: 'Nuremberg', distance: '360 km', duration: '4h' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-dresden')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '250',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-dresden#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-dresden#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '370',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-dresden#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '285',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-dresden#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-dresden#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Dresden', item: 'https://rideprestigo.com/routes/prague-dresden' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-dresden#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-dresden#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Dresden', item: 'https://rideprestigo.com/routes/prague-dresden' },
-      ],
-    },
-  ],
-}
-
-export default function PragueDresdenPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -200,7 +151,7 @@ export default function PragueDresdenPage() {
           <p className="label mb-6">Prague → Dresden</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Dresden,<br /><span className="display-italic">Baroque on the Elbe.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Two hours door-to-door on the D8. Fixed fare from €250. Your chauffeur is already waiting.</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Two hours door-to-door on the D8. Fixed fare from €{ePrice}. Your chauffeur is already waiting.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
             <a href="/contact" className="btn-ghost">Ask a Question</a>
@@ -225,7 +176,7 @@ export default function PragueDresdenPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Dresden covers 150 km via the D8 and A17 motorways and takes approximately 1.5 hours door to door. Fixed fare starts at €250 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €285; the S-Class is available from €370 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ústí nad Labem or the Elbe valley viewpoint — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Dresden covers 150 km via the D8 and A17 motorways and takes approximately 1.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ústí nad Labem or the Elbe valley viewpoint — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
@@ -337,7 +288,7 @@ export default function PragueDresdenPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -429,7 +380,7 @@ export default function PragueDresdenPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Dresden.<br /><span className="display-italic">From €250, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Dresden.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

@@ -1,6 +1,10 @@
 import type { Metadata } from 'next'
+import { getRoutePrice } from '@/lib/route-prices'
+import { buildRouteJsonLd } from '@/lib/jsonld'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
+
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,186 +12,133 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
-export const metadata: Metadata = {
-  title: 'Prague to Budapest Private Transfer — From €885',
-  description: 'Book a private chauffeur from Prague to Budapest. 535 km door-to-door in a Mercedes-Benz. Fixed price from €885, Pearl of the Danube.',
-  alternates: {
-    canonical: '/routes/prague-budapest',
-    languages: {
-      en: 'https://rideprestigo.com/routes/prague-budapest',
-      'x-default': 'https://rideprestigo.com/routes/prague-budapest',
+export async function generateMetadata(): Promise<Metadata> {
+  const route = await getRoutePrice('prague-budapest')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  return {
+    title: `Prague to Budapest Private Transfer — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Budapest. 535 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Pearl of the Danube.`,
+    alternates: {
+      canonical: '/routes/prague-budapest',
+      languages: {
+        en: 'https://rideprestigo.com/routes/prague-budapest',
+        'x-default': 'https://rideprestigo.com/routes/prague-budapest',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes/prague-budapest',
-    title: 'Prague to Budapest Private Transfer — From €885',
-    description: 'Book a private chauffeur from Prague to Budapest. 535 km door-to-door in a Mercedes-Benz. Fixed price from €885, Pearl of the Danube.',
-    images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes/prague-budapest',
+      title: `Prague to Budapest Private Transfer — From €${ePrice}`,
+      description: `Book a private chauffeur from Prague to Budapest. 535 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Pearl of the Danube.`,
+      images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
+    },
+  }
 }
 
-const highlights = [
-  { label: 'Distance', value: '~535 km' },
-  { label: 'Duration', value: '~5.5 hours' },
-  { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-  { label: 'Price from', value: '€885', copper: true },
-]
 
-const vehicles = [
-  { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €885', photo: '/e-class-photo.png' },
-  { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: 'From €1,310', photo: '/s-class-photo.png' },
-  { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: 'From €1,015', photo: '/v-class-photo.png' },
-]
+export default async function PragueBudapestPage() {
+  const route = await getRoutePrice('prague-budapest')
+  const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
+  const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. Hungarian on request.',
-  'Fuel, all tolls, and the Czech, Slovak, and Hungarian motorway vignettes. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
-]
+  const highlights = [
+    { label: 'Distance', value: '~535 km' },
+    { label: 'Duration', value: '~5.5 hours' },
+    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
+    { label: 'Price from', value: `€${ePrice}`, copper: true },
+  ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Budapest take?', a: 'Approximately 5 hours 30 minutes door-to-door via the D1 motorway east through Brno, a brief southern stretch through Slovakia on the D2 and the Bratislava D4 bypass, then across the Hungarian border onto the M15 and M1 into central Budapest. Friday afternoon departures out of Prague can add 20–30 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Budapest cost?', a: 'Fixed fare from €885 in Mercedes E-Class (up to 3 passengers), €1,015 in V-Class (up to 6 passengers), or €1,310 in S-Class. Prices include fuel, all three motorway vignettes, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Budapest?', a: 'It is possible but heavy — eleven hours on the road plus whatever time you spend in Budapest. Most Prestigo clients overnight in Budapest and return the following day, which is also cheaper than paying for the chauffeur to wait through the afternoon. If a same-day return is the right call for you, tell us the plan and we quote a firm round-trip fare.' },
-  { q: 'How many border crossings are on this route?', a: 'Two. The Czech–Slovak Schengen border at Břeclav/Brodské after Brno, and the Slovak–Hungarian Schengen border at Rajka/Čunovo west of Budapest. Both are invisible inside the Schengen Area — no stops, no passport checks for EU citizens. Non-EU passengers should carry valid travel documents.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak Hungarian?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard, which covers every practical situation on the route and on arrival in Budapest. A Hungarian-speaking chauffeur is available on request with advance notice.' },
-]
+  const vehicles = [
+    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/e-class-photo.png' },
+    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/s-class-photo.png' },
+    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/v-class-photo.png' },
+  ]
 
-const dayTripConfigurations = [
-  {
-    title: 'The Buda Castle and Fisherman\'s Bastion express',
-    body: 'Pickup at 5:00, arrive central Budapest by 10:30. Three hours on Castle Hill — Matthias Church, Fisherman\'s Bastion, the views across the Danube to Parliament — with lunch at a terrace restaurant in the Várnegyed. Return to Prague by 21:00.',
-    price: 'From €1,400 — based on three hours on site.',
-  },
-  {
-    title: 'The Széchenyi Baths half-day',
-    body: 'Early pickup for a 10:30 arrival at the Széchenyi Thermal Bath in City Park. Four hours in the outdoor pools and neo-Baroque bathhouse, with a late lunch on Andrássy Avenue before the drive back. Robes, swimwear, and timed entry arranged in advance on request.',
-    price: 'From €1,450 — based on four hours on site.',
-  },
-  {
-    title: 'The Pest grand boulevards day',
-    body: 'Pickup at 5:00. Five hours in Pest — Parliament exterior and Kossuth Square, St Stephen\'s Basilica, the Great Market Hall, and Váci Street for the afternoon. Your chauffeur waits near Vörösmarty Square between stops. Back in Prague before midnight.',
-    price: 'From €1,500 — based on five hours on site.',
-  },
-]
+  const inclusions = [
+    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
+    'A professional chauffeur — fluent English and Czech. Hungarian on request.',
+    'Fuel, all tolls, and the Czech, Slovak, and Hungarian motorway vignettes. Nothing is charged on top.',
+    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
+    'Bottled water, phone charger, and WiFi in the rear cabin.',
+    'Waiting time at pickup — 15 minutes free at any address.',
+    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
+    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
+  ]
 
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, tolls, three motorway vignettes, driver time. Nothing added at drop-off.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance international travel.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the M1 has a closure outside Győr, your chauffeur reroutes via Tatabánya without asking. If your flight into BUD is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
-  },
-]
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Budapest take?', a: 'Approximately 5 hours 30 minutes door-to-door via the D1 motorway east through Brno, a brief southern stretch through Slovakia on the D2 and the Bratislava D4 bypass, then across the Hungarian border onto the M15 and M1 into central Budapest. Friday afternoon departures out of Prague can add 20–30 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Budapest cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, all three motorway vignettes, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Budapest?', a: 'It is possible but heavy — eleven hours on the road plus whatever time you spend in Budapest. Most Prestigo clients overnight in Budapest and return the following day, which is also cheaper than paying for the chauffeur to wait through the afternoon. If a same-day return is the right call for you, tell us the plan and we quote a firm round-trip fare.' },
+    { q: 'How many border crossings are on this route?', a: 'Two. The Czech–Slovak Schengen border at Břeclav/Brodské after Brno, and the Slovak–Hungarian Schengen border at Rajka/Čunovo west of Budapest. Both are invisible inside the Schengen Area — no stops, no passport checks for EU citizens. Non-EU passengers should carry valid travel documents.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak Hungarian?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard, which covers every practical situation on the route and on arrival in Budapest. A Hungarian-speaking chauffeur is available on request with advance notice.' },
+  ]
 
-const relatedRoutes = [
-  { slug: 'prague-vienna', city: 'Vienna', distance: '330 km', duration: '3h 30min' },
-  { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 30min' },
-  { slug: 'prague-brno', city: 'Brno', distance: '205 km', duration: '2h 15min' },
-  { slug: 'prague-krakow', city: 'Kraków', distance: '540 km', duration: '5h 30min' },
-]
-
-const serviceSchema = {
-  '@type': 'Service',
-  '@id': 'https://rideprestigo.com/routes/prague-budapest#service',
-  name: 'Private Chauffeur Transfer from Prague to Budapest',
-  serviceType: 'Private ground transfer',
-  description: 'Chauffeured private transfer from Prague to Budapest in Mercedes E-Class, S-Class, or V-Class. Fixed price, approximately 5 hours 30 minutes door-to-door via the D1 motorway through Brno and the Hungarian M1. Distance 535 km.',
-  provider: {
-    '@type': 'LocalBusiness',
-    '@id': 'https://rideprestigo.com/#business',
-    name: 'Prestigo',
-    url: 'https://rideprestigo.com',
-    telephone: '+420-xxx-xxx-xxx',
-    email: 'info@rideprestigo.com',
-    priceRange: '€€€',
-    areaServed: 'Prague, Czech Republic',
-  },
-  areaServed: [
+  const dayTripConfigurations = [
     {
-      '@type': 'City',
-      name: 'Prague',
-      addressCountry: 'CZ',
+      title: 'The Buda Castle and Fisherman\'s Bastion express',
+      body: 'Pickup at 5:00, arrive central Budapest by 10:30. Three hours on Castle Hill — Matthias Church, Fisherman\'s Bastion, the views across the Danube to Parliament — with lunch at a terrace restaurant in the Várnegyed. Return to Prague by 21:00.',
+      price: 'Round-trip package — contact us for a quote',
     },
     {
-      '@type': 'City',
-      name: 'Budapest',
-      addressCountry: 'HU',
+      title: 'The Széchenyi Baths half-day',
+      body: 'Early pickup for a 10:30 arrival at the Széchenyi Thermal Bath in City Park. Four hours in the outdoor pools and neo-Baroque bathhouse, with a late lunch on Andrássy Avenue before the drive back. Robes, swimwear, and timed entry arranged in advance on request.',
+      price: 'Round-trip package — contact us for a quote',
     },
-  ],
-  hasOfferCatalog: {
-    '@type': 'OfferCatalog',
-    name: 'Vehicle Classes',
-    itemListElement: [
+    {
+      title: 'The Pest grand boulevards day',
+      body: 'Pickup at 5:00. Five hours in Pest — Parliament exterior and Kossuth Square, St Stephen\'s Basilica, the Great Market Hall, and Váci Street for the afternoon. Your chauffeur waits near Vörösmarty Square between stops. Back in Prague before midnight.',
+      price: 'Round-trip package — contact us for a quote',
+    },
+  ]
+
+  const whyBook = [
+    {
+      title: 'Fixed fare, no surprises',
+      body: 'The price you see is the price you pay. Fuel, tolls, three motorway vignettes, driver time. Nothing added at drop-off.',
+    },
+    {
+      title: 'Owned fleet, vetted chauffeurs',
+      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for long-distance international travel.',
+    },
+    {
+      title: 'Anticipatory service',
+      body: 'If the M1 has a closure outside Győr, your chauffeur reroutes via Tatabánya without asking. If your flight into BUD is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
+    },
+  ]
+
+  const relatedRoutes = [
+    { slug: 'prague-vienna', city: 'Vienna', distance: '330 km', duration: '3h 30min' },
+    { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 30min' },
+    { slug: 'prague-brno', city: 'Brno', distance: '205 km', duration: '2h 15min' },
+    { slug: 'prague-krakow', city: 'Kraków', distance: '540 km', duration: '5h 30min' },
+  ]
+
+  const pageSchema = {
+    '@context': 'https://schema.org' as const,
+    '@graph': [
+      ...(route ? buildRouteJsonLd(route, 'prague-budapest')['@graph'] : []),
       {
-        '@type': 'Offer',
-        name: 'Mercedes E-Class',
-        description: 'Up to 3 passengers, 2 suitcases',
-        price: '885',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-budapest#e-class',
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/routes/prague-budapest#faq',
+        mainEntity: faqs.map(f => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
       },
       {
-        '@type': 'Offer',
-        name: 'Mercedes S-Class',
-        description: 'Up to 3 passengers, flagship comfort',
-        price: '1310',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-budapest#s-class',
-      },
-      {
-        '@type': 'Offer',
-        name: 'Mercedes V-Class',
-        description: 'Up to 6 passengers, 6 suitcases',
-        price: '1015',
-        priceCurrency: 'EUR',
-        availability: 'https://schema.org/InStock',
-        url: 'https://rideprestigo.com/routes/prague-budapest#v-class',
+        '@type': 'BreadcrumbList',
+        '@id': 'https://rideprestigo.com/routes/prague-budapest#breadcrumb',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+          { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
+          { '@type': 'ListItem', position: 3, name: 'Prague to Budapest', item: 'https://rideprestigo.com/routes/prague-budapest' },
+        ],
       },
     ],
-  },
-}
+  }
 
-const pageSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    serviceSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/routes/prague-budapest#faq',
-      mainEntity: faqs.map(f => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/routes/prague-budapest#breadcrumb',
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Routes', item: 'https://rideprestigo.com/routes' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Budapest', item: 'https://rideprestigo.com/routes/prague-budapest' },
-      ],
-    },
-  ],
-}
-
-export default function PragueBudapestPage() {
   return (
     <main id="main-content">
       <Nav />
@@ -225,7 +176,7 @@ export default function PragueBudapestPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Budapest covers 535 km and takes approximately 5.5 hours door to door. Fixed fare starts at €885 in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €1,015; the S-Class is available from €1,310 for executive or VIP travel. Every booking includes the driver's time, fuel, Czech, Slovak, and Hungarian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Bratislava — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            A private transfer from Prague to Budapest covers 535 km and takes approximately 5.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech, Slovak, and Hungarian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Bratislava — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
             This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, three borders, and a fare that does not change.
@@ -337,7 +288,7 @@ export default function PragueBudapestPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>
@@ -429,7 +380,7 @@ export default function PragueBudapestPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Budapest.<br /><span className="display-italic">From €885, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Budapest.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

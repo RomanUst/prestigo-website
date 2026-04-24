@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import { getCachedAggregateRating } from '@/lib/google-reviews'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { getAllRoutes } from '@/lib/route-prices'
+import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import BookingSection from '@/components/BookingSection'
@@ -13,6 +16,8 @@ import Routes from '@/components/Routes'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import TierLadder from '@/components/pricing/TierLadder'
+import HourlyDailyStrip from '@/components/pricing/HourlyDailyStrip'
 
 // Canonical and openGraph URL are both set to the exact form the server
 // actually returns (no trailing slash, matching next.config behaviour) so
@@ -135,7 +140,24 @@ const websiteSchema = {
 }
 
 export default async function Home() {
-  const aggregateRating = await getCachedAggregateRating()
+  const [aggregateRating, config, allRoutes] = await Promise.all([
+    getCachedAggregateRating(),
+    getPricingConfig(),
+    getAllRoutes('display_order'),
+  ])
+
+  const { globals, hourlyRate } = config
+  const sClassAirport = AIRPORT_FALLBACK.sClass
+  const vClassAirport = AIRPORT_FALLBACK.vClass
+  const heroPrice = globals.airportPromoActive
+    ? globals.airportPromoPriceEur
+    : globals.airportRegularPriceEur
+  const cheapestIntercity =
+    allRoutes.length > 0
+      ? allRoutes.reduce((m, r) => Math.min(m, r.eClassEur), Infinity)
+      : AIRPORT_FALLBACK.regular
+  const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
+  const featuredRoutes = allRoutes.slice(0, 6)
 
   const schema = aggregateRating
     ? {
@@ -161,17 +183,26 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
       <Nav />
-      <Hero />
+      <Hero airportPrice={heroPrice} />
       <Divider />
       <BookingSection />
       <Divider />
+      <section className="homepage-tier-ladder" style={{ padding: '4rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
+        <h2 className="font-display text-[32px] md:text-[40px]" style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          Airport transfers
+        </h2>
+        <TierLadder config={globals} sClassPrice={sClassAirport} vClassPrice={vClassAirport} />
+      </section>
+      <Divider />
       <HowItWorks />
       <Divider />
-      <Services />
+      <Services airportPrice={heroPrice} hourlyFrom={hourlyFrom} cheapestIntercity={cheapestIntercity} />
       <Divider />
       <Fleet />
       <Divider />
-      <Routes />
+      <HourlyDailyStrip hourlyRate={hourlyRate} />
+      <Divider />
+      <Routes routes={featuredRoutes} />
       <Divider />
       <Testimonials />
       <Footer />

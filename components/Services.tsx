@@ -63,7 +63,20 @@ const services: Service[] = [
   },
 ]
 
-export default function Services() {
+type Props = {
+  airportPrice: number
+  hourlyFrom: number
+  cheapestIntercity: number
+}
+
+export default function Services({ airportPrice, hourlyFrom, cheapestIntercity }: Props) {
+  // Price callouts per service type (DB-driven, no hardcoded € literals)
+  const priceCallouts: Record<string, string> = {
+    Airport: `From €${airportPrice}`,
+    City: `From €${hourlyFrom}/hr`,
+    Intercity: `From €${cheapestIntercity}`,
+  }
+
   return (
     <section id="services" aria-labelledby="services-heading" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -95,7 +108,7 @@ export default function Services() {
                   className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-6"
                   style={{ color: 'var(--warmgrey)' }}
                 >
-                  {s.detail}
+                  {priceCallouts[s.label] ?? s.detail}
                 </span>
                 <div className="mt-auto">
                   <Link
