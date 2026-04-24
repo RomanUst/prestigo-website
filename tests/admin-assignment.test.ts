@@ -31,6 +31,14 @@ const {
   }
 })
 
+vi.mock('next/server', async () => {
+  const actual = await vi.importActual<typeof import('next/server')>('next/server')
+  return {
+    ...actual,
+    after: (fn: () => unknown) => { try { void fn() } catch { /* noop */ } },
+  }
+})
+
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(supabaseAuthStub)),
   getAdminUser: stubGetAdminUser,

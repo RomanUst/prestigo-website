@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendDriverDeclineNotification } from '@/lib/email'
@@ -77,14 +77,14 @@ export async function POST(request: Request) {
       .single()
 
     if (driver && booking) {
-      void sendDriverDeclineNotification({
+      after(() => sendDriverDeclineNotification({
         bookingReference: booking.booking_reference,
         pickupDate: booking.pickup_date,
         pickupTime: booking.pickup_time,
         originAddress: booking.origin_address,
         destinationAddress: booking.destination_address,
         driverName: driver.name,
-      })
+      }).catch(err => console.error('[driver-decline]:', err)))
     }
   }
 

@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
@@ -101,7 +101,7 @@ export async function POST(
       const acceptUrl = `${siteUrl}/driver/response?token=${assignment.token}&action=accepted`
       const declineUrl = `${siteUrl}/driver/response?token=${assignment.token}&action=declined`
 
-      void sendDriverAssignmentEmail({
+      after(() => sendDriverAssignmentEmail({
         driverName: driver.name,
         driverEmail: driver.email,
         bookingReference: booking.booking_reference,
@@ -114,7 +114,7 @@ export async function POST(
         passengerPhone: booking.client_phone,
         acceptUrl,
         declineUrl,
-      })
+      }).catch(err => console.error('[driver-assign]:', err)))
     }
   }
 

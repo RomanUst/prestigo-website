@@ -12,6 +12,14 @@ const { supabaseServiceStub } = vi.hoisted(() => {
 })
 
 // Mock lib/supabase
+vi.mock('next/server', async () => {
+  const actual = await vi.importActual<typeof import('next/server')>('next/server')
+  return {
+    ...actual,
+    after: (fn: () => unknown) => { try { void fn() } catch { /* noop */ } },
+  }
+})
+
 vi.mock('@/lib/supabase', () => ({
   saveBooking: vi.fn().mockResolvedValue([{ id: 'new-booking-uuid' }]),
   withRetry: vi.fn().mockImplementation((fn: () => Promise<unknown>) => fn()),

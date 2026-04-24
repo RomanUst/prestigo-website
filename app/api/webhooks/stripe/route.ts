@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import Stripe from 'stripe'
 import {
   saveBooking,
@@ -190,7 +190,7 @@ async function handleOneWaySucceeded(
       .eq('id', inserted[0].id)
       .single()
     if (savedBooking?.pickup_utc) {
-      void scheduleQStashReminder(inserted[0].id, new Date(savedBooking.pickup_utc).getTime())
+      after(() => scheduleQStashReminder(inserted[0].id, new Date(savedBooking.pickup_utc).getTime()))
     }
   }
 
@@ -201,7 +201,7 @@ async function handleOneWaySucceeded(
   const valueEur = amountEurFromMeta ?? Math.round(paymentIntent.amount / 100)
   const currency = (paymentIntent.currency || 'eur').toUpperCase()
   const vehicleClass = meta.vehicleClass || 'transfer'
-  void sendGa4Purchase({
+  after(() => sendGa4Purchase({
     transactionId: bookingReference,
     valueEur,
     currency,
@@ -215,7 +215,7 @@ async function handleOneWaySucceeded(
         quantity: 1,
       },
     ],
-  })
+  }))
 }
 
 // ─────────────────────────────────────────────────────────────────────────
@@ -325,7 +325,7 @@ async function handleRoundTripSucceeded(
       .in('id', [pair.outbound_id, pair.return_id])
     for (const leg of legs ?? []) {
       if (leg.pickup_utc) {
-        void scheduleQStashReminder(leg.id, new Date(leg.pickup_utc).getTime())
+        after(() => scheduleQStashReminder(leg.id, new Date(leg.pickup_utc).getTime()))
       }
     }
   }
@@ -337,7 +337,7 @@ async function handleRoundTripSucceeded(
     : Math.round(paymentIntent.amount / 100)
   const currency = (paymentIntent.currency || 'eur').toUpperCase()
   const vehicleClass = meta.vehicleClass || 'transfer'
-  void sendGa4Purchase({
+  after(() => sendGa4Purchase({
     transactionId: outboundRef,
     valueEur: combinedValueEur,
     currency,
@@ -351,7 +351,7 @@ async function handleRoundTripSucceeded(
         quantity: 1,
       },
     ],
-  })
+  }))
 }
 
 // ─────────────────────────────────────────────────────────────────────────
