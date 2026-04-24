@@ -7,6 +7,8 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { createSupabasePublicReadClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
+import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
+import { roundUpToFive, CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
 // Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
 // that imported them directly from this route continue to compile. The single
 // source of truth is @/lib/server-pricing; this re-export is a compat shim.
@@ -33,6 +35,13 @@ const calculatePriceSchema = z.object({
       lng: z.number().finite().min(-180).max(180),
     })
   ).max(5).optional().default([]),
+  // CALC-07: intercity auto-detect fields
+  routeSlug: z.string().min(1).max(80).regex(/^[a-z0-9-]+$/).optional(),
+  originPlaceId: z.string().min(1).max(200).optional(),
+  destinationPlaceId: z.string().min(1).max(200).optional(),
+  // CALC-05: calculator-specific extras
+  childSeats: z.number().int().min(0).max(3).optional().default(0),
+  extraStops: z.number().int().min(0).max(5).optional().default(0),
 })
 
 // Prague Václav Havel Airport coordinates
@@ -49,9 +58,42 @@ function isNearAirport(pt: { lat: number; lng: number } | null | undefined): boo
   )
 }
 
+type VehiclePrice = { base: number; extras: number; total: number; currency: string }
+
+/**
+ * Add childSeats × CHILD_SEAT_PRICE + extraStops × EXTRA_STOP_PRICE to .extras,
+ * then round .total UP to nearest €5 (CALC-05 + CALC-09).
+ */
+function applyExtrasAndRound(
+  adjusted: Record<string, VehiclePrice>,
+  childSeats: number,
+  extraStops: number
+): Record<string, VehiclePrice> {
+  const extrasAdd = childSeats * CHILD_SEAT_PRICE + extraStops * EXTRA_STOP_PRICE
+  const out: Record<string, VehiclePrice> = {}
+  for (const [k, v] of Object.entries(adjusted)) {
+    const newExtras = v.extras + extrasAdd
+    const newTotal = roundUpToFive(v.base + newExtras)
+    out[k] = { base: v.base, extras: newExtras, total: newTotal, currency: v.currency }
+  }
+  return out
+}
+
+/**
+ * Build a flat price map from a route_prices row (CALC-07).
+ * e_class_eur → business, s_class_eur → first_class, v_class_eur → business_van
+ */
+function buildIntercityPrices(route: RoutePrice): Record<string, VehiclePrice> {
+  return {
+    business:     { base: route.eClassEur, extras: 0, total: route.eClassEur, currency: 'EUR' },
+    first_class:  { base: route.sClassEur, extras: 0, total: route.sClassEur, currency: 'EUR' },
+    business_van: { base: route.vClassEur, extras: 0, total: route.vClassEur, currency: 'EUR' },
+  }
+}
+
 export async function POST(req: Request) {
-  // 5 KB is generous for a price lookup (two coords + flags).
-  const tooBig = enforceMaxBody(req, 5_000)
+  // 6 KB is generous for a price lookup (two coords + route fields + extras).
+  const tooBig = enforceMaxBody(req, 6_000)
   if (tooBig) return tooBig
 
   const { allowed, limit } = await checkRateLimit('/api/calculate-price', getClientIp(req))
@@ -75,7 +117,12 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
-    const { origin, destination, tripType, hours, pickupDate, returnDate, pickupTime, returnTime, isAirport, intermediates } = parsed.data
+    const {
+      origin, destination, tripType, hours, pickupDate, returnDate,
+      pickupTime, returnTime, isAirport, intermediates,
+      routeSlug, originPlaceId, destinationPlaceId, childSeats, extraStops,
+    } = parsed.data
+
     // Detect airport server-side by coordinates (not by client-provided placeId,
     // which can mismatch between Places API versions).
     const airportFlag = isNearAirport(origin) || isNearAirport(destination) || isAirport === true
@@ -95,23 +142,49 @@ export async function POST(req: Request) {
     if (tripType === 'hourly') {
       const prices = buildPriceMap('hourly', null, hours || 2, 0, rates)
       const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
-      return NextResponse.json({ prices: adjusted, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false })
+      return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false, matchedRouteSlug: null })
     }
 
     // Daily: no distance needed, no zone check
     if (tripType === 'daily') {
       if (!pickupDate || !returnDate) {
-        return NextResponse.json({ prices: null, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: true })
+        return NextResponse.json({ prices: null, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
       }
       const days = dateDiffDays(pickupDate, returnDate)
       const prices = buildPriceMap('daily', null, 0, days, rates)
       const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
-      return NextResponse.json({ prices: adjusted, returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false })
+      return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices: null, returnDiscountPercent: null, distanceKm: null, quoteMode: false, matchedRouteSlug: null })
     }
 
     // Transfer types: need origin + destination
     if (!origin || !destination) {
-      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
+    }
+
+    // CALC-07: intercity auto-detect — flat price from route_prices when the pair matches.
+    // Must run BEFORE zone check and Google Routes call.
+    if (tripType === 'transfer' && (routeSlug || (originPlaceId && destinationPlaceId))) {
+      let route: RoutePrice | null = null
+      if (routeSlug) {
+        route = await getRoutePrice(routeSlug)
+      }
+      if (!route && originPlaceId && destinationPlaceId) {
+        route = await findRouteByPlaceIds(originPlaceId, destinationPlaceId)
+      }
+      if (route) {
+        const base = buildIntercityPrices(route)
+        const adjusted = applyGlobals(base, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
+        const withExtras = applyExtrasAndRound(adjusted, childSeats, extraStops)
+        return NextResponse.json({
+          prices: withExtras,
+          returnLegPrices: null,
+          returnDiscountPercent: null,
+          distanceKm: route.distanceKm,
+          quoteMode: false,
+          matchedRouteSlug: route.slug,
+        })
+      }
+      // fall through — no match, use Google Routes below
     }
 
     // ZONES-04 + ZONES-05: Zone check for transfer trips only.
@@ -128,7 +201,7 @@ export async function POST(req: Request) {
       const originInZone = isInAnyZone(origin.lat, origin.lng, zones)
       const destInZone = isInAnyZone(destination.lat, destination.lng, zones)
       if (!originInZone && !destInZone) {
-        return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
+        return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
       }
     }
 
@@ -136,7 +209,7 @@ export async function POST(req: Request) {
     const apiKey = process.env.GOOGLE_MAPS_API_KEY
     if (!apiKey) {
       console.error('GOOGLE_MAPS_API_KEY not configured')
-      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
     }
 
     const googleBody: Record<string, unknown> = {
@@ -168,14 +241,14 @@ export async function POST(req: Request) {
     if (!res.ok) {
       const errBody = await res.text()
       console.error('Google Routes API error:', res.status, errBody)
-      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
     }
 
     const data = await res.json()
     const distanceMeters = data?.routes?.[0]?.distanceMeters
     if (!distanceMeters) {
       console.error('No distanceMeters in response, routes:', JSON.stringify(data?.routes))
-      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true })
+      return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
     }
 
     const distanceKm = distanceMeters / 1000
@@ -200,7 +273,7 @@ export async function POST(req: Request) {
       )
     }
 
-    return NextResponse.json({ prices: adjusted, returnLegPrices, returnDiscountPercent: discountPct, distanceKm, quoteMode: false })
+    return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices, returnDiscountPercent: discountPct, distanceKm, quoteMode: false, matchedRouteSlug: null })
   } catch (error) {
     console.error('calculate-price error:', error)
     return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
