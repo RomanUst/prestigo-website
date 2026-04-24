@@ -41,7 +41,7 @@ const inclusions = [
   'Bottled water, phone charger, and WiFi in the rear cabin.',
   'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
 const faqs = [
@@ -286,7 +286,7 @@ export default async function PragueSalzburgPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental (see pricing) if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

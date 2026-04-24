@@ -41,13 +41,13 @@ const inclusions = [
   'Bottled water, phone charger, and WiFi in the rear cabin.',
   'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Wrocław take?', a: 'Approximately 3 hours door-to-door via the D11 motorway north to Hradec Králové, then Highway 33 northeast to the Czech–Polish border at Náchod/Kudowa-Zdrój, then the Polish DK8 and S8 expressways into Wrocław. Traffic around Prague during rush hour can add 15–20 minutes.' },
   { q: 'How much does a chauffeur from Prague to Wrocław cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, Czech vignette, Polish tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Wrocław?', a: 'Yes, and it is the standard pattern on this route. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental from €40/hour. Most clients book a 10–12 hour round trip to cover the Rynek, the Racławice Panorama, and lunch near Ostrów Tumski.' },
+  { q: 'Can I book a same-day round trip from Prague to Wrocław?', a: 'Yes, and it is the standard pattern on this route. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental (see pricing). Most clients book a 10–12 hour round trip to cover the Rynek, the Racławice Panorama, and lunch near Ostrów Tumski.' },
   { q: 'Do you cross the Czech–Polish border without problems?', a: 'Both countries are inside the Schengen Area. The crossing at Náchod/Kudowa-Zdrój is invisible — no routine checks, no passport control. All Prestigo vehicles carry the Czech vignette and pre-paid Polish tolls, and the chauffeur holds an international chauffeur licence recognised across the EU.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak Polish?', a: 'A Polish-speaking chauffeur is available on request — useful for business meetings in Wrocław or for clients who prefer to be greeted in Polish. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },

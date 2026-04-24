@@ -42,13 +42,13 @@ const inclusions = [
   'Bottled water, phone charger, and WiFi in the rear cabin.',
   'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Vienna take?', a: 'Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Vienna cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking from €40/hour. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
+  { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
   { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Vienna concierge handoffs or business meetings on arrival. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
@@ -288,7 +288,7 @@ export default async function PragueViennaPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental from €40/hour if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental (see pricing) if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
           </p>
         </div>
       </section>

@@ -41,13 +41,13 @@ const inclusions = [
   'Bottled water, phone charger, and WiFi in the rear cabin.',
   'Waiting time at pickup — 15 minutes free at any address.',
   'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental from €40/hour.',
+  'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
 const faqs = [
   { q: 'How long does a private transfer from Prague to Zlín take?', a: 'Approximately 3.5 hours door-to-door via the D1 motorway east through Brno, then the D55 south or Highway 50 east into Zlín. Friday afternoon traffic leaving Prague can add 20–30 minutes.' },
   { q: 'How much does a chauffeur from Prague to Zlín cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database.' },
-  { q: 'Can I book a same-day round trip from Prague to Zlín?', a: 'Yes. A same-day return is workable — most clients book a 9–11 hour round trip that allows three to four hours on site in Zlín. Book both legs together for a 10% discount on the return. If you need the chauffeur to move around the city with you, add hourly city rental from €40/hour.' },
+  { q: 'Can I book a same-day round trip from Prague to Zlín?', a: 'Yes. A same-day return is workable — most clients book a 9–11 hour round trip that allows three to four hours on site in Zlín. Book both legs together for a 10% discount on the return. If you need the chauffeur to move around the city with you, add hourly city rental (see pricing).' },
   { q: 'Is there a border crossing on the way to Zlín?', a: 'No. The Prague–Zlín route is entirely within the Czech Republic. No passport checks, no vignette changes, no customs. The Czech motorway vignette is included in the quoted price.' },
   { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
   { q: 'What languages does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German, Italian, or Russian-speaking chauffeurs can be requested at booking.' },
