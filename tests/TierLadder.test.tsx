@@ -19,9 +19,10 @@ describe('TierLadder', () => {
     const { container } = render(
       <TierLadder config={promoActiveGlobals} sClassPrice={120} vClassPrice={76} />
     )
-    expect(screen.getByText('Business')).toBeTruthy()
-    expect(screen.getByText('First Class')).toBeTruthy()
-    expect(screen.getByText('Business Van')).toBeTruthy()
+    // getByRole heading avoids ambiguity with tier-dots nav anchors that repeat the same text
+    expect(screen.getAllByText('Business').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('First Class').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Business Van').length).toBeGreaterThanOrEqual(1)
     expect(container).toBeTruthy()
   })
 

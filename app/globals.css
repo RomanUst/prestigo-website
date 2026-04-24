@@ -503,3 +503,59 @@ body {
 .rdp-button_next:hover .rdp-chevron {
   fill: var(--copper-light) !important;
 }
+
+/* Phase 45: Tier Ladder + HourlyDailyStrip */
+.tier-ladder-grid { gap: 1rem; }
+@media (min-width: 768px) {
+  .tier-ladder-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: stretch;
+  }
+}
+@media (max-width: 767px) {
+  .tier-ladder-grid {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tier-ladder-grid::-webkit-scrollbar { display: none; }
+  .tier-card { flex: 0 0 85%; scroll-snap-align: center; }
+  /* TIER-04 dot indicators — pure CSS, no JS. Render a sibling .tier-dots container
+     with three <a> anchors in the component JSX (href="#tier-business", "#tier-first",
+     "#tier-van") and add id attributes on the corresponding .tier-card elements.
+     :target drives the active-dot highlighting. */
+  .tier-dots {
+    display: flex; justify-content: center; gap: 0.5rem;
+    margin-top: 1rem; padding: 0;
+  }
+  .tier-dots a {
+    display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.2); text-indent: -9999px; overflow: hidden;
+  }
+  .tier-card:target ~ .tier-dots a[href="#tier-business"],
+  .tier-card:target ~ .tier-dots a[href="#tier-first"],
+  .tier-card:target ~ .tier-dots a[href="#tier-van"] { background: var(--copper); }
+}
+@media (min-width: 768px) {
+  .tier-dots { display: none; }
+}
+.tier-card {
+  padding: 2rem 1.5rem;
+  background: var(--graphite, #1a1a1a);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 4px;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.tier-card-copper { border: 1px solid var(--copper); }
+.tier-title { font-size: 14px; letter-spacing: 0.15em; text-transform: uppercase; }
+.tier-price { font-size: 40px; font-weight: 300; color: var(--offwhite, #e8e5e1); }
+.tier-was-price { font-size: 14px; opacity: 0.6; }
+.tier-cta { margin-top: auto; padding: 0.75rem 1.25rem; border: 1px solid var(--copper); color: var(--copper); text-align: center; text-decoration: none; }
+.hourly-strip { padding: 3rem 1.5rem; }
+.hourly-strip-rows { list-style: none; padding: 0; }
+.hourly-strip-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+.hourly-strip-price { color: var(--copper); font-size: 24px; }
+.hourly-strip-cta { display: inline-block; margin-top: 1.5rem; padding: 0.75rem 1.5rem; border: 1px solid var(--copper); color: var(--copper); text-decoration: none; }
