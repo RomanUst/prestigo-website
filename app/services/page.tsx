@@ -5,7 +5,6 @@ export const revalidate = 120
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
-import TierLadder from '@/components/pricing/TierLadder'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
@@ -251,14 +250,6 @@ export default async function ServicesPage() {
             From Prague Václav Havel Airport to anywhere in Central Europe — PRESTIGO chauffeurs deliver every trip with fixed pricing, flight tracking, and the quiet confidence of a service built for executives.
           </p>
         </div>
-      </section>
-
-      {/* TIER-02: TierLadder immediately after hero, before service cards */}
-      <section style={{ padding: '3rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h2 className="font-display text-[32px] md:text-[40px]" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          Airport transfers
-        </h2>
-        <TierLadder config={globals} sClassPrice={AIRPORT_FALLBACK.sClass} vClassPrice={AIRPORT_FALLBACK.vClass} />
       </section>
 
       {/* Service cards */}

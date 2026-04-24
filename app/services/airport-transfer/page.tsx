@@ -6,7 +6,6 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import TierLadder from '@/components/pricing/TierLadder'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
@@ -142,14 +141,6 @@ export default async function AirportTransferPage() {
 
       <Divider />
 
-      {/* Tier Ladder — replaces static price callout */}
-      <section className="bg-anthracite-mid py-10">
-        <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <TierLadder config={globals} sClassPrice={sClassAirport} vClassPrice={vClassAirport} />
-        </div>
-      </section>
-
-      <Divider />
 
       {/* Features */}
       <section className="bg-anthracite py-16 md:py-24">

@@ -16,7 +16,6 @@ import Routes from '@/components/Routes'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import TierLadder from '@/components/pricing/TierLadder'
 import HourlyDailyStrip from '@/components/pricing/HourlyDailyStrip'
 
 // Canonical and openGraph URL are both set to the exact form the server
@@ -147,8 +146,6 @@ export default async function Home() {
   ])
 
   const { globals, hourlyRate } = config
-  const sClassAirport = AIRPORT_FALLBACK.sClass
-  const vClassAirport = AIRPORT_FALLBACK.vClass
   const heroPrice = globals.airportPromoActive
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur
@@ -186,13 +183,6 @@ export default async function Home() {
       <Hero airportPrice={heroPrice} />
       <Divider />
       <BookingSection />
-      <Divider />
-      <section className="homepage-tier-ladder" style={{ padding: '4rem 1.5rem', maxWidth: '1200px', margin: '0 auto' }}>
-        <h2 className="font-display text-[32px] md:text-[40px]" style={{ textAlign: 'center', marginBottom: '2rem' }}>
-          Airport transfers
-        </h2>
-        <TierLadder config={globals} sClassPrice={sClassAirport} vClassPrice={vClassAirport} />
-      </section>
       <Divider />
       <HowItWorks />
       <Divider />
