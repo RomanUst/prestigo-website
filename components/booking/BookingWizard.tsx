@@ -3,6 +3,12 @@
 import { useEffect, useRef } from 'react'
 import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace } from '@/types/booking'
+import type { TripType, VehicleClass } from '@/types/booking'
+
+const VALID_TRIP_TYPES = new Set(['transfer', 'hourly', 'daily', 'round_trip'])
+const VALID_CLASSES = new Set(['business', 'first_class', 'business_van'])
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
+const TIME_RE = /^\d{2}:\d{2}$/
 import { computeExtrasTotal } from '@/lib/extras'
 import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
@@ -19,13 +25,55 @@ export default function BookingWizard() {
   const router = useRouter()
   const quoteMode = useBookingStore((s) => s.quoteMode)
 
-  // On mount: reset to step 1 unless arriving via homepage widget deeplink
+  // On mount: reset to step 1 unless arriving via deeplink (homepage widget or calculator)
   useEffect(() => {
-    const isDeeplink = sessionStorage.getItem('booking_deeplink') === '1'
-    sessionStorage.removeItem('booking_deeplink')
-    if (!isDeeplink && useBookingStore.getState().currentStep > 1) {
-      useBookingStore.setState({ currentStep: 1, completedSteps: new Set() })
+    const deeplinkFlag = sessionStorage.getItem('booking_deeplink') === '1'
+    const urlParams = new URLSearchParams(window.location.search)
+
+    if (!deeplinkFlag && urlParams.toString() === '') {
+      // No deeplink: reset to step 1 if not already there
+      if (useBookingStore.getState().currentStep > 1) {
+        useBookingStore.setState({ currentStep: 1, completedSteps: new Set() })
+      }
+      return
     }
+
+    // Pre-fill store from URL params (calculator deeplink)
+    const type = urlParams.get('type')
+    if (type && VALID_TRIP_TYPES.has(type)) {
+      useBookingStore.getState().setTripType(type as TripType)
+    }
+
+    const from = urlParams.get('from')
+    const fromPlaceId = urlParams.get('fromPlaceId')
+    const fromLat = urlParams.get('fromLat')
+    const fromLng = urlParams.get('fromLng')
+    if (from && fromPlaceId && fromLat && fromLng && !isNaN(Number(fromLat)) && !isNaN(Number(fromLng))) {
+      useBookingStore.getState().setOrigin({ address: from, placeId: fromPlaceId, lat: Number(fromLat), lng: Number(fromLng) })
+    }
+
+    const to = urlParams.get('to')
+    const toPlaceId = urlParams.get('toPlaceId')
+    const toLat = urlParams.get('toLat')
+    const toLng = urlParams.get('toLng')
+    if (to && toPlaceId && toLat && toLng && !isNaN(Number(toLat)) && !isNaN(Number(toLng))) {
+      useBookingStore.getState().setDestination({ address: to, placeId: toPlaceId, lat: Number(toLat), lng: Number(toLng) })
+    }
+
+    const date = urlParams.get('date')
+    if (date && DATE_RE.test(date)) useBookingStore.getState().setPickupDate(date)
+
+    const time = urlParams.get('time')
+    if (time && TIME_RE.test(time)) useBookingStore.getState().setPickupTime(time)
+
+    const vclass = urlParams.get('class')
+    if (vclass && VALID_CLASSES.has(vclass)) useBookingStore.getState().setVehicleClass(vclass as VehicleClass)
+
+    const pax = urlParams.get('pax')
+    if (pax && /^\d+$/.test(pax)) useBookingStore.getState().setPassengers(Number(pax))
+
+    sessionStorage.removeItem('booking_deeplink')
+    window.history.replaceState(null, '', window.location.pathname)
   }, [])  
 
   // Scroll to top of booking section on step change
