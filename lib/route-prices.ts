@@ -70,11 +70,23 @@ export async function getAllRoutes(
   return (data as Row[]).map(toRoutePrice)
 }
 
-// Phase 44 stub — place_ids are all empty per D-02. Phase 47 (Calculator)
-// fills in the actual matching strategy.
 export async function findRouteByPlaceIds(
-  _originId: string,
-  _destinationId: string
+  originId: string,
+  destinationId: string
 ): Promise<RoutePrice | null> {
-  return null
+  if (!originId || !destinationId) return null
+  const supabase = createSupabaseServiceClient()
+  const { data, error } = await supabase
+    .from('route_prices')
+    .select(SELECT_COLS)
+  if (error || !data) return null
+  const routes = (data as Row[]).map(toRoutePrice)
+  // Order-independent match: both placeIds must be in the route's place_ids[]
+  const match = routes.find(
+    (r) =>
+      r.placeIds.length >= 2 &&
+      r.placeIds.includes(originId) &&
+      r.placeIds.includes(destinationId)
+  )
+  return match ?? null
 }
