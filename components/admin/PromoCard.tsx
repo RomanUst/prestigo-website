@@ -41,17 +41,21 @@ export default function PromoCard({ initial }: PromoCardProps) {
 
   async function handleSave() {
     setSaveStatus('saving')
-    const res = await fetch('/api/admin/promo', {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ active, regularPriceEur: regular, promoPriceEur: promo }),
-    })
-    if (res.ok) {
-      setSaveStatus('saved')
-      setTimeout(() => setSaveStatus('idle'), 3000)
-    } else if (res.status === 422) {
-      setSaveStatus('range-error')
-    } else {
+    try {
+      const res = await fetch('/api/admin/promo', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active, regularPriceEur: regular, promoPriceEur: promo }),
+      })
+      if (res.ok) {
+        setSaveStatus('saved')
+        setTimeout(() => setSaveStatus('idle'), 3000)
+      } else if (res.status === 422) {
+        setSaveStatus('range-error')
+      } else {
+        setSaveStatus('error')
+      }
+    } catch {
       setSaveStatus('error')
     }
   }

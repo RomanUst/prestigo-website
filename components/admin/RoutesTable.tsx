@@ -64,32 +64,37 @@ export default function RoutesTable({ initialRoutes }: RoutesTableProps) {
       s_class_eur: dirty.s_class_eur ?? route.sClassEur,
       v_class_eur: dirty.v_class_eur ?? route.vClassEur,
     }
-    const res = await fetch(`/api/admin/route-prices/${route.slug}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
-    setSavingRows(prev => {
-      const next = new Set(prev)
-      next.delete(route.slug)
-      return next
-    })
-    if (res.ok) {
-      setDirtyRows(prev => {
-        const next = new Map(prev)
-        next.delete(route.slug)
-        return next
+    try {
+      const res = await fetch(`/api/admin/route-prices/${route.slug}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
       })
-      setRowStatus(prev => new Map(prev).set(route.slug, 'saved'))
-      setTimeout(() => {
-        setRowStatus(prev => {
+      if (res.ok) {
+        setDirtyRows(prev => {
           const next = new Map(prev)
           next.delete(route.slug)
           return next
         })
-      }, 3000)
-    } else {
+        setRowStatus(prev => new Map(prev).set(route.slug, 'saved'))
+        setTimeout(() => {
+          setRowStatus(prev => {
+            const next = new Map(prev)
+            next.delete(route.slug)
+            return next
+          })
+        }, 3000)
+      } else {
+        setRowStatus(prev => new Map(prev).set(route.slug, 'error'))
+      }
+    } catch {
       setRowStatus(prev => new Map(prev).set(route.slug, 'error'))
+    } finally {
+      setSavingRows(prev => {
+        const next = new Set(prev)
+        next.delete(route.slug)
+        return next
+      })
     }
   }
 
