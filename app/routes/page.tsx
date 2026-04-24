@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-export const dynamic = 'force-static'
+export const revalidate = 120
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
@@ -8,25 +8,37 @@ import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getAllRoutes } from '@/lib/route-prices'
+import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 
-const ROUTES_DESCRIPTION = 'Private chauffeur from Prague to 30 Central European destinations. Vienna €485, Berlin €580, Munich €635, Budapest €885. Fixed price, door-to-door.'
-
-export const metadata: Metadata = {
-  title: 'Prague Private Chauffeur — 30 Intercity Routes',
-  description: ROUTES_DESCRIPTION,
-  alternates: {
-    canonical: '/routes',
-    languages: {
-      en: 'https://rideprestigo.com/routes',
-      'x-default': 'https://rideprestigo.com/routes',
-    },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/routes',
+export async function generateMetadata(): Promise<Metadata> {
+  const routes = await getAllRoutes('display_order')
+  const vienna = routes.find((r) => r.slug === 'prague-vienna')
+  const berlin = routes.find((r) => r.slug === 'prague-berlin')
+  const munich = routes.find((r) => r.slug === 'prague-munich')
+  const budapest = routes.find((r) => r.slug === 'prague-budapest')
+  const viennaPrice = vienna?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const berlinPrice = berlin?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const munichPrice = munich?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const budapestPrice = budapest?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const description = `Private chauffeur from Prague to 30 Central European destinations. Vienna from €${viennaPrice}, Berlin from €${berlinPrice}, Munich from €${munichPrice}, Budapest from €${budapestPrice}. Fixed price, door-to-door.`
+  return {
     title: 'Prague Private Chauffeur — 30 Intercity Routes',
-    description: ROUTES_DESCRIPTION,
-    images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
-  },
+    description,
+    alternates: {
+      canonical: '/routes',
+      languages: {
+        en: 'https://rideprestigo.com/routes',
+        'x-default': 'https://rideprestigo.com/routes',
+      },
+    },
+    openGraph: {
+      url: 'https://rideprestigo.com/routes',
+      title: 'Prague Private Chauffeur — 30 Intercity Routes',
+      description,
+      images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
+    },
+  }
 }
 
 // Route data is sourced from lib/routes.ts — single source of truth for the
@@ -83,7 +95,10 @@ const breadcrumbSchema = {
   '@graph': [routesBreadcrumbSchema, routesFaqSchema],
 }
 
-export default function RoutesPage() {
+export default async function RoutesPage() {
+  const dbRoutes = await getAllRoutes('display_order')
+  const top10 = dbRoutes.slice(0, 10)
+
   return (
     <main id="main-content">
       <Nav />
@@ -108,6 +123,51 @@ export default function RoutesPage() {
       </section>
 
       <Divider />
+
+      {/* Top 10 routes — DB-driven pricing */}
+      {top10.length > 0 && (
+        <>
+          <section className="bg-anthracite py-16 md:py-20">
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <Reveal variant="up"><div className="mb-10">
+                <p className="label mb-4">Most popular routes</p>
+                <span className="copper-line mb-6 block" />
+                <h2 className="display text-[28px] md:text-[36px]">Top routes from Prague,<br /><span className="display-italic">live pricing.</span></h2>
+              </div></Reveal>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {top10.map((r, i) => (
+                  <Reveal key={r.slug} variant="up" delay={i * 60}>
+                    <a href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex flex-col gap-4 hover:border-[var(--copper)] transition-colors group">
+                      <div>
+                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>Prague → {r.toLabel}</p>
+                        <p className="font-display font-light text-[20px] text-offwhite">{r.toLabel}</p>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between items-center">
+                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">E-Class from</span>
+                          <span className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>€{r.eClassEur}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">V-Class from</span>
+                          <span className="font-body font-light text-[11px] text-offwhite">€{r.vClassEur}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">S-Class from</span>
+                          <span className="font-body font-light text-[11px] text-offwhite">€{r.sClassEur}</span>
+                        </div>
+                      </div>
+                      <p className="font-body font-light text-[10px] tracking-[0.1em] uppercase mt-auto" style={{ color: 'var(--copper)' }}>
+                        View route →
+                      </p>
+                    </a>
+                  </Reveal>
+                ))}
+              </div>
+            </div>
+          </section>
+          <Divider />
+        </>
+      )}
 
       {/* Planning intercity travel */}
       <section className="bg-anthracite-mid py-16 md:py-24">
