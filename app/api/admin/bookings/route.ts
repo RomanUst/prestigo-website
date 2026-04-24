@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { eurToCzk } from '@/lib/currency'
@@ -166,28 +166,29 @@ export async function PATCH(request: Request) {
         })
 
         if (shouldSend) {
-          // D-09: fire-and-forget — void prefix, no await
+          // Use after() so Vercel serverless runtime keeps the promise alive
+          // past the response return — void fn() was being killed on response.
           if (parsed.data.status === 'confirmed') {
-            void sendStatusConfirmedEmail(current).catch(err =>
+            after(() => sendStatusConfirmedEmail(current).catch(err =>
               console.error('[booking-notify] confirmed:', err)
-            )
+            ))
           } else if (parsed.data.status === 'cancelled') {
-            void sendStatusCancelledEmail(current).catch(err =>
+            after(() => sendStatusCancelledEmail(current).catch(err =>
               console.error('[booking-notify] cancelled:', err)
-            )
+            ))
           } else if (parsed.data.status === 'completed') {
-            void sendPostTripEmail(current).catch(err =>
+            after(() => sendPostTripEmail(current).catch(err =>
               console.error('[booking-notify] post-trip:', err)
-            )
+            ))
           }
         }
       }
     }
 
-    // Phase 41 D-01: Schedule 2h QStash reminder on transition to confirmed (fire-and-forget)
+    // Phase 41 D-01: Schedule 2h QStash reminder on transition to confirmed
     if (previousStatus !== parsed.data.status && parsed.data.status === 'confirmed') {
       if (current.pickup_utc) {
-        void scheduleQStashReminder(current.id, new Date(current.pickup_utc).getTime())
+        after(() => scheduleQStashReminder(current.id, new Date(current.pickup_utc).getTime()))
       }
     }
 
