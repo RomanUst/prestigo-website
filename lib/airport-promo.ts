@@ -5,7 +5,7 @@
 
 import type { PricingGlobals } from '@/lib/pricing-config'
 
-type VehicleClass = 'business' | 'first_class' | 'business_van'
+export type VehicleClass = 'business' | 'first_class' | 'business_van'
 
 /**
  * Returns the effective airport price for the given vehicle class.
@@ -13,17 +13,21 @@ type VehicleClass = 'business' | 'first_class' | 'business_van'
  * - business   → airportPromoPriceEur (when promo active) or airportRegularPriceEur
  * - first_class → sClassPrice (always fixed, no promo)
  * - business_van → vClassPrice (always fixed, no promo)
+ * - unknown    → 0 (defensive fallback)
  */
 export function getEffectiveAirportPrice(
-  vehicleClass: VehicleClass,
+  vehicleClass: string,
   config: PricingGlobals,
   sClassPrice: number,
   vClassPrice: number,
 ): number {
   if (vehicleClass === 'first_class') return sClassPrice
   if (vehicleClass === 'business_van') return vClassPrice
-  // business tier
-  return config.airportPromoActive
-    ? config.airportPromoPriceEur
-    : config.airportRegularPriceEur
+  if (vehicleClass === 'business') {
+    return config.airportPromoActive
+      ? config.airportPromoPriceEur
+      : config.airportRegularPriceEur
+  }
+  // unknown vehicle class → 0
+  return 0
 }

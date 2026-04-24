@@ -1,15 +1,21 @@
 import PricingForm from '@/components/admin/PricingForm'
+import PromoCard from '@/components/admin/PromoCard'
+import RoutesTable from '@/components/admin/RoutesTable'
 import { cookies } from 'next/headers'
+import type { RoutePrice } from '@/lib/route-prices'
 
 export default async function PricingPage() {
-  // Fetch pricing data server-side, passing cookies for auth
   const cookieStore = await cookies()
-  const res = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/pricing`, {
-    headers: { Cookie: cookieStore.toString() },
-    cache: 'no-store',
-  })
+  const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const cookieHeader = cookieStore.toString()
 
-  if (!res.ok) {
+  const [pricingRes, promoRes, routesRes] = await Promise.all([
+    fetch(`${base}/api/admin/pricing`, { headers: { Cookie: cookieHeader }, cache: 'no-store' }),
+    fetch(`${base}/api/admin/promo`, { headers: { Cookie: cookieHeader }, cache: 'no-store' }),
+    fetch(`${base}/api/admin/route-prices`, { headers: { Cookie: cookieHeader }, cache: 'no-store' }),
+  ])
+
+  if (!pricingRes.ok || !promoRes.ok || !routesRes.ok) {
     return (
       <div>
         <h1
@@ -31,7 +37,9 @@ export default async function PricingPage() {
     )
   }
 
-  const data = await res.json()
+  const pricingData = await pricingRes.json()
+  const promoData: { active: boolean; regularPriceEur: number; promoPriceEur: number } = await promoRes.json()
+  const routesData: { routes: RoutePrice[] } = await routesRes.json()
 
   return (
     <div>
@@ -47,7 +55,19 @@ export default async function PricingPage() {
       >
         Pricing
       </h1>
-      <PricingForm initialData={{ config: data.config, globals: data.globals, holidayDates: data.globals?.holiday_dates ?? [] }} />
+      <PricingForm initialData={{
+        config: pricingData.config,
+        globals: pricingData.globals,
+        holidayDates: pricingData.globals?.holiday_dates ?? [],
+      }} />
+
+      <div style={{ marginTop: '32px' }}>
+        <PromoCard initial={promoData} />
+      </div>
+
+      <div style={{ marginTop: '32px' }}>
+        <RoutesTable initialRoutes={routesData.routes} />
+      </div>
     </div>
   )
 }
