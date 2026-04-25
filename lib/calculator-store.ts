@@ -154,10 +154,7 @@ export const useCalculatorStore = create<CalculatorState>()(
       setVehicleClass: (v) =>
         set({
           vehicleClass: v,
-          priceBreakdown: null,
-          distanceKm: null,
-          quoteMode: false,
-          matchedRouteSlug: null,
+          // Do NOT clear priceBreakdown — the selection does not change the prices
           expiresAt: Date.now() + SEVEN_DAYS_MS,
         }),
 
