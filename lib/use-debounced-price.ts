@@ -53,7 +53,8 @@ export default function useDebouncedPrice(): void {
         s.setQuoteMode(data.quoteMode === true)
         s.setMatchedRouteSlug(data.matchedRouteSlug ?? null)
         s.setDistanceKm(data.distanceKm ?? null)
-      } catch {
+      } catch (err) {
+        console.error('[useDebouncedPrice] price fetch failed:', err)
         const s = useCalculatorStore.getState()
         s.setPriceBreakdown(null)
         s.setQuoteMode(true)
