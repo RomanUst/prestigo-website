@@ -6,13 +6,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // Mock resend before importing the module
 vi.mock('resend', () => {
-  return {
-    Resend: vi.fn().mockImplementation(() => ({
-      emails: {
-        send: vi.fn().mockResolvedValue({ id: 'test-id' }),
-      },
-    })),
+  class MockResend {
+    emails = {
+      send: vi.fn().mockResolvedValue({ id: 'test-id' }),
+    }
   }
+  return { Resend: MockResend }
 })
 
 // Set env var before importing module

@@ -4,28 +4,34 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-// Mock rate limiter — allow by default
-const mockCheckRateLimit = vi.fn().mockResolvedValue({ allowed: true, remaining: 4, limit: 5 })
+const {
+  mockCheckRateLimit,
+  mockInsert,
+  mockFrom,
+  mockSendQuoteEmail,
+  mockFetch,
+} = vi.hoisted(() => {
+  const mockInsert = vi.fn().mockResolvedValue({ error: null })
+  const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert })
+  const mockCheckRateLimit = vi.fn().mockResolvedValue({ allowed: true, remaining: 4, limit: 5 })
+  const mockSendQuoteEmail = vi.fn().mockResolvedValue(undefined)
+  const mockFetch = vi.fn().mockResolvedValue({ ok: true })
+  return { mockCheckRateLimit, mockInsert, mockFrom, mockSendQuoteEmail, mockFetch }
+})
+
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: mockCheckRateLimit,
   getClientIp: () => '127.0.0.1',
 }))
 
-// Mock Supabase service client
-const mockInsert = vi.fn().mockResolvedValue({ error: null })
-const mockFrom = vi.fn().mockReturnValue({ insert: mockInsert })
 vi.mock('@/lib/supabase', () => ({
   createSupabaseServiceClient: vi.fn().mockReturnValue({ from: mockFrom }),
 }))
 
-// Mock email-quote module
-const mockSendQuoteEmail = vi.fn().mockResolvedValue(undefined)
 vi.mock('@/lib/email-quote', () => ({
   sendQuoteEmail: mockSendQuoteEmail,
 }))
 
-// Mock global fetch for CAPI fan-out
-const mockFetch = vi.fn().mockResolvedValue({ ok: true })
 vi.stubGlobal('fetch', mockFetch)
 
 import { POST } from '@/app/api/quote-email/route'

@@ -14,6 +14,7 @@
 const LIMITS: Record<string, number> = {
   '/api/calculate-price':        30, // users recalculate several times while booking
   '/api/submit-quote':            5, // 5 quote submissions per minute is already suspicious
+  '/api/quote-email':             5, // LEAD-03: 5 quote emails per minute per IP
   '/api/submit-multiday-quote':   5, // same as /api/submit-quote — public quote endpoint
   '/api/contact':                 3, // 3 contact form submissions per minute
   '/api/create-payment-intent':  10, // prevent cost abuse and promo-code enumeration
