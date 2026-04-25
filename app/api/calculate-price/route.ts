@@ -276,6 +276,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices, returnDiscountPercent: discountPct, distanceKm, quoteMode: false, matchedRouteSlug: null })
   } catch (error) {
     console.error('calculate-price error:', error)
-    return NextResponse.json({ prices: null, distanceKm: null, quoteMode: true })
+    return NextResponse.json({
+      prices: null,
+      returnLegPrices: null,
+      returnDiscountPercent: null,
+      distanceKm: null,
+      quoteMode: true,
+      matchedRouteSlug: null,
+    })
   }
 }
