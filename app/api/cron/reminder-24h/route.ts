@@ -3,6 +3,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
 import { sendClientReminderEmail, sendDriverReminderEmail, getAcceptedDriver } from '@/lib/email'
 import type { ReminderEmailBooking } from '@/lib/email'
+import { purgeQuoteLeads } from '@/lib/purge-quote-leads'
 
 export const maxDuration = 300
 
@@ -99,5 +100,15 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.json({ ok: true, ...results })
+  // LEAD-04: daily purge of quote_leads rows older than 30 days.
+  // Wrapped in try/catch — a purge failure must not block reminder sends.
+  let purged: number | null = null
+  try {
+    const purgeResult = await purgeQuoteLeads(supabase)
+    purged = purgeResult.deleted
+  } catch (err) {
+    console.error('[reminder-24h] purgeQuoteLeads failed', err)
+  }
+
+  return NextResponse.json({ ok: true, ...results, purged })
 }
