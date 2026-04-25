@@ -16,7 +16,7 @@ export default function ContinueQuoteToast() {
       }, 8000)
       return () => clearTimeout(timer)
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [expiresAt, from, to])
 
   if (!visible || dismissed) return null
 
