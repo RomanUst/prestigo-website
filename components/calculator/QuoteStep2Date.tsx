@@ -106,6 +106,13 @@ export function generateTimeSlots(): string[] {
 
 const TIME_SLOTS = generateTimeSlots()
 
+function toLocalDateString(d: Date): string {
+  const yyyy = d.getFullYear()
+  const mm = String(d.getMonth() + 1).padStart(2, '0')
+  const dd = String(d.getDate()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}`
+}
+
 export default function QuoteStep2Date({ onNext, onBack }: QuoteStepProps) {
   const date = useCalculatorStore((s) => s.date)
   const time = useCalculatorStore((s) => s.time)
@@ -118,7 +125,7 @@ export default function QuoteStep2Date({ onNext, onBack }: QuoteStepProps) {
 
   function handleDateSelect(d: Date | undefined) {
     if (d) {
-      setDate(d.toISOString().slice(0, 10))
+      setDate(toLocalDateString(d))
     } else {
       setDate(null)
     }
@@ -127,7 +134,7 @@ export default function QuoteStep2Date({ onNext, onBack }: QuoteStepProps) {
   // Validate: if today selected, time must be at least 2h from now
   function isTimeValid(): boolean {
     if (!date || !time) return false
-    const todayStr = new Date().toISOString().slice(0, 10)
+    const todayStr = toLocalDateString(new Date())
     if (date !== todayStr) return true
     const now = new Date()
     const minTime = new Date(now.getTime() + 2 * 60 * 60 * 1000)
@@ -140,7 +147,7 @@ export default function QuoteStep2Date({ onNext, onBack }: QuoteStepProps) {
   const showMinPickupError =
     date !== null &&
     time !== null &&
-    date === new Date().toISOString().slice(0, 10) &&
+    date === toLocalDateString(new Date()) &&
     !isTimeValid()
 
   const canProceed = date !== null && time !== null && !showMinPickupError
