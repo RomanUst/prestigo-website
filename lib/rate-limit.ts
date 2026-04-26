@@ -21,6 +21,8 @@ const LIMITS: Record<string, number> = {
   '/api/validate-promo':         20, // prevent promo code enumeration
   '/admin/login':                 5, // prevent brute force on admin credentials
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota
+  '/api/bespoke-quote':           5, // SEG-01: 5 bespoke submissions per minute per IP
+  '/api/corporate-contact':       5, // SEG-02: 5 corporate contact submissions per minute per IP
 }
 
 export interface RateLimitResult {

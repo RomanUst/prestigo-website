@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
-const checkRateLimitMock = vi.fn()
-const sendBespokeEmailsMock = vi.fn()
+const { checkRateLimitMock, sendBespokeEmailsMock } = vi.hoisted(() => ({
+  checkRateLimitMock: vi.fn(),
+  sendBespokeEmailsMock: vi.fn(),
+}))
 
 vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: checkRateLimitMock,
