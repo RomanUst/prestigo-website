@@ -30,7 +30,7 @@ export function EmailQuoteCapture({ quote }: EmailQuoteCaptureProps) {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
-    if (!email || !email.includes('@')) return
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return
     setState('LOADING')
 
     const eventId = crypto.randomUUID()

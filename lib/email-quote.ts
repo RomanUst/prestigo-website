@@ -42,7 +42,9 @@ function buildBookHref(q: QuotePayload): string {
     `&from=${encodeURIComponent(q.from)}` +
     `&to=${encodeURIComponent(q.to)}` +
     `&date=${encodeURIComponent(q.date ?? '')}` +
-    `&class=${encodeURIComponent(q.vehicleClass)}`
+    `&time=${encodeURIComponent(q.time ?? '')}` +
+    `&class=${encodeURIComponent(q.vehicleClass)}` +
+    `&pax=${encodeURIComponent(q.passengers)}`
   )
 }
 
@@ -217,7 +219,7 @@ export async function sendQuoteEmail({
 
   await getResend().emails.send({
     from: 'Prestigo <bookings@rideprestigo.com>',
-    to: 'ustyugov.roman@gmail.com',
+    to: process.env.MANAGER_EMAIL ?? 'ustyugov.roman@gmail.com',
     subject: `[QUOTE LEAD] ${subject}`,
     html,
   })
