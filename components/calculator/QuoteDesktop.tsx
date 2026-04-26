@@ -25,6 +25,8 @@ export default function QuoteDesktop({ onBook = noop, 'data-testid': testId }: Q
   const time = useCalculatorStore((s) => s.time)
   const passengers = useCalculatorStore((s) => s.passengers)
   const serviceType = useCalculatorStore((s) => s.serviceType)
+  const matchedRouteSlug = useCalculatorStore((s) => s.matchedRouteSlug)
+  const distanceKm = useCalculatorStore((s) => s.distanceKm)
 
   return (
     <div
@@ -70,6 +72,8 @@ export default function QuoteDesktop({ onBook = noop, 'data-testid': testId }: Q
           time={time}
           passengers={passengers}
           serviceType={serviceType}
+          matchedRouteSlug={matchedRouteSlug}
+          distanceKm={distanceKm}
         />
       </div>
     </div>

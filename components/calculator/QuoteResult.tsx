@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import type { VehicleClass } from '@/types/booking'
+import { EmailQuoteCapture } from './EmailQuoteCapture'
+import type { QuotePayload } from '@/lib/email-quote'
 
 const VEHICLE_DISPLAY_LABEL: Record<VehicleClass, string> = {
   business: 'Mercedes E-Class Business',
@@ -29,6 +31,8 @@ interface QuoteResultProps {
   time?: string | null
   passengers?: number
   serviceType?: string
+  matchedRouteSlug?: string | null
+  distanceKm?: number | null
 }
 
 export default function QuoteResult({
@@ -42,6 +46,8 @@ export default function QuoteResult({
   time = null,
   passengers = 1,
   serviceType = 'transfer',
+  matchedRouteSlug = null,
+  distanceKm = null,
 }: QuoteResultProps) {
   const [breakdownOpen, setBreakdownOpen] = useState(false)
 
@@ -243,6 +249,24 @@ export default function QuoteResult({
       >
         BOOK NOW — PAY ONLINE
       </a>
+
+      {/* Email quote capture — lead capture CTA */}
+      {vehicleClass && (
+        <EmailQuoteCapture
+          quote={{
+            from: from?.address ?? '',
+            to: to?.address ?? '',
+            serviceType: serviceType as QuotePayload['serviceType'],
+            date: date ?? null,
+            time: time ?? null,
+            vehicleClass: vehicleClass,
+            passengers,
+            price: total,
+            routeSlug: matchedRouteSlug ?? null,
+            distanceKm: distanceKm ?? null,
+          }}
+        />
+      )}
 
       {/* First Class bespoke link */}
       {vehicleClass === 'first_class' && (
