@@ -80,7 +80,7 @@ export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Pro
     }
   }
 
-  const active = reviews[activeIndex]
+  const active = reviews[activeIndex % len] ?? reviews[0]
 
   return (
     <div
@@ -96,7 +96,7 @@ export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Pro
       </div>
 
       {len > 1 && (
-        <div className="flex justify-center mt-8" role="tablist" aria-label="Testimonial pagination">
+        <div className="flex justify-center mt-8" aria-label="Testimonial pagination">
           {reviews.map((_, i) => {
             const isActive = i === activeIndex
             return (
