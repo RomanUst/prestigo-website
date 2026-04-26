@@ -14,15 +14,13 @@
 const LIMITS: Record<string, number> = {
   '/api/calculate-price':        30, // users recalculate several times while booking
   '/api/submit-quote':            5, // 5 quote submissions per minute is already suspicious
-  '/api/quote-email':             5, // LEAD-03: 5 quote emails per minute per IP
   '/api/submit-multiday-quote':   5, // same as /api/submit-quote — public quote endpoint
   '/api/contact':                 3, // 3 contact form submissions per minute
   '/api/create-payment-intent':  10, // prevent cost abuse and promo-code enumeration
   '/api/validate-promo':         20, // prevent promo code enumeration
   '/admin/login':                 5, // prevent brute force on admin credentials
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota
-  '/api/bespoke-quote':           5, // SEG-01: 5 bespoke submissions per minute per IP
-  '/api/corporate-contact':       5, // SEG-02: 5 corporate contact submissions per minute per IP
+  '/api/corporate-contact':       5, // 5 corporate enquiries per minute per IP
 }
 
 export interface RateLimitResult {

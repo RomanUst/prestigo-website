@@ -7,10 +7,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 
-type FormState = 'idle' | 'sending' | 'success'
-
-const WHATSAPP_NUMBER = '420725986855'
-
+type FormState = 'idle' | 'sending' | 'success' | 'error'
 
 const corporateFaqs = [
   {
@@ -120,23 +117,36 @@ const corporateSchemaGraph = {
 }
 
 export default function CorporatePage() {
-  const [form, setForm] = useState({ company: '', name: '', email: '', trips: '', notes: '' })
+  const [form, setForm] = useState({ company: '', name: '', email: '', trips: '', notes: '', website: '' })
   const [state, setState] = useState<FormState>('idle')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }))
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setState('sending')
-    const msg = encodeURIComponent(
-      `Hello PRESTIGO,\n\nCorporate Account Request:\nCompany: ${form.company}\nContact: ${form.name}\nEmail: ${form.email}\nEstimated monthly trips: ${form.trips || '—'}\nNotes: ${form.notes || '—'}`
-    )
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, '_blank')
-    setTimeout(() => {
-      setState('success')
-      setForm({ company: '', name: '', email: '', trips: '', notes: '' })
-    }, 400)
+    setErrorMessage(null)
+    try {
+      const res = await fetch('/api/corporate-contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      })
+      if (res.ok) {
+        setState('success')
+        setForm({ company: '', name: '', email: '', trips: '', notes: '', website: '' })
+        return
+      }
+      if (res.status === 429) setErrorMessage('Too many requests, please try again in a minute')
+      else if (res.status === 400) setErrorMessage('Please check your input and try again')
+      else setErrorMessage('Something went wrong — please try again later')
+      setState('error')
+    } catch {
+      setErrorMessage('Something went wrong — please try again later')
+      setState('error')
+    }
   }
 
   const inputClass = 'w-full bg-anthracite-mid border border-anthracite-light px-4 py-3.5 font-body font-light text-[12px] text-offwhite placeholder-warmgrey/60 tracking-wide focus:outline-none focus:border-copper/60 transition-colors'
@@ -255,15 +265,15 @@ export default function CorporatePage() {
       {/* Who uses corporate accounts */}
       <section className="bg-anthracite py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
-          <Reveal variant="up">
-          <div className="md:col-span-2">
+          <Reveal variant="up" className="md:col-span-2">
+          <div>
             <p className="label mb-6">Who uses a PRESTIGO corporate account</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Built for the firms <span className="display-italic">Prague works with.</span></h2>
           </div>
           </Reveal>
-          <Reveal variant="up" delay={150}>
-          <div className="md:col-span-3 flex flex-col gap-5">
+          <Reveal variant="up" delay={150} className="md:col-span-3 flex flex-col gap-5">
+          <div>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Our corporate clients are the law firms, consulting practices, investment houses, embassies, global employers, and event agencies that move people through Prague on a weekly basis. A typical account might book two or three airport runs on a Monday morning, a half-day roadshow for a visiting executive mid-week, and an evening dinner transfer on Friday — all without a single phone call, approval chain, or per-trip invoice.
             </p>
@@ -367,8 +377,8 @@ export default function CorporatePage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
 
           {/* Testimonial */}
-          <Reveal variant="up">
-          <div className="md:col-span-2 flex flex-col justify-center">
+          <Reveal variant="up" className="md:col-span-2 flex flex-col justify-center">
+          <div>
             <span className="copper-line mb-8 block" />
             <blockquote className="font-display font-light italic text-[22px] md:text-[26px] text-offwhite leading-[1.5]">
               "Three managing directors, two airports, one invoice. PRESTIGO made it simple."
@@ -378,8 +388,8 @@ export default function CorporatePage() {
           </Reveal>
 
           {/* Form */}
-          <Reveal variant="up" delay={150}>
-          <div className="md:col-span-3">
+          <Reveal variant="up" delay={150} className="md:col-span-3">
+          <div>
             {state === 'success' ? (
               <div className="border border-anthracite-light p-10 flex flex-col gap-6">
                 <span className="w-10 h-10 rounded-full border border-copper/40 flex items-center justify-center">
@@ -431,6 +441,11 @@ export default function CorporatePage() {
                   <label htmlFor="notes" className={labelClass}>Notes</label>
                   <textarea id="notes" rows={4} value={form.notes} onChange={set('notes')} placeholder="Preferred vehicles, recurring routes, special requirements…" className={`${inputClass} resize-none`} />
                 </div>
+                {/* Honeypot — hidden from real users */}
+                <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1 }} aria-hidden="true" />
+                {state === 'error' && errorMessage && (
+                  <div className="border border-anthracite-light p-4 mb-4" style={{ color: 'var(--copper)' }}>{errorMessage}</div>
+                )}
                 <button type="submit" disabled={state === 'sending'} className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed self-start">
                   {state === 'sending' ? 'Sending…' : 'Submit Request'}
                 </button>
