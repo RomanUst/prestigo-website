@@ -16,7 +16,6 @@ import Routes from '@/components/Routes'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import HourlyDailyStrip from '@/components/pricing/HourlyDailyStrip'
 
 // Canonical and openGraph URL are both set to the exact form the server
 // actually returns (no trailing slash, matching next.config behaviour) so
@@ -189,8 +188,6 @@ export default async function Home() {
       <Services airportPrice={heroPrice} hourlyFrom={hourlyFrom} cheapestIntercity={cheapestIntercity} />
       <Divider />
       <Fleet />
-      <Divider />
-      <HourlyDailyStrip hourlyRate={hourlyRate} />
       <Divider />
       <Routes routes={featuredRoutes} />
       <Divider />
