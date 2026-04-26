@@ -54,5 +54,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/privacy', 'app/privacy/page.tsx'),
     entry('/terms', 'app/terms/page.tsx'),
     entry('/calculator', 'app/calculator/page.tsx'),
+    entry('/calculator/bespoke', 'app/calculator/bespoke/page.tsx'),
   ]
 }
