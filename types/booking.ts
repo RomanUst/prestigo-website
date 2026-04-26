@@ -15,6 +15,8 @@ export interface Stop {
 
 export type VehicleClass = 'business' | 'first_class' | 'business_van'
 
+export type BookingSource = 'online' | 'manual' | 'gnet'
+
 export interface PassengerDetails {
   firstName: string
   lastName: string
