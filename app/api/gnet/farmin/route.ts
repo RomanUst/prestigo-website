@@ -10,6 +10,7 @@ import { findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
 import { mapGnetVehicle } from '@/lib/gnet-vehicle-map'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { eurToCzk } from '@/lib/currency'
 import type { VehicleClass } from '@/types/booking'
 
 export const runtime = 'nodejs'
@@ -146,7 +147,7 @@ export async function POST(req: Request): Promise<Response> {
   const supabase = createSupabaseServiceClient()
   const bookingReference = generateBookingReference()
   const amountEur = price
-  const amountCzk = Math.round(price * 25) // TODO: use eurToCzk() helper once exported from lib/currency
+  const amountCzk = eurToCzk(price)
 
   // Step 1: Insert bookings row (booking_id NOT NULL in gnet_bookings requires this first)
   const bookingsRow = {
