@@ -236,7 +236,7 @@ describe('POST /api/gnet/farmin business failures (FARMIN-08)', () => {
  *   .from(table).delete().eq(...)
  */
 function buildSupabaseMock(opts: {
-  bookingsInsertResult?: { data: { id: string; booking_reference: string }[] | null; error: unknown };
+  bookingsInsertResult?: { data: { id: string; booking_reference: string } | null; error: unknown };
   gnetUpsertResult?:    { data: { id: string; booking_id: string }[] | null; error: unknown };
   gnetSelectExisting?:  { data: { id: string; booking_id: string } | null; error: unknown };
   bookingsSelectByPk?:  { data: { booking_reference: string } | null; error: unknown };
@@ -270,9 +270,12 @@ function buildSupabaseMock(opts: {
           }),
         }
       },
-      delete: () => ({
-        eq: async () => ({ error: null }),
-      }),
+      delete: () => {
+        calls.push({ table, op: 'delete', args: [] })
+        return {
+          eq: async () => ({ error: null }),
+        }
+      },
     }
     return chain
   }
@@ -284,7 +287,7 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
   it('valid BOOKING creates bookings row + gnet_bookings row (FARMIN-01)', async () => {
     mockFindRoute.mockResolvedValue(fakeRoute)
     const { calls } = buildSupabaseMock({
-      bookingsInsertResult: { data: [{ id: 'booking-uuid-1', booking_reference: 'PRG-20260510-ABC123' }], error: null },
+      bookingsInsertResult: { data: { id: 'booking-uuid-1', booking_reference: 'PRG-20260510-ABC123' }, error: null },
       gnetUpsertResult:     { data: [{ id: 'gnet-uuid-1', booking_id: 'booking-uuid-1' }], error: null },
     })
 
@@ -318,9 +321,16 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
 
   it('duplicate transaction_id returns existing reservationId, no new rows (FARMIN-06)', async () => {
     mockFindRoute.mockResolvedValue(fakeRoute)
+    // Deviation (Rule 1 - Bug): gnet_bookings.booking_id is NOT NULL per migration 039,
+    // so INSERT-first strategy is required (bookings row inserted before gnet_bookings upsert).
+    // On duplicate: orphan bookings row is cleaned up via DELETE. The test verifies:
+    //   1. bookings.insert IS called (unavoidable with NOT NULL FK)
+    //   2. gnet_bookings upsert returns [] → duplicate signal
+    //   3. orphan DELETE is called for the newly-inserted booking
+    //   4. existing reservationId is returned (not the new orphan reference)
     const { calls } = buildSupabaseMock({
-      // First insert succeeds (won't be reached for the bookings row in dup case — see assertion below)
-      bookingsInsertResult: { data: null, error: 'should not be called on duplicate' },
+      // Orphan bookings row created in Step 1 (will be deleted after duplicate detected)
+      bookingsInsertResult: { data: { id: 'orphan-booking-uuid', booking_reference: 'PRG-ORPHAN-REF' }, error: null },
       // Upsert returns empty array → duplicate signal
       gnetUpsertResult:     { data: [], error: null },
       // Existing row lookup
@@ -333,12 +343,16 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(true)
+    // Must return the EXISTING reservationId, not the orphan
     expect(body.reservationId).toBe('PRG-20260101-EXIST1')
 
-    // CRITICAL: bookings.insert MUST NOT be called on duplicate path.
-    // The order is: upsert gnet_bookings first → if [] then SELECT existing → return existing.
-    // bookings insert only happens for NEW transaction_ids.
-    const bookingsInserts = calls.filter(c => c.table === 'bookings' && c.op === 'insert')
-    expect(bookingsInserts.length).toBe(0)
+    // Orphan bookings row must be deleted (cleanup after duplicate detected)
+    const deleteCalls = calls.filter(c => c.table === 'bookings' && c.op === 'delete')
+    expect(deleteCalls.length).toBeGreaterThanOrEqual(1)
+
+    // gnet_bookings upsert must have been called with ignoreDuplicates
+    const gnetUpsert = calls.find(c => c.table === 'gnet_bookings' && c.op === 'upsert')
+    expect(gnetUpsert).toBeDefined()
+    expect(gnetUpsert!.args[1]).toMatchObject({ onConflict: 'transaction_id', ignoreDuplicates: true })
   })
 })
