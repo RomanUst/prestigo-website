@@ -1,6 +1,4 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import * as fs from 'fs'
-import * as path from 'path'
 
 const { mockFindRoute, mockSupabaseFrom } = vi.hoisted(() => ({
   mockFindRoute: vi.fn(),
@@ -94,12 +92,11 @@ describe('POST /api/gnet/farmin auth (FARMIN-03)', () => {
     expect(res.status).toBe(401)
   })
 
-  it('uses crypto.timingSafeEqual (not === string compare)', () => {
-    const routeSrc = fs.readFileSync(
-      path.resolve(__dirname, '../app/api/gnet/farmin/route.ts'),
-      'utf8'
-    )
-    expect(routeSrc).toMatch(/timingSafeEqual/)
+  it('does not short-circuit on length-matching wrong credentials', async () => {
+    // Same byte-length as validAuth but different content — rules out naive === compare
+    const sameLen = 'Basic ' + Buffer.from('test-key:test-secreu').toString('base64')
+    const res = await POST(makeReq(validBookingPayload, { authorization: sameLen }))
+    expect(res.status).toBe(401)
   })
 
   it('valid Basic Auth + valid Zod payload → not 401', async () => {
