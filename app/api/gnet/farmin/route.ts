@@ -12,6 +12,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { eurToCzk } from '@/lib/currency'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { computeOutboundLegTotal } from '@/lib/server-pricing'
+import { readEnv } from '@/lib/env'
 import type { VehicleClass } from '@/types/booking'
 
 export const runtime = 'nodejs'
@@ -133,7 +134,7 @@ async function googleRoutesDistanceKm(
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number },
 ): Promise<number | null> {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
+  const apiKey = readEnv('GOOGLE_MAPS_API_KEY')
   if (!apiKey) {
     console.error('[gnet-farmin] GOOGLE_MAPS_API_KEY not configured')
     return null

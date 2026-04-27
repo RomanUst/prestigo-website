@@ -206,7 +206,9 @@ export async function POST(req: Request) {
     }
 
     // Google Routes API for distance
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
+    // .replace(/\\n$/, '').trim() defends against Vercel env values that
+    // were saved with a trailing literal "\n" (backslash + n) suffix.
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY?.replace(/\\n$/, '').trim()
     if (!apiKey) {
       console.error('GOOGLE_MAPS_API_KEY not configured')
       return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })
