@@ -42,6 +42,27 @@ const validBookingPayload = {
   pickupTime: '14:30',
 }
 
+const validQuotePayload = {
+  reservationType: 'QUOTE' as const,
+  providerId: 'PRESTIGO-PROVIDER-ID',
+  transactionId: 'tx-quote-001',
+  vehicleType: 'SEDAN',
+  pickupPlaceId: 'ChIJplace_origin',
+  dropoffPlaceId: 'ChIJplace_dest',
+}
+
+const fakeRoute = {
+  slug: 'prague-berlin',
+  fromLabel: 'Prague',
+  toLabel: 'Berlin',
+  distanceKm: 350,
+  eClassEur: 95,
+  sClassEur: 145,
+  vClassEur: 175,
+  displayOrder: 1,
+  placeIds: ['ChIJplace_origin', 'ChIJplace_dest'],
+}
+
 beforeEach(() => {
   mockFindRoute.mockReset()
   mockSupabaseFrom.mockReset()
@@ -129,21 +150,82 @@ describe('POST /api/gnet/farmin body-size guard', () => {
 })
 
 describe('POST /api/gnet/farmin providerId (FARMIN-04)', () => {
-  it.todo('returns 200 { success:false, message } when providerId does not match GNET_GRIDDID')
+  it('unknown providerId → 200 { success:false }', async () => {
+    const res = await POST(makeReq({ ...validQuotePayload, providerId: 'WRONG' }, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(false)
+    expect(body.message).toBeTruthy()
+    expect(mockFindRoute).not.toHaveBeenCalled()
+  })
 })
 
 describe('POST /api/gnet/farmin QUOTE (FARMIN-05, FARMIN-07, FARMIN-09)', () => {
-  it.todo('returns price from route_prices for QUOTE without writing to DB')
-  it.todo('response has exactly { success, reservationId, totalAmount, transactionId }')
-  it.todo('totalAmount is string with 2 decimals')
-  it.todo('uses eClassEur for vehicleClass=business')
-  it.todo('uses sClassEur for vehicleClass=first_class')
-  it.todo('uses vClassEur for vehicleClass=business_van')
+  it('QUOTE happy path returns price, no DB writes', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.totalAmount).toBe('95.00')
+    expect(body.transactionId).toBe('tx-quote-001')
+    expect(body.reservationId).toMatch(/^PRG-\d{8}-[A-F0-9]{6}$/)
+    expect(mockSupabaseFrom).not.toHaveBeenCalled()
+  })
+
+  it('response has exactly { success, reservationId, totalAmount, transactionId }', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
+    const body = await res.json()
+    expect(Object.keys(body).sort()).toEqual(['reservationId', 'success', 'totalAmount', 'transactionId'])
+  })
+
+  it('totalAmount is string with 2 decimals', async () => {
+    mockFindRoute.mockResolvedValue({ ...fakeRoute, eClassEur: 99.5 })
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
+    const body = await res.json()
+    expect(body.totalAmount).toBe('99.50')
+  })
+
+  it('uses eClassEur for vehicleClass=business (SEDAN)', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'SEDAN' }, { authorization: validAuth }))
+    const body = await res.json()
+    expect(body.totalAmount).toBe('95.00')
+  })
+
+  it('uses sClassEur for vehicleClass=first_class (EXECUTIVE)', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'EXECUTIVE' }, { authorization: validAuth }))
+    const body = await res.json()
+    expect(body.totalAmount).toBe('145.00')
+  })
+
+  it('uses vClassEur for vehicleClass=business_van (VAN)', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'VAN' }, { authorization: validAuth }))
+    const body = await res.json()
+    expect(body.totalAmount).toBe('175.00')
+  })
 })
 
 describe('POST /api/gnet/farmin business failures (FARMIN-08)', () => {
-  it.todo('unknown route → 200 { success:false, message }')
-  it.todo('unknown vehicle type → 200 { success:false, message }')
+  it('unknown route → 200 { success:false, message }', async () => {
+    mockFindRoute.mockResolvedValue(null)
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(false)
+    expect(body.message).toBeTruthy()
+  })
+
+  it('unknown vehicle type → 200 { success:false, message }', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'TRUCK' }, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(false)
+  })
 })
 
 describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', () => {
