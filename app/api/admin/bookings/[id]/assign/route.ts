@@ -87,27 +87,10 @@ export async function POST(
     return NextResponse.json({ error: 'Failed to create assignment' }, { status: 500 })
   }
 
-  // 5b-bis: Read current booking status+source for driver_id update (non-blocking post-insert).
-  // Separate fetch so that insert always completes before status-dependent logic.
-  // If this fetch fails, log the error and skip status update — assignment is already recorded.
-  let previousStatus: string | null = null
-  let bookingSource: string | null = null
-
-  const { data: bookingStatus, error: bookingStatusError } = await supabase
-    .from('bookings')
-    .select('status, booking_source')
-    .eq('id', bookingId)
-    .single()
-
-  if (bookingStatusError || !bookingStatus) {
-    console.error('[assign] bookings fetch failed:', bookingStatusError?.message ?? 'no data')
-  } else {
-    previousStatus = bookingStatus.status as string
-    bookingSource = bookingStatus.booking_source as string
-  }
-
   // 5c-bis: Update bookings.driver_id (+ status if first assign) per D-04 + D-07
-  // Only runs if the status read above succeeded.
+  // Use status and booking_source already fetched in 5b — no second round-trip needed.
+  const previousStatus: string | null = booking.status as string
+  const bookingSource: string | null = booking.booking_source as string
   const isFirstAssign = previousStatus !== null && previousStatus !== 'assigned'
   const canTransitionToAssigned =
     isFirstAssign && (VALID_TRANSITIONS[previousStatus ?? '']?.includes('assigned') ?? false)
