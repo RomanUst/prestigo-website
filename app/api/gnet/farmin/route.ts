@@ -1,15 +1,17 @@
 // Phase 49: GNet Farm In webhook endpoint.
-// Schema updated to match actual GNet payload format (griddID, preferredVehicleType,
-// nested locations with lat/lon — NOT the originally assumed pickupPlaceId schema).
+// Pricing uses the SAME engine as /api/calculate-price:
+//   distanceKm × ratePerKm (admin-configured) + airport fee + night/holiday coefficients + minFare clamp.
+// Distance comes from Google Routes API.
 
 import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
-import { getAllRoutes, getRoutePrice, type RoutePrice } from '@/lib/route-prices'
 import { mapGnetVehicle } from '@/lib/gnet-vehicle-map'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { eurToCzk } from '@/lib/currency'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { computeOutboundLegTotal } from '@/lib/server-pricing'
 import type { VehicleClass } from '@/types/booking'
 
 export const runtime = 'nodejs'
@@ -17,80 +19,10 @@ export const dynamic = 'force-dynamic'
 
 const MAX_BODY_BYTES = 50_000
 
-// ── Destination coordinate lookup (used when place_ids are unpopulated) ────
-// Each entry: [lat, lon, slug-suffix-after-"prague-"]
-const DEST_COORDS: Array<[number, number, string]> = [
-  [49.95,  15.27, 'kutna-hora'],
-  [49.74,  13.37, 'plzen'],
-  [50.04,  15.78, 'pardubice'],
-  [50.21,  15.83, 'hradec-kralove'],
-  [50.77,  15.06, 'liberec'],
-  [50.23,  12.87, 'karlovy-vary'],
-  [49.97,  12.70, 'marianske-lazne'],
-  [50.12,  12.35, 'frantiskovy-lazne'],
-  [48.81,  14.32, 'cesky-krumlov'],
-  [48.97,  14.47, 'ceske-budejovice'],
-  [49.19,  16.61, 'brno'],
-  [49.59,  17.25, 'olomouc'],
-  [49.22,  17.66, 'zlin'],
-  [49.82,  18.27, 'ostrava'],
-  [51.05,  13.74, 'dresden'],
-  [51.34,  12.38, 'leipzig'],
-  [48.57,  13.46, 'passau'],
-  [50.98,  11.03, 'erfurt'],
-  [49.02,  12.10, 'regensburg'],
-  [49.45,  11.08, 'nuremberg'],
-  [48.14,  17.11, 'bratislava'],
-  [48.20,  16.37, 'vienna'],
-  [50.09,  14.42, 'prague'], // Prague city center (for reverse trips)
-]
-
-function haversineKm(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371
-  const dLat = (lat2 - lat1) * Math.PI / 180
-  const dLon = (lon2 - lon1) * Math.PI / 180
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLon / 2) ** 2
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-}
-
-async function findRouteForGnet(
-  dropoffLat: number,
-  dropoffLon: number,
-): Promise<RoutePrice | null> {
-  if (!dropoffLat || !dropoffLon) return null
-
-  // 1. Try coordinate proximity (within 20 km of known city)
-  let bestSuffix: string | null = null
-  let bestDist = Infinity
-  for (const [cityLat, cityLon, suffix] of DEST_COORDS) {
-    const d = haversineKm(dropoffLat, dropoffLon, cityLat, cityLon)
-    if (d < bestDist && d < 20) {
-      bestDist = d
-      bestSuffix = suffix
-    }
-  }
-
-  if (bestSuffix) {
-    const slug = bestSuffix === 'prague' ? null : `prague-${bestSuffix}`
-    if (slug) {
-      const r = await getRoutePrice(slug)
-      if (r) return r
-    }
-  }
-
-  // 2. Fallback: label-based scan (if any routes still carry place_ids or have matching labels)
-  const all = await getAllRoutes()
-  const match = all.find((r) => {
-    if (r.placeIds.length >= 2) return false // will never be reached until place_ids filled
-    // Simple distance from Prague to our destination cities already handled above
-    return false
-  })
-  return match ?? null
-}
+// Prague Václav Havel Airport (PRG) — used when pickup or dropoff is an airport
+// without lat/lon in the GNet payload (typical for IATA-only entries).
+const PRG_LAT = 50.1008
+const PRG_LNG = 14.26
 
 // ── Zod schemas (actual GNet payload format) ───────────────────────────────
 const GnetLocationSchema = z
@@ -104,7 +36,7 @@ const GnetLocationSchema = z
     state:    z.string().optional(),
     zipCode:  z.string().optional(),
     landmark: z.string().optional(),
-    time:     z.string().optional(), // pickup ISO datetime "2026-04-28T10:00:00"
+    time:     z.string().optional(),
     flightInfo: z
       .object({
         airlineCode:  z.string().optional(),
@@ -125,7 +57,7 @@ const GnetPassengerSchema = z
 
 export const GnetPayloadSchema = z
   .object({
-    griddID:              z.string().min(1).max(200),  // Our provider GRiDD ID
+    griddID:              z.string().min(1).max(200),
     transactionId:        z.string().min(1).max(200),
     preferredVehicleType: z.string().min(1).max(50),
     locations: z.object({
@@ -134,10 +66,10 @@ export const GnetPayloadSchema = z
     }),
     passengerCount: z.union([z.string(), z.number()]).optional(),
     passengers:     z.array(GnetPassengerSchema).optional(),
-    reservationType: z.string().optional(), // "REGULAR", "QUOTE", etc.
+    reservationType: z.string().optional(),
     affiliateReservation: z
       .object({
-        requesterResNo: z.string().optional(), // GNet reservation number
+        requesterResNo: z.string().optional(),
         providerResNo:  z.string().optional(),
         requesterId:    z.string().optional(),
         providerId:     z.string().optional(),
@@ -171,19 +103,72 @@ function businessFailure(message: string): Response {
   return Response.json({ success: false, message }, { status: 200 })
 }
 
-function priceForClass(route: RoutePrice, vClass: VehicleClass): number {
-  switch (vClass) {
-    case 'business':     return route.eClassEur
-    case 'first_class':  return route.sClassEur
-    case 'business_van': return route.vClassEur
-  }
-}
-
 function parsePickupDateTime(isoStr: string): { date: string; time: string } | null {
-  // Expect "2026-04-28T10:00:00" or similar ISO format
   const match = isoStr.match(/^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})/)
   if (!match) return null
   return { date: match[1], time: match[2] }
+}
+
+function resolveCoords(
+  loc: { lat?: string; lon?: string; locationType?: string; address?: string },
+): { lat: number; lng: number } | null {
+  // Airport without lat/lon → assume PRG (Prestigo only operates from PRG anyway).
+  if (loc.locationType === 'airport') {
+    if (loc.lat && loc.lon) {
+      const lat = parseFloat(loc.lat)
+      const lng = parseFloat(loc.lon)
+      if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng }
+    }
+    return { lat: PRG_LAT, lng: PRG_LNG }
+  }
+  if (loc.lat && loc.lon) {
+    const lat = parseFloat(loc.lat)
+    const lng = parseFloat(loc.lon)
+    if (Number.isFinite(lat) && Number.isFinite(lng)) return { lat, lng }
+  }
+  return null
+}
+
+async function googleRoutesDistanceKm(
+  origin: { lat: number; lng: number },
+  destination: { lat: number; lng: number },
+): Promise<number | null> {
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+  if (!apiKey) {
+    console.error('[gnet-farmin] GOOGLE_MAPS_API_KEY not configured')
+    return null
+  }
+  try {
+    const res = await fetch('https://routes.googleapis.com/directions/v2:computeRoutes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': apiKey,
+        'X-Goog-FieldMask': 'routes.distanceMeters',
+        'Referer': 'https://rideprestigo.com',
+      },
+      body: JSON.stringify({
+        origin:      { location: { latLng: { latitude: origin.lat,      longitude: origin.lng } } },
+        destination: { location: { latLng: { latitude: destination.lat, longitude: destination.lng } } },
+        travelMode:  'DRIVE',
+      }),
+    })
+    if (!res.ok) {
+      const errBody = await res.text()
+      console.error('[gnet-farmin] Google Routes error:', res.status, errBody)
+      return null
+    }
+    const data = await res.json()
+    const meters = data?.routes?.[0]?.distanceMeters
+    if (!Number.isFinite(meters) || meters <= 0) {
+      console.error('[gnet-farmin] No distanceMeters in Google Routes response')
+      return null
+    }
+    return meters / 1000
+  } catch (err) {
+    console.error('[gnet-farmin] Google Routes fetch failed:', err)
+    return null
+  }
 }
 
 // ── Handlers ───────────────────────────────────────────────────────────────
@@ -216,13 +201,13 @@ export async function POST(req: Request): Promise<Response> {
     return businessFailure('Invalid payload schema')
   }
 
-  // 5. griddID verification (our provider ID)
+  // 5. griddID verification
   if (parsed.data.griddID !== process.env.GNET_GRIDDID?.trim()) {
     return businessFailure('Unknown griddID')
   }
 
   // 6. Vehicle type mapping
-  const vehicleClass = mapGnetVehicle(parsed.data.preferredVehicleType)
+  const vehicleClass: VehicleClass | null = mapGnetVehicle(parsed.data.preferredVehicleType)
   if (!vehicleClass) {
     return businessFailure('Unknown vehicle type')
   }
@@ -237,18 +222,44 @@ export async function POST(req: Request): Promise<Response> {
     return businessFailure('Invalid pickup time format')
   }
 
-  // 8. Route lookup using dropoff coordinates
-  const dropoffLat = parseFloat(parsed.data.locations.dropOff.lat ?? '0')
-  const dropoffLon = parseFloat(parsed.data.locations.dropOff.lon ?? '0')
-  const route = await findRouteForGnet(dropoffLat, dropoffLon)
-  if (!route) {
-    return businessFailure('Route not found')
+  // 8. Resolve pickup + dropoff coords
+  const originCoords = resolveCoords(parsed.data.locations.pickup)
+  const destCoords   = resolveCoords(parsed.data.locations.dropOff)
+  if (!originCoords) return businessFailure('Cannot resolve pickup coordinates')
+  if (!destCoords)   return businessFailure('Cannot resolve dropoff coordinates')
+
+  // 9. Distance via Google Routes API
+  const distanceKm = await googleRoutesDistanceKm(originCoords, destCoords)
+  if (distanceKm === null) {
+    return businessFailure('Distance calculation failed')
   }
 
-  // 9. Price selection
-  const price = priceForClass(route, vehicleClass)
+  // 10. Load admin-configured pricing
+  let rates
+  try {
+    rates = await getPricingConfig()
+  } catch (err) {
+    console.error('[gnet-farmin] getPricingConfig failed:', err)
+    return businessFailure('Pricing config unavailable')
+  }
 
-  // 10. QUOTE branch — no DB writes
+  // 11. Compute price using the same engine as /api/calculate-price
+  const isAirport =
+    parsed.data.locations.pickup.locationType === 'airport' ||
+    parsed.data.locations.dropOff.locationType === 'airport'
+  const price = computeOutboundLegTotal(
+    vehicleClass,
+    distanceKm,
+    0,
+    0,
+    'transfer',
+    dt.date,
+    dt.time,
+    isAirport,
+    rates,
+  )
+
+  // 12. QUOTE branch — no DB writes
   if (parsed.data.reservationType?.toUpperCase() === 'QUOTE') {
     return Response.json(
       {
@@ -261,7 +272,7 @@ export async function POST(req: Request): Promise<Response> {
     )
   }
 
-  // 11. BOOKING branch — dual insert with transaction_id idempotency
+  // 13. BOOKING branch — dual insert with transaction_id idempotency
   const supabase = createSupabaseServiceClient()
   const bookingReference = generateBookingReference()
   const amountEur = price
@@ -277,6 +288,11 @@ export async function POST(req: Request): Promise<Response> {
     parsed.data.affiliateReservation?.requesterResNo ??
     parsed.data.transactionId
 
+  const originAddress =
+    parsed.data.locations.pickup.address ?? parsed.data.locations.pickup.landmark ?? 'Unknown pickup'
+  const destinationAddress =
+    parsed.data.locations.dropOff.address ?? parsed.data.locations.dropOff.landmark ?? 'Unknown dropoff'
+
   const bookingsRow = {
     booking_reference:   bookingReference,
     booking_type:        'confirmed',
@@ -289,11 +305,11 @@ export async function POST(req: Request): Promise<Response> {
     pickup_date:         dt.date,
     pickup_time:         dt.time,
     vehicle_class:       vehicleClass,
-    distance_km:         route.distanceKm,
+    distance_km:         Math.round(distanceKm * 10) / 10,
     amount_eur:          amountEur,
     amount_czk:          amountCzk,
-    origin_address:      route.fromLabel,
-    destination_address: route.toLabel,
+    origin_address:      originAddress,
+    destination_address: destinationAddress,
     client_first_name:   firstPassenger?.firstName ?? 'GNet',
     client_last_name:    firstPassenger?.lastName ?? 'Partner',
     client_email:        firstPassenger?.email || 'noreply@gnet.local',
