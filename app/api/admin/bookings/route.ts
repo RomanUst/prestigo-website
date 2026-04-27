@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse, after } from 'next/server'
+import { pushGnetStatus, prestigoToGnetStatus } from '@/lib/gnet-client'
 import { z } from 'zod'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { eurToCzk } from '@/lib/currency'
@@ -189,6 +190,59 @@ export async function PATCH(request: Request) {
     if (previousStatus !== parsed.data.status && parsed.data.status === 'confirmed') {
       if (current.pickup_utc) {
         after(() => scheduleQStashReminder(current.id, new Date(current.pickup_utc).getTime()))
+      }
+    }
+
+    // Phase 50 — GNet status push (STATUS-01, STATUS-02, STATUS-03, STATUS-04)
+    // Fire-and-forget per D-04; guarded by booking_source per D-03; mapping per D-01.
+    if (
+      current.booking_source === 'gnet' &&
+      previousStatus !== parsed.data.status
+    ) {
+      const gnetStatus = prestigoToGnetStatus(parsed.data.status)
+      if (gnetStatus) {
+        after(async () => {
+          // D-05: use service client inside after() — session client may be gone
+          const svcSupabase = createSupabaseServiceClient()
+
+          // D-02: separate query (not a JOIN) — surgical, isolated
+          const { data: gnetRow } = await svcSupabase
+            .from('gnet_bookings')
+            .select('id, gnet_res_no')
+            .eq('booking_id', current.id)
+            .single()
+
+          if (!gnetRow) {
+            // booking_source === 'gnet' but no gnet_bookings row — log and exit
+            console.error('[gnet-status-push] no gnet_bookings row for', current.id)
+            return
+          }
+
+          // STATUS-01: push the mapped status
+          let pushError: string | null = null
+          try {
+            await pushGnetStatus(gnetRow.gnet_res_no, gnetStatus)
+          } catch (err) {
+            // STATUS-02: never block admin — swallow and log
+            pushError = err instanceof Error ? err.message : String(err)
+            console.error('[gnet-status-push] failed', {
+              bookingId: current.id,
+              gnetResNo: gnetRow.gnet_res_no,
+              gnetStatus,
+              error: pushError,
+            })
+          }
+
+          // STATUS-03 + D-05: log outcome regardless of success/failure
+          await svcSupabase
+            .from('gnet_bookings')
+            .update({
+              last_push_status: gnetStatus,
+              last_push_error: pushError,
+              last_pushed_at: new Date().toISOString(),
+            })
+            .eq('id', gnetRow.id)
+        })
       }
     }
 
