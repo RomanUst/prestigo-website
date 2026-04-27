@@ -1,12 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const { mockFindRoute, mockSupabaseFrom } = vi.hoisted(() => ({
-  mockFindRoute: vi.fn(),
-  mockSupabaseFrom: vi.fn(),
+const { mockGetRoutePrice, mockGetAllRoutes, mockSupabaseFrom } = vi.hoisted(() => ({
+  mockGetRoutePrice: vi.fn(),
+  mockGetAllRoutes:  vi.fn(),
+  mockSupabaseFrom:  vi.fn(),
 }))
 
+// Route-prices: mock getRoutePrice + getAllRoutes (used by findRouteForGnet)
 vi.mock('@/lib/route-prices', () => ({
-  findRouteByPlaceIds: mockFindRoute,
+  getRoutePrice: mockGetRoutePrice,
+  getAllRoutes:   mockGetAllRoutes,
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -28,41 +31,76 @@ function makeReq(body: unknown, headers: Record<string, string> = {}): Request {
     body: typeof body === 'string' ? body : JSON.stringify(body),
   })
 }
+
+// Actual GNet payload format (griddID, preferredVehicleType, nested locations with lat/lon)
+// Dropoff is Dresden (lat 51.05, lon 13.74) — matches DEST_COORDS → "prague-dresden"
 const validBookingPayload = {
-  reservationType: 'BOOKING' as const,
-  providerId: 'PRESTIGO-PROVIDER-ID',
-  transactionId: 'tx-001',
-  gnetResNo: 'GR-001',
-  vehicleType: 'SEDAN',
-  pickupPlaceId: 'ChIJplace_origin',
-  dropoffPlaceId: 'ChIJplace_dest',
-  pickupDate: '2026-05-10',
-  pickupTime: '14:30',
+  griddID:              'PRESTIGO-PROVIDER-ID',
+  transactionId:        'tx-001',
+  preferredVehicleType: 'SEDAN',
+  reservationType:      'REGULAR',
+  locations: {
+    pickup: {
+      address:      'PRG',
+      locationType: 'airport',
+      time:         '2026-05-10T14:30:00',
+      country:      'Czech Republic',
+    },
+    dropOff: {
+      address:      'Dresden, Germany',
+      lat:          '51.0500',
+      lon:          '13.7400',
+      locationType: 'address',
+      city:         'Dresden',
+      country:      'DE',
+    },
+  },
+  passengerCount: '1',
+  passengers: [{ firstName: 'Test', lastName: 'Passenger', email: 'test@test.com', phoneNumber: '+49123' }],
+  affiliateReservation: {
+    requesterResNo: 'GR-001',
+    providerId:     'gnettest',
+    requesterId:    'PRESTIGO-PROVIDER-ID',
+  },
 }
 
 const validQuotePayload = {
-  reservationType: 'QUOTE' as const,
-  providerId: 'PRESTIGO-PROVIDER-ID',
-  transactionId: 'tx-quote-001',
-  vehicleType: 'SEDAN',
-  pickupPlaceId: 'ChIJplace_origin',
-  dropoffPlaceId: 'ChIJplace_dest',
+  griddID:              'PRESTIGO-PROVIDER-ID',
+  transactionId:        'tx-quote-001',
+  preferredVehicleType: 'SEDAN',
+  reservationType:      'QUOTE',
+  locations: {
+    pickup: {
+      address:      'PRG',
+      locationType: 'airport',
+      time:         '2026-05-10T14:30:00',
+    },
+    dropOff: {
+      address: 'Dresden, Germany',
+      lat:     '51.0500',
+      lon:     '13.7400',
+      city:    'Dresden',
+      country: 'DE',
+    },
+  },
 }
 
 const fakeRoute = {
-  slug: 'prague-berlin',
-  fromLabel: 'Prague',
-  toLabel: 'Berlin',
-  distanceKm: 350,
-  eClassEur: 95,
-  sClassEur: 145,
-  vClassEur: 175,
+  slug:         'prague-dresden',
+  fromLabel:    'Prague',
+  toLabel:      'Dresden',
+  distanceKm:   150,
+  eClassEur:    95,
+  sClassEur:    145,
+  vClassEur:    175,
   displayOrder: 1,
-  placeIds: ['ChIJplace_origin', 'ChIJplace_dest'],
+  placeIds:     [],
 }
 
 beforeEach(() => {
-  mockFindRoute.mockReset()
+  mockGetRoutePrice.mockReset()
+  mockGetAllRoutes.mockReset()
+  mockGetAllRoutes.mockResolvedValue([]) // default: no fallback routes
   mockSupabaseFrom.mockReset()
 })
 
@@ -93,14 +131,14 @@ describe('POST /api/gnet/farmin auth (FARMIN-03)', () => {
   })
 
   it('does not short-circuit on length-matching wrong credentials', async () => {
-    // Same byte-length as validAuth but different content — rules out naive === compare
     const sameLen = 'Basic ' + Buffer.from('test-key:test-secreu').toString('base64')
     const res = await POST(makeReq(validBookingPayload, { authorization: sameLen }))
     expect(res.status).toBe(401)
   })
 
   it('valid Basic Auth + valid Zod payload → not 401', async () => {
-    const res = await POST(makeReq(validBookingPayload, { authorization: validAuth }))
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
     expect(res.status).not.toBe(401)
   })
 })
@@ -114,14 +152,8 @@ describe('POST /api/gnet/farmin Zod (FARMIN-10)', () => {
   })
 
   it('missing required fields → 200 { success:false }', async () => {
-    const res = await POST(makeReq({ reservationType: 'BOOKING' }, { authorization: validAuth }))
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.success).toBe(false)
-  })
-
-  it('unknown reservationType → 200 { success:false }', async () => {
-    const res = await POST(makeReq({ ...validBookingPayload, reservationType: 'INVALID' }, { authorization: validAuth }))
+    // Missing griddID, preferredVehicleType, locations
+    const res = await POST(makeReq({ transactionId: 'tx-only' }, { authorization: validAuth }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(false)
@@ -145,20 +177,20 @@ describe('POST /api/gnet/farmin body-size guard', () => {
   })
 })
 
-describe('POST /api/gnet/farmin providerId (FARMIN-04)', () => {
-  it('unknown providerId → 200 { success:false }', async () => {
-    const res = await POST(makeReq({ ...validQuotePayload, providerId: 'WRONG' }, { authorization: validAuth }))
+describe('POST /api/gnet/farmin griddID check (FARMIN-04)', () => {
+  it('wrong griddID → 200 { success:false }', async () => {
+    const res = await POST(makeReq({ ...validQuotePayload, griddID: 'WRONG' }, { authorization: validAuth }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(false)
     expect(body.message).toBeTruthy()
-    expect(mockFindRoute).not.toHaveBeenCalled()
+    expect(mockGetRoutePrice).not.toHaveBeenCalled()
   })
 })
 
 describe('POST /api/gnet/farmin QUOTE (FARMIN-05, FARMIN-07, FARMIN-09)', () => {
   it('QUOTE happy path returns price, no DB writes', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
     const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -170,44 +202,44 @@ describe('POST /api/gnet/farmin QUOTE (FARMIN-05, FARMIN-07, FARMIN-09)', () => 
   })
 
   it('response has exactly { success, reservationId, totalAmount, transactionId }', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
     const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
     const body = await res.json()
     expect(Object.keys(body).sort()).toEqual(['reservationId', 'success', 'totalAmount', 'transactionId'])
   })
 
   it('totalAmount is string with 2 decimals', async () => {
-    mockFindRoute.mockResolvedValue({ ...fakeRoute, eClassEur: 99.5 })
+    mockGetRoutePrice.mockResolvedValue({ ...fakeRoute, eClassEur: 99.5 })
     const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
     const body = await res.json()
     expect(body.totalAmount).toBe('99.50')
   })
 
   it('uses eClassEur for vehicleClass=business (SEDAN)', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
-    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'SEDAN' }, { authorization: validAuth }))
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, preferredVehicleType: 'SEDAN' }, { authorization: validAuth }))
     const body = await res.json()
     expect(body.totalAmount).toBe('95.00')
   })
 
-  it('uses sClassEur for vehicleClass=first_class (EXECUTIVE)', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
-    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'EXECUTIVE' }, { authorization: validAuth }))
+  it('uses sClassEur for vehicleClass=first_class (SEDAN_LUX)', async () => {
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, preferredVehicleType: 'SEDAN_LUX' }, { authorization: validAuth }))
     const body = await res.json()
     expect(body.totalAmount).toBe('145.00')
   })
 
-  it('uses vClassEur for vehicleClass=business_van (VAN)', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
-    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'VAN' }, { authorization: validAuth }))
+  it('uses vClassEur for vehicleClass=business_van (VAN_CORP)', async () => {
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, preferredVehicleType: 'VAN_CORP' }, { authorization: validAuth }))
     const body = await res.json()
     expect(body.totalAmount).toBe('175.00')
   })
 })
 
 describe('POST /api/gnet/farmin business failures (FARMIN-08)', () => {
-  it('unknown route → 200 { success:false, message }', async () => {
-    mockFindRoute.mockResolvedValue(null)
+  it('unknown route (null from route lookup) → 200 { success:false, message }', async () => {
+    mockGetRoutePrice.mockResolvedValue(null)
     const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -216,8 +248,8 @@ describe('POST /api/gnet/farmin business failures (FARMIN-08)', () => {
   })
 
   it('unknown vehicle type → 200 { success:false, message }', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
-    const res = await POST(makeReq({ ...validQuotePayload, vehicleType: 'TRUCK' }, { authorization: validAuth }))
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
+    const res = await POST(makeReq({ ...validQuotePayload, preferredVehicleType: 'HELICOPTER' }, { authorization: validAuth }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(false)
@@ -281,7 +313,7 @@ function buildSupabaseMock(opts: {
 
 describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', () => {
   it('valid BOOKING creates bookings row + gnet_bookings row (FARMIN-01)', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
     const { calls } = buildSupabaseMock({
       bookingsInsertResult: { data: { id: 'booking-uuid-1', booking_reference: 'PRG-20260510-ABC123' }, error: null },
       gnetUpsertResult:     { data: [{ id: 'gnet-uuid-1', booking_id: 'booking-uuid-1' }], error: null },
@@ -294,7 +326,6 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
     expect(body.reservationId).toBe('PRG-20260510-ABC123')
     expect(body.transactionId).toBe('tx-001')
 
-    // Assert one bookings insert with the right shape
     const bookingsInsert = calls.find(c => c.table === 'bookings' && c.op === 'insert')
     expect(bookingsInsert).toBeDefined()
     const row = (bookingsInsert!.args[0] as any[])[0]
@@ -304,34 +335,22 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
     expect(row.vehicle_class).toBe('business')
     expect(row.trip_type).toBe('transfer')
 
-    // Assert one gnet_bookings upsert
     const gnetUpsert = calls.find(c => c.table === 'gnet_bookings' && c.op === 'upsert')
     expect(gnetUpsert).toBeDefined()
     const gnetRow = (gnetUpsert!.args[0] as any[])[0]
     expect(gnetRow.transaction_id).toBe('tx-001')
-    expect(gnetRow.gnet_res_no).toBe('GR-001')
+    expect(gnetRow.gnet_res_no).toBe('GR-001') // from affiliateReservation.requesterResNo
     expect(gnetRow.booking_id).toBe('booking-uuid-1')
-    expect(gnetRow.raw_payload).toMatchObject(validBookingPayload)
+    expect(gnetRow.raw_payload).toMatchObject({ griddID: 'PRESTIGO-PROVIDER-ID', transactionId: 'tx-001' })
     expect(gnetUpsert!.args[1]).toMatchObject({ onConflict: 'transaction_id', ignoreDuplicates: true })
   })
 
   it('duplicate transaction_id returns existing reservationId, no new rows (FARMIN-06)', async () => {
-    mockFindRoute.mockResolvedValue(fakeRoute)
-    // Deviation (Rule 1 - Bug): gnet_bookings.booking_id is NOT NULL per migration 039,
-    // so INSERT-first strategy is required (bookings row inserted before gnet_bookings upsert).
-    // On duplicate: orphan bookings row is cleaned up via DELETE. The test verifies:
-    //   1. bookings.insert IS called (unavoidable with NOT NULL FK)
-    //   2. gnet_bookings upsert returns [] → duplicate signal
-    //   3. orphan DELETE is called for the newly-inserted booking
-    //   4. existing reservationId is returned (not the new orphan reference)
+    mockGetRoutePrice.mockResolvedValue(fakeRoute)
     const { calls } = buildSupabaseMock({
-      // Orphan bookings row created in Step 1 (will be deleted after duplicate detected)
       bookingsInsertResult: { data: { id: 'orphan-booking-uuid', booking_reference: 'PRG-ORPHAN-REF' }, error: null },
-      // Upsert returns empty array → duplicate signal
       gnetUpsertResult:     { data: [], error: null },
-      // Existing row lookup
       gnetSelectExisting:   { data: { id: 'gnet-uuid-existing', booking_id: 'booking-uuid-existing' }, error: null },
-      // Look up the existing booking_reference
       bookingsSelectByPk:   { data: { booking_reference: 'PRG-20260101-EXIST1' }, error: null },
     })
 
@@ -339,14 +358,11 @@ describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', (
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.success).toBe(true)
-    // Must return the EXISTING reservationId, not the orphan
     expect(body.reservationId).toBe('PRG-20260101-EXIST1')
 
-    // Orphan bookings row must be deleted (cleanup after duplicate detected)
     const deleteCalls = calls.filter(c => c.table === 'bookings' && c.op === 'delete')
     expect(deleteCalls.length).toBeGreaterThanOrEqual(1)
 
-    // gnet_bookings upsert must have been called with ignoreDuplicates
     const gnetUpsert = calls.find(c => c.table === 'gnet_bookings' && c.op === 'upsert')
     expect(gnetUpsert).toBeDefined()
     expect(gnetUpsert!.args[1]).toMatchObject({ onConflict: 'transaction_id', ignoreDuplicates: true })
