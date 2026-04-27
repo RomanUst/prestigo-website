@@ -72,7 +72,13 @@ export async function pushGnetStatus(gnetResNo: string, status: GnetStatus): Pro
 
   if (res.status === 401) {
     // Single retry with forced fresh token (Pitfall 2 — no recursion, no loop)
-    const freshToken = await getGnetToken(true)
+    let freshToken: string
+    try {
+      freshToken = await getGnetToken(true)
+    } catch (err) {
+      if (err instanceof GnetTokenError) throw err
+      throw new GnetClientError('AUTH_FAILED', 'getGnetToken (retry) failed', undefined, err)
+    }
     res = await postOnce(freshToken, gnetResNo, status)
     if (res.status === 401) {
       throw new GnetClientError('AUTH_FAILED', 'GNet auth rejected after token refresh', 401)
