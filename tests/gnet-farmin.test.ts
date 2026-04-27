@@ -228,7 +228,117 @@ describe('POST /api/gnet/farmin business failures (FARMIN-08)', () => {
   })
 })
 
+/**
+ * Helper to build a chainable Supabase mock that mimics:
+ *   .from(table).insert(rows).select(...).single()
+ *   .from(table).upsert(rows, opts).select(...)
+ *   .from(table).select(...).eq(...).single()
+ *   .from(table).delete().eq(...)
+ */
+function buildSupabaseMock(opts: {
+  bookingsInsertResult?: { data: { id: string; booking_reference: string }[] | null; error: unknown };
+  gnetUpsertResult?:    { data: { id: string; booking_id: string }[] | null; error: unknown };
+  gnetSelectExisting?:  { data: { id: string; booking_id: string } | null; error: unknown };
+  bookingsSelectByPk?:  { data: { booking_reference: string } | null; error: unknown };
+}) {
+  const calls: { table: string; op: string; args: unknown[] }[] = []
+  const fromImpl = (table: string) => {
+    const chain: any = {
+      insert: (rows: unknown) => {
+        calls.push({ table, op: 'insert', args: [rows] })
+        return {
+          select: () => ({
+            single: async () => opts.bookingsInsertResult ?? { data: null, error: 'not configured' },
+          }),
+        }
+      },
+      upsert: (rows: unknown, upsertOpts: unknown) => {
+        calls.push({ table, op: 'upsert', args: [rows, upsertOpts] })
+        return {
+          select: async () => opts.gnetUpsertResult ?? { data: null, error: 'not configured' },
+        }
+      },
+      select: (_cols: string) => {
+        calls.push({ table, op: 'select', args: [_cols] })
+        return {
+          eq: (_col: string, _val: unknown) => ({
+            single: async () => {
+              if (table === 'gnet_bookings') return opts.gnetSelectExisting ?? { data: null, error: 'not configured' }
+              if (table === 'bookings')      return opts.bookingsSelectByPk ?? { data: null, error: 'not configured' }
+              return { data: null, error: 'unknown table' }
+            },
+          }),
+        }
+      },
+      delete: () => ({
+        eq: async () => ({ error: null }),
+      }),
+    }
+    return chain
+  }
+  mockSupabaseFrom.mockImplementation(fromImpl)
+  return { calls }
+}
+
 describe('POST /api/gnet/farmin BOOKING + idempotency (FARMIN-01, FARMIN-06)', () => {
-  it.todo('valid BOOKING creates bookings row (booking_source=gnet, status=pending) and gnet_bookings row')
-  it.todo('duplicate transaction_id returns existing reservationId without new rows')
+  it('valid BOOKING creates bookings row + gnet_bookings row (FARMIN-01)', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const { calls } = buildSupabaseMock({
+      bookingsInsertResult: { data: [{ id: 'booking-uuid-1', booking_reference: 'PRG-20260510-ABC123' }], error: null },
+      gnetUpsertResult:     { data: [{ id: 'gnet-uuid-1', booking_id: 'booking-uuid-1' }], error: null },
+    })
+
+    const res = await POST(makeReq(validBookingPayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.reservationId).toBe('PRG-20260510-ABC123')
+    expect(body.transactionId).toBe('tx-001')
+
+    // Assert one bookings insert with the right shape
+    const bookingsInsert = calls.find(c => c.table === 'bookings' && c.op === 'insert')
+    expect(bookingsInsert).toBeDefined()
+    const row = (bookingsInsert!.args[0] as any[])[0]
+    expect(row.booking_source).toBe('gnet')
+    expect(row.status).toBe('pending')
+    expect(row.leg).toBe('outbound')
+    expect(row.vehicle_class).toBe('business')
+    expect(row.trip_type).toBe('transfer')
+
+    // Assert one gnet_bookings upsert
+    const gnetUpsert = calls.find(c => c.table === 'gnet_bookings' && c.op === 'upsert')
+    expect(gnetUpsert).toBeDefined()
+    const gnetRow = (gnetUpsert!.args[0] as any[])[0]
+    expect(gnetRow.transaction_id).toBe('tx-001')
+    expect(gnetRow.gnet_res_no).toBe('GR-001')
+    expect(gnetRow.booking_id).toBe('booking-uuid-1')
+    expect(gnetRow.raw_payload).toMatchObject(validBookingPayload)
+    expect(gnetUpsert!.args[1]).toMatchObject({ onConflict: 'transaction_id', ignoreDuplicates: true })
+  })
+
+  it('duplicate transaction_id returns existing reservationId, no new rows (FARMIN-06)', async () => {
+    mockFindRoute.mockResolvedValue(fakeRoute)
+    const { calls } = buildSupabaseMock({
+      // First insert succeeds (won't be reached for the bookings row in dup case — see assertion below)
+      bookingsInsertResult: { data: null, error: 'should not be called on duplicate' },
+      // Upsert returns empty array → duplicate signal
+      gnetUpsertResult:     { data: [], error: null },
+      // Existing row lookup
+      gnetSelectExisting:   { data: { id: 'gnet-uuid-existing', booking_id: 'booking-uuid-existing' }, error: null },
+      // Look up the existing booking_reference
+      bookingsSelectByPk:   { data: { booking_reference: 'PRG-20260101-EXIST1' }, error: null },
+    })
+
+    const res = await POST(makeReq(validBookingPayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
+    expect(body.reservationId).toBe('PRG-20260101-EXIST1')
+
+    // CRITICAL: bookings.insert MUST NOT be called on duplicate path.
+    // The order is: upsert gnet_bookings first → if [] then SELECT existing → return existing.
+    // bookings insert only happens for NEW transaction_ids.
+    const bookingsInserts = calls.filter(c => c.table === 'bookings' && c.op === 'insert')
+    expect(bookingsInserts.length).toBe(0)
+  })
 })
