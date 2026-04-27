@@ -83,3 +83,19 @@ export async function pushGnetStatus(gnetResNo: string, status: GnetStatus): Pro
     throw new GnetClientError('API_ERROR', `GNet returned ${res.status}`, res.status)
   }
 }
+
+/**
+ * Map a Prestigo booking status string to its GNet equivalent.
+ * Per D-01 (Phase 50), only confirmed/completed/cancelled are mapped in this phase.
+ * assigned/en_route/on_location are deferred to Phase 51 (depends on driver UI).
+ * Returns null for any unmapped status — caller MUST exit silently on null.
+ */
+const PRESTIGO_TO_GNET_STATUS: Record<string, GnetStatus> = {
+  confirmed: 'CONFIRMED',
+  completed: 'COMPLETE',
+  cancelled: 'CANCEL',
+}
+
+export function prestigoToGnetStatus(status: string): GnetStatus | null {
+  return PRESTIGO_TO_GNET_STATUS[status] ?? null
+}

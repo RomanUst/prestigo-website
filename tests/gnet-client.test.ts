@@ -163,6 +163,43 @@ describe('pushGnetStatus rethrows GnetTokenError', () => {
   })
 })
 
+// ── Test 7-a: prestigoToGnetStatus mapping (D-01, D-06) ──────────────────────
+
+describe('prestigoToGnetStatus', () => {
+  it('returns CONFIRMED for confirmed', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('confirmed')).toBe('CONFIRMED')
+  })
+  it('returns COMPLETE for completed', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('completed')).toBe('COMPLETE')
+  })
+  it('returns CANCEL for cancelled', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('cancelled')).toBe('CANCEL')
+  })
+  it('returns null for pending (D-01)', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('pending')).toBeNull()
+  })
+  it('returns null for assigned (D-01 deferred)', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('assigned')).toBeNull()
+  })
+  it('returns null for en_route (D-01 deferred)', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('en_route')).toBeNull()
+  })
+  it('returns null for on_location (D-01 deferred)', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('on_location')).toBeNull()
+  })
+  it('returns null for unknown status', async () => {
+    const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
+    expect(prestigoToGnetStatus('garbage_unknown')).toBeNull()
+  })
+})
+
 // ── Test 7: GnetStatus type — compile-time and runtime check ─────────────────
 
 describe('GnetStatus type', () => {
