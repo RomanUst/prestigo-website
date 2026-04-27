@@ -152,8 +152,8 @@ export type GnetPayload = z.infer<typeof GnetPayloadSchema>
 
 // ── Auth ───────────────────────────────────────────────────────────────────
 function verifyBasicAuth(authHeader: string | null): boolean {
-  const key    = process.env.GNET_WEBHOOK_KEY
-  const secret = process.env.GNET_WEBHOOK_SECRET
+  const key    = process.env.GNET_WEBHOOK_KEY?.trim()
+  const secret = process.env.GNET_WEBHOOK_SECRET?.trim()
   if (!key || !secret || !authHeader) return false
   if (!authHeader.startsWith('Basic ')) return false
   const expected = `Basic ${Buffer.from(`${key}:${secret}`).toString('base64')}`
@@ -217,7 +217,7 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   // 5. griddID verification (our provider ID)
-  if (parsed.data.griddID !== process.env.GNET_GRIDDID) {
+  if (parsed.data.griddID !== process.env.GNET_GRIDDID?.trim()) {
     return businessFailure('Unknown griddID')
   }
 
