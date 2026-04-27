@@ -17,7 +17,7 @@ import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSect
 interface Booking {
   id: string
   booking_reference: string
-  booking_source: 'online' | 'manual'
+  booking_source: 'online' | 'manual' | 'gnet'
   pickup_date: string
   pickup_time: string
   client_first_name: string
@@ -345,6 +345,28 @@ export default function BookingsTable() {
               }}
             >
               {row.original.leg === 'return' ? 'RETURN' : 'OUTBOUND'}
+            </span>
+          )}
+          {row.original.booking_source === 'gnet' && (
+            <span
+              data-testid={`gnet-badge-${row.original.id}`}
+              style={{
+                marginLeft: '8px',
+                background: '#1a2a3a',
+                color: '#60a5fa',
+                border: '1px solid rgba(59,130,246,0.25)',
+                fontSize: '11px',
+                fontWeight: 500,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                padding: '4px 8px',
+                borderRadius: '2px',
+                display: 'inline-block',
+                fontFamily: 'var(--font-montserrat)',
+                lineHeight: 1,
+              }}
+            >
+              GNET
             </span>
           )}
         </span>
@@ -683,6 +705,28 @@ export default function BookingsTable() {
                           }}
                         >
                           {booking.leg === 'return' ? 'RETURN' : 'OUTBOUND'}
+                        </span>
+                      )}
+                      {booking.booking_source === 'gnet' && (
+                        <span
+                          data-testid={`gnet-badge-mobile-${booking.id}`}
+                          style={{
+                            marginLeft: '8px',
+                            background: '#1a2a3a',
+                            color: '#60a5fa',
+                            border: '1px solid rgba(59,130,246,0.25)',
+                            fontSize: '11px',
+                            fontWeight: 500,
+                            textTransform: 'uppercase' as const,
+                            letterSpacing: '0.08em',
+                            padding: '4px 8px',
+                            borderRadius: '2px',
+                            display: 'inline-block',
+                            fontFamily: 'var(--font-montserrat)',
+                            lineHeight: 1,
+                          }}
+                        >
+                          GNET
                         </span>
                       )}
                     </span>
@@ -1378,7 +1422,7 @@ export default function BookingsTable() {
               Cancel Booking
             </h2>
 
-            {pendingCancel.payment_intent_id !== null && pendingCancel.leg !== null && pendingCancel.linked_booking_id !== null ? (
+            {pendingCancel.payment_intent_id !== null && pendingCancel.leg !== null && pendingCancel.linked_booking_id !== null && pendingCancel.booking_source !== 'gnet' ? (
               /* Variant C: Stripe-paid round-trip leg — partial refund */
               (() => {
                 const legAmountCzk = pendingCancel.leg === 'outbound'
@@ -1430,7 +1474,7 @@ export default function BookingsTable() {
                   </>
                 )
               })()
-            ) : pendingCancel.payment_intent_id !== null ? (
+            ) : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet' ? (
               /* Variant A: Stripe-paid one-way — full refund (unchanged) */
               <>
                 <p style={{
@@ -1455,17 +1499,30 @@ export default function BookingsTable() {
                 </p>
               </>
             ) : (
-              /* Variant B: Manual (unchanged) */
-              <p style={{
-                fontSize: '13px',
-                fontFamily: 'var(--font-montserrat)',
-                fontWeight: 300,
-                color: 'var(--warmgrey)',
-                marginTop: '16px',
-                lineHeight: 1.8,
-              }}>
-                This booking was created manually and has no payment record. Cancelling will mark the booking as cancelled.
-              </p>
+              /* Variant B: GNet or Manual */
+              pendingCancel.booking_source === 'gnet' ? (
+                <p style={{
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '16px',
+                  lineHeight: 1.8,
+                }}>
+                  This booking was received from a GNet partner. Billing is handled directly by the GNet partner. Cancelling will mark the booking as cancelled and push the CANCEL status to GNet.
+                </p>
+              ) : (
+                <p style={{
+                  fontSize: '13px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '16px',
+                  lineHeight: 1.8,
+                }}>
+                  This booking was created manually and has no payment record. Cancelling will mark the booking as cancelled.
+                </p>
+              )
             )}
 
             {/* Action buttons */}
@@ -1527,7 +1584,7 @@ export default function BookingsTable() {
               >
                 {cancelling
                   ? 'Cancelling...'
-                  : pendingCancel.payment_intent_id !== null
+                  : pendingCancel.payment_intent_id !== null && pendingCancel.booking_source !== 'gnet'
                     ? 'Confirm Cancel + Refund'
                     : 'Cancel Booking'}
               </button>

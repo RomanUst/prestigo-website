@@ -10,7 +10,7 @@ vi.mock('@tanstack/react-table', async (importOriginal) => {
 type PartialBooking = {
   id: string
   booking_reference: string
-  booking_source: 'online' | 'manual'
+  booking_source: 'online' | 'manual' | 'gnet'
   pickup_date: string
   pickup_time: string
   client_first_name: string
@@ -251,5 +251,169 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
     expect(screen.getByText(/PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG/)).toBeDefined()
     // Confirm button stays as-is
     expect(screen.getByRole('button', { name: /Confirm Cancel \+ Refund/i })).toBeDefined()
+  })
+})
+
+describe('Phase 51 — GNet UI', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  const gnetBooking: PartialBooking = {
+    id: 'gnet-test-1',
+    booking_reference: 'PRE-GNET-1',
+    booking_source: 'gnet',
+    pickup_date: '2026-06-01',
+    pickup_time: '09:00',
+    client_first_name: 'Gnet',
+    client_last_name: 'Testuser',
+    client_email: 'gnet@example.com',
+    client_phone: '+420999888777',
+    trip_type: 'transfer',
+    vehicle_class: 'business',
+    amount_czk: 3000,
+    origin_address: 'Prague Airport T2',
+    destination_address: 'Wenceslas Square',
+    origin_lat: 50.1,
+    origin_lng: 14.26,
+    destination_lat: 50.08,
+    destination_lng: 14.43,
+    passengers: 1,
+    luggage: 1,
+    extra_child_seat: false,
+    extra_meet_greet: false,
+    extra_luggage: false,
+    flight_number: null,
+    terminal: null,
+    hours: null,
+    return_date: null,
+    special_requests: null,
+    payment_intent_id: null,
+    status: 'pending',
+    operator_notes: null,
+    created_at: '2026-05-01T08:00:00Z',
+    leg: null,
+    linked_booking_id: null,
+    outbound_amount_czk: null,
+    return_amount_czk: null,
+    linked_booking: null,
+  }
+
+  it('desktop: GNet row renders gnet-badge with text GNET', async () => {
+    stubFetchWithBookings([gnetBooking])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('gnet-badge-gnet-test-1')).toBeDefined()
+    })
+    expect(screen.getByTestId('gnet-badge-gnet-test-1').textContent).toBe('GNET')
+  })
+
+  it('desktop: online row does NOT render gnet-badge', async () => {
+    stubFetchWithBookings([makeBooking({ id: 'online-1', booking_reference: 'PRE-ONL-1' })])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByText('PRE-ONL-1')).toBeDefined()
+    })
+    expect(screen.queryByTestId('gnet-badge-online-1')).toBeNull()
+  })
+
+  it('mobile: GNet card renders gnet-badge-mobile', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+
+    stubFetchWithBookings([gnetBooking])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('gnet-badge-mobile-gnet-test-1')).toBeDefined()
+    })
+  })
+
+  it('cancel modal for GNet row does NOT contain "refund" text', async () => {
+    stubFetchWithBookings([gnetBooking])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    // Wait for row to appear, then expand it
+    await waitFor(() => {
+      expect(screen.getByText('PRE-GNET-1')).toBeDefined()
+    })
+    const refCell = screen.getByText('PRE-GNET-1')
+    const rowEl = refCell.closest('tr')
+    if (rowEl) fireEvent.click(rowEl)
+
+    // Click the Cancel Booking button inside the expanded row
+    const cancelButtons = await screen.findAllByRole('button', { name: /cancel booking/i })
+    const rowCancelBtn = cancelButtons.find(b => !b.textContent?.includes('Keep'))
+    expect(rowCancelBtn).toBeDefined()
+    if (rowCancelBtn) fireEvent.click(rowCancelBtn)
+
+    // Assert modal body has no refund text
+    await waitFor(() => {
+      // The modal is visible when "Keep Booking" button appears
+      expect(screen.getByRole('button', { name: /keep booking/i })).toBeDefined()
+    })
+    // Find the modal heading (h2) to locate the modal container
+    const heading = screen.getByRole('heading', { name: /cancel booking/i })
+    const modalContainer = heading.closest('div[style]')
+    expect(modalContainer?.textContent?.toLowerCase()).not.toContain('refund')
+  })
+
+  it('cancel modal for GNet row contains "GNet partner" copy', async () => {
+    stubFetchWithBookings([gnetBooking])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByText('PRE-GNET-1')).toBeDefined()
+    })
+    const refCell = screen.getByText('PRE-GNET-1')
+    const rowEl = refCell.closest('tr')
+    if (rowEl) fireEvent.click(rowEl)
+
+    const cancelButtons = await screen.findAllByRole('button', { name: /cancel booking/i })
+    const rowCancelBtn = cancelButtons.find(b => !b.textContent?.includes('Keep'))
+    if (rowCancelBtn) fireEvent.click(rowCancelBtn)
+
+    // Modal must be open (Keep Booking present) and contain "GNet partner" text
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /keep booking/i })).toBeDefined()
+    })
+    const modalHeading = screen.getByRole('heading', { name: /cancel booking/i })
+    const modalContainer = modalHeading.closest('div[style]')
+    expect(modalContainer?.textContent).toMatch(/GNet partner/i)
+  })
+
+  it('cancel modal confirm button for GNet row reads "Cancel Booking" not "Confirm Cancel + Refund"', async () => {
+    stubFetchWithBookings([gnetBooking])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByText('PRE-GNET-1')).toBeDefined()
+    })
+    const refCell = screen.getByText('PRE-GNET-1')
+    const rowEl = refCell.closest('tr')
+    if (rowEl) fireEvent.click(rowEl)
+
+    const cancelButtons = await screen.findAllByRole('button', { name: /cancel booking/i })
+    const rowCancelBtn = cancelButtons.find(b => !b.textContent?.includes('Keep'))
+    if (rowCancelBtn) fireEvent.click(rowCancelBtn)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /keep booking/i })).toBeDefined()
+    })
+    // Confirm button should NOT say "Confirm Cancel + Refund"
+    expect(screen.queryByRole('button', { name: /Confirm Cancel \+ Refund/i })).toBeNull()
+    // And "Cancel Booking" button should exist (the confirm button for GNet)
+    const allCancelButtons = screen.getAllByRole('button', { name: /cancel booking/i })
+    // At least one should be the confirm button in the modal (not the row-level one which is now hidden behind modal)
+    expect(allCancelButtons.length).toBeGreaterThan(0)
   })
 })
