@@ -22,6 +22,8 @@ type Mode = 'loading' | 'no-assignment' | 'assigned' | 'reassigning' | 'submitti
 
 interface DriverAssignmentSectionProps {
   bookingId: string
+  bookingStatus: string
+  onAssigned?: (newStatus: 'assigned') => void
 }
 
 function getStatusBadgeVariant(status: string): 'pending' | 'active' | 'inactive' {
@@ -30,7 +32,11 @@ function getStatusBadgeVariant(status: string): 'pending' | 'active' | 'inactive
   return 'pending'
 }
 
-export function DriverAssignmentSection({ bookingId }: DriverAssignmentSectionProps) {
+export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }: DriverAssignmentSectionProps) {
+  // D-01 + D-02: hide entirely for terminal statuses
+  if (bookingStatus === 'completed' || bookingStatus === 'cancelled') {
+    return null
+  }
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [selectedDriverId, setSelectedDriverId] = useState<string>('')
@@ -102,6 +108,7 @@ export function DriverAssignmentSection({ bookingId }: DriverAssignmentSectionPr
           setAssignment(data.assignment)
           setMode('assigned')
           setSelectedDriverId('')
+          onAssigned?.('assigned')   // D-06: notify parent for optimistic table update
         } else {
           setMode('error')
         }
