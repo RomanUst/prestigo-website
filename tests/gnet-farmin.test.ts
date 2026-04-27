@@ -294,45 +294,6 @@ describe('POST /api/gnet/farmin QUOTE pricing', () => {
   })
 })
 
-describe('POST /api/gnet/farmin coverage zone check', () => {
-  it('rejects when neither pickup nor dropoff is in any active zone', async () => {
-    // Active zone covering only Brno (~49.19, 16.61) — neither PRG (50.10, 14.26)
-    // nor Dresden (51.05, 13.74) falls inside.
-    const brnoZone = {
-      type: 'Polygon',
-      coordinates: [[[16.5, 49.1], [16.7, 49.1], [16.7, 49.3], [16.5, 49.3], [16.5, 49.1]]],
-    }
-    mockPublicFrom.mockImplementation(() => ({
-      select: () => ({
-        eq: async () => ({ data: [{ id: 'zone-1', geojson: brnoZone }], error: null }),
-      }),
-    }))
-    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.success).toBe(false)
-    expect(body.message).toMatch(/coverage/i)
-    expect(mockFetch).not.toHaveBeenCalled() // never reached Google Routes
-  })
-
-  it('accepts when pickup is in active zone (dropoff outside is fine)', async () => {
-    // Zone covering PRG airport (50.1008, 14.26)
-    const prgZone = {
-      type: 'Polygon',
-      coordinates: [[[14.0, 49.9], [14.5, 49.9], [14.5, 50.3], [14.0, 50.3], [14.0, 49.9]]],
-    }
-    mockPublicFrom.mockImplementation(() => ({
-      select: () => ({
-        eq: async () => ({ data: [{ id: 'zone-1', geojson: prgZone }], error: null }),
-      }),
-    }))
-    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.success).toBe(true)
-  })
-})
-
 describe('POST /api/gnet/farmin business failures (FARMIN-08)', () => {
   it('Google Routes failure → 200 { success:false, message }', async () => {
     mockFetch.mockResolvedValue({ ok: false, text: async () => 'API error' } as unknown as Response)

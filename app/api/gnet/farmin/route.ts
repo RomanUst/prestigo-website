@@ -8,11 +8,10 @@ import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { mapGnetVehicle } from '@/lib/gnet-vehicle-map'
 import { generateBookingReference } from '@/lib/booking-reference'
-import { createSupabaseServiceClient, createSupabasePublicReadClient } from '@/lib/supabase'
+import { createSupabaseServiceClient } from '@/lib/supabase'
 import { eurToCzk } from '@/lib/currency'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { computeOutboundLegTotal } from '@/lib/server-pricing'
-import { isInAnyZone } from '@/lib/zones'
 import type { VehicleClass } from '@/types/booking'
 
 export const runtime = 'nodejs'
@@ -229,25 +228,10 @@ export async function POST(req: Request): Promise<Response> {
   if (!originCoords) return businessFailure('Cannot resolve pickup coordinates')
   if (!destCoords)   return businessFailure('Cannot resolve dropoff coordinates')
 
-  // 9. Coverage zone check — at least pickup OR dropoff must be in an active zone.
-  // Mirrors /api/calculate-price ZONES-04 + ZONES-05. GNet has no quote-mode,
-  // so out-of-coverage requests are rejected as business failures.
-  {
-    const supabasePublic = createSupabasePublicReadClient()
-    const { data: zones } = await supabasePublic
-      .from('coverage_zones')
-      .select('id, geojson')
-      .eq('active', true)
-    if (zones && zones.length > 0) {
-      const originInZone = isInAnyZone(originCoords.lat, originCoords.lng, zones)
-      const destInZone   = isInAnyZone(destCoords.lat,   destCoords.lng,   zones)
-      if (!originInZone && !destInZone) {
-        return businessFailure('Outside coverage area')
-      }
-    }
-  }
-
-  // 10. Distance via Google Routes API
+  // 9. Distance via Google Routes API
+  // Note: GNet bookings are NOT subject to coverage zone restrictions —
+  // we always quote a price for any pickup/dropoff pair. Zone gating only
+  // applies to public website quotes (/api/calculate-price).
   const distanceKm = await googleRoutesDistanceKm(originCoords, destCoords)
   if (distanceKm === null) {
     return businessFailure('Distance calculation failed')
