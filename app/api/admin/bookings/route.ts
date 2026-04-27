@@ -234,7 +234,7 @@ export async function PATCH(request: Request) {
           }
 
           // STATUS-03 + D-05: log outcome regardless of success/failure
-          await svcSupabase
+          const { error: auditErr } = await svcSupabase
             .from('gnet_bookings')
             .update({
               last_push_status: gnetStatus,
@@ -242,6 +242,14 @@ export async function PATCH(request: Request) {
               last_pushed_at: new Date().toISOString(),
             })
             .eq('id', gnetRow.id)
+
+          if (auditErr) {
+            console.error('[gnet-status-push] audit update failed', {
+              bookingId: current.id,
+              gnetResNo: gnetRow.gnet_res_no,
+              error: auditErr.message,
+            })
+          }
         })
       }
     }
