@@ -23,15 +23,26 @@ async function getAdminUser() {
 }
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending:   ['confirmed', 'cancelled'],
-  confirmed: ['completed', 'cancelled'],
-  completed: [],
-  cancelled: [],
+  pending:     ['confirmed', 'cancelled'],
+  confirmed:   ['completed', 'cancelled', 'assigned'],
+  assigned:    ['en_route', 'cancelled'],
+  en_route:    ['on_location', 'cancelled'],
+  on_location: ['completed', 'cancelled'],
+  completed:   [],
+  cancelled:   [],
 }
 
 const bookingPatchSchema = z.object({
   id: z.string().uuid(),
-  status: z.enum(['pending', 'confirmed', 'completed', 'cancelled']).optional(),
+  status: z.enum([
+    'pending',
+    'confirmed',
+    'completed',
+    'cancelled',
+    'assigned',
+    'en_route',
+    'on_location',
+  ]).optional(),
   operator_notes: z.string().max(2000).optional(),
 }).refine(d => d.status !== undefined || d.operator_notes !== undefined, {
   message: 'At least one of status or operator_notes must be provided',
