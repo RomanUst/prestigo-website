@@ -71,6 +71,9 @@ vi.mock('next/server', async (importActual) => {
   }
 })
 
+// Top-level import — mocks are in place before module evaluation
+import { PATCH } from '@/app/api/admin/bookings/route'
+
 // Test fixtures — id must be a valid UUID v4 (bookingPatchSchema uses z.string().uuid())
 // 4th group must start with [89ab] per RFC 4122; using valid v4 UUIDs here
 const BOOKING_UUID = 'a1b2c3d4-e5f6-4789-a1b2-c3d4e5f6a7b8'
@@ -89,11 +92,8 @@ const bookingRow = {
 const gnetRow = { id: GNET_ROW_UUID, gnet_res_no: 'RES-123' }
 
 function buildSupabaseMock({
-  bookingData = bookingRow,
-  gnetData = gnetRow,
-}: {
-  bookingData?: typeof bookingRow | null
-  gnetData?: typeof gnetRow | null
+  bookingData = bookingRow as typeof bookingRow | null,
+  gnetData = gnetRow as typeof gnetRow | null,
 } = {}) {
   mockSupabaseFrom.mockImplementation((table: string) => {
     if (table === 'bookings') return {
@@ -140,9 +140,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     buildSupabaseMock()
     mockPushGnetStatus.mockResolvedValue(undefined)
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
-    const res = await PATCH(req as any)
+    const res = await PATCH(req)
     await flushAfterCallbacks()
 
     expect(res.status).toBe(200)
@@ -154,9 +153,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     buildSupabaseMock()
     mockPushGnetStatus.mockRejectedValueOnce(new Error('GNet 503'))
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
-    const res = await PATCH(req as any)
+    const res = await PATCH(req)
     await flushAfterCallbacks()
 
     expect(res.status).toBe(200)
@@ -168,13 +166,12 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     buildSupabaseMock()
     mockPushGnetStatus.mockRejectedValueOnce(new Error('GNet timeout'))
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
-    await PATCH(req as any)
+    await PATCH(req)
     await flushAfterCallbacks()
 
     expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
-    const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0]
+    const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
     expect(updatePayload.last_push_status).toBe('CONFIRMED')
     expect(updatePayload.last_push_error).toBe('GNet timeout')
     expect(typeof updatePayload.last_pushed_at).toBe('string')
@@ -184,13 +181,12 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     buildSupabaseMock()
     mockPushGnetStatus.mockResolvedValueOnce(undefined)
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
-    await PATCH(req as any)
+    await PATCH(req)
     await flushAfterCallbacks()
 
     expect(mockGnetBookingsUpdate).toHaveBeenCalledTimes(1)
-    const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0]
+    const updatePayload = mockGnetBookingsUpdate.mock.calls[0][0] as Record<string, unknown>
     expect(updatePayload.last_push_status).toBe('CONFIRMED')
     expect(updatePayload.last_push_error).toBeNull()
     expect(typeof updatePayload.last_pushed_at).toBe('string')
@@ -200,9 +196,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     buildSupabaseMock({ bookingData: { ...bookingRow, status: 'confirmed' } })
     mockPushGnetStatus.mockResolvedValueOnce(undefined)
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'completed' })
-    await PATCH(req as any)
+    await PATCH(req)
     await flushAfterCallbacks()
 
     expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'COMPLETE')
@@ -212,9 +207,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     buildSupabaseMock({ bookingData: { ...bookingRow, status: 'pending' } })
     mockPushGnetStatus.mockResolvedValueOnce(undefined)
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'cancelled' })
-    await PATCH(req as any)
+    await PATCH(req)
     await flushAfterCallbacks()
 
     expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'CANCEL')
@@ -223,9 +217,8 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
   it('D-03 guard: non-GNet booking does NOT call pushGnetStatus', async () => {
     buildSupabaseMock({ bookingData: { ...bookingRow, booking_source: 'online' } })
 
-    const { PATCH } = await import('@/app/api/admin/bookings/route')
     const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
-    const res = await PATCH(req as any)
+    const res = await PATCH(req)
     await flushAfterCallbacks()
 
     expect(res.status).toBe(200)
