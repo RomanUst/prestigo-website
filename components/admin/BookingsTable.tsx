@@ -69,17 +69,23 @@ const vehicleClassMap: Record<string, string> = {
 }
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending:   ['confirmed', 'cancelled'],
-  confirmed: ['completed', 'cancelled'],
-  completed: [],
-  cancelled: [],
+  pending:     ['confirmed', 'cancelled'],
+  confirmed:   ['completed', 'cancelled', 'assigned'],
+  assigned:    ['en_route', 'cancelled'],
+  en_route:    ['on_location', 'cancelled'],
+  on_location: ['completed', 'cancelled'],
+  completed:   [],
+  cancelled:   [],
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  pending: 'Pending',
-  confirmed: 'Confirmed',
-  completed: 'Completed',
-  cancelled: 'Cancelled',
+  pending:     'Pending',
+  confirmed:   'Confirmed',
+  completed:   'Completed',
+  cancelled:   'Cancelled',
+  assigned:    'Assigned',
+  en_route:    'En Route',
+  on_location: 'On Location',
 }
 
 function DetailField({ label, value }: { label: string; value: React.ReactNode }) {
@@ -422,7 +428,7 @@ export default function BookingsTable() {
       size: 120,
       cell: ({ row }) => (
         <StatusBadge
-          variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
+          variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
           label={STATUS_LABELS[row.original.status] ?? row.original.status}
         />
       ),
@@ -731,7 +737,7 @@ export default function BookingsTable() {
                       )}
                     </span>
                     <StatusBadge
-                      variant={booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
+                      variant={booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
                       label={STATUS_LABELS[booking.status] ?? booking.status}
                     />
                   </div>
@@ -1208,7 +1214,7 @@ export default function BookingsTable() {
                             </select>
                           ) : (
                             <StatusBadge
-                              variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled'}
+                              variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
                               label={`${STATUS_LABELS[row.original.status]} (final)`}
                             />
                           )}
