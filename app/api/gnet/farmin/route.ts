@@ -180,7 +180,7 @@ export async function POST(req: Request): Promise<Response> {
 
   if (bookingErr || !insertedBooking) {
     console.error('[gnet-farmin] bookings insert failed', bookingErr)
-    return Response.json({ success: false, message: 'Internal error' }, { status: 500 })
+    return businessFailure('Internal error (booking insert)')
   }
 
   // Step 2: Upsert gnet_bookings (idempotent on transaction_id)
@@ -200,7 +200,7 @@ export async function POST(req: Request): Promise<Response> {
     console.error('[gnet-farmin] gnet_bookings upsert failed', upsertErr)
     // Roll back the orphan bookings row
     await supabase.from('bookings').delete().eq('id', insertedBooking.id)
-    return Response.json({ success: false, message: 'Internal error' }, { status: 500 })
+    return businessFailure('Internal error (gnet upsert)')
   }
 
   if (upsertData && upsertData.length > 0) {
@@ -226,7 +226,7 @@ export async function POST(req: Request): Promise<Response> {
   if (existingErr || !existingGnet) {
     console.error('[gnet-farmin] failed to read existing gnet_bookings', existingErr)
     await supabase.from('bookings').delete().eq('id', insertedBooking.id)
-    return Response.json({ success: false, message: 'Internal error' }, { status: 500 })
+    return businessFailure('Internal error (duplicate lookup)')
   }
 
   const { data: existingBooking, error: refErr } = await supabase
@@ -238,7 +238,7 @@ export async function POST(req: Request): Promise<Response> {
   if (refErr || !existingBooking) {
     console.error('[gnet-farmin] failed to read existing bookings reference', refErr)
     await supabase.from('bookings').delete().eq('id', insertedBooking.id)
-    return Response.json({ success: false, message: 'Internal error' }, { status: 500 })
+    return businessFailure('Internal error (booking reference lookup)')
   }
 
   // Clean up orphan bookings row created in Step 1 (will never be linked to gnet_bookings)
