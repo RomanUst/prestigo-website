@@ -1270,7 +1270,15 @@ export default function BookingsTable() {
                         </div>
 
                         {/* Driver Assignment */}
-                        <DriverAssignmentSection bookingId={row.original.id} />
+                        <DriverAssignmentSection
+                          bookingId={row.original.id}
+                          bookingStatus={row.original.status}
+                          onAssigned={(newStatus) => {
+                            setBookings(prev =>
+                              prev.map(b => b.id === row.original.id ? { ...b, status: newStatus } : b)
+                            )
+                          }}
+                        />
 
                         {/* Cancel Booking button — only for cancellable statuses */}
                         {(row.original.status === 'pending' || row.original.status === 'confirmed') && (
