@@ -107,7 +107,6 @@ describe('POST /api/gnet/farmin auth (FARMIN-03)', () => {
 
 describe('POST /api/gnet/farmin Zod (FARMIN-10)', () => {
   it('invalid JSON body → 200 { success:false }', async () => {
-    mockFindRoute.mockResolvedValue(null)
     const res = await POST(makeReq('{not json', { authorization: validAuth }))
     expect(res.status).toBe(200)
     const body = await res.json()
