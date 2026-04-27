@@ -205,7 +205,13 @@ export async function POST(req: Request): Promise<Response> {
     return businessFailure('Internal error (gnet upsert)')
   }
 
-  if (upsertData && upsertData.length > 0) {
+  if (!upsertData) {
+    console.error('[gnet-farmin] gnet_bookings upsert returned null data unexpectedly')
+    await supabase.from('bookings').delete().eq('id', insertedBooking.id)
+    return businessFailure('Internal error (upsert null response)')
+  }
+
+  if (upsertData.length > 0) {
     // Step 3a: New row created — return new reservationId
     return Response.json(
       {
