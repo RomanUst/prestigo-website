@@ -150,6 +150,7 @@ export async function POST(req: Request): Promise<Response> {
   const amountCzk = eurToCzk(price)
 
   // Step 1: Insert bookings row (booking_id NOT NULL in gnet_bookings requires this first)
+  const nameParts = parsed.data.passengerName?.split(' ') ?? []
   const bookingsRow = {
     booking_reference:   bookingReference,
     booking_type:        'confirmed',
@@ -167,8 +168,8 @@ export async function POST(req: Request): Promise<Response> {
     amount_czk:          amountCzk,
     origin_address:      route.fromLabel,
     destination_address: route.toLabel,
-    client_first_name:   (parsed.data.passengerName?.split(' ')[0]) ?? 'GNet',
-    client_last_name:    (parsed.data.passengerName?.split(' ').slice(1).join(' ')) || 'Partner',
+    client_first_name:   nameParts[0] ?? 'GNet',
+    client_last_name:    nameParts.length > 1 ? nameParts.slice(1).join(' ') : 'Partner',
     client_email:        parsed.data.passengerEmail ?? 'noreply@gnet.local',
     client_phone:        parsed.data.passengerPhone ?? 'unknown',
   }
