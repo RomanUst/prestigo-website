@@ -63,12 +63,12 @@ async function upstashSet(key: string, value: string, ttl: number): Promise<bool
 }
 
 async function fetchNewToken(): Promise<string> {
-  const uid = process.env.GNET_UID
-  const pw  = process.env.GNET_PW
+  const uid = process.env.GNET_UID?.replace(/\\n$/, '').trim()
+  const pw  = process.env.GNET_PW?.replace(/\\n$/, '').trim()
   if (!uid || !pw) {
     throw new GnetTokenError('MISSING_CREDENTIALS', 'GNET_UID and GNET_PW must be set')
   }
-  const url = process.env.GNET_AUTH_URL ?? 'https://api.grdd.net/api/getToken2'
+  const url = process.env.GNET_AUTH_URL?.replace(/\\n$/, '').trim() ?? 'https://api.grdd.net/api/getToken2'
   let res: Response
   try {
     res = await fetch(url, {
