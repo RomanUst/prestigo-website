@@ -246,10 +246,63 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     // so we test this via direct helper import instead
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
     expect(prestigoToGnetStatus('pending')).toBeNull()
-    expect(prestigoToGnetStatus('assigned')).toBeNull()
-    expect(prestigoToGnetStatus('en_route')).toBeNull()
-    expect(prestigoToGnetStatus('on_location')).toBeNull()
     // Confirm pushGnetStatus not called when mapping returns null
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('Phase 52: confirmed → assigned triggers ASSIGNED push', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'confirmed', booking_source: 'gnet' } })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'assigned' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+    expect(res.status).toBe(200)
+    expect(mockPushGnetStatus).toHaveBeenCalledTimes(1)
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ASSIGNED')
+    expect(mockGnetBookingsUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ last_push_status: 'ASSIGNED', last_push_error: null }),
+    )
+  })
+
+  it('Phase 52: assigned → en_route triggers EN_ROUTE push', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'assigned', booking_source: 'gnet' } })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'en_route' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+    expect(res.status).toBe(200)
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'EN_ROUTE')
+  })
+
+  it('Phase 52: en_route → on_location triggers ON_LOCATION push', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'en_route', booking_source: 'gnet' } })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'on_location' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+    expect(res.status).toBe(200)
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ON_LOCATION')
+  })
+
+  it('Phase 52: on_location → completed triggers COMPLETE push', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'on_location', booking_source: 'gnet' } })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'completed' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+    expect(res.status).toBe(200)
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'COMPLETE')
+  })
+
+  it('Phase 52: invalid transition confirmed → en_route returns 422', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'confirmed', booking_source: 'gnet' } })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'en_route' })
+    const res = await PATCH(req)
+    expect(res.status).toBe(422)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('Phase 52: backward transition assigned → confirmed returns 422', async () => {
+    buildSupabaseMock({ bookingData: { ...bookingRow, status: 'assigned', booking_source: 'gnet' } })
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
+    const res = await PATCH(req)
+    expect(res.status).toBe(422)
     expect(mockPushGnetStatus).not.toHaveBeenCalled()
   })
 

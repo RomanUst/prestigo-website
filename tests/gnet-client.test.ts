@@ -182,17 +182,17 @@ describe('prestigoToGnetStatus', () => {
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
     expect(prestigoToGnetStatus('pending')).toBeNull()
   })
-  it('returns null for assigned (D-01 deferred)', async () => {
+  it('maps assigned → ASSIGNED', async () => {
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
-    expect(prestigoToGnetStatus('assigned')).toBeNull()
+    expect(prestigoToGnetStatus('assigned')).toBe('ASSIGNED')
   })
-  it('returns null for en_route (D-01 deferred)', async () => {
+  it('maps en_route → EN_ROUTE', async () => {
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
-    expect(prestigoToGnetStatus('en_route')).toBeNull()
+    expect(prestigoToGnetStatus('en_route')).toBe('EN_ROUTE')
   })
-  it('returns null for on_location (D-01 deferred)', async () => {
+  it('maps on_location → ON_LOCATION', async () => {
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
-    expect(prestigoToGnetStatus('on_location')).toBeNull()
+    expect(prestigoToGnetStatus('on_location')).toBe('ON_LOCATION')
   })
   it('returns null for unknown status', async () => {
     const { prestigoToGnetStatus } = await import('@/lib/gnet-client')
