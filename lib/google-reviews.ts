@@ -54,8 +54,8 @@ interface PlacesApiV1AggregateResponse {
 }
 
 async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
-  const placeId = process.env.GOOGLE_PLACE_ID
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+  const placeId = process.env.GOOGLE_PLACE_ID?.trim()
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
 
   if (!placeId || !apiKey) return null
 
@@ -112,8 +112,8 @@ interface PlacesApiV1Response {
 }
 
 async function fetchGoogleReviews(): Promise<GoogleReview[]> {
-  const placeId = process.env.GOOGLE_PLACE_ID
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+  const placeId = process.env.GOOGLE_PLACE_ID?.trim()
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
 
   if (!placeId || !apiKey) return []
 

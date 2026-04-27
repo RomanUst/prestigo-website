@@ -206,7 +206,7 @@ export async function POST(req: Request) {
     }
 
     // Google Routes API for distance
-    const apiKey = process.env.GOOGLE_MAPS_API_KEY
+    const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
     if (!apiKey) {
       console.error('GOOGLE_MAPS_API_KEY not configured')
       return NextResponse.json({ prices: null, returnLegPrices: null, distanceKm: null, quoteMode: true, matchedRouteSlug: null })

@@ -133,7 +133,7 @@ async function googleRoutesDistanceKm(
   origin: { lat: number; lng: number },
   destination: { lat: number; lng: number },
 ): Promise<number | null> {
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
   if (!apiKey) {
     console.error('[gnet-farmin] GOOGLE_MAPS_API_KEY not configured')
     return null
