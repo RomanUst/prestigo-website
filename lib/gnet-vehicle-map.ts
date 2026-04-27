@@ -13,10 +13,26 @@ import type { VehicleClass } from '@/types/booking'
  * than 4xx — GNet retries on non-2xx.
  */
 export const GNET_VEHICLE_MAP: Readonly<Record<string, VehicleClass>> = Object.freeze({
-  SEDAN:     'business',
-  EXECUTIVE: 'first_class',
-  VAN:       'business_van',
-  MINIVAN:   'business_van',
+  // Luxury / First Class
+  SEDAN_LUX:       'first_class',
+  SUV_LUX:         'first_class',
+
+  // Business sedan / SUV
+  SEDAN:           'business',
+  SEDAN_CORP:      'business',
+  SEDAN_HYBRID:    'business',
+  SUV:             'business',
+  SUV_CORP:        'business',
+
+  // Vans
+  VAN_CORP:        'business_van',
+  SPRINTER:        'business_van',
+  VAN_MINI:        'business_van',
+  VAN_MINI_LUXURY: 'business_van',
+  VAN_MINI_6:      'business_van',
+  VAN_MINI_7:      'business_van',
+  VAN_8:           'business_van',
+  VAN_12:          'business_van',
 })
 
 /**
