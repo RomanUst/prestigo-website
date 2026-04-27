@@ -1,9 +1,15 @@
 // Phase 49: GNet Farm In webhook endpoint.
-// Wave 1 — Basic Auth + Zod perimeter. Plans 03/04 wire QUOTE/BOOKING branches.
+// Wave 1 — Basic Auth + Zod perimeter (Plan 02).
+// Wave 2 — QUOTE branch + business validation (Plan 03).
+// Wave 3 — BOOKING insert + idempotency (Plan 04).
 
 import { timingSafeEqual } from 'crypto'
 import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
+import { findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
+import { mapGnetVehicle } from '@/lib/gnet-vehicle-map'
+import { generateBookingReference } from '@/lib/booking-reference'
+import type { VehicleClass } from '@/types/booking'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -64,6 +70,14 @@ function businessFailure(message: string): Response {
   return Response.json({ success: false, message }, { status: 200 })
 }
 
+function priceForClass(route: RoutePrice, vClass: VehicleClass): number {
+  switch (vClass) {
+    case 'business':     return route.eClassEur
+    case 'first_class':  return route.sClassEur
+    case 'business_van': return route.vClassEur
+  }
+}
+
 // ── Handlers ───────────────────────────────────────────────────────────────
 export function GET(): Response {
   return Response.json({ success: true }, { status: 200 })
@@ -93,13 +107,46 @@ export async function POST(req: Request): Promise<Response> {
     return businessFailure('Invalid payload schema')
   }
 
-  // 5. Plans 03/04 replace this with QUOTE/BOOKING branches.
-  // For Wave 1, return a placeholder so auth+Zod tests can verify a 200 path exists.
+  // 5. providerId verification (FARMIN-04)
+  if (parsed.data.providerId !== process.env.GNET_GRIDDID) {
+    return businessFailure('Unknown providerId')
+  }
+
+  // 6. Vehicle type mapping (FARMIN-08)
+  const vehicleClass = mapGnetVehicle(parsed.data.vehicleType)
+  if (!vehicleClass) {
+    return businessFailure('Unknown vehicle type')
+  }
+
+  // 7. Route lookup (FARMIN-09)
+  const route = await findRouteByPlaceIds(parsed.data.pickupPlaceId, parsed.data.dropoffPlaceId)
+  if (!route) {
+    return businessFailure('Route not found')
+  }
+
+  // 8. Price selection
+  const price = priceForClass(route, vehicleClass)
+
+  // 9. Branch on reservationType
+  if (parsed.data.reservationType === 'QUOTE') {
+    // FARMIN-05: no DB writes for QUOTE
+    return Response.json(
+      {
+        success: true,
+        reservationId: generateBookingReference(),
+        totalAmount: price.toFixed(2),
+        transactionId: parsed.data.transactionId,
+      },
+      { status: 200 },
+    )
+  }
+
+  // BOOKING branch — Plan 04 implements DB insert + idempotency.
   return Response.json(
     {
       success: true,
-      reservationId: 'TODO-WAVE-2',
-      totalAmount: '0.00',
+      reservationId: 'TODO-WAVE-3',
+      totalAmount: price.toFixed(2),
       transactionId: parsed.data.transactionId,
     },
     { status: 200 },
