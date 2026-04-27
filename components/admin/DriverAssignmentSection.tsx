@@ -33,10 +33,7 @@ function getStatusBadgeVariant(status: string): 'pending' | 'active' | 'inactive
 }
 
 export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }: DriverAssignmentSectionProps) {
-  // D-01 + D-02: hide entirely for terminal statuses
-  if (bookingStatus === 'completed' || bookingStatus === 'cancelled') {
-    return null
-  }
+  // All hooks MUST come first — before any conditional return (Rules of Hooks)
   const [assignment, setAssignment] = useState<Assignment | null>(null)
   const [drivers, setDrivers] = useState<Driver[]>([])
   const [selectedDriverId, setSelectedDriverId] = useState<string>('')
@@ -88,6 +85,11 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
     loadData()
     return () => { cancelled = true }
   }, [bookingId])
+
+  // D-01 + D-02: hide entirely for terminal statuses — guard placed AFTER hooks
+  if (bookingStatus === 'completed' || bookingStatus === 'cancelled') {
+    return null
+  }
 
   async function handleAssign() {
     if (!selectedDriverId) return
