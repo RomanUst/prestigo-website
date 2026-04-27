@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const { mockGetPricingConfig, mockSupabaseFrom, mockFetch } = vi.hoisted(() => ({
+const { mockGetPricingConfig, mockSupabaseFrom, mockPublicFrom, mockFetch } = vi.hoisted(() => ({
   mockGetPricingConfig: vi.fn(),
   mockSupabaseFrom:     vi.fn(),
+  mockPublicFrom:       vi.fn(),
   mockFetch:            vi.fn(),
 }))
 
@@ -11,8 +12,19 @@ vi.mock('@/lib/pricing-config', () => ({
 }))
 
 vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: () => ({ from: mockSupabaseFrom }),
+  createSupabaseServiceClient:    () => ({ from: mockSupabaseFrom }),
+  createSupabasePublicReadClient: () => ({ from: mockPublicFrom }),
 }))
+
+// Default zone-check mock: empty zones (no active coverage configured) → check is skipped.
+// Tests that want to assert zone rejection override this with mockPublicFrom.mockImplementation(...).
+function stubNoZones(): void {
+  mockPublicFrom.mockImplementation((_table: string) => ({
+    select: () => ({
+      eq: async () => ({ data: [], error: null }),
+    }),
+  }))
+}
 
 vi.stubGlobal('fetch', mockFetch)
 
@@ -124,7 +136,9 @@ beforeEach(() => {
   mockGetPricingConfig.mockReset()
   mockGetPricingConfig.mockResolvedValue(fakeRates)
   mockSupabaseFrom.mockReset()
+  mockPublicFrom.mockReset()
   mockFetch.mockReset()
+  stubNoZones()
   stubGoogleDistance(150) // PRG → Dresden ~150 km
 })
 
@@ -277,6 +291,45 @@ describe('POST /api/gnet/farmin QUOTE pricing', () => {
   it('QUOTE does not write to DB', async () => {
     await POST(makeReq(validQuotePayload, { authorization: validAuth }))
     expect(mockSupabaseFrom).not.toHaveBeenCalled()
+  })
+})
+
+describe('POST /api/gnet/farmin coverage zone check', () => {
+  it('rejects when neither pickup nor dropoff is in any active zone', async () => {
+    // Active zone covering only Brno (~49.19, 16.61) — neither PRG (50.10, 14.26)
+    // nor Dresden (51.05, 13.74) falls inside.
+    const brnoZone = {
+      type: 'Polygon',
+      coordinates: [[[16.5, 49.1], [16.7, 49.1], [16.7, 49.3], [16.5, 49.3], [16.5, 49.1]]],
+    }
+    mockPublicFrom.mockImplementation(() => ({
+      select: () => ({
+        eq: async () => ({ data: [{ id: 'zone-1', geojson: brnoZone }], error: null }),
+      }),
+    }))
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(false)
+    expect(body.message).toMatch(/coverage/i)
+    expect(mockFetch).not.toHaveBeenCalled() // never reached Google Routes
+  })
+
+  it('accepts when pickup is in active zone (dropoff outside is fine)', async () => {
+    // Zone covering PRG airport (50.1008, 14.26)
+    const prgZone = {
+      type: 'Polygon',
+      coordinates: [[[14.0, 49.9], [14.5, 49.9], [14.5, 50.3], [14.0, 50.3], [14.0, 49.9]]],
+    }
+    mockPublicFrom.mockImplementation(() => ({
+      select: () => ({
+        eq: async () => ({ data: [{ id: 'zone-1', geojson: prgZone }], error: null }),
+      }),
+    }))
+    const res = await POST(makeReq(validQuotePayload, { authorization: validAuth }))
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.success).toBe(true)
   })
 })
 
