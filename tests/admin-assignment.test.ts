@@ -7,6 +7,8 @@ const {
   stubLogEmail,
   stubSendDriverAssignmentEmail,
   stubSendDriverDeclineNotification,
+  stubPushGnetStatus,
+  stubPrestigoToGnetStatus,
   supabaseAuthStub,
 } = vi.hoisted(() => {
   const supabaseAuthStub = {
@@ -20,6 +22,18 @@ const {
   const stubLogEmail = vi.fn().mockResolvedValue(true)
   const stubSendDriverAssignmentEmail = vi.fn().mockResolvedValue(undefined)
   const stubSendDriverDeclineNotification = vi.fn().mockResolvedValue(undefined)
+  const stubPushGnetStatus = vi.fn().mockResolvedValue(undefined)
+  const stubPrestigoToGnetStatus = vi.fn().mockImplementation((status: string) => {
+    const map: Record<string, string> = {
+      confirmed: 'CONFIRMED',
+      assigned: 'ASSIGNED',
+      en_route: 'EN_ROUTE',
+      on_location: 'ON_LOCATION',
+      completed: 'COMPLETE',
+      cancelled: 'CANCEL',
+    }
+    return map[status] ?? null
+  })
 
   return {
     stubGetAdminUser,
@@ -27,6 +41,8 @@ const {
     stubLogEmail,
     stubSendDriverAssignmentEmail,
     stubSendDriverDeclineNotification,
+    stubPushGnetStatus,
+    stubPrestigoToGnetStatus,
     supabaseAuthStub,
   }
 })
@@ -55,6 +71,11 @@ vi.mock('@/lib/email-log', () => ({
 vi.mock('@/lib/email', () => ({
   sendDriverAssignmentEmail: stubSendDriverAssignmentEmail,
   sendDriverDeclineNotification: stubSendDriverDeclineNotification,
+}))
+
+vi.mock('@/lib/gnet-client', () => ({
+  pushGnetStatus: stubPushGnetStatus,
+  prestigoToGnetStatus: stubPrestigoToGnetStatus,
 }))
 
 import { POST as assignPost } from '@/app/api/admin/bookings/[id]/assign/route'
@@ -96,6 +117,18 @@ beforeEach(() => {
   stubLogEmail.mockResolvedValue(true)
   stubSendDriverAssignmentEmail.mockResolvedValue(undefined)
   stubSendDriverDeclineNotification.mockResolvedValue(undefined)
+  stubPushGnetStatus.mockResolvedValue(undefined)
+  stubPrestigoToGnetStatus.mockImplementation((status: string) => {
+    const map: Record<string, string> = {
+      confirmed: 'CONFIRMED',
+      assigned: 'ASSIGNED',
+      en_route: 'EN_ROUTE',
+      on_location: 'ON_LOCATION',
+      completed: 'COMPLETE',
+      cancelled: 'CANCEL',
+    }
+    return map[status] ?? null
+  })
 })
 
 describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
@@ -126,9 +159,11 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
       pickup_time: '10:00',
       origin_address: 'Prague Airport',
       destination_address: 'Wenceslas Square',
-      first_name: 'Alice',
-      last_name: 'Smith',
-      phone: '+420123456789',
+      client_first_name: 'Alice',
+      client_last_name: 'Smith',
+      client_phone: '+420123456789',
+      status: 'pending',
+      booking_source: 'website',
     }
     const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: true } }
@@ -194,9 +229,11 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
       pickup_time: '10:00',
       origin_address: 'Prague Airport',
       destination_address: 'Wenceslas Square',
-      first_name: 'Alice',
-      last_name: 'Smith',
-      phone: '+420123456789',
+      client_first_name: 'Alice',
+      client_last_name: 'Smith',
+      client_phone: '+420123456789',
+      status: 'pending',
+      booking_source: 'website',
     }
     const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: true } }
@@ -490,5 +527,352 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
 
     await new Promise((r) => setTimeout(r, 10))
     expect(stubSendDriverDeclineNotification).toHaveBeenCalledTimes(1)
+  })
+})
+
+// New call order after 5b-bis restructure:
+// 1: drivers select (5a)
+// 2: bookings select for email (5b)
+// 3: insert assignment (5c)
+// 4: bookings select for status (5b-bis) — non-blocking, error → log + skip update
+// 5: bookings update (5c-bis) — only if status fetch succeeded and transition allowed
+// 6+: notification_flags select (5d) + async after() gnet calls
+
+// Helper for assign tests
+function makeFullAssignMock(
+  bookingOverrides: Record<string, unknown>,
+  opts: { includeBookingsUpdate?: boolean } = {}
+) {
+  const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
+  const mockBooking = {
+    id: bookingId,
+    booking_reference: 'PRG-001',
+    pickup_date: '2026-05-01',
+    pickup_time: '10:00',
+    origin_address: 'Prague Airport',
+    destination_address: 'Wenceslas Square',
+    client_first_name: 'Alice',
+    client_last_name: 'Smith',
+    client_phone: '+420123456789',
+    status: 'confirmed',
+    booking_source: 'website',
+    ...bookingOverrides,
+  }
+  const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+  const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
+  const bookingStatus = { status: mockBooking.status, booking_source: mockBooking.booking_source }
+
+  let callCount = 0
+  stubSupabaseFrom.mockImplementation(() => {
+    callCount++
+    if (callCount === 1) {
+      // drivers lookup (5a)
+      const singleFn = vi.fn().mockResolvedValue({ data: mockDriver, error: null })
+      const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+      const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+      return { select: selectFn }
+    } else if (callCount === 2) {
+      // bookings lookup for email (5b)
+      const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
+      const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+      const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+      return { select: selectFn }
+    } else if (callCount === 3) {
+      // insert assignment (5c)
+      const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
+      const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+      const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+      return { insert: insertFn }
+    } else if (callCount === 4) {
+      // bookings status fetch (5b-bis)
+      const singleFn = vi.fn().mockResolvedValue({ data: bookingStatus, error: null })
+      const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+      const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+      return { select: selectFn }
+    } else if (opts.includeBookingsUpdate && callCount === 5) {
+      // bookings update (5c-bis)
+      const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
+      const updateFn = vi.fn().mockReturnValue({ eq: eqFn })
+      return { update: updateFn }
+    } else {
+      // notification_flags lookup (5d)
+      const singleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
+      const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+      const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+      return { select: selectFn }
+    }
+  })
+
+  return { mockDriver, mockBooking, mockAssignment }
+}
+
+describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, D-07)', () => {
+  // Call order (new 5b-bis arch):
+  // 1=drivers(5a) 2=bookings-email(5b) 3=insert(5c) 4=bookings-status(5b-bis) 5=bookings-update(5c-bis) 6+=nf/gnet
+
+  it('Test A: confirmed → assigned transition updates bookings with driver_id + status', async () => {
+    let updateArgs: unknown[] = []
+    const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
+    const mockBooking = {
+      id: bookingId, booking_reference: 'PRG-001', pickup_date: '2026-05-01', pickup_time: '10:00',
+      origin_address: 'Prague Airport', destination_address: 'Wenceslas Square',
+      client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
+      status: 'confirmed', booking_source: 'website',
+    }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
+
+    let callCount = 0
+    stubSupabaseFrom.mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockDriver, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 2) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 3) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
+        return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 4) {
+        // 5b-bis: bookings status fetch
+        const singleFn = vi.fn().mockResolvedValue({ data: { status: 'confirmed', booking_source: 'website' }, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 5) {
+        // 5c-bis: bookings update — capture args
+        const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
+        const updateFn = vi.fn().mockImplementation((args) => { updateArgs = [args]; return { eq: eqFn } })
+        return { update: updateFn }
+      } else {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      }
+    })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    expect(res.status).toBe(201)
+    expect(updateArgs[0]).toMatchObject({ driver_id: driverId, status: 'assigned' })
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
+    const json = await res.json()
+    expect(json.booking_status).toBe('assigned')
+  })
+
+  it('Test B: reassign (D-07) — updates only driver_id, status untouched', async () => {
+    let updateArgs: unknown[] = []
+    const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
+    const mockBooking = {
+      id: bookingId, booking_reference: 'PRG-001', pickup_date: '2026-05-01', pickup_time: '10:00',
+      origin_address: 'Prague Airport', destination_address: 'Wenceslas Square',
+      client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
+      status: 'assigned', booking_source: 'website', driver_id: 'a0000009-0000-4000-8000-000000000099',
+    }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
+
+    let callCount = 0
+    stubSupabaseFrom.mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockDriver, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 2) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 3) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
+        return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 4) {
+        // 5b-bis: status fetch — returns 'assigned'
+        const singleFn = vi.fn().mockResolvedValue({ data: { status: 'assigned', booking_source: 'website' }, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 5) {
+        // 5c-bis: bookings update for reassign — capture args
+        const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
+        const updateFn = vi.fn().mockImplementation((args) => { updateArgs = [args]; return { eq: eqFn } })
+        return { update: updateFn }
+      } else {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      }
+    })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    expect(res.status).toBe(201)
+    expect(updateArgs[0]).toMatchObject({ driver_id: driverId })
+    expect((updateArgs[0] as Record<string, unknown>).status).toBeUndefined()
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('Test C: GNet first-assign push (D-05) — fires pushGnetStatus for gnet booking on first assign', async () => {
+    const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
+    const mockBooking = {
+      id: bookingId, booking_reference: 'PRG-001', pickup_date: '2026-05-01', pickup_time: '10:00',
+      origin_address: 'Prague Airport', destination_address: 'Wenceslas Square',
+      client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
+      status: 'confirmed', booking_source: 'gnet',
+    }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
+    const mockGnetRow = { id: 'g0000001-0000-4000-8000-000000000001', gnet_res_no: 'GR-123' }
+
+    const mockGnetSingleFn = vi.fn().mockResolvedValue({ data: mockGnetRow, error: null })
+    const mockNfSingleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
+    let callCount = 0
+    stubSupabaseFrom.mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockDriver, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 2) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 3) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
+        return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 4) {
+        // 5b-bis: status fetch — 'confirmed' + 'gnet'
+        const singleFn = vi.fn().mockResolvedValue({ data: { status: 'confirmed', booking_source: 'gnet' }, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 5) {
+        // 5c-bis: bookings update
+        const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
+        return { update: vi.fn().mockReturnValue({ eq: eqFn }) }
+      } else if (callCount === 6) {
+        // after() starts sync execution: gnet_bookings.from().select() called before first await
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockGnetSingleFn }) }) }
+      } else if (callCount === 7) {
+        // notification_flags select (5d, main handler continues after after() suspends at first await)
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: mockNfSingleFn }) }) }
+      } else {
+        // callCount=8+: gnet_bookings update (after() continuation after pushGnetStatus resolves)
+        const eqFnUpdate = vi.fn().mockResolvedValue({ data: null, error: null })
+        return { update: vi.fn().mockReturnValue({ eq: eqFnUpdate }) }
+      }
+    })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    expect(res.status).toBe(201)
+    // after() mock runs synchronously in test env — wait a tick
+    await new Promise((r) => setTimeout(r, 10))
+    // GNet push MUST be called with gnet_res_no and 'ASSIGNED'
+    expect(stubPushGnetStatus).toHaveBeenCalledWith('GR-123', 'ASSIGNED')
+  })
+
+  it('Test D: GNet reassign no push (D-07) — pushGnetStatus NOT called on reassign', async () => {
+    // booking status: 'assigned', booking_source: 'gnet' → reassign, no GNet push
+    // makeFullAssignMock handles the 5b-bis status fetch now
+    makeFullAssignMock({ status: 'assigned', booking_source: 'gnet' }, { includeBookingsUpdate: true })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    expect(res.status).toBe(201)
+    await new Promise((r) => setTimeout(r, 10))
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
+  })
+
+  it('Test E: disallowed transition — pending booking, assignment insert succeeds, status untouched', async () => {
+    // booking status: 'pending' → pending → assigned NOT in VALID_TRANSITIONS
+    // driver_assignments insert still runs; bookings.status stays 'pending'
+    let updateCallCount = 0
+    const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
+    const mockBooking = {
+      id: bookingId, booking_reference: 'PRG-001', pickup_date: '2026-05-01', pickup_time: '10:00',
+      origin_address: 'Prague Airport', destination_address: 'Wenceslas Square',
+      client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
+      status: 'pending', booking_source: 'website',
+    }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
+
+    let callCount = 0
+    stubSupabaseFrom.mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockDriver, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 2) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 3) {
+        const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
+        return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 4) {
+        // 5b-bis: status fetch — returns 'pending' → no transition allowed
+        const singleFn = vi.fn().mockResolvedValue({ data: { status: 'pending', booking_source: 'website' }, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else {
+        // notification_flags — no update should occur
+        const eqFn = vi.fn().mockResolvedValue({ data: null, error: null })
+        const updateFn = vi.fn().mockImplementation(() => { updateCallCount++; return { eq: eqFn } })
+        const singleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
+        return {
+          select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }),
+          update: updateFn,
+        }
+      }
+    })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    expect(res.status).toBe(201)
+    expect(updateCallCount).toBe(0)
+    const json = await res.json()
+    expect(json.booking_status).toBe('pending')
+  })
+
+  it('Test F: booking status fetch error — endpoint logs error and still returns 201 with assignment', async () => {
+    // 5b (email booking fetch) SUCCEEDS; 5b-bis (status fetch) FAILS with DB error.
+    // Assignment insert (5c) already completed before 5b-bis → endpoint logs and returns 201.
+    const mockDriver = { id: driverId, name: 'John Driver', email: 'driver@example.com' }
+    const mockBooking = {
+      id: bookingId, booking_reference: 'PRG-001', pickup_date: '2026-05-01', pickup_time: '10:00',
+      origin_address: 'Prague Airport', destination_address: 'Wenceslas Square',
+      client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
+      status: 'confirmed', booking_source: 'website',
+    }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
+
+    let callCount = 0
+    stubSupabaseFrom.mockImplementation(() => {
+      callCount++
+      if (callCount === 1) {
+        // 5a: drivers lookup — succeeds
+        const singleFn = vi.fn().mockResolvedValue({ data: mockDriver, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 2) {
+        // 5b: bookings email fetch — succeeds
+        const singleFn = vi.fn().mockResolvedValue({ data: mockBooking, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 3) {
+        // 5c: insert assignment — succeeds
+        const singleFn = vi.fn().mockResolvedValue({ data: mockAssignment, error: null })
+        return { insert: vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else if (callCount === 4) {
+        // 5b-bis: status fetch — FAILS with error
+        const singleFn = vi.fn().mockResolvedValue({ data: null, error: { message: 'DB connection error' } })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      } else {
+        // 5d: notification_flags
+        const singleFn = vi.fn().mockResolvedValue({ data: mockNotificationFlags, error: null })
+        return { select: vi.fn().mockReturnValue({ eq: vi.fn().mockReturnValue({ single: singleFn }) }) }
+      }
+    })
+
+    const res = await assignPost(makeAssignRequest({ driver_id: driverId }), {
+      params: Promise.resolve({ id: bookingId }),
+    })
+    // Must return 201 — assignment inserted; status fetch failure is non-blocking
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json).toHaveProperty('assignment')
   })
 })
