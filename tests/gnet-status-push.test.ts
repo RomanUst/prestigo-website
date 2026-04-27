@@ -229,6 +229,18 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     expect(gnetCalls.length).toBe(0)
   })
 
+  it('D-05 guard: missing gnet_bookings row does NOT call pushGnetStatus', async () => {
+    buildSupabaseMock({ gnetData: null })
+
+    const req = makePatchRequest({ id: BOOKING_UUID, status: 'confirmed' })
+    const res = await PATCH(req)
+    await flushAfterCallbacks()
+
+    expect(res.status).toBe(200)
+    expect(mockPushGnetStatus).not.toHaveBeenCalled()
+    expect(mockGnetBookingsUpdate).not.toHaveBeenCalled()
+  })
+
   it('D-01 guard: unmapped status (pending) does NOT call pushGnetStatus', async () => {
     // The VALID_TRANSITIONS map in route.ts does not allow transitions to 'pending'
     // so we test this via direct helper import instead
