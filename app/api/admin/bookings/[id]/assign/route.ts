@@ -67,7 +67,7 @@ export async function POST(
   // 5b. Verify booking exists and get trip details for email (blocking — required for email)
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
-    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source')
+    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur')
     .eq('id', bookingId)
     .single()
 
@@ -139,7 +139,8 @@ export async function POST(
 
         let pushError: string | null = null
         try {
-          await pushGnetStatus(gnetRow.gnet_res_no, gnetStatus)
+          const totalAmount = Number(booking.amount_eur).toFixed(2)
+          await pushGnetStatus(gnetRow.gnet_res_no, gnetStatus, totalAmount)
         } catch (err) {
           pushError = err instanceof Error ? err.message : String(err)
           console.error('[assign:gnet-push] failed', { bookingId, gnetResNo: gnetRow.gnet_res_no, error: pushError })
