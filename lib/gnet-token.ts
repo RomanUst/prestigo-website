@@ -68,7 +68,7 @@ async function fetchNewToken(): Promise<string> {
   if (!uid || !pw) {
     throw new GnetTokenError('MISSING_CREDENTIALS', 'GNET_UID and GNET_PW must be set')
   }
-  const url = process.env.GNET_AUTH_URL?.replace(/\\n$/, '').trim() ?? 'https://api.grdd.net/api/getToken2'
+  const url = process.env.GNET_AUTH_URL?.replace(/\\n$/, '').trim() ?? 'https://api.grdd.net/Platform.svc/getToken2'
   let res: Response
   try {
     res = await fetch(url, {
@@ -89,7 +89,14 @@ async function fetchNewToken(): Promise<string> {
   } catch (err) {
     throw new GnetTokenError('PARSE_ERROR', 'GNet auth response was not JSON', err)
   }
-  const token = (body as { token?: unknown }).token
+  // GRDD's getToken2 returns the token as a bare JSON string (not { token: "..." }).
+  // Accept both shapes for forward-compat.
+  let token: unknown
+  if (typeof body === 'string') {
+    token = body
+  } else if (body && typeof body === 'object' && 'token' in body) {
+    token = (body as { token?: unknown }).token
+  }
   if (typeof token !== 'string' || token.length === 0) {
     throw new GnetTokenError('PARSE_ERROR', 'GNet auth response missing token')
   }

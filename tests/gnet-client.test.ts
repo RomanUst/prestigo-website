@@ -19,6 +19,7 @@ vi.mock('@/lib/gnet-token', () => ({
 }))
 
 process.env.GNET_API_URL = 'https://api.test.grdd.net'
+process.env.GNET_GRIDDID = 'prestigo-test'
 
 import { pushGnetStatus, GnetClientError, type GnetStatus } from '@/lib/gnet-client'
 
@@ -38,14 +39,16 @@ describe('pushGnetStatus happy path', () => {
       new Response(JSON.stringify({ success: true }), { status: 200 }),
     )
 
-    await pushGnetStatus('RES-123', 'CONFIRMED')
+    await pushGnetStatus('RES-123', 'CONFIRMED', '120.00')
 
     expect(mockFetch).toHaveBeenCalledTimes(1)
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit]
-    expect(url).toContain('providerUpdateStatusByResNo')
-    expect((init.headers as Record<string, string>)['Authorization']).toBe('Bearer tok-1')
+    expect(url).toContain('providerUpdateStatusByResNo/prestigo-test/RES-123/1')
+    expect((init.headers as Record<string, string>)['token']).toBe('tok-1')
     expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json')
-    expect(JSON.parse(init.body as string)).toEqual({ gnetResNo: 'RES-123', status: 'CONFIRMED' })
+    expect(JSON.parse(init.body as string)).toEqual({
+      status: 'CONFIRMED', totalAmount: '120.00', resNo: 'RES-123', griddID: 'prestigo-test',
+    })
     expect(mockGetGnetToken).toHaveBeenCalledTimes(1)
     // First call should be without force arg (cached path)
     expect(mockGetGnetToken.mock.calls[0][0]).toBeFalsy()
@@ -63,13 +66,13 @@ describe('pushGnetStatus retry-on-401', () => {
       .mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
       .mockResolvedValueOnce(new Response(JSON.stringify({ success: true }), { status: 200 }))
 
-    await expect(pushGnetStatus('RES-9', 'COMPLETE')).resolves.toBeUndefined()
+    await expect(pushGnetStatus('RES-9', 'COMPLETE', '50.00')).resolves.toBeUndefined()
 
     expect(mockGetGnetToken).toHaveBeenCalledTimes(2)
     expect(mockGetGnetToken.mock.calls[1][0]).toBe(true) // second call with force=true
     expect(mockFetch).toHaveBeenCalledTimes(2)
     const [, secondInit] = mockFetch.mock.calls[1] as [string, RequestInit]
-    expect((secondInit.headers as Record<string, string>)['Authorization']).toBe('Bearer fresh-tok')
+    expect((secondInit.headers as Record<string, string>)['token']).toBe('fresh-tok')
   })
 
   it('throws GnetClientError("AUTH_FAILED") after second 401', async () => {
@@ -80,7 +83,7 @@ describe('pushGnetStatus retry-on-401', () => {
       .mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
       .mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
 
-    const err = await pushGnetStatus('RES-1', 'CANCEL').catch((e: unknown) => e)
+    const err = await pushGnetStatus('RES-1', 'CANCEL', '50.00').catch((e: unknown) => e)
     expect(err).toBeInstanceOf(GnetClientError)
     expect((err as GnetClientError).code).toBe('AUTH_FAILED')
     expect((err as GnetClientError).status).toBe(401)
@@ -98,7 +101,7 @@ describe('pushGnetStatus AUTH_FAILED on double 401', () => {
       .mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
       .mockResolvedValueOnce(new Response('Unauthorized', { status: 401 }))
 
-    await expect(pushGnetStatus('RES-x', 'ASSIGNED')).rejects.toMatchObject({
+    await expect(pushGnetStatus('RES-x', 'ASSIGNED', '50.00')).rejects.toMatchObject({
       code: 'AUTH_FAILED',
       status: 401,
     })
@@ -113,13 +116,13 @@ describe('pushGnetStatus non-2xx non-401 error', () => {
     mockGetGnetToken.mockResolvedValue('secret-tok-xyz')
     mockFetch.mockResolvedValue(new Response('server error', { status: 500 }))
 
-    await expect(pushGnetStatus('RES-2', 'EN_ROUTE')).rejects.toMatchObject({
+    await expect(pushGnetStatus('RES-2', 'EN_ROUTE', '50.00')).rejects.toMatchObject({
       code: 'API_ERROR',
       status: 500,
     })
 
     try {
-      await pushGnetStatus('RES-2', 'EN_ROUTE')
+      await pushGnetStatus('RES-2', 'EN_ROUTE', '50.00')
     } catch (err) {
       const e = err as GnetClientError
       expect(e).toBeInstanceOf(GnetClientError)
@@ -136,12 +139,12 @@ describe('pushGnetStatus network error', () => {
     mockGetGnetToken.mockResolvedValue('tok-1')
     mockFetch.mockRejectedValue(new Error('ECONNREFUSED'))
 
-    await expect(pushGnetStatus('RES-3', 'ON_LOCATION')).rejects.toMatchObject({
+    await expect(pushGnetStatus('RES-3', 'ON_LOCATION', '50.00')).rejects.toMatchObject({
       code: 'NETWORK_ERROR',
     })
 
     try {
-      await pushGnetStatus('RES-3', 'ON_LOCATION')
+      await pushGnetStatus('RES-3', 'ON_LOCATION', '50.00')
     } catch (err) {
       const e = err as GnetClientError
       expect(e).toBeInstanceOf(GnetClientError)
@@ -158,7 +161,7 @@ describe('pushGnetStatus rethrows GnetTokenError', () => {
     const tokenErr = new GnetTokenError('MISSING_CREDENTIALS', 'no creds')
     mockGetGnetToken.mockRejectedValue(tokenErr)
 
-    await expect(pushGnetStatus('RES-4', 'CONFIRMED')).rejects.toThrow('no creds')
+    await expect(pushGnetStatus('RES-4', 'CONFIRMED', '50.00')).rejects.toThrow('no creds')
     expect(mockFetch).not.toHaveBeenCalled()
   })
 })
@@ -216,7 +219,7 @@ describe('GnetStatus type', () => {
       mockFetch.mockResolvedValueOnce(
         new Response(JSON.stringify({ success: true }), { status: 200 }),
       )
-      await expect(pushGnetStatus('RES-ts', s)).resolves.toBeUndefined()
+      await expect(pushGnetStatus('RES-ts', s, '50.00')).resolves.toBeUndefined()
     }
   })
 

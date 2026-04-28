@@ -232,7 +232,8 @@ export async function PATCH(request: Request) {
           // STATUS-01: push the mapped status
           let pushError: string | null = null
           try {
-            await pushGnetStatus(gnetRow.gnet_res_no, gnetStatus)
+            const totalAmount = Number(current.amount_eur).toFixed(2)
+            await pushGnetStatus(gnetRow.gnet_res_no, gnetStatus, totalAmount)
           } catch (err) {
             // STATUS-02: never block admin — swallow and log
             pushError = err instanceof Error ? err.message : String(err)
