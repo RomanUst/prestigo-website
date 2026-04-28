@@ -740,7 +740,7 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
     // after() mock runs synchronously in test env — wait a tick
     await new Promise((r) => setTimeout(r, 10))
     // GNet push MUST be called with gnet_res_no and 'ASSIGNED'
-    expect(stubPushGnetStatus).toHaveBeenCalledWith('GR-123', 'ASSIGNED')
+    expect(stubPushGnetStatus).toHaveBeenCalledWith('GR-123', 'ASSIGNED', expect.any(String))
   })
 
   it('Test D: GNet reassign no push (D-07) — pushGnetStatus NOT called on reassign', async () => {

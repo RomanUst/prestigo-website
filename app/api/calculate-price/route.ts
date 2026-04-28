@@ -8,7 +8,7 @@ import { createSupabasePublicReadClient } from '@/lib/supabase'
 import { isInAnyZone } from '@/lib/zones'
 import { isNightTime, isHolidayDate, applyGlobals } from '@/lib/server-pricing'
 import { getRoutePrice, findRouteByPlaceIds, type RoutePrice } from '@/lib/route-prices'
-import { roundUpToFive, CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
+import { CHILD_SEAT_PRICE, EXTRA_STOP_PRICE } from '@/lib/pricing-helpers'
 // Re-export extracted helpers so legacy consumers (tests/pricing.test.ts)
 // that imported them directly from this route continue to compile. The single
 // source of truth is @/lib/server-pricing; this re-export is a compat shim.
@@ -73,7 +73,7 @@ function applyExtrasAndRound(
   const out: Record<string, VehiclePrice> = {}
   for (const [k, v] of Object.entries(adjusted)) {
     const newExtras = v.extras + extrasAdd
-    const newTotal = roundUpToFive(v.base + newExtras)
+    const newTotal = v.base + newExtras
     out[k] = { base: v.base, extras: newExtras, total: newTotal, currency: v.currency }
   }
   return out

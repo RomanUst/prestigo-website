@@ -146,7 +146,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
 
     expect(res.status).toBe(200)
     expect(mockPushGnetStatus).toHaveBeenCalledTimes(1)
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'CONFIRMED')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'CONFIRMED', expect.any(String))
   })
 
   it('STATUS-02: PATCH returns 200 ok:true even when pushGnetStatus throws', async () => {
@@ -200,7 +200,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await PATCH(req)
     await flushAfterCallbacks()
 
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'COMPLETE')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'COMPLETE', expect.any(String))
   })
 
   it('STATUS-04 mapping: cancelled → CANCEL', async () => {
@@ -211,7 +211,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await PATCH(req)
     await flushAfterCallbacks()
 
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'CANCEL')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'CANCEL', expect.any(String))
   })
 
   it('D-03 guard: non-GNet booking does NOT call pushGnetStatus', async () => {
@@ -257,7 +257,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     await flushAfterCallbacks()
     expect(res.status).toBe(200)
     expect(mockPushGnetStatus).toHaveBeenCalledTimes(1)
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ASSIGNED')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ASSIGNED', expect.any(String))
     expect(mockGnetBookingsUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ last_push_status: 'ASSIGNED', last_push_error: null }),
     )
@@ -269,7 +269,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     const res = await PATCH(req)
     await flushAfterCallbacks()
     expect(res.status).toBe(200)
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'EN_ROUTE')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'EN_ROUTE', expect.any(String))
   })
 
   it('Phase 52: en_route → on_location triggers ON_LOCATION push', async () => {
@@ -278,7 +278,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     const res = await PATCH(req)
     await flushAfterCallbacks()
     expect(res.status).toBe(200)
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ON_LOCATION')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'ON_LOCATION', expect.any(String))
   })
 
   it('Phase 52: on_location → completed triggers COMPLETE push', async () => {
@@ -287,7 +287,7 @@ describe('GNet status push — STATUS-01..04 + guards', () => {
     const res = await PATCH(req)
     await flushAfterCallbacks()
     expect(res.status).toBe(200)
-    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'COMPLETE')
+    expect(mockPushGnetStatus).toHaveBeenCalledWith('RES-123', 'COMPLETE', expect.any(String))
   })
 
   it('Phase 52: invalid transition confirmed → en_route returns 422', async () => {
