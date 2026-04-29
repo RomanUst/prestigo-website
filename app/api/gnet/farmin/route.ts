@@ -320,9 +320,8 @@ export async function POST(req: Request): Promise<Response> {
     )
   }
 
-  // 13. BOOKING branch — dual insert with transaction_id idempotency
+  // 13. BOOKING / UPDATE branch
   const supabase = createSupabaseServiceClient()
-  const bookingReference = generateBookingReference()
   const amountEur = price
   const amountCzk = eurToCzk(price)
 
@@ -340,6 +339,65 @@ export async function POST(req: Request): Promise<Response> {
     parsed.data.locations.pickup.address ?? parsed.data.locations.pickup.landmark ?? 'Unknown pickup'
   const destinationAddress =
     parsed.data.locations.dropOff.address ?? parsed.data.locations.dropOff.landmark ?? 'Unknown dropoff'
+
+  // 13a. UPDATE branch — affiliateReservation.action === 'UPDATE'.
+  // Find existing booking by transaction_id, recompute price from the new
+  // payload, and update the editable fields. If we don't have it on file,
+  // fall through to insert as a new booking (treat UPDATE as upsert).
+  if (action === 'UPDATE') {
+    const { data: existingGnet } = await supabase
+      .from('gnet_bookings')
+      .select('booking_id')
+      .eq('transaction_id', parsed.data.transactionId)
+      .single()
+
+    if (existingGnet) {
+      const { data: updatedBooking, error: updateErr } = await supabase
+        .from('bookings')
+        .update({
+          pickup_date:         dt.date,
+          pickup_time:         dt.time,
+          vehicle_class:       vehicleClass,
+          distance_km:         Math.round(distanceKm * 10) / 10,
+          amount_eur:          amountEur,
+          amount_czk:          amountCzk,
+          origin_address:      originAddress,
+          destination_address: destinationAddress,
+          passengers:          passengerCount,
+          client_first_name:   firstPassenger?.firstName ?? 'GNet',
+          client_last_name:    firstPassenger?.lastName ?? 'Partner',
+          client_email:        firstPassenger?.email || 'noreply@gnet.local',
+          client_phone:        firstPassenger?.phoneNumber || 'unknown',
+        })
+        .eq('id', existingGnet.booking_id)
+        .select('booking_reference')
+        .single()
+
+      if (updateErr || !updatedBooking) {
+        console.error('[gnet-farmin] update failed', updateErr)
+        return businessFailure('Internal error (update)')
+      }
+
+      // Refresh raw_payload audit on gnet_bookings.
+      await supabase
+        .from('gnet_bookings')
+        .update({ raw_payload: parsed.data })
+        .eq('booking_id', existingGnet.booking_id)
+
+      return Response.json(
+        {
+          success:       true,
+          reservationId: updatedBooking.booking_reference,
+          totalAmount:   price.toFixed(2),
+          transactionId: parsed.data.transactionId,
+        },
+        { status: 200 },
+      )
+    }
+    // No existing record — fall through to BOOKING insert below.
+  }
+
+  const bookingReference = generateBookingReference()
 
   const bookingsRow = {
     booking_reference:   bookingReference,
