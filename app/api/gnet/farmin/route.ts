@@ -58,7 +58,7 @@ const GnetPassengerSchema = z
 
 export const GnetPayloadSchema = z
   .object({
-    griddID:              z.string().min(1).max(200),
+    griddID:              z.string().min(1).max(200).optional(),
     transactionId:        z.string().min(1).max(200),
     preferredVehicleType: z.string().min(1).max(50),
     locations: z.object({
@@ -202,8 +202,11 @@ export async function POST(req: Request): Promise<Response> {
     return businessFailure('Invalid payload schema')
   }
 
-  // 5. griddID verification
-  if (parsed.data.griddID !== process.env.GNET_GRIDDID?.trim()) {
+  // 5. griddID verification — only when present in payload.
+  // GRDD's verifyFleet flow omits griddID; Basic Auth already proves the
+  // request comes from GNet, so a missing griddID is acceptable.
+  const expectedGriddID = process.env.GNET_GRIDDID?.replace(/\\n$/, '').trim()
+  if (parsed.data.griddID && expectedGriddID && parsed.data.griddID !== expectedGriddID) {
     return businessFailure('Unknown griddID')
   }
 
