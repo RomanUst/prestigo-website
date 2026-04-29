@@ -210,6 +210,47 @@ export async function POST(req: Request): Promise<Response> {
     return businessFailure('Unknown griddID')
   }
 
+  // 5b. Cancellation branch — affiliateReservation.action === 'CANCEL'.
+  // Find existing booking by transaction_id and flip status to 'cancelled'.
+  const action = parsed.data.affiliateReservation?.action?.toUpperCase()
+  if (action === 'CANCEL') {
+    const supabase = createSupabaseServiceClient()
+    const { data: existingGnet } = await supabase
+      .from('gnet_bookings')
+      .select('booking_id')
+      .eq('transaction_id', parsed.data.transactionId)
+      .single()
+
+    if (!existingGnet) {
+      // Nothing to cancel on our side — acknowledge silently.
+      return Response.json(
+        { success: true, transactionId: parsed.data.transactionId, message: 'No matching reservation' },
+        { status: 200 },
+      )
+    }
+
+    const { data: cancelled, error: cancelErr } = await supabase
+      .from('bookings')
+      .update({ status: 'cancelled' })
+      .eq('id', existingGnet.booking_id)
+      .select('booking_reference')
+      .single()
+
+    if (cancelErr || !cancelled) {
+      console.error('[gnet-farmin] cancel failed', cancelErr)
+      return businessFailure('Internal error (cancel)')
+    }
+
+    return Response.json(
+      {
+        success:       true,
+        reservationId: cancelled.booking_reference,
+        transactionId: parsed.data.transactionId,
+      },
+      { status: 200 },
+    )
+  }
+
   // 6. Vehicle type mapping
   const vehicleClass: VehicleClass | null = mapGnetVehicle(parsed.data.preferredVehicleType)
   if (!vehicleClass) {
