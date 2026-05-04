@@ -103,17 +103,25 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
       })
 
       if (res.ok || res.status === 201) {
+        const postData = await res.json()
         // Re-fetch the assignment to get full data with driver name
         const assignRes = await fetch(`/api/admin/bookings/${bookingId}/assignment`)
         if (assignRes.ok) {
           const data = await assignRes.json()
           setAssignment(data.assignment)
-          setMode('assigned')
-          setSelectedDriverId('')
-          onAssigned?.('assigned')   // D-06: notify parent for optimistic table update
         } else {
-          setMode('error')
+          // POST succeeded — show partial data rather than error state.
+          // The driver_assignments row was created; a page reload will show full data.
+          setAssignment({
+            id: postData.assignment.id,
+            driver_id: postData.assignment.driver_id,
+            status: postData.assignment.status,
+            drivers: { name: 'Driver assigned', email: '' },
+          })
         }
+        setMode('assigned')
+        setSelectedDriverId('')
+        onAssigned?.('assigned')   // D-06: notify parent for optimistic table update
       } else {
         setMode('error')
       }
