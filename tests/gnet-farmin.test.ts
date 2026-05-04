@@ -248,11 +248,11 @@ describe('POST /api/gnet/farmin QUOTE pricing', () => {
     expect(body.totalAmount).toBe('423.00')
   })
 
-  it('VAN_CORP uses business_van rate (1.71 €/km)', async () => {
+  it('VAN_MINI_LUXURY uses business_van rate (1.71 €/km)', async () => {
     // 150 km × 1.71 = 256.5 → 257 base + 40 airport = 297
     stubGoogleDistance(150)
     const res = await POST(makeReq(
-      { ...validQuotePayload, preferredVehicleType: 'VAN_CORP' },
+      { ...validQuotePayload, preferredVehicleType: 'VAN_MINI_LUXURY' },
       { authorization: validAuth },
     ))
     const body = await res.json()
