@@ -13,6 +13,7 @@ import { ChevronDown, ChevronUp, Search, X } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { FlightStatusBlock } from './FlightStatusBlock'
 import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSection'
+import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 
 interface Booking {
   id: string
@@ -66,16 +67,6 @@ const vehicleClassMap: Record<string, string> = {
   business: 'Business',
   first_class: 'First Class',
   business_van: 'Business Van',
-}
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending:     ['confirmed', 'cancelled'],
-  confirmed:   ['completed', 'cancelled', 'assigned'],
-  assigned:    ['en_route', 'cancelled'],
-  en_route:    ['on_location', 'cancelled'],
-  on_location: ['completed', 'cancelled'],
-  completed:   [],
-  cancelled:   [],
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -659,7 +650,7 @@ export default function BookingsTable() {
           ) : (
             bookings.map((booking) => {
               const isExpanded = !!expandedCards[booking.id]
-              const transitions = VALID_TRANSITIONS[booking.status] ?? []
+              const transitions = UI_TRANSITIONS[booking.status] ?? []
               return (
                 <div
                   key={booking.id}
@@ -1184,7 +1175,7 @@ export default function BookingsTable() {
                           }}>
                             Status
                           </span>
-                          {(VALID_TRANSITIONS[row.original.status] ?? []).length > 0 ? (
+                          {(UI_TRANSITIONS[row.original.status] ?? []).length > 0 ? (
                             <select
                               value=""
                               disabled={!!statusUpdating[row.original.id]}
@@ -1208,7 +1199,7 @@ export default function BookingsTable() {
                               <option value="" disabled>
                                 {statusUpdating[row.original.id] ? 'Updating...' : `Change from ${STATUS_LABELS[row.original.status]}...`}
                               </option>
-                              {(VALID_TRANSITIONS[row.original.status] ?? []).map(s => (
+                              {(UI_TRANSITIONS[row.original.status] ?? []).map(s => (
                                 <option key={s} value={s}>{STATUS_LABELS[s]}</option>
                               ))}
                             </select>

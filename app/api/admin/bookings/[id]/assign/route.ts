@@ -6,20 +6,11 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendDriverAssignmentEmail } from '@/lib/email'
 import { pushGnetStatus, prestigoToGnetStatus } from '@/lib/gnet-client'
+import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 
 const assignSchema = z.object({
   driver_id: z.string().uuid(),
 })
-
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  pending: ['confirmed', 'cancelled'],
-  confirmed: ['assigned', 'cancelled', 'completed'],
-  assigned: ['en_route', 'cancelled', 'completed'],
-  en_route: ['on_location', 'cancelled', 'completed'],
-  on_location: ['completed', 'cancelled'],
-  completed: [],
-  cancelled: [],
-}
 
 export async function POST(
   request: Request,
