@@ -240,7 +240,10 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
         <select
           value={selectedDriverId}
-          onChange={(e) => setSelectedDriverId(e.target.value)}
+          onChange={(e) => {
+            setSelectedDriverId(e.target.value)
+            if (mode === 'error') setMode('no-assignment')
+          }}
           disabled={isSelectDisabled}
           style={selectStyle}
         >
