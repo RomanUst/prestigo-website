@@ -71,7 +71,7 @@ const vehicleClassMap: Record<string, string> = {
 const VALID_TRANSITIONS: Record<string, string[]> = {
   pending:     ['confirmed', 'cancelled'],
   confirmed:   ['completed', 'cancelled', 'assigned'],
-  assigned:    ['en_route', 'cancelled', 'completed'],
+  assigned:    ['en_route', 'cancelled'],
   en_route:    ['on_location', 'cancelled'],
   on_location: ['completed', 'cancelled'],
   completed:   [],
