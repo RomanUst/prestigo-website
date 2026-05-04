@@ -21,7 +21,6 @@ const LIMITS: Record<string, number> = {
   '/admin/login':                 5, // prevent brute force on admin credentials
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota
   '/api/corporate-contact':       5, // 5 corporate enquiries per minute per IP
-  '/api/bespoke-quote':           5, // 5 bespoke requests per minute per IP
 }
 
 export interface RateLimitResult {

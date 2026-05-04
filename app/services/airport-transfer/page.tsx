@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import BookingSection from '@/components/BookingSection'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
@@ -138,6 +139,8 @@ export default async function AirportTransferPage() {
           </div>
         </div>
       </section>
+
+      <BookingSection />
 
       <Divider />
 

@@ -54,14 +54,6 @@ export default function Nav() {
               )}
             </Link>
           ))}
-          <Link
-            href="/calculator"
-            className={`font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
-              pathname === '/calculator' ? 'text-offwhite' : 'text-warmgrey hover:text-offwhite'
-            }`}
-          >
-            Get instant quote
-          </Link>
           <Link href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '10px' }}>
             Book now
           </Link>
@@ -110,15 +102,6 @@ export default function Nav() {
             )}
           </Link>
         ))}
-        <Link
-          href="/calculator"
-          onClick={() => setOpen(false)}
-          className={`font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 min-h-[44px] ${
-            pathname === '/calculator' ? 'text-offwhite' : 'text-warmgrey hover:text-offwhite'
-          }`}
-        >
-          Get instant quote
-        </Link>
         <Link href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-3">
           Book now
         </Link>
