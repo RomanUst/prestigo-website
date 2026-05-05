@@ -47,41 +47,108 @@ export const HARDCODED_TESTIMONIALS: HardcodedReview[] = [
   },
 ]
 
-// Places API New (v1) — aggregate rating response shape
-interface PlacesApiV1AggregateResponse {
-  rating?: number
-  userRatingCount?: number
-}
+// ─── OAuth helpers ────────────────────────────────────────────────────────────
 
-async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
-  const placeId = process.env.GOOGLE_PLACE_ID?.trim()
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
+async function getOAuthAccessToken(): Promise<string | null> {
+  const clientId = process.env.GOOGLE_OAUTH_CLIENT_ID?.trim()
+  const clientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET?.trim()
+  const refreshToken = process.env.GOOGLE_OAUTH_REFRESH_TOKEN?.trim()
 
-  if (!placeId || !apiKey) return null
+  if (!clientId || !clientSecret || !refreshToken) return null
 
   try {
-    const res = await fetch(
-      `https://places.googleapis.com/v1/places/${placeId}`,
-      {
-        cache: 'no-store',
-        headers: {
-          'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': 'rating,userRatingCount',
-        },
-      },
-    )
+    const res = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      cache: 'no-store',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: clientId,
+        client_secret: clientSecret,
+        refresh_token: refreshToken,
+        grant_type: 'refresh_token',
+      }).toString(),
+    })
     if (!res.ok) return null
-
-    const json = (await res.json()) as PlacesApiV1AggregateResponse
-    if (!json.rating || !json.userRatingCount) return null
-
-    return {
-      ratingValue: Math.round(json.rating * 10) / 10,
-      reviewCount: json.userRatingCount,
-    }
+    const data = (await res.json()) as { access_token?: string }
+    return data.access_token ?? null
   } catch {
     return null
   }
+}
+
+// ─── Business Profile API types ───────────────────────────────────────────────
+
+interface BizReviewer {
+  displayName?: string
+  profilePhotoUrl?: string
+}
+
+interface BizReview {
+  starRating: 'ONE' | 'TWO' | 'THREE' | 'FOUR' | 'FIVE'
+  comment?: string
+  createTime: string
+  reviewer?: BizReviewer
+}
+
+interface BizReviewsResponse {
+  reviews?: BizReview[]
+  averageRating?: number
+  totalReviewCount?: number
+}
+
+const STAR_MAP: Record<string, number> = {
+  ONE: 1, TWO: 2, THREE: 3, FOUR: 4, FIVE: 5,
+}
+
+function relativeTimeFromDate(date: Date): string {
+  const days = Math.floor((Date.now() - date.getTime()) / 86_400_000)
+  if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`
+  const months = Math.floor(days / 30)
+  if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`
+  const years = Math.floor(months / 12)
+  return `${years} year${years === 1 ? '' : 's'} ago`
+}
+
+// ─── Aggregate rating ─────────────────────────────────────────────────────────
+
+function getEnvRating(): { ratingValue: number; reviewCount: number } | null {
+  const rv = parseFloat(process.env.GOOGLE_RATING_VALUE ?? '')
+  const rc = parseInt(process.env.GOOGLE_REVIEW_COUNT ?? '', 10)
+  if (!isNaN(rv) && rv > 0 && !isNaN(rc) && rc > 0) return { ratingValue: rv, reviewCount: rc }
+  return null
+}
+
+async function fetchAggregateRating(): Promise<{ ratingValue: number; reviewCount: number } | null> {
+  const accessToken = await getOAuthAccessToken()
+  if (!accessToken) return getEnvRating()
+
+  const locationName = process.env.GOOGLE_BUSINESS_LOCATION_NAME?.trim()
+  if (!locationName) return getEnvRating()
+
+  try {
+    const res = await fetch(
+      `https://mybusiness.googleapis.com/v4/${locationName}/reviews?pageSize=1`,
+      {
+        cache: 'no-store',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      },
+    )
+    if (!res.ok) return getEnvRating()
+
+    const json = (await res.json()) as BizReviewsResponse
+    if (!json.averageRating || !json.totalReviewCount) return getEnvRating()
+
+    return {
+      ratingValue: Math.round(json.averageRating * 10) / 10,
+      reviewCount: json.totalReviewCount,
+    }
+  } catch {
+    return getEnvRating()
+  }
+}
+
+export function getStaticAggregateRating(): { ratingValue: number; reviewCount: number } | null {
+  return getEnvRating()
 }
 
 export const getCachedAggregateRating = unstable_cache(
@@ -93,64 +160,47 @@ export const getCachedAggregateRating = unstable_cache(
   },
 )
 
-// Places API New (v1) — review response shape
-interface PlacesApiV1Review {
-  rating: number
-  text?: { text: string; languageCode: string }
-  originalText?: { text: string; languageCode: string }
-  relativePublishTimeDescription: string
-  publishTime: string
-  authorAttribution?: {
-    displayName: string
-    uri?: string
-    photoUri?: string
-  }
-}
-
-interface PlacesApiV1Response {
-  reviews?: PlacesApiV1Review[]
-}
+// ─── Reviews ──────────────────────────────────────────────────────────────────
 
 async function fetchGoogleReviews(): Promise<GoogleReview[]> {
-  const placeId = process.env.GOOGLE_PLACE_ID?.trim()
-  const apiKey = process.env.GOOGLE_MAPS_API_KEY?.trim()
+  const accessToken = await getOAuthAccessToken()
+  if (!accessToken) return []
 
-  if (!placeId || !apiKey) return []
+  const locationName = process.env.GOOGLE_BUSINESS_LOCATION_NAME?.trim()
+  if (!locationName) return []
 
   try {
-    // Places API New (v1) — supports Service Area Businesses; Legacy endpoint returns NOT_FOUND for SABs
     const res = await fetch(
-      `https://places.googleapis.com/v1/places/${placeId}`,
+      `https://mybusiness.googleapis.com/v4/${locationName}/reviews?pageSize=50`,
       {
         cache: 'no-store',
-        headers: {
-          'X-Goog-Api-Key': apiKey,
-          'X-Goog-FieldMask': 'reviews',
-        },
+        headers: { Authorization: `Bearer ${accessToken}` },
       },
     )
     if (!res.ok) return []
 
-    const json = (await res.json()) as PlacesApiV1Response
+    const json = (await res.json()) as BizReviewsResponse
     const rawReviews = json.reviews ?? []
 
     return rawReviews
       .filter(
         (r) =>
-          typeof r?.rating === 'number' &&
-          r.rating >= 4 &&
-          typeof r?.text?.text === 'string' &&
-          r.text.text.trim().length > 0,
+          (STAR_MAP[r.starRating] ?? 0) >= 4 &&
+          typeof r.comment === 'string' &&
+          r.comment.trim().length > 0,
       )
-      .map<GoogleReview>((r) => ({
-        source: 'google',
-        author: r.authorAttribution?.displayName ?? 'Google reviewer',
-        rating: r.rating,
-        text: r.text!.text,
-        time: new Date(r.publishTime).getTime() / 1000,
-        relativeTime: r.relativePublishTimeDescription,
-        profilePhotoUrl: r.authorAttribution?.photoUri,
-      }))
+      .map<GoogleReview>((r) => {
+        const date = new Date(r.createTime)
+        return {
+          source: 'google',
+          author: r.reviewer?.displayName ?? 'Google reviewer',
+          rating: STAR_MAP[r.starRating] ?? 5,
+          text: r.comment!,
+          time: date.getTime() / 1000,
+          relativeTime: relativeTimeFromDate(date),
+          profilePhotoUrl: r.reviewer?.profilePhotoUrl,
+        }
+      })
   } catch {
     return []
   }
@@ -165,12 +215,12 @@ const getCachedGoogleReviews = unstable_cache(
   },
 )
 
-// Maximum number of Google reviews; when reached, hardcoded testimonials are omitted
+// ─── Public API ───────────────────────────────────────────────────────────────
+
 const MAX_GOOGLE = 5
 
 export async function getReviews(): Promise<Review[]> {
   const googleReviews = await getCachedGoogleReviews()
-  // Only fill hardcoded slots when Google did not return its maximum
   const hardcoded = googleReviews.length >= MAX_GOOGLE ? [] : HARDCODED_TESTIMONIALS
   return [...googleReviews, ...hardcoded].slice(0, MAX_POOL)
 }

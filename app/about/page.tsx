@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
@@ -80,7 +81,7 @@ const aboutPageSchemaGraph = {
       '@id': 'https://rideprestigo.com/#org',
       name: 'PRESTIGO',
       url: 'https://rideprestigo.com',
-      foundingDate: '2026',
+      foundingDate: '2016',
       founder: {
         '@type': 'Person',
         '@id': 'https://rideprestigo.com/authors/roman-ustyugov#person',
@@ -91,10 +92,31 @@ const aboutPageSchemaGraph = {
 }
 
 export default function AboutPage() {
+  const rating = getStaticAggregateRating()
+  const schemaGraph = rating
+    ? {
+        ...aboutPageSchemaGraph,
+        '@graph': [
+          ...aboutPageSchemaGraph['@graph'],
+          {
+            '@type': ['LocalBusiness', 'TaxiService'],
+            '@id': 'https://rideprestigo.com/#business',
+            aggregateRating: {
+              '@type': 'AggregateRating',
+              ratingValue: rating.ratingValue.toFixed(1),
+              reviewCount: rating.reviewCount,
+              bestRating: '5',
+              worstRating: '1',
+            },
+          },
+        ],
+      }
+    : aboutPageSchemaGraph
+
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageSchemaGraph) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaGraph) }} />
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
