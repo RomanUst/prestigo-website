@@ -5,7 +5,7 @@ export const revalidate = 120
 import { getCachedAggregateRating } from '@/lib/google-reviews'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
-import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
+import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import BookingSection from '@/components/BookingSection'
@@ -72,7 +72,7 @@ const localBusinessSchema = {
     latitude: 49.9836,
     longitude: 14.2001,
   },
-  image: 'https://rideprestigo.com/photohero.png',
+  image: 'https://rideprestigo.com/og-image.jpg',
   logo: {
     '@type': 'ImageObject',
     url: 'https://rideprestigo.com/logo.png',
@@ -95,7 +95,7 @@ const localBusinessSchema = {
     '5-star hotel partner transport',
     'Executive Mercedes-Benz fleet',
   ],
-  foundingDate: '2026',
+  foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
   sameAs: [
     'https://share.google/RLjntprJWb5RXWSxL',
@@ -137,11 +137,27 @@ const websiteSchema = {
   },
 }
 
+const DEV_PRICING_FALLBACK = {
+  globals: {
+    airportPromoActive: false,
+    airportRegularPriceEur: AIRPORT_FALLBACK.regular,
+    airportPromoPriceEur: AIRPORT_FALLBACK.promo,
+    airportFee: 0, nightCoefficient: 1, holidayCoefficient: 1,
+    extraChildSeat: 0, extraLuggage: 0, holidayDates: [] as string[],
+    returnDiscountPercent: 0, hourlyMinHours: 1, hourlyMaxHours: 12,
+    notificationFlags: null,
+  },
+  hourlyRate: HOURLY_FALLBACK as Record<string, number>,
+  ratePerKm: {} as Record<string, number>,
+  dailyRate: {} as Record<string, number>,
+  minFare: {} as Record<string, number>,
+}
+
 export default async function Home() {
   const [aggregateRating, config, allRoutes] = await Promise.all([
-    getCachedAggregateRating(),
-    getPricingConfig(),
-    getAllRoutes('display_order'),
+    getCachedAggregateRating().catch(() => null),
+    getPricingConfig().catch(() => DEV_PRICING_FALLBACK),
+    getAllRoutes('display_order').catch(() => [] as Awaited<ReturnType<typeof getAllRoutes>>),
   ])
 
   const { globals, hourlyRate } = config

@@ -155,9 +155,16 @@ export async function middleware(request: NextRequest) {
     const nonce = btoa(crypto.randomUUID())
     const reqHeaders = new Headers(request.headers)
     reqHeaders.set('x-nonce', nonce)
-    const response = await updateSession(request, reqHeaders)
-    response.headers.set('Content-Security-Policy', buildCsp(nonce))
-    return response
+    try {
+      const response = await updateSession(request, reqHeaders)
+      response.headers.set('Content-Security-Policy', buildCsp(nonce))
+      return response
+    } catch {
+      // Supabase not configured (local dev without .env) — fall through without auth
+      const response = NextResponse.next({ request: { headers: reqHeaders } })
+      response.headers.set('Content-Security-Policy', buildCsp(nonce))
+      return response
+    }
   } else {
     // Static/cacheable marketing routes: skip Supabase auth roundtrip entirely.
     // No page under this branch reads user session, so getUser() on every
