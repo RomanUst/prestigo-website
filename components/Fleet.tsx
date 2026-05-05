@@ -54,9 +54,8 @@ export default function Fleet() {
                   <Image
                     src={v.photo}
                     alt={v.photoAlt}
-                    width={460}
-                    height={260}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-700"
                     sizes="(max-width: 768px) 100vw, 400px"
                     loading={i === 0 ? 'eager' : 'lazy'}
                   />
@@ -80,7 +79,7 @@ export default function Fleet() {
                     ))}
                   </ul>
                   <a
-                    href="/services/airport-transfer"
+                    href="/book"
                     className="inline-block mt-4 font-body font-light text-[10px] tracking-[0.18em] uppercase text-copper hover:text-copper-light transition-colors"
                   >
                     See pricing →
