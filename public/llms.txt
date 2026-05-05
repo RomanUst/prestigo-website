@@ -43,6 +43,29 @@
 - [Prague to Český Krumlov](https://rideprestigo.com/routes/prague-cesky-krumlov): From €290.
 - [Prague to České Budějovice](https://rideprestigo.com/routes/prague-ceske-budejovice): From €255.
 
+## Long-distance international routes
+
+- [Prague to Amsterdam](https://rideprestigo.com/routes/prague-to-amsterdam): 915 km, ~9.5 h.
+- [Prague to Augsburg](https://rideprestigo.com/routes/prague-to-augsburg): Bavaria, Germany.
+- [Prague to Basel](https://rideprestigo.com/routes/prague-to-basel): Switzerland tri-border.
+- [Prague to Bern](https://rideprestigo.com/routes/prague-to-bern): Swiss capital.
+- [Prague to Brussels](https://rideprestigo.com/routes/prague-to-brussels): EU institutions, ~10 h.
+- [Prague to Cologne](https://rideprestigo.com/routes/prague-to-cologne): Rhine valley, Germany.
+- [Prague to Düsseldorf](https://rideprestigo.com/routes/prague-to-dusseldorf): NRW business hub.
+- [Prague to Erfurt](https://rideprestigo.com/routes/prague-to-erfurt): Thuringia, Germany.
+- [Prague to Frankfurt](https://rideprestigo.com/routes/prague-to-frankfurt): Frankfurt am Main, ~5.5 h.
+- [Prague to Geneva](https://rideprestigo.com/routes/prague-to-geneva): Switzerland, ~10 h.
+- [Prague to Hamburg](https://rideprestigo.com/routes/prague-to-hamburg): Northern Germany port city.
+- [Prague to Innsbruck](https://rideprestigo.com/routes/prague-to-innsbruck): Austrian Alps.
+- [Prague to Košice](https://rideprestigo.com/routes/prague-to-kosice): Eastern Slovakia.
+- [Prague to Milan](https://rideprestigo.com/routes/prague-to-milan): Northern Italy via Brenner pass.
+- [Prague to Paris](https://rideprestigo.com/routes/prague-to-paris): France, ~11 h.
+- [Prague to Strasbourg](https://rideprestigo.com/routes/prague-to-strasbourg): EU parliament, French/German border.
+- [Prague to Stuttgart](https://rideprestigo.com/routes/prague-to-stuttgart): Baden-Württemberg, Germany.
+- [Prague to Venice](https://rideprestigo.com/routes/prague-to-venice): Northern Italy.
+- [Prague to Verona](https://rideprestigo.com/routes/prague-to-verona): Northern Italy.
+- [Prague to Zürich](https://rideprestigo.com/routes/prague-to-zurich): Switzerland, ~9 h.
+
 ## Services
 
 - [City Rides Prague](https://rideprestigo.com/services/city-rides): Hourly hire, point-to-point city transfers.

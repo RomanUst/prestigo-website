@@ -6,7 +6,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service — PRESTIGO Premium Chauffeur Prague',
+  title: { absolute: 'Terms of Service — PRESTIGO Premium Chauffeur Prague' },
   description:
     'Terms and conditions for PRESTIGO chauffeur services. Booking policy, cancellation, payment terms, liability, and governing law.',
   alternates: {

@@ -17,10 +17,14 @@ const BASE = 'https://rideprestigo.com'
 
 type SitemapEntry = MetadataRoute.Sitemap[number]
 
-const entry = (urlPath: string, sourceFile: string): SitemapEntry => ({
-  url: urlPath === '' ? BASE : `${BASE}${urlPath}`,
-  lastModified: lastModFor(sourceFile),
-})
+const entry = (urlPath: string, sourceFile: string): SitemapEntry => {
+  const url = urlPath === '' ? BASE : `${BASE}${urlPath}`
+  return {
+    url,
+    lastModified: lastModFor(sourceFile),
+    alternates: { languages: { en: url, 'x-default': url } },
+  }
+}
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const routeEntries: MetadataRoute.Sitemap = ROUTES.map((r) =>

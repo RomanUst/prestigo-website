@@ -6,7 +6,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy — PRESTIGO Premium Chauffeur Prague',
+  title: { absolute: 'Privacy Policy — PRESTIGO Premium Chauffeur Prague' },
   description:
     'How PRESTIGO collects, uses, and protects your personal data. GDPR-compliant privacy policy for our premium chauffeur service in Prague and Central Europe.',
   alternates: {

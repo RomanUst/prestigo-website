@@ -5,7 +5,7 @@ import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 
 export const metadata: Metadata = {
-  title: 'Multi-day Chauffeur Hire | PRESTIGO',
+  title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
   description:
     'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
   alternates: {

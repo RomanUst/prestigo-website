@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 
 export const metadata: Metadata = {
-  title: 'Data Deletion — PRESTIGO Premium Chauffeur Prague',
+  title: { absolute: 'Data Deletion — PRESTIGO Premium Chauffeur Prague' },
   description:
     'How to request deletion of your personal data from PRESTIGO. GDPR data erasure request instructions.',
   alternates: {

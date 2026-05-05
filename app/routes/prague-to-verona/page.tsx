@@ -11,7 +11,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-to-verona')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: 'Private Transfer Prague to Verona — PRESTIGO Chauffeur',
+    title: { absolute: 'Private Transfer Prague to Verona — PRESTIGO Chauffeur' },
     description: `Long-distance private chauffeur transfer from Prague to Verona. 830 km, approx 9 hours. Mercedes E, V, or S-Class. From €${ePrice}.`,
     alternates: {
       canonical: '/routes/prague-to-verona',

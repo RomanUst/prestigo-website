@@ -13,7 +13,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const { hourlyRate } = await getPricingConfig()
   const from = hourlyRate['business'] ?? 49
   return {
-    title: 'City Rides — Hourly Chauffeur in Prague | PRESTIGO',
+    title: { absolute: 'City Rides — Hourly Chauffeur in Prague | PRESTIGO' },,
     description: `Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €${from}/hour.`,
     alternates: {
       canonical: '/services/city-rides',

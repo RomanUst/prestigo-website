@@ -10,6 +10,7 @@ import BookingSection from '@/components/BookingSection'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
+import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { globals } = await getPricingConfig()
@@ -82,11 +83,23 @@ export default async function AirportTransferPage() {
   const sClassAirport = AIRPORT_FALLBACK.sClass
   const vClassAirport = AIRPORT_FALLBACK.vClass
   const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport)
+  const rating = getStaticAggregateRating()
 
   const pageSchema = {
     '@context': 'https://schema.org',
     '@graph': [
       ...airportJsonLd['@graph'],
+      ...(rating ? [{
+        '@type': ['LocalBusiness', 'TaxiService'],
+        '@id': 'https://rideprestigo.com/#business',
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: rating.ratingValue.toFixed(1),
+          reviewCount: rating.reviewCount,
+          bestRating: '5',
+          worstRating: '1',
+        },
+      }] : []),
       {
         '@type': 'BreadcrumbList',
         itemListElement: [

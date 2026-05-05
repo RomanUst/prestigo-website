@@ -56,7 +56,7 @@ const bookingSchema = {
 }
 
 export const metadata: Metadata = {
-  title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
+  title: 'Book a Transfer — Prague Chauffeur',
   description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
   alternates: {
     canonical: 'https://rideprestigo.com/book',
@@ -69,7 +69,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/book',
     title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
     description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
-    images: [{ url: 'https://rideprestigo.com/photohero.png', width: 1200, height: 630 }],
+    images: [{ url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }],
   },
 }
 
