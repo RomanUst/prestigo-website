@@ -52,10 +52,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/guides/prague-airport-to-city-center', 'app/guides/prague-airport-to-city-center/page.tsx'),
     entry('/corporate', 'app/corporate/page.tsx'),
     entry('/about', 'app/about/page.tsx'),
-    entry('/authors/roman-ustyugov', 'app/authors/roman-ustyugov/page.tsx'),
     entry('/faq', 'app/faq/page.tsx'),
     entry('/contact', 'app/contact/page.tsx'),
-    entry('/privacy', 'app/privacy/page.tsx'),
-    entry('/terms', 'app/terms/page.tsx'),
   ]
 }
