@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     url: 'https://rideprestigo.com/compare',
     title: 'Prague Transport Comparisons — Chauffeur vs Train, Taxi & Bus',
     description: DESCRIPTION,
-    images: [{ url: 'https://rideprestigo.com/photohero.png', width: 1200, height: 630 }],
+    images: [{ url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }],
   },
 }
 

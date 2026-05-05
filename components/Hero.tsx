@@ -7,7 +7,7 @@ export default function Hero({ airportPrice }: Props) {
   return (
     <section className="relative min-h-dvh flex flex-col justify-start overflow-hidden">
 
-      {/* Full-screen background photo */}
+      {/* Full-screen background photo — desktop (landscape) */}
       <Image
         src="/photohero.avif"
         alt="Prestigo premium chauffeur — Prague airport transfer"
@@ -15,6 +15,19 @@ export default function Hero({ airportPrice }: Props) {
         priority
         fetchPriority="high"
         sizes="100vw"
+        className="hidden sm:block"
+        style={{ objectFit: 'cover', objectPosition: 'center' }}
+      />
+
+      {/* Full-screen background photo — mobile (portrait crop) */}
+      <Image
+        src="/photohero-mobile.jpg"
+        alt="Prestigo premium chauffeur — Prague airport transfer"
+        fill
+        priority
+        fetchPriority="high"
+        sizes="100vw"
+        className="sm:hidden"
         style={{ objectFit: 'cover', objectPosition: 'center' }}
       />
 
