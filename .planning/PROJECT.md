@@ -33,13 +33,12 @@ Every page — booking, content, or service — must convert a visitor into a co
 - ✓ Schema.org structured data on editorial pages — brownfield baseline
 - ✓ ArticleByline component + authors system (E-E-A-T) — brownfield baseline
 - ✓ Per-page git-based lastModified for sitemap — brownfield baseline
-- ✓ INFRA-01: `lib/blog.ts` aggregates MDX files + JSX_POSTS registry, returns sorted BlogPost[] — Validated in Phase 54: mdx-infrastructure
-- ✓ INFRA-02: MDX rendering pipeline (`@next/mdx` + `gray-matter`) installed and working — Validated in Phase 54: mdx-infrastructure
-- ✓ INFRA-03: MDX frontmatter schema: title, description, date, coverImage, category, author — Validated in Phase 54: mdx-infrastructure
-- ✓ INFRA-04: `getAllPosts()` returns merged BlogPost[] sorted newest-first — Validated in Phase 54: mdx-infrastructure
-- ✓ INFRA-05: `BlogPost` type with all required fields including `author: AuthorSlug` — Validated in Phase 54: mdx-infrastructure
 
 ### Active
+
+- [ ] INFRA-01: `lib/blog.ts` aggregates MDX files + JSX_POSTS registry, returns sorted BlogPost[]
+- [ ] INFRA-02: MDX rendering pipeline (`next-mdx-remote` + `gray-matter`) installed and working
+- [ ] INFRA-03: MDX frontmatter schema: title, description, date, coverImage, category, author
 - [ ] LIST-01: `/blog` shows card grid sorted newest-first
 - [ ] LIST-02: Each card: coverImage, category, title, description, date
 - [ ] LIST-03: `/blog` has SEO meta (title, description, canonical, OG)
@@ -110,4 +109,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-13 — Phase 54 complete: MDX infrastructure pipeline established (@next/mdx, lib/blog.ts aggregator, /blog/[slug] route)*
+*Last updated: 2026-05-13 after Milestone v1.0 start*

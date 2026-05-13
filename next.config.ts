@@ -1,8 +1,6 @@
 import type { NextConfig } from "next";
-import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
-  pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
   async redirects() {
     // 20 long-distance route pages removed 2026-04-09 per SEO strategy
     // — see /Users/romanustyugov/Desktop/founder prestigo/routes/03-noindex-rules-20-red-routes.md
@@ -124,15 +122,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Note: remarkGfm omitted here because Turbopack (Next.js 16 default bundler)
-// cannot serialize function references in loader options. GFM support (tables,
-// strikethrough, etc.) will be re-added in Phase 55 once Turbopack resolves
-// the serialization constraint (tracked: vercel/next.js #82837 / Turbopack).
-const withMDX = createMDX({
-  options: {
-    remarkPlugins: [],
-    rehypePlugins: [],
-  },
-});
-
-export default withMDX(nextConfig);
+export default nextConfig;
