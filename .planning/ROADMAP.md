@@ -29,7 +29,9 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
   2. A test MDX file in `content/blog/` with valid frontmatter (title, description, date, coverImage, category, author) renders at a route without build errors
   3. `getAllPosts()` from `lib/blog.ts` returns a merged, newest-first array containing both MDX-sourced posts (via gray-matter) and the hardcoded `JSX_POSTS` registry entries
   4. TypeScript compilation passes with the `BlogPost` type enforcing all required frontmatter fields including `author` typed as `AuthorSlug`
-**Plans**: TBD
+**Plans**: 2 plans
+  - [ ] 54-01-PLAN.md — Install @next/mdx pipeline, wrap next.config.ts, create mdx-components.tsx + test MDX article
+  - [ ] 54-02-PLAN.md — Implement lib/blog.ts (BlogPost type + getAllPosts + JSX_POSTS) and minimal app/blog/[slug]/page.tsx render route
 **UI hint**: no
 
 ### Phase 55: Blog UI — Listing + Article Pages
