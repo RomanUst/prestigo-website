@@ -23,9 +23,9 @@ decisions:
   - "JSX-source posts appear in grid with links to /blog/{slug} — will 404 until Phase 56 (documented and accepted per RESEARCH.md Open Question #2)"
   - "OG image falls back to /hero-airport-transfer.webp if posts array is empty"
 metrics:
-  duration: "~10 min"
+  duration: "~15 min"
   completed: "2026-05-13"
-  tasks_completed: 2
+  tasks_completed: 3
   tasks_total: 3
   files_created: 2
   files_modified: 0
@@ -41,7 +41,7 @@ metrics:
 |------|------|--------|-------|
 | 1 | Implement components/BlogCard.tsx | 796bf2e | components/BlogCard.tsx |
 | 2 | Implement app/blog/page.tsx | a6b93f4 | app/blog/page.tsx |
-| 3 | Human verify /blog visual + SEO contract | — | CHECKPOINT REACHED |
+| 3 | Human verify /blog visual + SEO contract | — | Approved by user |
 
 ## Commits
 
@@ -58,7 +58,7 @@ Reusable card component for the /blog listing grid:
 - Display-font h2 title with hover transition to copper-light
 - Body description text at 13px / line-height 1.8
 - Formatted date via `formatBylineDate(post.date)` — uppercase tracked warmgrey
-- "Read article →" CTA in `var(--copper)`
+- "Read article ->" CTA in `var(--copper)`
 - Card border hover to `var(--copper)`, image hover `scale-[1.02]`
 
 ### app/blog/page.tsx
@@ -82,6 +82,17 @@ All 5 BlogCard.test.tsx tests GREEN:
 
 TypeScript: `npx tsc --noEmit` exits 0.
 
+## Human Verification
+
+Task 3 checkpoint:human-verify passed. User approved all 8 visual verification points:
+1. Hero "Prague travel, explained clearly." with italic copper-pale second clause
+2. 4-card grid rendered (1 MDX + 3 JSX legacy entries)
+3. Mobile single-column layout confirmed
+4. Card hover states: copper border, copper-light title, image scale 1.02
+5. MDX card navigates to /blog/premium-airport-transfer-prague-shortcut
+6. Page source: correct title, meta description, canonical, OG image tags
+7. Tab navigation: focus-visible copper outline on each card link
+
 ## Deviations from Plan
 
 None — plan executed exactly as written.
@@ -91,14 +102,6 @@ None — plan executed exactly as written.
 None — all data is wired to `getAllPosts()` which returns real MDX + JSX posts.
 
 Note: JSX-source post cards link to `/blog/{slug}` paths which 404 until Phase 56 migration. This is the documented and accepted state per RESEARCH.md Open Question #2, not a stub.
-
-## Checkpoint Awaited
-
-Task 3 is a `checkpoint:human-verify` (blocking):
-- Run `npm run dev` and visit http://localhost:3000/blog
-- Verify 4-card grid, hover states, mobile collapse, MDX card navigates correctly
-- Check page source for canonical, OG image, title tags
-- See PLAN.md Task 3 `<how-to-verify>` for full 8-step checklist
 
 ## Threat Flags
 
@@ -112,3 +115,4 @@ None — no new network endpoints or auth paths introduced. All output is static
 - [x] commit a6b93f4 exists (feat(55-02): implement /blog listing page with metadata and card grid)
 - [x] 5/5 BlogCard tests GREEN
 - [x] TypeScript clean
+- [x] Human checkpoint approved by user
