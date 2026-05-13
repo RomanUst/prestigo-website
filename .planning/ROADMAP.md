@@ -14,7 +14,7 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 
 **Milestone Goal:** Scalable MDX blog at `/blog` with full SEO wiring, unified listing, and migrated legacy articles accessible at canonical `/blog/*` paths.
 
-- [ ] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory
+- [x] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory (completed 2026-05-13)
 - [ ] **Phase 55: Blog UI — Listing + Article Pages** - Build /blog listing card grid and /blog/[slug] MDX article renderer with full SEO metadata
 - [ ] **Phase 56: Article Migration + SEO Wiring** - git mv 3 JSX articles to /blog/*, update all 9 canonical URL locations, add 301 redirects, reconcile sitemap
 
@@ -30,8 +30,8 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
   3. `getAllPosts()` from `lib/blog.ts` returns a merged, newest-first array containing both MDX-sourced posts (via gray-matter) and the hardcoded `JSX_POSTS` registry entries
   4. TypeScript compilation passes with the `BlogPost` type enforcing all required frontmatter fields including `author` typed as `AuthorSlug`
 **Plans**: 2 plans
-  - [ ] 54-01-PLAN.md — Install @next/mdx pipeline, wrap next.config.ts, create mdx-components.tsx + test MDX article
-  - [ ] 54-02-PLAN.md — Implement lib/blog.ts (BlogPost type + getAllPosts + JSX_POSTS) and minimal app/blog/[slug]/page.tsx render route
+  - [x] 54-01-PLAN.md — Install @next/mdx pipeline, wrap next.config.ts, create mdx-components.tsx + test MDX article
+  - [x] 54-02-PLAN.md — Implement lib/blog.ts (BlogPost type + getAllPosts + JSX_POSTS) and minimal app/blog/[slug]/page.tsx render route
 **UI hint**: no
 
 ### Phase 55: Blog UI — Listing + Article Pages
@@ -66,6 +66,6 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 54. MDX Infrastructure | 0/? | Not started | - |
+| 54. MDX Infrastructure | 2/2 | Complete    | 2026-05-13 |
 | 55. Blog UI — Listing + Article Pages | 0/? | Not started | - |
 | 56. Article Migration + SEO Wiring | 0/? | Not started | - |
