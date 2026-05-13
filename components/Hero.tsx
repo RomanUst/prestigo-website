@@ -1,5 +1,6 @@
 import Image from 'next/image'
 import HeroTypewriter from './HeroTypewriter'
+import HeroWhatsApp from './HeroWhatsApp'
 
 type Props = { airportPrice: number }
 
@@ -82,14 +83,7 @@ export default function Hero({ airportPrice }: Props) {
               <a href="#book" className="btn-primary">
                 Book a transfer
               </a>
-              <a
-                href="https://wa.me/420725986855?text=Hello%20PRESTIGO%2C%20I%20would%20like%20to%20book%20a%20transfer."
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn-ghost"
-              >
-                Book via WhatsApp
-              </a>
+              <HeroWhatsApp />
             </div>
 
             {/* Price anchor */}

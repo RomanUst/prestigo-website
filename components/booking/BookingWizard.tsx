@@ -10,6 +10,7 @@ const VALID_CLASSES = new Set(['business', 'first_class', 'business_van'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
 import { computeExtrasTotal } from '@/lib/extras'
+import { trackMetaEvent } from '@/components/MetaPixel'
 import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
 import StepStub from './steps/StepStub'
@@ -156,8 +157,10 @@ export default function BookingWizard() {
       })
     } else if (currentStep === 5 && vehicleClass) {
       push('begin_checkout', { currency, value: totalEur, items })
+      trackMetaEvent('InitiateCheckout', { value: totalEur, currency, num_items: 1 })
     } else if (currentStep === 6 && vehicleClass) {
       push('add_payment_info', { currency, value: totalEur, items, payment_type: 'stripe' })
+      trackMetaEvent('AddPaymentInfo', { value: totalEur, currency })
     }
   }, [currentStep, vehicleClass, priceBreakdown, extras, promoDiscount, tripType])
 

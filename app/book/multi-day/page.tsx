@@ -3,6 +3,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
+import MetaViewContent from '@/components/MetaViewContent'
 
 export const metadata: Metadata = {
   title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
@@ -149,6 +150,7 @@ const FAQ = [
 export default function MultiDayPage() {
   return (
     <>
+      <MetaViewContent contentName="Multi-Day Chauffeur" />
       <Nav />
     <main
       style={{
