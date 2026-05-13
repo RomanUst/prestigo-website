@@ -34,6 +34,14 @@ function getMDXPosts(): BlogPost[] {
       const slug = filename.replace(/\.mdx$/, "");
       const raw = fs.readFileSync(path.join(CONTENT_DIR, filename), "utf-8");
       const { data } = matter(raw);
+      const required = ["title", "description", "date", "coverImage", "category", "author"];
+      for (const key of required) {
+        if (!data[key]) {
+          throw new Error(
+            `MDX file "${filename}" is missing required frontmatter field: "${key}"`
+          );
+        }
+      }
       const post: BlogPost = {
         slug,
         title: data.title as string,
@@ -99,7 +107,14 @@ export const JSX_POSTS: BlogPost[] = [
 ];
 
 export function getAllPosts(): BlogPost[] {
-  return [...getMDXPosts(), ...JSX_POSTS].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  return [...getMDXPosts(), ...JSX_POSTS].sort((a, b) => {
+    const ta = new Date(a.date).getTime();
+    const tb = new Date(b.date).getTime();
+    if (isNaN(ta) || isNaN(tb)) {
+      throw new Error(
+        `Invalid date in BlogPost: "${isNaN(ta) ? a.slug : b.slug}"`
+      );
+    }
+    return tb - ta;
+  });
 }
