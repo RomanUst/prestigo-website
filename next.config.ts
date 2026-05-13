@@ -1,6 +1,5 @@
 import type { NextConfig } from "next";
 import createMDX from "@next/mdx";
-import remarkGfm from "remark-gfm";
 
 const nextConfig: NextConfig = {
   pageExtensions: ["js", "jsx", "mdx", "ts", "tsx"],
@@ -125,9 +124,13 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Note: remarkGfm omitted here because Turbopack (Next.js 16 default bundler)
+// cannot serialize function references in loader options. GFM support (tables,
+// strikethrough, etc.) will be re-added in Phase 55 once Turbopack resolves
+// the serialization constraint (tracked: vercel/next.js #82837 / Turbopack).
 const withMDX = createMDX({
   options: {
-    remarkPlugins: [remarkGfm],
+    remarkPlugins: [],
     rehypePlugins: [],
   },
 });
