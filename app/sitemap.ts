@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { ROUTES } from '@/lib/routes'
 import { lastModFor } from '@/lib/lastmod'
+import { getAllPosts } from '@/lib/blog'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -31,6 +32,10 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry(`/routes/${r.slug}`, `app/routes/${r.slug}/page.tsx`),
   )
 
+  const mdxBlogEntries: MetadataRoute.Sitemap = getAllPosts()
+    .filter((p) => p.source === 'mdx')
+    .map((p) => entry(`/blog/${p.slug}`, `content/blog/${p.slug}.mdx`))
+
   return [
     entry('', 'app/page.tsx'),
     entry('/book', 'app/book/page.tsx'),
@@ -50,6 +55,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/compare/prague-airport-taxi-vs-chauffeur', 'app/compare/prague-airport-taxi-vs-chauffeur/page.tsx'),
     entry('/guides', 'app/guides/page.tsx'),
     entry('/guides/prague-airport-to-city-center', 'app/guides/prague-airport-to-city-center/page.tsx'),
+    // Blog hub (Phase 55) — listing + MDX articles only.
+    // JSX articles (3) remain under /guides/* and /compare/* until Phase 56
+    // migrates them; do NOT add JSX slugs to /blog/* sitemap entries here.
+    entry('/blog', 'app/blog/page.tsx'),
+    ...mdxBlogEntries,
     entry('/corporate', 'app/corporate/page.tsx'),
     entry('/about', 'app/about/page.tsx'),
     entry('/faq', 'app/faq/page.tsx'),
