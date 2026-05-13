@@ -1,36 +1,70 @@
-# State
+# Project State
 
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-05-13)
 
-**Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction.
-**Current focus:** Milestone v1.0 — SEO Blog
+**Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
+**Current focus:** Phase 54 — MDX Infrastructure
 
 ## Current Position
 
-Phase: Not started (defining roadmap)
-Plan: —
-Status: Defining requirements and roadmap
-Last activity: 2026-05-13 — Milestone v1.0 (SEO Blog) started
+Phase: 54 of 56 (MDX Infrastructure)
+Plan: 0 of ? in current phase
+Status: Ready to plan
+Last activity: 2026-05-13 — Roadmap created for milestone v1.0 SEO Blog (Phases 54-56)
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 0
+- Average duration: -
+- Total execution time: 0 hours
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
+**Recent Trend:**
+- Last 5 plans: -
+- Trend: -
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
-### From brownfield baseline (pre-GSD)
-- Phases 47, 51, 52, 53 completed before GSD planning was introduced
+### Decisions
+
+Decisions are logged in PROJECT.md Key Decisions table.
+Recent decisions affecting current work:
+
+- Phase 54: Use `@next/mdx` (NOT `next-mdx-remote` — archived April 2026; RSC broken on Next.js 15.2+); `mdx-components.tsx` must be created as the very first file
+- Phase 54: `gray-matter` for frontmatter extraction in `lib/blog.ts`; `await import()` for full MDX render in article route
+- Phase 55: Schema type is `BlogPosting` (not `Article`) — Google-eligible, signals editorial timestamp, correct distinction from existing editorial pages
+- Phase 55: `dynamicParams = false` mandatory on `[slug]` route; JSX article slugs must NOT appear in `generateStaticParams()`
+- Phase 56: `git mv` in its own atomic commit before sitemap updates — `lastModFor()` depends on git history at the new path; use `const CANONICAL_PATH` for all 9 URL locations per file
+
+### Brownfield phases (pre-GSD, completed)
+
 - Phase 47: DB migration — vehicle map
 - Phase 51: Admin UI badge
 - Phase 52: Extended booking statuses
 - Phase 53: Driver assignment UI
-- All these features are live and considered Validated requirements
 
-### Architecture notes
-- Next.js App Router, all pages `force-static` or server-rendered
-- No global state management — Zustand only for booking store
-- `lib/authors.ts` + `components/ArticleByline.tsx` already in place for E-E-A-T
-- `lib/lastmod.ts` + `lastModFor()` for per-file git timestamps in sitemap
-- `next.config.ts` has existing `redirects()` array — append only
+### Pending Todos
 
-### MDX decision
-- Chose `next-mdx-remote` over `@next/mdx` for flexibility (server rendering, dynamic imports)
-- Existing 3 articles stay as JSX (too complex to convert) — hybrid model
+None yet.
+
+### Blockers/Concerns
+
+- Phase 56 pre-work: Read current `redirects()` array in `next.config.ts` before writing redirect rules — avoid pattern overlap with existing rules and redirect chains
+
+## Session Continuity
+
+Last session: 2026-05-13
+Stopped at: Roadmap written; ready to plan Phase 54
+Resume file: None

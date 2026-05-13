@@ -67,12 +67,28 @@ Build an MDX-powered blog at `/blog` for rideprestigo.com. Migrate 3 existing ed
 
 ## Traceability
 
-| Phase | Requirements |
-|-------|-------------|
-| Phase 54 — MDX Infrastructure | INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05 |
-| Phase 55 — Blog UI (Listing + Article) | LIST-01, LIST-02, LIST-03, ART-01, ART-02, ART-03, ART-04, ART-05 |
-| Phase 56 — Article Migration + SEO Wiring | MIG-01, MIG-02, MIG-03, MIG-04, MIG-05, MIG-06 |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| INFRA-01 | Phase 54 — MDX Infrastructure | Pending |
+| INFRA-02 | Phase 54 — MDX Infrastructure | Pending |
+| INFRA-03 | Phase 54 — MDX Infrastructure | Pending |
+| INFRA-04 | Phase 54 — MDX Infrastructure | Pending |
+| INFRA-05 | Phase 54 — MDX Infrastructure | Pending |
+| LIST-01 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| LIST-02 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| LIST-03 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| ART-01 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| ART-02 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| ART-03 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| ART-04 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| ART-05 | Phase 55 — Blog UI (Listing + Article) | Pending |
+| MIG-01 | Phase 56 — Article Migration + SEO Wiring | Pending |
+| MIG-02 | Phase 56 — Article Migration + SEO Wiring | Pending |
+| MIG-03 | Phase 56 — Article Migration + SEO Wiring | Pending |
+| MIG-04 | Phase 56 — Article Migration + SEO Wiring | Pending |
+| MIG-05 | Phase 56 — Article Migration + SEO Wiring | Pending |
+| MIG-06 | Phase 56 — Article Migration + SEO Wiring | Pending |
 
 ---
 
-*Last updated: 2026-05-13 — Milestone v1.0 requirements defined*
+*Last updated: 2026-05-13 — Traceability expanded with Status column; Phases 54-56 assigned*
