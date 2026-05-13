@@ -10,6 +10,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-static";
 export const dynamicParams = false;
@@ -29,12 +30,23 @@ export default async function BlogArticlePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+
+  // Allowlist: only accept slugs that are simple path segments
+  // (lowercase alphanumeric + hyphens). Rejects any traversal attempts.
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    notFound();
+  }
+
   // CRITICAL: webpack/Turbopack cannot resolve the @/ alias in dynamic
   // import template strings. Use a relative path from this file's location
   // (app/blog/[slug]/page.tsx is 3 directories deep from repo root).
   // See RESEARCH.md Pitfall 1 + GitHub Discussion vercel/next.js #82837.
-  const { default: Post } = await import(
-    `../../../content/blog/${slug}.mdx`
-  );
+  let Post: React.ComponentType;
+  try {
+    const mod = await import(`../../../content/blog/${slug}.mdx`);
+    Post = mod.default;
+  } catch {
+    notFound();
+  }
   return <Post />;
 }
