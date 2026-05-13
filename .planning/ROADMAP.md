@@ -44,7 +44,10 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
   3. `/blog/[slug]` for a valid MDX article renders the hero image, `ArticleByline`, full MDX body, and a bottom CTA — all within the Prestigo dark-theme design system
   4. Each MDX article page has unique `og:title`, `og:description`, `og:image` (= coverImage), canonical `/blog/[slug]`, and a `Schema.org BlogPosting` JSON-LD block with author via `personSchemaFor()`
   5. `/blog/non-existent-slug` returns HTTP 404 (`dynamicParams = false` confirmed); JSX article slugs are absent from `generateStaticParams()` output
-**Plans**: TBD
+**Plans**: 3 plans
+  - [ ] 55-01-PLAN.md — Wave 0 test stubs: BlogCard, BlogPosting JSON-LD, sitemap /blog entries
+  - [ ] 55-02-PLAN.md — BlogCard component + /blog listing page with full SEO metadata
+  - [ ] 55-03-PLAN.md — Article page UI + mdx-components prose + BlogPosting JSON-LD + sitemap entries
 **UI hint**: yes
 
 ### Phase 56: Article Migration + SEO Wiring
