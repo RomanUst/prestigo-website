@@ -62,6 +62,12 @@ const nextConfig: NextConfig = {
         destination: '/',
         permanent: true,
       },
+      // MIG-03: Migrate /guides and /compare to /blog
+      { source: '/guides', destination: '/blog', permanent: true },
+      { source: '/guides/prague-airport-to-city-center', destination: '/blog/prague-airport-to-city-center', permanent: true },
+      { source: '/compare', destination: '/blog', permanent: true },
+      { source: '/compare/prague-airport-taxi-vs-chauffeur', destination: '/blog/prague-airport-taxi-vs-chauffeur', permanent: true },
+      { source: '/compare/prague-vienna-transfer-vs-train', destination: '/blog/prague-vienna-transfer-vs-train', permanent: true },
     ]
   },
   images: {
