@@ -49,16 +49,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/fleet', 'app/fleet/page.tsx'),
     entry('/routes', 'app/routes/page.tsx'),
     ...routeEntries,
-    // Comparison + guide pages — AI-search-optimised editorial for LLM citation
-    entry('/compare', 'app/compare/page.tsx'),
-    entry('/compare/prague-vienna-transfer-vs-train', 'app/compare/prague-vienna-transfer-vs-train/page.tsx'),
-    entry('/compare/prague-airport-taxi-vs-chauffeur', 'app/compare/prague-airport-taxi-vs-chauffeur/page.tsx'),
-    entry('/guides', 'app/guides/page.tsx'),
-    entry('/guides/prague-airport-to-city-center', 'app/guides/prague-airport-to-city-center/page.tsx'),
-    // Blog hub (Phase 55) — listing + MDX articles only.
-    // JSX articles (3) remain under /guides/* and /compare/* until Phase 56
-    // migrates them; do NOT add JSX slugs to /blog/* sitemap entries here.
+    // Blog hub + migrated JSX articles (Phase 56 MIG-04)
     entry('/blog', 'app/blog/page.tsx'),
+    entry('/blog/prague-airport-to-city-center',    'app/blog/prague-airport-to-city-center/page.tsx'),
+    entry('/blog/prague-airport-taxi-vs-chauffeur', 'app/blog/prague-airport-taxi-vs-chauffeur/page.tsx'),
+    entry('/blog/prague-vienna-transfer-vs-train',  'app/blog/prague-vienna-transfer-vs-train/page.tsx'),
     ...mdxBlogEntries,
     entry('/corporate', 'app/corporate/page.tsx'),
     entry('/about', 'app/about/page.tsx'),
