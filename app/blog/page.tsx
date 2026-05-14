@@ -12,34 +12,36 @@ const TITLE = 'Prague Chauffeur Blog — Airport, Routes & Transfer Guides'
 const DESCRIPTION =
   'Practical guides on Prague airport transfers, intercity routes, and luxury chauffeur services — verified 2026 fares and local knowledge from Prestigo.'
 
-const posts = getAllPosts()
-const ogImage = posts[0]?.coverImage ?? '/hero-airport-transfer.webp'
-
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: {
-    canonical: '/blog',
-    languages: {
-      en: 'https://rideprestigo.com/blog',
-      'x-default': 'https://rideprestigo.com/blog',
-    },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/blog',
+export async function generateMetadata(): Promise<Metadata> {
+  const posts = getAllPosts()
+  const ogImage = posts[0]?.coverImage ?? '/hero-airport-transfer.webp'
+  return {
     title: TITLE,
     description: DESCRIPTION,
-    images: [
-      {
-        url: `https://rideprestigo.com${ogImage}`,
-        width: 1200,
-        height: 630,
+    alternates: {
+      canonical: '/blog',
+      languages: {
+        en: 'https://rideprestigo.com/blog',
+        'x-default': 'https://rideprestigo.com/blog',
       },
-    ],
-  },
+    },
+    openGraph: {
+      url: 'https://rideprestigo.com/blog',
+      title: TITLE,
+      description: DESCRIPTION,
+      images: [
+        {
+          url: `https://rideprestigo.com${ogImage}`,
+          width: 1200,
+          height: 630,
+        },
+      ],
+    },
+  }
 }
 
 export default function BlogPage() {
+  const posts = getAllPosts()
   return (
     <>
       <Nav />
