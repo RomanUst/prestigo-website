@@ -16,9 +16,15 @@ describe('sitemap /blog entries', () => {
     )
   })
 
-  it('does NOT include /blog/{slug} for any JSX_POSTS entry (Phase 56 concern)', () => {
+  it('includes /blog/* entries for all 3 migrated JSX articles', () => {
     for (const jsx of JSX_POSTS) {
-      expect(urls).not.toContain(`https://rideprestigo.com/blog/${jsx.slug}`)
+      expect(urls).toContain(`https://rideprestigo.com/blog/${jsx.slug}`)
+    }
+  })
+
+  it('does NOT include /guides/* or /compare/* entries', () => {
+    for (const url of urls) {
+      expect(url).not.toMatch(/rideprestigo\.com\/(guides|compare)/)
     }
   })
 
