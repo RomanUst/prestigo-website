@@ -91,12 +91,16 @@ export default async function BlogArticlePage({
 
   const jsonLd = buildBlogPostingJsonLd(post)
 
+  function safeJsonLd(obj: unknown): string {
+    return JSON.stringify(obj).replace(/<\/script>/gi, '<\\/script>')
+  }
+
   return (
     <>
       <Nav />
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <main id="main-content">
         {/* Hero */}
