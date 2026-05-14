@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 import { ROUTES } from '@/lib/routes'
 import { lastModFor } from '@/lib/lastmod'
-import { getAllPosts } from '@/lib/blog'
+import { getAllPosts, JSX_POSTS } from '@/lib/blog'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -50,10 +50,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/routes', 'app/routes/page.tsx'),
     ...routeEntries,
     // Blog hub + migrated JSX articles (Phase 56 MIG-04)
+    // JSX_POSTS is the single source of truth — slugs are derived, not hardcoded.
     entry('/blog', 'app/blog/page.tsx'),
-    entry('/blog/prague-airport-to-city-center',    'app/blog/prague-airport-to-city-center/page.tsx'),
-    entry('/blog/prague-airport-taxi-vs-chauffeur', 'app/blog/prague-airport-taxi-vs-chauffeur/page.tsx'),
-    entry('/blog/prague-vienna-transfer-vs-train',  'app/blog/prague-vienna-transfer-vs-train/page.tsx'),
+    ...JSX_POSTS.map((p) => entry(`/blog/${p.slug}`, `app/blog/${p.slug}/page.tsx`)),
     ...mdxBlogEntries,
     entry('/corporate', 'app/corporate/page.tsx'),
     entry('/about', 'app/about/page.tsx'),
