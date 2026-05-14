@@ -386,17 +386,17 @@ No new API routes, no user input, no database access. The only externally visibl
 
 ---
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Should `app/guides/` and `app/compare/` directories be deleted entirely?**
    - What we know: After `git mv` of the sub-pages and deletion of hub pages, the directories become empty.
-   - What's unclear: Should empty directories be git-removed too, or left as placeholders?
-   - Recommendation: Remove with `git rm -r app/guides/ app/compare/` if empty after all moves. Keeps the repo clean.
+   - What was unclear: Should empty directories be git-removed too, or left as placeholders?
+   - RESOLVED: Yes — remove with `git rm -r app/guides/ app/compare/` (or equivalent file deletions) once empty. Plan 04 (Wave 4) handles hub-page deletion and the now-empty directory cleanup. Keeps the repo clean and prevents stale routes.
 
 2. **Redirect test coverage**
    - What we know: No automated test validates the `redirects()` array.
-   - What's unclear: Is a unit test for redirect config rules needed, or is the `curl` smoke test in Success Criteria sufficient?
-   - Recommendation: The `curl` smoke test in the success criteria (SC-3) is the right verification — `redirects()` is a Next.js framework concern, not unit-testable without a running server.
+   - What was unclear: Is a unit test for redirect config rules needed, or is the `curl` smoke test in Success Criteria sufficient?
+   - RESOLVED: No unit test needed. The `curl` smoke test in the success criteria (SC-3) is the right verification — `redirects()` is a Next.js framework concern that is not meaningfully unit-testable without a running server; the smoke test against the running app provides authoritative coverage.
 
 ---
 
