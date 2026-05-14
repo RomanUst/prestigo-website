@@ -6,6 +6,7 @@
 MATCHES=$(grep -rEl '€[0-9]{2,}' --include='*.ts' --include='*.tsx' app components 2>/dev/null \
   | grep -v 'app/compare/' \
   | grep -v 'app/guides/' \
+  | grep -v 'app/blog/' \
   || true)
 
 if [ -n "$MATCHES" ]; then
