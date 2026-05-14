@@ -220,6 +220,10 @@ const faqs = [
   },
 ]
 
+function safeJsonLd(obj: unknown): string {
+  return JSON.stringify(obj).replace(/<\/script>/gi, '<\\/script>')
+}
+
 const pageSchemaGraph = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -228,7 +232,7 @@ const pageSchemaGraph = {
       '@id': `${CANONICAL_ABS}#breadcrumb`,
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Blog', item: CANONICAL_ABS },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: 'https://rideprestigo.com/blog' },
         { '@type': 'ListItem', position: 3, name: 'Prague to Vienna: Transfer vs Train', item: CANONICAL_ABS },
       ],
     },
@@ -266,7 +270,7 @@ export default function ComparePragueViennaPage() {
   return (
     <main id="main-content">
       <Nav />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchemaGraph) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: safeJsonLd(pageSchemaGraph) }} />
 
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
