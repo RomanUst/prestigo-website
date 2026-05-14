@@ -58,9 +58,9 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
   4. `sitemap.xml` contains `/blog`, `/blog/prague-airport-to-city-center`, `/blog/prague-airport-taxi-vs-chauffeur`, `/blog/prague-vienna-transfer-vs-train` and contains no `/guides/*` or `/compare/*` entries
   5. `lastModFor()` returns a real date for each moved file (git history at new path is intact from the `git mv` commit)
 **Plans**: 4 plans
-  - [ ] 56-01-PLAN.md — Invert sitemap test (TDD RED), git mv 3 JSX articles, rewrite 30 URL occurrences via const CANONICAL_PATH (MIG-01, MIG-02)
-  - [ ] 56-02-PLAN.md — Append 5 permanent 301 redirects to next.config.ts redirects() array (MIG-03)
-  - [ ] 56-03-PLAN.md — Update app/sitemap.ts: remove 5 legacy entries, add 3 /blog/* entries; tests turn GREEN (MIG-04)
+  - [x] 56-01-PLAN.md — Invert sitemap test (TDD RED), git mv 3 JSX articles, rewrite 30 URL occurrences via const CANONICAL_PATH (MIG-01, MIG-02)
+  - [x] 56-02-PLAN.md — Append 5 permanent 301 redirects to next.config.ts redirects() array (MIG-03)
+  - [x] 56-03-PLAN.md — Update app/sitemap.ts: remove 5 legacy entries, add 3 /blog/* entries; tests turn GREEN (MIG-04)
   - [ ] 56-04-PLAN.md — Delete app/guides/page.tsx and app/compare/page.tsx hub pages; verify JSX_POSTS (MIG-05, MIG-06)
 **UI hint**: no
 
@@ -72,4 +72,4 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 |-------|----------------|--------|-----------|
 | 54. MDX Infrastructure | 0/? | Not started | - |
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
-| 56. Article Migration + SEO Wiring | 0/4 | Not started | - |
+| 56. Article Migration + SEO Wiring | 3/4 | In Progress|  |
