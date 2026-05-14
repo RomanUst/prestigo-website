@@ -15,7 +15,7 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 **Milestone Goal:** Scalable MDX blog at `/blog` with full SEO wiring, unified listing, and migrated legacy articles accessible at canonical `/blog/*` paths.
 
 - [ ] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory
-- [ ] **Phase 55: Blog UI — Listing + Article Pages** - Build /blog listing card grid and /blog/[slug] MDX article renderer with full SEO metadata
+- [x] **Phase 55: Blog UI — Listing + Article Pages** - Build /blog listing card grid and /blog/[slug] MDX article renderer with full SEO metadata (completed 2026-05-13)
 - [ ] **Phase 56: Article Migration + SEO Wiring** - git mv 3 JSX articles to /blog/*, update all 9 canonical URL locations, add 301 redirects, reconcile sitemap
 
 ## Phase Details
@@ -67,5 +67,5 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 54. MDX Infrastructure | 0/? | Not started | - |
-| 55. Blog UI — Listing + Article Pages | 0/? | Not started | - |
+| 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 0/? | Not started | - |
