@@ -7,6 +7,9 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 
+const CANONICAL_PATH = '/blog/prague-airport-taxi-vs-chauffeur'
+const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
+
 const ARTICLE_PUBLISHED = '2026-04-09'
 const ARTICLE_MODIFIED = '2026-04-09'
 
@@ -21,14 +24,14 @@ export const metadata: Metadata = {
   title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
   description: DESCRIPTION,
   alternates: {
-    canonical: '/compare/prague-airport-taxi-vs-chauffeur',
+    canonical: CANONICAL_PATH,
     languages: {
-      en: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
-      'x-default': 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
+      en: CANONICAL_ABS,
+      'x-default': CANONICAL_ABS,
     },
   },
   openGraph: {
-    url: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
+    url: CANONICAL_ABS,
     title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
     description: DESCRIPTION,
     images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
@@ -208,16 +211,16 @@ const pageSchemaGraph = {
   '@graph': [
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur#breadcrumb',
+      '@id': `${CANONICAL_ABS}#breadcrumb`,
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur' },
-        { '@type': 'ListItem', position: 3, name: 'Taxi vs Chauffeur at Prague Airport', item: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: CANONICAL_ABS },
+        { '@type': 'ListItem', position: 3, name: 'Taxi vs Chauffeur at Prague Airport', item: CANONICAL_ABS },
       ],
     },
     {
       '@type': 'Article',
-      '@id': 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur#article',
+      '@id': `${CANONICAL_ABS}#article`,
       headline: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
       description: DESCRIPTION,
       image: {
@@ -229,13 +232,13 @@ const pageSchemaGraph = {
       about: { '@type': 'Service', name: 'Prague airport transfer' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
       author: personSchemaFor('roman-ustyugov'),
-      url: 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur',
+      url: CANONICAL_ABS,
       datePublished: ARTICLE_PUBLISHED,
       dateModified: ARTICLE_MODIFIED,
     },
     {
       '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/compare/prague-airport-taxi-vs-chauffeur#faq',
+      '@id': `${CANONICAL_ABS}#faq`,
       mainEntity: scamFaqs.map((f) => ({
         '@type': 'Question',
         name: f.q,

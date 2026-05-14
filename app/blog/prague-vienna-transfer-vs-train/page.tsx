@@ -7,6 +7,9 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 
+const CANONICAL_PATH = '/blog/prague-vienna-transfer-vs-train'
+const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
+
 const ARTICLE_PUBLISHED = '2026-04-09'
 const ARTICLE_MODIFIED = '2026-04-09'
 
@@ -21,14 +24,14 @@ export const metadata: Metadata = {
   title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
   description: DESCRIPTION,
   alternates: {
-    canonical: '/compare/prague-vienna-transfer-vs-train',
+    canonical: CANONICAL_PATH,
     languages: {
-      en: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
-      'x-default': 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
+      en: CANONICAL_ABS,
+      'x-default': CANONICAL_ABS,
     },
   },
   openGraph: {
-    url: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
+    url: CANONICAL_ABS,
     title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
     description: DESCRIPTION,
     images: [{ url: 'https://rideprestigo.com/vienna.png', width: 1200, height: 630 }],
@@ -222,16 +225,16 @@ const pageSchemaGraph = {
   '@graph': [
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train#breadcrumb',
+      '@id': `${CANONICAL_ABS}#breadcrumb`,
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Compare', item: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train' },
-        { '@type': 'ListItem', position: 3, name: 'Prague to Vienna: Transfer vs Train', item: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: CANONICAL_ABS },
+        { '@type': 'ListItem', position: 3, name: 'Prague to Vienna: Transfer vs Train', item: CANONICAL_ABS },
       ],
     },
     {
       '@type': 'Article',
-      '@id': 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train#article',
+      '@id': `${CANONICAL_ABS}#article`,
       headline: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
       description: DESCRIPTION,
       image: {
@@ -243,13 +246,13 @@ const pageSchemaGraph = {
       about: { '@type': 'Service', name: 'Prague to Vienna private chauffeur transfer' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
       author: personSchemaFor('roman-ustyugov'),
-      url: 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train',
+      url: CANONICAL_ABS,
       datePublished: ARTICLE_PUBLISHED,
       dateModified: ARTICLE_MODIFIED,
     },
     {
       '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/compare/prague-vienna-transfer-vs-train#faq',
+      '@id': `${CANONICAL_ABS}#faq`,
       mainEntity: faqs.map((f) => ({
         '@type': 'Question',
         name: f.q,

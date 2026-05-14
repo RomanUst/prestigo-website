@@ -7,6 +7,9 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 
+const CANONICAL_PATH = '/blog/prague-airport-to-city-center'
+const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
+
 const ARTICLE_PUBLISHED = '2026-04-09'
 const ARTICLE_MODIFIED = '2026-04-09'
 
@@ -21,14 +24,14 @@ export const metadata: Metadata = {
   title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
   description: DESCRIPTION,
   alternates: {
-    canonical: '/guides/prague-airport-to-city-center',
+    canonical: CANONICAL_PATH,
     languages: {
-      en: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
-      'x-default': 'https://rideprestigo.com/guides/prague-airport-to-city-center',
+      en: CANONICAL_ABS,
+      'x-default': CANONICAL_ABS,
     },
   },
   openGraph: {
-    url: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
+    url: CANONICAL_ABS,
     title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
     description: DESCRIPTION,
     images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
@@ -303,16 +306,16 @@ const pageSchemaGraph = {
   '@graph': [
     {
       '@type': 'BreadcrumbList',
-      '@id': 'https://rideprestigo.com/guides/prague-airport-to-city-center#breadcrumb',
+      '@id': `${CANONICAL_ABS}#breadcrumb`,
       itemListElement: [
         { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-        { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rideprestigo.com/guides/prague-airport-to-city-center' },
-        { '@type': 'ListItem', position: 3, name: 'Prague Airport to City Centre', item: 'https://rideprestigo.com/guides/prague-airport-to-city-center' },
+        { '@type': 'ListItem', position: 2, name: 'Blog', item: CANONICAL_ABS },
+        { '@type': 'ListItem', position: 3, name: 'Prague Airport to City Centre', item: CANONICAL_ABS },
       ],
     },
     {
       '@type': 'Article',
-      '@id': 'https://rideprestigo.com/guides/prague-airport-to-city-center#article',
+      '@id': `${CANONICAL_ABS}#article`,
       headline: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
       description: DESCRIPTION,
       image: {
@@ -324,13 +327,13 @@ const pageSchemaGraph = {
       about: { '@type': 'Place', name: 'Václav Havel Airport Prague' },
       publisher: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
       author: personSchemaFor('roman-ustyugov'),
-      url: 'https://rideprestigo.com/guides/prague-airport-to-city-center',
+      url: CANONICAL_ABS,
       datePublished: ARTICLE_PUBLISHED,
       dateModified: ARTICLE_MODIFIED,
     },
     {
       '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/guides/prague-airport-to-city-center#faq',
+      '@id': `${CANONICAL_ABS}#faq`,
       mainEntity: faqs.map((f) => ({
         '@type': 'Question',
         name: f.q,
