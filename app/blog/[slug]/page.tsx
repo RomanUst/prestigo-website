@@ -36,7 +36,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const post = findMdxPost(slug)
-  if (!post) return {}
+  if (!post) return { title: 'Not Found — Prestigo' }
   const canonical = `/blog/${slug}`
   const absolute = `https://rideprestigo.com${canonical}`
   return {
