@@ -84,14 +84,14 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Guides */}
+          {/* Blog */}
           <div>
-            <p className="label mb-5">Guides &amp; compare</p>
+            <p className="label mb-5">Blog</p>
             <ul className="flex flex-col gap-3">
               {[
-                { label: 'Prague airport → city centre', href: '/guides/prague-airport-to-city-center' },
-                { label: 'Taxi vs chauffeur at PRG', href: '/compare/prague-airport-taxi-vs-chauffeur' },
-                { label: 'Prague–Vienna: transfer vs train', href: '/compare/prague-vienna-transfer-vs-train' },
+                { label: 'Prague airport → city centre', href: '/blog/prague-airport-to-city-center' },
+                { label: 'Taxi vs chauffeur at PRG', href: '/blog/prague-airport-taxi-vs-chauffeur' },
+                { label: 'Prague–Vienna: transfer vs train', href: '/blog/prague-vienna-transfer-vs-train' },
               ].map((g) => (
                 <li key={g.label}>
                   <a href={g.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
@@ -99,6 +99,11 @@ export default function Footer() {
                   </a>
                 </li>
               ))}
+              <li>
+                <a href="/blog" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5" style={{ color: 'var(--copper-light)' }}>
+                  View all posts →
+                </a>
+              </li>
             </ul>
           </div>
 
