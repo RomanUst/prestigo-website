@@ -16,7 +16,7 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 
 - [ ] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory
 - [x] **Phase 55: Blog UI — Listing + Article Pages** - Build /blog listing card grid and /blog/[slug] MDX article renderer with full SEO metadata (completed 2026-05-13)
-- [ ] **Phase 56: Article Migration + SEO Wiring** - git mv 3 JSX articles to /blog/*, update all 9 canonical URL locations, add 301 redirects, reconcile sitemap
+- [x] **Phase 56: Article Migration + SEO Wiring** - git mv 3 JSX articles to /blog/*, update all 9 canonical URL locations, add 301 redirects, reconcile sitemap (completed 2026-05-15)
 
 ## Phase Details
 
@@ -61,7 +61,7 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
   - [x] 56-01-PLAN.md — Invert sitemap test (TDD RED), git mv 3 JSX articles, rewrite 30 URL occurrences via const CANONICAL_PATH (MIG-01, MIG-02)
   - [x] 56-02-PLAN.md — Append 5 permanent 301 redirects to next.config.ts redirects() array (MIG-03)
   - [x] 56-03-PLAN.md — Update app/sitemap.ts: remove 5 legacy entries, add 3 /blog/* entries; tests turn GREEN (MIG-04)
-  - [ ] 56-04-PLAN.md — Delete app/guides/page.tsx and app/compare/page.tsx hub pages; verify JSX_POSTS (MIG-05, MIG-06)
+  - [x] 56-04-PLAN.md — Delete app/guides/page.tsx and app/compare/page.tsx hub pages; verify JSX_POSTS (MIG-05, MIG-06)
 **UI hint**: no
 
 ## Progress
@@ -72,4 +72,4 @@ Build an MDX-powered blog at `/blog` that captures organic search traffic and mi
 |-------|----------------|--------|-----------|
 | 54. MDX Infrastructure | 0/? | Not started | - |
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
-| 56. Article Migration + SEO Wiring | 3/4 | In Progress|  |
+| 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
