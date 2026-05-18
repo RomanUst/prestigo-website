@@ -28,8 +28,14 @@ export function buildRouteJsonLd(route: RoutePrice, slug: string): JsonLdDocumen
       {
         '@type': 'Service',
         '@id': `${BASE_URL}/routes/${slug}#service`,
+        url: `${BASE_URL}/routes/${slug}`,
         name: `Private Chauffeur Transfer from ${route.fromLabel} to ${route.toLabel}`,
+        description: `Private chauffeured transfer from ${route.fromLabel} to ${route.toLabel}. Fixed price from €${route.eClassEur}. ${route.distanceKm} km door-to-door in a Mercedes E, S, or V-Class.`,
         serviceType: 'Private ground transfer',
+        areaServed: [
+          { '@type': 'Place', name: route.fromLabel },
+          { '@type': 'Place', name: route.toLabel },
+        ],
         provider: { '@type': 'LocalBusiness', '@id': `${BASE_URL}/#business` },
         hasOfferCatalog: {
           '@type': 'OfferCatalog',
