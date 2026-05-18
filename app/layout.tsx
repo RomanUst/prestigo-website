@@ -47,6 +47,14 @@ export const metadata: Metadata = {
     title: 'PRESTIGO — Premium Chauffeur Service Prague',
     description:
       'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'PRESTIGO — Premium Chauffeur Service Prague',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
@@ -82,10 +90,6 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <head>
-        <meta property="og:type" content="website" />
-        <meta property="og:image" content="https://rideprestigo.com/og-image.jpg" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
         {/* Hero image LCP preload is handled by <Image priority fetchPriority="high">
             in Hero.tsx — Next.js auto-generates a preload with the correct
             /_next/image srcset that the browser actually requests.
