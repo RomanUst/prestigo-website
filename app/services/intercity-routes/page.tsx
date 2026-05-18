@@ -12,10 +12,12 @@ export const metadata: Metadata = {
   title: 'Intercity Routes from Prague — Vienna, Berlin, Munich',
   description: 'Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door, available 24/7.',
   alternates: {
-    canonical: '/services/intercity-routes',
+    // Cross-canonical to /routes — this service page overlaps heavily with the
+    // routes hub; signals are consolidated there (SEO audit M11).
+    canonical: '/routes',
     languages: {
-      en: 'https://rideprestigo.com/services/intercity-routes',
-      'x-default': 'https://rideprestigo.com/services/intercity-routes',
+      en: 'https://rideprestigo.com/routes',
+      'x-default': 'https://rideprestigo.com/routes',
     },
   },
   openGraph: {

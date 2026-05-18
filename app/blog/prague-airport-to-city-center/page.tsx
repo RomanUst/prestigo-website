@@ -18,10 +18,10 @@ const ARTICLE_MODIFIED = '2026-04-09'
 // renaming in March 2024), prg.aero signage, and PRESTIGO's own dispatch data.
 // Structure: not "6 options" but passenger profiles + neighbourhood routing.
 
-const DESCRIPTION = 'Prague Airport (PRG) to city centre in 2026: every option with real fares after the 1 Jan 2026 PID hike, neighbourhood-by-neighbourhood routing, and late-night protocols.'
+const DESCRIPTION = 'Prague Airport PRG to city centre 2026: every option with verified fares after the Jan 2026 PID hike, by neighbourhood and late-night protocol.'
 
 export const metadata: Metadata = {
-  title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
+  title: 'Prague Airport to City Centre 2026 — By Passenger Type',
   description: DESCRIPTION,
   alternates: {
     canonical: CANONICAL_PATH,
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: CANONICAL_ABS,
-    title: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
+    title: 'Prague Airport to City Centre 2026 — By Passenger Type',
     description: DESCRIPTION,
     images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
   },
@@ -318,9 +318,9 @@ const pageSchemaGraph = {
       ],
     },
     {
-      '@type': 'Article',
+      '@type': 'BlogPosting',
       '@id': `${CANONICAL_ABS}#article`,
-      headline: 'Prague Airport to City Centre 2026 — By Passenger Type (Full Guide)',
+      headline: 'Prague Airport to City Centre 2026 — By Passenger Type',
       description: DESCRIPTION,
       image: {
         '@type': 'ImageObject',
@@ -464,6 +464,16 @@ export default function GuidePragueAirportPage() {
               </div>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Mid-article CTA */}
+      <section className="bg-anthracite py-12 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <p className="body-text text-[14px]">
+            Want the no-decision option? A PRESTIGO chauffeur meets you inside Arrivals — <span style={{ color: 'var(--copper-light)' }}>fixed price</span>, flight tracked, straight to your door.
+          </p>
+          <a href="/book" className="btn-primary whitespace-nowrap">Book a transfer</a>
         </div>
       </section>
 

@@ -243,7 +243,7 @@ export default async function ServicesPage() {
           <p className="label mb-6">Chauffeur Services · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Every journey.<br />
+            Prague Chauffeur Services.<br />
             <span className="display-italic">Every detail.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>

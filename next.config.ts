@@ -32,6 +32,11 @@ const nextConfig: NextConfig = {
       'prague-amsterdam',
     ]
 
+    // Same 20 routes but in the prague-to-* URL format used by the noindex
+    // page directories (app/routes/prague-to-*/). Both URL variants must
+    // redirect so Googlebot never crawls the noindex pages.
+    const removedRedRoutesTo = removedRedRoutes.map((s) => s.replace('prague-', 'prague-to-'))
+
     return [
       {
         source: '/:path*',
@@ -47,6 +52,11 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       ...removedRedRoutes.map((slug) => ({
+        source: `/routes/${slug}`,
+        destination: '/routes',
+        permanent: true,
+      })),
+      ...removedRedRoutesTo.map((slug) => ({
         source: `/routes/${slug}`,
         destination: '/routes',
         permanent: true,

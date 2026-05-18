@@ -231,8 +231,8 @@ export default function FleetPage() {
           <p className="label mb-6">Mercedes Fleet · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            The vehicle is part<br />
-            <span className="display-italic">of the experience.</span>
+            Mercedes Chauffeur Fleet.<br />
+            <span className="display-italic">Part of the experience.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
             Every PRESTIGO vehicle is a late-model Mercedes-Benz, maintained to exacting standards, fully insured, and prepared before every journey. The interior is your space to think, work, or simply arrive.

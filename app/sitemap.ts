@@ -42,7 +42,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/book/multi-day', 'app/book/multi-day/page.tsx'),
     entry('/services', 'app/services/page.tsx'),
     entry('/services/airport-transfer', 'app/services/airport-transfer/page.tsx'),
-    entry('/services/intercity-routes', 'app/services/intercity-routes/page.tsx'),
+    // /services/intercity-routes intentionally excluded: it canonicalises to
+    // /routes (see its metadata) to consolidate signals on the routes hub.
     entry('/services/vip-events', 'app/services/vip-events/page.tsx'),
     entry('/services/city-rides', 'app/services/city-rides/page.tsx'),
     entry('/services/group-transfers', 'app/services/group-transfers/page.tsx'),
@@ -58,5 +59,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/about', 'app/about/page.tsx'),
     entry('/faq', 'app/faq/page.tsx'),
     entry('/contact', 'app/contact/page.tsx'),
+    entry('/privacy', 'app/privacy/page.tsx'),
+    entry('/terms', 'app/terms/page.tsx'),
+    entry('/authors/roman-ustyugov', 'app/authors/roman-ustyugov/page.tsx'),
   ]
 }

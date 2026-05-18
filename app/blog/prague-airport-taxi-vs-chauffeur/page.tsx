@@ -18,10 +18,10 @@ const ARTICLE_MODIFIED = '2026-04-09'
 // fare updates (1 Jan 2026), Honest Guide scam reporting, and PRESTIGO's own
 // published pricing in the Notion ledger. Every number is cross-checked.
 
-const DESCRIPTION = 'Prague airport taxi vs private chauffeur in 2026: Uber is the exclusive official rank partner, AAA Taxi is no longer there. Real fares, scam alerts, decision tree by passenger profile.'
+const DESCRIPTION = 'Prague airport taxi vs private chauffeur 2026: Uber holds the official rank, AAA Taxi is gone. Real fares, scam alerts, and a decision tree by passenger profile.'
 
 export const metadata: Metadata = {
-  title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
+  title: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
   description: DESCRIPTION,
   alternates: {
     canonical: CANONICAL_PATH,
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: CANONICAL_ABS,
-    title: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
+    title: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
     description: DESCRIPTION,
     images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
   },
@@ -223,9 +223,9 @@ const pageSchemaGraph = {
       ],
     },
     {
-      '@type': 'Article',
+      '@type': 'BlogPosting',
       '@id': `${CANONICAL_ABS}#article`,
-      headline: 'Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank',
+      headline: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
       description: DESCRIPTION,
       image: {
         '@type': 'ImageObject',
@@ -384,6 +384,16 @@ export default function CompareAirportTaxiPage() {
             (23:00–06:00) +20 %. Uber fares from airport kiosk posted pricing. Bolt from app estimates,
             surge-dependent. PID tariff from pidlitacka.cz effective 1 January 2026.
           </p>
+        </div>
+      </section>
+
+      {/* Mid-article CTA */}
+      <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
+        <div className="max-w-3xl mx-auto px-6 md:px-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <p className="body-text text-[14px]">
+            Skip the comparison — a PRESTIGO chauffeur is <span style={{ color: 'var(--copper-light)' }}>€69 fixed</span>, met inside Arrivals with your name board, flight tracked, no surge.
+          </p>
+          <a href="/book" className="btn-primary whitespace-nowrap">Book a transfer</a>
         </div>
       </section>
 

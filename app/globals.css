@@ -271,6 +271,21 @@ body {
   border-radius: 2px;
 }
 
+/* Full-width skeleton bar — route-level loading.tsx fallbacks */
+.skeleton-bar {
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--anthracite-mid) 0px,
+    var(--copper-pale) 40px,
+    var(--anthracite-mid) 80px
+  );
+  background-size: 200px 100%;
+  animation: shimmer 1.2s infinite linear;
+  border: 1px solid var(--anthracite-light);
+  border-radius: 2px;
+}
+
 /* -- Step entry animation (booking wizard) -- */
 @keyframes stepFadeUp {
   from { opacity: 0; transform: translateY(24px); }

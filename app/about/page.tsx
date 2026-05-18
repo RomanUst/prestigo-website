@@ -127,7 +127,7 @@ export default function AboutPage() {
           <p className="label mb-6">About PRESTIGO</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Prague's service.<br />
+            Prague's chauffeur service.<br />
             <span className="display-italic">International standard.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>

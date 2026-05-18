@@ -36,19 +36,16 @@ export default function HeroTypewriter() {
   }, [reducedMotion])
 
   return (
-    <h1 className="display text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-300 mb-2">
-      <span
-        style={{
-          color: 'var(--copper)',
-          display: 'inline-block',
-          transition: reducedMotion ? 'none' : 'opacity 0.35s ease, transform 0.35s ease',
-          opacity: visible ? 1 : 0,
-          transform: reducedMotion || visible ? 'translateY(0px)' : 'translateY(-10px)',
-        }}
-      >
-        {words[index]}
-      </span>
-      {' '}in Prague,
-    </h1>
+    <span
+      style={{
+        color: 'var(--copper)',
+        display: 'inline-block',
+        transition: reducedMotion ? 'none' : 'opacity 0.35s ease, transform 0.35s ease',
+        opacity: visible ? 1 : 0,
+        transform: reducedMotion || visible ? 'translateY(0px)' : 'translateY(-10px)',
+      }}
+    >
+      {words[index]}
+    </span>
   )
 }

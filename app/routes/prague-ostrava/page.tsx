@@ -128,7 +128,7 @@ export default async function PragueOstravaPage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
-        <div className="absolute inset-0"><Image src="/photohero.png" alt="Ostrava" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
+        <div className="absolute inset-0"><Image src="/photohero.png" alt="Ostrava — private chauffeur transfer from Prague to Ostrava" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Ostrava</p>
           <span className="copper-line mb-8 block" />

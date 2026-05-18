@@ -135,19 +135,18 @@ const sections = [
   },
 ]
 
+// Derived from `sections` so every visible question is machine-readable —
+// single source of truth, no drift between page copy and JSON-LD.
 const faqSchema = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
-  mainEntity: [
-    { '@type': 'Question', name: 'How do I book a PRESTIGO transfer?', acceptedAnswer: { '@type': 'Answer', text: 'Book online at rideprestigo.com/book. Select your route, vehicle, and date. Confirmation is instant — no waiting for a callback.' } },
-    { '@type': 'Question', name: 'Is the price fixed?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. The price shown at booking is the price you pay. No surge pricing. No hidden tolls. No extras unless you request them.' } },
-    { '@type': 'Question', name: 'What happens if my flight is delayed?', acceptedAnswer: { '@type': 'Answer', text: 'Your driver monitors your flight in real time. A delay costs you nothing extra — your driver adjusts automatically.' } },
-    { '@type': 'Question', name: 'Can I cancel my booking?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Free cancellation up to 1 hour before the scheduled pickup. Later cancellations may be subject to a fee.' } },
-    { '@type': 'Question', name: 'What cars do you use?', acceptedAnswer: { '@type': 'Answer', text: 'All PRESTIGO vehicles are late-model Mercedes-Benz: E-Class (sedan), S-Class (executive sedan), and V-Class (executive van). All are fully insured and maintained to the highest standard.' } },
-    { '@type': 'Question', name: 'Do you offer corporate accounts?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Corporate accounts include monthly invoicing, a dedicated account manager, and priority dispatch. Set up in 24 hours.' } },
-    { '@type': 'Question', name: 'Do you have child seats?', acceptedAnswer: { '@type': 'Answer', text: 'Yes. Child seats are available on request at the time of booking, at no extra charge.' } },
-    { '@type': 'Question', name: 'Do you charge extra for waiting time at the airport?', acceptedAnswer: { '@type': 'Answer', text: '60 minutes of free waiting is included for all airport pickups. We track your flight in real time.' } },
-  ],
+  mainEntity: sections.flatMap((section) =>
+    section.faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: { '@type': 'Answer', text: faq.a },
+    })),
+  ),
 }
 
 
@@ -186,7 +185,7 @@ export default function FaqPage() {
         <div className="max-w-3xl mx-auto px-6 md:px-12 flex flex-col gap-16">
           {sections.map((section, i) => (
             <Reveal key={section.title} variant="up" delay={i * 100}><div>
-              <p className="label mb-8">{section.title}</p>
+              <h2 className="label mb-8">{section.title}</h2>
               <div className="flex flex-col gap-0">
                 {section.faqs.map((faq, i) => (
                   <div

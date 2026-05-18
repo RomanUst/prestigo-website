@@ -22,7 +22,7 @@ export default function Hero({ airportPrice }: Props) {
 
       {/* Full-screen background photo — mobile (portrait crop) */}
       <Image
-        src="/photohero-mobile.jpg"
+        src="/photohero-mobile.avif"
         alt="Prestigo premium chauffeur — Prague airport transfer"
         fill
         priority
@@ -66,8 +66,10 @@ export default function Hero({ airportPrice }: Props) {
             {/* Copper line */}
             <span className="copper-line animate-on-load delay-200 mb-8 block" />
 
-            {/* Headline */}
-            <HeroTypewriter />
+            {/* Headline — H1 stays in server component so crawlers always see keyword text */}
+            <h1 className="display text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-300 mb-2">
+              <HeroTypewriter /> in Prague,
+            </h1>
             <p className="display display-italic text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-400 mb-10">
               as it should be.
             </p>

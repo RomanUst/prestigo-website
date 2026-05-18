@@ -18,10 +18,10 @@ const ARTICLE_MODIFIED = '2026-04-09'
 // Every number on this page is cross-checked against operator websites,
 // Seat61, Rome2Rio and our own dispatch data — no marketing claims.
 
-const DESCRIPTION = 'Prague to Vienna 2026: private chauffeur vs RailJet vs RegioJet vs FlixBus vs rental car — honest cost per person by group size, timing, luggage, Sparschiene traps.'
+const DESCRIPTION = 'Prague to Vienna 2026: private chauffeur vs RailJet vs FlixBus vs rental car — honest cost per person by group size, timing, and luggage.'
 
 export const metadata: Metadata = {
-  title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
+  title: 'Prague to Vienna 2026: Chauffeur vs Train vs Bus',
   description: DESCRIPTION,
   alternates: {
     canonical: CANONICAL_PATH,
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     url: CANONICAL_ABS,
-    title: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
+    title: 'Prague to Vienna 2026: Chauffeur vs Train vs Bus',
     description: DESCRIPTION,
     images: [{ url: 'https://rideprestigo.com/vienna.png', width: 1200, height: 630 }],
   },
@@ -237,9 +237,9 @@ const pageSchemaGraph = {
       ],
     },
     {
-      '@type': 'Article',
+      '@type': 'BlogPosting',
       '@id': `${CANONICAL_ABS}#article`,
-      headline: 'Prague to Vienna 2026: Private Transfer vs Train vs Bus (Honest Guide)',
+      headline: 'Prague to Vienna 2026: Chauffeur vs Train vs Bus',
       description: DESCRIPTION,
       image: {
         '@type': 'ImageObject',

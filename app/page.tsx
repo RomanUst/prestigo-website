@@ -69,8 +69,8 @@ const localBusinessSchema = {
   },
   geo: {
     '@type': 'GeoCoordinates',
-    latitude: 49.9836,
-    longitude: 14.2001,
+    latitude: 50.1008,
+    longitude: 14.2600,
   },
   image: 'https://rideprestigo.com/og-image.jpg',
   logo: {
@@ -97,8 +97,18 @@ const localBusinessSchema = {
   ],
   foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
+  hasMap: 'https://share.google/dPIa4HI97jeLPidw9',
+  serviceArea: {
+    '@type': 'GeoCircle',
+    geoMidpoint: {
+      '@type': 'GeoCoordinates',
+      latitude: 50.1008,
+      longitude: 14.2600,
+    },
+    geoRadius: '1000000',
+  },
   sameAs: [
-    'https://share.google/RLjntprJWb5RXWSxL',
+    'https://share.google/dPIa4HI97jeLPidw9',
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',
   ],
@@ -114,6 +124,7 @@ const localBusinessSchema = {
       closes: '23:59',
     },
   },
+  openingHours: 'Mo-Su 00:00-23:59',
   openingHoursSpecification: [
     {
       '@type': 'OpeningHoursSpecification',

@@ -129,7 +129,7 @@ export default async function PraguePlzenPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/photohero.png" alt="Plzeň" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
+          <Image src="/photohero.png" alt="Plzeň — private chauffeur transfer from Prague to Plzeň" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Plzeň</p>

@@ -1,5 +1,10 @@
+import type { Metadata } from 'next'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import DriverResponseClient from './DriverResponseClient'
+
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 interface PageProps {
   searchParams: Promise<{ token?: string; action?: string }>
