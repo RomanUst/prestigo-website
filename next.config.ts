@@ -1,7 +1,13 @@
 import type { NextConfig } from "next";
 import createMDX from '@next/mdx';
 
-const withMDX = createMDX({});
+// Turbopack requires serializable MDX options — remark plugins must be
+// referenced by package name string, not by imported function.
+const withMDX = createMDX({
+  options: {
+    remarkPlugins: [['remark-frontmatter', ['yaml']]],
+  },
+});
 
 const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
