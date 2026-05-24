@@ -4,6 +4,17 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 import MetaViewContent from '@/components/MetaViewContent'
+import { aggregateRatingDoc } from '@/lib/jsonld'
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+    { '@type': 'ListItem', position: 2, name: 'Book a Transfer', item: 'https://rideprestigo.com/book' },
+    { '@type': 'ListItem', position: 3, name: 'Multi-day Chauffeur', item: 'https://rideprestigo.com/book/multi-day' },
+  ],
+}
 
 export const metadata: Metadata = {
   title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
@@ -148,8 +159,11 @@ const FAQ = [
 ]
 
 export default function MultiDayPage() {
+  const ratingDoc = aggregateRatingDoc()
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
       <MetaViewContent contentName="Multi-Day Chauffeur" />
       <Nav />
     <main

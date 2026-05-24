@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import BookingWizard from '@/components/booking/BookingWizard'
+import { aggregateRatingDoc } from '@/lib/jsonld'
 
 const bookingSchema = {
   '@context': 'https://schema.org',
@@ -80,9 +81,11 @@ const guarantees = [
 ]
 
 export default function BookPage() {
+  const ratingDoc = aggregateRatingDoc()
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(bookingSchema) }} />
+      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
       <Nav />
 
       {/* Header */}

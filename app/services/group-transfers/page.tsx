@@ -6,6 +6,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import { aggregateRatingDoc } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'Group Transfers Prague — Minivan & Multi-Car',
@@ -80,10 +81,12 @@ const groupTypes = [
 ]
 
 export default function GroupTransfersPage() {
+  const ratingDoc = aggregateRatingDoc()
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
+      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
       <Nav />
 
       {/* Hero */}

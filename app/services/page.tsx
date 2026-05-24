@@ -8,6 +8,7 @@ import Reveal from '@/components/Reveal'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
+import { aggregateRatingDoc } from '@/lib/jsonld'
 
 const SERVICES_DESCRIPTION = 'Prague chauffeur services: airport transfers, intercity routes, corporate accounts, VIP events, city rides. Fixed price, flight tracking, instant booking.'
 
@@ -230,11 +231,14 @@ export default async function ServicesPage() {
     })),
   }
 
+  const ratingDoc = aggregateRatingDoc()
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceListSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(servicesFaqSchema) }} />
+      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
       <Nav />
 
       {/* Hero */}
