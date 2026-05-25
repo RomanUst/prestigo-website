@@ -30,6 +30,8 @@ export function aggregateRatingNode(): Record<string, unknown> | null {
   return {
     '@type': ['LocalBusiness', 'TaxiService'],
     '@id': `${BASE_URL}/#business`,
+    name: 'PRESTIGO',
+    url: BASE_URL,
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: rating.ratingValue.toFixed(1),

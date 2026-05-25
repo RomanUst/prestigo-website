@@ -92,6 +92,8 @@ export default async function AirportTransferPage() {
       ...(rating ? [{
         '@type': ['LocalBusiness', 'TaxiService'],
         '@id': 'https://rideprestigo.com/#business',
+        name: 'PRESTIGO',
+        url: 'https://rideprestigo.com',
         aggregateRating: {
           '@type': 'AggregateRating',
           ratingValue: rating.ratingValue.toFixed(1),
