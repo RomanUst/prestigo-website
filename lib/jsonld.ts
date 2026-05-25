@@ -32,6 +32,17 @@ export function aggregateRatingNode(): Record<string, unknown> | null {
     '@id': `${BASE_URL}/#business`,
     name: 'PRESTIGO',
     url: BASE_URL,
+    telephone: '+420725986855',
+    priceRange: '€€€',
+    image: `${BASE_URL}/og-image.jpg`,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: 'Spojovací 685',
+      addressLocality: 'Vysoký Újezd',
+      postalCode: '252 16',
+      addressRegion: 'Central Bohemian Region',
+      addressCountry: 'CZ',
+    },
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: rating.ratingValue.toFixed(1),
