@@ -54,8 +54,8 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
     >
       <div
         style={{
-          backgroundColor: '#2A2A2D',
-          border: '1px solid #3A3A3F',
+          backgroundColor: '#36363B',
+          border: '1px solid #4E4E56',
           borderRadius: '8px',
           padding: '24px',
           minWidth: '480px',
@@ -83,7 +83,7 @@ export function Modal({ isOpen, onClose, title, children }: ModalProps) {
             style={{
               background: 'none',
               border: 'none',
-              color: '#9A958F',
+              color: '#CFC9C2',
               cursor: 'pointer',
               minWidth: '44px',
               minHeight: '44px',

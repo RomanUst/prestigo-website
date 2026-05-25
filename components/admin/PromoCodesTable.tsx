@@ -25,16 +25,16 @@ const thStyle: React.CSSProperties = {
   fontWeight: 400,
   letterSpacing: '0.3em',
   textTransform: 'uppercase',
-  color: '#9A958F',
+  color: '#CFC9C2',
   padding: '10px 12px',
   textAlign: 'left',
-  borderBottom: '1px solid #3A3A3F',
+  borderBottom: '1px solid #4E4E56',
 }
 
 function formatExpiry(date: string | null): React.ReactNode {
   if (!date) {
     return (
-      <span style={{ fontSize: '11px', color: '#9A958F', letterSpacing: '0.3em' }}>
+      <span style={{ fontSize: '11px', color: '#CFC9C2', letterSpacing: '0.3em' }}>
         No expiry
       </span>
     )
@@ -45,7 +45,7 @@ function formatExpiry(date: string | null): React.ReactNode {
 function formatUses(current: number, max: number | null): React.ReactNode {
   const maxLabel = max !== null ? String(max) : 'Unlimited'
   return (
-    <span style={{ fontSize: '11px', color: '#9A958F' }}>
+    <span style={{ fontSize: '11px', color: '#CFC9C2' }}>
       {current} / {maxLabel}
     </span>
   )
@@ -109,9 +109,9 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
         style={{
           textAlign: 'center',
           padding: '48px 24px',
-          border: '1px solid #3A3A3F',
+          border: '1px solid #4E4E56',
           borderRadius: '8px',
-          backgroundColor: '#2A2A2D',
+          backgroundColor: '#36363B',
         }}
       >
         <div
@@ -130,7 +130,7 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
             fontFamily: 'var(--font-montserrat)',
             fontSize: '13px',
             fontWeight: 300,
-            color: '#9A958F',
+            color: '#CFC9C2',
             marginBottom: '16px',
           }}
         >
@@ -186,16 +186,16 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
             const cellStyle: React.CSSProperties = {
               fontSize: '13px',
               fontWeight: 300,
-              color: dimmed ? '#9A958F' : '#F5F2EE',
+              color: dimmed ? '#CFC9C2' : '#F5F2EE',
               padding: '10px 12px',
-              borderBottom: '1px solid #3A3A3F',
-              backgroundColor: dimmed ? '#1C1C1E' : '#2A2A2D',
+              borderBottom: '1px solid #4E4E56',
+              backgroundColor: dimmed ? '#28282B' : '#36363B',
             }
 
             return (
               <tr key={code.id}>
                 <td style={{ ...cellStyle, letterSpacing: '0.08em' }}>{code.code}</td>
-                <td style={{ ...cellStyle, color: dimmed ? '#9A958F' : '#4ade80', fontWeight: 400 }}>
+                <td style={{ ...cellStyle, color: dimmed ? '#CFC9C2' : '#4ade80', fontWeight: 400 }}>
                   {code.discount_value}%
                 </td>
                 <td style={cellStyle}>{formatExpiry(code.expiry_date)}</td>
@@ -275,13 +275,13 @@ export function PromoCodesTable({ promoCodes, onUpdate }: PromoCodesTableProps) 
                           minWidth: '44px',
                           minHeight: '44px',
                           padding: '0',
-                          color: '#9A958F',
+                          color: '#CFC9C2',
                         }}
                         onMouseEnter={(e) => {
                           ;(e.currentTarget as HTMLButtonElement).style.color = '#f87171'
                         }}
                         onMouseLeave={(e) => {
-                          ;(e.currentTarget as HTMLButtonElement).style.color = '#9A958F'
+                          ;(e.currentTarget as HTMLButtonElement).style.color = '#CFC9C2'
                         }}
                       >
                         <Trash2 size={16} />

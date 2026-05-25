@@ -655,8 +655,8 @@ export default function BookingsTable() {
                 <div
                   key={booking.id}
                   style={{
-                    backgroundColor: '#2A2A2D',
-                    border: '1px solid #3A3A3F',
+                    backgroundColor: '#36363B',
+                    border: '1px solid #4E4E56',
                     borderRadius: 8,
                     padding: 16,
                     marginBottom: 12,
@@ -799,7 +799,7 @@ export default function BookingsTable() {
 
                   {/* Expanded details */}
                   {isExpanded && (
-                    <div style={{ marginTop: 12, borderTop: '1px solid #3A3A3F', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
+                    <div style={{ marginTop: 12, borderTop: '1px solid #4E4E56', paddingTop: 12 }} onClick={e => e.stopPropagation()}>
                       {booking.flight_iata && (
                         <FlightStatusBlock
                           bookingId={booking.id}

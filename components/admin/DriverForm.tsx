@@ -2,8 +2,8 @@
 import { useState, useEffect, useRef } from 'react'
 
 const inputBaseStyle: React.CSSProperties = {
-  backgroundColor: '#2A2A2D',
-  border: '1px solid #3A3A3F',
+  backgroundColor: '#36363B',
+  border: '1px solid #4E4E56',
   color: '#F5F2EE',
   fontFamily: 'var(--font-montserrat)',
   fontSize: '13px',
@@ -23,7 +23,7 @@ const labelStyle: React.CSSProperties = {
   fontWeight: 400,
   letterSpacing: '0.3em',
   textTransform: 'uppercase',
-  color: '#9A958F',
+  color: '#CFC9C2',
   marginBottom: '4px',
 }
 
@@ -203,7 +203,7 @@ export function DriverForm({ driver, onSaved, onClose }: DriverFormProps) {
             style={{
               background: 'none',
               border: 'none',
-              color: '#9A958F',
+              color: '#CFC9C2',
               fontFamily: 'var(--font-montserrat)',
               fontSize: '13px',
               cursor: 'pointer',

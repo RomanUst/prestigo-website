@@ -128,7 +128,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
   if (data.tripType === 'hourly' && data.hours) {
     rideDetailsRows.push(`
       <tr>
-        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Duration</td>
+        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Duration</td>
         <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${data.hours} hour${data.hours !== 1 ? 's' : ''}</td>
       </tr>
     `)
@@ -137,7 +137,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
   if (data.tripType === 'daily' && data.returnDate) {
     rideDetailsRows.push(`
       <tr>
-        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Return Date</td>
+        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Return Date</td>
         <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatPickupDate(data.returnDate)}</td>
       </tr>
     `)
@@ -146,7 +146,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
   if (data.flightNumber) {
     rideDetailsRows.push(`
       <tr>
-        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Flight Number</td>
+        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Flight Number</td>
         <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.flightNumber)}</td>
       </tr>
     `)
@@ -155,7 +155,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
   if (data.terminal) {
     rideDetailsRows.push(`
       <tr>
-        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Terminal</td>
+        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Terminal</td>
         <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.terminal)}</td>
       </tr>
     `)
@@ -164,7 +164,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
   if (data.specialRequests) {
     rideDetailsRows.push(`
       <tr>
-        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Special Requests</td>
+        <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Special Requests</td>
         <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.specialRequests)}</td>
       </tr>
     `)
@@ -190,9 +190,9 @@ function buildConfirmationHtml(data: BookingEmailData): string {
   <title>Your PRESTIGO Booking Confirmation</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
-  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+<body style="margin: 0; padding: 0; background-color: #28282B;">
+  <div style="background-color: #28282B; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #28282B;">
 
       <!-- Header copper gradient line -->
       <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
@@ -206,7 +206,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">Your booking is confirmed.</h1>
 
       <!-- Booking reference box -->
-      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+      <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${data.bookingReference}</div>
       </div>
@@ -216,19 +216,19 @@ function buildConfirmationHtml(data: BookingEmailData): string {
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Route</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formattedDate} at ${data.pickupTime}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(data.vehicleClass)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Passengers</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Passengers</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${data.passengers}</td>
           </tr>
         </table>
@@ -241,7 +241,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       ${extrasRows}
 
       <!-- Total paid line -->
-      <div style="border-top: 1px solid #3A3A3F; padding: 16px 32px; margin-top: 24px;">
+      <div style="border-top: 1px solid #4E4E56; padding: 16px 32px; margin-top: 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">TOTAL PAID</div>
         <div style="font-size: 14px; font-weight: 600; color: #F5F2EE;">${formatCZK(data.amountCzk)} (${formatEUR(czkToEur(data.amountCzk))})</div>
       </div>
@@ -252,9 +252,9 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       </div>
 
       <!-- Support contact -->
-      <div style="padding: 24px 32px; color: #9A958F; font-size: 14px;">
+      <div style="padding: 24px 32px; color: #CFC9C2; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
       </div>
 
       <!-- Footer -->
@@ -263,7 +263,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
         <div style="text-align: center; margin-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
         </div>
-        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
 
     </div>
@@ -570,7 +570,7 @@ export function buildRoundTripConfirmationHtml(data: RoundTripEmailData): string
     : ''
 
   // Full HTML body — matches existing PRESTIGO design tokens (#B87333 copper,
-  // #F5F2EE offwhite, #2A2A2D card background, Montserrat + Cormorant Garamond,
+  // #F5F2EE offwhite, #36363B card background, Montserrat + Cormorant Garamond,
   // 9px/3px letter-spacing labels)
   return `<!DOCTYPE html>
 <html lang="en">
@@ -594,11 +594,11 @@ export function buildRoundTripConfirmationHtml(data: RoundTripEmailData): string
     <div style="padding: 0 32px 24px;">
       <table style="width: 100%; border-collapse: separate; border-spacing: 12px 0;">
         <tr>
-          <td style="width: 50%; padding: 16px; background: #2A2A2D; border-left: 3px solid #B87333;">
+          <td style="width: 50%; padding: 16px; background: #36363B; border-left: 3px solid #B87333;">
             <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">OUTBOUND</div>
             <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #F5F2EE;">${outboundRefSafe}</div>
           </td>
-          <td style="width: 50%; padding: 16px; background: #2A2A2D; border-left: 3px solid #B87333;">
+          <td style="width: 50%; padding: 16px; background: #36363B; border-left: 3px solid #B87333;">
             <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">RETURN</div>
             <div style="font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #F5F2EE;">${returnRefSafe}</div>
           </td>
@@ -831,17 +831,17 @@ function buildMultidayDayRowHtml(day: MultidayDaySummary): string {
     const stopCount = day.stops?.length ?? 0
     const stopsHtml =
       stopCount > 0
-        ? `<div style="color:#9A958F;font-size:12px;margin-top:4px;">Stops: ${day.stops!
+        ? `<div style="color:#CFC9C2;font-size:12px;margin-top:4px;">Stops: ${day.stops!
             .map((s) => escapeHtml(s))
             .join(' · ')}</div>`
         : ''
     return `
       <tr>
-        <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;vertical-align:top;width:72px;">
+        <td style="padding:12px 16px;border-bottom:1px solid #4E4E56;vertical-align:top;width:72px;">
           <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.2em;color:#D4924A;text-transform:uppercase;">${dayLabel}</div>
-          <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:#9A958F;margin-top:4px;">${datetime}</div>
+          <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:#CFC9C2;margin-top:4px;">${datetime}</div>
         </td>
-        <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;color:#F5F2EE;">
+        <td style="padding:12px 16px;border-bottom:1px solid #4E4E56;color:#F5F2EE;">
           <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.16em;color:#E8B87A;text-transform:uppercase;margin-bottom:4px;">Transfer</div>
           <div style="font-size:14px;line-height:1.5;">${from} → ${to}</div>
           ${stopsHtml}
@@ -853,11 +853,11 @@ function buildMultidayDayRowHtml(day: MultidayDaySummary): string {
   const hours = Number.isFinite(day.hours) ? day.hours : 0
   return `
     <tr>
-      <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;vertical-align:top;width:72px;">
+      <td style="padding:12px 16px;border-bottom:1px solid #4E4E56;vertical-align:top;width:72px;">
         <div style="font-family:'Montserrat',sans-serif;font-size:10px;letter-spacing:0.2em;color:#D4924A;text-transform:uppercase;">${dayLabel}</div>
-        <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:#9A958F;margin-top:4px;">${datetime}</div>
+        <div style="font-family:'Montserrat',sans-serif;font-size:11px;color:#CFC9C2;margin-top:4px;">${datetime}</div>
       </td>
-      <td style="padding:12px 16px;border-bottom:1px solid #3A3A3F;color:#F5F2EE;">
+      <td style="padding:12px 16px;border-bottom:1px solid #4E4E56;color:#F5F2EE;">
         <div style="font-family:'Montserrat',sans-serif;font-size:11px;letter-spacing:0.16em;color:#E8B87A;text-transform:uppercase;margin-bottom:4px;">Hourly hire</div>
         <div style="font-size:14px;line-height:1.5;">${city} — ${hours} ${hours === 1 ? 'hour' : 'hours'}</div>
       </td>
@@ -876,26 +876,26 @@ function buildMultidayOperatorHtml(data: MultidayEmailData): string {
   const rowsHtml = data.days.map(buildMultidayDayRowHtml).join('')
 
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#1C1C1E;font-family:'Montserrat',Helvetica,Arial,sans-serif;color:#F5F2EE;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1C1C1E;padding:32px 0;">
+<html><body style="margin:0;padding:0;background:#28282B;font-family:'Montserrat',Helvetica,Arial,sans-serif;color:#F5F2EE;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#28282B;padding:32px 0;">
     <tr><td align="center">
-      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#141416;border:1px solid #3A3A3F;">
-        <tr><td style="padding:32px 24px;border-bottom:1px solid #3A3A3F;background:linear-gradient(180deg,#141416,#1C1C1E);">
+      <table role="presentation" width="600" cellpadding="0" cellspacing="0" style="max-width:600px;background:#141416;border:1px solid #4E4E56;">
+        <tr><td style="padding:32px 24px;border-bottom:1px solid #4E4E56;background:linear-gradient(180deg,#141416,#28282B);">
           <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;">PRESTIGO · Multi-day quote request</div>
           <h1 style="margin:12px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#F5F2EE;">New multi-day quote</h1>
-          <div style="margin-top:8px;font-size:12px;color:#9A958F;">Reference ${reference}</div>
+          <div style="margin-top:8px;font-size:12px;color:#CFC9C2;">Reference ${reference}</div>
         </td></tr>
 
         <tr><td style="padding:24px;">
           <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;margin-bottom:12px;">Client</div>
           <div style="font-size:14px;line-height:1.6;">${first} ${last}</div>
-          <div style="font-size:13px;color:#9A958F;line-height:1.6;">${email} · ${phone}</div>
-          <div style="font-size:13px;color:#9A958F;margin-top:8px;">Start date: ${startDate}</div>
+          <div style="font-size:13px;color:#CFC9C2;line-height:1.6;">${email} · ${phone}</div>
+          <div style="font-size:13px;color:#CFC9C2;margin-top:8px;">Start date: ${startDate}</div>
         </td></tr>
 
         <tr><td style="padding:0 24px 24px;">
           <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;margin:16px 0 12px;">Itinerary (${data.days.length} ${data.days.length === 1 ? 'day' : 'days'})</div>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #3A3A3F;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-top:1px solid #4E4E56;">
             ${rowsHtml}
           </table>
         </td></tr>
@@ -909,7 +909,7 @@ function buildMultidayOperatorHtml(data: MultidayEmailData): string {
             : ''
         }
 
-        <tr><td style="padding:20px 24px;border-top:1px solid #3A3A3F;font-size:11px;color:#9A958F;">
+        <tr><td style="padding:20px 24px;border-top:1px solid #4E4E56;font-size:11px;color:#CFC9C2;">
           Respond within 24 hours · Reference ${reference}
         </td></tr>
       </table>
@@ -922,11 +922,11 @@ function buildMultidayClientAckHtml(data: MultidayEmailData): string {
   const first = escapeHtml(data.firstName)
   const reference = escapeHtml(data.quoteReference)
   return `<!doctype html>
-<html><body style="margin:0;padding:0;background:#1C1C1E;font-family:'Montserrat',Helvetica,Arial,sans-serif;color:#F5F2EE;">
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#1C1C1E;padding:40px 0;">
+<html><body style="margin:0;padding:0;background:#28282B;font-family:'Montserrat',Helvetica,Arial,sans-serif;color:#F5F2EE;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#28282B;padding:40px 0;">
     <tr><td align="center">
-      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#141416;border:1px solid #3A3A3F;">
-        <tr><td style="padding:40px 32px;text-align:center;background:linear-gradient(180deg,#141416,#1C1C1E);border-bottom:1px solid #3A3A3F;">
+      <table role="presentation" width="560" cellpadding="0" cellspacing="0" style="max-width:560px;background:#141416;border:1px solid #4E4E56;">
+        <tr><td style="padding:40px 32px;text-align:center;background:linear-gradient(180deg,#141416,#28282B);border-bottom:1px solid #4E4E56;">
           <div style="font-size:10px;letter-spacing:0.32em;color:#D4924A;text-transform:uppercase;">PRESTIGO</div>
           <h1 style="margin:16px 0 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:32px;color:#F5F2EE;font-weight:400;">Your request is in our hands.</h1>
         </td></tr>
@@ -934,11 +934,11 @@ function buildMultidayClientAckHtml(data: MultidayEmailData): string {
           <p style="font-size:14px;line-height:1.7;color:#F5F2EE;margin:0 0 16px;">Dear ${first},</p>
           <p style="font-size:14px;line-height:1.7;color:#F5F2EE;margin:0 0 16px;">Thank you for your multi-day chauffeur request. We have received your itinerary and our team will review it personally.</p>
           <p style="font-size:14px;line-height:1.7;color:#F5F2EE;margin:0 0 16px;">You can expect a tailored quote by email <strong style="color:#E8B87A;">within 24 hours</strong>. If anything is urgent, please reply to this email and we&rsquo;ll respond immediately.</p>
-          <div style="margin:24px 0;padding:16px;border:1px solid #3A3A3F;background:#1C1C1E;text-align:center;">
-            <div style="font-size:10px;letter-spacing:0.2em;color:#9A958F;text-transform:uppercase;">Reference</div>
+          <div style="margin:24px 0;padding:16px;border:1px solid #4E4E56;background:#28282B;text-align:center;">
+            <div style="font-size:10px;letter-spacing:0.2em;color:#CFC9C2;text-transform:uppercase;">Reference</div>
             <div style="font-size:18px;color:#E8B87A;margin-top:4px;font-family:'Cormorant Garamond',Georgia,serif;">${reference}</div>
           </div>
-          <p style="font-size:13px;line-height:1.6;color:#9A958F;margin:0;">— The PRESTIGO team</p>
+          <p style="font-size:13px;line-height:1.6;color:#CFC9C2;margin:0;">— The PRESTIGO team</p>
         </td></tr>
       </table>
     </td></tr>
@@ -1004,9 +1004,9 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${escapeHtml(heading)} — Prestigo</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
-  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+<body style="margin: 0; padding: 0; background-color: #28282B;">
+  <div style="background-color: #28282B; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #28282B;">
 
       <!-- Header copper gradient line -->
       <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
@@ -1020,7 +1020,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
       <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">${escapeHtml(heading)}</h1>
 
       <!-- Booking reference box -->
-      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+      <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
       </div>
@@ -1030,29 +1030,29 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Route</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${route}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formattedDate} at ${escapeHtml(booking.pickup_time)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
           </tr>
         </table>
       </div>
 
       <!-- Closing line -->
-      <div style="padding: 0 32px 32px; font-size: 14px; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">
+      <div style="padding: 0 32px 32px; font-size: 14px; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">
         ${escapeHtml(closingLine)}
       </div>
 
       <!-- Support contact -->
-      <div style="padding: 0 32px 24px; color: #9A958F; font-size: 14px;">
+      <div style="padding: 0 32px 24px; color: #CFC9C2; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
       </div>
 
       <!-- Footer -->
@@ -1061,7 +1061,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
         <div style="text-align: center; margin-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
         </div>
-        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
 
     </div>
@@ -1127,9 +1127,9 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
   <title>Trip Assignment — PRESTIGO</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
-  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+<body style="margin: 0; padding: 0; background-color: #28282B;">
+  <div style="background-color: #28282B; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #28282B;">
 
       <!-- Header copper gradient line -->
       <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
@@ -1143,7 +1143,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
       <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">You have been assigned a trip.</h1>
 
       <!-- Booking reference box -->
-      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+      <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(data.bookingReference)}</div>
       </div>
@@ -1153,23 +1153,23 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">TRIP DETAILS</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Pickup Date</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Pickup Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">From</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">From</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.originAddress)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">To</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">To</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.destinationAddress)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Passenger</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Passenger</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.passengerFirstName)} ${escapeHtml(data.passengerLastName)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Passenger Phone</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Passenger Phone</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.passengerPhone)}</td>
           </tr>
         </table>
@@ -1183,7 +1183,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
 
       <!-- Note about link expiry -->
       <div style="padding: 0 32px 24px; text-align: center;">
-        <p style="font-size: 12px; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif; margin: 0;">These links are valid for 48 hours. Please respond as soon as possible.</p>
+        <p style="font-size: 12px; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif; margin: 0;">These links are valid for 48 hours. Please respond as soon as possible.</p>
       </div>
 
       <!-- Footer -->
@@ -1192,7 +1192,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
         <div style="text-align: center; margin-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
         </div>
-        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
 
     </div>
@@ -1242,29 +1242,29 @@ export async function sendDriverDeclineNotification(data: DriverDeclineNotificat
   <meta charset="UTF-8">
   <title>Driver Declined — ${escapeHtml(data.bookingReference)}</title>
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E; font-family: 'Montserrat', Arial, sans-serif;">
+<body style="margin: 0; padding: 0; background-color: #28282B; font-family: 'Montserrat', Arial, sans-serif;">
   <div style="max-width: 600px; margin: 0 auto; padding: 32px; color: #F5F2EE;">
     <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%); margin-bottom: 32px;"></div>
     <h1 style="font-size: 20px; font-weight: 400; color: #F5F2EE; margin: 0 0 24px;">Driver Declined Assignment</h1>
     <table style="width: 100%; border-collapse: collapse;">
       <tr>
-        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Booking Reference</td>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Booking Reference</td>
         <td style="font-size: 14px; color: #B87333; padding: 8px 0; font-weight: 600;">${escapeHtml(data.bookingReference)}</td>
       </tr>
       <tr>
-        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Pickup Date</td>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0;">Pickup Date</td>
         <td style="font-size: 14px; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}</td>
       </tr>
       <tr>
-        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Route</td>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0;">Route</td>
         <td style="font-size: 14px; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}</td>
       </tr>
       <tr>
-        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Declined By</td>
+        <td style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0;">Declined By</td>
         <td style="font-size: 14px; color: #CC3333; padding: 8px 0; font-weight: 600;">${escapeHtml(data.driverName)}</td>
       </tr>
     </table>
-    <p style="margin-top: 24px; font-size: 14px; color: #9A958F;">Please assign a different driver as soon as possible.</p>
+    <p style="margin-top: 24px; font-size: 14px; color: #CFC9C2;">Please assign a different driver as soon as possible.</p>
     <div style="height: 1px; background-color: #B87333; margin: 32px 0 16px;"></div>
     <div style="text-align: center;">
       <span style="font-size: 12px; letter-spacing: 0.4em; color: #F5F2EE;">PRESTI</span><span style="font-size: 12px; letter-spacing: 0.4em; color: #B87333;">GO</span>
@@ -1344,12 +1344,12 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR DRIVER</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Name</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Name</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.driver_name)}</td>
           </tr>
           ${booking.driver_vehicle_info ? `
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.driver_vehicle_info)}</td>
           </tr>
           ` : ''}
@@ -1366,9 +1366,9 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
   <title>${escapeHtml(heading)} — Prestigo</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
-  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+<body style="margin: 0; padding: 0; background-color: #28282B;">
+  <div style="background-color: #28282B; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #28282B;">
 
       <!-- Header copper gradient line -->
       <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
@@ -1382,7 +1382,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
       <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">${escapeHtml(heading)}</h1>
 
       <!-- Booking reference box -->
-      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+      <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
       </div>
@@ -1392,15 +1392,15 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Route</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.origin_address)} &rarr; ${destination}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(booking.pickup_time)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
           </tr>
         </table>
@@ -1410,13 +1410,13 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
 
       <!-- Closing message -->
       <div style="padding: 0 32px 24px;">
-        <p style="font-size: 14px; color: #9A958F; margin: 0;">${escapeHtml(closingLine)}</p>
+        <p style="font-size: 14px; color: #CFC9C2; margin: 0;">${escapeHtml(closingLine)}</p>
       </div>
 
       <!-- Support contact -->
-      <div style="padding: 24px 32px; color: #9A958F; font-size: 14px;">
+      <div style="padding: 24px 32px; color: #CFC9C2; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
       </div>
 
       <!-- Footer -->
@@ -1425,7 +1425,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         <div style="text-align: center; margin-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
         </div>
-        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
 
     </div>
@@ -1456,9 +1456,9 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
   <title>${escapeHtml(heading)} — ${escapeHtml(booking.booking_reference)}</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
-  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+<body style="margin: 0; padding: 0; background-color: #28282B;">
+  <div style="background-color: #28282B; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #28282B;">
 
       <!-- Header copper gradient line -->
       <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
@@ -1472,7 +1472,7 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
       <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 24px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 32px;">${escapeHtml(heading)}</h1>
 
       <!-- Booking reference box -->
-      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+      <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
       </div>
@@ -1482,15 +1482,15 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">TRIP DETAILS</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(booking.pickup_time)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">From</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">From</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.origin_address)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">To</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">To</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${destination}</td>
           </tr>
         </table>
@@ -1501,12 +1501,12 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">PASSENGER</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Name</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Name</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${passengerName}</td>
           </tr>
           ${booking.client_phone ? `
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Phone</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Phone</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.client_phone)}</td>
           </tr>
           ` : ''}
@@ -1515,7 +1515,7 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
 
       <!-- Closing message -->
       <div style="padding: 0 32px 24px;">
-        <p style="font-size: 14px; color: #9A958F; margin: 0;">${escapeHtml(closingLine)}</p>
+        <p style="font-size: 14px; color: #CFC9C2; margin: 0;">${escapeHtml(closingLine)}</p>
       </div>
 
       <!-- Footer -->
@@ -1524,7 +1524,7 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
         <div style="text-align: center; margin-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
         </div>
-        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
 
     </div>
@@ -1600,9 +1600,9 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
   <title>Thank you for riding with Prestigo</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
 </head>
-<body style="margin: 0; padding: 0; background-color: #1C1C1E;">
-  <div style="background-color: #1C1C1E; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
-    <div style="max-width: 600px; margin: 0 auto; background-color: #1C1C1E;">
+<body style="margin: 0; padding: 0; background-color: #28282B;">
+  <div style="background-color: #28282B; padding: 0; margin: 0; font-family: 'Montserrat', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #28282B;">
 
       <!-- Header copper gradient line -->
       <div style="height: 2px; background: linear-gradient(90deg, #B87333 0%, #E8B87A 50%, transparent 100%);"></div>
@@ -1614,10 +1614,10 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
 
       <!-- Heading -->
       <h1 style="font-family: 'Montserrat', Arial, sans-serif; font-size: 26px; font-weight: 400; color: #F5F2EE; text-align: center; margin: 0 0 8px;">Thank You, ${firstName}</h1>
-      <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 14px; color: #9A958F; text-align: center; margin: 0 32px 32px; line-height: 1.7;">It was a pleasure to have you on board. We hope your journey was everything you expected — and more.</p>
+      <p style="font-family: 'Montserrat', Arial, sans-serif; font-size: 14px; color: #CFC9C2; text-align: center; margin: 0 32px 32px; line-height: 1.7;">It was a pleasure to have you on board. We hope your journey was everything you expected — and more.</p>
 
       <!-- Booking reference box -->
-      <div style="background-color: #2A2A2D; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
+      <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
       </div>
@@ -1627,24 +1627,24 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 12px;">YOUR JOURNEY</div>
         <table style="width: 100%; border-collapse: collapse;">
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Route</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${route}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Date</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0;">Date</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formattedDate} at ${escapeHtml(booking.pickup_time)}</td>
           </tr>
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; padding: 8px 16px 8px 0;">Vehicle</td>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
           </tr>
         </table>
       </div>
 
       <!-- Review request -->
-      <div style="background-color: #2A2A2D; margin: 0 32px 32px; padding: 32px; text-align: center;">
+      <div style="background-color: #36363B; margin: 0 32px 32px; padding: 32px; text-align: center;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 16px;">SHARE YOUR EXPERIENCE</div>
-        <p style="font-size: 14px; color: #9A958F; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review helps other travellers discover Prestigo.</p>
+        <p style="font-size: 14px; color: #CFC9C2; margin: 0 0 24px; line-height: 1.7;">Your feedback means the world to us. If you enjoyed the service, a quick review helps other travellers discover Prestigo.</p>
         <a href="${escapeHtml(reviewUrl)}"
            style="display: inline-block; background-color: #B87333; color: #F5F2EE; padding: 16px 36px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Montserrat', Arial, sans-serif;">
           LEAVE A REVIEW
@@ -1653,7 +1653,7 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
 
       <!-- Book again hint -->
       <div style="padding: 0 32px 32px; text-align: center;">
-        <p style="font-size: 14px; color: #9A958F; margin: 0; line-height: 1.7;">
+        <p style="font-size: 14px; color: #CFC9C2; margin: 0; line-height: 1.7;">
           Planning another trip? Book at
           <a href="https://rideprestigo.com" style="color: #B87333; text-decoration: none;">rideprestigo.com</a>
           or contact us at
@@ -1667,7 +1667,7 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
         <div style="text-align: center; margin-bottom: 8px;">
           <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
         </div>
-        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #9A958F; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
 
     </div>

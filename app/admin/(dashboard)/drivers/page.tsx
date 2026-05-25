@@ -84,7 +84,7 @@ export default function DriversPage() {
               fontFamily: 'var(--font-montserrat)',
               fontSize: '13px',
               fontWeight: 300,
-              color: '#9A958F',
+              color: '#CFC9C2',
               letterSpacing: '0.03em',
               marginTop: '4px',
               margin: '4px 0 0 0',

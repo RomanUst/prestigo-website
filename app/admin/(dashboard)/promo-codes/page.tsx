@@ -47,7 +47,7 @@ export default function PromoCodesPage() {
         style={{
           fontSize: '13px',
           fontWeight: 300,
-          color: '#9A958F',
+          color: '#CFC9C2',
           fontFamily: 'var(--font-montserrat)',
           marginBottom: '32px',
           margin: '0 0 32px 0',
@@ -58,8 +58,8 @@ export default function PromoCodesPage() {
 
       <div
         style={{
-          backgroundColor: '#2A2A2D',
-          border: '1px solid #3A3A3F',
+          backgroundColor: '#36363B',
+          border: '1px solid #4E4E56',
           borderRadius: '8px',
           padding: '24px',
           marginBottom: '32px',

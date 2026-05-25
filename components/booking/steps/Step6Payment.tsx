@@ -22,9 +22,9 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 const appearance = {
   theme: 'night' as const,
   variables: {
-    colorBackground: '#2A2A2D',
+    colorBackground: '#36363B',
     colorText: '#F5F2EE',
-    colorTextPlaceholder: '#9A958F',
+    colorTextPlaceholder: '#CFC9C2',
     colorPrimary: '#B87333',
     colorDanger: '#f87171',
     fontFamily: "'Montserrat', 'Helvetica Neue', sans-serif",
@@ -33,7 +33,7 @@ const appearance = {
     borderRadius: '4px',
   },
   rules: {
-    '.Input': { border: '1px solid #3A3A3F', backgroundColor: '#2A2A2D' },
+    '.Input': { border: '1px solid #4E4E56', backgroundColor: '#36363B' },
     '.Input:focus': { border: '1px solid #B87333', outline: '2px solid #B87333', outlineOffset: '4px' },
     '.Label': {
       fontFamily: "'Montserrat', 'Helvetica Neue', sans-serif",
@@ -371,7 +371,7 @@ export default function Step6Payment() {
           fontWeight: 400,
           letterSpacing: '0.3em',
           textTransform: 'uppercase',
-          color: '#9A958F',
+          color: '#CFC9C2',
           fontFamily: 'var(--font-montserrat)',
           marginBottom: 8,
         }}>
@@ -395,7 +395,7 @@ export default function Step6Payment() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#9A958F',
+                color: '#CFC9C2',
                 fontSize: '11px',
                 fontFamily: 'var(--font-montserrat)',
                 cursor: 'pointer',
@@ -414,8 +414,8 @@ export default function Step6Payment() {
               placeholder="Enter code"
               style={{
                 flex: 1,
-                backgroundColor: '#2A2A2D',
-                border: promoError ? '1px solid #f87171' : '1px solid #3A3A3F',
+                backgroundColor: '#36363B',
+                border: promoError ? '1px solid #f87171' : '1px solid #4E4E56',
                 color: '#F5F2EE',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: '13px',

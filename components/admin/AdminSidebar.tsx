@@ -36,8 +36,8 @@ export default function AdminSidebar() {
           minHeight: 44,
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#1C1C1E',
-          border: '1px solid #3A3A3F',
+          background: '#28282B',
+          border: '1px solid #4E4E56',
           borderRadius: 4,
           color: '#F5F2EE',
           cursor: 'pointer',
@@ -66,8 +66,8 @@ export default function AdminSidebar() {
         style={{
           width: 280,
           minHeight: '100vh',
-          backgroundColor: '#1C1C1E',
-          borderRight: '1px solid #3A3A3F',
+          backgroundColor: '#28282B',
+          borderRight: '1px solid #4E4E56',
           flexDirection: 'column',
           fontFamily: 'var(--font-montserrat)',
           position: 'fixed',
@@ -77,7 +77,7 @@ export default function AdminSidebar() {
         }}
       >
         {/* Header */}
-        <div style={{ padding: '24px 20px', borderBottom: '1px solid #3A3A3F' }}>
+        <div style={{ padding: '24px 20px', borderBottom: '1px solid #4E4E56' }}>
           <span style={{
             fontFamily: 'var(--font-cormorant)',
             fontSize: '20px',
@@ -87,7 +87,7 @@ export default function AdminSidebar() {
           <span style={{
             display: 'block',
             fontSize: '11px',
-            color: '#9A958F',
+            color: '#CFC9C2',
             letterSpacing: '0.25em',
             textTransform: 'uppercase',
             marginTop: '4px',
@@ -110,7 +110,7 @@ export default function AdminSidebar() {
                       minHeight: 44,
                       padding: '0 20px',
                       fontSize: '13px',
-                      color: isActive ? '#F5F2EE' : '#9A958F',
+                      color: isActive ? '#F5F2EE' : '#CFC9C2',
                       textDecoration: 'none',
                       letterSpacing: '0.08em',
                       borderLeft: isActive ? '3px solid #B87333' : '3px solid transparent',
@@ -125,12 +125,12 @@ export default function AdminSidebar() {
         </nav>
 
         {/* Sign out */}
-        <div style={{ padding: '16px 20px', borderTop: '1px solid #3A3A3F' }}>
+        <div style={{ padding: '16px 20px', borderTop: '1px solid #4E4E56' }}>
           <form action={signOut}>
             <button type="submit" style={{
               background: 'none',
               border: 'none',
-              color: '#9A958F',
+              color: '#CFC9C2',
               fontSize: '11px',
               fontFamily: 'var(--font-montserrat)',
               letterSpacing: '0.12em',

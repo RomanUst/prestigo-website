@@ -13,16 +13,16 @@ const CHART_COLORS = {
 const AXIS_STYLE = {
   fontSize: 11,
   fontFamily: 'var(--font-montserrat)',
-  fill: '#9A958F',
+  fill: '#CFC9C2',
 }
 
 const TOOLTIP_STYLE = {
-  contentStyle: { backgroundColor: '#1C1C1E', border: '1px solid #3A3A3F', borderRadius: '4px' },
+  contentStyle: { backgroundColor: '#28282B', border: '1px solid #4E4E56', borderRadius: '4px' },
   labelStyle: { color: '#F5F2EE', fontSize: 11, fontFamily: 'var(--font-montserrat)' },
   itemStyle: { color: '#F5F2EE', fontSize: 11, fontFamily: 'var(--font-montserrat)' },
 }
 
-const GRID_STYLE = { stroke: '#3A3A3F', strokeDasharray: '3 3' }
+const GRID_STYLE = { stroke: '#4E4E56', strokeDasharray: '3 3' }
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -92,7 +92,7 @@ export function GroupedBarChart({ title, data, series }: GroupedBarChartProps) {
             formatter={(value) => [typeof value === 'number' ? `${value.toLocaleString('cs-CZ')} CZK` : String(value), '']}
           />
           <Legend
-            wrapperStyle={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: '#9A958F' }}
+            wrapperStyle={{ fontFamily: 'var(--font-montserrat)', fontSize: '11px', color: '#CFC9C2' }}
           />
           {series.map((s) => (
             <Bar key={s.dataKey} dataKey={s.dataKey} name={s.name} fill={s.color} radius={[2, 2, 0, 0]} />

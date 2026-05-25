@@ -16,7 +16,7 @@ const STATUS_COLORS: Record<string, { text: string; bg: string }> = {
   delayed:   { text: '#E67E22', bg: '#3a2a1a' },
   cancelled: { text: '#C0392B', bg: '#2a1a1a' },
   diverted:  { text: '#C0392B', bg: '#2a1a1a' },
-  unknown:   { text: '#9A958F', bg: 'transparent' },
+  unknown:   { text: '#CFC9C2', bg: 'transparent' },
 }
 
 function getStatusColors(status: string | null): { text: string; bg: string } {
