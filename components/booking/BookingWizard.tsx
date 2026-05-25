@@ -95,9 +95,11 @@ export default function BookingWizard() {
   const extras = useBookingStore((s) => s.extras)
   const promoDiscount = useBookingStore((s) => s.promoDiscount)
 
-  // GA4 funnel events — fire once per step per session so we can see drop-off
-  // between Vehicle → Checkout → Payment → Purchase. Uses a ref-backed Set
-  // because StrictMode double-invocation would otherwise double-count.
+  // GA4 funnel events — fire once per event per session so we can see drop-off
+  // between Step 1 → Vehicle → Checkout → Payment → Purchase. Uses a ref-backed
+  // Set because StrictMode double-invocation would otherwise double-count.
+  // form_start and checkout_progress(step N) are emitted alongside the existing
+  // recommended ecommerce events so GA4 funnel reports show every transition.
   const funnelFiredRef = useRef<Set<string>>(new Set())
   useEffect(() => {
     if (typeof window === 'undefined') return
@@ -105,14 +107,16 @@ export default function BookingWizard() {
       dataLayer?: unknown[]
       gtag?: (...args: unknown[]) => void
     }
-    const push = (eventName: string, params: Record<string, unknown>) => {
-      if (funnelFiredRef.current.has(eventName)) return
-      funnelFiredRef.current.add(eventName)
+    const push = (eventName: string, params: Record<string, unknown>, dedupeKey?: string) => {
+      const key = dedupeKey ?? eventName
+      if (funnelFiredRef.current.has(key)) return
+      funnelFiredRef.current.add(key)
       if (typeof w.gtag === 'function') {
         w.gtag('event', eventName, params)
       } else {
         w.dataLayer = w.dataLayer || []
         w.dataLayer.push(['event', eventName, params])
+        w.dataLayer.push({ event: eventName, ...params })
       }
     }
 
@@ -140,7 +144,33 @@ export default function BookingWizard() {
         ]
       : []
 
-    if (currentStep === 3) {
+    // Per-step progress event — fires once per step. Lets us see exactly where
+    // users drop off (between step_1 and step_2 etc).
+    const STEP_NAMES: Record<number, string> = {
+      1: 'trip_type',
+      2: 'date_time',
+      3: 'vehicle',
+      4: 'extras',
+      5: 'passenger',
+      6: 'payment',
+    }
+    push(
+      'checkout_progress',
+      {
+        checkout_step: currentStep,
+        step_name: STEP_NAMES[currentStep] ?? `step_${currentStep}`,
+        currency,
+        value: totalEur,
+      },
+      `checkout_progress_${currentStep}`,
+    )
+
+    if (currentStep === 1) {
+      // form_start — fire once when the booking wizard mounts at step 1.
+      // GA4 Enhanced Measurement form_start only triggers on <form> elements;
+      // our wizard isn't a form, so we emit it manually.
+      push('form_start', { form_id: 'booking_wizard', form_name: 'Booking Wizard' })
+    } else if (currentStep === 3) {
       push('view_item_list', {
         item_list_name: 'Vehicle Selection',
         currency,
@@ -155,6 +185,15 @@ export default function BookingWizard() {
             }))
           : [],
       })
+      // view_item — fires when a specific vehicle becomes selected at step 3.
+      // Deduped by item_id so switching vehicles re-fires for the new one.
+      if (vehicleClass && selectedPrice) {
+        push(
+          'view_item',
+          { currency, value: totalEur, items },
+          `view_item_${vehicleClass}`,
+        )
+      }
     } else if (currentStep === 5 && vehicleClass) {
       push('begin_checkout', { currency, value: totalEur, items })
       trackMetaEvent('InitiateCheckout', { value: totalEur, currency, num_items: 1 })

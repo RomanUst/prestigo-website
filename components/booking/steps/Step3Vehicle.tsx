@@ -4,8 +4,49 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 import { VEHICLE_CONFIG, isAirportPlace } from '@/types/booking'
+import type { VehicleClass } from '@/types/booking'
 import VehicleCard from '@/components/booking/VehicleCard'
 import PriceSummary from '@/components/booking/PriceSummary'
+
+const VEHICLE_LABELS: Record<string, string> = {
+  business: 'Business',
+  first_class: 'First Class',
+  business_van: 'Business Van',
+}
+
+function pushVehicleSelect(
+  vehicleKey: VehicleClass,
+  price: number | null,
+  currency: string,
+  tripCategory: string,
+): void {
+  if (typeof window === 'undefined') return
+  const w = window as typeof window & {
+    dataLayer?: unknown[]
+    gtag?: (...args: unknown[]) => void
+  }
+  const params = {
+    item_list_name: 'Vehicle Selection',
+    currency,
+    items: [
+      {
+        item_id: vehicleKey,
+        item_name: VEHICLE_LABELS[vehicleKey] ?? vehicleKey,
+        item_category: tripCategory,
+        item_variant: tripCategory,
+        price: price ?? 0,
+        quantity: 1,
+      },
+    ],
+  }
+  if (typeof w.gtag === 'function') {
+    w.gtag('event', 'select_item', params)
+  } else {
+    w.dataLayer = w.dataLayer || []
+    w.dataLayer.push(['event', 'select_item', params])
+    w.dataLayer.push({ event: 'select_item', ...params })
+  }
+}
 
 const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
   const h = Math.floor(i / 12).toString().padStart(2, '0')
@@ -104,6 +145,18 @@ export default function Step3Vehicle() {
     fetchPrice()
   }, [fetchPrice])
 
+  // Default to Business when no vehicle is selected yet and pricing is loaded.
+  // Improves conversion by giving the user a sensible pre-selection — they
+  // immediately see a total price in the summary and can advance without an
+  // extra click. Round-trip flow is intentionally NOT auto-selected because
+  // it requires a return date/time which would lock the user into an extra
+  // section before they make a deliberate choice.
+  useEffect(() => {
+    if (!vehicleClass && priceBreakdown && priceBreakdown.business) {
+      setVehicleClass('business')
+    }
+  }, [vehicleClass, priceBreakdown, setVehicleClass])
+
   // Re-fetch when return date+time are both set (to compute returnLegPrices)
   const prevReturnTime = useRef<string | null>(null)
   useEffect(() => {
@@ -156,10 +209,14 @@ export default function Step3Vehicle() {
           setReturnDate(null)
           setReturnTime(null)
         }
+        const p = priceBreakdown?.[vc.key]
+        pushVehicleSelect(vc.key, p?.base ?? null, p?.currency ?? 'EUR', 'transfer')
       }}
       onSelectRoundTrip={() => {
         setVehicleClass(vc.key)
         setTripType('round_trip')
+        const p = roundTripPriceBreakdown?.[vc.key] ?? priceBreakdown?.[vc.key]
+        pushVehicleSelect(vc.key, p?.base ?? null, p?.currency ?? 'EUR', 'round_trip')
       }}
     />
   ))
