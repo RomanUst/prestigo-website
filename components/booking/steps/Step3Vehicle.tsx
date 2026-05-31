@@ -243,9 +243,13 @@ export default function Step3Vehicle() {
         {cards}
       </div>
 
-      {/* Return date/time — appears after clicking "Round Trip" on any card */}
+      {/* Return date/time — appears after clicking "Round Trip" on any card.
+         pb-32 on mobile keeps the last calendar row + return-time list clear of
+         the fixed PriceSummary bar (position:fixed bottom:0) that would otherwise
+         obscure the only selectable dates when pickup is near month-end. */}
       {isRoundTrip && (
         <div
+          className="pb-32 md:pb-0"
           style={{
             marginTop: 32,
             paddingTop: 32,
@@ -263,6 +267,7 @@ export default function Step3Vehicle() {
               <DayPicker
                 mode="single"
                 selected={returnDateObj}
+                defaultMonth={returnDateObj ?? returnDateMin}
                 onSelect={handleReturnDateSelect}
                 disabled={{ before: returnDateMin }}
                 styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}
