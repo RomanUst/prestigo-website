@@ -72,15 +72,44 @@ describe('round_trip store behavior', () => {
     expect(useBookingStore.getState().returnTime).toBeNull()
   })
 
-  it('setTripType clears priceBreakdown and distanceKm', () => {
+  it('setTripType PRESERVES priceBreakdown across transfer <-> round_trip (no stops)', () => {
+    // transfer and round_trip share the same one-way distance-based price map,
+    // so toggling One Way / Round Trip must NOT wipe the price (it would vanish
+    // forever — there is no re-fetch until a return time is chosen).
+    const pb = { business: { base: 100, extras: 0, total: 100, currency: 'CZK' }, first_class: { base: 150, extras: 0, total: 150, currency: 'CZK' }, business_van: { base: 120, extras: 0, total: 120, currency: 'CZK' } }
+    useBookingStore.setState({ tripType: 'transfer', stops: [], priceBreakdown: pb, distanceKm: 25 })
+    useBookingStore.getState().setTripType('round_trip')
+    expect(useBookingStore.getState().priceBreakdown).toEqual(pb)
+    expect(useBookingStore.getState().distanceKm).toBe(25)
+    // and back to one-way
+    useBookingStore.getState().setTripType('transfer')
+    expect(useBookingStore.getState().priceBreakdown).toEqual(pb)
+    expect(useBookingStore.getState().distanceKm).toBe(25)
+  })
+
+  it('setTripType clears priceBreakdown and distanceKm when switching to a different pricing model', () => {
     useBookingStore.setState({
       tripType: 'transfer',
+      priceBreakdown: { business: { base: 100, extras: 0, total: 100, currency: 'CZK' }, first_class: { base: 150, extras: 0, total: 150, currency: 'CZK' }, business_van: { base: 120, extras: 0, total: 120, currency: 'CZK' } },
+      distanceKm: 25,
+    })
+    useBookingStore.getState().setTripType('hourly')
+    expect(useBookingStore.getState().priceBreakdown).toBeNull()
+    expect(useBookingStore.getState().distanceKm).toBeNull()
+  })
+
+  it('setTripType clears priceBreakdown when entering round_trip clears populated stops', () => {
+    // Clearing real stops changes the distance, so the cached price is stale.
+    useBookingStore.setState({
+      tripType: 'transfer',
+      stops: [{ id: 's1', place: { lat: 50, lng: 14, label: 'Stop', placeId: 'x' } }] as never,
       priceBreakdown: { business: { base: 100, extras: 0, total: 100, currency: 'CZK' }, first_class: { base: 150, extras: 0, total: 150, currency: 'CZK' }, business_van: { base: 120, extras: 0, total: 120, currency: 'CZK' } },
       distanceKm: 25,
     })
     useBookingStore.getState().setTripType('round_trip')
     expect(useBookingStore.getState().priceBreakdown).toBeNull()
     expect(useBookingStore.getState().distanceKm).toBeNull()
+    expect(useBookingStore.getState().stops).toEqual([])
   })
 })
 

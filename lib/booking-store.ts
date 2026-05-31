@@ -33,13 +33,22 @@ export const useBookingStore = create<BookingStore>()(
       promoDiscount: 0,
 
       setTripType: (type) => {
+        const state = get()
+        const prev = state.tripType
         const clearReturn = type !== 'round_trip'
         const clearStops = type === 'round_trip' || type === 'hourly' || type === 'daily'
+        const willClearStops = clearStops && state.stops.length > 0
+        // transfer ↔ round_trip share the SAME one-way distance-based price map;
+        // only the return leg differs. Preserve priceBreakdown across that toggle
+        // so the one-way price doesn't vanish forever when the user switches
+        // One Way / Round Trip (there is no re-fetch until a return time is set).
+        // Still reset pricing when the model actually changes (hourly/daily) or
+        // when clearing populated stops would make the cached distance stale.
+        const group = (t: typeof type) => (t === 'transfer' || t === 'round_trip' ? 'transfer' : t)
+        const keepPrice = group(prev) === group(type) && !willClearStops
         set({
           tripType: type,
-          priceBreakdown: null,
-          distanceKm: null,
-          quoteMode: false,
+          ...(keepPrice ? {} : { priceBreakdown: null, distanceKm: null, quoteMode: false }),
           ...(clearReturn ? { returnTime: null } : {}),
           ...(clearStops ? { stops: [] } : {}),
         })
