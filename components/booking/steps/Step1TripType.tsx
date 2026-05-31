@@ -231,18 +231,24 @@ export default function Step1TripType() {
         {continueButton}
       </div>
 
-      {/* Mobile sticky Continue button bar */}
-      <div
-        className="flex md:hidden items-center justify-end sticky bottom-0"
-        style={{
-          backgroundColor: 'var(--anthracite)',
-          borderTop: '1px solid var(--anthracite-light)',
-          padding: '0 16px',
-          paddingBottom: 'env(safe-area-inset-bottom)',
-          height: 72,
-        }}
-      >
-        {continueButton}
+      {/* Mobile Continue button — inline, full-width.
+          NOT sticky: the step-1 form is short and sits above marketing sections,
+          so a sticky bottom-0 bar floats up over the luggage row (no spacer below
+          it to absorb the offset, unlike steps 2–5). Inline avoids the overlap. */}
+      <div className="flex md:hidden" style={{ marginTop: '32px' }}>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={handleNext}
+          aria-disabled={!isValid ? 'true' : 'false'}
+          style={{
+            width: '100%',
+            opacity: isValid ? 1 : 0.4,
+            cursor: isValid ? 'pointer' : 'not-allowed',
+          }}
+        >
+          Continue
+        </button>
       </div>
     </div>
   )
