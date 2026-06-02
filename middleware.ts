@@ -153,16 +153,28 @@ export async function middleware(request: NextRequest) {
     // Dynamic routes: generate a per-request nonce for strict CSP.
     // btoa + randomUUID works in the Edge runtime (no Buffer/Node.js required).
     const nonce = btoa(crypto.randomUUID())
+    const csp = buildCsp(nonce)
     const reqHeaders = new Headers(request.headers)
+    // Expose the nonce-bearing CSP on the *request* headers. Next.js reads the
+    // nonce from this header (via the 'nonce-{value}' pattern) and automatically
+    // applies it to its framework bootstrap scripts, page bundles, and the
+    // next/script components — so no headers() read is needed in the root
+    // layout. That read previously forced the ENTIRE app (including static
+    // marketing pages) into dynamic rendering, defeating their
+    // revalidate/force-static directives and edge caching.
+    // x-nonce is set too, matching Next's documented proxy example, in case a
+    // future Server Component needs to read the nonce explicitly (note: doing so
+    // re-opts that route into dynamic rendering).
+    reqHeaders.set('Content-Security-Policy', csp)
     reqHeaders.set('x-nonce', nonce)
     try {
       const response = await updateSession(request, reqHeaders)
-      response.headers.set('Content-Security-Policy', buildCsp(nonce))
+      response.headers.set('Content-Security-Policy', csp)
       return response
     } catch {
       // Supabase not configured (local dev without .env) — fall through without auth
       const response = NextResponse.next({ request: { headers: reqHeaders } })
-      response.headers.set('Content-Security-Policy', buildCsp(nonce))
+      response.headers.set('Content-Security-Policy', csp)
       return response
     }
   } else {

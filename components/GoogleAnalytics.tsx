@@ -23,7 +23,11 @@ const CONSENT_KEY = 'prestigo_cookie_consent'
  * and treated every user as unknown consent state, which breaks attribution
  * and conversion modeling downstream in Google Ads.
  */
-export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
+// Next.js automatically applies the CSP nonce (read from the Content-Security-
+// Policy request header set in middleware) to every next/script element on
+// dynamic routes, so no nonce prop is needed. On static marketing routes the
+// CSP uses 'unsafe-inline' and needs no nonce at all.
+export default function GoogleAnalytics() {
   if (!GA_ID) return null
 
   return (
@@ -31,7 +35,6 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
       <Script
         src={`https://www.googletagmanager.com/gtag/js?id=${GA_ID}`}
         strategy="afterInteractive"
-        nonce={nonce}
       />
       {/*
         Consent Mode v2 with wait_for_update:2500.
@@ -47,7 +50,7 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
         apps triggers visibilitychange:hidden before the user accepts consent)
         and 0 engaged sessions on deploy days due to mid-session JS reloads.
       */}
-      <Script id="ga-consent-default" strategy="afterInteractive" nonce={nonce}>
+      <Script id="ga-consent-default" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
@@ -60,7 +63,7 @@ export default function GoogleAnalytics({ nonce }: { nonce?: string }) {
           });
         `}
       </Script>
-      <Script id="ga-init" strategy="afterInteractive" nonce={nonce}>
+      <Script id="ga-init" strategy="afterInteractive">
         {`
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}

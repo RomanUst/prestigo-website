@@ -15,11 +15,11 @@ const CLARITY_ID = process.env.NEXT_PUBLIC_CLARITY_ID
  * works because `strict-dynamic` grants trust to scripts created by a
  * nonce-bearing script.
  */
-export default function Clarity({ nonce }: { nonce?: string }) {
+export default function Clarity() {
   if (!CLARITY_ID) return null
 
   return (
-    <Script id="clarity-init" strategy="afterInteractive" nonce={nonce}>
+    <Script id="clarity-init" strategy="afterInteractive">
       {`
         (function(c,l,a,r,i,t,y){
           c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};

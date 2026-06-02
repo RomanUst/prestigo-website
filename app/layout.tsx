@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { Cormorant_Garamond, Montserrat } from 'next/font/google'
-import { headers } from 'next/headers'
 import './globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
@@ -79,14 +78,15 @@ export const metadata: Metadata = {
   },
 }
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Read the per-request nonce injected by middleware so we can pass it to
-  // <Script nonce={nonce}> components. Falls back to empty string on paths
-  // that bypass middleware (e.g. static file serving).
-  const nonce = (await headers()).get('x-nonce') ?? ''
-
+  // No headers()/cookies() read here on purpose: any dynamic API in the root
+  // layout opts the ENTIRE route tree into dynamic rendering, defeating the
+  // revalidate/force-static directives on the marketing pages below. The CSP
+  // nonce for dynamic routes is propagated automatically by Next.js from the
+  // Content-Security-Policy request header set in middleware — it reaches the
+  // analytics <Script> components without any manual prop wiring.
   return (
     <html lang="en">
       <head>
@@ -112,10 +112,10 @@ export default async function RootLayout({
           Skip to content
         </a>
         {children}
-        <GoogleAnalytics nonce={nonce} />
+        <GoogleAnalytics />
         <AnalyticsPageView />
-        <Clarity nonce={nonce} />
-        <MetaPixel nonce={nonce} />
+        <Clarity />
+        <MetaPixel />
         <CookieBanner />
         <EngagementTracker />
       </body>

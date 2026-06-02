@@ -45,29 +45,42 @@ function toRoutePrice(r: Row): RoutePrice {
   }
 }
 
+// Route pages are statically prerendered (ISR, revalidate=120) and always have
+// a ROUTE_FALLBACK price to fall back on. So a missing Supabase env or an
+// unreachable DB at build time must degrade to null — NOT throw and fail the
+// whole static export. createSupabaseServiceClient() throws synchronously when
+// SUPABASE_URL is absent, so the try/catch must wrap construction too.
 export async function getRoutePrice(slug: string): Promise<RoutePrice | null> {
-  const supabase = createSupabaseServiceClient()
-  const { data, error } = await supabase
-    .from('route_prices')
-    .select(SELECT_COLS)
-    .eq('slug', slug)
-    .single()
+  try {
+    const supabase = createSupabaseServiceClient()
+    const { data, error } = await supabase
+      .from('route_prices')
+      .select(SELECT_COLS)
+      .eq('slug', slug)
+      .single()
 
-  if (error || !data) return null
-  return toRoutePrice(data as Row)
+    if (error || !data) return null
+    return toRoutePrice(data as Row)
+  } catch {
+    return null
+  }
 }
 
 export async function getAllRoutes(
   orderBy: 'display_order' | 'slug' = 'display_order'
 ): Promise<RoutePrice[]> {
-  const supabase = createSupabaseServiceClient()
-  const { data, error } = await supabase
-    .from('route_prices')
-    .select(SELECT_COLS)
-    .order(orderBy, { ascending: true })
+  try {
+    const supabase = createSupabaseServiceClient()
+    const { data, error } = await supabase
+      .from('route_prices')
+      .select(SELECT_COLS)
+      .order(orderBy, { ascending: true })
 
-  if (error || !data) return []
-  return (data as Row[]).map(toRoutePrice)
+    if (error || !data) return []
+    return (data as Row[]).map(toRoutePrice)
+  } catch {
+    return []
+  }
 }
 
 export async function findRouteByPlaceIds(
