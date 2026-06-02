@@ -24,7 +24,7 @@ const HOME_URL = 'https://rideprestigo.com'
 const HOME_DESCRIPTION = 'Prague chauffeur service with fixed prices, flight tracking and meet & greet. Airport transfers, intercity routes, corporate accounts. Book online in 60 seconds.'
 
 export const metadata: Metadata = {
-  title: { absolute: 'Prague Chauffeur & Airport Transfers | PRESTIGO' },
+  title: { absolute: 'Prague Chauffeur & Luxury Airport Transfers | PRESTIGO' },
   description: HOME_DESCRIPTION,
   alternates: {
     canonical: HOME_URL,
