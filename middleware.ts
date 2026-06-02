@@ -150,23 +150,32 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (isDynamicPath(pathname)) {
-    // Dynamic routes: generate a per-request nonce for strict CSP.
-    // btoa + randomUUID works in the Edge runtime (no Buffer/Node.js required).
-    const nonce = btoa(crypto.randomUUID())
-    const csp = buildCsp(nonce)
+    // CSP strategy by area:
+    //
+    // - /admin and /driver are authed internal areas that serve NO third-party
+    //   analytics, so they keep a strict per-request nonce CSP. Next.js reads
+    //   the nonce from the Content-Security-Policy *request* header and
+    //   auto-applies it to its framework scripts, so the app runs while inline
+    //   analytics (which we don't want there) stay blocked.
+    //
+    // - /book and /api use the same unsafe-inline CSP as the marketing pages.
+    //   The global analytics <Script> tags live in the ROOT layout and render
+    //   on /book too; a per-request nonce can't reach them without a headers()
+    //   read in the root layout, which would re-break static rendering + edge
+    //   caching for the whole site. /book is conversion-critical (GA/Meta must
+    //   fire) and its payment UI runs inside a Stripe iframe, so unsafe-inline
+    //   here matches the rest of the public site's posture. A strict CSP for
+    //   /book would require splitting analytics into a route-group layout.
+    const useNonceCsp =
+      pathname.startsWith('/admin') || pathname.startsWith('/driver')
+    const nonce = useNonceCsp ? btoa(crypto.randomUUID()) : null
+    const csp = nonce ? buildCsp(nonce) : buildCspStatic()
     const reqHeaders = new Headers(request.headers)
-    // Expose the nonce-bearing CSP on the *request* headers. Next.js reads the
-    // nonce from this header (via the 'nonce-{value}' pattern) and automatically
-    // applies it to its framework bootstrap scripts, page bundles, and the
-    // next/script components — so no headers() read is needed in the root
-    // layout. That read previously forced the ENTIRE app (including static
-    // marketing pages) into dynamic rendering, defeating their
-    // revalidate/force-static directives and edge caching.
-    // x-nonce is set too, matching Next's documented proxy example, in case a
-    // future Server Component needs to read the nonce explicitly (note: doing so
-    // re-opts that route into dynamic rendering).
-    reqHeaders.set('Content-Security-Policy', csp)
-    reqHeaders.set('x-nonce', nonce)
+    if (nonce) {
+      // Next extracts the nonce from this header and applies it to its scripts.
+      reqHeaders.set('Content-Security-Policy', csp)
+      reqHeaders.set('x-nonce', nonce)
+    }
     try {
       const response = await updateSession(request, reqHeaders)
       response.headers.set('Content-Security-Policy', csp)
