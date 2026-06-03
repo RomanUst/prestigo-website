@@ -115,10 +115,8 @@ describe('lib/content/buffer', () => {
     ).rejects.toThrow(/Buffer GraphQL error: unauthorized/)
   })
 
-  it('deleteBufferPost succeeds on PostActionSuccess', async () => {
-    mockFetch.mockResolvedValueOnce(
-      gql({ deletePost: { __typename: 'PostActionSuccess', post: { id: 'p1' } } })
-    )
+  it('deleteBufferPost succeeds on DeletePostSuccess', async () => {
+    mockFetch.mockResolvedValueOnce(gql({ deletePost: { __typename: 'DeletePostSuccess', id: 'p1' } }))
     await expect(deleteBufferPost('p1')).resolves.toBeUndefined()
   })
 

@@ -82,10 +82,8 @@ const DELETE_POST = `
 mutation DeletePost($id: PostId!) {
   deletePost(input: { id: $id }) {
     __typename
-    ... on PostActionSuccess { post { id } }
-    ... on NotFoundError { message }
-    ... on UnauthorizedError { message }
-    ... on UnexpectedError { message }
+    ... on DeletePostSuccess { id }
+    ... on VoidMutationError { message }
   }
 }`;
 
@@ -169,7 +167,7 @@ export async function deleteBufferPost(id: string): Promise<void> {
     DELETE_POST,
     { id }
   );
-  if (data.deletePost.__typename !== "PostActionSuccess") {
+  if (data.deletePost.__typename !== "DeletePostSuccess") {
     throw new Error(`Buffer deletePost failed (${data.deletePost.__typename}): ${data.deletePost.message ?? ""}`);
   }
 }
