@@ -8,7 +8,7 @@
 
 import { renderPostHTML, renderStoryHTML, type BrandCopy } from "@/lib/content/brand-template";
 import { renderHtmlToImage } from "@/lib/content/hcti";
-import { createBufferPosts, type BufferChannel, type BufferFormat } from "@/lib/content/buffer";
+import { createBufferPost, type BufferChannel, type BufferFormat } from "@/lib/content/buffer";
 import { publishBlogToGitHub } from "@/lib/content/github-publish";
 import { getContentItem, updateContentItem, type ContentItem } from "@/lib/content/store";
 
@@ -29,6 +29,15 @@ function socialChannels(item: ContentItem): BufferChannel[] {
 /** Compose the post caption from caption + hashtags. */
 function composeCaption(item: ContentItem): string {
   return [item.caption?.trim(), item.hashtags?.trim()].filter(Boolean).join("\n\n");
+}
+
+/**
+ * Resolve the branded media to use for a specific channel. Prefers the
+ * per-channel variant (e.g. instagram=1080×1080, facebook=1200×630), then the
+ * generic branded image, then the raw image.
+ */
+function mediaForChannel(item: ContentItem, channel: BufferChannel): string | null {
+  return item.media_variants?.[channel] ?? item.media_branded_url ?? item.media_raw_url ?? null;
 }
 
 /**
@@ -97,19 +106,28 @@ export async function approveContent(id: string): Promise<ContentItem> {
       });
     }
 
-    // Social (post / story / reel).
+    // Social (post / story / reel). One Buffer post per channel, each with the
+    // platform-specific media (IG square / FB landscape) when available.
     const channels = socialChannels(item);
     if (channels.length === 0) throw new Error("no social channels selected");
-    const mediaUrl = item.media_branded_url ?? item.media_raw_url;
-    if (!mediaUrl) throw new Error("no media to publish");
+    const text = composeCaption(item);
+    const mediaKind = item.type === "reel" ? "video" : "image";
+    const format = bufferFormat(item.type);
 
-    const { postIds } = await createBufferPosts(channels, {
-      text: composeCaption(item),
-      mediaUrl,
-      mediaKind: item.type === "reel" ? "video" : "image",
-      format: bufferFormat(item.type),
-      dueAt: item.scheduled_at ?? undefined,
-    });
+    const postIds: Record<string, string> = {};
+    for (const channel of channels) {
+      const mediaUrl = mediaForChannel(item, channel);
+      if (!mediaUrl) throw new Error(`no media to publish for ${channel}`);
+      const { postId } = await createBufferPost({
+        channel,
+        text,
+        mediaUrl,
+        mediaKind,
+        format,
+        dueAt: item.scheduled_at ?? undefined,
+      });
+      postIds[channel] = postId;
+    }
 
     return updateContentItem(id, {
       status: item.scheduled_at ? "scheduled" : "published",

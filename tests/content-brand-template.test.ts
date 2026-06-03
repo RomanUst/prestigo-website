@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { escapeHtml, renderPostHTML, renderStoryHTML } from '@/lib/content/brand-template'
+import { escapeHtml, renderPostHTML, renderStoryHTML, renderFacebookHTML } from '@/lib/content/brand-template'
 
 describe('lib/content/brand-template', () => {
   describe('escapeHtml', () => {
@@ -50,6 +50,19 @@ describe('lib/content/brand-template', () => {
     it('embeds copy and brand', () => {
       expect(html).toContain('<em>Prague</em>')
       expect(html).toContain('Prestige in every mile')
+    })
+  })
+
+  describe('renderFacebookHTML (1200x630)', () => {
+    const html = renderFacebookHTML(copy)
+    it('is a landscape canvas', () => {
+      expect(html).toContain('width: 1200px; height: 630px')
+    })
+    it('embeds copy and brand', () => {
+      expect(html).toContain('Arrive in')
+      expect(html).toContain('<em>Prague</em>')
+      expect(html).toContain('Prestige in every mile')
+      expect(html).toContain('#B87333')
     })
   })
 })
