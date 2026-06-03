@@ -56,7 +56,10 @@ describe('lib/content/buffer', () => {
       mediaUrl: 'u',
       mediaKind: 'image',
     })
-    expect(callBody().variables.input.mode).toBe('addToQueue')
+    const input = callBody().variables.input as Record<string, unknown>
+    expect(input.mode).toBe('addToQueue')
+    // Buffer rejects FB posts without a type, even for a plain post.
+    expect(input.metadata).toEqual({ facebook: { type: 'post' } })
   })
 
   it('sends a reel as a video asset with reel type', async () => {
@@ -112,10 +115,8 @@ describe('lib/content/buffer', () => {
     ).rejects.toThrow(/Buffer GraphQL error: unauthorized/)
   })
 
-  it('deleteBufferPost succeeds on PostActionSuccess', async () => {
-    mockFetch.mockResolvedValueOnce(
-      gql({ deletePost: { __typename: 'PostActionSuccess', post: { id: 'p1' } } })
-    )
+  it('deleteBufferPost succeeds on DeletePostSuccess', async () => {
+    mockFetch.mockResolvedValueOnce(gql({ deletePost: { __typename: 'DeletePostSuccess', id: 'p1' } }))
     await expect(deleteBufferPost('p1')).resolves.toBeUndefined()
   })
 

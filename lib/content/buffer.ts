@@ -82,10 +82,8 @@ const DELETE_POST = `
 mutation DeletePost($id: PostId!) {
   deletePost(input: { id: $id }) {
     __typename
-    ... on PostActionSuccess { post { id } }
-    ... on NotFoundError { message }
-    ... on UnauthorizedError { message }
-    ... on UnexpectedError { message }
+    ... on DeletePostSuccess { id }
+    ... on VoidMutationError { message }
   }
 }`;
 
@@ -121,12 +119,12 @@ function buildInput(input: CreatePostInput): Record<string, unknown> {
   };
   if (input.dueAt) gqlInput.dueAt = input.dueAt;
 
-  // Reels/Stories/Carousel must declare a type; IG requires shouldShareToFeed.
+  // Both networks require a post type in metadata (Buffer rejects FB/IG posts
+  // without it — "Facebook posts require a type"). IG also needs shouldShareToFeed.
+  // PostTypeFacebook / Instagram PostType both accept post | story | reel.
   if (input.channel === "instagram") {
-    gqlInput.metadata = {
-      instagram: { type: format, shouldShareToFeed: format === "reel" ? true : true },
-    };
-  } else if (input.channel === "facebook" && format !== "post") {
+    gqlInput.metadata = { instagram: { type: format, shouldShareToFeed: true } };
+  } else if (input.channel === "facebook") {
     gqlInput.metadata = { facebook: { type: format } };
   }
 
@@ -169,7 +167,7 @@ export async function deleteBufferPost(id: string): Promise<void> {
     DELETE_POST,
     { id }
   );
-  if (data.deletePost.__typename !== "PostActionSuccess") {
+  if (data.deletePost.__typename !== "DeletePostSuccess") {
     throw new Error(`Buffer deletePost failed (${data.deletePost.__typename}): ${data.deletePost.message ?? ""}`);
   }
 }
