@@ -29,6 +29,7 @@
     "@vis.gl/react-google-maps": "^1.8.2",
     "gray-matter": "^4.0.3",
     "lucide-react": "^1.6.0",
+    "motion": "^12.40.0",
     "next": "^16.2.3",
     "places-autocomplete-hook": "^1.1.1",
     "react": "19.2.3",

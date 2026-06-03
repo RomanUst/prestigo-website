@@ -1,7 +1,7 @@
-import Image from 'next/image'
 import HeroTypewriter from './HeroTypewriter'
 import HeroWhatsApp from './HeroWhatsApp'
 import HeroRating from './HeroRating'
+import HeroBackground from './HeroBackground'
 
 type Props = {
   airportPrice: number
@@ -12,29 +12,8 @@ export default function Hero({ airportPrice, rating }: Props) {
   return (
     <section className="relative min-h-dvh flex flex-col justify-start overflow-hidden">
 
-      {/* Full-screen background photo — desktop (landscape) */}
-      <Image
-        src="/photohero.avif"
-        alt="Prestigo premium chauffeur — Prague airport transfer"
-        fill
-        priority
-        fetchPriority="high"
-        sizes="100vw"
-        className="hidden sm:block"
-        style={{ objectFit: 'cover', objectPosition: 'center' }}
-      />
-
-      {/* Full-screen background photo — mobile (portrait crop) */}
-      <Image
-        src="/photohero-mobile.avif"
-        alt="Prestigo premium chauffeur — Prague airport transfer"
-        fill
-        priority
-        fetchPriority="high"
-        sizes="100vw"
-        className="sm:hidden"
-        style={{ objectFit: 'cover', objectPosition: 'center' }}
-      />
+      {/* Full-screen background photo — parallax (desktop + mobile crop) */}
+      <HeroBackground />
 
       {/* Dark overlay — ensures text legibility */}
       <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(18,17,16,0.85) 40%, rgba(18,17,16,0.4) 100%)' }} />
