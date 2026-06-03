@@ -56,7 +56,10 @@ describe('lib/content/buffer', () => {
       mediaUrl: 'u',
       mediaKind: 'image',
     })
-    expect(callBody().variables.input.mode).toBe('addToQueue')
+    const input = callBody().variables.input as Record<string, unknown>
+    expect(input.mode).toBe('addToQueue')
+    // Buffer rejects FB posts without a type, even for a plain post.
+    expect(input.metadata).toEqual({ facebook: { type: 'post' } })
   })
 
   it('sends a reel as a video asset with reel type', async () => {

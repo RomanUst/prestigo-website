@@ -121,12 +121,12 @@ function buildInput(input: CreatePostInput): Record<string, unknown> {
   };
   if (input.dueAt) gqlInput.dueAt = input.dueAt;
 
-  // Reels/Stories/Carousel must declare a type; IG requires shouldShareToFeed.
+  // Both networks require a post type in metadata (Buffer rejects FB/IG posts
+  // without it — "Facebook posts require a type"). IG also needs shouldShareToFeed.
+  // PostTypeFacebook / Instagram PostType both accept post | story | reel.
   if (input.channel === "instagram") {
-    gqlInput.metadata = {
-      instagram: { type: format, shouldShareToFeed: format === "reel" ? true : true },
-    };
-  } else if (input.channel === "facebook" && format !== "post") {
+    gqlInput.metadata = { instagram: { type: format, shouldShareToFeed: true } };
+  } else if (input.channel === "facebook") {
     gqlInput.metadata = { facebook: { type: format } };
   }
 
