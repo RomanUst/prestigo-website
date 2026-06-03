@@ -206,7 +206,7 @@ export default async function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
       />
       <Nav />
-      <Hero airportPrice={heroPrice} />
+      <Hero airportPrice={heroPrice} rating={aggregateRating} />
       <Divider />
       <BookingSection />
       <Divider />

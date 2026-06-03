@@ -1,10 +1,14 @@
 import Image from 'next/image'
 import HeroTypewriter from './HeroTypewriter'
 import HeroWhatsApp from './HeroWhatsApp'
+import HeroRating from './HeroRating'
 
-type Props = { airportPrice: number }
+type Props = {
+  airportPrice: number
+  rating?: { ratingValue: number; reviewCount: number } | null
+}
 
-export default function Hero({ airportPrice }: Props) {
+export default function Hero({ airportPrice, rating }: Props) {
   return (
     <section className="relative min-h-dvh flex flex-col justify-start overflow-hidden">
 
@@ -92,6 +96,11 @@ export default function Hero({ airportPrice }: Props) {
             <p className="animate-on-load delay-600 mt-5 font-body font-light text-[11px] tracking-[0.12em] uppercase" style={{ color: 'var(--warmgrey)' }}>
               Airport transfers from <span style={{ color: 'var(--copper)' }}>€{airportPrice}</span> — fixed price, no surcharges
             </p>
+
+            {/* Google rating — live trust signal next to the CTA */}
+            {rating && rating.reviewCount > 0 && (
+              <HeroRating ratingValue={rating.ratingValue} reviewCount={rating.reviewCount} />
+            )}
           </div>
 
           {/* Right — stat cards + quote */}
