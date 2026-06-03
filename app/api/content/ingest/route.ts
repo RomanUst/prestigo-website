@@ -42,6 +42,8 @@ const ingestSchema = z.object({
     .optional(),
   media_raw_url: z.string().url().optional(),
   media_kind: z.enum(["image", "video"]).optional(),
+  // Pre-branded per-channel media, e.g. { instagram: url1080, facebook: url1200x630 }.
+  media_variants: z.record(z.string(), z.string().url()).optional(),
   run_id: z.string().max(64).optional(),
   scheduled_at: z.string().datetime().optional(),
 });
@@ -98,6 +100,7 @@ export async function POST(request: Request) {
     blog_slug: input.blog_slug ?? null,
     media_raw_url: input.media_raw_url ?? null,
     media_kind: input.media_kind ?? (input.type === "reel" ? "video" : "image"),
+    media_variants: input.media_variants ?? {},
     scheduled_at: input.scheduled_at ?? null,
   };
 

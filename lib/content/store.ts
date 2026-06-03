@@ -38,6 +38,8 @@ export type ContentItem = {
   blog_slug: string | null;
   media_raw_url: string | null;
   media_branded_url: string | null;
+  /** Per-channel branded media, e.g. { instagram, facebook, story }. */
+  media_variants: Record<string, string>;
   media_kind: "image" | "video" | null;
   buffer_update_ids: Record<string, string> | null;
   github_commit_sha: string | null;
