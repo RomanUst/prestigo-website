@@ -190,8 +190,7 @@ export default function MultiDayPage() {
         {/* Background image */}
         <Image
           src="/multi-day-hero.png"
-          alt=""
-          aria-hidden="true"
+          alt="Prestigo chauffeur and luxury car on a multi-day journey through Central Europe"
           fill
           style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
         />
@@ -413,8 +412,7 @@ export default function MultiDayPage() {
         {/* Background image */}
         <Image
           src="/multi-day-itineraries-bg.png"
-          alt=""
-          aria-hidden="true"
+          alt="Scenic Central European landscape along Prestigo multi-day chauffeur itineraries"
           fill
           style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.22 }}
         />

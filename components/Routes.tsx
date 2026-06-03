@@ -9,8 +9,7 @@ export default function Routes({ routes }: Props) {
     <section id="routes" aria-labelledby="routes-heading" className="relative overflow-hidden bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <Image
         src="/multi-day-itineraries-bg.png"
-        alt=""
-        aria-hidden="true"
+        alt="Scenic Central European countryside along Prestigo intercity chauffeur routes"
         fill
         style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.22 }}
       />
