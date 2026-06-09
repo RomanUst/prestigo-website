@@ -25,13 +25,13 @@ export default function TripTypeTabs() {
       aria-label="Trip type"
       style={{
         display: 'flex',
+        gap: '8px',
         overflowX: 'auto',
         scrollbarWidth: 'none',
         position: 'sticky',
         top: 0,
         zIndex: 10,
-        backgroundColor: 'var(--anthracite)',
-        borderBottom: '1px solid var(--anthracite-light)',
+        paddingBottom: '4px',
       }}
       className="[&::-webkit-scrollbar]:hidden"
     >
@@ -58,17 +58,17 @@ export default function TripTypeTabs() {
               fontFamily: 'var(--font-montserrat)',
               fontSize: '11px',
               fontWeight: 400,
-              letterSpacing: '0.28em',
+              letterSpacing: '0.18em',
               textTransform: 'uppercase',
               whiteSpace: 'nowrap',
-              padding: '16px 20px',
-              minHeight: '48px',
-              border: 'none',
-              borderBottom: isActive ? '2px solid var(--copper-light)' : '2px solid transparent',
-              background: 'transparent',
-              color: isActive ? 'var(--copper-light)' : 'var(--warmgrey)',
+              padding: '10px 18px',
+              minHeight: '44px',
+              borderRadius: '999px',
+              border: isActive ? '1px solid var(--offwhite)' : '1px solid var(--anthracite-light)',
+              background: isActive ? 'var(--offwhite)' : 'transparent',
+              color: isActive ? 'var(--anthracite)' : 'var(--warmgrey)',
               cursor: 'pointer',
-              transition: 'color 0.2s ease, border-color 0.2s ease',
+              transition: 'color 0.2s ease, background 0.2s ease, border-color 0.2s ease',
               flexShrink: 0,
             }}
             onMouseEnter={(e) => {

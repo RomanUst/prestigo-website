@@ -309,7 +309,7 @@ export default function FleetPage() {
       <Divider />
 
       {/* Standards */}
-      <section className="bg-anthracite-mid py-16 md:py-20">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up" className="mb-14">
             <h2 className="display text-[28px] md:text-[36px]">Every vehicle, every time</h2>
@@ -359,7 +359,7 @@ export default function FleetPage() {
       <Divider />
 
       {/* Maintenance & safety */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <div className="mb-14">
@@ -436,7 +436,7 @@ export default function FleetPage() {
       <Divider />
 
       {/* Selection criteria */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <p className="label mb-6">How we choose a class for your journey</p>
@@ -459,7 +459,7 @@ export default function FleetPage() {
       <Divider />
 
       {/* FAQ */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <p className="label mb-6">Fleet questions</p>

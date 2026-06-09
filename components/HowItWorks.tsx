@@ -20,7 +20,7 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how-it-works" aria-labelledby="how-it-works-heading" className="bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
+    <section id="how-it-works" aria-labelledby="how-it-works-heading" className="theme-light bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <Reveal variant="up" className="mb-14">
