@@ -137,6 +137,39 @@ body {
   color: var(--warmgrey);
 }
 
+/* ── Light section theme ───────────────────────────── */
+/* Add `theme-light` to any section to flip it from the dark anthracite base
+   to a warm ivory surface — the core of the light/dark section rhythm.
+   It remaps BOTH the Tailwind v4 @theme color tokens (bg-anthracite,
+   text-offwhite, border-anthracite-light, …) and the bare :root vars used by
+   .label / .display / .body-text / .copper-line and inline var() references,
+   so existing markup inverts with no structural changes. All colors meet
+   WCAG AA on the #F7F4EF ivory surface. */
+.theme-light {
+  /* Tailwind utility tokens */
+  --color-anthracite: #F7F4EF;
+  --color-anthracite-mid: #EFEAE2;
+  --color-anthracite-light: #DDD7CE;
+  --color-offwhite: #211F1C;
+  --color-warmgrey: #6E6962;
+  --color-copper: #8A5A2E;
+  --color-copper-light: #8A5A2E;
+  --color-copper-pale: #9A6A3A;
+
+  /* Bare vars (custom classes + inline styles) */
+  --anthracite: #F7F4EF;
+  --anthracite-mid: #EFEAE2;
+  --anthracite-light: #DDD7CE;
+  --offwhite: #211F1C;
+  --warmgrey: #6E6962;
+  --copper: #8A5A2E;
+  --copper-light: #8A5A2E;
+  --copper-pale: #9A6A3A;
+
+  background-color: #F7F4EF;
+  color: #211F1C;
+}
+
 /* ── CTA button ────────────────────────────────────── */
 /* min-height: 44px guarantees WCAG 2.5.5 / Apple HIG / Material touch target
    without changing the visual proportions on standard-length labels. */

@@ -17,10 +17,8 @@ export default function Nav() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
-        scrolled
-          ? 'bg-anthracite/95 backdrop-blur-sm border-b border-anthracite-light'
-          : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-anthracite/95 backdrop-blur-sm ${
+        scrolled ? 'border-b border-anthracite-light' : ''
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">

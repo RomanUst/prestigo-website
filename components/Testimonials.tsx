@@ -6,7 +6,7 @@ export default async function Testimonials() {
   const reviews = await getReviews()
 
   return (
-    <section id="testimonials" aria-labelledby="testimonials-heading" className="bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
+    <section id="testimonials" aria-labelledby="testimonials-heading" className="theme-light bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <Reveal variant="up" className="mb-14">

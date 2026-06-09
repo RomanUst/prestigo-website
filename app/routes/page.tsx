@@ -170,7 +170,7 @@ export default async function RoutesPage() {
       )}
 
       {/* Planning intercity travel */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
           <Reveal variant="up" className="md:col-span-2"><div>
             <p className="label mb-6">Planning intercity travel</p>
@@ -322,7 +322,7 @@ export default async function RoutesPage() {
       <Divider />
 
       {/* How it works */}
-      <section className="bg-anthracite-mid py-16 md:py-20">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-14">How it works</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -379,7 +379,7 @@ export default async function RoutesPage() {
       <Divider />
 
       {/* Luggage, pets, child seats */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up"><div>
             <p className="label mb-6">Luggage, pets &amp; children</p>
@@ -413,7 +413,7 @@ export default async function RoutesPage() {
       <Divider />
 
       {/* Long-distance / red routes — noindex, quote on request */}
-      <section className="bg-anthracite-mid py-14 md:py-16">
+      <section className="theme-light bg-anthracite-mid py-14 md:py-16">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Long-distance transfers</p>
           <span className="copper-line mb-8 block" />
@@ -482,7 +482,7 @@ export default async function RoutesPage() {
       <Divider />
 
       {/* CTA */}
-      <section className="bg-anthracite-mid py-20">
+      <section className="theme-light bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">

@@ -168,7 +168,7 @@ export default function CorporatePage() {
       </section>
 
       {/* For whom */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14">Built for…</h2>
@@ -250,7 +250,7 @@ export default function CorporatePage() {
       </section>
 
       {/* Typical usage patterns */}
-      <section className="bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24 border-b border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <div className="mb-14">

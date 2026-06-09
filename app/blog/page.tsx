@@ -66,7 +66,7 @@ export default function BlogPage() {
         <Divider />
 
         {/* Card grid */}
-        <section className="bg-anthracite-mid py-16 md:py-24">
+        <section className="theme-light bg-anthracite-mid py-16 md:py-24">
           <div className="max-w-6xl mx-auto px-6 md:px-12">
             {posts.length === 0 ? (
               <div className="text-center py-24">

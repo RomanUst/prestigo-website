@@ -4,7 +4,7 @@ import BookingWidget from '@/components/booking/BookingWidget'
 
 export default function BookingSection() {
   return (
-    <section id="book" className="bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
+    <section id="book" className="theme-light bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-16 items-start">
@@ -46,7 +46,10 @@ export default function BookingSection() {
 
           {/* Right — Booking widget */}
           <div className="lg:col-span-3">
-            <div className="border border-anthracite-light bg-anthracite p-3 sm:p-6 md:p-8">
+            <div
+              className="border border-anthracite-light p-3 sm:p-6 md:p-8"
+              style={{ background: '#fff', borderRadius: '16px', boxShadow: '0 24px 60px -28px rgba(40,40,43,0.22)' }}
+            >
               <BookingWidget />
             </div>
           </div>

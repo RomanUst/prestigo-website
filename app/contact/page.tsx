@@ -143,7 +143,7 @@ export default function ContactPage() {
       <Divider />
 
       {/* What to expect */}
-      <section className="bg-anthracite-mid py-16 md:py-20">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <p className="label mb-6">What happens next</p>
           <span className="copper-line mb-10 block" />

@@ -343,7 +343,7 @@ export default async function ServicesPage() {
       </section>
 
       {/* Trust block */}
-      <section className="bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-20 border-t border-anthracite-light">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14 text-center">Why PRESTIGO</h2>

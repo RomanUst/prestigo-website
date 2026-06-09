@@ -33,7 +33,7 @@ const vehicles = [
 
 export default function Fleet() {
   return (
-    <section id="fleet" aria-labelledby="fleet-heading" className="bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
+    <section id="fleet" aria-labelledby="fleet-heading" className="theme-light bg-anthracite py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <Reveal variant="up" className="mb-14">

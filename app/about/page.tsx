@@ -175,7 +175,7 @@ export default function AboutPage() {
       <Divider />
 
       {/* Our story */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
           <Reveal variant="up" className="md:col-span-2">
           <div>
@@ -295,7 +295,7 @@ export default function AboutPage() {
       <Divider />
 
       {/* Local knowledge */}
-      <section className="bg-anthracite-mid py-16 md:py-24">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <p className="label mb-6">Local knowledge, international standards</p>
@@ -321,7 +321,7 @@ export default function AboutPage() {
       <Divider />
 
       {/* Principles */}
-      <section className="bg-anthracite-mid py-16 md:py-20">
+      <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px] mb-14">What we stand for</h2>
@@ -371,7 +371,7 @@ export default function AboutPage() {
       <Divider />
 
       {/* CTA */}
-      <section className="bg-anthracite-mid py-20">
+      <section className="theme-light bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px]">

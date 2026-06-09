@@ -525,7 +525,14 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
           type="button"
           className="btn-primary"
           onClick={handleBookNow}
-          style={{ width: '100%', marginTop: '24px' }}
+          style={{
+            width: '100%',
+            marginTop: '24px',
+            background: 'var(--copper)',
+            color: 'var(--anthracite)',
+            borderColor: 'var(--copper)',
+            borderRadius: '10px',
+          }}
         >
           BOOK NOW
         </button>
