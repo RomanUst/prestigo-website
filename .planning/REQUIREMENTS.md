@@ -1,94 +1,81 @@
-# Requirements — Milestone v1.0: SEO Blog
+# Requirements — Milestone v2.0: Blacklane-style Booking + Customer Accounts
 
 ## Scope
 
-Build an MDX-powered blog at `/blog` for rideprestigo.com. Migrate 3 existing editorial articles from `/guides` and `/compare` into the blog hub. Goal: scalable organic search content under a single canonical path.
+Rebuild the booking experience to match Blacklane's polish (visual + behavioural) and introduce customer authentication and accounts (personal/corporate) on rideprestigo.com. Add a Sign in button to the header and optional sign-in inside the booking flow. Preserve every existing Google/Meta analytics signal and keep guest checkout always available.
+
+The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zustand store (`lib/booking-store.ts`) and pricing APIs are already structurally Blacklane-like — this milestone refines them, it does not start from scratch. Customer auth reuses the admin Supabase Auth (GoTrue) stack; admin auth is untouched.
 
 ---
 
-## INFRA — MDX Pipeline
+## AUTH — Customer Authentication
 
-- [ ] **INFRA-01**: `mdx-components.tsx` created at repo root (required by `@next/mdx`; maps HTML elements to Prestigo-styled components)
-- [ ] **INFRA-02**: `@next/mdx`, `@mdx-js/loader`, `@mdx-js/react`, `@types/mdx`, `gray-matter`, `remark-gfm` installed; `next.config.ts` wrapped with `createMDX()`
-- [ ] **INFRA-03**: `content/blog/` directory created with a `.gitkeep` placeholder (or first real MDX test file)
-- [ ] **INFRA-04**: `lib/blog.ts` exports `getAllPosts(): BlogPost[]` — aggregates MDX frontmatter (via `gray-matter` file reads) + `JSX_POSTS` hardcoded registry; sorted newest-first
-- [ ] **INFRA-05**: MDX frontmatter schema enforced in `lib/blog.ts`: `title`, `description`, `date`, `coverImage`, `category`, `author` (typed as `AuthorSlug`); optional `dateModified`
+- [ ] **AUTH-01**: Customer can sign in by email (magic-link or password) via Supabase Auth, separate from admin auth
+- [ ] **AUTH-02**: Customer can sign in with Google OAuth
+- [ ] **AUTH-03**: Customer can sign in with Apple OAuth
+- [ ] **AUTH-04**: Customer can register and choose account type — personal or corporate
+- [ ] **AUTH-05**: Customer session and admin session coexist without conflict; middleware gates customer account routes, never interfering with `/admin` gating
+- [ ] **AUTH-06**: Customer profile stored in new table (migration `044_customer_profiles.sql`) with `account_type` (personal/corporate) and FK to `auth.users`; RLS isolates each user's own row
+- [ ] **AUTH-07**: Customer can sign out from any account-aware surface
 
-## LISTING — Blog Index Page
+## NAV — Header
 
-- [ ] **LIST-01**: `app/blog/page.tsx` renders card grid of all posts from `getAllPosts()`, sorted newest-first
-- [ ] **LIST-02**: Each card: cover image (`coverImage`), category label (copper), title (display font), description (body-text), formatted date; links to `/blog/[slug]`
-- [ ] **LIST-03**: `/blog` has full SEO metadata: `<title>`, `<meta description>`, canonical `/blog`, `og:title`, `og:description`, `og:image` (first post's `coverImage`)
+- [ ] **NAV-01**: Header (desktop + mobile) has a **Sign in** button that routes to the customer login page, placed before the existing "Book now" CTA in `components/Nav.tsx`
+- [ ] **NAV-02**: When a customer is logged in, the header shows an account/sign-out affordance instead of "Sign in"
 
-## ARTICLE — MDX Article Page
+## ACCT — Account Dashboard
 
-- [ ] **ART-01**: `app/blog/[slug]/page.tsx` renders MDX articles with `dynamicParams = false` (404 for unknown slugs)
-- [ ] **ART-02**: `generateStaticParams()` returns MDX-only slugs from `content/blog/*.mdx` — must NOT include the 3 JSX article slugs
-- [ ] **ART-03**: Article page renders: hero `<img>` with `coverImage`, `<ArticleByline>`, MDX body content, bottom CTA section
-- [ ] **ART-04**: Article page full SEO: `og:title`, `og:description`, `og:image` (= `coverImage`), canonical `/blog/[slug]`, `Schema.org BlogPosting` with `personSchemaFor()` author node
-- [ ] **ART-05**: `app/blog/page.tsx` and `app/blog/[slug]/page.tsx` both include `/blog/*` entries in `app/sitemap.ts`
+- [ ] **ACCT-01**: "My trips" page lists the logged-in customer's booking history (bookings linked to `user_id`)
+- [ ] **ACCT-02**: Customer can view and edit their profile (contact details, saved passenger info)
+- [ ] **ACCT-03**: Corporate account exposes extra fields — company name, IČO/VAT, cost centre — and a "book for a guest" option
+- [ ] **ACCT-04**: New bookings made by a logged-in customer are linked to their `user_id` via a nullable FK on `bookings`; anonymous/guest bookings remain valid and unaffected
 
-## MIGRATE — Article Migration
+## BOOK — Booking Flow Redesign (Blacklane UI/UX)
 
-- [ ] **MIG-01**: 3 JSX articles moved (via `git mv`) to `/blog/*` in their own atomic commit, before any URL updates or sitemap changes
-  - `app/guides/prague-airport-to-city-center/page.tsx` → `app/blog/prague-airport-to-city-center/page.tsx`
-  - `app/compare/prague-airport-taxi-vs-chauffeur/page.tsx` → `app/blog/prague-airport-taxi-vs-chauffeur/page.tsx`
-  - `app/compare/prague-vienna-transfer-vs-train/page.tsx` → `app/blog/prague-vienna-transfer-vs-train/page.tsx`
-- [ ] **MIG-02**: All 9 URL locations per file updated (use `const CANONICAL_PATH` at file top):
-  - `alternates.canonical`, `alternates.languages.en`, `alternates.languages['x-default']`, `openGraph.url`
-  - Schema.org: `BreadcrumbList @id`, `ListItem.item`, `Article @id`, `Article url`, `FAQPage @id` (fragment variants included)
-- [ ] **MIG-03**: 5 permanent redirects added to `next.config.ts` `redirects()` array:
-  - `/guides` → `/blog`
-  - `/guides/prague-airport-to-city-center` → `/blog/prague-airport-to-city-center`
-  - `/compare` → `/blog`
-  - `/compare/prague-airport-taxi-vs-chauffeur` → `/blog/prague-airport-taxi-vs-chauffeur`
-  - `/compare/prague-vienna-transfer-vs-train` → `/blog/prague-vienna-transfer-vs-train`
-- [ ] **MIG-04**: `app/sitemap.ts` updated: old `/guides/*` and `/compare/*` entries removed; `/blog`, `/blog/prague-airport-to-city-center`, `/blog/prague-airport-taxi-vs-chauffeur`, `/blog/prague-vienna-transfer-vs-train` added; MDX posts added dynamically
-- [ ] **MIG-05**: `app/guides/page.tsx` and `app/compare/page.tsx` converted to redirect pages pointing to `/blog` (or removed; redirects in `next.config.ts` cover the paths)
-- [ ] **MIG-06**: `JSX_POSTS` registry in `lib/blog.ts` populated with metadata for all 3 migrated articles (title, description, date, coverImage, category, authorSlug, slug)
+- [ ] **BOOK-01**: Unified route + date + time entry bar in Blacklane style (one consolidated entry surface rather than two separate steps)
+- [ ] **BOOK-02**: Pickup-time selection via a time-slot dropdown
+- [ ] **BOOK-03**: Inline "flight number" field surfaced for airport transfers
+- [ ] **BOOK-04**: Route map showing pickup time and drop-off time alongside vehicle selection ("Choose your experience")
+- [ ] **BOOK-05**: Vehicle class cards show "What's included" and capacity tabs (luggage / seating)
+- [ ] **BOOK-06**: Booking-method step lets the user choose "Book for myself (account)" or "Book as guest"; corporate accounts also get "Book for a guest"
+- [ ] **BOOK-07**: A logged-in customer's contact details are pre-filled in the passenger step
+- [ ] **BOOK-08**: Guest checkout is available at every stage — sign-in is always optional, never blocking
+
+## TRACK — Analytics Preservation (cross-cutting guardrails)
+
+- [ ] **TRACK-01**: All existing GA4 funnel events fire in the rebuilt flow with no loss (`form_start`, `checkout_progress`, `view_item_list`, `view_item`, `begin_checkout`, `add_payment_info`, `purchase`, `generate_lead`)
+- [ ] **TRACK-02**: All Meta Pixel + CAPI events preserved (`InitiateCheckout`, `AddPaymentInfo`, `Purchase`), including `eventId` deduplication
+- [ ] **TRACK-03**: Price snapshot (sessionStorage, `lib/analytics-snapshot.ts`) and server-side GA4 Measurement Protocol in the Stripe webhook continue to fire `purchase`
+- [ ] **TRACK-04**: GA4 `login` and `sign_up` events fire on customer sign-in and registration
+- [ ] **TRACK-05**: CSP nonce propagation and Consent Mode v2 gating are not broken by new scripts, routes, or the OAuth redirect flow
 
 ---
 
 ## Future Requirements (deferred)
 
-- Czech and Russian blog posts — internationalisation deferred to a future milestone
-- Search within blog — site-level search is a separate initiative
-- Category filter on `/blog` listing — unnecessary at current post volume; add when > 15 posts
-- Headless CMS (Contentful, Sanity) — MDX-in-repo is sufficient for now
-- Converting JSX articles to MDX — too complex; JSX stays
+- Corporate teams / multi-user accounts, seat management, role permissions — only a single corporate profile in v2.0
+- Corporate invoicing, monthly billing, cost-centre reporting/exports — basic fields only for now
+- Saved payment methods / stored cards — Stripe one-off payments only
+- Facebook OAuth — Google + Apple only this milestone
+- Multilingual account & auth UI (Czech, Russian) — English only
 
 ## Out of Scope
 
-- Comments or community features — editorial blog only
-- Dynamic server-side rendering for blog pages — all pages are `force-static`
-- `runtime = 'edge'` on sitemap or blog pages — `fs.readdirSync` is blocked in Edge Runtime
+- Replacing Stripe or adding alternative payment rails
+- Migrating admin auth or changing the admin session model
+- Forcing account creation — guest checkout must always remain
+- Rewriting the pricing engine or `/api/calculate-price` logic — reused as-is
 
 ---
 
 ## Traceability
 
+<!-- Filled by gsd-roadmapper when ROADMAP.md is created. -->
+
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 54 — MDX Infrastructure | Pending |
-| INFRA-02 | Phase 54 — MDX Infrastructure | Pending |
-| INFRA-03 | Phase 54 — MDX Infrastructure | Pending |
-| INFRA-04 | Phase 54 — MDX Infrastructure | Pending |
-| INFRA-05 | Phase 54 — MDX Infrastructure | Pending |
-| LIST-01 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| LIST-02 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| LIST-03 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| ART-01 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| ART-02 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| ART-03 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| ART-04 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| ART-05 | Phase 55 — Blog UI (Listing + Article) | Pending |
-| MIG-01 | Phase 56 — Article Migration + SEO Wiring | Pending |
-| MIG-02 | Phase 56 — Article Migration + SEO Wiring | Pending |
-| MIG-03 | Phase 56 — Article Migration + SEO Wiring | Pending |
-| MIG-04 | Phase 56 — Article Migration + SEO Wiring | Pending |
-| MIG-05 | Phase 56 — Article Migration + SEO Wiring | Pending |
-| MIG-06 | Phase 56 — Article Migration + SEO Wiring | Pending |
+| _to be assigned by roadmapper_ | | |
 
 ---
 
-*Last updated: 2026-05-13 — Traceability expanded with Status column; Phases 54-56 assigned*
+*Last updated: 2026-06-10 — Milestone v2.0 requirements defined (AUTH, NAV, ACCT, BOOK, TRACK). Traceability pending roadmapper.*
