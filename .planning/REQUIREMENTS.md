@@ -70,12 +70,37 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 ## Traceability
 
-<!-- Filled by gsd-roadmapper when ROADMAP.md is created. -->
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| _to be assigned by roadmapper_ | | |
+| AUTH-01 | Phase 57 | Pending |
+| AUTH-02 | Phase 57 | Pending |
+| AUTH-03 | Phase 57 | Pending |
+| AUTH-04 | Phase 57 | Pending |
+| AUTH-05 | Phase 57 | Pending |
+| AUTH-06 | Phase 57 | Pending |
+| AUTH-07 | Phase 57 | Pending |
+| NAV-01 | Phase 58 | Pending |
+| NAV-02 | Phase 58 | Pending |
+| ACCT-01 | Phase 58 | Pending |
+| ACCT-02 | Phase 58 | Pending |
+| ACCT-03 | Phase 58 | Pending |
+| ACCT-04 | Phase 57 | Pending |
+| BOOK-01 | Phase 59 | Pending |
+| BOOK-02 | Phase 59 | Pending |
+| BOOK-03 | Phase 59 | Pending |
+| BOOK-04 | Phase 59 | Pending |
+| BOOK-05 | Phase 59 | Pending |
+| BOOK-06 | Phase 60 | Pending |
+| BOOK-07 | Phase 60 | Pending |
+| BOOK-08 | Phase 60 | Pending |
+| TRACK-01 | Phase 59 (verified Phase 61) | Pending |
+| TRACK-02 | Phase 59 (verified Phase 61) | Pending |
+| TRACK-03 | Phase 59 (verified Phase 61) | Pending |
+| TRACK-04 | Phase 60 (verified Phase 61) | Pending |
+| TRACK-05 | Phase 59 (verified Phase 61) | Pending |
+
+**Coverage:** 26/26 v2.0 requirements mapped — no orphans, no duplicates. Each TRACK requirement has a primary owner phase; Phase 61 is end-to-end verification.
 
 ---
 
-*Last updated: 2026-06-10 — Milestone v2.0 requirements defined (AUTH, NAV, ACCT, BOOK, TRACK). Traceability pending roadmapper.*
+*Last updated: 2026-06-10 — Traceability filled by roadmapper. All 26 v2.0 requirements mapped to Phases 57-61.*
