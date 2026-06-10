@@ -1,58 +1,36 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: SEO Blog
-status: executing
-stopped_at: Phase 54 context gathered
-last_updated: "2026-05-15T20:54:19.626Z"
-last_activity: 2026-05-15
+milestone: v2.0
+milestone_name: Blacklane-style Booking + Customer Accounts
+status: defining-requirements
+stopped_at: Milestone v2.0 started
+last_updated: "2026-06-10T00:00:00.000Z"
+last_activity: 2026-06-10
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-13)
+See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 54 — MDX Infrastructure
+**Current focus:** Milestone v2.0 — defining requirements & roadmap
 
 ## Current Position
 
-Phase: 56 of 56 (article migration + seo wiring)
-Plan: Not started
-Status: Ready to execute
-Last activity: 2026-05-15
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-10 — Milestone v2.0 started
 
 Progress: [░░░░░░░░░░] 0%
-
-## Performance Metrics
-
-**Velocity:**
-
-- Total plans completed: 7
-- Average duration: -
-- Total execution time: 0 hours
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 55 | 3 | - | - |
-| 56 | 4 | - | - |
-
-**Recent Trend:**
-
-- Last 5 plans: -
-- Trend: -
-
-*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -61,11 +39,10 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- Phase 54: Use `@next/mdx` (NOT `next-mdx-remote` — archived April 2026; RSC broken on Next.js 15.2+); `mdx-components.tsx` must be created as the very first file
-- Phase 54: `gray-matter` for frontmatter extraction in `lib/blog.ts`; `await import()` for full MDX render in article route
-- Phase 55: Schema type is `BlogPosting` (not `Article`) — Google-eligible, signals editorial timestamp, correct distinction from existing editorial pages
-- Phase 55: `dynamicParams = false` mandatory on `[slug]` route; JSX article slugs must NOT appear in `generateStaticParams()`
-- Phase 56: `git mv` in its own atomic commit before sitemap updates — `lastModFor()` depends on git history at the new path; use `const CANONICAL_PATH` for all 9 URL locations per file
+- v2.0: Customer auth reuses Supabase Auth (GoTrue) — same stack as admin; add Google + Apple OAuth. No new auth library.
+- v2.0: Bookings stay anonymous-capable; add nullable `user_id` FK so guest checkout never breaks.
+- v2.0: Existing booking wizard is already structurally Blacklane-like (6 steps) — redesign is visual + behavioural, preserve store (`lib/booking-store.ts`) and pricing APIs.
+- v2.0: Dense analytics wiring (GA4 + Meta Pixel/CAPI + server GA4 in Stripe webhook + sessionStorage price snapshot) must survive the rebuild — TRACK-* requirements are guardrails.
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -74,16 +51,21 @@ Recent decisions affecting current work:
 - Phase 52: Extended booking statuses
 - Phase 53: Driver assignment UI
 
+### v1.0 (shipped)
+
+- Phases 54–56: SEO Blog — MDX pipeline, /blog UI, article migration + 301s
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-- Phase 56 pre-work: Read current `redirects()` array in `next.config.ts` before writing redirect rules — avoid pattern overlap with existing rules and redirect chains
+- Apple Sign In via Supabase has fiddly setup (Service ID, key, return URLs) — confirm config during `/gsd-plan-phase 57`.
+- Next migration number is **044** (043_content_media_variants.sql is the latest).
 
 ## Session Continuity
 
-Last session: 2026-05-13T09:11:27.838Z
-Stopped at: Phase 54 context gathered
-Resume file: .planning/phases/54-mdx-infrastructure/54-CONTEXT.md
+Last session: 2026-06-10
+Stopped at: Milestone v2.0 started — defining requirements
+Resume file: —
