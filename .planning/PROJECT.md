@@ -8,16 +8,17 @@ Prestigo is a premium chauffeur service based in Prague, Czech Republic. The sit
 
 Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction.
 
-## Current Milestone: v1.0 — SEO Blog
+## Current Milestone: v2.0 — Blacklane-style Booking + Customer Accounts
 
-**Goal:** Build a scalable MDX-powered blog at `/blog` to capture organic search traffic through useful editorial content, and migrate 3 existing articles from scattered `/guides` and `/compare` routes into this single canonical hub.
+**Goal:** Rebuild the booking experience to match Blacklane's polish (visual + behavioural), and introduce customer authentication and accounts (personal/corporate) — all while preserving every existing Google/Meta analytics signal and keeping guest checkout always available.
 
 **Target features:**
-- MDX content pipeline (`next-mdx-remote` + `gray-matter`) for future articles
-- `/blog` listing page with card grid (coverImage, category, title, date)
-- MDX article page with full SEO (OG, Schema.org Article, canonical)
-- Migration of 3 existing JSX articles to `/blog/*` with 301 redirects
-- Sitemap updated to reflect new `/blog/*` paths
+- Customer authentication via Supabase Auth — email + Google + Apple OAuth (admin auth untouched)
+- Sign in button in the header (auth-aware) + customer account dashboard ("My trips", profile)
+- Personal vs corporate account types (corporate gets company/VAT/cost-centre fields + "book for a guest")
+- Blacklane-style booking redesign — unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs
+- Optional auth in checkout ("Book for myself / as guest"), bookings linked to user_id, guest checkout always available
+- Zero analytics regression — all GA4 + Meta Pixel/CAPI funnel events preserved through the rebuilt flow
 
 ## Requirements
 
@@ -33,33 +34,53 @@ Every page — booking, content, or service — must convert a visitor into a co
 - ✓ Schema.org structured data on editorial pages — brownfield baseline
 - ✓ ArticleByline component + authors system (E-E-A-T) — brownfield baseline
 - ✓ Per-page git-based lastModified for sitemap — brownfield baseline
+- ✓ v1.0 SEO Blog — MDX pipeline, `/blog` listing + article pages, 3 articles migrated with 301s, sitemap (phases 54–56)
 
 ### Active
 
-- [ ] INFRA-01: `lib/blog.ts` aggregates MDX files + JSX_POSTS registry, returns sorted BlogPost[]
-- [ ] INFRA-02: MDX rendering pipeline (`next-mdx-remote` + `gray-matter`) installed and working
-- [ ] INFRA-03: MDX frontmatter schema: title, description, date, coverImage, category, author
-- [ ] LIST-01: `/blog` shows card grid sorted newest-first
-- [ ] LIST-02: Each card: coverImage, category, title, description, date
-- [ ] LIST-03: `/blog` has SEO meta (title, description, canonical, OG)
-- [ ] LIST-04: All blog posts auto-appear in sitemap.xml
-- [ ] ART-01: MDX article page renders with Prestigo design system
-- [ ] ART-02: Article page shows hero coverImage
-- [ ] ART-03: Article page: OG meta, Schema.org Article, canonical `/blog/[slug]`
-- [ ] ART-04: ArticleByline reused on MDX articles
-- [ ] MIG-01: 3 existing articles accessible at `/blog/[slug]`
-- [ ] MIG-02: Old `/guides/*` and `/compare/*` URLs return HTTP 301 to `/blog/*`
-- [ ] MIG-03: Canonical URLs updated in all 3 migrated articles
-- [ ] MIG-04: `/guides` and `/compare` index pages redirect 301 to `/blog`
-- [ ] MIG-05: Sitemap: old paths removed, new `/blog/*` paths added
+<!-- Milestone v2.0 — Blacklane-style Booking + Customer Accounts -->
+
+**AUTH — Customer authentication**
+- [ ] AUTH-01: Customer can sign in by email (magic-link/password) via Supabase Auth
+- [ ] AUTH-02: Customer can sign in with Google OAuth
+- [ ] AUTH-03: Customer can sign in with Apple OAuth
+- [ ] AUTH-04: Customer can register and choose account type — personal or corporate
+- [ ] AUTH-05: Customer session does not conflict with admin session; middleware gates customer routes, not admin
+- [ ] AUTH-06: Customer profile stored in new table (migration 044) with `account_type` and FK to `auth.users`; RLS isolates each user's data
+
+**NAV — Header**
+- [ ] NAV-01: Header (desktop + mobile) has a Sign in button leading to login
+- [ ] NAV-02: Logged-in customer sees account/sign-out in header instead of Sign in
+
+**ACCT — Account dashboard**
+- [ ] ACCT-01: "My trips" page — customer's booking history (bookings linked to `user_id`)
+- [ ] ACCT-02: Profile editing (contacts, saved passenger details)
+- [ ] ACCT-03: Corporate account has extra fields (company, IČO/VAT, cost centre) and a "book for a guest" option
+- [ ] ACCT-04: New bookings by a logged-in customer are linked to `user_id` (anonymous bookings unaffected)
+
+**BOOK — Booking flow redesign (Blacklane UI/UX)**
+- [ ] BOOK-01: Unified route + date + time entry bar in Blacklane style
+- [ ] BOOK-02: Pickup-time slot dropdown
+- [ ] BOOK-03: Inline "flight number" field for airport transfers
+- [ ] BOOK-04: Route map showing pickup/drop-off times next to vehicle selection
+- [ ] BOOK-05: Vehicle class cards with "What's included" and capacity tabs (luggage/seating)
+- [ ] BOOK-06: Booking-method step: "Book for myself (account) / Book as guest"; corporate also "Book for a guest"
+- [ ] BOOK-07: Logged-in customer's contact details are pre-filled
+- [ ] BOOK-08: Guest checkout available at every stage (sign-in optional)
+
+**TRACK — Analytics preservation (cross-cutting)**
+- [ ] TRACK-01: All existing GA4 events fire in the rebuilt flow with no loss
+- [ ] TRACK-02: All Meta Pixel + CAPI events (incl. eventId dedup) preserved
+- [ ] TRACK-03: Price snapshot (sessionStorage) and server-side GA4 in Stripe webhook still work
+- [ ] TRACK-04: `login` and `sign_up` (GA4) events added on sign-in/registration
+- [ ] TRACK-05: CSP nonce and Consent Mode v2 not broken by new scripts/routes
 
 ### Out of Scope
 
-- Multi-language blog posts (Czech, Russian) — English only for this milestone; internationalisation deferred
-- Headless CMS (Contentful, Sanity, etc.) — MDX-in-repo is sufficient; no external CMS dependencies
-- Comments or community features — editorial blog only, no user-generated content
-- Search within the blog — deferred; site search is a separate initiative
-- Converting existing JSX articles to MDX — articles contain complex inline data/tables; JSX keeps full rendering control
+- Corporate teams / multi-user billing, invoicing, cost-centre reporting — only basic corporate fields in v2.0
+- Payment methods beyond Stripe; saved cards
+- Multilingual account UI — English only for now
+- Social logins beyond Google/Apple (Facebook deferred)
 
 ## Context
 
@@ -86,10 +107,13 @@ Every page — booking, content, or service — must convert a visitor into a co
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| MDX-in-repo (no headless CMS) | No external dependencies, free, deploy via git | — Pending |
-| Hybrid JSX + MDX articles | Existing articles too complex to convert; static dirs take precedence over dynamic route | — Pending |
-| Single `coverImage` field = card thumbnail + og:image | DRY, consistent OG cards across social platforms | — Pending |
-| Continue phase numbering from 53 → starts at 54 | Consistent history, no archive needed | — Pending |
+| MDX-in-repo (no headless CMS) | No external dependencies, free, deploy via git | ✓ Shipped v1.0 |
+| Hybrid JSX + MDX articles | Existing articles too complex to convert; static dirs take precedence over dynamic route | ✓ Shipped v1.0 |
+| Single `coverImage` field = card thumbnail + og:image | DRY, consistent OG cards across social platforms | ✓ Shipped v1.0 |
+| Continue phase numbering from 53 → starts at 54 | Consistent history, no archive needed | ✓ Shipped v1.0 |
+| v2.0: customer auth on Supabase Auth (reuse admin GoTrue infra) | No new auth library; admin password pattern + OAuth (Google/Apple) on same stack | — Pending |
+| v2.0: bookings stay anonymous-capable; add nullable `user_id` FK | Guest checkout must never break; logged-in is additive | — Pending |
+| v2.0: major version bump (new auth/accounts subsystem) | Not an increment — adds a whole subsystem; phases continue from 56 → start 57 | — Pending |
 
 ## Evolution
 
@@ -109,4 +133,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-15 — Phase 56 complete: 3 legacy JSX articles migrated to /blog/* with git history preserved; 5 permanent 301 redirects; sitemap updated; safeJsonLd() applied; BreadcrumbList fixed*
+*Last updated: 2026-06-10 — Milestone v2.0 started: Blacklane-style booking redesign + customer authentication & accounts (personal/corporate). Phases 57–61. v1.0 SEO Blog shipped.*
