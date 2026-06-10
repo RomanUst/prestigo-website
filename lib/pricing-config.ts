@@ -1,4 +1,5 @@
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 
 export type PricingGlobals = {
   airportFee: number
@@ -24,9 +25,45 @@ export type PricingRates = {
   minFare: Record<string, number>
 }
 
+// Build-time / env-less fallback. Returned only when the Supabase service
+// env vars are absent (e.g. Vercel preview builds or local dev without a
+// .env) so that statically-prerendered marketing pages still build instead
+// of crashing the whole export. In production the env vars are present, so
+// real DB pricing is always used. NOTE: this guard is intentionally limited
+// to the missing-env case — a genuine DB error WITH env present still throws,
+// keeping booking/price-critical paths strict.
+const PRICING_FALLBACK: PricingRates = {
+  ratePerKm: {},
+  hourlyRate: HOURLY_FALLBACK as Record<string, number>,
+  dailyRate: {},
+  minFare: {},
+  globals: {
+    airportFee: 0,
+    nightCoefficient: 1,
+    holidayCoefficient: 1,
+    extraChildSeat: 0,
+    extraLuggage: 0,
+    holidayDates: [],
+    returnDiscountPercent: 10,
+    hourlyMinHours: 2,
+    hourlyMaxHours: 8,
+    notificationFlags: null,
+    airportPromoActive: false,
+    airportRegularPriceEur: AIRPORT_FALLBACK.regular,
+    airportPromoPriceEur: AIRPORT_FALLBACK.promo,
+  },
+}
+
 // No caching — always fetch fresh from DB so admin pricing changes are
 // reflected immediately without needing cache invalidation.
 export async function getPricingConfig(): Promise<PricingRates> {
+  // Missing Supabase env (preview build / local dev) → safe fallback so the
+  // static export doesn't crash. createSupabaseServiceClient() would otherwise
+  // throw "supabaseUrl is required" synchronously.
+  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return PRICING_FALLBACK
+  }
+
   const supabase = createSupabaseServiceClient()
 
   const [
