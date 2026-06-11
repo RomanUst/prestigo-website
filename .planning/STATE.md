@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Blacklane-style Booking + Customer Accounts
 status: executing
-stopped_at: Phase 57 Plan 01 complete
-last_updated: "2026-06-11T14:27:00Z"
-last_activity: 2026-06-11 -- Phase 57 Plan 01 complete (migrations 044+045, Wave-0 tests)
+stopped_at: Phase 57 Plan 02 complete
+last_updated: "2026-06-11T14:43:49.624Z"
+last_activity: 2026-06-11 -- Phase 57 Plan 02 complete (auth surface, Wave-0 tests GREEN)
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 12
-  completed_plans: 9
-  percent: 38
+  completed_plans: 11
+  percent: 92
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 57 (customer-auth-foundation) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 Status: Executing Phase 57
-Last activity: 2026-06-11 -- Phase 57 Plan 01 complete (migrations 044+045, Wave-0 tests)
+Last activity: 2026-06-11 -- Phase 57 Plan 02 complete (auth surface, Wave-0 tests GREEN)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████████░] 92%
 
 ## Accumulated Context
 
@@ -47,6 +47,9 @@ Recent decisions affecting current work:
 - v2.0: Existing booking wizard is already structurally Blacklane-like (6 steps) — redesign is visual + behavioural, preserve store (`lib/booking-store.ts`) and pricing APIs.
 - v2.0: Dense analytics wiring (GA4 + Meta Pixel/CAPI + server GA4 in Stripe webhook + sessionStorage price snapshot) must survive the rebuild — TRACK-* requirements are guardrails.
 - v2.0 roadmap: Phase 59 (booking redesign) is independent of 57/58 and can run in parallel with auth UI; Phase 61 is a dedicated end-to-end analytics verification gate.
+- v2.0 (57-02): safeReturnTo() open-redirect guard: relative-only, rejects absolute URLs and // — used in both app/login/actions.ts and app/auth/callback/route.ts.
+- v2.0 (57-02): NextResponse.redirect in callback uses explicit { status: 302 } — Next.js defaults to 307 which breaks OAuth/email confirmation redirects.
+- v2.0 (57-02): signUpWithPassword upserts customer_profiles whenever data.user exists (not conditional on session) — idempotent via ignoreDuplicates in callback.
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -79,6 +82,12 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-11T14:27:00Z
-Stopped at: Phase 57 Plan 01 complete
-Resume file: .planning/phases/57-customer-auth-foundation/57-02-PLAN.md
+Last session: 2026-06-11T14:43:49.610Z
+Stopped at: Phase 57 Plan 02 complete
+Resume file: .planning/phases/57-customer-auth-foundation/57-03-PLAN.md
+
+## Performance Metrics
+
+| Phase | Plan | Duration | Notes |
+|-------|------|----------|-------|
+| Phase 57 P02 | 629 | 3 tasks | 9 files |

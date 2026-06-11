@@ -10,13 +10,13 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 ## AUTH — Customer Authentication
 
-- [ ] **AUTH-01**: Customer can sign in by email (magic-link or password) via Supabase Auth, separate from admin auth
-- [ ] **AUTH-02**: Customer can sign in with Google OAuth
-- [ ] **AUTH-03**: Customer can sign in with Apple OAuth
-- [ ] **AUTH-04**: Customer can register and choose account type — personal or corporate
-- [ ] **AUTH-05**: Customer session and admin session coexist without conflict; middleware gates customer account routes, never interfering with `/admin` gating
+- [x] **AUTH-01**: Customer can sign in by email (magic-link or password) via Supabase Auth, separate from admin auth
+- [x] **AUTH-02**: Customer can sign in with Google OAuth
+- [x] **AUTH-03**: Customer can sign in with Apple OAuth
+- [x] **AUTH-04**: Customer can register and choose account type — personal or corporate
+- [x] **AUTH-05**: Customer session and admin session coexist without conflict; middleware gates customer account routes, never interfering with `/admin` gating
 - [ ] **AUTH-06**: Customer profile stored in new table (migration `044_customer_profiles.sql`) with `account_type` (personal/corporate) and FK to `auth.users`; RLS isolates each user's own row
-- [ ] **AUTH-07**: Customer can sign out from any account-aware surface
+- [x] **AUTH-07**: Customer can sign out from any account-aware surface
 
 ## NAV — Header
 
@@ -72,13 +72,13 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AUTH-01 | Phase 57 | Pending |
-| AUTH-02 | Phase 57 | Pending |
-| AUTH-03 | Phase 57 | Pending |
-| AUTH-04 | Phase 57 | Pending |
-| AUTH-05 | Phase 57 | Pending |
+| AUTH-01 | Phase 57 | Complete |
+| AUTH-02 | Phase 57 | Complete |
+| AUTH-03 | Phase 57 | Complete |
+| AUTH-04 | Phase 57 | Complete |
+| AUTH-05 | Phase 57 | Complete |
 | AUTH-06 | Phase 57 | Pending |
-| AUTH-07 | Phase 57 | Pending |
+| AUTH-07 | Phase 57 | Complete |
 | NAV-01 | Phase 58 | Pending |
 | NAV-02 | Phase 58 | Pending |
 | ACCT-01 | Phase 58 | Pending |
