@@ -86,7 +86,7 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
   4. The `bookings` table has a nullable `user_id` FK to `auth.users`; existing anonymous bookings still insert and read successfully with `user_id` null
   5. A customer can sign out from an account-aware surface and the session is fully cleared (protected routes redirect to login afterward)
 **Plans**: 3 plans
-  - [ ] 57-01-PLAN.md — Migrations 044 (customer_profiles + RLS) & 045 (nullable bookings.user_id FK) + Wave-0 auth test scaffolds (AUTH-06, ACCT-04)
+  - [x] 57-01-PLAN.md — Migrations 044 (customer_profiles + RLS) & 045 (nullable bookings.user_id FK) + Wave-0 auth test scaffolds (AUTH-06, ACCT-04)
   - [ ] 57-02-PLAN.md — Middleware gating, email + OAuth server actions, /auth/callback, /login UI, /account + sign-out (AUTH-01..05, AUTH-07)
   - [ ] 57-03-PLAN.md — [BLOCKING] apply migrations to live DB, regenerate types, verification gate + manual OAuth/email round-trip (AUTH-06, ACCT-04)
 **UI hint**: yes
@@ -154,7 +154,7 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 54. MDX Infrastructure | 0/? | Not started | - |
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
-| 57. Customer Auth Foundation | 0/3 | Planned     | - |
+| 57. Customer Auth Foundation | 1/3 | In Progress | - |
 | 58. Sign-in UI + Account Dashboard | 0/? | Not started | - |
 | 59. Booking Flow Redesign (Blacklane) | 0/? | Not started | - |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
