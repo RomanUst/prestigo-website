@@ -20,8 +20,19 @@ findings:
   warning: 6
   info: 4
   total: 12
-status: issues_found
+  critical_resolved: 2
+status: criticals_resolved
+resolution_commit: 1089ac6
 ---
+
+> **Resolution (2026-06-11, commit `1089ac6`):** Both CRITICAL findings fixed —
+> CR-01 open-redirect (backslash `/\evil.com` now rejected in both
+> `app/login/actions.ts` and `app/auth/callback/route.ts`, with regression tests)
+> and CR-02 booking-ownership forgery (`saveBookingWithUserId` now derives
+> `user_id` from the server session and strips caller input, with forgery +
+> no-session regression tests). WR-02 (password-reset rate limit) also fixed.
+> Remaining warnings/info are deferred as non-blocking follow-ups. Phase tests
+> 55/55 green; `tsc` clean.
 
 # Phase 57: Code Review Report
 
