@@ -25,6 +25,24 @@ status: criticals_resolved
 resolution_commit: 1089ac6
 ---
 
+> **Resolution (2026-06-11, commit `d2ca9e4`):** Warning/info follow-ups
+> addressed. **WR-01** — rate limiter rewritten as a true sliding-window log
+> (Upstash sorted-set Lua EVAL + in-memory timestamp log), killing the ~2×
+> boundary burst; `signInWithPassword` tightened to `failClosed:true`
+> (passwordless flows stay fail-open); IN-01 trusted-proxy assumption documented.
+> **WR-04** — `ignoreDuplicates:true` kept by design (OAuth metadata lacks
+> account_type/company_name; reconciling would clobber corporate profiles);
+> overstated comments corrected. **WR-05 + build fix** — `safeReturnTo` /
+> `buildOAuthOptions` moved to `app/login/auth-helpers.ts`; they were sync
+> exports in the `'use server'` module, which made Next.js fail the build
+> ("Server Actions must be async functions") and 500 `/login` +
+> `/account/reset-password`. **WR-06** — reset-password now gates
+> `updateUser` on a confirmed recovery/auth session and memoizes the client.
+> **IN-02/IN-03** — client memoized; dead "Loading…" branch removed. Added
+> `tests/rate-limit.test.ts`; auth phase tests green (27 passing). **WR-03**
+> migration `046_customer_profiles_updated_at_trigger.sql` is committed but
+> NOT yet applied to the live DB (Supabase MCP not connected this session).
+>
 > **Resolution (2026-06-11, commit `1089ac6`):** Both CRITICAL findings fixed —
 > CR-01 open-redirect (backslash `/\evil.com` now rejected in both
 > `app/login/actions.ts` and `app/auth/callback/route.ts`, with regression tests)
