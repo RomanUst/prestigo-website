@@ -3,11 +3,18 @@
  *
  * Uses Upstash Redis REST API directly (no SDK) when
  * UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN are set.
- * Falls back to an in-memory Map otherwise.
+ * Falls back to an in-memory store otherwise.
  *
- * The Upstash path uses a Lua EVAL script for atomic fixed-window limiting,
- * which is sufficient for our traffic volumes and does not require the
- * @upstash/ratelimit SDK (which has compatibility issues in some Vercel runtimes).
+ * Both paths implement a true *sliding-window log*: each request is recorded
+ * with its millisecond timestamp, entries older than the 60s window are
+ * discarded, and the request is allowed only if fewer than `limit` entries
+ * remain in the trailing 60s. This avoids the ~2× burst a fixed window permits
+ * at the window boundary (end of window N + start of window N+1).
+ *
+ * The Upstash path uses a single atomic Lua EVAL over a sorted set
+ * (ZREMRANGEBYSCORE + ZCARD + ZADD), which is sufficient for our traffic
+ * volumes and does not require the @upstash/ratelimit SDK (which has
+ * compatibility issues in some Vercel runtimes).
  */
 
 /** Max requests per IP per 60-second window, keyed by route pathname */
@@ -47,21 +54,44 @@ export interface RateLimitOptions {
 
 // ── Upstash REST API (production) ─────────────────────────────────────────────
 
+const WINDOW_MS = 60_000
+
 /**
- * Atomic fixed-window counter via Lua EVAL.
- * Returns { count, allowed } for the current 60-second window.
+ * Atomic sliding-window log via Lua EVAL over a sorted set.
+ *
+ * The set holds one member per recent request, scored by its millisecond
+ * timestamp. Each call drops members older than `now - WINDOW_MS`, counts what
+ * remains, and only records the new request (ZADD) when still under `limit` —
+ * so a denied request does not grow the set. PEXPIRE keeps idle keys from
+ * lingering. Returns the trailing-window count and whether the request was
+ * admitted; the whole script runs atomically so concurrent requests can't race
+ * past the limit.
  */
 async function checkUpstash(key: string, limit: number): Promise<RateLimitResult | null> {
   const url   = process.env.UPSTASH_REDIS_REST_URL
   const token = process.env.UPSTASH_REDIS_REST_TOKEN
   if (!url || !token) return null
 
-  // Lua script: INCR + conditional EXPIRE (atomic)
   const luaScript = [
-    'local c = redis.call("INCR", KEYS[1])',
-    'if c == 1 then redis.call("EXPIRE", KEYS[1], 60) end',
-    'return c',
+    'local now = tonumber(ARGV[1])',
+    'local window = tonumber(ARGV[2])',
+    'local limit = tonumber(ARGV[3])',
+    'redis.call("ZREMRANGEBYSCORE", KEYS[1], 0, now - window)',
+    'local count = redis.call("ZCARD", KEYS[1])',
+    'local allowed = 0',
+    'if count < limit then',
+    '  redis.call("ZADD", KEYS[1], now, ARGV[4])',
+    '  count = count + 1',
+    '  allowed = 1',
+    'end',
+    'redis.call("PEXPIRE", KEYS[1], window)',
+    'return {count, allowed}',
   ].join(' ')
+
+  const now = Date.now()
+  // Unique member per request so identical-millisecond requests don't collide
+  // into a single sorted-set entry (which would under-count the window).
+  const member = `${now}-${Math.random().toString(36).slice(2)}`
 
   try {
     const res = await fetch(url, {
@@ -71,7 +101,10 @@ async function checkUpstash(key: string, limit: number): Promise<RateLimitResult
         'Content-Type': 'application/json',
       },
       // Upstash REST API: send full Redis command as JSON array
-      body: JSON.stringify(['EVAL', luaScript, 1, key]),
+      body: JSON.stringify([
+        'EVAL', luaScript, 1, key,
+        String(now), String(WINDOW_MS), String(limit), member,
+      ]),
       // Tell Next.js not to cache this request
       cache: 'no-store',
     })
@@ -81,10 +114,10 @@ async function checkUpstash(key: string, limit: number): Promise<RateLimitResult
       return null
     }
 
-    const data = await res.json() as { result: number }
-    const count = data.result
+    const data = await res.json() as { result: [number, number] }
+    const [count, allowedFlag] = data.result
     const remaining = Math.max(0, limit - count)
-    return { allowed: count <= limit, remaining, limit }
+    return { allowed: allowedFlag === 1, remaining, limit }
   } catch (err) {
     console.warn('[rate-limit] Upstash fetch failed:', err)
     return null
@@ -93,22 +126,20 @@ async function checkUpstash(key: string, limit: number): Promise<RateLimitResult
 
 // ── In-memory fallback (development / Redis unavailable) ─────────────────────
 
-const WINDOW_MS = 60_000
-
-interface WindowEntry {
-  count: number
-  windowStart: number
-}
-
-const store = new Map<string, WindowEntry>()
+// Sliding-window log: per key we keep the timestamps (ms) of recent requests,
+// bounded to at most `limit` entries since denied requests are not recorded.
+const store = new Map<string, number[]>()
 let lastPrune = 0
 
 function maybePrune() {
   const now = Date.now()
   if (now - lastPrune < WINDOW_MS) return
   lastPrune = now
-  for (const [key, entry] of store) {
-    if (now - entry.windowStart > WINDOW_MS) store.delete(key)
+  const cutoff = now - WINDOW_MS
+  for (const [key, hits] of store) {
+    const fresh = hits.filter(t => t > cutoff)
+    if (fresh.length === 0) store.delete(key)
+    else store.set(key, fresh)
   }
 }
 
@@ -116,19 +147,17 @@ function checkInMemory(pathname: string, ip: string, limit: number): RateLimitRe
   maybePrune()
   const key = `${pathname}:${ip}`
   const now = Date.now()
-  const entry = store.get(key)
+  const cutoff = now - WINDOW_MS
+  const hits = (store.get(key) ?? []).filter(t => t > cutoff)
 
-  if (!entry || now - entry.windowStart > WINDOW_MS) {
-    store.set(key, { count: 1, windowStart: now })
-    return { allowed: true, remaining: limit - 1, limit }
-  }
-
-  if (entry.count >= limit) {
+  if (hits.length >= limit) {
+    store.set(key, hits)
     return { allowed: false, remaining: 0, limit }
   }
 
-  entry.count++
-  return { allowed: true, remaining: limit - entry.count, limit }
+  hits.push(now)
+  store.set(key, hits)
+  return { allowed: true, remaining: limit - hits.length, limit }
 }
 
 // ── Public API ────────────────────────────────────────────────────────────────
@@ -171,7 +200,17 @@ export async function checkRateLimit(
   return { ...result, degraded: true }
 }
 
-/** Extract the best available client IP from a Next.js Request */
+/**
+ * Extract the best available client IP from a Next.js Request.
+ *
+ * SECURITY ASSUMPTION (IN-01): `x-forwarded-for` is client-spoofable in the
+ * general case — a request can send an arbitrary value to rotate its rate-limit
+ * key per request. This is safe ONLY because we run behind Vercel, which
+ * overwrites `x-forwarded-for`/`x-real-ip` with the real edge-observed client
+ * IP before our code runs. If this ever moves off a trusted proxy that
+ * normalises these headers, switch to a platform-verified header
+ * (e.g. Vercel's `x-vercel-forwarded-for`) before relying on the limiter.
+ */
 export function getClientIp(req: Request): string {
   return (
     req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??

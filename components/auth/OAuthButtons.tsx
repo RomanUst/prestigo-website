@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 
 interface OAuthButtonsProps {
@@ -7,9 +8,14 @@ interface OAuthButtonsProps {
 }
 
 export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  // Memoize so the browser client isn't re-instantiated on every render.
+  const supabase = useMemo(
+    () =>
+      createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      ),
+    []
   )
 
   async function handleOAuth(provider: 'google' | 'apple') {

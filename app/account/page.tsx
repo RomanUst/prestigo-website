@@ -48,7 +48,7 @@ export default async function AccountPage() {
             lineHeight: 1.75,
           }}
         >
-          {user ? 'You are signed in.' : 'Loading...'}
+          {user ? 'You are signed in.' : 'You are not signed in.'}
         </p>
 
         <form

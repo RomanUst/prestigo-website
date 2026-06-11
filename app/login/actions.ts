@@ -5,27 +5,12 @@ import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
-import type { Provider } from '@supabase/supabase-js'
+import { safeReturnTo } from '@/app/login/auth-helpers'
 
-// ---------------------------------------------------------------------------
-// Helper: open-redirect guard
-// ---------------------------------------------------------------------------
-
-/**
- * Validate a `return-to` param before using it as a redirect destination.
- * Only same-origin relative paths are trusted: must start with a single `/`
- * and NOT be protocol-relative. Both `//evil.com` and `/\evil.com` (which
- * Chromium-family browsers normalize to `//evil.com` → external origin) are
- * rejected. Absolute URLs and any backslash form fall back to `/account`.
- */
-export function safeReturnTo(raw: string | null): string {
-  return raw &&
-    raw.startsWith('/') &&
-    !raw.startsWith('//') &&
-    !raw.startsWith('/\\')
-    ? raw
-    : '/account'
-}
+// Note: safeReturnTo and buildOAuthOptions are pure (synchronous) helpers and
+// live in ./auth-helpers — a 'use server' module may only export async
+// functions, and re-exporting them here would re-trigger that constraint.
+// Import auth-helpers directly where you need them.
 
 // ---------------------------------------------------------------------------
 // Helper: IP extraction
@@ -42,19 +27,6 @@ async function getIp(): Promise<string> {
   } catch {
     // Thrown outside request scope (e.g. in test environment)
     return 'unknown'
-  }
-}
-
-// ---------------------------------------------------------------------------
-// Helper: OAuth options builder (exported so tests can assert it)
-// ---------------------------------------------------------------------------
-
-export function buildOAuthOptions(provider: Provider, origin: string) {
-  return {
-    provider,
-    options: {
-      redirectTo: `${origin}/auth/callback`,
-    },
   }
 }
 
@@ -99,7 +71,11 @@ export async function signInWithPassword(
   formData: FormData
 ): Promise<{ error?: string }> {
   const ip = await getIp()
-  const rl = await checkRateLimit('/login', ip, { failClosed: false })
+  // Auth-critical: password sign-in is the credential brute-force surface, so
+  // it fails CLOSED on an Upstash outage (matching /admin/login). The
+  // passwordless flows below (magic link, signup, password-reset) stay
+  // fail-open since they expose no guessable secret to brute force.
+  const rl = await checkRateLimit('/login', ip, { failClosed: true })
   if (!rl.allowed) {
     return { error: 'Too many attempts. Please try again in a minute.' }
   }
@@ -152,9 +128,13 @@ export async function signUpWithPassword(
     return { error: 'Something went wrong. Please try again.' }
   }
 
-  // Upsert profile whenever a user row was created.
-  // In production with email confirmation, data.session may be null here —
-  // the authoritative upsert will also fire in /auth/callback when the user confirms.
+  // Upsert profile whenever a user row was created. This signup path is the
+  // authoritative writer of account_type/company_name because the user just
+  // supplied them on the form. In production with email confirmation,
+  // data.session may be null here — a create-if-missing upsert also fires in
+  // /auth/callback when the user confirms, but that path intentionally does NOT
+  // reconcile metadata (see upsertProfile's ignoreDuplicates note) so it can't
+  // clobber these values with OAuth defaults.
   if (data.user) {
     await supabase
       .from('customer_profiles')
