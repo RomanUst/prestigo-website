@@ -23,7 +23,7 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 
 **Milestone Goal:** Customers can sign in (email + Google + Apple), manage a personal or corporate account with a "My trips" dashboard, and complete a redesigned Blacklane-style booking flow — with optional in-checkout sign-in, bookings linked to `user_id`, guest checkout always available, and zero analytics regression.
 
-- [ ] **Phase 57: Customer Auth Foundation** - Supabase Auth for customers (email + Google + Apple OAuth), migration 044_customer_profiles.sql, nullable user_id FK on bookings, customer/admin session split
+- [x] **Phase 57: Customer Auth Foundation** - Supabase Auth for customers (email + Google + Apple OAuth), migration 044_customer_profiles.sql, nullable user_id FK on bookings, customer/admin session split (completed 2026-06-11)
 - [ ] **Phase 58: Sign-in UI + Account Dashboard** - Auth-aware Sign in button in Nav, login/signup pages, "My trips" dashboard, profile editing, personal/corporate fields
 - [ ] **Phase 59: Booking Flow Redesign (Blacklane)** - Unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs — store, pricing APIs, and analytics preserved
 - [ ] **Phase 60: Auth-in-Checkout + Guest Path** - Booking-method step (myself / guest / corporate book-for-a-guest), pre-fill for logged-in customers, link booking to user_id, guest always available
@@ -105,7 +105,7 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 
   - [x] 57-01-PLAN.md — Migrations 044 (customer_profiles + RLS) & 045 (nullable bookings.user_id FK) + Wave-0 auth test scaffolds (AUTH-06, ACCT-04)
   - [x] 57-02-PLAN.md — Middleware gating, email + OAuth server actions, /auth/callback, /login UI, /account + sign-out (AUTH-01..05, AUTH-07)
-  - [ ] 57-03-PLAN.md — [BLOCKING] apply migrations to live DB, regenerate types, verification gate + manual OAuth/email round-trip (AUTH-06, ACCT-04)
+  - [x] 57-03-PLAN.md — [BLOCKING] apply migrations to live DB, regenerate types, verification gate + manual OAuth/email round-trip (AUTH-06, ACCT-04)
 
 **UI hint**: yes
 
@@ -184,7 +184,7 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 54. MDX Infrastructure | 0/? | Not started | - |
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
-| 57. Customer Auth Foundation | 2/3 | In Progress|  |
+| 57. Customer Auth Foundation | 3/3 | Complete   | 2026-06-11 |
 | 58. Sign-in UI + Account Dashboard | 0/? | Not started | - |
 | 59. Booking Flow Redesign (Blacklane) | 0/? | Not started | - |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
