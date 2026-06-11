@@ -55,7 +55,8 @@ function buildCsp(nonce: string): string {
     // places.googleapis.com: Places API (New) REST endpoint (AddressInputNew);
     // maps.googleapis.com: legacy JS SDK path.
     // www.facebook.com: Meta Pixel event API and fbevents.js XHR calls.
-    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms",
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com",
+    "form-action 'self' https://accounts.google.com https://appleid.apple.com",
     "report-uri /api/csp-report",
   ].join('; ')
 }
@@ -78,7 +79,8 @@ function buildCspStatic(): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms",
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com",
+    "form-action 'self' https://accounts.google.com https://appleid.apple.com",
     "report-uri /api/csp-report",
   ].join('; ')
 }
@@ -92,7 +94,10 @@ function isDynamicPath(pathname: string): boolean {
     pathname.startsWith('/book') ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/api') ||
-    pathname.startsWith('/driver')
+    pathname.startsWith('/driver') ||
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/account') ||
+    pathname.startsWith('/auth')
   )
 }
 

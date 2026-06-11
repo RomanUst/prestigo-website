@@ -34,6 +34,18 @@ export async function updateSession(request: NextRequest, extraReqHeaders?: Head
 
   const { pathname } = request.nextUrl
 
+  // NEW: authenticated NON-admin requesting /admin/* (except /admin/login) → home (D-11)
+  if (
+    pathname.startsWith('/admin') &&
+    pathname !== '/admin/login' &&
+    user &&
+    !user.app_metadata?.is_admin
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
+
   // Unauthenticated → redirect to login (exclude /admin/login to prevent infinite loop)
   if (pathname.startsWith('/admin') && pathname !== '/admin/login' && !user) {
     const url = request.nextUrl.clone()
@@ -45,6 +57,15 @@ export async function updateSession(request: NextRequest, extraReqHeaders?: Head
   if (pathname === '/admin/login' && user) {
     const url = request.nextUrl.clone()
     url.pathname = '/admin'
+    return NextResponse.redirect(url)
+  }
+
+  // NEW: unauthenticated customer requesting /account/* → /login with return-to (D-12)
+  if (pathname.startsWith('/account') && !user) {
+    const url = request.nextUrl.clone()
+    const returnTo = encodeURIComponent(pathname + request.nextUrl.search)
+    url.pathname = '/login'
+    url.search = `?return-to=${returnTo}`
     return NextResponse.redirect(url)
   }
 
