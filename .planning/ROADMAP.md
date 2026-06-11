@@ -184,7 +184,7 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 54. MDX Infrastructure | 0/? | Not started | - |
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
-| 57. Customer Auth Foundation | 3/3 | Complete   | 2026-06-11 |
+| 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
 | 58. Sign-in UI + Account Dashboard | 0/? | Not started | - |
 | 59. Booking Flow Redesign (Blacklane) | 0/? | Not started | - |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |

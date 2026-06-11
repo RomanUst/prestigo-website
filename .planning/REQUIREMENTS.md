@@ -15,7 +15,7 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 - [x] **AUTH-03**: Customer can sign in with Apple OAuth
 - [x] **AUTH-04**: Customer can register and choose account type — personal or corporate
 - [x] **AUTH-05**: Customer session and admin session coexist without conflict; middleware gates customer account routes, never interfering with `/admin` gating
-- [ ] **AUTH-06**: Customer profile stored in new table (migration `044_customer_profiles.sql`) with `account_type` (personal/corporate) and FK to `auth.users`; RLS isolates each user's own row
+- [x] **AUTH-06**: Customer profile stored in new table (migration `044_customer_profiles.sql`) with `account_type` (personal/corporate) and FK to `auth.users`; RLS isolates each user's own row
 - [x] **AUTH-07**: Customer can sign out from any account-aware surface
 
 ## NAV — Header
@@ -28,7 +28,7 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 - [ ] **ACCT-01**: "My trips" page lists the logged-in customer's booking history (bookings linked to `user_id`)
 - [ ] **ACCT-02**: Customer can view and edit their profile (contact details, saved passenger info)
 - [ ] **ACCT-03**: Corporate account exposes extra fields — company name, IČO/VAT, cost centre — and a "book for a guest" option
-- [ ] **ACCT-04**: New bookings made by a logged-in customer are linked to their `user_id` via a nullable FK on `bookings`; anonymous/guest bookings remain valid and unaffected
+- [x] **ACCT-04**: New bookings made by a logged-in customer are linked to their `user_id` via a nullable FK on `bookings`; anonymous/guest bookings remain valid and unaffected
 
 ## BOOK — Booking Flow Redesign (Blacklane UI/UX)
 
@@ -77,14 +77,14 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 | AUTH-03 | Phase 57 | Complete |
 | AUTH-04 | Phase 57 | Complete |
 | AUTH-05 | Phase 57 | Complete |
-| AUTH-06 | Phase 57 | Pending |
+| AUTH-06 | Phase 57 | Complete |
 | AUTH-07 | Phase 57 | Complete |
 | NAV-01 | Phase 58 | Pending |
 | NAV-02 | Phase 58 | Pending |
 | ACCT-01 | Phase 58 | Pending |
 | ACCT-02 | Phase 58 | Pending |
 | ACCT-03 | Phase 58 | Pending |
-| ACCT-04 | Phase 57 | Pending |
+| ACCT-04 | Phase 57 | Complete |
 | BOOK-01 | Phase 59 | Pending |
 | BOOK-02 | Phase 59 | Pending |
 | BOOK-03 | Phase 59 | Pending |
