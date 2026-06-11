@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Blacklane-style Booking + Customer Accounts
-status: planning
-stopped_at: Phase 57 context gathered
-last_updated: "2026-06-10T12:57:18.246Z"
-last_activity: 2026-06-10 — Roadmap for v2.0 created (Phases 57-61), 26/26 requirements mapped
+status: executing
+stopped_at: Phase 57 Plan 01 complete
+last_updated: "2026-06-11T14:27:00Z"
+last_activity: 2026-06-11 -- Phase 57 Plan 01 complete (migrations 044+045, Wave-0 tests)
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 9
+  total_plans: 12
   completed_plans: 9
-  percent: 100
+  percent: 38
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Milestone v2.0 — roadmap ready, Phases 57-61; next is planning Phase 57
+**Current focus:** Phase 57 — customer-auth-foundation
 
 ## Current Position
 
-Phase: Not started (roadmap ready — 5 phases: 57-61)
-Plan: —
-Status: Roadmap created, awaiting phase planning
-Last activity: 2026-06-10 — Roadmap for v2.0 created (Phases 57-61), 26/26 requirements mapped
+Phase: 57 (customer-auth-foundation) — EXECUTING
+Plan: 2 of 3
+Status: Executing Phase 57
+Last activity: 2026-06-11 -- Phase 57 Plan 01 complete (migrations 044+045, Wave-0 tests)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -39,6 +39,9 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v2.0 (57-01): TEXT + CHECK used for customer_profiles.account_type (not Postgres ENUM) — stays alterable, matches existing bookings status/source pattern.
+- v2.0 (57-01): No DELETE RLS policy on customer_profiles — row removal via ON DELETE CASCADE from auth.users only.
+- v2.0 (57-01): Migration 045 adds no RLS to bookings — deferred to Phase 60 (auth-in-checkout).
 - v2.0: Customer auth reuses Supabase Auth (GoTrue) — same stack as admin; add Google + Apple OAuth. No new auth library.
 - v2.0: Bookings stay anonymous-capable; add nullable `user_id` FK so guest checkout never breaks.
 - v2.0: Existing booking wizard is already structurally Blacklane-like (6 steps) — redesign is visual + behavioural, preserve store (`lib/booking-store.ts`) and pricing APIs.
@@ -76,6 +79,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-10T12:57:18.240Z
-Stopped at: Phase 57 context gathered
-Resume file: .planning/phases/57-customer-auth-foundation/57-CONTEXT.md
+Last session: 2026-06-11T14:27:00Z
+Stopped at: Phase 57 Plan 01 complete
+Resume file: .planning/phases/57-customer-auth-foundation/57-02-PLAN.md
