@@ -6,8 +6,14 @@ import { createClient } from '@/lib/supabase/server'
 // Open-redirect guard (mirrors the one in app/login/actions.ts)
 // ---------------------------------------------------------------------------
 
+// Keep this in sync with safeReturnTo in app/login/actions.ts.
+// Rejects absolute URLs, protocol-relative `//evil.com`, and the backslash
+// form `/\evil.com` that Chromium-family browsers normalize to `//evil.com`.
 function safeReturnTo(raw: string | null): string {
-  return raw && raw.startsWith('/') && !raw.startsWith('//')
+  return raw &&
+    raw.startsWith('/') &&
+    !raw.startsWith('//') &&
+    !raw.startsWith('/\\')
     ? raw
     : '/account'
 }
