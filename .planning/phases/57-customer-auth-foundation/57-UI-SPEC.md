@@ -49,8 +49,8 @@ Declared values (multiples of 4):
 
 | Token | Value | Usage |
 |-------|-------|-------|
-| xs | 4px | Icon gaps, label-to-input gap (6px exception below) |
-| sm | 8px | Inline badge padding, wordmark spacing |
+| xs | 4px | Icon gaps |
+| sm | 8px | Inline badge padding, wordmark spacing, label-to-input gap (exception below) |
 | md | 16px | Input-to-input vertical gap, form field spacing |
 | lg | 24px | Button-to-field gap, form section breaks |
 | xl | 32px | Card internal padding (horizontal), page section breaks |
@@ -58,7 +58,7 @@ Declared values (multiples of 4):
 | 3xl | 64px | — |
 
 Exceptions:
-- Label-to-input gap: **6px** (matches existing admin login pattern — `marginBottom: '6px'` on labels)
+- Label-to-input gap: **8px (sm)** — applies to customer `/login` form only; admin login retains its existing 6px inline style, which is out of scope for Phase 57.
 - Touch targets: **44px min-height** on all interactive elements (CTA buttons, OAuth buttons, sign-out link) — WCAG 2.5.5 / Apple HIG, enforced by `.btn-primary` and `.btn-ghost` via `min-height: 44px`
 
 ---
@@ -75,6 +75,8 @@ All typography mirrors established site patterns extracted from `app/globals.css
 | Caption / helper text | Montserrat | 12px | 300 | 1.5 | 0.0em |
 
 Exactly 4 sizes (28, 14, 12, 11px). Exactly 2 weights (400 regular, 300 light).
+
+> **Note — 11px vs 12px distinction:** The 11px section/form labels are only 1px smaller than the 12px caption/helper text. To maintain visual hierarchy, 11px labels MUST use `text-transform: uppercase` and `letter-spacing: 0.18em` at all times. Do NOT render 11px labels in mixed-case without letter-spacing — they will be indistinguishable from 12px caption text.
 
 ---
 
