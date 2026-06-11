@@ -13,11 +13,16 @@ import type { Provider } from '@supabase/supabase-js'
 
 /**
  * Validate a `return-to` param before using it as a redirect destination.
- * Only relative paths starting with `/` (and NOT `//`) are trusted.
- * Absolute URLs and protocol-relative paths fall back to `/account`.
+ * Only same-origin relative paths are trusted: must start with a single `/`
+ * and NOT be protocol-relative. Both `//evil.com` and `/\evil.com` (which
+ * Chromium-family browsers normalize to `//evil.com` → external origin) are
+ * rejected. Absolute URLs and any backslash form fall back to `/account`.
  */
 export function safeReturnTo(raw: string | null): string {
-  return raw && raw.startsWith('/') && !raw.startsWith('//')
+  return raw &&
+    raw.startsWith('/') &&
+    !raw.startsWith('//') &&
+    !raw.startsWith('/\\')
     ? raw
     : '/account'
 }
@@ -170,6 +175,14 @@ export async function sendPasswordReset(
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const ip = await getIp()
+  const rl = await checkRateLimit('/login', ip, { failClosed: false })
+  if (!rl.allowed) {
+    // Same generic success response as below to avoid leaking rate-limit state
+    // for enumeration; the email simply isn't sent when throttled.
+    return { success: true }
+  }
+
   const email = formData.get('email') as string
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -198,12 +211,45 @@ export async function customerSignOut(): Promise<void> {
 }
 
 // ---------------------------------------------------------------------------
-// ACCT-04: saveBookingWithUserId — passes user_id through to bookings insert
+// ACCT-04: saveBookingWithUserId — links a booking to the CURRENT user
 // ---------------------------------------------------------------------------
 
+/**
+ * Insert a booking row linked to the authenticated user.
+ *
+ * Ownership is NEVER trusted from the caller: any `user_id` present in
+ * `bookingRow` is stripped and replaced with the id derived from the active
+ * server session (`getUser()`). bookings has no customer-facing RLS yet
+ * (deferred to Phase 60), so this server-side derivation is the only thing
+ * preventing a caller from linking a booking to another user's id.
+ *
+ * Returns `{ error }` on failure (no session, or insert error) so callers can
+ * react instead of silently dropping the write.
+ */
 export async function saveBookingWithUserId(
   bookingRow: Record<string, unknown>
-): Promise<void> {
+): Promise<{ error?: string }> {
   const supabase = await createClient()
-  await supabase.from('bookings').insert(bookingRow)
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { error: 'Not authenticated.' }
+  }
+
+  // Strip any caller-supplied user_id; ownership comes from the session only.
+  const { user_id: _ignored, ...rest } = bookingRow
+  void _ignored
+
+  const { error } = await supabase
+    .from('bookings')
+    .insert({ ...rest, user_id: user.id })
+
+  if (error) {
+    return { error: 'Could not save booking.' }
+  }
+
+  return {}
 }

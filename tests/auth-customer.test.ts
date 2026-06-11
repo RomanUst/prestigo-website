@@ -20,6 +20,7 @@ const {
   mockSignInWithOAuth,
   mockSignUp,
   mockSignOut,
+  mockGetUser,
   mockUpsert,
   mockInsert,
   mockFrom,
@@ -31,6 +32,7 @@ const {
   const mockSignInWithOAuth = vi.fn()
   const mockSignUp = vi.fn()
   const mockSignOut = vi.fn()
+  const mockGetUser = vi.fn()
   const mockUpsert = vi.fn()
   const mockInsert = vi.fn()
   const mockFrom = vi.fn(() => ({ upsert: mockUpsert, insert: mockInsert }))
@@ -44,6 +46,7 @@ const {
     mockSignInWithOAuth,
     mockSignUp,
     mockSignOut,
+    mockGetUser,
     mockUpsert,
     mockInsert,
     mockFrom,
@@ -64,6 +67,7 @@ vi.mock('@/lib/supabase/server', () => ({
       signInWithOAuth: mockSignInWithOAuth,
       signUp: mockSignUp,
       signOut: mockSignOut,
+      getUser: mockGetUser,
     },
     from: mockFrom,
   }),
@@ -286,25 +290,81 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
   // ACCT-04 — bookings insert with user_id populated
   // -------------------------------------------------------------------------
   describe('ACCT-04: bookings insert with user_id', () => {
-    it('a booking insert that includes user_id is passed to Supabase from(bookings).insert()', async () => {
-      // This test verifies that the booking row builder / saveBooking does NOT
-      // strip user_id when it is provided, so logged-in bookings can be linked.
-      // The insert call should receive a row containing user_id.
+    it('links the booking to the authenticated user derived from the session', async () => {
+      // Ownership comes from the server session (getUser), so a logged-in
+      // booking is linked to the current user — never to a caller-supplied id.
       const { saveBookingWithUserId } = await import('@/app/login/actions')
 
+      mockGetUser.mockResolvedValue({
+        data: { user: { id: 'session-user-uuid' } },
+      })
       mockInsert.mockResolvedValue({ data: [{ id: 'booking-uuid' }], error: null })
 
       const bookingRow = {
         booking_reference: 'PRG-TEST-001',
-        user_id: 'user-uuid-booking',
         amount_czk: 1500,
       }
-      await saveBookingWithUserId(bookingRow)
+      const result = await saveBookingWithUserId(bookingRow)
 
+      expect(result.error).toBeUndefined()
       expect(mockFrom).toHaveBeenCalledWith('bookings')
       expect(mockInsert).toHaveBeenCalledWith(
-        expect.objectContaining({ user_id: 'user-uuid-booking' })
+        expect.objectContaining({ user_id: 'session-user-uuid' })
       )
+    })
+
+    it('SECURITY: a caller-supplied user_id cannot override the session user (no ownership forgery)', async () => {
+      const { saveBookingWithUserId } = await import('@/app/login/actions')
+
+      mockGetUser.mockResolvedValue({
+        data: { user: { id: 'session-user-uuid' } },
+      })
+      mockInsert.mockResolvedValue({ data: [{ id: 'booking-uuid' }], error: null })
+
+      // Attacker tries to attribute the booking to a victim.
+      await saveBookingWithUserId({
+        booking_reference: 'PRG-TEST-002',
+        user_id: 'victim-uuid',
+      })
+
+      const inserted = mockInsert.mock.calls[0][0]
+      expect(inserted.user_id).toBe('session-user-uuid')
+      expect(inserted.user_id).not.toBe('victim-uuid')
+    })
+
+    it('returns an error and does not insert when there is no authenticated session', async () => {
+      const { saveBookingWithUserId } = await import('@/app/login/actions')
+
+      mockGetUser.mockResolvedValue({ data: { user: null } })
+
+      const result = await saveBookingWithUserId({
+        booking_reference: 'PRG-TEST-003',
+      })
+
+      expect(result.error).toBeDefined()
+      expect(mockInsert).not.toHaveBeenCalled()
+    })
+  })
+
+  // -------------------------------------------------------------------------
+  // SECURITY — safeReturnTo open-redirect guard
+  // -------------------------------------------------------------------------
+  describe('safeReturnTo open-redirect guard', () => {
+    it('accepts a same-origin relative path', async () => {
+      const { safeReturnTo } = await import('@/app/login/actions')
+      expect(safeReturnTo('/booking/confirm')).toBe('/booking/confirm')
+    })
+
+    it('rejects absolute URLs and protocol-relative paths', async () => {
+      const { safeReturnTo } = await import('@/app/login/actions')
+      expect(safeReturnTo('https://evil.com')).toBe('/account')
+      expect(safeReturnTo('//evil.com')).toBe('/account')
+      expect(safeReturnTo(null)).toBe('/account')
+    })
+
+    it('SECURITY: rejects the backslash form /\\evil.com (browser-normalized to //evil.com)', async () => {
+      const { safeReturnTo } = await import('@/app/login/actions')
+      expect(safeReturnTo('/\\evil.com')).toBe('/account')
     })
   })
 })

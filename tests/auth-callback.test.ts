@@ -218,6 +218,23 @@ describe('GET /auth/callback (AUTH-06)', () => {
       expect(location).not.toMatch(/evil\.com/)
       expect(new URL(location!).pathname).toBe('/account')
     })
+
+    it('SECURITY: return-to=/\\evil.com (backslash, browser-normalized to //evil.com) is rejected', async () => {
+      mockExchangeCodeForSession.mockResolvedValue({
+        data: { user: { id: 'user-safe3-uuid' } },
+        error: null,
+      })
+      mockUpsert.mockResolvedValue({ error: null })
+
+      const request = makeRequest(
+        'https://prestigo.cz/auth/callback?code=valid3&return-to=%2F%5Cevil.com'
+      )
+      const response = await GET(request)
+
+      const location = response.headers.get('location')
+      expect(location).not.toMatch(/evil\.com/)
+      expect(new URL(location!).pathname).toBe('/account')
+    })
   })
 
   // -------------------------------------------------------------------------
