@@ -1,27 +1,20 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
-
-// ---------------------------------------------------------------------------
-// Open-redirect guard (mirrors the one in app/login/actions.ts)
-// ---------------------------------------------------------------------------
-
-// Keep this in sync with safeReturnTo in app/login/actions.ts.
-// Rejects absolute URLs, protocol-relative `//evil.com`, and the backslash
-// form `/\evil.com` that Chromium-family browsers normalize to `//evil.com`.
-function safeReturnTo(raw: string | null): string {
-  return raw &&
-    raw.startsWith('/') &&
-    !raw.startsWith('//') &&
-    !raw.startsWith('/\\')
-    ? raw
-    : '/account'
-}
+import { safeReturnTo } from '@/app/login/auth-helpers'
 
 // ---------------------------------------------------------------------------
 // Profile upsert helper
 // ---------------------------------------------------------------------------
 
+// Create-if-missing only (WR-04): `ignoreDuplicates: true` compiles to
+// INSERT ... ON CONFLICT DO NOTHING. This is intentional, NOT a missed
+// reconciliation. OAuth providers (Google/Apple) don't carry our
+// account_type/company_name in user_metadata, so reconciling on every sign-in
+// would overwrite a corporate profile — set during email signup — with the
+// 'personal'/null defaults below. The email-signup action remains the
+// authoritative writer of those fields; this callback only backfills a profile
+// row when one doesn't exist yet.
 async function upsertProfile(
   supabase: Awaited<ReturnType<typeof createClient>>,
   user: { id: string; user_metadata?: Record<string, unknown> }

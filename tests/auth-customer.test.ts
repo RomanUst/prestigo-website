@@ -192,7 +192,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       // constructs the OAuth options (exported from @/app/login/actions or
       // @/components/auth/OAuthButtons as buildOAuthOptions).
       // If the export shape changes in Plan 02, update the import here.
-      const { buildOAuthOptions } = await import('@/app/login/actions')
+      const { buildOAuthOptions } = await import('@/app/login/auth-helpers')
 
       const opts = buildOAuthOptions('google', 'https://prestigo.cz')
       expect(opts.provider).toBe('google')
@@ -205,7 +205,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
   // -------------------------------------------------------------------------
   describe('AUTH-03: signInWithOAuth Apple', () => {
     it('signInWithOAuth is called with provider apple and redirectTo path /auth/callback', async () => {
-      const { buildOAuthOptions } = await import('@/app/login/actions')
+      const { buildOAuthOptions } = await import('@/app/login/auth-helpers')
 
       const opts = buildOAuthOptions('apple', 'https://prestigo.cz')
       expect(opts.provider).toBe('apple')
@@ -351,19 +351,19 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
   // -------------------------------------------------------------------------
   describe('safeReturnTo open-redirect guard', () => {
     it('accepts a same-origin relative path', async () => {
-      const { safeReturnTo } = await import('@/app/login/actions')
+      const { safeReturnTo } = await import('@/app/login/auth-helpers')
       expect(safeReturnTo('/booking/confirm')).toBe('/booking/confirm')
     })
 
     it('rejects absolute URLs and protocol-relative paths', async () => {
-      const { safeReturnTo } = await import('@/app/login/actions')
+      const { safeReturnTo } = await import('@/app/login/auth-helpers')
       expect(safeReturnTo('https://evil.com')).toBe('/account')
       expect(safeReturnTo('//evil.com')).toBe('/account')
       expect(safeReturnTo(null)).toBe('/account')
     })
 
     it('SECURITY: rejects the backslash form /\\evil.com (browser-normalized to //evil.com)', async () => {
-      const { safeReturnTo } = await import('@/app/login/actions')
+      const { safeReturnTo } = await import('@/app/login/auth-helpers')
       expect(safeReturnTo('/\\evil.com')).toBe('/account')
     })
   })
