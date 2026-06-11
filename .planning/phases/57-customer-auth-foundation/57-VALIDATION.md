@@ -1,7 +1,7 @@
 ---
 phase: 57
 slug: customer-auth-foundation
-status: partial
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-06-11
@@ -48,8 +48,8 @@ updated: 2026-06-11
 | T2 (57-02) | 02 | 1 | AUTH-01,02,03,04,07 | T-57-05,08,09,10 | Server actions: sendMagicLink, signInWithPassword, signUpWithPassword, buildOAuthOptions, customerSignOut | unit | `npx vitest run tests/auth-customer.test.ts` | ✅ | ✅ green (10/10) |
 | T2 (57-02) | 02 | 1 | AUTH-06 | T-57-05 | Callback: code exchange, token_hash, open-redirect guard | unit | `npx vitest run tests/auth-callback.test.ts` | ✅ | ✅ green (8/8) |
 | ACCT-04 | 02 | 1 | ACCT-04 | T-57-03 | Anonymous booking regression — user_id NULL succeeds | unit | `npx vitest run tests/webhooks-stripe.test.ts` | ✅ | ✅ green (24/24) |
-| T1 (57-03) | 03 | 2 | AUTH-06, ACCT-04 | T-57-13,14 | Live DB: 044+045 applied, RLS policies confirmed | integration | Supabase MCP execute_sql | ❌ pending | ⬜ pending — needs migration |
-| T2 (57-03) | 03 | 2 | AUTH-06 | T-57-14 | RLS cross-row isolation confirmed via policy query | integration | Supabase MCP execute_sql | ❌ pending | ⬜ pending — needs migration |
+| T1 (57-03) | 03 | 2 | AUTH-06, ACCT-04 | T-57-13,14 | Live DB: 044+045 applied, RLS policies confirmed | integration | Supabase MCP execute_sql | ✅ | ✅ green (applied 2026-06-11) |
+| T2 (57-03) | 03 | 2 | AUTH-06 | T-57-14 | RLS cross-row isolation confirmed via policy query | integration | Supabase MCP execute_sql | ✅ | ✅ green (3 own-row policies, auth.uid()=user_id) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -97,20 +97,20 @@ updated: 2026-06-11
 
 ---
 
-## Plan 03 Status (Live DB Migration — PENDING HUMAN ACTION)
+## Plan 03 Status (Live DB Migration — ✅ APPLIED 2026-06-11)
 
-**Status:** ⬜ BLOCKED — Supabase MCP tools not available in CLI agent context.
+**Status:** ✅ COMPLETE — migrations applied to live DB via Supabase MCP (project `enakcryrtxlnjvjutfpv`).
 
-**What's pending:**
-- Apply migration 044 (`supabase/migrations/044_customer_profiles.sql`) to live DB
-- Apply migration 045 (`supabase/migrations/045_bookings_user_id.sql`) to live DB  
-- Verify via `execute_sql`: `customer_profiles` table exists + 3 RLS policies + `bookings.user_id` nullable
-- Regenerate `types/database.types.ts` from live schema
-
-**How to unblock:**
-Option A — Supabase Dashboard: Go to `https://supabase.com/dashboard/project/enakcryrtxlnjvjutfpv/sql/new` and run each migration file's contents.
-Option B — Supabase CLI: `npx supabase db push --project-id enakcryrtxlnjvjutfpv` (requires `supabase login` first).
-Option C — Provide PAT: Set `SUPABASE_ACCESS_TOKEN` in `.env.local` then re-run Plan 03.
+**What was done:**
+- ✅ bookings RLS pre-check: `relrowsecurity = true` with 4 deny-anon policies (delete/insert/select/update). Anonymous booking inserts are unaffected because `saveBooking()` uses the service-role client, which bypasses RLS.
+- ✅ Applied migration 044 (`customer_profiles` table + 3 own-row RLS policies). `apply_migration` returned `{success:true}`.
+- ✅ Applied migration 045 (`bookings.user_id` nullable FK + partial index). `apply_migration` returned `{success:true}`.
+- ✅ Verified live schema via `execute_sql`:
+  - `customer_profiles` columns present: id, user_id (UNIQUE, NOT NULL), account_type (NOT NULL), company_name (nullable), created_at, updated_at.
+  - `bookings.user_id` exists, `is_nullable = YES`.
+  - 3 policies: `customer_profiles_select_own`, `_insert_own`, `_update_own`, all using `(SELECT auth.uid()) = user_id`.
+  - Anonymous-booking regression: 16 existing bookings, 0 with user_id, latest row (`PRG-20260429-CE8CA5`) reads back fine — no write path forced to supply user_id.
+- ✅ Regenerated `types/database.types.ts` from live schema (contains `customer_profiles` + `bookings.user_id`). `npx tsc --noEmit` green.
 
 ---
 
@@ -122,7 +122,7 @@ Option C — Provide PAT: Set `SUPABASE_ACCESS_TOKEN` in `.env.local` then re-ru
 - [x] No watch-mode flags
 - [x] Feedback latency < 30s
 - [x] `nyquist_compliant: true` set in frontmatter
-- [ ] Live DB migrations applied (pending Plan 03 Task 1 unblock)
-- [ ] Types regenerated from live schema (pending Plan 03 Task 1 unblock)
+- [x] Live DB migrations applied (Plan 03 Task 1 — 044+045 applied 2026-06-11)
+- [x] Types regenerated from live schema (Plan 03 Task 1 — types/database.types.ts)
 
-**Approval:** wave_0_complete — automated suite passes. Live DB step pending.
+**Approval:** wave_0_complete + live DB migrated. Automated suite green (49/49 phase tests). Remaining: manual OAuth + email round-trip verification (Plan 03 Task 3 checkpoint).
