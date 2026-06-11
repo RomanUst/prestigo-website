@@ -1,10 +1,11 @@
 ---
 phase: 57
 slug: customer-auth-foundation
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-06-11
+reviewed_at: 2026-06-11
 ---
 
 # Phase 57 — UI Design Contract
