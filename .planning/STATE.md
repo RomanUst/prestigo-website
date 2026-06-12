@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Blacklane-style Booking + Customer Accounts
 status: executing
-stopped_at: Phase 58 UI-SPEC approved
-last_updated: "2026-06-12T06:41:51.766Z"
+stopped_at: Completed 58-02-PLAN.md
+last_updated: "2026-06-12T06:50:21.517Z"
 last_activity: 2026-06-12 -- Phase 58 execution started
 progress:
   total_phases: 8
   completed_phases: 4
   total_plans: 17
-  completed_plans: 13
+  completed_plans: 14
   percent: 50
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 58 (sign-in-ui-account-dashboard) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-06-12 -- Phase 58 execution started
 
@@ -52,6 +52,7 @@ Recent decisions affecting current work:
 - v2.0 (57-02): signUpWithPassword upserts customer_profiles whenever data.user exists (not conditional on session) — idempotent via ignoreDuplicates in callback.
 - [Phase ?]: Wave-0 TDD: NAV-02 test uses role=button+name=/account/i to distinguish account trigger from burger button
 - [Phase ?]: Wave-0 TDD: deletePassenger/updatePassenger ownership tested via dual eq() call tracking with separate mockEqDelete/mockEqUpdate instances
+- [Phase ?]: v2.0 (58-02): saved_passengers includes DELETE RLS policy (deliberate contrast with customer_profiles) + partial unique index WHERE is_default=true for DB-enforced single-default
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -84,9 +85,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-12T06:41:51.751Z
-Stopped at: Phase 58 UI-SPEC approved
-Resume file: .planning/phases/58-sign-in-ui-account-dashboard/58-UI-SPEC.md
+Last session: 2026-06-12T06:50:21.502Z
+Stopped at: Completed 58-02-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -94,3 +95,4 @@ Resume file: .planning/phases/58-sign-in-ui-account-dashboard/58-UI-SPEC.md
 |-------|------|----------|-------|
 | Phase 57 P02 | 629 | 3 tasks | 9 files |
 | Phase 58 P01 | 322 | 2 tasks | 4 files |
+| Phase 58 P02 | 45min | 3 tasks | 3 files |
