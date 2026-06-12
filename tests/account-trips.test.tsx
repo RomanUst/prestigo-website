@@ -9,7 +9,7 @@
  * stage — that is the intended RED result.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -44,6 +44,11 @@ import AccountTripsPage from '@/app/account/trips/page'
 // ---------------------------------------------------------------------------
 
 describe('AccountTripsPage — empty state (ACCT-01)', () => {
+  afterEach(async () => {
+    const { cleanup } = await import('@testing-library/react')
+    cleanup()
+  })
+
   beforeEach(() => {
     vi.clearAllMocks()
 
