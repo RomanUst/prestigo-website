@@ -128,8 +128,8 @@ Plans:
 
 - [x] 58-01-PLAN.md — Wave 0: RED test scaffolds (nav-auth, account-trips, profile-actions, passenger-actions)
 - [x] 58-02-PLAN.md — Wave 1: migrations 047 (profile/corporate fields) + 048 (saved_passengers) + schema push + type regen [BLOCKING]
-- [ ] 58-03-PLAN.md — Wave 1: auth-aware Nav (guest Sign in + signed-in account dropdown, desktop + mobile)
-- [ ] 58-04-PLAN.md — Wave 1: /account overview + /account/trips empty-state shell
+- [x] 58-03-PLAN.md — Wave 1: auth-aware Nav (guest Sign in + signed-in account dropdown, desktop + mobile)
+- [x] 58-04-PLAN.md — Wave 1: /account overview + /account/trips empty-state shell
 - [ ] 58-05-PLAN.md — Wave 2: profile server actions + /account/profile + ProfileForm (contact, corporate, saved passengers)
 
 **UI hint**: yes
@@ -194,7 +194,7 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
 | 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
-| 58. Sign-in UI + Account Dashboard | 2/5 | In Progress|  |
+| 58. Sign-in UI + Account Dashboard | 4/5 | In Progress|  |
 | 59. Booking Flow Redesign (Blacklane) | 0/? | Not started | - |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
 | 61. Analytics Preservation & E2E Verify | 0/? | Not started | - |
