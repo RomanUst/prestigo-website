@@ -24,7 +24,7 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 **Milestone Goal:** Customers can sign in (email + Google + Apple), manage a personal or corporate account with a "My trips" dashboard, and complete a redesigned Blacklane-style booking flow — with optional in-checkout sign-in, bookings linked to `user_id`, guest checkout always available, and zero analytics regression.
 
 - [x] **Phase 57: Customer Auth Foundation** - Supabase Auth for customers (email + Google + Apple OAuth), migration 044_customer_profiles.sql, nullable user_id FK on bookings, customer/admin session split (completed 2026-06-11)
-- [ ] **Phase 58: Sign-in UI + Account Dashboard** - Auth-aware Sign in button in Nav, login/signup pages, "My trips" dashboard, profile editing, personal/corporate fields
+- [x] **Phase 58: Sign-in UI + Account Dashboard** - Auth-aware Sign in button in Nav, login/signup pages, "My trips" dashboard, profile editing, personal/corporate fields (completed 2026-06-12)
 - [ ] **Phase 59: Booking Flow Redesign (Blacklane)** - Unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs — store, pricing APIs, and analytics preserved
 - [ ] **Phase 60: Auth-in-Checkout + Guest Path** - Booking-method step (myself / guest / corporate book-for-a-guest), pre-fill for logged-in customers, link booking to user_id, guest always available
 - [ ] **Phase 61: Analytics Preservation & E2E Verify** - End-to-end verification every GA4/Meta/CAPI event fires across the rebuilt flow on both guest and account paths, incl. login/sign_up, nonce, consent
@@ -130,7 +130,7 @@ Plans:
 - [x] 58-02-PLAN.md — Wave 1: migrations 047 (profile/corporate fields) + 048 (saved_passengers) + schema push + type regen [BLOCKING]
 - [x] 58-03-PLAN.md — Wave 1: auth-aware Nav (guest Sign in + signed-in account dropdown, desktop + mobile)
 - [x] 58-04-PLAN.md — Wave 1: /account overview + /account/trips empty-state shell
-- [ ] 58-05-PLAN.md — Wave 2: profile server actions + /account/profile + ProfileForm (contact, corporate, saved passengers)
+- [x] 58-05-PLAN.md — Wave 2: profile server actions + /account/profile + ProfileForm (contact, corporate, saved passengers)
 
 **UI hint**: yes
 
@@ -194,7 +194,7 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
 | 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
-| 58. Sign-in UI + Account Dashboard | 4/5 | In Progress|  |
+| 58. Sign-in UI + Account Dashboard | 5/5 | Complete   | 2026-06-12 |
 | 59. Booking Flow Redesign (Blacklane) | 0/? | Not started | - |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
 | 61. Analytics Preservation & E2E Verify | 0/? | Not started | - |

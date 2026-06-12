@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Blacklane-style Booking + Customer Accounts
-status: executing
-stopped_at: Completed 58-04-PLAN.md
-last_updated: "2026-06-12T17:41:35.831Z"
+status: verifying
+stopped_at: Completed 58-05-PLAN.md
+last_updated: "2026-06-12T17:51:50.444Z"
 last_activity: 2026-06-12 -- Phase 58 execution started
 progress:
   total_phases: 8
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 17
-  completed_plans: 16
-  percent: 50
+  completed_plans: 17
+  percent: 63
 ---
 
 # Project State
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 Phase: 58 (sign-in-ui-account-dashboard) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-06-12 -- Phase 58 execution started
 
 Progress: [█████████░] 92%
@@ -54,6 +54,7 @@ Recent decisions affecting current work:
 - [Phase ?]: Wave-0 TDD: deletePassenger/updatePassenger ownership tested via dual eq() call tracking with separate mockEqDelete/mockEqUpdate instances
 - [Phase ?]: v2.0 (58-02): saved_passengers includes DELETE RLS policy (deliberate contrast with customer_profiles) + partial unique index WHERE is_default=true for DB-enforced single-default
 - [Phase ?]: v2.0 (58-04): D-01 enforced — /account/trips makes no bookings query; trip history deferred to Phase 60
+- [Phase ?]: v2.0 (58-05): Server actions in separate app/account/actions.ts — account mutations isolated from login actions
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -86,8 +87,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-12T17:41:35.822Z
-Stopped at: Completed 58-04-PLAN.md
+Last session: 2026-06-12T17:51:50.436Z
+Stopped at: Completed 58-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -99,3 +100,4 @@ Resume file: None
 | Phase 58 P02 | 45min | 3 tasks | 3 files |
 | Phase 58 P03 | 5min | 2 tasks | 1 file |
 | Phase 58 P04 | 2min | 2 tasks | 3 files |
+| Phase Phase 58 PP05 | 7min | 4 tasks | 4 files |
