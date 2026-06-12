@@ -104,10 +104,21 @@ function makeFormData(fields: Record<string, string>): FormData {
 describe('Passenger server actions — addPassenger, updatePassenger, deletePassenger (ACCT-02)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset mocks to successful defaults
+    // Reset mocks to successful defaults.
+    // mockEqDelete supports chaining: .eq(id).eq(user_id).
+    // It returns an object with { eq: mockEqDelete } so the chain can continue,
+    // AND it is thenable (has a .then that resolves { error: null }) so the last
+    // .eq() in the chain can be awaited.
+    mockEqDelete.mockReturnValue({
+      eq: mockEqDelete,
+      then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
+    })
+    // mockEqUpdate supports the same double-eq pattern for updatePassenger.
+    mockEqUpdate.mockReturnValue({
+      eq: mockEqUpdate,
+      then: (resolve: (v: { error: null }) => void) => resolve({ error: null }),
+    })
     mockInsert.mockResolvedValue({ error: null })
-    mockEqDelete.mockResolvedValue({ error: null })
-    mockEqUpdate.mockResolvedValue({ error: null })
     mockDelete.mockReturnValue({ eq: mockEqDelete })
     mockUpdate.mockReturnValue({ eq: mockEqUpdate })
     mockFrom.mockReturnValue({
