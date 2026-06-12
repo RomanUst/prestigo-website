@@ -117,10 +117,10 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 **Success Criteria** (what must be TRUE):
 
   1. The header on both desktop and mobile shows a **Sign in** button (placed before "Book now") for logged-out visitors, and replaces it with an account/sign-out affordance when the customer is logged in
-  2. Dedicated login and signup pages let a customer authenticate by email and by Google/Apple, and choose personal vs corporate during registration
-  3. The "My trips" page lists the logged-in customer's booking history (bookings linked to their `user_id`), and shows an appropriate empty state when there are none
+  2. _(Delivered in Phase 57.)_ Dedicated login and signup pages let a customer authenticate by email and by Google/Apple, and choose personal vs corporate during registration — the `/login` route, OAuth, and `customer_profiles` shipped in Phase 57; Phase 58 only links the header to them
+  3. The "My trips" page shows an appropriate empty state when there are no trips. _Phase 58 scope: UI shell + empty state only; real booking-history listing (bookings linked to `user_id`) is deferred to **Phase 60** per D-01 / migration `045`_
   4. A customer can view and edit their profile (contact details, saved passenger info) and changes persist across sessions
-  5. A corporate account exposes and saves the extra fields (company name, IČO/VAT, cost centre) and surfaces a "book for a guest" option that personal accounts do not see
+  5. A corporate account exposes and saves the core extra fields (company name, IČO, DIČ/VAT), shown only to corporate accounts. _Cost centre and the "book for a guest" option are out of Phase 58 scope per D-04 — cost centre → later B2B phase; "book for a guest" → **Phase 59** (BOOK-06), a booking-time action_
 
 **Plans**: 5 plans
 

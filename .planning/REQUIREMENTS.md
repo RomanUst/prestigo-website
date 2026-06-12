@@ -25,9 +25,9 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 ## ACCT — Account Dashboard
 
-- [ ] **ACCT-01**: "My trips" page lists the logged-in customer's booking history (bookings linked to `user_id`)
+- [ ] **ACCT-01**: "My trips" page exists and presents the booking-history surface for the logged-in customer with an appropriate empty state. _Phase 58 scope: UI shell + empty state only. Real history listing (bookings linked to `user_id`) is deferred to **Phase 60** per D-01 / migration `045` header comment._
 - [ ] **ACCT-02**: Customer can view and edit their profile (contact details, saved passenger info)
-- [ ] **ACCT-03**: Corporate account exposes extra fields — company name, IČO/VAT, cost centre — and a "book for a guest" option
+- [ ] **ACCT-03**: Corporate account exposes and saves the core corporate fields — company name, IČO, DIČ/VAT — shown only when `account_type = corporate`. _Cost centre and the "book for a guest" option are deferred (cost centre → later B2B phase; "book for a guest" → **Phase 59** BOOK-06, a booking-time action) per D-04._
 - [x] **ACCT-04**: New bookings made by a logged-in customer are linked to their `user_id` via a nullable FK on `bookings`; anonymous/guest bookings remain valid and unaffected
 
 ## BOOK — Booking Flow Redesign (Blacklane UI/UX)
