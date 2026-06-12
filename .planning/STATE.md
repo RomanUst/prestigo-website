@@ -4,13 +4,13 @@ milestone: v2.0
 milestone_name: Blacklane-style Booking + Customer Accounts
 status: executing
 stopped_at: Phase 58 UI-SPEC approved
-last_updated: "2026-06-12T05:55:40.526Z"
-last_activity: 2026-06-11
+last_updated: "2026-06-12T06:41:51.766Z"
+last_activity: 2026-06-12 -- Phase 58 execution started
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 17
+  completed_plans: 13
   percent: 50
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 57 — customer-auth-foundation
+**Current focus:** Phase 58 — sign-in-ui-account-dashboard
 
 ## Current Position
 
-Phase: 58
-Plan: Not started
-Status: Executing Phase 57
-Last activity: 2026-06-11
+Phase: 58 (sign-in-ui-account-dashboard) — EXECUTING
+Plan: 2 of 5
+Status: Ready to execute
+Last activity: 2026-06-12 -- Phase 58 execution started
 
 Progress: [█████████░] 92%
 
@@ -50,6 +50,8 @@ Recent decisions affecting current work:
 - v2.0 (57-02): safeReturnTo() open-redirect guard: relative-only, rejects absolute URLs and // — used in both app/login/actions.ts and app/auth/callback/route.ts.
 - v2.0 (57-02): NextResponse.redirect in callback uses explicit { status: 302 } — Next.js defaults to 307 which breaks OAuth/email confirmation redirects.
 - v2.0 (57-02): signUpWithPassword upserts customer_profiles whenever data.user exists (not conditional on session) — idempotent via ignoreDuplicates in callback.
+- [Phase ?]: Wave-0 TDD: NAV-02 test uses role=button+name=/account/i to distinguish account trigger from burger button
+- [Phase ?]: Wave-0 TDD: deletePassenger/updatePassenger ownership tested via dual eq() call tracking with separate mockEqDelete/mockEqUpdate instances
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -82,7 +84,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-12T05:55:40.514Z
+Last session: 2026-06-12T06:41:51.751Z
 Stopped at: Phase 58 UI-SPEC approved
 Resume file: .planning/phases/58-sign-in-ui-account-dashboard/58-UI-SPEC.md
 
@@ -91,3 +93,4 @@ Resume file: .planning/phases/58-sign-in-ui-account-dashboard/58-UI-SPEC.md
 | Phase | Plan | Duration | Notes |
 |-------|------|----------|-------|
 | Phase 57 P02 | 629 | 3 tasks | 9 files |
+| Phase 58 P01 | 322 | 2 tasks | 4 files |

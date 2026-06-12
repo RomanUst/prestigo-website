@@ -20,14 +20,14 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 ## NAV — Header
 
-- [ ] **NAV-01**: Header (desktop + mobile) has a **Sign in** button that routes to the customer login page, placed before the existing "Book now" CTA in `components/Nav.tsx`
-- [ ] **NAV-02**: When a customer is logged in, the header shows an account/sign-out affordance instead of "Sign in"
+- [x] **NAV-01**: Header (desktop + mobile) has a **Sign in** button that routes to the customer login page, placed before the existing "Book now" CTA in `components/Nav.tsx`
+- [x] **NAV-02**: When a customer is logged in, the header shows an account/sign-out affordance instead of "Sign in"
 
 ## ACCT — Account Dashboard
 
-- [ ] **ACCT-01**: "My trips" page exists and presents the booking-history surface for the logged-in customer with an appropriate empty state. _Phase 58 scope: UI shell + empty state only. Real history listing (bookings linked to `user_id`) is deferred to **Phase 60** per D-01 / migration `045` header comment._
-- [ ] **ACCT-02**: Customer can view and edit their profile (contact details, saved passenger info)
-- [ ] **ACCT-03**: Corporate account exposes and saves the core corporate fields — company name, IČO, DIČ/VAT — shown only when `account_type = corporate`. _Cost centre and the "book for a guest" option are deferred (cost centre → later B2B phase; "book for a guest" → **Phase 59** BOOK-06, a booking-time action) per D-04._
+- [x] **ACCT-01**: "My trips" page exists and presents the booking-history surface for the logged-in customer with an appropriate empty state. _Phase 58 scope: UI shell + empty state only. Real history listing (bookings linked to `user_id`) is deferred to **Phase 60** per D-01 / migration `045` header comment._
+- [x] **ACCT-02**: Customer can view and edit their profile (contact details, saved passenger info)
+- [x] **ACCT-03**: Corporate account exposes and saves the core corporate fields — company name, IČO, DIČ/VAT — shown only when `account_type = corporate`. _Cost centre and the "book for a guest" option are deferred (cost centre → later B2B phase; "book for a guest" → **Phase 59** BOOK-06, a booking-time action) per D-04._
 - [x] **ACCT-04**: New bookings made by a logged-in customer are linked to their `user_id` via a nullable FK on `bookings`; anonymous/guest bookings remain valid and unaffected
 
 ## BOOK — Booking Flow Redesign (Blacklane UI/UX)
@@ -79,11 +79,11 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 | AUTH-05 | Phase 57 | Complete |
 | AUTH-06 | Phase 57 | Complete |
 | AUTH-07 | Phase 57 | Complete |
-| NAV-01 | Phase 58 | Pending |
-| NAV-02 | Phase 58 | Pending |
-| ACCT-01 | Phase 58 | Pending |
-| ACCT-02 | Phase 58 | Pending |
-| ACCT-03 | Phase 58 | Pending |
+| NAV-01 | Phase 58 | Complete |
+| NAV-02 | Phase 58 | Complete |
+| ACCT-01 | Phase 58 | Complete |
+| ACCT-02 | Phase 58 | Complete |
+| ACCT-03 | Phase 58 | Complete |
 | ACCT-04 | Phase 57 | Complete |
 | BOOK-01 | Phase 59 | Pending |
 | BOOK-02 | Phase 59 | Pending |
