@@ -352,25 +352,37 @@ export type Database = {
           account_type: string
           company_name: string | null
           created_at: string
+          full_name: string | null
+          ico: string | null
           id: string
+          phone: string | null
           updated_at: string
           user_id: string
+          vat_id: string | null
         }
         Insert: {
           account_type?: string
           company_name?: string | null
           created_at?: string
+          full_name?: string | null
+          ico?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
           user_id: string
+          vat_id?: string | null
         }
         Update: {
           account_type?: string
           company_name?: string | null
           created_at?: string
+          full_name?: string | null
+          ico?: string | null
           id?: string
+          phone?: string | null
           updated_at?: string
           user_id?: string
+          vat_id?: string | null
         }
         Relationships: []
       }
@@ -1005,6 +1017,42 @@ export type Database = {
           to_label?: string
           updated_at?: string
           v_class_eur?: number
+        }
+        Relationships: []
+      }
+      saved_passengers: {
+        Row: {
+          created_at: string
+          email: string | null
+          full_name: string
+          id: string
+          is_default: boolean
+          notes: string | null
+          phone: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          phone: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          is_default?: boolean
+          notes?: string | null
+          phone?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
