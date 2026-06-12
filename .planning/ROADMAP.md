@@ -122,7 +122,15 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
   4. A customer can view and edit their profile (contact details, saved passenger info) and changes persist across sessions
   5. A corporate account exposes and saves the extra fields (company name, IČO/VAT, cost centre) and surfaces a "book for a guest" option that personal accounts do not see
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 58-01-PLAN.md — Wave 0: RED test scaffolds (nav-auth, account-trips, profile-actions, passenger-actions)
+- [ ] 58-02-PLAN.md — Wave 1: migrations 047 (profile/corporate fields) + 048 (saved_passengers) + schema push + type regen [BLOCKING]
+- [ ] 58-03-PLAN.md — Wave 1: auth-aware Nav (guest Sign in + signed-in account dropdown, desktop + mobile)
+- [ ] 58-04-PLAN.md — Wave 1: /account overview + /account/trips empty-state shell
+- [ ] 58-05-PLAN.md — Wave 2: profile server actions + /account/profile + ProfileForm (contact, corporate, saved passengers)
+
 **UI hint**: yes
 
 ### Phase 59: Booking Flow Redesign (Blacklane)
