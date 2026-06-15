@@ -6,6 +6,10 @@ import { createClient } from '@/lib/supabase/server'
 // Note: synchronous helpers MUST live in a separate non-'use server' file.
 // A 'use server' module may only export async functions.
 
+// CR-01: Allowlist for account_type — validated before any DB write
+const VALID_ACCOUNT_TYPES = ['personal', 'corporate'] as const
+type AccountType = (typeof VALID_ACCOUNT_TYPES)[number]
+
 // ---------------------------------------------------------------------------
 // ACCT-02, ACCT-03: updateProfile
 // ---------------------------------------------------------------------------
@@ -31,15 +35,25 @@ export async function updateProfile(
   // Explicit field extraction — never spread formData (T-58-14 mass-assignment guard)
   const full_name = formData.get('full_name') as string
   const phone = formData.get('phone') as string
-  const account_type = formData.get('account_type') as string
+  const raw_account_type = formData.get('account_type') as string
   const company_name = (formData.get('company_name') as string) || null
   const ico = (formData.get('ico') as string) || null
   const vat_id = (formData.get('vat_id') as string) || null
 
+  // CR-01: Validate account_type against allowlist before writing to DB
+  if (!VALID_ACCOUNT_TYPES.includes(raw_account_type as AccountType)) {
+    return { error: 'Invalid account type.' }
+  }
+  const account_type: AccountType = raw_account_type as AccountType
+
+  // CR-02: Use upsert so first-time users (no profile row yet) are handled
+  // correctly — .update() silently no-ops when no row matches.
   const { error } = await supabase
     .from('customer_profiles')
-    .update({ full_name, phone, account_type, company_name, ico, vat_id })
-    .eq('user_id', user.id) // RLS enforces this; explicit eq is the additional application-layer guard
+    .upsert(
+      { user_id: user.id, full_name, phone, account_type, company_name, ico, vat_id },
+      { onConflict: 'user_id' }
+    )
 
   if (error) return { error: 'Something went wrong. Please try again.' }
 
@@ -73,8 +87,13 @@ export async function addPassenger(
 
   if (!user) return { error: 'Not authenticated.' }
 
-  const full_name = formData.get('full_name') as string
-  const phone = formData.get('phone') as string
+  // WR-05: Trim and validate required fields server-side (HTML required attr
+  // is not enforced on programmatic callers).
+  const full_name = (formData.get('full_name') as string).trim()
+  const phone = (formData.get('phone') as string).trim()
+  if (!full_name) return { error: 'Full name is required.' }
+  if (!phone) return { error: 'Phone number is required.' }
+
   const email = (formData.get('email') as string) || null
   const notes = (formData.get('notes') as string) || null
   const is_default = formData.get('is_default') === 'true'
@@ -135,8 +154,12 @@ export async function updatePassenger(
   if (!user) return { error: 'Not authenticated.' }
 
   const id = formData.get('id') as string
-  const full_name = formData.get('full_name') as string
-  const phone = formData.get('phone') as string
+  // WR-05: Trim and validate required fields server-side
+  const full_name = (formData.get('full_name') as string).trim()
+  const phone = (formData.get('phone') as string).trim()
+  if (!full_name) return { error: 'Full name is required.' }
+  if (!phone) return { error: 'Phone number is required.' }
+
   const email = (formData.get('email') as string) || null
   const notes = (formData.get('notes') as string) || null
   const is_default = formData.get('is_default') === 'true'
