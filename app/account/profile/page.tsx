@@ -18,7 +18,7 @@ export default async function AccountProfilePage() {
       .single(),
     supabase
       .from('saved_passengers')
-      .select('*')
+      .select('id, full_name, phone, email, notes, is_default')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
