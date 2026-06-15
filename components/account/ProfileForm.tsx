@@ -9,7 +9,12 @@ import {
 } from '@/app/account/actions'
 import type { Database } from '@/types/database.types'
 
-type SavedPassenger = Database['public']['Tables']['saved_passengers']['Row']
+type SavedPassenger = Pick<
+  Database['public']['Tables']['saved_passengers']['Row'],
+  'id' | 'full_name' | 'phone' | 'email' | 'notes' | 'is_default'
+>
+
+type ActionState = { error?: string; success?: boolean } | null
 
 // ---------------------------------------------------------------------------
 // Props
@@ -63,6 +68,160 @@ const errorStyle: React.CSSProperties = {
 }
 
 // ---------------------------------------------------------------------------
+// PassengerEditor — hoisted to module scope (CR-03: avoids React remount)
+// ---------------------------------------------------------------------------
+
+interface PassengerEditorProps {
+  editingId: string | null
+  editingPassenger: SavedPassenger | undefined
+  addAction: (prevState: ActionState, formData: FormData) => Promise<ActionState>
+  updateAction: (prevState: ActionState, formData: FormData) => Promise<ActionState>
+  addPending: boolean
+  updatePending: boolean
+  addState: ActionState
+  updateState: ActionState
+  onCancel: () => void
+}
+
+function PassengerEditor({
+  editingId,
+  editingPassenger,
+  addAction,
+  updateAction,
+  addPending,
+  updatePending,
+  addState,
+  updateState,
+  onCancel,
+}: PassengerEditorProps) {
+  return (
+    <div
+      className="animate-step-enter"
+      style={{
+        backgroundColor: 'var(--anthracite)',
+        border: '1px solid rgba(184,115,51,0.3)',
+        borderRadius: '4px',
+        padding: '24px',
+        marginTop: '16px',
+      }}
+    >
+      <form action={editingId ? updateAction : addAction}>
+        {/* Hidden passenger id for edit mode */}
+        {editingId && (
+          <input type="hidden" name="id" value={editingId} />
+        )}
+
+        <div style={fieldWrapStyle}>
+          <label htmlFor="pax-full-name" style={labelStyle}>
+            Full name
+          </label>
+          <input
+            id="pax-full-name"
+            name="full_name"
+            type="text"
+            required
+            defaultValue={editingPassenger?.full_name ?? ''}
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={fieldWrapStyle}>
+          <label htmlFor="pax-phone" style={labelStyle}>
+            Phone
+          </label>
+          <input
+            id="pax-phone"
+            name="phone"
+            type="tel"
+            autoComplete="tel"
+            required
+            defaultValue={editingPassenger?.phone ?? ''}
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={fieldWrapStyle}>
+          <label htmlFor="pax-email" style={labelStyle}>
+            Email (optional)
+          </label>
+          <input
+            id="pax-email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            defaultValue={editingPassenger?.email ?? ''}
+            style={inputStyle}
+          />
+        </div>
+
+        <div style={fieldWrapStyle}>
+          <label htmlFor="pax-notes" style={labelStyle}>
+            Notes (optional)
+          </label>
+          <textarea
+            id="pax-notes"
+            name="notes"
+            rows={3}
+            defaultValue={editingPassenger?.notes ?? ''}
+            style={{ ...inputStyle, resize: 'vertical' }}
+          />
+        </div>
+
+        <div style={{ ...fieldWrapStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* WR-03: sentinel ensures is_default is always in FormData */}
+          <input type="hidden" name="is_default" value="false" />
+          <input
+            id="pax-default"
+            name="is_default"
+            type="checkbox"
+            value="true"
+            defaultChecked={editingPassenger?.is_default ?? false}
+            style={{ accentColor: 'var(--copper)', width: '16px', height: '16px' }}
+          />
+          <label
+            htmlFor="pax-default"
+            style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}
+          >
+            Set as default passenger
+          </label>
+        </div>
+
+        {/* Error / success feedback */}
+        {(editingId ? updateState?.error : addState?.error) && (
+          <p role="alert" style={errorStyle}>
+            {editingId ? updateState?.error : addState?.error}
+          </p>
+        )}
+
+        <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={editingId ? updatePending : addPending}
+            style={{
+              padding: '10px 24px',
+              opacity: (editingId ? updatePending : addPending) ? 0.7 : 1,
+              cursor: (editingId ? updatePending : addPending) ? 'wait' : 'pointer',
+              pointerEvents: (editingId ? updatePending : addPending) ? 'none' : 'auto',
+            }}
+          >
+            {(editingId ? updatePending : addPending) ? 'Saving…' : 'Save passenger'}
+          </button>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={onCancel}
+            style={{ padding: '10px 24px' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
 // ProfileForm
 // ---------------------------------------------------------------------------
 
@@ -100,142 +259,9 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
     ? passengers.find(p => p.id === editingId)
     : undefined
 
-  // ---------------------------------------------------------------------------
-  // Inline passenger editor
-  // ---------------------------------------------------------------------------
-
-  function PassengerEditor() {
-    return (
-      <div
-        className="animate-step-enter"
-        style={{
-          backgroundColor: 'var(--anthracite)',
-          border: '1px solid rgba(184,115,51,0.3)',
-          borderRadius: '4px',
-          padding: '24px',
-          marginTop: '16px',
-        }}
-      >
-        <form
-          action={editingId ? updateAction : addAction}
-          onSubmit={() => {
-            // Close editor on successful save (state reset handled by action)
-          }}
-        >
-          {/* Hidden passenger id for edit mode */}
-          {editingId && (
-            <input type="hidden" name="id" value={editingId} />
-          )}
-
-          <div style={fieldWrapStyle}>
-            <label htmlFor="pax-full-name" style={labelStyle}>
-              Full name
-            </label>
-            <input
-              id="pax-full-name"
-              name="full_name"
-              type="text"
-              required
-              defaultValue={editingPassenger?.full_name ?? ''}
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={fieldWrapStyle}>
-            <label htmlFor="pax-phone" style={labelStyle}>
-              Phone
-            </label>
-            <input
-              id="pax-phone"
-              name="phone"
-              type="tel"
-              autoComplete="tel"
-              required
-              defaultValue={editingPassenger?.phone ?? ''}
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={fieldWrapStyle}>
-            <label htmlFor="pax-email" style={labelStyle}>
-              Email (optional)
-            </label>
-            <input
-              id="pax-email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              defaultValue={editingPassenger?.email ?? ''}
-              style={inputStyle}
-            />
-          </div>
-
-          <div style={fieldWrapStyle}>
-            <label htmlFor="pax-notes" style={labelStyle}>
-              Notes (optional)
-            </label>
-            <textarea
-              id="pax-notes"
-              name="notes"
-              rows={3}
-              defaultValue={editingPassenger?.notes ?? ''}
-              style={{ ...inputStyle, resize: 'vertical' }}
-            />
-          </div>
-
-          <div style={{ ...fieldWrapStyle, display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <input
-              id="pax-default"
-              name="is_default"
-              type="checkbox"
-              value="true"
-              defaultChecked={editingPassenger?.is_default ?? false}
-              style={{ accentColor: 'var(--copper)', width: '16px', height: '16px' }}
-            />
-            <label
-              htmlFor="pax-default"
-              style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}
-            >
-              Set as default passenger
-            </label>
-          </div>
-
-          {/* Error / success feedback */}
-          {(editingId ? updateState?.error : addState?.error) && (
-            <p role="alert" style={errorStyle}>
-              {editingId ? updateState?.error : addState?.error}
-            </p>
-          )}
-
-          <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
-            <button
-              type="submit"
-              className="btn-primary"
-              disabled={editingId ? updatePending : addPending}
-              style={{
-                padding: '10px 24px',
-                opacity: (editingId ? updatePending : addPending) ? 0.7 : 1,
-                cursor: (editingId ? updatePending : addPending) ? 'wait' : 'pointer',
-                pointerEvents: (editingId ? updatePending : addPending) ? 'none' : 'auto',
-              }}
-            >
-              {(editingId ? updatePending : addPending) ? 'Saving…' : 'Save passenger'}
-            </button>
-            <button
-              type="button"
-              className="btn-ghost"
-              onClick={() => {
-                setEditorOpen(false)
-                setEditingId(null)
-              }}
-              style={{ padding: '10px 24px' }}
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      </div>
-    )
+  const handleCancelEditor = () => {
+    setEditorOpen(false)
+    setEditingId(null)
   }
 
   // ---------------------------------------------------------------------------
@@ -563,7 +589,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                               'var(--warmgrey)'
                           }}
                         >
-                          {/* Pencil icon 16×16 */}
+                          {/* Pencil icon 16x16 */}
                           <svg
                             width="16"
                             height="16"
@@ -610,7 +636,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                               'var(--warmgrey)'
                           }}
                         >
-                          {/* Trash icon 16×16 */}
+                          {/* Trash icon 16x16 */}
                           <svg
                             width="16"
                             height="16"
@@ -632,7 +658,19 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                     </div>
 
                     {/* Inline editor for this row */}
-                    {editorOpen && editingId === passenger.id && <PassengerEditor />}
+                    {editorOpen && editingId === passenger.id && (
+                      <PassengerEditor
+                        editingId={editingId}
+                        editingPassenger={editingPassenger}
+                        addAction={addAction}
+                        updateAction={updateAction}
+                        addPending={addPending}
+                        updatePending={updatePending}
+                        addState={addState}
+                        updateState={updateState}
+                        onCancel={handleCancelEditor}
+                      />
+                    )}
 
                     {/* Delete confirmation bar */}
                     {deletingId === passenger.id && (
@@ -711,7 +749,19 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
             )}
 
             {/* Inline editor for adding new passenger */}
-            {editorOpen && editingId === null && <PassengerEditor />}
+            {editorOpen && editingId === null && (
+              <PassengerEditor
+                editingId={null}
+                editingPassenger={undefined}
+                addAction={addAction}
+                updateAction={updateAction}
+                addPending={addPending}
+                updatePending={updatePending}
+                addState={addState}
+                updateState={updateState}
+                onCancel={handleCancelEditor}
+              />
+            )}
 
             {/* Add passenger button */}
             {!editorOpen && (
