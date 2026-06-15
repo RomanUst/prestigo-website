@@ -32,8 +32,15 @@ export default function Nav() {
   }, [])
 
   // Auth state subscription — client-side only (D-09: no server auth call)
+  // WR-06: eagerly call getUser() to avoid "Sign in" flash for authenticated
+  // users — onAuthStateChange fires asynchronously after mount, so without
+  // the initial getUser() call an authenticated user sees the guest button
+  // for one or more frames before the subscription fires.
   useEffect(() => {
     let active = true
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (active) setUser(user)
+    })
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!active) return
       setUser(session?.user ?? null)
@@ -72,6 +79,28 @@ export default function Nav() {
     document.addEventListener('keydown', handler)
     return () => document.removeEventListener('keydown', handler)
   }, [menuOpen])
+
+  // WR-02: Arrow-key navigation for the ARIA menu role
+  const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const items = Array.from(
+      dropdownRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
+    )
+    if (!items.length) return
+    const idx = items.indexOf(document.activeElement as HTMLElement)
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      items[(idx + 1) % items.length]?.focus()
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      items[(idx - 1 + items.length) % items.length]?.focus()
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      items[0]?.focus()
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      items[items.length - 1]?.focus()
+    }
+  }
 
   return (
     <nav
@@ -126,9 +155,12 @@ export default function Nav() {
               /* NAV-02: Signed-in account trigger + dropdown */
               <div ref={dropdownRef} className="relative">
                 <button
+                  id="account-menu-trigger"
                   type="button"
                   aria-label="Account menu"
                   aria-expanded={menuOpen}
+                  aria-haspopup="true"
+                  aria-controls="account-menu"
                   onClick={() => setMenuOpen(!menuOpen)}
                   className="flex items-center gap-1.5 min-h-[44px]"
                 >
@@ -172,7 +204,10 @@ export default function Nav() {
 
                 {/* Dropdown panel */}
                 <div
+                  id="account-menu"
                   role="menu"
+                  aria-labelledby="account-menu-trigger"
+                  onKeyDown={handleMenuKeyDown}
                   style={{
                     position: 'absolute',
                     right: 0,
