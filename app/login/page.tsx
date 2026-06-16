@@ -3,6 +3,7 @@
 import { useActionState, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import OAuthButtons from '@/components/auth/OAuthButtons'
+import Nav from '@/components/Nav'
 import {
   sendMagicLink,
   signInWithPassword,
@@ -236,6 +237,7 @@ export default function LoginPage() {
   if (mode === 'magic' && magicState?.success) {
     return (
       <main role="main" style={pageStyle} className="animate-fade-in">
+        <Nav />
         <div style={cardStyle}>
           {brandHeader('My Account')}
           <h2
@@ -267,6 +269,7 @@ export default function LoginPage() {
   if (mode === 'magic') {
     return (
       <main role="main" style={pageStyle} className="animate-fade-in">
+        <Nav />
         <div style={cardStyle}>
           {brandHeader('My Account')}
           {tabs}
@@ -340,6 +343,7 @@ export default function LoginPage() {
   if (mode === 'password') {
     return (
       <main role="main" style={pageStyle} className="animate-fade-in">
+        <Nav />
         <div style={cardStyle}>
           {brandHeader('My Account')}
           {tabs}
@@ -450,6 +454,7 @@ export default function LoginPage() {
     if (regState?.success) {
       return (
         <main role="main" style={pageStyle} className="animate-fade-in">
+        <Nav />
           <div style={cardStyle}>
             {brandHeader('My Account')}
             <h2
@@ -480,6 +485,7 @@ export default function LoginPage() {
 
     return (
       <main role="main" style={pageStyle} className="animate-fade-in">
+        <Nav />
         <div style={cardStyle}>
           {brandHeader('My Account')}
           <form
@@ -620,6 +626,7 @@ export default function LoginPage() {
   if (resetState?.success) {
     return (
       <main role="main" style={pageStyle} className="animate-fade-in">
+        <Nav />
         <div style={cardStyle}>
           {brandHeader('My Account')}
           <p

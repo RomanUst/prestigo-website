@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import Nav from '@/components/Nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -18,6 +19,7 @@ export default async function AccountPage() {
         fontFamily: 'var(--font-montserrat)',
       }}
     >
+      <Nav />
       <div
         style={{
           maxWidth: '1280px',
