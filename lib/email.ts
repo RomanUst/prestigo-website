@@ -2,6 +2,15 @@ import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
+// Wordmark as a static raster image — letter-spaced inline spans render
+// inconsistently (overlapping/garbled) across email clients (Outlook, some
+// webmail preview panes), so transactional emails use this fixed asset instead.
+function emailLogoImg(heightPx: number): string {
+  const width = Math.round(heightPx * (1112 / 224))
+  return `<img src="${SITE_URL}/brand/wordmark-email-dark.png" alt="PRESTIGO" width="${width}" height="${heightPx}" style="display: block; margin: 0 auto; border: 0;" />`
+}
+
 
 // Lazy initialisation — avoids module-load crash when RESEND_API_KEY is absent
 // (e.g. Preview environment where email sending is not needed)
@@ -199,7 +208,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
 
       <!-- Logo wordmark -->
       <div style="padding: 32px 32px 16px; text-align: center;">
-        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+        ${emailLogoImg(28)}
       </div>
 
       <!-- Confirmed heading -->
@@ -261,7 +270,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       <div style="padding-top: 32px; padding-bottom: 32px;">
         <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
         <div style="text-align: center; margin-bottom: 8px;">
-          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+          ${emailLogoImg(18)}
         </div>
         <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
@@ -989,6 +998,8 @@ interface StatusEmailBooking {
   client_first_name: string
   client_last_name: string
   client_email: string
+  amount_czk: number
+  special_requests?: string | null
 }
 
 function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, closingLine: string): string {
@@ -1013,7 +1024,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
 
       <!-- Logo wordmark -->
       <div style="padding: 32px 32px 16px; text-align: center;">
-        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+        ${emailLogoImg(28)}
       </div>
 
       <!-- Heading -->
@@ -1023,6 +1034,11 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
       <div style="background-color: #36363B; border-left: 3px solid #B87333; padding: 24px; margin: 0 32px 24px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #B87333; margin-bottom: 8px;">BOOKING REFERENCE</div>
         <div style="font-size: 22px; font-weight: 600; color: #B87333;">${escapeHtml(booking.booking_reference)}</div>
+      </div>
+
+      <!-- Greeting -->
+      <div style="padding: 0 32px 16px; font-size: 14px; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">
+        Dear ${escapeHtml(booking.client_first_name)} ${escapeHtml(booking.client_last_name)},
       </div>
 
       <!-- Journey section -->
@@ -1041,6 +1057,15 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${formatVehicleLabel(booking.vehicle_class)}</td>
           </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Total Price</td>
+            <td style="font-size: 14px; font-weight: 600; color: #F5F2EE; padding: 8px 0;">${formatCZK(booking.amount_czk)} (${formatEUR(czkToEur(booking.amount_czk))})</td>
+          </tr>
+          ${booking.special_requests ? `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Special Requests</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(booking.special_requests)}</td>
+          </tr>` : ''}
         </table>
       </div>
 
@@ -1059,7 +1084,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
       <div style="padding-top: 32px; padding-bottom: 32px;">
         <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
         <div style="text-align: center; margin-bottom: 8px;">
-          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+          ${emailLogoImg(18)}
         </div>
         <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
@@ -1113,6 +1138,8 @@ export interface DriverAssignmentEmailData {
   passengerFirstName: string
   passengerLastName: string
   passengerPhone: string
+  amountCzk: number
+  specialRequests?: string | null
   acceptUrl: string
   declineUrl: string
 }
@@ -1136,7 +1163,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
 
       <!-- Logo wordmark -->
       <div style="padding: 32px 32px 16px; text-align: center;">
-        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+        ${emailLogoImg(28)}
       </div>
 
       <!-- Heading -->
@@ -1172,6 +1199,15 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Passenger Phone</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.passengerPhone)}</td>
           </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Trip Price</td>
+            <td style="font-size: 14px; font-weight: 600; color: #F5F2EE; padding: 8px 0;">${formatCZK(data.amountCzk)} (${formatEUR(czkToEur(data.amountCzk))})</td>
+          </tr>
+          ${data.specialRequests ? `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Notes</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.specialRequests)}</td>
+          </tr>` : ''}
         </table>
       </div>
 
@@ -1190,7 +1226,7 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
       <div style="padding-top: 32px; padding-bottom: 32px;">
         <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
         <div style="text-align: center; margin-bottom: 8px;">
-          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+          ${emailLogoImg(18)}
         </div>
         <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
@@ -1267,7 +1303,7 @@ export async function sendDriverDeclineNotification(data: DriverDeclineNotificat
     <p style="margin-top: 24px; font-size: 14px; color: #CFC9C2;">Please assign a different driver as soon as possible.</p>
     <div style="height: 1px; background-color: #B87333; margin: 32px 0 16px;"></div>
     <div style="text-align: center;">
-      <span style="font-size: 12px; letter-spacing: 0.4em; color: #F5F2EE;">PRESTI</span><span style="font-size: 12px; letter-spacing: 0.4em; color: #B87333;">GO</span>
+      ${emailLogoImg(16)}
     </div>
   </div>
 </body>
@@ -1375,7 +1411,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
 
       <!-- Logo wordmark -->
       <div style="padding: 32px 32px 16px; text-align: center;">
-        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+        ${emailLogoImg(28)}
       </div>
 
       <!-- Heading -->
@@ -1423,7 +1459,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
       <div style="padding-top: 32px; padding-bottom: 32px;">
         <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
         <div style="text-align: center; margin-bottom: 8px;">
-          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+          ${emailLogoImg(18)}
         </div>
         <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
@@ -1465,7 +1501,7 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
 
       <!-- Logo wordmark -->
       <div style="padding: 32px 32px 16px; text-align: center;">
-        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+        ${emailLogoImg(28)}
       </div>
 
       <!-- Heading -->
@@ -1522,7 +1558,7 @@ function buildDriverReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
       <div style="padding-top: 32px; padding-bottom: 32px;">
         <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
         <div style="text-align: center; margin-bottom: 8px;">
-          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+          ${emailLogoImg(18)}
         </div>
         <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
@@ -1609,7 +1645,7 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
 
       <!-- Logo wordmark -->
       <div style="padding: 32px 32px 16px; text-align: center;">
-        <span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #F5F2EE;">PRESTI</span><span style="font-size: 22px; font-weight: 400; letter-spacing: 0.6em; color: #B87333;">GO</span>
+        ${emailLogoImg(28)}
       </div>
 
       <!-- Heading -->
@@ -1665,7 +1701,7 @@ function buildPostTripHtml(booking: StatusEmailBooking): string {
       <div style="padding-top: 32px; padding-bottom: 32px;">
         <div style="height: 1px; background-color: #B87333; margin: 0 32px 24px;"></div>
         <div style="text-align: center; margin-bottom: 8px;">
-          <span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #F5F2EE; font-family: 'Montserrat', Arial, sans-serif;">PRESTI</span><span style="font-size: 14px; font-weight: 400; letter-spacing: 0.4em; color: #B87333; font-family: 'Montserrat', Arial, sans-serif;">GO</span>
+          ${emailLogoImg(18)}
         </div>
         <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; font-family: 'Montserrat', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
       </div>
