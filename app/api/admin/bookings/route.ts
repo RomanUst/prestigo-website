@@ -4,7 +4,7 @@ import { NextResponse, after } from 'next/server'
 import { pushGnetStatus, prestigoToGnetStatus } from '@/lib/gnet-client'
 import { z } from 'zod'
 import { generateBookingReference } from '@/lib/booking-reference'
-import { eurToCzk } from '@/lib/currency'
+import { eurToCzk, czkToEur } from '@/lib/currency'
 import { computeOutboundLegTotal } from '@/lib/server-pricing'
 import { computeExtrasTotal } from '@/lib/extras'
 import { getPricingConfig } from '@/lib/pricing-config'
@@ -319,6 +319,10 @@ const manualBookingSchema = z.object({
   distance_km:         z.number().nullable().optional(),
   // Optional airport flag — when true, server applies airport fee in recompute
   is_airport:          z.boolean().optional(),
+  // When true, admin explicitly accepts amount_czk even if it diverges from the
+  // server-computed price (e.g. negotiated/discounted fare). Still requires
+  // admin auth; the divergence is logged server-side for audit purposes.
+  override_price:      z.boolean().optional(),
 })
 
 /** Max diff in CZK between client-sent and server-computed price before rejecting. */
@@ -328,7 +332,7 @@ export async function POST(request: Request) {
   const tooBig = enforceMaxBody(request, 20_000)
   if (tooBig) return tooBig
 
-  const { error } = await getAdminUser()
+  const { user, error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -411,8 +415,9 @@ export async function POST(request: Request) {
 
   const computedTotalEur = outboundLegEur + extrasEur
   const computedTotalCzk = eurToCzk(computedTotalEur)
+  const priceDiverges = Math.abs(computedTotalCzk - d.amount_czk) > ADMIN_PRICE_TOLERANCE_CZK
 
-  if (Math.abs(computedTotalCzk - d.amount_czk) > ADMIN_PRICE_TOLERANCE_CZK) {
+  if (priceDiverges && !d.override_price) {
     return NextResponse.json(
       {
         error: 'Price mismatch — server recompute diverges from submitted amount',
@@ -424,9 +429,19 @@ export async function POST(request: Request) {
   }
 
   const bookingReference = generateBookingReference()
-  // From here on, use the SERVER-COMPUTED amount, never the client's value.
-  const authoritativeAmountCzk = computedTotalCzk
-  const amount_eur = computedTotalEur
+  // Use the SERVER-COMPUTED amount by default. Only fall back to the admin's
+  // submitted amount when they explicitly opted into override_price — this is
+  // logged below for audit purposes since it bypasses the standard pricing rules.
+  const authoritativeAmountCzk = priceDiverges ? d.amount_czk : computedTotalCzk
+  const amount_eur = priceDiverges ? czkToEur(d.amount_czk) : computedTotalEur
+
+  if (priceDiverges) {
+    console.warn('[admin/bookings.POST] price override applied', {
+      adminUserId: user?.id,
+      submittedCzk: d.amount_czk,
+      computedCzk: computedTotalCzk,
+    })
+  }
 
   const row = {
     trip_type:           d.trip_type,
@@ -461,6 +476,9 @@ export async function POST(request: Request) {
     payment_intent_id:   null,
     status:              'pending',
     amount_eur,
+    operator_notes:      priceDiverges
+      ? `Price manually overridden by admin: ${authoritativeAmountCzk} CZK (standard rate would be ${computedTotalCzk} CZK).`
+      : null,
   }
 
   const supabase = createSupabaseServiceClient()

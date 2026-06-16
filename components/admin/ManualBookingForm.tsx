@@ -83,6 +83,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [priceLoading, setPriceLoading] = useState(false)
   const [priceNote, setPriceNote] = useState<string | null>(null)
   const [distanceKm, setDistanceKm] = useState<number | null>(null)
+  const [overridePrice, setOverridePrice] = useState(false)
   const [flightCheckLoading, setFlightCheckLoading] = useState(false)
   const [flightCheckNote, setFlightCheckNote] = useState<string | null>(null)
 
@@ -194,6 +195,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       passengers,
       luggage,
       amount_czk: amountCzk ? Number(amountCzk) : undefined,
+      override_price: overridePrice,
       client_first_name: firstName,
       client_last_name: lastName,
       client_email: email,
@@ -462,6 +464,40 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
                     display: 'block',
                   }}>
                     {priceNote}
+                  </span>
+                )}
+
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  marginTop: '10px',
+                  cursor: 'pointer',
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={overridePrice}
+                    onChange={(e) => setOverridePrice(e.target.checked)}
+                  />
+                  <span style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontWeight: 300,
+                    color: 'var(--warmgrey)',
+                  }}>
+                    Override price (accept manually entered amount, skip automatic price validation)
+                  </span>
+                </label>
+                {overridePrice && (
+                  <span style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontWeight: 300,
+                    color: 'var(--copper)',
+                    marginTop: '4px',
+                    display: 'block',
+                  }}>
+                    Booking will be created at the price entered above, even if it differs from the calculated rate. This is logged on the booking.
                   </span>
                 )}
               </div>
