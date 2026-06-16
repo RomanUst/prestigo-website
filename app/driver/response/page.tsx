@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import DriverResponseClient from './DriverResponseClient'
 
 export const metadata: Metadata = {
@@ -142,7 +143,7 @@ export default async function DriverResponsePage({ searchParams }: PageProps) {
   // Fetch booking details
   const { data: booking } = await supabase
     .from('bookings')
-    .select('pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone')
+    .select('pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, amount_czk, special_requests')
     .eq('id', assignment.booking_id)
     .single()
 
@@ -258,6 +259,18 @@ export default async function DriverResponsePage({ searchParams }: PageProps) {
 
             <span style={labelStyle}>Phone</span>
             <span style={valueStyle}>{booking.client_phone}</span>
+
+            <span style={labelStyle}>Price</span>
+            <span style={valueStyle}>
+              {formatCZK(booking.amount_czk)} ({formatEUR(czkToEur(booking.amount_czk))})
+            </span>
+
+            {booking.special_requests && (
+              <>
+                <span style={labelStyle}>Notes</span>
+                <span style={valueStyle}>{booking.special_requests}</span>
+              </>
+            )}
           </div>
         )}
 

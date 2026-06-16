@@ -58,7 +58,7 @@ export async function POST(
   // 5b. Verify booking exists and get trip details for email (blocking — required for email)
   const { data: booking, error: bookingError } = await supabase
     .from('bookings')
-    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur')
+    .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, client_first_name, client_last_name, client_phone, status, booking_source, amount_eur, amount_czk, special_requests')
     .eq('id', bookingId)
     .single()
 
@@ -185,6 +185,8 @@ export async function POST(
         passengerFirstName: booking.client_first_name,
         passengerLastName: booking.client_last_name,
         passengerPhone: booking.client_phone,
+        amountCzk: booking.amount_czk,
+        specialRequests: booking.special_requests,
         acceptUrl,
         declineUrl,
       }).catch(err => console.error('[driver-assign]:', err)))
