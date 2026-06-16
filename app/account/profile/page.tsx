@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import ProfileForm from '@/components/account/ProfileForm'
+import Nav from '@/components/Nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,10 +25,13 @@ export default async function AccountProfilePage() {
   ])
 
   return (
-    <ProfileForm
-      email={user!.email!}
-      profile={profile}
-      passengers={passengers ?? []}
-    />
+    <>
+      <Nav />
+      <ProfileForm
+        email={user!.email!}
+        profile={profile}
+        passengers={passengers ?? []}
+      />
+    </>
   )
 }

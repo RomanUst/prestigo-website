@@ -74,8 +74,8 @@ const errorStyle: React.CSSProperties = {
 interface PassengerEditorProps {
   editingId: string | null
   editingPassenger: SavedPassenger | undefined
-  addAction: (prevState: ActionState, formData: FormData) => Promise<ActionState>
-  updateAction: (prevState: ActionState, formData: FormData) => Promise<ActionState>
+  addAction: (formData: FormData) => void
+  updateAction: (formData: FormData) => void
   addPending: boolean
   updatePending: boolean
   addState: ActionState

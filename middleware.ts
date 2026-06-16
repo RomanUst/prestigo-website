@@ -43,8 +43,12 @@ function buildCsp(nonce: string): string {
     "default-src 'self'",
     // unsafe-eval is needed by React dev tools for stack-trace reconstruction.
     // It is intentionally excluded from production builds.
+    // 'self' is added in development only: Next.js dev serves chunks over
+    // http://localhost, which the https: fallback source can't match. Modern
+    // browsers ignore host/scheme sources once 'strict-dynamic' is present
+    // (they trust only the nonce chain), so this has no effect in production.
     process.env.NODE_ENV === 'development'
-      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https:`
+      ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self' https:`
       : `script-src 'nonce-${nonce}' 'strict-dynamic' https:`,
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
@@ -72,8 +76,12 @@ function buildCsp(nonce: string): string {
 function buildCspStatic(): string {
   return [
     "default-src 'self'",
+    // 'self' is added in development only: Next.js dev serves chunks over
+    // http://localhost, which the https: scheme-source can't match, leaving
+    // script-src-elem with nothing to allow external chunk <script> tags and
+    // breaking hydration entirely in local dev. Production is unaffected.
     process.env.NODE_ENV === 'development'
-      ? "script-src 'unsafe-inline' 'unsafe-eval' https:"
+      ? "script-src 'unsafe-inline' 'unsafe-eval' 'self' https:"
       : "script-src 'unsafe-inline' https:",
     "frame-src https://js.stripe.com https://hooks.stripe.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
