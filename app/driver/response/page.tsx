@@ -39,8 +39,8 @@ function InvalidTokenView() {
           className="wordmark"
           style={{ marginBottom: '32px', display: 'block', textAlign: 'center' }}
         >
-          <span className="wordmark-presti">Presti</span>
-          <span className="wordmark-go">go</span>
+          <span className="wordmark-presti">PRESTI</span>
+          <span className="wordmark-go">GO</span>
         </div>
 
         {/* Error message */}
@@ -118,8 +118,8 @@ export default async function DriverResponsePage({ searchParams }: PageProps) {
             className="wordmark"
             style={{ marginBottom: '32px', display: 'block', textAlign: 'center' }}
           >
-            <span className="wordmark-presti">Presti</span>
-            <span className="wordmark-go">go</span>
+            <span className="wordmark-presti">PRESTI</span>
+            <span className="wordmark-go">GO</span>
           </div>
           <p
             style={{
@@ -197,8 +197,8 @@ export default async function DriverResponsePage({ searchParams }: PageProps) {
           className="wordmark"
           style={{ marginBottom: '32px', display: 'block', textAlign: 'center' }}
         >
-          <span className="wordmark-presti">Presti</span>
-          <span className="wordmark-go">go</span>
+          <span className="wordmark-presti">PRESTI</span>
+          <span className="wordmark-go">GO</span>
         </div>
 
         {/* Heading */}
