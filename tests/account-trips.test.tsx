@@ -34,6 +34,13 @@ vi.mock('@/lib/supabase/server', () => ({
   }),
 }))
 
+// Nav has its own dedicated test file (nav-auth.test.tsx); stub it here so this
+// file stays focused on ACCT-01 page content and doesn't need to mock Nav's
+// @supabase/ssr browser-client dependency.
+vi.mock('@/components/Nav', () => ({
+  default: () => null,
+}))
+
 // ---------------------------------------------------------------------------
 // Import (does not exist yet — module resolution fails = RED)
 // ---------------------------------------------------------------------------

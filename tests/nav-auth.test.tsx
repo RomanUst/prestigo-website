@@ -77,6 +77,11 @@ function makeSignedInSession(email = 'user@example.com') {
 describe('Nav — auth state rendering (NAV-01, NAV-02)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Nav eagerly calls getUser() on mount (WR-06: avoids Sign-in flash) before
+    // the onAuthStateChange subscription fires. Default to null so it never
+    // throws; the synchronous onAuthStateChange callback below still drives
+    // the actual rendered state for each test.
+    mockGetUser.mockResolvedValue({ data: { user: null } })
   })
 
   // -------------------------------------------------------------------------

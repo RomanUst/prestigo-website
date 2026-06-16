@@ -16,23 +16,20 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 // ---------------------------------------------------------------------------
 const {
   mockGetUser,
-  mockEq,
-  mockUpdate,
+  mockUpsert,
   mockFrom,
   mockRevalidatePath,
 } = vi.hoisted(() => {
   const mockGetUser = vi.fn()
-  const mockEq = vi.fn().mockResolvedValue({ error: null })
-  const mockUpdate = vi.fn(() => ({ eq: mockEq }))
+  const mockUpsert = vi.fn().mockResolvedValue({ error: null })
   const mockFrom = vi.fn(() => ({
-    update: mockUpdate,
+    upsert: mockUpsert,
   }))
   const mockRevalidatePath = vi.fn()
 
   return {
     mockGetUser,
-    mockEq,
-    mockUpdate,
+    mockUpsert,
     mockFrom,
     mockRevalidatePath,
   }
@@ -92,10 +89,9 @@ function makeFormData(fields: Record<string, string>): FormData {
 describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Reset eq mock to resolve success by default
-    mockEq.mockResolvedValue({ error: null })
-    mockUpdate.mockReturnValue({ eq: mockEq })
-    mockFrom.mockReturnValue({ update: mockUpdate })
+    // Reset upsert mock to resolve success by default
+    mockUpsert.mockResolvedValue({ error: null })
+    mockFrom.mockReturnValue({ upsert: mockUpsert })
   })
 
   // -------------------------------------------------------------------------
@@ -116,7 +112,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
       expect(result).toEqual({ success: true })
     })
 
-    it('calls from("customer_profiles").update() with full_name and phone', async () => {
+    it('calls from("customer_profiles").upsert() with full_name and phone', async () => {
       mockGetUser.mockResolvedValue(makeAuthenticatedUser())
 
       const formData = makeFormData({
@@ -128,15 +124,16 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
       await updateProfile(null, formData)
 
       expect(mockFrom).toHaveBeenCalledWith('customer_profiles')
-      expect(mockUpdate).toHaveBeenCalledWith(
+      expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
           full_name: 'John Doe',
           phone: '+420 123 456 789',
-        })
+        }),
+        expect.objectContaining({ onConflict: 'user_id' })
       )
     })
 
-    it('scopes the update to the session user via .eq("user_id", userId)', async () => {
+    it('scopes the upsert to the session user via user_id in the payload', async () => {
       mockGetUser.mockResolvedValue(makeAuthenticatedUser('session-user-uuid'))
 
       const formData = makeFormData({
@@ -147,7 +144,10 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
 
       await updateProfile(null, formData)
 
-      expect(mockEq).toHaveBeenCalledWith('user_id', 'session-user-uuid')
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({ user_id: 'session-user-uuid' }),
+        expect.objectContaining({ onConflict: 'user_id' })
+      )
     })
   })
 
@@ -183,7 +183,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
   // ACCT-02/ACCT-03: SECURITY — IDOR / mass-assignment prevention
   // -------------------------------------------------------------------------
   describe('SECURITY: IDOR / mass-assignment guard (T-58-01)', () => {
-    it('uses session user id for .eq(), never the forged user_id from FormData', async () => {
+    it('uses session user id in the upsert payload, never the forged user_id from FormData', async () => {
       mockGetUser.mockResolvedValue(makeAuthenticatedUser('session-user-uuid'))
 
       // Attempt to inject a different user_id via formData
@@ -196,12 +196,13 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
 
       await updateProfile(null, formData)
 
-      // .eq() must be called with the SESSION user id, not the forged value
-      expect(mockEq).toHaveBeenCalledWith('user_id', 'session-user-uuid')
-      expect(mockEq).not.toHaveBeenCalledWith('user_id', 'victim-uuid')
+      // The upsert payload's user_id must be the SESSION user id, not the forged value
+      const upsertArg = mockUpsert.mock.calls[0]?.[0] ?? {}
+      expect(upsertArg.user_id).toBe('session-user-uuid')
+      expect(upsertArg.user_id).not.toBe('victim-uuid')
     })
 
-    it('does NOT pass a caller-supplied user_id in the update object (mass-assignment guard)', async () => {
+    it('does NOT pass the caller-supplied FormData user_id through to the upsert object (mass-assignment guard)', async () => {
       mockGetUser.mockResolvedValue(makeAuthenticatedUser('session-user-uuid'))
 
       const formData = makeFormData({
@@ -212,9 +213,9 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
 
       await updateProfile(null, formData)
 
-      // The object passed to update() must NOT contain user_id from FormData
-      const updateArg = mockUpdate.mock.calls[0]?.[0] ?? {}
-      expect(updateArg).not.toHaveProperty('user_id')
+      // user_id in the upsert payload must come from the session, never from FormData
+      const upsertArg = mockUpsert.mock.calls[0]?.[0] ?? {}
+      expect(upsertArg.user_id).toBe('session-user-uuid')
     })
   })
 
@@ -236,13 +237,14 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
 
       await updateProfile(null, formData)
 
-      expect(mockUpdate).toHaveBeenCalledWith(
+      expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
           account_type: 'corporate',
           company_name: 'Acme s.r.o.',
           ico: '12345678',
           vat_id: 'CZ12345678',
-        })
+        }),
+        expect.objectContaining({ onConflict: 'user_id' })
       )
     })
 
@@ -258,8 +260,9 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
       const result = await updateProfile(null, formData)
 
       expect(result).toEqual({ success: true })
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({ account_type: 'personal' })
+      expect(mockUpsert).toHaveBeenCalledWith(
+        expect.objectContaining({ account_type: 'personal' }),
+        expect.objectContaining({ onConflict: 'user_id' })
       )
     })
   })
