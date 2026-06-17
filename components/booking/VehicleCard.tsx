@@ -2,8 +2,19 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
+import { Check } from 'lucide-react'
 import type { VehicleConfig, PriceBreakdown } from '@/types/booking'
 import { eurToCzk, formatCZK } from '@/lib/currency'
+
+// What's included — identical across all vehicle classes (D-16)
+const INCLUDED_ITEMS = [
+  'Фиксированная цена',
+  'Зарядка для телефонов',
+  '60 минут бесплатного ожидания',
+  'Wi-Fi',
+  'Вода на борту',
+  'Meet & greet',
+]
 
 interface VehicleCardProps {
   config: VehicleConfig
@@ -66,11 +77,11 @@ export default function VehicleCard({
         transition: 'border-color 0.2s ease, background-color 0.2s ease',
       }}
     >
-      {/* Vehicle photo */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', borderRadius: 4, marginBottom: 16, overflow: 'hidden' }}>
+      {/* Vehicle photo — 3/2 aspect ratio (D-14) */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '3/2', borderRadius: 4, marginBottom: 16, overflow: 'hidden' }}>
         <Image
           src={config.image}
-          alt={config.label}
+          alt={`Prestigo ${config.label} — exterior`}
           fill
           style={{ objectFit: 'cover' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
@@ -110,6 +121,16 @@ export default function VehicleCard({
           <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--warmgrey)' }}>{config.maxLuggage}</span>
         </div>
       </div>
+
+      {/* What's included — 6 items, always visible (D-16) */}
+      <ul style={{ listStyle: 'none', margin: '16px 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+        {INCLUDED_ITEMS.map((item) => (
+          <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)' }}>
+            <Check size={12} style={{ color: 'var(--copper)', flexShrink: 0 }} aria-hidden="true" />
+            {item}
+          </li>
+        ))}
+      </ul>
 
       {/* Price buttons */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto' }}>
