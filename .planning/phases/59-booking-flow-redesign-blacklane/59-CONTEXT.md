@@ -76,6 +76,10 @@ This phase rebuilds the first two steps of the booking wizard in Blacklane style
 - **D-18:** The **Zustand booking store** (`lib/booking-store`), all pricing API calls (`/api/calculate-price`), the URL deeplink logic, and all six analytics systems (GA4, Meta Pixel/CAPI, Measurement Protocol, `analytics-snapshot.ts`, CSP nonce, Consent Mode v2) are **not refactored** — only the UI components that render Steps 1–3 change.
 - **D-19:** Analytics events must fire at equivalent logical moments in the rebuilt flow: `form_start` on Entry bar mount, `checkout_progress` when advancing from entry bar to Step3, `view_item_list` / `view_item` on Step3 load, `begin_checkout` on vehicle select CTA. The researcher/planner maps exact event placements.
 
+### Theme and colors
+
+- **D-20:** The booking flow (entry bar + vehicle selection) uses the **light theme** — white/offwhite backgrounds, dark text — matching the existing booking widget already implemented on the site (`BookingWidget.tsx`). The dark anthracite theme used for marketing pages and the admin UI does NOT apply to the booking wizard. Colors must stay consistent with the existing light booking widget implementation.
+
 ### Claude's Discretion
 
 - Whether the map animation loops or plays once when Step3 loads.
