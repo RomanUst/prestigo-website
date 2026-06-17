@@ -14,7 +14,10 @@ if (typeof window !== 'undefined') {
       // Parse min-width from query like '(min-width: 1024px)'
       const minWidthMatch = query.match(/min-width:\s*(\d+)px/)
       const minWidth = minWidthMatch ? parseInt(minWidthMatch[1], 10) : 0
-      const matches = window.innerWidth >= minWidth
+      const matchesMinWidth = window.innerWidth >= minWidth
+      // prefers-reduced-motion: default false in test env (full motion enabled)
+      const matchesReducedMotion = query.includes('prefers-reduced-motion') ? false : matchesMinWidth
+      const matches = minWidthMatch ? matchesMinWidth : matchesReducedMotion
       return {
         matches,
         media: query,

@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, act } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
+import { render, screen, act, fireEvent } from '@testing-library/react'
 import VehicleSlideshow from '@/components/booking/VehicleSlideshow'
 
 // Mock next/image to avoid jsdom issues
@@ -65,12 +64,11 @@ describe('VehicleSlideshow', () => {
       expect(screen.getByRole('button', { name: /next slide/i })).toBeInTheDocument()
     })
 
-    it('clicking "Next slide" advances the active slide', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    it('clicking "Next slide" advances the active slide', () => {
       render(<VehicleSlideshow />)
 
       const nextBtn = screen.getByRole('button', { name: /next slide/i })
-      await user.click(nextBtn)
+      fireEvent.click(nextBtn)
 
       // After clicking Next, the slide index should have advanced
       const activeSlides = document.querySelectorAll('[aria-current="true"], [data-active="true"]')
@@ -81,12 +79,11 @@ describe('VehicleSlideshow', () => {
       expect(activeIndex).toBeGreaterThan(0)
     })
 
-    it('clicking "Previous slide" wraps to last slide from first', async () => {
-      const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime })
+    it('clicking "Previous slide" wraps to last slide from first', () => {
       render(<VehicleSlideshow />)
 
       const prevBtn = screen.getByRole('button', { name: /previous slide/i })
-      await user.click(prevBtn)
+      fireEvent.click(prevBtn)
 
       // Clicking prev from index 0 should wrap to last slide (index > 0)
       const activeSlides = document.querySelectorAll('[aria-current="true"], [data-active="true"]')
