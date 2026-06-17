@@ -13,7 +13,7 @@ export default function ProgressBar({ currentStep, completedSteps, totalSteps }:
     <div
       className="flex items-center"
       style={{ padding: '24px 0' }}
-      aria-label={`Booking progress: Step ${currentStep} of 6`}
+      aria-label={`Booking progress: Step ${currentStep} of 5`}
       role="navigation"
     >
       {Array.from({ length: totalSteps }, (_, i) => {
