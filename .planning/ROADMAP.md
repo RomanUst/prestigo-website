@@ -7,7 +7,7 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 ## Milestones
 
 - ✅ **v1.0 SEO Blog** — Phases 54-56 (shipped 2026-05-15)
-- 🚧 **v2.0 Blacklane-style Booking + Customer Accounts** — Phases 57-61 (in progress)
+- ✅ **v2.0 Blacklane-style Booking + Customer Accounts** — Phases 57-61 (shipped 2026-06-17)
 
 ## Phases
 
@@ -15,19 +15,19 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 
 **Milestone Goal:** Scalable MDX blog at `/blog` with full SEO wiring, unified listing, and migrated legacy articles accessible at canonical `/blog/*` paths.
 
-- [ ] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory
+- [x] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory (completed 2026-05-14)
 - [x] **Phase 55: Blog UI — Listing + Article Pages** - Build /blog listing card grid and /blog/[slug] MDX article renderer with full SEO metadata (completed 2026-05-13)
 - [x] **Phase 56: Article Migration + SEO Wiring** - git mv 3 JSX articles to /blog/*, update all 9 canonical URL locations, add 301 redirects, reconcile sitemap (completed 2026-05-15)
 
-### 🚧 v2.0 Blacklane-style Booking + Customer Accounts (In Progress)
+### ✅ v2.0 Blacklane-style Booking + Customer Accounts (Shipped 2026-06-17)
 
 **Milestone Goal:** Customers can sign in (email + Google + Apple), manage a personal or corporate account with a "My trips" dashboard, and complete a redesigned Blacklane-style booking flow — with optional in-checkout sign-in, bookings linked to `user_id`, guest checkout always available, and zero analytics regression.
 
 - [x] **Phase 57: Customer Auth Foundation** - Supabase Auth for customers (email + Google + Apple OAuth), migration 044_customer_profiles.sql, nullable user_id FK on bookings, customer/admin session split (completed 2026-06-11)
 - [x] **Phase 58: Sign-in UI + Account Dashboard** - Auth-aware Sign in button in Nav, login/signup pages, "My trips" dashboard, profile editing, personal/corporate fields (completed 2026-06-12)
 - [x] **Phase 59: Booking Flow Redesign (Blacklane)** - Unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs — store, pricing APIs, and analytics preserved (completed 2026-06-17)
-- [ ] **Phase 60: Auth-in-Checkout + Guest Path** - Booking-method step (myself / guest / corporate book-for-a-guest), pre-fill for logged-in customers, link booking to user_id, guest always available
-- [ ] **Phase 61: Analytics Preservation & E2E Verify** - End-to-end verification every GA4/Meta/CAPI event fires across the rebuilt flow on both guest and account paths, incl. login/sign_up, nonce, consent
+- [x] **Phase 60: Auth-in-Checkout + Guest Path** - Booking-method step (myself / guest / corporate book-for-a-guest), pre-fill for logged-in customers, link booking to user_id, guest always available (completed 2026-06-17)
+- [x] **Phase 61: Analytics Preservation & E2E Verify** - End-to-end verification every GA4/Meta/CAPI event fires across the rebuilt flow on both guest and account paths, incl. login/sign_up, nonce, consent (completed 2026-06-17)
 
 ## Phase Details
 
@@ -205,11 +205,11 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 54. MDX Infrastructure | 0/? | Not started | - |
+| 54. MDX Infrastructure | 2/2 | Complete    | 2026-05-14 |
 | 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
 | 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
 | 58. Sign-in UI + Account Dashboard | 5/5 | Complete   | 2026-06-12 |
 | 59. Booking Flow Redesign (Blacklane) | 5/5 | Complete   | 2026-06-17 |
-| 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
-| 61. Analytics Preservation & E2E Verify | 0/? | Not started | - |
+| 60. Auth-in-Checkout + Guest Path | 1/1 | Complete    | 2026-06-17 |
+| 61. Analytics Preservation & E2E Verify | 1/1 | Complete    | 2026-06-17 |
