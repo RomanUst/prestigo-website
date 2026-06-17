@@ -103,4 +103,25 @@ describe('VehicleCard', () => {
       expect(screen.getByText(/-15%/)).toBeInTheDocument()
     })
   })
+
+  describe('BOOK-05: What\'s included list (D-16)', () => {
+    it('renders all 6 What\'s included items', () => {
+      renderCard()
+      expect(screen.getByText('Фиксированная цена')).toBeInTheDocument()
+      expect(screen.getByText('Зарядка для телефонов')).toBeInTheDocument()
+      expect(screen.getByText('60 минут бесплатного ожидания')).toBeInTheDocument()
+      expect(screen.getByText('Wi-Fi')).toBeInTheDocument()
+      expect(screen.getByText('Вода на борту')).toBeInTheDocument()
+      expect(screen.getByText('Meet & greet')).toBeInTheDocument()
+    })
+  })
+
+  describe('BOOK-05: Vehicle photo (D-14)', () => {
+    it('renders exterior photo with class label in alt text', () => {
+      renderCard()
+      // config = VEHICLE_CONFIG[0] = { label: 'Business', ... }
+      const img = screen.getByRole('img', { name: /business.*exterior/i })
+      expect(img).toBeInTheDocument()
+    })
+  })
 })
