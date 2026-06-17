@@ -66,7 +66,7 @@ export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps 
       if (!pausedRef.current) {
         setActiveIndex((prev) => (prev + 1) % slidesLen)
       }
-    }, 4000)
+    }, 1500)
 
     return () => {
       if (intervalRef.current) {

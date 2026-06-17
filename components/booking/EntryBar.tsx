@@ -165,17 +165,17 @@ export default function EntryBar() {
         </p>
       )}
 
-      {/* Field grid: desktop 4-col, mobile single column */}
+      {/* Field grid: address fields full-width, date/time in 2 columns below */}
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+          gridTemplateColumns: 'repeat(2, 1fr)',
           gap: 16,
           marginTop: 16,
         }}
       >
-        {/* FROM — Pickup Location */}
-        <div>
+        {/* FROM — Pickup Location (full width) */}
+        <div style={{ gridColumn: '1 / -1' }}>
           <label
             style={{
               display: 'block',
@@ -202,8 +202,8 @@ export default function EntryBar() {
           />
         </div>
 
-        {/* TO — Destination or Duration */}
-        <div>
+        {/* TO — Destination or Duration (full width) */}
+        <div style={{ gridColumn: '1 / -1' }}>
           <label
             style={{
               display: 'block',
@@ -520,7 +520,7 @@ export default function EntryBar() {
             textTransform: 'uppercase',
           }}
         >
-          Посмотреть варианты
+          View vehicles
         </button>
       </div>
     </div>

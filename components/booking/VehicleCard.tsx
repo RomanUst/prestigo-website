@@ -1,237 +1,138 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
-import { Check } from 'lucide-react'
-import type { VehicleConfig, PriceBreakdown } from '@/types/booking'
-import { eurToCzk, formatCZK } from '@/lib/currency'
-
-// What's included — identical across all vehicle classes (D-16)
-const INCLUDED_ITEMS = [
-  'Фиксированная цена',
-  'Зарядка для телефонов',
-  '60 минут бесплатного ожидания',
-  'Wi-Fi',
-  'Вода на борту',
-  'Meet & greet',
-]
+import type { VehicleConfig } from '@/types/booking'
 
 interface VehicleCardProps {
   config: VehicleConfig
-  price: PriceBreakdown | null
-  roundTripPrice: PriceBreakdown | null
-  returnDiscountPercent: number
-  showRoundTripOption: boolean
-  isSelectedOneWay: boolean
-  isSelectedRoundTrip: boolean
-  isLoading: boolean
-  quoteMode: boolean
-  onSelectOneWay: () => void
-  onSelectRoundTrip: () => void
+  isSelected: boolean
+  onSelect: () => void
+  price?: string | null
 }
 
-export default function VehicleCard({
-  config,
-  price,
-  roundTripPrice,
-  returnDiscountPercent,
-  showRoundTripOption,
-  isSelectedOneWay,
-  isSelectedRoundTrip,
-  isLoading,
-  quoteMode,
-  onSelectOneWay,
-  onSelectRoundTrip,
-}: VehicleCardProps) {
-  const [hovered, setHovered] = useState(false)
-  const [hoveredBtn, setHoveredBtn] = useState<'one_way' | 'round_trip' | null>(null)
-
-  const isSelected = isSelectedOneWay || isSelectedRoundTrip
-
-  const bgColor = isSelected || hovered ? 'var(--anthracite-light)' : 'var(--anthracite-mid)'
-
-  // Exact combined when returnLegPrices computed (after user picks return time)
-  // Estimated combined when only one-way price is available (show immediately)
-  const estimatedReturnTotal = price ? Math.round(price.total * (1 - returnDiscountPercent / 100)) : null
-  const combinedTotal = price && roundTripPrice
-    ? price.total + roundTripPrice.total
-    : price
-    ? price.total + estimatedReturnTotal!
-    : null
-  const isEstimated = !!price && !roundTripPrice
-  // Savings vs buying two one-way tickets
-  const savings = price ? Math.round(price.total * returnDiscountPercent / 100) : null
-
+export default function VehicleCard({ config, isSelected, onSelect, price }: VehicleCardProps) {
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={isSelected}
       style={{
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         width: '100%',
+        textAlign: 'left',
         border: isSelected ? '2px solid var(--copper)' : '1px solid var(--anthracite-light)',
-        background: bgColor,
+        background: isSelected ? 'var(--anthracite-mid)' : 'var(--anthracite)',
         borderRadius: 4,
-        padding: isSelected ? 23 : 24,
-        transition: 'border-color 0.2s ease, background-color 0.2s ease',
+        padding: 0,
+        cursor: 'pointer',
+        overflow: 'hidden',
+        transition: 'border-color 0.2s ease, background 0.2s ease',
+        minHeight: 160,
+        position: 'relative',
       }}
     >
-      {/* Vehicle photo — 3/2 aspect ratio (D-14) */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '3/2', borderRadius: 4, marginBottom: 16, overflow: 'hidden' }}>
+      {/* Left copper accent bar when selected */}
+      {isSelected && (
+        <div style={{
+          position: 'absolute',
+          top: 0, left: 0, bottom: 0,
+          width: 3,
+          background: 'var(--copper)',
+          zIndex: 1,
+        }} />
+      )}
+
+      {/* Info section — left side */}
+      <div style={{
+        flex: 1,
+        padding: '24px 24px 24px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        minWidth: 0,
+      }}>
+        <div>
+          <span style={{
+            display: 'block',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: 11,
+            fontWeight: 600,
+            letterSpacing: '0.22em',
+            textTransform: 'uppercase',
+            color: isSelected ? 'var(--copper)' : 'var(--offwhite)',
+            marginBottom: 6,
+          }}>
+            {config.label}
+          </span>
+          <span style={{
+            display: 'block',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: 12,
+            fontWeight: 300,
+            color: 'var(--warmgrey)',
+            lineHeight: 1.4,
+          }}>
+            {config.model}
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--warmgrey)', flexShrink: 0 }}>
+                <circle cx="12" cy="7" r="4" />
+                <path d="M5.5 21c0-4.5 2.9-7 6.5-7s6.5 2.5 6.5 7" />
+              </svg>
+              <span style={{ fontSize: 12, color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)' }}>{config.maxPassengers}</span>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: 'var(--warmgrey)', flexShrink: 0 }}>
+                <rect x="6" y="7" width="12" height="14" rx="1" />
+                <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
+              </svg>
+              <span style={{ fontSize: 12, color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)' }}>{config.maxLuggage}</span>
+            </div>
+          </div>
+
+          {price && (
+            <span style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 18,
+              fontWeight: 600,
+              color: isSelected ? 'var(--copper)' : 'var(--offwhite)',
+              letterSpacing: '0.02em',
+            }}>
+              {price}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Car image — right side, landscape */}
+      <div style={{
+        position: 'relative',
+        width: '45%',
+        flexShrink: 0,
+        background: '#1E1C1A',
+        overflow: 'hidden',
+      }}>
         <Image
           src={config.image}
-          alt={`Prestigo ${config.label} — exterior`}
+          alt={`Prestigo ${config.label}`}
           fill
-          style={{ objectFit: 'cover' }}
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: isSelected
+            ? 'linear-gradient(to right, var(--anthracite-mid) 0%, transparent 40%)'
+            : 'linear-gradient(to right, var(--anthracite) 0%, transparent 40%)',
+          pointerEvents: 'none',
+        }} />
       </div>
-
-      {/* Class name */}
-      <span
-        style={{
-          display: 'block',
-          fontFamily: 'var(--font-montserrat)',
-          fontSize: 10,
-          fontWeight: 400,
-          letterSpacing: '0.4em',
-          textTransform: 'uppercase',
-          color: 'var(--offwhite)',
-          marginBottom: 8,
-        }}
-      >
-        {config.label}
-      </span>
-
-      {/* Capacity row */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--warmgrey)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <circle cx="12" cy="7" r="4" />
-            <path d="M5.5 21c0-4.5 2.9-7 6.5-7s6.5 2.5 6.5 7" />
-          </svg>
-          <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--warmgrey)' }}>{config.maxPassengers}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: 'var(--warmgrey)' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <rect x="6" y="7" width="12" height="14" rx="1" />
-            <path d="M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2" />
-          </svg>
-          <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--warmgrey)' }}>{config.maxLuggage}</span>
-        </div>
-      </div>
-
-      {/* What's included — 6 items, always visible (D-16) */}
-      <ul style={{ listStyle: 'none', margin: '16px 0', padding: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-        {INCLUDED_ITEMS.map((item) => (
-          <li key={item} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--warmgrey)', fontFamily: 'var(--font-montserrat)' }}>
-            <Check size={12} style={{ color: 'var(--copper)', flexShrink: 0 }} aria-hidden="true" />
-            {item}
-          </li>
-        ))}
-      </ul>
-
-      {/* Price buttons */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginTop: 'auto' }}>
-        {isLoading ? (
-          <>
-            <div className="skeleton-shimmer" />
-            <div className="skeleton-shimmer" style={{ width: 120 }} />
-          </>
-        ) : quoteMode ? (
-          <button
-            type="button"
-            onClick={onSelectOneWay}
-            aria-pressed={isSelectedOneWay}
-            style={priceButtonStyle(isSelectedOneWay, false)}
-          >
-            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--warmgrey)' }}>
-              Request a quote
-            </span>
-          </button>
-        ) : (
-          <>
-            {/* One Way */}
-            <button
-              type="button"
-              onClick={onSelectOneWay}
-              aria-pressed={isSelectedOneWay}
-              onMouseEnter={() => setHoveredBtn('one_way')}
-              onMouseLeave={() => setHoveredBtn(null)}
-              style={priceButtonStyle(isSelectedOneWay, hoveredBtn === 'one_way')}
-            >
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.3em', textTransform: 'uppercase', color: isSelectedOneWay ? 'var(--copper)' : 'var(--warmgrey)', marginBottom: 2 }}>
-                  One Way
-                </span>
-                {price ? (
-                  <>
-                    <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 18, fontWeight: 500, color: 'var(--offwhite)', letterSpacing: '0.03em' }}>
-                      &euro;{price.total}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 1 }}>
-                      {formatCZK(eurToCzk(price.total))}
-                    </span>
-                  </>
-                ) : null}
-              </div>
-            </button>
-
-            {/* Round Trip — only for transfer type */}
-            {showRoundTripOption && (
-              <button
-                type="button"
-                onClick={onSelectRoundTrip}
-                aria-pressed={isSelectedRoundTrip}
-                onMouseEnter={() => setHoveredBtn('round_trip')}
-                onMouseLeave={() => setHoveredBtn(null)}
-                style={priceButtonStyle(isSelectedRoundTrip, hoveredBtn === 'round_trip')}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.3em', textTransform: 'uppercase', color: isSelectedRoundTrip ? 'var(--copper)' : 'var(--warmgrey)' }}>
-                      Round Trip
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, fontWeight: 400, letterSpacing: '0.1em', color: 'var(--copper)', background: 'rgba(184,115,51,0.12)', padding: '1px 6px' }}>
-                      -{returnDiscountPercent}%
-                    </span>
-                  </div>
-                  {combinedTotal !== null && (
-                    <>
-                      <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 18, fontWeight: 500, color: 'var(--offwhite)', letterSpacing: '0.03em' }}>
-                        &euro;{combinedTotal}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 1 }}>
-                        {formatCZK(eurToCzk(combinedTotal))}
-                      </span>
-                      {savings !== null && savings > 0 && (
-                        <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 10, fontWeight: 400, color: 'var(--copper)', marginTop: 3, letterSpacing: '0.03em' }}>
-                          You save &euro;{savings}{isEstimated ? ' · select return date to confirm' : ''}
-                        </span>
-                      )}
-                    </>
-                  )}
-                </div>
-              </button>
-            )}
-          </>
-        )}
-      </div>
-    </div>
+    </button>
   )
-}
-
-function priceButtonStyle(isActive: boolean, isHovered: boolean): React.CSSProperties {
-  return {
-    display: 'block',
-    width: '100%',
-    textAlign: 'left',
-    background: isActive ? 'rgba(184,115,51,0.08)' : isHovered ? 'rgba(184,115,51,0.04)' : 'rgba(255,255,255,0.03)',
-    border: isActive ? '1px solid var(--copper)' : isHovered ? '1px solid rgba(184,115,51,0.5)' : '1px solid var(--anthracite-light)',
-    padding: '10px 12px',
-    cursor: 'pointer',
-    transition: 'border-color 0.15s ease, background 0.15s ease',
-    borderRadius: 2,
-  }
 }
