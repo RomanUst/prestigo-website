@@ -14,10 +14,16 @@ const TRIP_TYPES: TripTabEntry[] = [
   { kind: 'navigate', href: '/book/multi-day', label: 'MULTI-DAY' },
 ]
 
-export default function TripTypeTabs() {
+interface TripTypeTabsProps {
+  hideMultiDay?: boolean
+}
+
+export default function TripTypeTabs({ hideMultiDay = false }: TripTypeTabsProps) {
   const tripType = useBookingStore((s) => s.tripType)
   const setTripType = useBookingStore((s) => s.setTripType)
   const router = useRouter()
+
+  const tabs = hideMultiDay ? TRIP_TYPES.filter((t) => t.kind === 'store') : TRIP_TYPES
 
   return (
     <div
@@ -35,7 +41,7 @@ export default function TripTypeTabs() {
       }}
       className="[&::-webkit-scrollbar]:hidden"
     >
-      {TRIP_TYPES.map((tab) => {
+      {tabs.map((tab) => {
         const isActive =
           tab.kind === 'store' &&
           (tripType === tab.value || (tab.value === 'transfer' && tripType === 'round_trip'))
