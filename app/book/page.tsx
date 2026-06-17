@@ -102,7 +102,7 @@ export default function BookPage() {
       </section>
 
       {/* Booking wizard */}
-      <section className="bg-anthracite py-12 md:py-16">
+      <section className="theme-light bg-anthracite py-12 md:py-16">
         <BookingWizard />
       </section>
 

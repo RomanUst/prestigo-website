@@ -16,6 +16,7 @@ import ProgressBar from './ProgressBar'
 import EntryBar from './EntryBar'
 import StepStub from './steps/StepStub'
 import Step3Vehicle from './steps/Step3Vehicle'
+import Step3Auth from './steps/Step3Auth'
 import Step4Extras from './steps/Step4Extras'
 import Step5Passenger from './steps/Step5Passenger'
 import Step6Payment from './steps/Step6Payment'
@@ -148,9 +149,10 @@ export default function BookingWizard() {
     const STEP_NAMES: Record<number, string> = {
       1: 'entry_bar',
       2: 'vehicle',
-      3: 'extras',
-      4: 'passenger',
-      5: 'payment',
+      3: 'auth',
+      4: 'extras',
+      5: 'passenger',
+      6: 'payment',
     }
     push(
       'checkout_progress',
@@ -192,7 +194,7 @@ export default function BookingWizard() {
           `view_item_${vehicleClass}`,
         )
       }
-    } else if (currentStep === 5 && vehicleClass) {
+    } else if (currentStep === 6 && vehicleClass) {
       // InitiateCheckout (plan 59-04) — fires in StickyBookingPanel on vehicle select
       push('add_payment_info', { currency, value: totalEur, items, payment_type: 'stripe' })
       trackMetaEvent('AddPaymentInfo', { value: totalEur, currency })
@@ -209,8 +211,10 @@ export default function BookingWizard() {
         // Vehicle step: must have selected a vehicle class; round_trip also needs return time
         return vehicleClass !== null && (tripType !== 'round_trip' || (returnDate !== null && returnTime !== null))
       case 3:
-        return true // extras are all optional — always can proceed
+        return false // Auth step self-navigates; generic Continue is hidden
       case 4:
+        return true // extras are all optional — always can proceed
+      case 5:
         return (
           !!passengerDetails?.firstName &&
           !!passengerDetails?.lastName &&
@@ -218,7 +222,7 @@ export default function BookingWizard() {
           !!passengerDetails?.phone
         )
       default:
-        return true // step 5 (payment) and beyond
+        return true // step 6 (payment) and beyond
     }
   })()
 
@@ -229,10 +233,12 @@ export default function BookingWizard() {
       case 2:
         return <Step3Vehicle />
       case 3:
-        return <Step4Extras />
+        return <Step3Auth />
       case 4:
-        return <Step5Passenger />
+        return <Step4Extras />
       case 5:
+        return <Step5Passenger />
+      case 6:
         return <Step6Payment />
       default:
         return <StepStub step={currentStep} />
@@ -240,7 +246,7 @@ export default function BookingWizard() {
   }
 
   const handleNext = async () => {
-    if (currentStep === 5 && quoteMode) {
+    if (currentStep === 6 && quoteMode) {
       // Quote mode: skip payment, submit quote, go to confirmation
       try {
         const store = useBookingStore.getState()
@@ -298,18 +304,18 @@ export default function BookingWizard() {
       <ProgressBar
         currentStep={currentStep}
         completedSteps={completedSteps}
-        totalSteps={5}
+        totalSteps={6}
       />
 
       {/* Step content */}
       <div
         key={currentStep}
-        className={`animate-step-enter ${currentStep === 2 || currentStep === 5 ? '' : 'max-w-xl'} ${currentStep > 1 && currentStep < 5 && currentStep !== 2 ? 'pb-24 md:pb-0' : ''}`}
+        className={`animate-step-enter ${currentStep === 2 || currentStep === 6 ? '' : currentStep === 1 ? 'max-w-2xl' : 'max-w-xl'} ${currentStep > 1 && currentStep < 6 && currentStep !== 2 && currentStep !== 3 ? 'pb-24 md:pb-0' : ''}`}
       >
-        {/* Step heading — full treatment for steps 1-5 */}
-        {currentStep <= 5 ? (
+        {/* Step heading — skipped at step 2 (heading lives inside Step3Vehicle, after the route bar) */}
+        {currentStep !== 2 ? (
           <div className="mb-8">
-            <p className="label mb-6">STEP {currentStep} OF 5</p>
+            <p className="label mb-6">STEP {currentStep} OF 6</p>
             <span className="copper-line mb-6 block" />
             <h2
               style={{
@@ -322,47 +328,46 @@ export default function BookingWizard() {
             >
               {currentStep === 1
                 ? 'Plan your journey'
-                : currentStep === 2
-                ? 'Choose your vehicle'
                 : currentStep === 3
-                ? 'Add extras'
+                ? 'Sign in to continue'
                 : currentStep === 4
+                ? 'Add extras'
+                : currentStep === 5
                 ? 'Passenger details'
                 : 'Payment'}
             </h2>
           </div>
         ) : (
-          <div className="mb-8">
-            <p className="label mb-6">STEP {currentStep} OF 5</p>
+          <div className="mb-6">
+            <p className="label mb-6">STEP {currentStep} OF 6</p>
+            <span className="copper-line mb-0 block" />
           </div>
         )}
 
         {renderStepContent()}
       </div>
 
-      {/* Generic Back/Next button bar — only rendered for steps 2–4 (not step 1 or step 5) */}
-      {currentStep > 1 && currentStep < 5 && (
+      {/* Generic Back/Next button bar — steps 4–5 only (step 2 uses StickyBookingPanel, step 3 uses Step3Auth's own Back button) */}
+      {currentStep > 1 && currentStep < 6 && currentStep !== 2 && currentStep !== 3 && (
         <>
           {/* Desktop button row — hidden on mobile */}
           <div className="hidden md:flex justify-end gap-4 mt-8">
             {buttons}
           </div>
 
-          {/* Mobile sticky button bar — hidden on desktop, and hidden at Step 2 where StickyBookingPanel CTA takes over */}
-          {currentStep !== 2 && (
-            <div
-              className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
-              style={{
-                backgroundColor: 'var(--anthracite)',
-                borderTop: '1px solid var(--anthracite-light)',
-                padding: '0 16px',
-                paddingBottom: 'env(safe-area-inset-bottom)',
-                height: 72,
-              }}
-            >
-              {buttons}
-            </div>
-          )}
+          {/* Mobile sticky button bar */}
+          <div
+            className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
+            style={{
+              backgroundColor: 'var(--anthracite)',
+              borderTop: '1px solid var(--anthracite-light)',
+              padding: '0 16px',
+              paddingBottom: 'env(safe-area-inset-bottom)',
+              height: 72,
+            }}
+          >
+            {buttons}
+          </div>
         </>
       )}
     </div>

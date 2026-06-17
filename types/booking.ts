@@ -45,15 +45,16 @@ export interface Extras {
 export interface VehicleConfig {
   key: VehicleClass
   label: string
+  model: string  // e.g. "Mercedes-Benz E-Class or similar"
   maxPassengers: number
   maxLuggage: number
   image: string  // path relative to /public
 }
 
 export const VEHICLE_CONFIG: VehicleConfig[] = [
-  { key: 'business', label: 'Business', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/business-exterior.jpg' },
-  { key: 'first_class', label: 'First Class', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/first-exterior.jpg' },
-  { key: 'business_van', label: 'Business Van', maxPassengers: 6, maxLuggage: 6, image: '/vehicles/van-exterior.jpg' },
+  { key: 'business', label: 'Business', model: 'Mercedes-Benz E-Class or similar', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/business-exterior.jpg' },
+  { key: 'first_class', label: 'First Class', model: 'Mercedes-Benz S-Class or similar', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/first-exterior.jpg' },
+  { key: 'business_van', label: 'Business Van', model: 'Mercedes-Benz V-Class or similar', maxPassengers: 6, maxLuggage: 6, image: '/vehicles/van-exterior.jpg' },
 ]
 
 // Mirrors FlightStatus from lib/flight-status.ts (server-only module).

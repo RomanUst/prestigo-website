@@ -62,7 +62,7 @@ export default function AddressInput({
   required = false,
 }: AddressInputProps) {
   const [mapsLoaded, setMapsLoaded] = useState(false)
-  const [inputValue, setInputValue] = useState('')
+  const [inputValue, setInputValue] = useState(() => value?.address ?? '')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
@@ -87,9 +87,13 @@ export default function AddressInput({
     })
   }, [])
 
-  // Sync when parent clears value externally (not via typing)
+  // Sync inputValue with external value changes (store hydration + external clear)
   useEffect(() => {
-    if (prevValueRef.current !== null && value === null && !isTypingClearRef.current) {
+    if (prevValueRef.current === null && value !== null && value.address) {
+      // null → non-null: Zustand rehydration (back navigation) or initial autocomplete selection
+      setInputValue(value.address)
+    } else if (prevValueRef.current !== null && value === null && !isTypingClearRef.current) {
+      // non-null → null: parent cleared the value externally
       setInputValue('')
       setSuggestions([])
       setShowSuggestions(false)

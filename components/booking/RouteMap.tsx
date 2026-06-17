@@ -41,7 +41,7 @@ const GREYSCALE_STYLES: google.maps.MapTypeStyle[] = [
 ]
 
 // ---------------------------------------------------------------------------
-// animateDotAlongPath — RAF-based one-shot animation (D-11)
+// animateDotAlongPath — RAF-based looping animation (D-11)
 // Returns a cleanup function that cancels the RAF (Pitfall 6)
 // ---------------------------------------------------------------------------
 function animateDotAlongPath(
@@ -52,13 +52,14 @@ function animateDotAlongPath(
   if (path.length < 2) return () => undefined
 
   let rafId: number
-  const startTime = performance.now()
+  let startTime: number | null = null
 
   function step(now: number) {
-    const elapsed = now - startTime
-    const t = Math.min(elapsed / durationMs, 1)
+    if (startTime === null) startTime = now
+    // Modulo makes the animation loop continuously
+    const elapsed = (now - startTime) % durationMs
+    const t = elapsed / durationMs
 
-    // Interpolate position along the path
     const totalSegments = path.length - 1
     const pathPosition = t * totalSegments
     const segmentIndex = Math.min(Math.floor(pathPosition), totalSegments - 1)
@@ -70,14 +71,66 @@ function animateDotAlongPath(
     const lng = from.lng() + (to.lng() - from.lng()) * segmentT
 
     marker.setPosition(new google.maps.LatLng(lat, lng))
-
-    if (t < 1) {
-      rafId = requestAnimationFrame(step)
-    }
+    rafId = requestAnimationFrame(step)
   }
 
   rafId = requestAnimationFrame(step)
   return () => cancelAnimationFrame(rafId)
+}
+
+// ---------------------------------------------------------------------------
+// MapLabel — custom OverlayView for pickup/dropoff time labels
+// Uses OverlayView so there is no InfoWindow chrome (no X close button)
+// ---------------------------------------------------------------------------
+function createMapLabel(
+  map: google.maps.Map,
+  position: google.maps.LatLng,
+  heading: string,
+  time: string,
+  isPickup: boolean,
+): google.maps.OverlayView {
+  class MapLabel extends google.maps.OverlayView {
+    private div: HTMLDivElement | null = null
+
+    onAdd() {
+      const div = document.createElement('div')
+      div.style.cssText = 'position:absolute;pointer-events:none;'
+      div.innerHTML = `
+        <div style="
+          background:${isPickup ? '#211F1C' : '#ffffff'};
+          color:${isPickup ? '#F7F4EF' : '#211F1C'};
+          border-radius:3px;
+          padding:4px 8px;
+          white-space:nowrap;
+          box-shadow:0 1px 4px rgba(0,0,0,0.25);
+          font-family:Montserrat,sans-serif;
+          line-height:1.3;
+        ">
+          <div style="font-size:9px;letter-spacing:0.08em;text-transform:uppercase;opacity:0.65;margin-bottom:1px">${heading}</div>
+          <div style="font-size:12px;font-weight:600">${time}</div>
+        </div>
+      `
+      this.div = div
+      this.getPanes()?.floatPane.appendChild(div)
+    }
+
+    draw() {
+      const point = this.getProjection().fromLatLngToDivPixel(position)
+      if (this.div && point) {
+        this.div.style.left = `${point.x + 12}px`
+        this.div.style.top = `${point.y - 28}px`
+      }
+    }
+
+    onRemove() {
+      this.div?.parentNode?.removeChild(this.div)
+      this.div = null
+    }
+  }
+
+  const label = new MapLabel()
+  label.setMap(map)
+  return label
 }
 
 // ---------------------------------------------------------------------------
@@ -220,33 +273,7 @@ export default function RouteMap({
             },
           })
 
-          // --- Time labels ---
-          if (pickupTime) {
-            const pickupLabel = formatTime24To12(pickupTime)
-            const dropoffLabel = estimateDropoffTime(pickupTime, distanceKm)
-
-            const pickupInfoWindow = new google.maps.InfoWindow({
-              content: `<span style="font-family:Montserrat,sans-serif;font-size:11px;color:#6E6962;padding:4px 6px;display:inline-block">${pickupLabel}</span>`,
-            })
-            pickupInfoWindow.open(map, new google.maps.Marker({ position: originLatLng, map: null }))
-            // Position at origin — use a dummy anchor marker (invisible)
-            const pickupAnchor = new google.maps.Marker({
-              position: originLatLng,
-              map,
-              visible: false,
-            })
-            pickupInfoWindow.open(map, pickupAnchor)
-
-            const dropoffInfoWindow = new google.maps.InfoWindow({
-              content: `<span style="font-family:Montserrat,sans-serif;font-size:11px;color:#6E6962;padding:4px 6px;display:inline-block">${dropoffLabel}</span>`,
-            })
-            const dropoffAnchor = new google.maps.Marker({
-              position: destLatLng,
-              map,
-              visible: false,
-            })
-            dropoffInfoWindow.open(map, dropoffAnchor)
-          }
+          // Time labels removed — shown in StickyBookingPanel instead
 
           // --- Animated dot ---
           const reducedMotion =
@@ -289,7 +316,7 @@ export default function RouteMap({
     return (
       <div
         style={{
-          height: 220,
+          height: 300,
           background: 'var(--anthracite-mid)',
           display: 'flex',
           alignItems: 'center',
@@ -316,7 +343,7 @@ export default function RouteMap({
   return (
     <div
       ref={mapRef}
-      style={{ height: 220, background: 'var(--anthracite-mid)' }}
+      style={{ height: 300, background: 'var(--anthracite-mid)' }}
       aria-label={`Route map from ${origin.address} to ${destination.address}`}
       role="img"
     />

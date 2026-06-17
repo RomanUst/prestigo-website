@@ -36,12 +36,35 @@ function pushGA4Event(eventName: string, params: Record<string, unknown>): void 
 // StickyBookingPanel — desktop-only sticky right panel (D-09, D-10)
 // Relocated begin_checkout + InitiateCheckout trigger (TRACK-02)
 // ---------------------------------------------------------------------------
+function fmt24to12(t: string): string {
+  const [h, m] = t.split(':').map(Number)
+  const isPM = h >= 12
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${m.toString().padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`
+}
+
+function estDropoff(pickupTime: string, distanceKm: number | null): string {
+  if (!distanceKm) return null!
+  const durationMin = Math.round((distanceKm / 45) * 60) + 5
+  const [h, m] = pickupTime.split(':').map(Number)
+  const total = h * 60 + m + durationMin
+  const hh = Math.floor(total / 60) % 24
+  const mm = total % 60
+  return fmt24to12(`${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`)
+}
+
+function fmtDate(iso: string): string {
+  const d = new Date(iso + 'T12:00:00')
+  return d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })
+}
+
 export default function StickyBookingPanel() {
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
   const pickupTime = useBookingStore((s) => s.pickupTime)
+  const pickupDate = useBookingStore((s) => s.pickupDate)
   const distanceKm = useBookingStore((s) => s.distanceKm)
   const tripType = useBookingStore((s) => s.tripType)
 
@@ -110,6 +133,8 @@ export default function StickyBookingPanel() {
       style={{
         top: 24,
         width: 320,
+        maxHeight: 'calc(100vh - 48px)',
+        overflowY: 'auto',
         background: 'var(--anthracite-mid)',
         border: '1px solid var(--anthracite-light)',
         padding: 24,
@@ -123,6 +148,28 @@ export default function StickyBookingPanel() {
         pickupTime={pickupTime}
         distanceKm={distanceKm}
       />
+
+      {/* Pickup / dropoff time row */}
+      {pickupTime && pickupDate && (
+        <>
+          <div style={{ height: 1, background: 'var(--anthracite-light)', margin: '16px 0' }} />
+          <div style={{ display: 'flex', gap: 0, flexDirection: 'column' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Pick up</span>
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{fmt24to12(pickupTime)}</span>
+            </div>
+            {estDropoff(pickupTime, distanceKm) && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Est. drop-off</span>
+                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{estDropoff(pickupTime, distanceKm)}</span>
+              </div>
+            )}
+            <div style={{ marginTop: 6 }}>
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 10, color: 'var(--warmgrey)' }}>{fmtDate(pickupDate)}</span>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Divider */}
       <div
