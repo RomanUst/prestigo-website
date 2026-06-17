@@ -13,9 +13,8 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { useRouter } from 'next/navigation'
 import ProgressBar from './ProgressBar'
+import EntryBar from './EntryBar'
 import StepStub from './steps/StepStub'
-import Step1TripType from './steps/Step1TripType'
-import Step2DateTime from './steps/Step2DateTime'
 import Step3Vehicle from './steps/Step3Vehicle'
 import Step4Extras from './steps/Step4Extras'
 import Step5Passenger from './steps/Step5Passenger'
@@ -147,12 +146,11 @@ export default function BookingWizard() {
     // Per-step progress event — fires once per step. Lets us see exactly where
     // users drop off (between step_1 and step_2 etc).
     const STEP_NAMES: Record<number, string> = {
-      1: 'trip_type',
-      2: 'date_time',
-      3: 'vehicle',
-      4: 'extras',
-      5: 'passenger',
-      6: 'payment',
+      1: 'entry_bar',
+      2: 'vehicle',
+      3: 'extras',
+      4: 'passenger',
+      5: 'payment',
     }
     push(
       'checkout_progress',
@@ -170,7 +168,7 @@ export default function BookingWizard() {
       // GA4 Enhanced Measurement form_start only triggers on <form> elements;
       // our wizard isn't a form, so we emit it manually.
       push('form_start', { form_id: 'booking_wizard', form_name: 'Booking Wizard' })
-    } else if (currentStep === 3) {
+    } else if (currentStep === 2) {
       push('view_item_list', {
         item_list_name: 'Vehicle Selection',
         currency,
@@ -185,7 +183,7 @@ export default function BookingWizard() {
             }))
           : [],
       })
-      // view_item — fires when a specific vehicle becomes selected at step 3.
+      // view_item — fires when a specific vehicle becomes selected at step 2.
       // Deduped by item_id so switching vehicles re-fires for the new one.
       if (vehicleClass && selectedPrice) {
         push(
@@ -195,9 +193,7 @@ export default function BookingWizard() {
         )
       }
     } else if (currentStep === 5 && vehicleClass) {
-      push('begin_checkout', { currency, value: totalEur, items })
-      trackMetaEvent('InitiateCheckout', { value: totalEur, currency, num_items: 1 })
-    } else if (currentStep === 6 && vehicleClass) {
+      // InitiateCheckout (plan 59-04) — fires in StickyBookingPanel on vehicle select
       push('add_payment_info', { currency, value: totalEur, items, payment_type: 'stripe' })
       trackMetaEvent('AddPaymentInfo', { value: totalEur, currency })
     }
@@ -208,21 +204,13 @@ export default function BookingWizard() {
   const canProceed = (() => {
     switch (currentStep) {
       case 1:
-        return true // Step 1 handles its own validation and Continue button
-      case 2: {
-        if (!pickupDate || !pickupTime) return false
-        if (tripType === 'daily' && !returnDate) return false
-        // Enforce 12-hour lead time
-        const pickupDT = new Date(`${pickupDate}T${pickupTime}:00`)
-        // eslint-disable-next-line react-hooks/purity
-        const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
-        return pickupDT >= minAllowedDT
-      }
-      case 3:
+        return true // EntryBar handles its own validation and CTA
+      case 2:
+        // Vehicle step: must have selected a vehicle class; round_trip also needs return time
         return vehicleClass !== null && (tripType !== 'round_trip' || (returnDate !== null && returnTime !== null))
+      case 3:
+        return true // extras are all optional — always can proceed
       case 4:
-        return true // Step 4 extras are all optional — always can proceed
-      case 5:
         return (
           !!passengerDetails?.firstName &&
           !!passengerDetails?.lastName &&
@@ -230,23 +218,21 @@ export default function BookingWizard() {
           !!passengerDetails?.phone
         )
       default:
-        return true // Step 6 will add its own validation later
+        return true // step 5 (payment) and beyond
     }
   })()
 
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
-        return <Step1TripType />
+        return <EntryBar />
       case 2:
-        return <Step2DateTime />
-      case 3:
         return <Step3Vehicle />
-      case 4:
+      case 3:
         return <Step4Extras />
-      case 5:
+      case 4:
         return <Step5Passenger />
-      case 6:
+      case 5:
         return <Step6Payment />
       default:
         return <StepStub step={currentStep} />
@@ -312,18 +298,18 @@ export default function BookingWizard() {
       <ProgressBar
         currentStep={currentStep}
         completedSteps={completedSteps}
-        totalSteps={6}
+        totalSteps={5}
       />
 
       {/* Step content */}
       <div
         key={currentStep}
-        className={`animate-step-enter ${currentStep === 3 || currentStep === 6 ? '' : 'max-w-xl'} ${currentStep > 1 && currentStep < 6 && currentStep !== 3 ? 'pb-24 md:pb-0' : ''}`}
+        className={`animate-step-enter ${currentStep === 2 || currentStep === 5 ? '' : 'max-w-xl'} ${currentStep > 1 && currentStep < 5 && currentStep !== 2 ? 'pb-24 md:pb-0' : ''}`}
       >
-        {/* Step heading — full treatment for steps 1-6 */}
-        {currentStep <= 6 ? (
+        {/* Step heading — full treatment for steps 1-5 */}
+        {currentStep <= 5 ? (
           <div className="mb-8">
-            <p className="label mb-6">STEP {currentStep} OF 6</p>
+            <p className="label mb-6">STEP {currentStep} OF 5</p>
             <span className="copper-line mb-6 block" />
             <h2
               style={{
@@ -335,37 +321,35 @@ export default function BookingWizard() {
               }}
             >
               {currentStep === 1
-                ? 'Select your journey'
+                ? 'Plan your journey'
                 : currentStep === 2
-                ? 'Select your date & time'
-                : currentStep === 3
                 ? 'Choose your vehicle'
-                : currentStep === 4
+                : currentStep === 3
                 ? 'Add extras'
-                : currentStep === 5
+                : currentStep === 4
                 ? 'Passenger details'
                 : 'Payment'}
             </h2>
           </div>
         ) : (
           <div className="mb-8">
-            <p className="label mb-6">STEP {currentStep} OF 6</p>
+            <p className="label mb-6">STEP {currentStep} OF 5</p>
           </div>
         )}
 
         {renderStepContent()}
       </div>
 
-      {/* Generic Back/Next button bar — only rendered for steps 2–5 (not step 1 or step 6) */}
-      {currentStep > 1 && currentStep < 6 && (
+      {/* Generic Back/Next button bar — only rendered for steps 2–4 (not step 1 or step 5) */}
+      {currentStep > 1 && currentStep < 5 && (
         <>
           {/* Desktop button row — hidden on mobile */}
           <div className="hidden md:flex justify-end gap-4 mt-8">
             {buttons}
           </div>
 
-          {/* Mobile sticky button bar — hidden on desktop, and hidden at Step 3 where PriceSummary takes over */}
-          {currentStep !== 3 && (
+          {/* Mobile sticky button bar — hidden on desktop, and hidden at Step 2 where StickyBookingPanel CTA takes over */}
+          {currentStep !== 2 && (
             <div
               className="flex md:hidden items-center justify-end gap-4 sticky bottom-0"
               style={{
