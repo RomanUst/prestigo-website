@@ -133,6 +133,9 @@ export interface BookingStore {
   toggleExtra: (key: keyof Extras) => void
   setPassengerDetails: (d: PassengerDetails) => void
   setFlightCheckResult: (r: FlightCheckResult | null) => void
+  // Auth step
+  guestMode: boolean               // true when user chose "continue as guest"
+  setGuestMode: (g: boolean) => void
   // Step 6 / Payment
   paymentIntentClientSecret: string | null
   bookingReference: string | null

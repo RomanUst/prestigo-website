@@ -5,6 +5,8 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
 import OAuthButtons from '@/components/auth/OAuthButtons'
 
+declare global { interface Window { gtag?: (...args: unknown[]) => void } }
+
 type TopTab = 'signin' | 'register'
 type SignInMethod = 'otp' | 'password'
 
@@ -95,7 +97,7 @@ const ghostButtonStyle: React.CSSProperties = {
 // ---------------------------------------------------------------------------
 
 export default function Step3Auth() {
-  const { nextStep, prevStep } = useBookingStore()
+  const { nextStep, prevStep, setGuestMode } = useBookingStore()
 
   const [topTab, setTopTab] = useState<TopTab>('signin')
   const [signInMethod, setSignInMethod] = useState<SignInMethod>('otp')
@@ -179,6 +181,7 @@ export default function Step3Auth() {
       setOtpError('Invalid or expired code. Please try again.')
     } else {
       sessionStorage.removeItem('booking_deeplink')
+      window.gtag?.('event', 'login', { method: 'email_otp' })
       nextStep()
     }
   }
@@ -202,6 +205,7 @@ export default function Step3Auth() {
       setPwError('Invalid email or password.')
     } else {
       sessionStorage.removeItem('booking_deeplink')
+      window.gtag?.('event', 'login', { method: 'password' })
       nextStep()
     }
   }
@@ -229,6 +233,7 @@ export default function Step3Auth() {
     // If email confirmation is disabled and session is returned, advance immediately
     if (data.session) {
       sessionStorage.removeItem('booking_deeplink')
+      window.gtag?.('event', 'sign_up', { method: 'email' })
       nextStep()
     } else {
       setRegDone(true)
@@ -448,6 +453,23 @@ export default function Step3Auth() {
 
       {divider}
       <OAuthButtons returnTo="/book" />
+
+      {/* Continue as guest */}
+      <button
+        type="button"
+        style={{ ...ghostButtonStyle, marginTop: 8 }}
+        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--copper)'; e.currentTarget.style.color = 'var(--offwhite)' }}
+        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--anthracite-light)'; e.currentTarget.style.color = 'var(--warmgrey)' }}
+        onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.97)' }}
+        onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
+        onClick={() => {
+          setGuestMode(true)
+          sessionStorage.removeItem('booking_deeplink')
+          nextStep()
+        }}
+      >
+        Continue as guest
+      </button>
 
       {/* Back — same visual style as OAuth buttons */}
       <button

@@ -62,6 +62,7 @@ const createPaymentIntentSchema = z.object({
     phone:       z.string().max(30).regex(NO_LINE_BREAKS).optional(),
     flightNumber: z.string().max(20).regex(NO_LINE_BREAKS).optional(),
     terminal:     z.string().max(50).regex(NO_LINE_BREAKS).optional(),
+    userId: z.string().uuid().optional(),
   }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
@@ -300,6 +301,7 @@ export async function POST(req: Request) {
         returnDiscountPct: String(rates.globals.returnDiscountPercent),
         promoCode: promoCode || '',
         discountPct: String(appliedPromoPct),
+        userId: bookingData.userId || '',
       },
     })
 
