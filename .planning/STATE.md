@@ -4,13 +4,13 @@ milestone: v2.0
 milestone_name: Blacklane-style Booking + Customer Accounts
 status: executing
 stopped_at: Phase 59 UI-SPEC approved
-last_updated: "2026-06-17T14:23:15.269Z"
+last_updated: "2026-06-17T14:36:00.749Z"
 last_activity: 2026-06-17 -- Phase 59 execution started
 progress:
   total_phases: 8
   completed_phases: 5
   total_plans: 22
-  completed_plans: 19
+  completed_plans: 20
   percent: 63
 ---
 
@@ -26,7 +26,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 59 (booking-flow-redesign-blacklane) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-06-17 -- Phase 59 execution started
 
@@ -55,6 +55,8 @@ Recent decisions affecting current work:
 - [Phase ?]: v2.0 (58-02): saved_passengers includes DELETE RLS policy (deliberate contrast with customer_profiles) + partial unique index WHERE is_default=true for DB-enforced single-default
 - [Phase ?]: v2.0 (58-04): D-01 enforced — /account/trips makes no bookings query; trip history deferred to Phase 60
 - [Phase ?]: v2.0 (58-05): Server actions in separate app/account/actions.ts — account mutations isolated from login actions
+- [Phase ?]: v2.0 (59-03): EntryBar return expander conditionally mounts DOM children (not just CSS hide) to avoid duplicate label text
+- [Phase ?]: v2.0 (59-03): begin_checkout relocated from BookingWizard to StickyBookingPanel (plan 59-04) per Pitfall 5
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -87,7 +89,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-06-17T14:23:15.252Z
+Last session: 2026-06-17T14:35:48.986Z
 Stopped at: Phase 59 UI-SPEC approved
 Resume file: .planning/phases/59-booking-flow-redesign-blacklane/59-UI-SPEC.md
 
@@ -103,3 +105,4 @@ Resume file: .planning/phases/59-booking-flow-redesign-blacklane/59-UI-SPEC.md
 | Phase Phase 58 PP05 | 7min | 4 tasks | 4 files |
 | Phase 59 P02 | 3min | 3 tasks | 4 files |
 | Phase 59-booking-flow-redesign-blacklane P01 | 30min | 2 tasks | 13 files |
+| Phase 59-booking-flow-redesign-blacklane P03 | 10min | 3 tasks | 6 files |
