@@ -35,7 +35,7 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 - [x] **BOOK-01**: Unified route + date + time entry bar in Blacklane style (one consolidated entry surface rather than two separate steps)
 - [x] **BOOK-02**: Pickup-time selection via a time-slot dropdown
 - [x] **BOOK-03**: Inline "flight number" field surfaced for airport transfers
-- [ ] **BOOK-04**: Route map showing pickup time and drop-off time alongside vehicle selection ("Choose your experience")
+- [x] **BOOK-04**: Route map showing pickup time and drop-off time alongside vehicle selection ("Choose your experience")
 - [x] **BOOK-05**: Vehicle class cards show "What's included" and capacity tabs (luggage / seating)
 - [ ] **BOOK-06**: Booking-method step lets the user choose "Book for myself (account)" or "Book as guest"; corporate accounts also get "Book for a guest"
 - [ ] **BOOK-07**: A logged-in customer's contact details are pre-filled in the passenger step
@@ -88,7 +88,7 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 | BOOK-01 | Phase 59 | Complete |
 | BOOK-02 | Phase 59 | Complete |
 | BOOK-03 | Phase 59 | Complete |
-| BOOK-04 | Phase 59 | Pending |
+| BOOK-04 | Phase 59 | Complete |
 | BOOK-05 | Phase 59 | Complete |
 | BOOK-06 | Phase 60 | Pending |
 | BOOK-07 | Phase 60 | Pending |

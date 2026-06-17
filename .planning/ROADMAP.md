@@ -25,7 +25,7 @@ Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/bl
 
 - [x] **Phase 57: Customer Auth Foundation** - Supabase Auth for customers (email + Google + Apple OAuth), migration 044_customer_profiles.sql, nullable user_id FK on bookings, customer/admin session split (completed 2026-06-11)
 - [x] **Phase 58: Sign-in UI + Account Dashboard** - Auth-aware Sign in button in Nav, login/signup pages, "My trips" dashboard, profile editing, personal/corporate fields (completed 2026-06-12)
-- [ ] **Phase 59: Booking Flow Redesign (Blacklane)** - Unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs — store, pricing APIs, and analytics preserved
+- [x] **Phase 59: Booking Flow Redesign (Blacklane)** - Unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs — store, pricing APIs, and analytics preserved (completed 2026-06-17)
 - [ ] **Phase 60: Auth-in-Checkout + Guest Path** - Booking-method step (myself / guest / corporate book-for-a-guest), pre-fill for logged-in customers, link booking to user_id, guest always available
 - [ ] **Phase 61: Analytics Preservation & E2E Verify** - End-to-end verification every GA4/Meta/CAPI event fires across the rebuilt flow on both guest and account paths, incl. login/sign_up, nonce, consent
 
@@ -157,11 +157,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 59-04-PLAN.md — Wave 2: RouteMap (Google Maps JS SDK) + StickyBookingPanel with relocated begin_checkout (BOOK-04, TRACK-02/05)
+- [x] 59-04-PLAN.md — Wave 2: RouteMap (Google Maps JS SDK) + StickyBookingPanel with relocated begin_checkout (BOOK-04, TRACK-02/05)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 59-05-PLAN.md — Wave 3: VehicleCard shell + VehicleSlideshow + Step3 two-column layout (BOOK-04/05, TRACK-01)
+- [x] 59-05-PLAN.md — Wave 3: VehicleCard shell + VehicleSlideshow + Step3 two-column layout (BOOK-04/05, TRACK-01)
 
 **UI hint**: yes
 
@@ -210,6 +210,6 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
 | 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
 | 58. Sign-in UI + Account Dashboard | 5/5 | Complete   | 2026-06-12 |
-| 59. Booking Flow Redesign (Blacklane) | 3/5 | In Progress|  |
+| 59. Booking Flow Redesign (Blacklane) | 5/5 | Complete   | 2026-06-17 |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
 | 61. Analytics Preservation & E2E Verify | 0/? | Not started | - |
