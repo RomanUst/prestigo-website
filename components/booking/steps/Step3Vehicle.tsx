@@ -7,6 +7,8 @@ import { VEHICLE_CONFIG, isAirportPlace } from '@/types/booking'
 import type { VehicleClass } from '@/types/booking'
 import VehicleCard from '@/components/booking/VehicleCard'
 import PriceSummary from '@/components/booking/PriceSummary'
+import StickyBookingPanel from '@/components/booking/StickyBookingPanel'
+import VehicleSlideshow from '@/components/booking/VehicleSlideshow'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -222,19 +224,38 @@ export default function Step3Vehicle() {
   ))
 
   return (
-    <div>
+    <div className="theme-light">
+      {/* Section heading (UI-SPEC copy) */}
+      <h2
+        style={{
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: 20,
+          fontWeight: 400,
+          color: 'var(--offwhite)',
+          marginBottom: 24,
+          letterSpacing: '0.03em',
+        }}
+      >
+        Choose your experience
+      </h2>
+
       {fetchError && (
         <p style={{ fontSize: 13, fontWeight: 400, color: 'var(--warmgrey)', marginBottom: 24 }}>
           Pricing unavailable. Your selection has been saved — continue to request a quote.
         </p>
       )}
 
-      {/* Desktop: 2-col grid (cards + sticky summary) */}
+      {/* Desktop: 2-col grid — left: cards + slideshow; right: StickyBookingPanel (D-09, D-10) */}
       <div className="hidden md:grid" style={{ gridTemplateColumns: '1fr 320px', gap: 32 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
-          {cards}
+        <div>
+          {/* Three vehicle cards in a horizontal row (UI-SPEC desktop layout) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 32 }}>
+            {cards}
+          </div>
+          {/* Interior/luggage slideshow below cards (D-15) */}
+          <VehicleSlideshow activeClass={vehicleClass} />
         </div>
-        <PriceSummary desktopOnly />
+        <StickyBookingPanel />
       </div>
 
       {/* Mobile: single column. paddingBottom leaves room for the fixed PriceSummary.mobileBar
