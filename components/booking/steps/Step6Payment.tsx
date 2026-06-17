@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CheckCircle2 } from 'lucide-react'
+import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
 import { isAirportPlace } from '@/types/booking'
@@ -287,6 +288,13 @@ export default function Step6Payment() {
     setClientSecret(null)
 
     const fetchPaymentIntent = async () => {
+      const supabase = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      )
+      const { data: { session } } = await supabase.auth.getSession()
+      const authenticatedUserId = session?.user?.id ?? null
+
       try {
         const res = await fetch('/api/create-payment-intent', {
           method: 'POST',
@@ -294,6 +302,7 @@ export default function Step6Payment() {
           body: JSON.stringify({
             bookingData: {
               tripType,
+              ...(authenticatedUserId ? { userId: authenticatedUserId } : {}),
               vehicleClass: vehicleClass ?? '',
               originAddress: origin?.address ?? '',
               originLat: origin?.lat != null ? String(origin.lat) : '',

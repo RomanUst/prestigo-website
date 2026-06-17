@@ -31,6 +31,7 @@ export const useBookingStore = create<BookingStore>()(
       bookingReference: null,
       promoCode: null,
       promoDiscount: 0,
+      guestMode: false,
 
       setTripType: (type) => {
         const state = get()
@@ -109,6 +110,7 @@ export const useBookingStore = create<BookingStore>()(
       setBookingReference: (ref) => set({ bookingReference: ref }),
       setPromoCode: (code) => set({ promoCode: code }),
       setPromoDiscount: (pct) => set({ promoDiscount: pct }),
+      setGuestMode: (g) => set({ guestMode: g }),
       resetBooking: () => set({
         tripType: 'transfer',
         origin: null,
@@ -136,6 +138,7 @@ export const useBookingStore = create<BookingStore>()(
         bookingReference: null,
         promoCode: null,
         promoDiscount: 0,
+        guestMode: false,
       }),
     }),
     {

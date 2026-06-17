@@ -99,6 +99,7 @@ export function buildBookingRow(
     flight_number: meta.flightNumber || null,
     terminal: meta.terminal || null,
     special_requests: meta.specialRequests || null,
+    user_id: meta.userId || null,
   }
 }
 

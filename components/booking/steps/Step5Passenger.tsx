@@ -1,9 +1,10 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace } from '@/types/booking'
 import type { FlightStatus } from '@/types/booking'
@@ -50,6 +51,13 @@ export default function Step5Passenger() {
   const flightCheckResult = useBookingStore((s) => s.flightCheckResult)
   const pickupDate = useBookingStore((s) => s.pickupDate)
 
+  const supabase = useMemo(
+    () => createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ), []
+  )
+
   const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)
 
   const {
@@ -72,6 +80,34 @@ export default function Step5Passenger() {
   })
 
   const { firstName, lastName, email, phone, flightNumber, terminal, specialRequests } = watch()
+
+  // Pre-fill from customer_profiles if user is authenticated and fields are empty
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user) return
+      const { data: profile } = await supabase
+        .from('customer_profiles')
+        .select('full_name, phone')
+        .eq('user_id', session.user.id)
+        .single()
+      if (!profile) return
+      const currentVals = useBookingStore.getState().passengerDetails
+      if (profile.full_name && !currentVals?.firstName) {
+        const parts = profile.full_name.trim().split(/\s+/)
+        const first = parts[0] ?? ''
+        const last = parts.slice(1).join(' ')
+        if (first) setValue('firstName', first, { shouldDirty: false })
+        if (last) setValue('lastName', last, { shouldDirty: false })
+      }
+      if (profile.phone && !currentVals?.phone) {
+        setValue('phone', profile.phone, { shouldDirty: false })
+      }
+      if (session.user.email && !currentVals?.email) {
+        setValue('email', session.user.email, { shouldDirty: false })
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const [flightCheckState, setFlightCheckState] = useState<'idle' | 'loading' | 'success' | 'error'>(
     () => useBookingStore.getState().flightCheckResult ? 'success' : 'idle'
