@@ -32,9 +32,9 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 ## BOOK — Booking Flow Redesign (Blacklane UI/UX)
 
-- [ ] **BOOK-01**: Unified route + date + time entry bar in Blacklane style (one consolidated entry surface rather than two separate steps)
-- [ ] **BOOK-02**: Pickup-time selection via a time-slot dropdown
-- [ ] **BOOK-03**: Inline "flight number" field surfaced for airport transfers
+- [x] **BOOK-01**: Unified route + date + time entry bar in Blacklane style (one consolidated entry surface rather than two separate steps)
+- [x] **BOOK-02**: Pickup-time selection via a time-slot dropdown
+- [x] **BOOK-03**: Inline "flight number" field surfaced for airport transfers
 - [ ] **BOOK-04**: Route map showing pickup time and drop-off time alongside vehicle selection ("Choose your experience")
 - [x] **BOOK-05**: Vehicle class cards show "What's included" and capacity tabs (luggage / seating)
 - [ ] **BOOK-06**: Booking-method step lets the user choose "Book for myself (account)" or "Book as guest"; corporate accounts also get "Book for a guest"
@@ -43,11 +43,11 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 
 ## TRACK — Analytics Preservation (cross-cutting guardrails)
 
-- [ ] **TRACK-01**: All existing GA4 funnel events fire in the rebuilt flow with no loss (`form_start`, `checkout_progress`, `view_item_list`, `view_item`, `begin_checkout`, `add_payment_info`, `purchase`, `generate_lead`)
+- [x] **TRACK-01**: All existing GA4 funnel events fire in the rebuilt flow with no loss (`form_start`, `checkout_progress`, `view_item_list`, `view_item`, `begin_checkout`, `add_payment_info`, `purchase`, `generate_lead`)
 - [ ] **TRACK-02**: All Meta Pixel + CAPI events preserved (`InitiateCheckout`, `AddPaymentInfo`, `Purchase`), including `eventId` deduplication
-- [ ] **TRACK-03**: Price snapshot (sessionStorage, `lib/analytics-snapshot.ts`) and server-side GA4 Measurement Protocol in the Stripe webhook continue to fire `purchase`
+- [x] **TRACK-03**: Price snapshot (sessionStorage, `lib/analytics-snapshot.ts`) and server-side GA4 Measurement Protocol in the Stripe webhook continue to fire `purchase`
 - [ ] **TRACK-04**: GA4 `login` and `sign_up` events fire on customer sign-in and registration
-- [ ] **TRACK-05**: CSP nonce propagation and Consent Mode v2 gating are not broken by new scripts, routes, or the OAuth redirect flow
+- [x] **TRACK-05**: CSP nonce propagation and Consent Mode v2 gating are not broken by new scripts, routes, or the OAuth redirect flow
 
 ---
 
@@ -85,19 +85,19 @@ The existing 6-step booking wizard (`components/booking/BookingWizard.tsx`), Zus
 | ACCT-02 | Phase 58 | Complete |
 | ACCT-03 | Phase 58 | Complete |
 | ACCT-04 | Phase 57 | Complete |
-| BOOK-01 | Phase 59 | Pending |
-| BOOK-02 | Phase 59 | Pending |
-| BOOK-03 | Phase 59 | Pending |
+| BOOK-01 | Phase 59 | Complete |
+| BOOK-02 | Phase 59 | Complete |
+| BOOK-03 | Phase 59 | Complete |
 | BOOK-04 | Phase 59 | Pending |
 | BOOK-05 | Phase 59 | Complete |
 | BOOK-06 | Phase 60 | Pending |
 | BOOK-07 | Phase 60 | Pending |
 | BOOK-08 | Phase 60 | Pending |
-| TRACK-01 | Phase 59 (verified Phase 61) | Pending |
+| TRACK-01 | Phase 59 (verified Phase 61) | Complete |
 | TRACK-02 | Phase 59 (verified Phase 61) | Pending |
-| TRACK-03 | Phase 59 (verified Phase 61) | Pending |
+| TRACK-03 | Phase 59 (verified Phase 61) | Complete |
 | TRACK-04 | Phase 60 (verified Phase 61) | Pending |
-| TRACK-05 | Phase 59 (verified Phase 61) | Pending |
+| TRACK-05 | Phase 59 (verified Phase 61) | Complete |
 
 **Coverage:** 26/26 v2.0 requirements mapped — no orphans, no duplicates. Each TRACK requirement has a primary owner phase; Phase 61 is end-to-end verification.
 
