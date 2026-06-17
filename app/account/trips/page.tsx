@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Nav from '@/components/Nav'
 
@@ -26,7 +27,7 @@ function formatDate(iso: string | null): string {
 export default async function AccountTripsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  void user
+  if (!user) redirect('/login?next=/account/trips')
 
   const { data: bookings } = await supabase
     .from('bookings')

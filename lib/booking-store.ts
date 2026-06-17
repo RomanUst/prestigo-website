@@ -62,7 +62,7 @@ export const useBookingStore = create<BookingStore>()(
       nextStep: () =>
         set((s) => ({
           completedSteps: new Set([...s.completedSteps, s.currentStep]),
-          currentStep: Math.min(5, s.currentStep + 1),
+          currentStep: Math.min(6, s.currentStep + 1),
         })),
       prevStep: () => set((s) => ({ currentStep: Math.max(1, s.currentStep - 1) })),
       swapOriginDestination: () => {
@@ -175,6 +175,7 @@ export const useBookingStore = create<BookingStore>()(
         // claim_promo_code RPC will reject any stale code on the next POST.
         promoCode: state.promoCode,
         promoDiscount: state.promoDiscount,
+        guestMode: state.guestMode,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {
