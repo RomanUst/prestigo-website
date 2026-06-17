@@ -27,7 +27,6 @@ function pushGA4Event(eventName: string, params: Record<string, unknown>): void 
     w.gtag('event', eventName, params)
   } else {
     w.dataLayer = w.dataLayer || []
-    w.dataLayer.push(['event', eventName, params])
     w.dataLayer.push({ event: eventName, ...params })
   }
 }
@@ -43,8 +42,8 @@ function fmt24to12(t: string): string {
   return `${h12}:${m.toString().padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`
 }
 
-function estDropoff(pickupTime: string, distanceKm: number | null): string {
-  if (!distanceKm) return null!
+function estDropoff(pickupTime: string, distanceKm: number | null): string | null {
+  if (!distanceKm) return null
   const durationMin = Math.round((distanceKm / 45) * 60) + 5
   const [h, m] = pickupTime.split(':').map(Number)
   const total = h * 60 + m + durationMin

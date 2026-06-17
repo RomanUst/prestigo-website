@@ -452,8 +452,7 @@ export default function Step5Passenger() {
                 </div>
 
                 {/* Line 3 (conditional): airport mismatch warning */}
-                {flightCheckResult.flight_arrival_airport !== 'PRG' &&
-                  flightCheckResult.flight_departure_airport !== 'PRG' && (
+                {flightCheckResult.flight_arrival_airport !== 'PRG' && (
                     <div style={{ color: '#E67E22', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
                       &#9888; Airport mismatch: flight arrives at {flightCheckResult.flight_arrival_airport}, not PRG
                     </div>

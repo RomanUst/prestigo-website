@@ -139,6 +139,7 @@ export default function Step3Auth() {
           sessionStorage.removeItem('oauth_login_pending')
           window.gtag?.('event', 'login', { method: 'oauth' })
         }
+        setGuestMode(false)
         nextStep()
       }
     })
@@ -187,6 +188,7 @@ export default function Step3Auth() {
     } else {
       sessionStorage.removeItem('booking_deeplink')
       window.gtag?.('event', 'login', { method: 'email_otp' })
+      setGuestMode(false)
       nextStep()
     }
   }
@@ -211,6 +213,7 @@ export default function Step3Auth() {
     } else {
       sessionStorage.removeItem('booking_deeplink')
       window.gtag?.('event', 'login', { method: 'password' })
+      setGuestMode(false)
       nextStep()
     }
   }
@@ -239,6 +242,7 @@ export default function Step3Auth() {
     if (data.session) {
       sessionStorage.removeItem('booking_deeplink')
       window.gtag?.('event', 'sign_up', { method: 'email' })
+      setGuestMode(false)
       nextStep()
     } else {
       setRegDone(true)

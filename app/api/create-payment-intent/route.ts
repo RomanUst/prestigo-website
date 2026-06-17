@@ -7,6 +7,7 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import { generateBookingReference } from '@/lib/booking-reference'
 import { createSupabaseServiceClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody, NO_LINE_BREAKS } from '@/lib/request-guards'
 import {
@@ -62,7 +63,6 @@ const createPaymentIntentSchema = z.object({
     phone:       z.string().max(30).regex(NO_LINE_BREAKS).optional(),
     flightNumber: z.string().max(20).regex(NO_LINE_BREAKS).optional(),
     terminal:     z.string().max(50).regex(NO_LINE_BREAKS).optional(),
-    userId: z.string().uuid().optional(),
   }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
@@ -98,6 +98,11 @@ export async function POST(req: Request) {
     if (!bookingData) {
       return NextResponse.json({ error: 'Missing bookingData' }, { status: 400 })
     }
+
+    // Resolve authenticated user server-side — never trust client-supplied userId
+    const supabaseUser = await createClient()
+    const { data: { user: authUser } } = await supabaseUser.auth.getUser()
+    const authenticatedUserId: string | null = authUser?.id ?? null
 
     const tripType = bookingData.tripType as TripType
     const vehicleClass = bookingData.vehicleClass as VehicleClass
@@ -301,7 +306,7 @@ export async function POST(req: Request) {
         returnDiscountPct: String(rates.globals.returnDiscountPercent),
         promoCode: promoCode || '',
         discountPct: String(appliedPromoPct),
-        userId: bookingData.userId || '',
+        userId: authenticatedUserId ?? '',
       },
     })
 

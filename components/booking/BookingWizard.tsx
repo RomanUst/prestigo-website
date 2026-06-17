@@ -1,19 +1,19 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace } from '@/types/booking'
 import type { TripType, VehicleClass } from '@/types/booking'
+import { computeExtrasTotal } from '@/lib/extras'
+import { trackMetaEvent } from '@/components/MetaPixel'
+import ProgressBar from './ProgressBar'
+import EntryBar from './EntryBar'
 
 const VALID_TRIP_TYPES = new Set(['transfer', 'hourly', 'daily', 'round_trip'])
 const VALID_CLASSES = new Set(['business', 'first_class', 'business_van'])
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const TIME_RE = /^\d{2}:\d{2}$/
-import { computeExtrasTotal } from '@/lib/extras'
-import { trackMetaEvent } from '@/components/MetaPixel'
-import { useRouter } from 'next/navigation'
-import ProgressBar from './ProgressBar'
-import EntryBar from './EntryBar'
 import StepStub from './steps/StepStub'
 import Step3Vehicle from './steps/Step3Vehicle'
 import Step3Auth from './steps/Step3Auth'
@@ -115,7 +115,6 @@ export default function BookingWizard() {
         w.gtag('event', eventName, params)
       } else {
         w.dataLayer = w.dataLayer || []
-        w.dataLayer.push(['event', eventName, params])
         w.dataLayer.push({ event: eventName, ...params })
       }
     }
