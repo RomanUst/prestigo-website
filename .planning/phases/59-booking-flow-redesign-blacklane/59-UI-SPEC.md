@@ -41,8 +41,8 @@ created: 2026-06-17
 | `--offwhite`        | `#211F1C`    | Primary text (headings, labels, body)         |
 | `--warmgrey`        | `#6E6962`    | Secondary text, placeholder text, icons       |
 | `--copper`          | `#8A5A2E`    | Accent (see reserved list below)              |
-| `--copper-light`    | `#8A5A2E`    | Required-field asterisk, active state borders |
-| `--copper-pale`     | `#9A6A3A`    | Discount badge, subtle accents                |
+| `--copper-light`    | `#8A5A2E`    | Required-field asterisk, active state borders (intentionally same as --copper in light theme — globals.css `.theme-light` sets both to #8A5A2E; the dark theme values differ) |
+| `--copper-pale`     | `#9A6A3A`    | Discount badge, subtle accents (lighter than --copper/#8A5A2E in light theme) |
 
 Implementation note: wrap the Entry Bar and Step3 container in `<div className="theme-light">` to inherit all inverted tokens automatically. Do not hardcode hex values inline — use `var(--anthracite)` etc. so dark/light inversion works.
 
@@ -74,17 +74,19 @@ Declared values (multiples of 4 only):
 
 All text uses `var(--font-montserrat)` (Montserrat) unless specified as display/Cormorant.
 
-| Role         | Font             | Size | Weight | Line Height | Letter Spacing | Usage                                              |
-|--------------|------------------|------|--------|-------------|----------------|----------------------------------------------------|
-| Body         | Montserrat       | 14px | 300    | 1.75        | 0.03em         | Card description text, "What's included" items    |
-| Label/UI     | Montserrat       | 11px | 400    | 1.4         | 0.25–0.35em    | Field labels (PICKUP, DATE, TIME), tab text, icon captions |
-| Heading      | Montserrat       | 16px | 400    | 1.4         | 0.06em         | Card class name, section titles (Choose your class) |
-| Price        | Montserrat       | 20px | 500    | 1.2         | 0.03em         | Primary price display on cards and sticky panel    |
-| Display      | Cormorant Garamond | 28px | 300  | 1.1         | 0.03em         | Section headline above Entry Bar if present        |
-| Meta/Caption | Montserrat       | 12px | 400    | 1.5         | 0.06em         | CZK conversion, discount badge, map time labels    |
+| Role              | Font               | Size | Weight | Line Height | Letter Spacing | Usage                                                                                   |
+|-------------------|--------------------|------|--------|-------------|----------------|-----------------------------------------------------------------------------------------|
+| Label/Meta        | Montserrat         | 11px | 400    | 1.4         | 0.25–0.35em    | Field labels (PICKUP, DATE, TIME), tab text, icon captions, CZK conversion, discount badge, map time labels |
+| Body              | Montserrat         | 14px | 400    | 1.75        | 0.03em         | Card description text, "What's included" items, secondary notes                        |
+| Heading/Price     | Montserrat         | 20px | 600    | 1.2         | 0.03em–0.06em  | Card class name (weight 400 to distinguish from price), section titles; primary price display (weight 600) |
+| Display           | Cormorant Garamond | 28px | 600    | 1.1         | 0.03em         | Section headline above Entry Bar if present                                             |
 
-> Source: globals.css `.label` (11px/0.28em), `.body-text` (14px/300/1.75), `.display` (Cormorant/300), VehicleCard.tsx (18px price), globals.css `.hourly-strip-price` (28px display).
-> Phase 59 promotes price to 20px for improved hierarchy on the redesigned card.
+**Weight usage rules:**
+- `font-weight: 400` — default weight for all body, label/meta, and heading (class name) text
+- `font-weight: 600` — reserved for price values and display headline only; makes numeric figures stand out clearly from surrounding text
+
+> Source: globals.css `.label` (11px/0.28em), `.body-text` (14px), `.display` (Cormorant), VehicleCard.tsx price, globals.css `.hourly-strip-price` (28px display).
+> Consolidated from 6 sizes to 4. 12px (Meta/Caption) merged into 11px (Label/Meta). 16px (Heading) merged into 20px (Heading/Price) — weight 400 vs 600 provides visual distinction within that size.
 
 ---
 
@@ -121,7 +123,7 @@ Accent is NOT used on: inactive tabs, unselected cards, placeholder text, divide
 Single-screen form on `/book` page, rendered above the fold.
 
 **Structure (top to bottom):**
-1. TripTypeTabs — "Transfer" | "Hourly" tabs. "Transfer" active by default. No "Multi-day" tab in the redesigned bar (not in scope per D-02). Pills with 999px border-radius, 44px min-height, 10px/18px padding.
+1. TripTypeTabs — "Transfer" | "Hourly" tabs. "Transfer" active by default. No "Multi-day" tab in the redesigned bar (not in scope per D-02). Pills with 999px border-radius, 44px min-height, 8px/20px padding (top/bottom 8px, left/right 20px — both multiples of 4).
 2. Unified field grid — responsive:
    - Desktop: 4-column grid — [From] [To] [Date] [Time] + conditional [Flight №]
    - Mobile: single column, fields stacked vertically with 16px gap
@@ -150,17 +152,17 @@ Single-screen form on `/book` page, rendered above the fold.
 - **Contents (top to bottom):**
   1. Animated route map — 220px height, Google Maps JS SDK, polyline + animated dot
   2. Divider line (1px, `var(--anthracite-light)`)
-  3. Selected class name — 11px Montserrat, 0.25em letter-spacing, uppercase
-  4. Price — 20px Montserrat 500, copper color
-  5. "All fees included" note — 12px Montserrat 300, warmgrey
+  3. Selected class name — 11px Montserrat weight 400, 0.25em letter-spacing, uppercase
+  4. Price — 20px Montserrat weight 600, copper color
+  5. "All fees included" note — 11px Montserrat weight 400, warmgrey
   6. CTA "SELECT [CLASS]" — full-width, copper fill, 44px min-height
 
 **Vehicle card structure (each card):**
 1. Exterior photo — aspect-ratio 3/2, `object-fit: cover`, border-radius 4px. Source: `/public/vehicles/{class}-exterior.jpg` (Higgsfield AI, D-14/D-17).
-2. Class name — 11px Montserrat, 0.4em letter-spacing, uppercase, dark text
+2. Class name — 11px Montserrat weight 400, 0.4em letter-spacing, uppercase, dark text
 3. Capacity row — pax icon + count, luggage icon + count, 16px gap, 16px icon size, warmgrey
-4. Price display — 20px Montserrat 500, dark text (one-way EUR; CZK conversion below at 12px)
-5. "What's included" list — always visible (not accordion). 6 items, 14px Montserrat 300, warmgrey, 16px icon per item, 8px gap.
+4. Price display — 20px Montserrat weight 600, dark text (one-way EUR; CZK conversion below at 11px)
+5. "What's included" list — always visible (not accordion). 6 items, 14px Montserrat weight 400, warmgrey, 16px icon per item, 8px gap.
 6. Selection state — selected: 2px copper border, `rgba(138, 90, 46, 0.08)` background fill; default: 1px `var(--anthracite-light)` border.
 
 **"What's included" items (D-16, exact copy):**
@@ -189,7 +191,7 @@ Single-screen form on `/book` page, rendered above the fold.
 
 **Map style:** Minimal/greyscale map tiles using `google.maps.MapTypeId.ROADMAP` with a custom JSON style array (greyscale, hide POI labels, hide transit). Background `#F7F4EF` matching light theme.
 
-**Empty/error state:** If route cannot be computed (no origin/destination in store): show a placeholder `<div>` with warmgrey background `#EFEAE2` and centered text "Route unavailable" (12px Montserrat, warmgrey). Same 220px height.
+**Empty/error state:** If route cannot be computed (no origin/destination in store): show a placeholder `<div>` with warmgrey background `#EFEAE2` and centered text "Route unavailable — you can still select a vehicle class." (11px Montserrat weight 400, warmgrey). Same 220px height.
 
 ---
 
@@ -217,7 +219,7 @@ Single-screen form on `/book` page, rendered above the fold.
 | Sticky panel price note             | All fees included                                                            |
 | Sticky panel CTA (no selection)     | SELECT A CLASS                                                               |
 | Sticky panel CTA (class selected)   | SELECT [CLASS NAME] — e.g. "SELECT BUSINESS"                                |
-| Map empty state                      | Route unavailable                                                            |
+| Map empty state                      | Route unavailable — you can still select a vehicle class.                   |
 | Slideshow caption                    | [Class name] interior (e.g. "Business interior")                            |
 | Pricing fetch error                  | Pricing unavailable. Your selection has been saved — continue to request a quote. |
 | Price loading state                  | skeleton-shimmer (existing class, no text)                                   |
@@ -292,6 +294,7 @@ Min-height per slot: 44px (touch target).
 - Image alt text: `"Prestigo [Class] — [Model] exterior"` for vehicle photos, `"[Class] interior view [n]"` for slideshow
 - Sticky panel CTA: `aria-label` includes price when available — e.g. `"Select Business class — €84"`
 - `prefers-reduced-motion`: map animation disabled, slideshow auto-play disabled, step-enter animation skipped (existing `.animate-step-enter` already respects this via globals.css)
+- VehicleSlideshow.tsx prev/next navigation arrows: `aria-label="Previous slide"` on the left arrow button, `aria-label="Next slide"` on the right arrow button
 
 ---
 
