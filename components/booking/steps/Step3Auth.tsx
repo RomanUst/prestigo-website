@@ -134,6 +134,11 @@ export default function Step3Auth() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
         sessionStorage.removeItem('booking_deeplink')
+        // OAuth return: flag was set in OAuthButtons before the redirect
+        if (sessionStorage.getItem('oauth_login_pending') === '1') {
+          sessionStorage.removeItem('oauth_login_pending')
+          window.gtag?.('event', 'login', { method: 'oauth' })
+        }
         nextStep()
       }
     })

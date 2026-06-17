@@ -23,6 +23,8 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
     if (returnTo) {
       url.searchParams.set('return-to', returnTo)
     }
+    // Flag so the return landing can fire a GA4 login event after the redirect
+    sessionStorage.setItem('oauth_login_pending', '1')
     await supabase.auth.signInWithOAuth({
       provider,
       options: {
