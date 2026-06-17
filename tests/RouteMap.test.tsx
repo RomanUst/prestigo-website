@@ -11,36 +11,36 @@ vi.mock('@googlemaps/js-api-loader', () => ({
 }))
 
 // Stub window.google.maps so any render-time access does not throw
+// Use class-based constructors for all mocks called with `new`
+class MockMap { setCenter = vi.fn(); setZoom = vi.fn(); fitBounds = vi.fn() }
+class MockDirService { route = vi.fn() }
+class MockDirRenderer { setMap = vi.fn(); setDirections = vi.fn() }
+class MockMarker { setMap = vi.fn(); setPosition = vi.fn() }
+class MockPolyline { setMap = vi.fn() }
+class MockLatLng {
+  private _lat: number; private _lng: number
+  constructor(lat: number, lng: number) { this._lat = lat; this._lng = lng }
+  lat() { return this._lat }
+  lng() { return this._lng }
+}
+class MockLatLngBounds { extend = vi.fn() }
+class MockInfoWindow { open = vi.fn(); close = vi.fn() }
+
 beforeEach(() => {
   Object.defineProperty(window, 'google', {
     value: {
       maps: {
-        Map: vi.fn().mockReturnValue({
-          setCenter: vi.fn(),
-          setZoom: vi.fn(),
-          fitBounds: vi.fn(),
-        }),
-        DirectionsService: vi.fn().mockReturnValue({
-          route: vi.fn(),
-        }),
-        DirectionsRenderer: vi.fn().mockReturnValue({
-          setMap: vi.fn(),
-          setDirections: vi.fn(),
-        }),
-        Marker: vi.fn().mockReturnValue({
-          setMap: vi.fn(),
-          setPosition: vi.fn(),
-        }),
-        LatLng: vi.fn().mockImplementation((lat: number, lng: number) => ({ lat, lng })),
-        LatLngBounds: vi.fn().mockReturnValue({
-          extend: vi.fn(),
-        }),
+        Map: MockMap,
+        DirectionsService: MockDirService,
+        DirectionsRenderer: MockDirRenderer,
+        Marker: MockMarker,
+        Polyline: MockPolyline,
+        LatLng: MockLatLng,
+        LatLngBounds: MockLatLngBounds,
         SymbolPath: { CIRCLE: 0, FORWARD_CLOSED_ARROW: 1 },
         MapTypeId: { ROADMAP: 'roadmap' },
-        InfoWindow: vi.fn().mockReturnValue({
-          open: vi.fn(),
-          close: vi.fn(),
-        }),
+        TravelMode: { DRIVING: 'DRIVING' },
+        InfoWindow: MockInfoWindow,
         DirectionsStatus: { OK: 'OK' },
       },
     },
