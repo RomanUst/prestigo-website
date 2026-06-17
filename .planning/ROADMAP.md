@@ -147,7 +147,15 @@ Plans:
   4. Across the rebuilt flow every existing GA4 event still fires (`form_start`, `checkout_progress`, `view_item_list`, `view_item`, `begin_checkout`, `add_payment_info`, `purchase`, `generate_lead`) and every Meta Pixel + CAPI event (`InitiateCheckout`, `AddPaymentInfo`, `Purchase`) fires with `eventId` deduplication preserved
   5. The sessionStorage price snapshot (`lib/analytics-snapshot.ts`) and server-side GA4 Measurement Protocol `purchase` in the Stripe webhook still fire, and CSP nonce + Consent Mode v2 gating remain unbroken on the redesigned routes
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 59-01-PLAN.md — Wave 0: generate 12 Higgsfield vehicle images + repoint VEHICLE_CONFIG (BOOK-05)
+- [ ] 59-02-PLAN.md — Wave 0: RED test scaffolds (EntryBar, RouteMap, VehicleSlideshow, StickyBookingPanel)
+- [ ] 59-03-PLAN.md — Wave 1: EntryBar (unified Step1+Step2) + wizard renumber to 5 steps (BOOK-01/02/03, TRACK-01/03/05)
+- [ ] 59-04-PLAN.md — Wave 2: RouteMap (Google Maps JS SDK) + StickyBookingPanel with relocated begin_checkout (BOOK-04, TRACK-02/05)
+- [ ] 59-05-PLAN.md — Wave 3: VehicleCard shell + VehicleSlideshow + Step3 two-column layout (BOOK-04/05, TRACK-01)
+
 **UI hint**: yes
 
 ### Phase 60: Auth-in-Checkout + Guest Path
@@ -195,6 +203,6 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
 | 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
 | 58. Sign-in UI + Account Dashboard | 5/5 | Complete   | 2026-06-12 |
-| 59. Booking Flow Redesign (Blacklane) | 0/? | Not started | - |
+| 59. Booking Flow Redesign (Blacklane) | 0/5 | Planned     | - |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
 | 61. Analytics Preservation & E2E Verify | 0/? | Not started | - |
