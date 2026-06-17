@@ -151,7 +151,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 59-01-PLAN.md — Wave 0: generate 12 Higgsfield vehicle images + repoint VEHICLE_CONFIG (BOOK-05)
+- [x] 59-01-PLAN.md — Wave 0: generate 12 Higgsfield vehicle images + repoint VEHICLE_CONFIG (BOOK-05)
 - [x] 59-02-PLAN.md — Wave 0: RED test scaffolds (EntryBar, RouteMap, VehicleSlideshow, StickyBookingPanel)
 - [ ] 59-03-PLAN.md — Wave 1: EntryBar (unified Step1+Step2) + wizard renumber to 5 steps (BOOK-01/02/03, TRACK-01/03/05)
 
@@ -210,6 +210,6 @@ v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 5
 | 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
 | 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
 | 58. Sign-in UI + Account Dashboard | 5/5 | Complete   | 2026-06-12 |
-| 59. Booking Flow Redesign (Blacklane) | 1/5 | Executing   | - |
+| 59. Booking Flow Redesign (Blacklane) | 2/5 | In Progress|  |
 | 60. Auth-in-Checkout + Guest Path | 0/? | Not started | - |
 | 61. Analytics Preservation & E2E Verify | 0/? | Not started | - |
