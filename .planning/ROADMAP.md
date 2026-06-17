@@ -148,12 +148,19 @@ Plans:
   5. The sessionStorage price snapshot (`lib/analytics-snapshot.ts`) and server-side GA4 Measurement Protocol `purchase` in the Stripe webhook still fire, and CSP nonce + Consent Mode v2 gating remain unbroken on the redesigned routes
 
 **Plans**: 5 plans
-
 Plans:
+**Wave 1**
+
 - [ ] 59-01-PLAN.md — Wave 0: generate 12 Higgsfield vehicle images + repoint VEHICLE_CONFIG (BOOK-05)
 - [ ] 59-02-PLAN.md — Wave 0: RED test scaffolds (EntryBar, RouteMap, VehicleSlideshow, StickyBookingPanel)
 - [ ] 59-03-PLAN.md — Wave 1: EntryBar (unified Step1+Step2) + wizard renumber to 5 steps (BOOK-01/02/03, TRACK-01/03/05)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 59-04-PLAN.md — Wave 2: RouteMap (Google Maps JS SDK) + StickyBookingPanel with relocated begin_checkout (BOOK-04, TRACK-02/05)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 59-05-PLAN.md — Wave 3: VehicleCard shell + VehicleSlideshow + Step3 two-column layout (BOOK-04/05, TRACK-01)
 
 **UI hint**: yes
