@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
+import Nav from '@/components/Nav'
 
 export const dynamic = 'force-dynamic'
 
@@ -106,14 +107,19 @@ export default function ResetPasswordPage() {
     <div
       style={{
         minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: 'var(--anthracite)',
         fontFamily: 'var(--font-montserrat)',
-        padding: '24px 16px',
       }}
     >
+      <Nav />
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px 16px',
+        }}
+      >
       <div
         style={{
           width: '100%',
@@ -218,6 +224,7 @@ export default function ResetPasswordPage() {
             </button>
           </form>
         )}
+      </div>
       </div>
     </div>
   )

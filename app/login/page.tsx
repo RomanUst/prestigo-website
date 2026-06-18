@@ -646,6 +646,7 @@ export default function LoginPage() {
 
   return (
     <main role="main" style={pageStyle} className="animate-fade-in">
+      <Nav />
       <div style={cardStyle}>
         {brandHeader('My Account')}
         <form action={resetAction} className="animate-step-enter">

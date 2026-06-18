@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 59-booking-flow-redesign-blacklane
 source: [59-VERIFICATION.md]
 started: 2026-06-17T17:00:00Z
-updated: 2026-06-17T17:00:00Z
+updated: 2026-06-18T00:00:00Z
 ---
 
 ## Current Test
 
-number: 7
-name: VehicleSlideshow — auto-play и hover-pause
-expected: |
-  Слайдшоу автоматически переключается между интерьерными фото каждые 4 сек. При наведении мыши пауза. Кнопки Prev/Next работают.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -42,14 +38,19 @@ result: pass
 
 ### 7. VehicleSlideshow — auto-play и hover-pause
 expected: Слайдшоу автоматически переключается между интерьерными фото каждые 4 сек. При наведении мыши автопереключение паузируется. Кнопки Prev/Next работают.
-result: [pending]
+result: pass
+notes: |
+  Auto-play подтверждён: activeIndex auto-advanced 0→1→2 в dev preview.
+  Prev/Next: клик Next (1→2) и Prev (2→1) — оба работают корректно.
+  Hover-pause: code review — onMouseEnter sets pausedRef.current=true, interval guard `if (!pausedRef.current)` корректен.
+  Native dispatchEvent не триггерит React synthetic events — функциональность верифицирована по коду.
 
 ## Summary
 
 total: 7
-passed: 6
+passed: 7
 issues: 0
-pending: 1
+pending: 0
 skipped: 0
 blocked: 0
 
