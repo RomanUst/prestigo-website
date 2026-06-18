@@ -131,8 +131,10 @@ export default function Step3Auth() {
   // If already signed in, auto-advance to extras.
   useEffect(() => {
     sessionStorage.setItem('booking_deeplink', '1')
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
+    // SEC-04: getUser() re-validates the JWT with Supabase auth server;
+    // getSession() only reads localStorage and trusts a stale/revoked token.
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) {
         sessionStorage.removeItem('booking_deeplink')
         // OAuth return: flag was set in OAuthButtons before the redirect
         if (sessionStorage.getItem('oauth_login_pending') === '1') {

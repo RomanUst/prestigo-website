@@ -148,6 +148,14 @@ async function handleOneWaySucceeded(
   // Duplicate event — row already existed, emails already sent
   if (inserted.length === 0) return
 
+  // SEC-01: claim the promo code NOW that payment is confirmed (not at PI creation).
+  // Failure here is non-fatal — log and continue, booking is already saved.
+  if (meta.promoCode) {
+    const supabaseService = createSupabaseServiceClient()
+    const { error: claimErr } = await supabaseService.rpc('claim_promo_code', { p_code: meta.promoCode })
+    if (claimErr) console.error('[webhook] claim_promo_code failed:', claimErr.message)
+  }
+
   const emailData: BookingEmailData = {
     bookingReference,
     tripType: meta.tripType || '',
@@ -244,6 +252,13 @@ async function handleRoundTripSucceeded(
   }
 
   if (!pair) return // Idempotent retry — emails already sent on first delivery
+
+  // SEC-01: claim the promo code NOW that payment is confirmed (not at PI creation).
+  if (meta.promoCode) {
+    const supabaseService = createSupabaseServiceClient()
+    const { error: claimErr } = await supabaseService.rpc('claim_promo_code', { p_code: meta.promoCode })
+    if (claimErr) console.error('[webhook] claim_promo_code (round-trip) failed:', claimErr.message)
+  }
 
   // Build email data from authoritative metadata
   const combinedAmountCzk = parseInt(meta.amountCzk) || Math.round(paymentIntent.amount / 100)

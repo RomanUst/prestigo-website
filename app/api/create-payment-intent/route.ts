@@ -225,17 +225,31 @@ export async function POST(req: Request) {
     let appliedPromoPct = 0
 
     if (promoCode) {
+      // SEC-01: validate without incrementing current_uses — counter is claimed in
+      // the webhook after payment_intent.succeeded confirms the charge. This prevents
+      // an attacker from exhausting a limited-use code by creating PaymentIntents
+      // without completing payment.
       const supabaseService = createSupabaseServiceClient()
-      const { data: claimed, error: claimError } = await supabaseService
-        .rpc('claim_promo_code', { p_code: promoCode })
+      const { data: promoRow, error: promoError } = await supabaseService
+        .from('promo_codes')
+        .select('discount_value, max_uses, current_uses, is_active')
+        .eq('code', promoCode)
+        .eq('is_active', true)
+        .maybeSingle()
 
-      if (claimError || !claimed || claimed.length === 0) {
+      if (promoError || !promoRow) {
         return NextResponse.json(
           { error: 'Promo code is invalid, expired, or has reached its usage limit.' },
           { status: 400 }
         )
       }
-      appliedPromoPct = Number(claimed[0].discount_value)
+      if (promoRow.max_uses !== null && promoRow.current_uses >= promoRow.max_uses) {
+        return NextResponse.json(
+          { error: 'Promo code is invalid, expired, or has reached its usage limit.' },
+          { status: 400 }
+        )
+      }
+      appliedPromoPct = Number(promoRow.discount_value)
     }
 
     // Single call site for combined-total computation + promo rounding + Stripe amount minor unit (T-26-03)

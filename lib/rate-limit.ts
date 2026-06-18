@@ -29,6 +29,7 @@ const LIMITS: Record<string, number> = {
   '/login':                       5, // customer auth: prevent magic-link / password brute force
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota
   '/api/corporate-contact':       5, // 5 corporate enquiries per minute per IP
+  '/api/driver/respond':         10, // SEC-02: prevent token oracle enumeration
 }
 
 export interface RateLimitResult {

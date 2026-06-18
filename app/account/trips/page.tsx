@@ -32,6 +32,7 @@ export default async function AccountTripsPage() {
   const { data: bookings } = await supabase
     .from('bookings')
     .select('id, booking_reference, pickup_date, pickup_time, origin_address, destination_address, vehicle_class, amount_eur, status, leg, trip_type')
+    .eq('user_id', user.id) // defense-in-depth on top of RLS
     .order('pickup_date', { ascending: false })
     .limit(50)
 

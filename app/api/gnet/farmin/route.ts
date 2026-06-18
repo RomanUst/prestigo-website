@@ -47,14 +47,15 @@ const GnetLocationSchema = z
   })
   .passthrough()
 
-const GnetPassengerSchema = z
-  .object({
-    firstName:   z.string().optional(),
-    lastName:    z.string().optional(),
-    email:       z.string().optional(),
-    phoneNumber: z.string().optional(),
-  })
-  .passthrough()
+// SEC-09: strict field validation prevents SMTP header injection via email field
+// and data corruption via oversized strings. No .passthrough() — unknown keys rejected.
+const NO_CRLF = /^[^\r\n]*$/
+const GnetPassengerSchema = z.object({
+  firstName:   z.string().max(100).regex(NO_CRLF).optional(),
+  lastName:    z.string().max(100).regex(NO_CRLF).optional(),
+  email:       z.string().email().max(200).regex(NO_CRLF).optional(),
+  phoneNumber: z.string().max(30).regex(NO_CRLF).optional(),
+})
 
 export const GnetPayloadSchema = z
   .object({
