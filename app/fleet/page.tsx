@@ -57,7 +57,7 @@ const vehicles: VehicleSpec[] = [
     description: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
     features: ['Leather interior', 'Dual-zone climate control', 'Onboard Wi-Fi', 'USB-C fast charging', 'Bottled water'],
     idealFor: 'Airport, city, solo business travel',
-    photo: '/e-class-photo.webp',
+    photo: '/vehicles/e-class.avif',
     photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 3,
@@ -78,7 +78,7 @@ const vehicles: VehicleSpec[] = [
     description: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
     features: ['Premium Nappa leather', 'Rear massage seats', 'Ambient lighting', 'Executive rear package', 'Champagne on request'],
     idealFor: 'VIP, diplomatic, extended intercity',
-    photo: '/s-class-photo.webp',
+    photo: '/vehicles/s-class.avif',
     photoAlt: 'Mercedes-Benz S-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 3,
@@ -99,7 +99,7 @@ const vehicles: VehicleSpec[] = [
     description: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
     features: ['6 captain seats', 'Full luggage capacity', 'Rear privacy glass', 'Fold-out table', 'Individual reading lights'],
     idealFor: 'Groups, families, conference transfers',
-    photo: '/v-class-photo.webp',
+    photo: '/vehicles/v-class.avif',
     photoAlt: 'Mercedes-Benz V-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 6,
