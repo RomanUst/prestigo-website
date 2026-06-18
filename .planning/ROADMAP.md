@@ -1,215 +1,62 @@
 # Roadmap: Prestigo
 
-## Overview
-
-Living roadmap across milestones. v1.0 delivered an MDX-powered SEO blog at `/blog`. v2.0 rebuilds the booking experience Blacklane-style (visual + behavioural) and introduces customer authentication and accounts (personal/corporate) — while preserving every existing GA4 + Meta Pixel/CAPI analytics signal and keeping guest checkout always available.
-
 ## Milestones
 
 - ✅ **v1.0 SEO Blog** — Phases 54-56 (shipped 2026-05-15)
-- ✅ **v2.0 Blacklane-style Booking + Customer Accounts** — Phases 57-61 (shipped 2026-06-17)
+- ✅ **v2.0 Blacklane-style Booking + Customer Accounts** — Phases 57-61 (shipped 2026-06-18)
+- 📋 **v2.1** — TBD
 
 ## Phases
 
-### ✅ v1.0 SEO Blog (Shipped)
+<details>
+<summary>✅ v1.0 SEO Blog (Phases 54-56) — SHIPPED 2026-05-15</summary>
 
 **Milestone Goal:** Scalable MDX blog at `/blog` with full SEO wiring, unified listing, and migrated legacy articles accessible at canonical `/blog/*` paths.
 
-- [x] **Phase 54: MDX Infrastructure** - Install @next/mdx pipeline, create lib/blog.ts aggregator and content/blog/ directory (completed 2026-05-14)
-- [x] **Phase 55: Blog UI — Listing + Article Pages** - Build /blog listing card grid and /blog/[slug] MDX article renderer with full SEO metadata (completed 2026-05-13)
-- [x] **Phase 56: Article Migration + SEO Wiring** - git mv 3 JSX articles to /blog/*, update all 9 canonical URL locations, add 301 redirects, reconcile sitemap (completed 2026-05-15)
+- [x] **Phase 54: MDX Infrastructure** — @next/mdx pipeline, lib/blog.ts aggregator, content/blog/ (2/2 plans, completed 2026-05-14)
+- [x] **Phase 55: Blog UI — Listing + Article Pages** — /blog card grid + /blog/[slug] MDX renderer, full SEO (3/3 plans, completed 2026-05-14)
+- [x] **Phase 56: Article Migration + SEO Wiring** — git mv 3 JSX articles, 301 redirects, sitemap reconciliation (4/4 plans, completed 2026-05-15)
 
-### ✅ v2.0 Blacklane-style Booking + Customer Accounts (Shipped 2026-06-17)
+See [milestones/v1.0-ROADMAP.md](milestones/v1.0-ROADMAP.md) for full phase details.
+
+</details>
+
+<details>
+<summary>✅ v2.0 Blacklane-style Booking + Customer Accounts (Phases 57-61) — SHIPPED 2026-06-18</summary>
 
 **Milestone Goal:** Customers can sign in (email + Google + Apple), manage a personal or corporate account with a "My trips" dashboard, and complete a redesigned Blacklane-style booking flow — with optional in-checkout sign-in, bookings linked to `user_id`, guest checkout always available, and zero analytics regression.
 
-- [x] **Phase 57: Customer Auth Foundation** - Supabase Auth for customers (email + Google + Apple OAuth), migration 044_customer_profiles.sql, nullable user_id FK on bookings, customer/admin session split (completed 2026-06-11)
-- [x] **Phase 58: Sign-in UI + Account Dashboard** - Auth-aware Sign in button in Nav, login/signup pages, "My trips" dashboard, profile editing, personal/corporate fields (completed 2026-06-12)
-- [x] **Phase 59: Booking Flow Redesign (Blacklane)** - Unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs — store, pricing APIs, and analytics preserved (completed 2026-06-17)
-- [x] **Phase 60: Auth-in-Checkout + Guest Path** - Booking-method step (myself / guest / corporate book-for-a-guest), pre-fill for logged-in customers, link booking to user_id, guest always available (completed 2026-06-17)
-- [x] **Phase 61: Analytics Preservation & E2E Verify** - End-to-end verification every GA4/Meta/CAPI event fires across the rebuilt flow on both guest and account paths, incl. login/sign_up, nonce, consent (completed 2026-06-17)
+- [x] **Phase 57: Customer Auth Foundation** — Supabase Auth (email + Google + Apple), customer_profiles, nullable user_id FK, session split (3/3 plans, completed 2026-06-11)
+- [x] **Phase 58: Sign-in UI + Account Dashboard** — Auth-aware Nav, login/signup pages, My trips shell, profile editing, corporate fields (5/5 plans, completed 2026-06-12)
+- [x] **Phase 59: Booking Flow Redesign (Blacklane)** — Unified EntryBar, time-slot picker, inline flight field, RouteMap, VehicleCard + VehicleSlideshow, analytics preserved (5/5 plans, completed 2026-06-17)
+- [x] **Phase 60: Auth-in-Checkout + Guest Path** — user_id linking, passenger pre-fill, guest checkout always available (1/1 plan, completed 2026-06-17)
+- [x] **Phase 61: Analytics Preservation & E2E Verify** — E2E verification of GA4/Meta/CAPI events across guest + account paths (1/1 plan, completed 2026-06-17)
 
-## Phase Details
+**Known deferred items:** BOOK-06 (corporate "book for a guest" step) deferred to v2.1. AUTH-02/03 (Google/Apple OAuth) code-complete — awaiting Supabase Dashboard credential config.
 
-### Phase 54: MDX Infrastructure
+See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase details.
 
-**Goal**: The MDX compilation pipeline is installed and proven end-to-end; `lib/blog.ts` aggregates both MDX frontmatter and JSX article metadata into a single sorted `BlogPost[]`
-**Depends on**: Nothing (first phase of this milestone; builds on existing Next.js 16 codebase)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
-**Success Criteria** (what must be TRUE):
+</details>
 
-  1. `next build` succeeds with `@next/mdx` installed, `createMDX()` wrapper in `next.config.ts`, and `mdx-components.tsx` present at repo root
-  2. A test MDX file in `content/blog/` with valid frontmatter (title, description, date, coverImage, category, author) renders at a route without build errors
-  3. `getAllPosts()` from `lib/blog.ts` returns a merged, newest-first array containing both MDX-sourced posts (via gray-matter) and the hardcoded `JSX_POSTS` registry entries
-  4. TypeScript compilation passes with the `BlogPost` type enforcing all required frontmatter fields including `author` typed as `AuthorSlug`
+### 📋 v2.1 (Planned)
 
-**Plans**: 2 plans
+Next milestone — requirements TBD via `/gsd-new-milestone`.
 
-  - [ ] 54-01-PLAN.md — Install @next/mdx pipeline, wrap next.config.ts, create mdx-components.tsx + test MDX article
-  - [ ] 54-02-PLAN.md — Implement lib/blog.ts (BlogPost type + getAllPosts + JSX_POSTS) and minimal app/blog/[slug]/page.tsx render route
-
-**UI hint**: no
-
-### Phase 55: Blog UI — Listing + Article Pages
-
-**Goal**: Visitors can browse all blog posts on `/blog` and read any MDX article at `/blog/[slug]` with correct SEO metadata, Schema.org `BlogPosting`, and Prestigo design system styling
-**Depends on**: Phase 54
-**Requirements**: LIST-01, LIST-02, LIST-03, ART-01, ART-02, ART-03, ART-04, ART-05
-**Success Criteria** (what must be TRUE):
-
-  1. `/blog` renders a card grid sorted newest-first; each card shows coverImage, copper category label, title, description, and formatted date; cards link to `/blog/[slug]`
-  2. `/blog` has correct `<title>`, `<meta name="description">`, canonical `/blog`, and OG tags; the page appears in `sitemap.xml` with a valid `lastmod`
-  3. `/blog/[slug]` for a valid MDX article renders the hero image, `ArticleByline`, full MDX body, and a bottom CTA — all within the Prestigo dark-theme design system
-  4. Each MDX article page has unique `og:title`, `og:description`, `og:image` (= coverImage), canonical `/blog/[slug]`, and a `Schema.org BlogPosting` JSON-LD block with author via `personSchemaFor()`
-  5. `/blog/non-existent-slug` returns HTTP 404 (`dynamicParams = false` confirmed); JSX article slugs are absent from `generateStaticParams()` output
-
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 56: Article Migration + SEO Wiring
-
-**Goal**: Three legacy JSX articles are permanently accessible at `/blog/*` canonical URLs; old `/guides/*` and `/compare/*` paths 301-redirect to the new locations; sitemap reflects only the new paths; no contradictory canonical signals remain
-**Depends on**: Phase 55
-**Requirements**: MIG-01, MIG-02, MIG-03, MIG-04, MIG-05, MIG-06
-**Success Criteria** (what must be TRUE):
-
-  1. All 3 JSX articles are moved via `git mv` in their own atomic commit and render correctly at `/blog/prague-airport-to-city-center`, `/blog/prague-airport-taxi-vs-chauffeur`, and `/blog/prague-vienna-transfer-vs-train`
-  2. `grep -rn "guides\|/compare" app/blog/` returns zero hits — all 9 URL locations per file (canonical, hreflang x2, OG url, 5 Schema.org @id/url fields) reference `/blog/*` via `const CANONICAL_PATH`
-  3. `curl -sIL https://rideprestigo.com/guides/prague-airport-to-city-center` shows a single 301 hop to `/blog/prague-airport-to-city-center` with no redirect chain; same verified for all 5 redirect rules
-  4. `sitemap.xml` contains `/blog`, `/blog/prague-airport-to-city-center`, `/blog/prague-airport-taxi-vs-chauffeur`, `/blog/prague-vienna-transfer-vs-train` and contains no `/guides/*` or `/compare/*` entries
-  5. `lastModFor()` returns a real date for each moved file (git history at new path is intact from the `git mv` commit)
-
-**Plans**: 4 plans
-
-  - [x] 56-01-PLAN.md — Invert sitemap test (TDD RED), git mv 3 JSX articles, rewrite 30 URL occurrences via const CANONICAL_PATH (MIG-01, MIG-02)
-  - [x] 56-02-PLAN.md — Append 5 permanent 301 redirects to next.config.ts redirects() array (MIG-03)
-  - [x] 56-03-PLAN.md — Update app/sitemap.ts: remove 5 legacy entries, add 3 /blog/* entries; tests turn GREEN (MIG-04)
-  - [x] 56-04-PLAN.md — Delete app/guides/page.tsx and app/compare/page.tsx hub pages; verify JSX_POSTS (MIG-05, MIG-06)
-
-**UI hint**: no
-
-### Phase 57: Customer Auth Foundation
-
-**Goal**: A customer can authenticate via Supabase Auth (email magic-link/password + Google + Apple OAuth) entirely separate from admin auth, with their profile and account type persisted under row-level security and bookings ready to be linked to a `user_id`
-**Depends on**: Nothing in v2.0 (builds on existing Supabase/GoTrue + bookings schema)
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07, ACCT-04
-**Success Criteria** (what must be TRUE):
-
-  1. A customer can complete sign-in by email (magic-link or password), by Google OAuth, and by Apple OAuth, and lands back on the site authenticated as a customer (not an admin)
-  2. Registering a new customer creates a row in the `customer_profiles` table (migration `044_customer_profiles.sql`) with the chosen `account_type` (personal or corporate) and an FK to `auth.users`; RLS prevents any customer from reading or writing another customer's row
-  3. A customer session and an admin session can both exist without interfering; customer-account routes are gated by middleware while `/admin` gating is unchanged and still works
-  4. The `bookings` table has a nullable `user_id` FK to `auth.users`; existing anonymous bookings still insert and read successfully with `user_id` null
-  5. A customer can sign out from an account-aware surface and the session is fully cleared (protected routes redirect to login afterward)
-
-**Plans**: 3 plans
-
-  - [x] 57-01-PLAN.md — Migrations 044 (customer_profiles + RLS) & 045 (nullable bookings.user_id FK) + Wave-0 auth test scaffolds (AUTH-06, ACCT-04)
-  - [x] 57-02-PLAN.md — Middleware gating, email + OAuth server actions, /auth/callback, /login UI, /account + sign-out (AUTH-01..05, AUTH-07)
-  - [x] 57-03-PLAN.md — [BLOCKING] apply migrations to live DB, regenerate types, verification gate + manual OAuth/email round-trip (AUTH-06, ACCT-04)
-
-**UI hint**: yes
-
-### Phase 58: Sign-in UI + Account Dashboard
-
-**Goal**: A customer can reach login from the header on any device, sign in/register through dedicated pages, and manage their account — viewing their trip history and editing their profile (with corporate-specific fields when applicable)
-**Depends on**: Phase 57
-**Requirements**: NAV-01, NAV-02, ACCT-01, ACCT-02, ACCT-03
-**Success Criteria** (what must be TRUE):
-
-  1. The header on both desktop and mobile shows a **Sign in** button (placed before "Book now") for logged-out visitors, and replaces it with an account/sign-out affordance when the customer is logged in
-  2. _(Delivered in Phase 57.)_ Dedicated login and signup pages let a customer authenticate by email and by Google/Apple, and choose personal vs corporate during registration — the `/login` route, OAuth, and `customer_profiles` shipped in Phase 57; Phase 58 only links the header to them
-  3. The "My trips" page shows an appropriate empty state when there are no trips. _Phase 58 scope: UI shell + empty state only; real booking-history listing (bookings linked to `user_id`) is deferred to **Phase 60** per D-01 / migration `045`_
-  4. A customer can view and edit their profile (contact details, saved passenger info) and changes persist across sessions
-  5. A corporate account exposes and saves the core extra fields (company name, IČO, DIČ/VAT), shown only to corporate accounts. _Cost centre and the "book for a guest" option are out of Phase 58 scope per D-04 — cost centre → later B2B phase; "book for a guest" → **Phase 59** (BOOK-06), a booking-time action_
-
-**Plans**: 5 plans
-
-Plans:
-
-- [x] 58-01-PLAN.md — Wave 0: RED test scaffolds (nav-auth, account-trips, profile-actions, passenger-actions)
-- [x] 58-02-PLAN.md — Wave 1: migrations 047 (profile/corporate fields) + 048 (saved_passengers) + schema push + type regen [BLOCKING]
-- [x] 58-03-PLAN.md — Wave 1: auth-aware Nav (guest Sign in + signed-in account dropdown, desktop + mobile)
-- [x] 58-04-PLAN.md — Wave 1: /account overview + /account/trips empty-state shell
-- [x] 58-05-PLAN.md — Wave 2: profile server actions + /account/profile + ProfileForm (contact, corporate, saved passengers)
-
-**UI hint**: yes
-
-### Phase 59: Booking Flow Redesign (Blacklane)
-
-**Goal**: The booking wizard is visually and behaviourally rebuilt in Blacklane style — unified entry, time-slot picker, inline flight number, route map with times, and richer vehicle cards — while the Zustand store, pricing APIs, and every existing analytics event remain intact
-**Depends on**: Nothing in v2.0 (independent of 57/58; can run in parallel with auth UI work)
-**Requirements**: BOOK-01, BOOK-02, BOOK-03, BOOK-04, BOOK-05, TRACK-01, TRACK-02, TRACK-03, TRACK-05
-**Success Criteria** (what must be TRUE):
-
-  1. The flow opens with a unified route + date + time entry bar (consolidated rather than two separate steps), with pickup time chosen via a time-slot dropdown
-  2. For airport transfers an inline "flight number" field is surfaced in the entry experience; it does not appear for non-airport routes
-  3. The vehicle-selection screen shows a route map with pickup time and drop-off time, and vehicle class cards display "What's included" plus capacity tabs for luggage and seating
-  4. Across the rebuilt flow every existing GA4 event still fires (`form_start`, `checkout_progress`, `view_item_list`, `view_item`, `begin_checkout`, `add_payment_info`, `purchase`, `generate_lead`) and every Meta Pixel + CAPI event (`InitiateCheckout`, `AddPaymentInfo`, `Purchase`) fires with `eventId` deduplication preserved
-  5. The sessionStorage price snapshot (`lib/analytics-snapshot.ts`) and server-side GA4 Measurement Protocol `purchase` in the Stripe webhook still fire, and CSP nonce + Consent Mode v2 gating remain unbroken on the redesigned routes
-
-**Plans**: 5 plans
-Plans:
-**Wave 1**
-
-- [x] 59-01-PLAN.md — Wave 0: generate 12 Higgsfield vehicle images + repoint VEHICLE_CONFIG (BOOK-05)
-- [x] 59-02-PLAN.md — Wave 0: RED test scaffolds (EntryBar, RouteMap, VehicleSlideshow, StickyBookingPanel)
-- [x] 59-03-PLAN.md — Wave 1: EntryBar (unified Step1+Step2) + wizard renumber to 5 steps (BOOK-01/02/03, TRACK-01/03/05)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 59-04-PLAN.md — Wave 2: RouteMap (Google Maps JS SDK) + StickyBookingPanel with relocated begin_checkout (BOOK-04, TRACK-02/05)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 59-05-PLAN.md — Wave 3: VehicleCard shell + VehicleSlideshow + Step3 two-column layout (BOOK-04/05, TRACK-01)
-
-**UI hint**: yes
-
-### Phase 60: Auth-in-Checkout + Guest Path
-
-**Goal**: The redesigned flow offers optional sign-in at checkout — a booking-method step that pre-fills logged-in customers and links their booking to `user_id` — while guest checkout remains available at every stage and never blocks
-**Depends on**: Phase 57, Phase 59
-**Requirements**: BOOK-06, BOOK-07, BOOK-08, ACCT-04, TRACK-04
-**Success Criteria** (what must be TRUE):
-
-  1. The flow includes a booking-method step where a logged-out user can "Book for myself (account)" or "Book as guest", and a corporate account additionally sees "Book for a guest"
-  2. A logged-in customer's contact details are pre-filled in the passenger step, and editing them does not break submission
-  3. Guest checkout works end-to-end at every stage without ever requiring sign-in; a guest booking completes with `user_id` null
-  4. A booking completed by a logged-in customer is persisted with their `user_id` FK and subsequently appears in their "My trips" history
-  5. GA4 `login` and `sign_up` events fire when a customer signs in or registers from within the checkout path
-
-**Plans**: TBD
-**UI hint**: yes
-
-### Phase 61: Analytics Preservation & E2E Verify
-
-**Goal**: End-to-end verification across the fully rebuilt flow (both guest and account paths) confirms zero analytics regression — every funnel, conversion, and auth event fires with consent, nonce, and dedup intact
-**Depends on**: Phase 59, Phase 60
-**Requirements**: TRACK-01, TRACK-02, TRACK-03, TRACK-04, TRACK-05 (end-to-end verification)
-**Success Criteria** (what must be TRUE):
-
-  1. A full guest booking run fires the complete GA4 funnel (`form_start` → `checkout_progress` → `view_item_list` → `view_item` → `begin_checkout` → `add_payment_info` → `purchase`/`generate_lead`) with no missing or duplicated events
-  2. A full account (logged-in) booking run fires the same GA4 funnel plus `login`/`sign_up`, with the booking linked to `user_id`
-  3. All Meta Pixel + CAPI events (`InitiateCheckout`, `AddPaymentInfo`, `Purchase`) fire on both paths with `eventId` deduplication confirmed between browser and server
-  4. The sessionStorage price snapshot and the server-side GA4 Measurement Protocol `purchase` in the Stripe webhook are confirmed firing after the rebuild
-  5. CSP nonce propagation and Consent Mode v2 gating verified unbroken across all new/redesigned routes including the OAuth redirect flow
-
-**Plans**: TBD
-**UI hint**: yes
+Candidate scope:
+- BOOK-06: Booking-method step (myself / guest / corporate book-for-a-guest)
+- AUTH-02/03: Configure Google + Apple OAuth in Supabase Dashboard
+- Corporate accounts: cost centre, monthly billing, book-for-a-guest
+- Email notifications: booking confirmation, reminder, driver assignment
 
 ## Progress
 
-**Execution Order:** 54 → 55 → 56 → 57 → (58 ∥ 59) → 60 → 61
-
-v2.0 dependency notes: 57 → 58; 57 → 60; 59 → 60; (59, 60) → 61. Phase 59 is independent of 57/58 and may run in parallel with the auth UI work.
-
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 54. MDX Infrastructure | 2/2 | Complete    | 2026-05-14 |
-| 55. Blog UI — Listing + Article Pages | 3/3 | Complete    | 2026-05-14 |
-| 56. Article Migration + SEO Wiring | 4/4 | Complete    | 2026-05-15 |
-| 57. Customer Auth Foundation | 3/3 | Complete    | 2026-06-11 |
-| 58. Sign-in UI + Account Dashboard | 5/5 | Complete   | 2026-06-12 |
-| 59. Booking Flow Redesign (Blacklane) | 5/5 | Complete   | 2026-06-17 |
-| 60. Auth-in-Checkout + Guest Path | 1/1 | Complete    | 2026-06-17 |
-| 61. Analytics Preservation & E2E Verify | 1/1 | Complete    | 2026-06-17 |
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 54. MDX Infrastructure | v1.0 | 2/2 | Complete | 2026-05-14 |
+| 55. Blog UI — Listing + Article Pages | v1.0 | 3/3 | Complete | 2026-05-14 |
+| 56. Article Migration + SEO Wiring | v1.0 | 4/4 | Complete | 2026-05-15 |
+| 57. Customer Auth Foundation | v2.0 | 3/3 | Complete | 2026-06-11 |
+| 58. Sign-in UI + Account Dashboard | v2.0 | 5/5 | Complete | 2026-06-12 |
+| 59. Booking Flow Redesign (Blacklane) | v2.0 | 5/5 | Complete | 2026-06-17 |
+| 60. Auth-in-Checkout + Guest Path | v2.0 | 1/1 | Complete | 2026-06-17 |
+| 61. Analytics Preservation & E2E Verify | v2.0 | 1/1 | Complete | 2026-06-17 |

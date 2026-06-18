@@ -2,23 +2,17 @@
 
 ## What This Is
 
-Prestigo is a premium chauffeur service based in Prague, Czech Republic. The site (rideprestigo.com) is a Next.js 16 marketing and booking platform that handles airport transfers, intercity routes, corporate accounts, and VIP events for English-speaking travellers and corporate clients across Central Europe.
+Prestigo is a premium chauffeur service based in Prague, Czech Republic. The site (rideprestigo.com) is a Next.js 14+ App Router marketing and booking platform that handles airport transfers, intercity routes, corporate accounts, and VIP events for English-speaking travellers and corporate clients across Central Europe. Customers can sign in with email or OAuth to access a personal account with trip history and pre-filled passenger details; guest checkout is always available without registration.
 
 ## Core Value
 
 Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction.
 
-## Current Milestone: v2.0 — Blacklane-style Booking + Customer Accounts
+## Current State: v2.0 Shipped — Planning v2.1
 
-**Goal:** Rebuild the booking experience to match Blacklane's polish (visual + behavioural), and introduce customer authentication and accounts (personal/corporate) — all while preserving every existing Google/Meta analytics signal and keeping guest checkout always available.
+v2.0 delivered Blacklane-style booking UX with full customer authentication and account management. The booking flow features a unified entry bar, Google Maps route visualization, vehicle cards with interior slideshows, and optional in-checkout sign-in. All GA4 + Meta Pixel/CAPI analytics signals preserved.
 
-**Target features:**
-- Customer authentication via Supabase Auth — email + Google + Apple OAuth (admin auth untouched)
-- Sign in button in the header (auth-aware) + customer account dashboard ("My trips", profile)
-- Personal vs corporate account types (corporate gets company/VAT/cost-centre fields + "book for a guest")
-- Blacklane-style booking redesign — unified entry bar, time-slot dropdown, inline flight number, route map with pickup/drop-off times, vehicle cards with "What's included" + capacity tabs
-- Optional auth in checkout ("Book for myself / as guest"), bookings linked to user_id, guest checkout always available
-- Zero analytics regression — all GA4 + Meta Pixel/CAPI funnel events preserved through the rebuilt flow
+**Next milestone candidates:** BOOK-06 (corporate booking-method step), Google/Apple OAuth config, corporate invoicing.
 
 ## Requirements
 
@@ -35,73 +29,54 @@ Every page — booking, content, or service — must convert a visitor into a co
 - ✓ ArticleByline component + authors system (E-E-A-T) — brownfield baseline
 - ✓ Per-page git-based lastModified for sitemap — brownfield baseline
 - ✓ v1.0 SEO Blog — MDX pipeline, `/blog` listing + article pages, 3 articles migrated with 301s, sitemap (phases 54–56)
+- ✓ AUTH-01: Customer email sign-in (magic-link + password) via Supabase Auth — v2.0 (Phase 57)
+- ✓ AUTH-04/05/06/07: Customer registration with account type, session isolation, customer_profiles RLS, sign-out — v2.0 (Phase 57)
+- ✓ NAV-01/02: Auth-aware header — Sign in button (guests) / account dropdown (logged in) — v2.0 (Phase 58)
+- ✓ ACCT-01/02/03: My trips page, profile editing, corporate fields (company/IČO/VAT) — v2.0 (Phase 58)
+- ✓ ACCT-04: New bookings linked to user_id; anonymous/guest bookings unaffected — v2.0 (Phase 60)
+- ✓ BOOK-01..05: Unified EntryBar, time-slot dropdown, flight number field, RouteMap, VehicleCard + VehicleSlideshow — v2.0 (Phase 59)
+- ✓ BOOK-07: Logged-in customer's contact details pre-filled in passenger step — v2.0 (Phase 60)
+- ✓ BOOK-08: Guest checkout available at every stage; sign-in optional — v2.0 (Phase 60)
+- ✓ TRACK-01/02/03/05: GA4 + Meta Pixel/CAPI events preserved, price snapshot + server-side GA4, CSP/Consent Mode — v2.0 (Phases 59+61)
+- ✓ TRACK-04: GA4 login/sign_up events fire (code-verified; live testing blocked by OTP) — v2.0 (Phase 60+61)
 
 ### Active
 
-<!-- Milestone v2.0 — Blacklane-style Booking + Customer Accounts -->
+<!-- v2.1 candidates + infrastructure items -->
 
-**AUTH — Customer authentication**
-- [ ] AUTH-01: Customer can sign in by email (magic-link/password) via Supabase Auth
-- [ ] AUTH-02: Customer can sign in with Google OAuth
-- [ ] AUTH-03: Customer can sign in with Apple OAuth
-- [ ] AUTH-04: Customer can register and choose account type — personal or corporate
-- [ ] AUTH-05: Customer session does not conflict with admin session; middleware gates customer routes, not admin
-- [ ] AUTH-06: Customer profile stored in new table (migration 044) with `account_type` and FK to `auth.users`; RLS isolates each user's data
-
-**NAV — Header**
-- [ ] NAV-01: Header (desktop + mobile) has a Sign in button leading to login
-- [ ] NAV-02: Logged-in customer sees account/sign-out in header instead of Sign in
-
-**ACCT — Account dashboard**
-- [ ] ACCT-01: "My trips" page — customer's booking history (bookings linked to `user_id`)
-- [ ] ACCT-02: Profile editing (contacts, saved passenger details)
-- [ ] ACCT-03: Corporate account has extra fields (company, IČO/VAT, cost centre) and a "book for a guest" option
-- [ ] ACCT-04: New bookings by a logged-in customer are linked to `user_id` (anonymous bookings unaffected)
-
-**BOOK — Booking flow redesign (Blacklane UI/UX)**
-- [ ] BOOK-01: Unified route + date + time entry bar in Blacklane style
-- [ ] BOOK-02: Pickup-time slot dropdown
-- [ ] BOOK-03: Inline "flight number" field for airport transfers
-- [ ] BOOK-04: Route map showing pickup/drop-off times next to vehicle selection
-- [ ] BOOK-05: Vehicle class cards with "What's included" and capacity tabs (luggage/seating)
-- [ ] BOOK-06: Booking-method step: "Book for myself (account) / Book as guest"; corporate also "Book for a guest"
-- [ ] BOOK-07: Logged-in customer's contact details are pre-filled
-- [ ] BOOK-08: Guest checkout available at every stage (sign-in optional)
-
-**TRACK — Analytics preservation (cross-cutting)**
-- [ ] TRACK-01: All existing GA4 events fire in the rebuilt flow with no loss
-- [ ] TRACK-02: All Meta Pixel + CAPI events (incl. eventId dedup) preserved
-- [ ] TRACK-03: Price snapshot (sessionStorage) and server-side GA4 in Stripe webhook still work
-- [ ] TRACK-04: `login` and `sign_up` (GA4) events added on sign-in/registration
-- [ ] TRACK-05: CSP nonce and Consent Mode v2 not broken by new scripts/routes
+- [ ] AUTH-02: Google OAuth — code wired; Supabase Dashboard credential config still pending
+- [ ] AUTH-03: Apple OAuth — code wired; Supabase Dashboard credential config still pending
+- [ ] BOOK-06: Booking-method step — "Book for myself / Book as guest"; corporate also "Book for a guest" (deferred from v2.0)
+- [ ] Corporate invoicing, monthly billing, cost-centre fields — basic corporate profile only in v2.0
+- [ ] Email notifications — booking confirmation, reminder, driver assignment
+- [ ] Multilingual account UI (Czech, Russian)
 
 ### Out of Scope
 
-- Corporate teams / multi-user billing, invoicing, cost-centre reporting — only basic corporate fields in v2.0
-- Payment methods beyond Stripe; saved cards
-- Multilingual account UI — English only for now
-- Social logins beyond Google/Apple (Facebook deferred)
+- Payment methods beyond Stripe; saved cards — Stripe one-off only
+- Facebook OAuth — Google + Apple priority
+- Multi-user corporate accounts, role permissions — single profile per company in v2.0
+- Replacing admin auth or changing admin session model
 
 ## Context
 
-**Tech stack:** Next.js 16 App Router, React 19, Tailwind CSS v4, TypeScript, deployed on Vercel. All pages are static (`force-static`) or server-rendered with no client state.
+**Tech stack:** Next.js 14+ App Router, React 19, TypeScript, Tailwind CSS v4, Supabase (PostgreSQL + Auth/GoTrue), Stripe, deployed on Vercel. Booking flow uses Zustand (sessionStorage), Google Maps JS SDK, and GNet integration. GA4 + Meta Pixel/CAPI analytics with server-side Measurement Protocol in Stripe webhook.
 
-**Existing editorial pages:** Three long-form articles exist at `/guides/prague-airport-to-city-center`, `/compare/prague-airport-taxi-vs-chauffeur`, and `/compare/prague-vienna-transfer-vs-train`. They are complex JSX pages with inline data arrays (options, profiles, FAQs, tables). Converting them to MDX is out of scope.
+**Vehicle fleet:** Three Mercedes classes — E-Class (Business), S-Class (First Class), V-Class (Business Van). Vehicle images are AVIF format at `/public/vehicles/`.
 
-**Hybrid model:** Static JSX article directories (`app/blog/slug/page.tsx`) take precedence over the dynamic MDX route (`app/blog/[slug]/page.tsx`) in Next.js — both coexist cleanly.
+**Auth stack:** Admin auth (password-only) and customer auth (email + OAuth) both use Supabase GoTrue — isolated via middleware checks on `user_metadata.role`. Customer profiles in `customer_profiles` table with RLS. Bookings carry nullable `user_id` FK; guest checkout always valid.
 
-**Reusable utilities:** `components/ArticleByline.tsx`, `lib/authors.ts` (`personSchemaFor()`, `AUTHORS`), `lib/lastmod.ts` (`lastModFor()`), `lib/jsonld.ts`, `app/sitemap.ts` (entry() helper).
+**Blog:** MDX articles in `content/blog/` plus 3 legacy JSX articles in `app/blog/[slug]/page.tsx`. Hybrid model — static dirs take precedence over dynamic MDX route. `/guides/*` and `/compare/*` redirect 308 to `/blog/*`.
 
-**Domain:** `https://rideprestigo.com` (note: some existing pages still have a typo `rideprestigo.com` — correct to `rideprestigo.com` in migrated files).
-
-**Redirects:** `next.config.ts` already has a `redirects()` array — append to it, do not replace.
+**Codebase size:** ~22 plans across 8 phases; migrations 047–049 (customer_profiles, saved_passengers, bookings RLS).
 
 ## Constraints
 
 - **Tech stack**: Next.js App Router only — no Pages Router patterns
 - **Styling**: Tailwind CSS v4 with existing design tokens (`bg-anthracite`, `border-anthracite-light`, `copper`, etc.) — no new CSS frameworks
-- **SEO**: Every article page must have canonical URL, OG tags, Schema.org Article — non-negotiable for SEO strategy
-- **Images**: Cover images in `public/blog/` — Next.js `<Image>` or `<img>` with correct dimensions; AVIF/WebP formats preferred
+- **SEO**: Every article page must have canonical URL, OG tags, Schema.org Article — non-negotiable
+- **Guest checkout**: Must always remain available; sign-in is never a hard gate
+- **Admin auth**: Untouched — admin session isolation must be maintained across all changes
 
 ## Key Decisions
 
@@ -109,11 +84,18 @@ Every page — booking, content, or service — must convert a visitor into a co
 |----------|-----------|---------|
 | MDX-in-repo (no headless CMS) | No external dependencies, free, deploy via git | ✓ Shipped v1.0 |
 | Hybrid JSX + MDX articles | Existing articles too complex to convert; static dirs take precedence over dynamic route | ✓ Shipped v1.0 |
-| Single `coverImage` field = card thumbnail + og:image | DRY, consistent OG cards across social platforms | ✓ Shipped v1.0 |
-| Continue phase numbering from 53 → starts at 54 | Consistent history, no archive needed | ✓ Shipped v1.0 |
-| v2.0: customer auth on Supabase Auth (reuse admin GoTrue infra) | No new auth library; admin password pattern + OAuth (Google/Apple) on same stack | — Pending |
-| v2.0: bookings stay anonymous-capable; add nullable `user_id` FK | Guest checkout must never break; logged-in is additive | — Pending |
-| v2.0: major version bump (new auth/accounts subsystem) | Not an increment — adds a whole subsystem; phases continue from 56 → start 57 | — Pending |
+| Single `coverImage` = card thumbnail + og:image | DRY, consistent OG cards | ✓ Shipped v1.0 |
+| Continue phase numbering from 53 → starts at 54 | Consistent history | ✓ Shipped v1.0 |
+| Customer auth on Supabase Auth (reuse admin GoTrue infra) | No new auth library; same stack as admin | ✓ Shipped v2.0 |
+| Bookings stay anonymous-capable; add nullable `user_id` FK | Guest checkout must never break | ✓ Shipped v2.0 |
+| Major version bump v2.0 (new auth/accounts subsystem) | Adds a whole subsystem; phases continue from 56 → 57 | ✓ Shipped v2.0 |
+| Phase 59 independent of Phase 57/58 | Booking redesign can run in parallel with auth UI | ✓ Shipped v2.0 |
+| TEXT + CHECK for `account_type` (not Postgres ENUM) | Stays alterable; matches existing bookings pattern | ✓ Shipped v2.0 (Phase 57) |
+| No DELETE RLS on customer_profiles — ON DELETE CASCADE only | Simpler; row removal via auth.users deletion | ✓ Shipped v2.0 (Phase 57) |
+| safeReturnTo() open-redirect guard: relative-only, rejects absolute URLs | Security — prevents open redirect via OAuth returnTo | ✓ Shipped v2.0 (Phase 57) |
+| NextResponse.redirect in auth callback uses explicit `{ status: 302 }` | Next.js default 307 breaks OAuth redirects | ✓ Shipped v2.0 (Phase 57) |
+| EntryBar replaces Step1TripType + Step2DateTime (wizard 6→5 steps) | Blacklane-style consolidation; begin_checkout relocated to StickyBookingPanel | ✓ Shipped v2.0 (Phase 59) |
+| user_id passed via Stripe metadata (never trusted from client) | Security — ownership resolved server-side only | ✓ Shipped v2.0 (Phase 60) |
 
 ## Evolution
 
@@ -133,4 +115,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-10 — Milestone v2.0 started: Blacklane-style booking redesign + customer authentication & accounts (personal/corporate). Phases 57–61. v1.0 SEO Blog shipped.*
+*Last updated: 2026-06-18 — v2.0 shipped: Blacklane-style booking redesign + customer authentication & accounts. Phases 57–61 complete. Planning v2.1.*

@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.0
-milestone_name: Blacklane-style Booking + Customer Accounts
-status: completed
+milestone: v1.0
+milestone_name: milestone
+status: Awaiting next milestone
 stopped_at: Phase 59 UI-SPEC approved
-last_updated: "2026-06-17T14:57:20.573Z"
-last_activity: "2026-06-17 -- Plan 59-04 executed: RouteMap + StickyBookingPanel (BOOK-04, TRACK-02, TRACK-05)"
+last_updated: "2026-06-18T18:24:17.818Z"
+last_activity: 2026-06-18 — Milestone v2.0 completed and archived
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 22
-  completed_plans: 22
+  completed_plans: 23
   percent: 75
 ---
 
@@ -25,12 +25,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: 59 (booking-flow-redesign-blacklane) — EXECUTING
-Plan: 5 of 5
-Status: Plan 04 complete — RouteMap + StickyBookingPanel built
-Last activity: 2026-06-17 -- Plan 59-04 executed: RouteMap + StickyBookingPanel (BOOK-04, TRACK-02, TRACK-05)
-
-Progress: [█████████░] 92%
+Phase: Milestone v2.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-06-18 — Milestone v2.0 completed and archived
 
 ## Accumulated Context
 
@@ -87,6 +85,19 @@ None yet.
 - Apple Sign In via Supabase has fiddly setup (Service ID, key, return URLs) — confirm config during `/gsd-plan-phase 57`.
 - Next migration number is **044** (043_content_media_variants.sql is the latest); Phase 57 uses `044_customer_profiles.sql`.
 
+## Deferred Items
+
+Items acknowledged and deferred at milestone v2.0 close on 2026-06-18:
+
+| Category | Item | Status | Reason |
+|----------|------|--------|--------|
+| uat_gap | Phase 53: 53-HUMAN-UAT.md | passed (0 pending) | Pre-v2.0 phase, all tests passed |
+| verification_gap | Phase 55: 55-VERIFICATION.md | human_needed | 5/5 truths verified; runtime checks (404, sitemap) require live env |
+| verification_gap | Phase 56: 56-VERIFICATION.md | human_needed | 11/11 truths verified; Google Rich Results Test requires third-party tool |
+| verification_gap | Phase 57: 57-VERIFICATION.md | human_needed | 8/8 truths verified; OAuth/OTP live round-trips require third-party auth |
+| verification_gap | Phase 58: 58-VERIFICATION.md | human_needed | 9/9 truths verified; all requirements satisfied per UAT/SECURITY/VALIDATION |
+| verification_gap | Phase 59: 59-VERIFICATION.md | human_needed | 9/9 truths verified; all requirements satisfied per UAT 7/7 |
+
 ## Session Continuity
 
 Last session: 2026-06-17T14:57:20.565Z
@@ -107,3 +118,7 @@ Resume file: .planning/phases/59-booking-flow-redesign-blacklane/59-UI-SPEC.md
 | Phase 59-booking-flow-redesign-blacklane P01 | 30min | 2 tasks | 13 files |
 | Phase 59-booking-flow-redesign-blacklane P03 | 10min | 3 tasks | 6 files |
 | Phase 59-booking-flow-redesign-blacklane P04 | 8min | 2 tasks | 3 files |
+
+## Operator Next Steps
+
+- Start the next milestone with /gsd-new-milestone
