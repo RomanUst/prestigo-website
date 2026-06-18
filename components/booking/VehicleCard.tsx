@@ -123,7 +123,7 @@ export default function VehicleCard({ config, isSelected, onSelect, price }: Veh
           src={config.image}
           alt={`Prestigo ${config.label}`}
           fill
-          style={{ objectFit: 'contain', objectPosition: 'center', transform: config.key === 'business_van' ? 'scaleX(-1)' : undefined }}
+          style={{ objectFit: 'contain', objectPosition: 'center' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
       </div>
