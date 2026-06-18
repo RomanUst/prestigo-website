@@ -126,7 +126,7 @@ export default function StickyBookingPanel() {
   }
 
   return (
-    // Desktop only — hidden on mobile (D-10)
+    // Desktop only — hidden on mobile (D-10). Mobile CTA is rendered in Step3Vehicle.tsx.
     <div
       className="hidden md:block sticky"
       style={{
