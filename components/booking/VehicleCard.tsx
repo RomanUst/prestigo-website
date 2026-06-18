@@ -112,26 +112,20 @@ export default function VehicleCard({ config, isSelected, onSelect, price }: Veh
       {/* Car image — right side, landscape */}
       <div style={{
         position: 'relative',
-        width: '45%',
+        width: '48%',
         flexShrink: 0,
-        background: '#1E1C1A',
         overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
       }}>
         <Image
           src={config.image}
           alt={`Prestigo ${config.label}`}
           fill
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
+          style={{ objectFit: 'contain', objectPosition: 'center' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          background: isSelected
-            ? 'linear-gradient(to right, var(--anthracite-mid) 0%, transparent 40%)'
-            : 'linear-gradient(to right, var(--anthracite) 0%, transparent 40%)',
-          pointerEvents: 'none',
-        }} />
       </div>
     </button>
   )
