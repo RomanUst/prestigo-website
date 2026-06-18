@@ -2,6 +2,7 @@ import { NextResponse, after } from 'next/server'
 import { z } from 'zod'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { sendDriverDeclineNotification } from '@/lib/email'
+import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 
 const respondSchema = z.object({
   token: z.string().uuid(),
@@ -9,6 +10,11 @@ const respondSchema = z.object({
 })
 
 export async function POST(request: Request) {
+  const { allowed } = await checkRateLimit('/api/driver/respond', getClientIp(request))
+  if (!allowed) {
+    return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+  }
+
   let body: unknown
   try {
     body = await request.json()
@@ -32,17 +38,12 @@ export async function POST(request: Request) {
     .single()
 
   if (lookupError || !assignment) {
-    return NextResponse.json({ error: 'not_found' }, { status: 400 })
+    return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
 
-  // Check if already used
-  if (assignment.token_used_at) {
-    return NextResponse.json({ error: 'used' }, { status: 400 })
-  }
-
-  // Check if expired
-  if (new Date(assignment.token_expires_at) < new Date()) {
-    return NextResponse.json({ error: 'expired' }, { status: 400 })
+  // Check if already used or expired — use uniform error to prevent oracle enumeration
+  if (assignment.token_used_at || new Date(assignment.token_expires_at) < new Date()) {
+    return NextResponse.json({ error: 'invalid_token' }, { status: 400 })
   }
 
   // Atomically update: set status + token_used_at

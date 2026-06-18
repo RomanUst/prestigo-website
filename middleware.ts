@@ -10,6 +10,7 @@ const CSRF_PROTECTED_PREFIXES = [
   '/api/contact',
   '/api/create-payment-intent',
   '/api/calculate-price',
+  '/api/driver/respond',
 ]
 
 // Subset of CSRF_PROTECTED_PREFIXES where a missing Origin header is also

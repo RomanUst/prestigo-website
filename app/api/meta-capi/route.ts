@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
+import { z } from 'zod'
 import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
@@ -87,8 +88,19 @@ export async function POST(request: NextRequest) {
   }
   if (eventId) event['event_id'] = eventId
   if (eventSourceUrl) event['event_source_url'] = eventSourceUrl
+  // SEC-07: allow-list custom_data fields to prevent analytics poisoning
   if (body.custom_data && typeof body.custom_data === 'object') {
-    event['custom_data'] = body.custom_data
+    const customDataSchema = z.object({
+      value: z.number().optional(),
+      currency: z.string().max(3).optional(),
+      content_name: z.string().max(200).optional(),
+      content_category: z.string().max(200).optional(),
+      num_items: z.number().optional(),
+    }).strict()
+    const parsed = customDataSchema.safeParse(body.custom_data)
+    if (parsed.success) {
+      event['custom_data'] = parsed.data
+    }
   }
 
   try {
