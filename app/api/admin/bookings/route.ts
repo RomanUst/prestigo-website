@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse, after } from 'next/server'
 import { pushGnetStatus, prestigoToGnetStatus } from '@/lib/gnet-client'
@@ -13,14 +13,6 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
-
-async function getAdminUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) return { user: null, error: '401' as const }
-  if (!user.app_metadata?.is_admin) return { user: null, error: '403' as const }
-  return { user, error: null }
-}
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
   pending:     ['confirmed', 'cancelled'],
@@ -110,7 +102,7 @@ export async function PATCH(request: Request) {
   const parsed = bookingPatchSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid payload', issues: parsed.error.issues },
+      { error: 'Invalid payload' },
       { status: 400 }
     )
   }
@@ -340,7 +332,7 @@ export async function POST(request: Request) {
   const parsed = manualBookingSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid payload', issues: parsed.error.issues },
+      { error: 'Invalid payload' },
       { status: 400 }
     )
   }

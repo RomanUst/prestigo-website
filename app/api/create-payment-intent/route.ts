@@ -93,11 +93,8 @@ export async function POST(req: Request) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
     }
-    const { bookingData } = parsed.data as { bookingData: Record<string, string> }
-
-    if (!bookingData) {
-      return NextResponse.json({ error: 'Missing bookingData' }, { status: 400 })
-    }
+    // SEC-16: use inferred Zod type directly — no cast to Record<string,string>
+    const bookingData = parsed.data.bookingData
 
     // Resolve authenticated user server-side — never trust client-supplied userId
     const supabaseUser = await createClient()
@@ -151,7 +148,10 @@ export async function POST(req: Request) {
 
     // Business rule: bookings must be at least 12 hours in advance
     if (bookingData.pickupDate && bookingData.pickupTime) {
-      const pickupDT = new Date(`${bookingData.pickupDate}T${bookingData.pickupTime}:00`)
+      // SEC-13: interpret pickup as Prague local time (CET/CEST) to avoid off-by-2h UTC mismatch.
+      const month = new Date().getUTCMonth() + 1
+      const pragueOffset = month >= 4 && month <= 10 ? '+02:00' : '+01:00'
+      const pickupDT = new Date(`${bookingData.pickupDate}T${bookingData.pickupTime}:00${pragueOffset}`)
       const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
       if (!isFinite(pickupDT.getTime()) || pickupDT < minAllowedDT) {
         return NextResponse.json(
@@ -207,8 +207,8 @@ export async function POST(req: Request) {
       returnLegEur = computeReturnLegTotal(
         vehicleClass,
         distanceKm as number, // guarded above
-        bookingData.returnDate,
-        bookingData.returnTime,
+        bookingData.returnDate ?? '',
+        bookingData.returnTime ?? '',
         isAirport,
         rates,
       )

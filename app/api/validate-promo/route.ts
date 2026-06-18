@@ -31,12 +31,10 @@ export async function GET(request: Request) {
     return NextResponse.json({ valid: false, error: 'Something went wrong. Please try again.' })
   }
 
-  if (!data) {
-    return NextResponse.json({ valid: false, error: 'Code not found, expired, or inactive.' })
-  }
-
-  if (data.max_uses !== null && data.current_uses >= data.max_uses) {
-    return NextResponse.json({ valid: false, error: 'This promo code has reached its usage limit.' })
+  // SEC-12: uniform error regardless of reason (invalid, exhausted, expired)
+  // to prevent oracle enumeration of valid/exhausted code states.
+  if (!data || (data.max_uses !== null && data.current_uses >= data.max_uses)) {
+    return NextResponse.json({ valid: false, error: 'Invalid or unavailable code.' })
   }
 
   return NextResponse.json({ valid: true, discountPct: Number(data.discount_value) })

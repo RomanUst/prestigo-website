@@ -55,37 +55,42 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
 
-  // ── MED-1: Event-level idempotency via stripe_processed_events ──
-  // payment_intent.succeeded is already idempotent via the
-  // (payment_intent_id, leg) UNIQUE on bookings, but charge.refunded
-  // and any future event types are not. This insert uses the PRIMARY
-  // KEY on event_id to atomically claim the event: on first delivery
-  // we insert and continue; on every subsequent retry Stripe will
-  // retry until we return 2xx, and the 23505 short-circuit here
-  // makes the retry a cheap no-op rather than re-running the handler.
-  {
+  // ── charge.refunded: upfront atomic idempotency claim (safe — no booking created here) ──
+  if (event.type === 'charge.refunded') {
     const supabase = createSupabaseServiceClient()
     const { error: claimErr } = await supabase
       .from('stripe_processed_events')
       .insert({ event_id: event.id, event_type: event.type })
     if (claimErr) {
       const code = (claimErr as { code?: string }).code
-      if (code === '23505') {
-        // Duplicate event — already processed, respond 2xx so Stripe stops retrying.
-        return NextResponse.json({ received: true, duplicate: true })
-      }
-      // Transient DB error — let Stripe retry the whole event later.
+      if (code === '23505') return NextResponse.json({ received: true, duplicate: true })
       console.error('[webhook] stripe_processed_events insert failed:', claimErr.message)
       return NextResponse.json({ error: 'Transient DB error' }, { status: 500 })
     }
-  }
-
-  if (event.type === 'charge.refunded') {
     await handleChargeRefunded(event.data.object as Stripe.Charge)
     return NextResponse.json({ received: true })
   }
 
   if (event.type === 'payment_intent.succeeded') {
+    // SEC-10: booking is saved FIRST, stripe_processed_events is written AFTER.
+    // Rationale: if we claim the event before saving the booking and the process crashes
+    // between those two operations, the booking is permanently lost (Stripe stops retrying
+    // on 23505). With reversed order, a crash before the events insert causes Stripe to
+    // retry; saveBooking / saveRoundTripBookings are idempotent (ON CONFLICT DO NOTHING)
+    // so the retry sees inserted.length === 0, marks the event processed, and returns 2xx
+    // safely — booking row already exists, emails skipped on retry (acceptable trade-off).
+    //
+    // Duplicate detection: read-check before processing to short-circuit obvious re-delivers.
+    {
+      const supabase = createSupabaseServiceClient()
+      const { data: existing } = await supabase
+        .from('stripe_processed_events')
+        .select('event_id')
+        .eq('event_id', event.id)
+        .maybeSingle()
+      if (existing) return NextResponse.json({ received: true, duplicate: true })
+    }
+
     const paymentIntent = event.data.object as Stripe.PaymentIntent
     const meta = (paymentIntent.metadata ?? {}) as Record<string, string>
 
@@ -96,26 +101,37 @@ export async function POST(request: Request) {
       typeof meta.returnBookingReference === 'string' &&
       meta.returnBookingReference.length > 0
 
-    if (isRoundTrip) {
-      // D-04: sibling if-block — new round-trip branch, one-way branch left untouched
-      await handleRoundTripSucceeded(paymentIntent, meta)
-      return NextResponse.json({ received: true })
-    }
-
     // Inconsistent metadata (tripType set but no return ref, or vice versa) — log + fall through.
-    // Routed through safePiiSummary so the log line cannot leak firstName/email/phone/address
-    // even if someone expands this call site later to include more context.
     if (meta.tripType === 'round_trip' || (meta.returnBookingReference && meta.returnBookingReference.length > 0)) {
-      console.error(
-        'payment_intent.succeeded: inconsistent round-trip metadata; falling back to one-way',
-        {
-          ...safePiiSummary(meta),
-          hasReturnRef: Boolean(meta.returnBookingReference),
-        }
-      )
+      if (!isRoundTrip) {
+        console.error(
+          'payment_intent.succeeded: inconsistent round-trip metadata; falling back to one-way',
+          { ...safePiiSummary(meta), hasReturnRef: Boolean(meta.returnBookingReference) }
+        )
+      }
     }
 
-    await handleOneWaySucceeded(paymentIntent, meta)
+    if (isRoundTrip) {
+      await handleRoundTripSucceeded(paymentIntent, meta)
+    } else {
+      await handleOneWaySucceeded(paymentIntent, meta)
+    }
+
+    // Mark event processed AFTER booking confirmed saved (SEC-10).
+    // Ignore 23505 here: concurrent delivery is extremely rare; booking is idempotent either way.
+    {
+      const supabase = createSupabaseServiceClient()
+      const { error: claimErr } = await supabase
+        .from('stripe_processed_events')
+        .insert({ event_id: event.id, event_type: event.type })
+      if (claimErr) {
+        const code = (claimErr as { code?: string }).code
+        if (code !== '23505') {
+          console.error('[webhook] post-save stripe_processed_events insert failed:', claimErr.message)
+        }
+      }
+    }
+
     return NextResponse.json({ received: true })
   }
 
