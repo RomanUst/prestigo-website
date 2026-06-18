@@ -50,12 +50,12 @@ export default function Fleet() {
             <Reveal key={v.model} variant="up" delay={i * 120}>
               <div className="group border border-anthracite-light hover:border-copper/40 transition-colors overflow-hidden">
                 {/* Vehicle photo — full-bleed photography */}
-                <div className="relative w-full h-56 overflow-hidden">
+                <div className="relative w-full h-56 overflow-hidden" style={{ background: '#F5F2EE' }}>
                   <Image
                     src={v.photo}
                     alt={v.photoAlt}
                     fill
-                    className="object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="object-contain"
                     sizes="(max-width: 768px) 100vw, 400px"
                     loading={i === 0 ? 'eager' : 'lazy'}
                   />
