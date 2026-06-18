@@ -11,6 +11,7 @@
  * Always returns 200 so Telegram does not retry on application errors.
  */
 
+import { timingSafeEqual } from "crypto";
 import { NextResponse } from "next/server";
 import {
   parseApprovalCallback,
@@ -30,9 +31,13 @@ type TelegramUpdate = {
 
 export async function POST(request: Request) {
   // Validate the shared secret token.
+  // SEC-14: timing-safe comparison to prevent secret brute-force via timing side-channel
   const expected = process.env.TELEGRAM_WEBHOOK_SECRET;
   const got = request.headers.get("x-telegram-bot-api-secret-token");
-  if (!expected || got !== expected) {
+  if (!expected || !got) return NextResponse.json({ ok: false }, { status: 401 });
+  const expBuf = Buffer.from(expected);
+  const gotBuf = Buffer.from(got);
+  if (expBuf.length !== gotBuf.length || !timingSafeEqual(expBuf, gotBuf)) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 

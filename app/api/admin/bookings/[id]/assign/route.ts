@@ -200,7 +200,7 @@ export async function POST(
         id: assignment.id,
         driver_id: assignment.driver_id,
         status: assignment.status,
-        token: assignment.token,
+        // SEC-18: token omitted — used only server-side for email URL, must not be returned to browser
       },
       booking_status: canTransitionToAssigned ? 'assigned' : (previousStatus ?? 'unknown'),
     },

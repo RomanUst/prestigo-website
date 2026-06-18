@@ -1,16 +1,9 @@
-import { createClient } from '@/lib/supabase/server'
+import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
 import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
 
-async function getAdminUser() {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) return { user: null, error: '401' as const }
-  if (!user.app_metadata?.is_admin) return { user: null, error: '403' as const }
-  return { user, error: null }
-}
 
 const geojsonFeatureSchema = z.object({
   type: z.literal('Feature'),
@@ -59,7 +52,7 @@ export async function POST(request: Request) {
   const parsed = zoneCreateSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid payload', issues: parsed.error.issues },
+      { error: 'Invalid payload' },
       { status: 400 }
     )
   }
@@ -108,7 +101,7 @@ export async function PATCH(request: Request) {
   const parsed = zoneToggleSchema.safeParse(body)
   if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Invalid payload', issues: parsed.error.issues },
+      { error: 'Invalid payload' },
       { status: 400 }
     )
   }

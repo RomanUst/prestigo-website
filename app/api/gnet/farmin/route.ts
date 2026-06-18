@@ -174,7 +174,11 @@ async function googleRoutesDistanceKm(
 }
 
 // ── Handlers ───────────────────────────────────────────────────────────────
-export function GET(): Response {
+export function GET(req: Request): Response {
+  // SEC-19: require Basic Auth even for health-check to avoid confirming endpoint existence.
+  if (!verifyBasicAuth(req.headers.get('authorization'))) {
+    return new Response('Unauthorized', { status: 401 })
+  }
   return Response.json({ success: true }, { status: 200 })
 }
 

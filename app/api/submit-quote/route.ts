@@ -67,15 +67,15 @@ export async function POST(req: Request) {
     const raw = await req.json()
     const parsed = submitQuoteSchema.safeParse(raw)
     if (!parsed.success) {
-      return NextResponse.json(
-        { error: 'Invalid request', details: parsed.error.flatten() },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Invalid request' }, { status: 400 })
     }
     const body = parsed.data
 
     // Business rule: bookings must be at least 12 hours in advance
-    const pickupDT = new Date(`${body.pickupDate}T${body.pickupTime}:00`)
+    // SEC-13: interpret pickup as Prague local time (CET/CEST) to avoid UTC off-by-2h bypass.
+    const _month = new Date().getUTCMonth() + 1
+    const _pragueOffset = _month >= 4 && _month <= 10 ? '+02:00' : '+01:00'
+    const pickupDT = new Date(`${body.pickupDate}T${body.pickupTime}:00${_pragueOffset}`)
     const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
     if (!isFinite(pickupDT.getTime()) || pickupDT < minAllowedDT) {
       return NextResponse.json(

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from 'crypto'
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { logEmail } from '@/lib/email-log'
@@ -9,8 +10,13 @@ export const maxDuration = 300
 
 export async function GET(request: Request) {
   // 1. CRON_SECRET guard (fail-closed: also 401 if env var not set) — T-41-01
+  // SEC-14: timing-safe comparison to prevent secret brute-force via timing side-channel
+  const cronSecret = process.env.CRON_SECRET
   const authHeader = request.headers.get('authorization')
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!cronSecret || !authHeader) return new Response('Unauthorized', { status: 401 })
+  const expected = Buffer.from(`Bearer ${cronSecret}`)
+  const got = Buffer.from(authHeader)
+  if (expected.length !== got.length || !timingSafeEqual(expected, got)) {
     return new Response('Unauthorized', { status: 401 })
   }
 

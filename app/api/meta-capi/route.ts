@@ -3,7 +3,9 @@ import { createHash } from 'crypto'
 import { z } from 'zod'
 import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
+// SEC-06: prefer server-only META_PIXEL_ID; fall back to NEXT_PUBLIC_ for compat.
+// To stop the pixel ID from being bundled in client JS, add META_PIXEL_ID to server env.
+const PIXEL_ID = process.env.META_PIXEL_ID ?? process.env.NEXT_PUBLIC_META_PIXEL_ID
 const CAPI_TOKEN = process.env.META_CAPI_TOKEN
 
 function sha256(value: string): string {
