@@ -249,7 +249,7 @@ export default function FleetPage() {
               className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 pb-16 ${i < vehicles.length - 1 ? 'border-b border-anthracite-light' : ''}`}
             >
               {/* Photo */}
-              <div className="relative h-64 md:h-80 overflow-hidden border border-anthracite-light" style={{ background: '#F5F2EE' }}>
+              <div className="relative h-64 md:h-80 overflow-hidden border border-anthracite-light">
                 <Image
                   src={v.photo}
                   alt={v.photoAlt}
