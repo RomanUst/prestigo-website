@@ -477,6 +477,47 @@ export default function Step3Vehicle() {
          (~68px + safe area) so cards aren't hidden behind it at scroll end. */}
       <div className="flex md:hidden flex-col" style={{ gap: 12, paddingBottom: 100 }}>
         {cards}
+
+        {/* What's included — mobile */}
+        <div
+          style={{
+            marginTop: 28,
+            paddingTop: 28,
+            borderTop: '1px solid var(--anthracite-light)',
+          }}
+        >
+          <p
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 11,
+              fontWeight: 400,
+              letterSpacing: '0.28em',
+              textTransform: 'uppercase',
+              color: 'var(--warmgrey)',
+              marginBottom: 20,
+            }}
+          >
+            What&rsquo;s included in every ride
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }}>
+            {INCLUDED_ITEMS.map((item) => (
+              <div key={item.label} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <Check size={13} style={{ color: 'var(--copper)', flexShrink: 0, marginTop: 2 }} aria-hidden="true" />
+                <div>
+                  <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, fontWeight: 400, color: 'var(--offwhite)', marginBottom: 2 }}>
+                    {item.label}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 300, color: 'var(--warmgrey)' }}>
+                    {item.sub}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Interior/luggage slideshow */}
+        <VehicleSlideshow activeClass={vehicleClass} />
       </div>
 
       {/* Return date/time — appears after clicking "Round Trip" on any card.
