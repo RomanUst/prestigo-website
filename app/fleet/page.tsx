@@ -249,13 +249,13 @@ export default function FleetPage() {
               className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 pb-16 ${i < vehicles.length - 1 ? 'border-b border-anthracite-light' : ''}`}
             >
               {/* Photo */}
-              <div className="relative h-64 md:h-80 overflow-hidden border border-anthracite-light">
+              <div className="relative h-64 md:h-80 overflow-hidden border border-anthracite-light" style={{ background: '#F5F2EE' }}>
                 <Image
                   src={v.photo}
                   alt={v.photoAlt}
                   width={600}
                   height={340}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                  className="w-full h-full object-contain"
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority={i === 0}
                 />

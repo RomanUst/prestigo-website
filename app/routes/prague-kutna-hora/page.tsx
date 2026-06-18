@@ -255,7 +255,7 @@ export default async function PragueKutnaHoraPage() {
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
                 <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}>
-                  <Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-cover object-top" style={{ filter: 'brightness(0.92)' }} />
+                  <Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#F5F2EE' }} style={{ filter: 'brightness(0.92)' }} />
                                   </div>
                 <div className="p-8 flex flex-col gap-6 flex-1">
                   <div>
