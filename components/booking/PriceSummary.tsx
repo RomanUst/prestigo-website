@@ -1,15 +1,23 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useBookingStore } from '@/lib/booking-store'
 import { EXTRAS_CONFIG, computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk, formatCZK } from '@/lib/currency'
+import { trackMetaEvent } from '@/components/MetaPixel'
 import type { Extras } from '@/types/booking'
+
+declare global { interface Window { gtag?: (...args: unknown[]) => void } }
 
 function truncate(text: string, max: number): string {
   return text.length > max ? text.slice(0, max) + '...' : text
 }
 
 export default function PriceSummary({ mobileOnly = false, desktopOnly = false }: { mobileOnly?: boolean; desktopOnly?: boolean }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => { setMounted(true) }, [])
+
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -239,15 +247,29 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         )}
       </div>
 
-      {currentStep === 3 && (
+      {currentStep === 2 && (
         <button
           type="button"
           className="btn-primary"
-          onClick={nextStep}
+          onClick={() => {
+            if (!vehicleClass) return
+            const s = useBookingStore.getState()
+            const breakdown = s.priceBreakdown?.[vehicleClass]
+            const extras = computeExtrasTotal(s.extras)
+            const base = breakdown ? breakdown.base + extras : 0
+            const total = s.promoDiscount > 0 ? Math.round(base * (1 - s.promoDiscount / 100)) : base
+            const currency = breakdown?.currency ?? 'EUR'
+            window.gtag?.('event', 'begin_checkout', {
+              currency, value: total,
+              items: [{ item_id: vehicleClass, item_name: vehicleLabels[vehicleClass] ?? vehicleClass, price: total, quantity: 1 }],
+            })
+            trackMetaEvent('InitiateCheckout', { value: total, currency, num_items: 1 })
+            nextStep()
+          }}
           disabled={!vehicleClass}
-          style={!vehicleClass ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
+          style={!vehicleClass ? { opacity: 0.4, cursor: 'not-allowed', letterSpacing: '0.1em' } : { letterSpacing: '0.1em' }}
         >
-          Continue
+          {vehicleClass ? `SELECT ${vehicleLabels[vehicleClass]?.toUpperCase() ?? vehicleClass.toUpperCase()}` : 'SELECT A CLASS'}
         </button>
       )}
     </div>
@@ -256,7 +278,7 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
   return (
     <>
       {!mobileOnly && desktopPanel}
-      {!desktopOnly && mobileBar}
+      {!desktopOnly && mounted && createPortal(mobileBar, document.body)}
     </>
   )
 }
