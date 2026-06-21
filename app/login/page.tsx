@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useRef, useState } from 'react'
+import { Suspense, useActionState, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import OAuthButtons from '@/components/auth/OAuthButtons'
 import Nav from '@/components/Nav'
@@ -10,8 +10,6 @@ import {
   signUpWithPassword,
   sendPasswordReset,
 } from './actions'
-
-export const dynamic = 'force-dynamic'
 
 // ---------------------------------------------------------------------------
 // Types
@@ -59,7 +57,7 @@ const errorStyle: React.CSSProperties = {
 // Login Page
 // ---------------------------------------------------------------------------
 
-export default function LoginPage() {
+function LoginPageInner() {
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('return-to')
 
@@ -695,5 +693,13 @@ export default function LoginPage() {
         </p>
       </div>
     </main>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginPageInner />
+    </Suspense>
   )
 }
