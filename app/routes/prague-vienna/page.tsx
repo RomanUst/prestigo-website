@@ -14,9 +14,9 @@ import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-vienna')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
-  const desc = `Private chauffeured transfer from Prague to Vienna: 330 km door-to-door in a Mercedes E-Class, S-Class or V-Class. Fixed price from €${ePrice}, stops available.`
+  const desc = `Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €${ePrice}, stops en route, flexible timing.`
   return {
-    title: `Prague to Vienna Chauffeur Transfer — From €${ePrice}`,
+    title: `Prague to Vienna Chauffeur — From €${ePrice}`,
     description: desc,
     alternates: {
       canonical: '/routes/prague-vienna',

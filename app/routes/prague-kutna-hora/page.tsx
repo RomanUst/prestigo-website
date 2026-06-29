@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-kutna-hora')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: `Prague to Kutná Hora Private Transfer — From €${ePrice}`,
+    title: `Prague to Kutná Hora Chauffeur — From €${ePrice}`,
     description: `Book a private chauffeur from Prague to Kutná Hora. 70 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, UNESCO old town, Sedlec Ossuary.`,
     alternates: {
       canonical: '/routes/prague-kutna-hora',

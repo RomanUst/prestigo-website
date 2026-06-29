@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-berlin')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: `Prague to Berlin Chauffeur Transfer — From €${ePrice}`,
+    title: `Prague to Berlin Chauffeur — From €${ePrice}`,
     description: `Private chauffeured transfer from Prague to Berlin in Mercedes E/S/V-Class. Fixed price from €${ePrice}. 4 hours door-to-door via D8, A17 and A13.`,
     alternates: {
       canonical: '/routes/prague-berlin',
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-berlin',
-      title: `Prague to Berlin Chauffeur Transfer — From €${ePrice} | PRESTIGO`,
+      title: `Prague to Berlin Private Chauffeur Transfer — From €${ePrice}`,
       description: `Private chauffeured Mercedes from Prague to Berlin. Fixed price from €${ePrice}. 4 hours door-to-door via D8, A17 and A13.`,
       images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
     },

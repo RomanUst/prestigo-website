@@ -80,6 +80,16 @@ const groupTypes = [
   { title: 'Event Shuttle Services', body: 'Continuous shuttle loops between hotels and event venues for the duration of your event.' },
 ]
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: features.map((item) => ({
+    '@type': 'Question',
+    name: item.title,
+    acceptedAnswer: { '@type': 'Answer', text: item.body },
+  })),
+}
+
 export default function GroupTransfersPage() {
   const ratingDoc = aggregateRatingDoc()
   return (
@@ -87,6 +97,7 @@ export default function GroupTransfersPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
       {/* Hero */}

@@ -76,6 +76,16 @@ const useCases = [
   { title: 'Airport Connection', body: 'If your hourly hire ends at the airport, we transition seamlessly to our airport transfer service.' },
 ]
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: features.map((item) => ({
+    '@type': 'Question',
+    name: item.title,
+    acceptedAnswer: { '@type': 'Answer', text: item.body },
+  })),
+}
+
 export default async function CityRidesPage() {
   const { hourlyRate } = await getPricingConfig()
   const businessHourly = hourlyRate['business'] ?? 49
@@ -100,6 +110,7 @@ export default async function CityRidesPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
       {/* Hero */}

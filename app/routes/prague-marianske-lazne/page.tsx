@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-marianske-lazne')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: `Prague to Mariánské Lázně Private Transfer — From €${ePrice}`,
+    title: `Prague to Mariánské Lázně Chauffeur — From €${ePrice}`,
     description: `Book a private chauffeur from Prague to Mariánské Lázně. 165 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, West Bohemia spa town.`,
     alternates: {
       canonical: '/routes/prague-marianske-lazne',

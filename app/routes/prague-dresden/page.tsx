@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-dresden')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: 'Prague to Dresden Private Transfer | Door-to-Door in 2 Hours | Prestigo',
+    title: `Prague to Dresden Chauffeur — From €${ePrice}`,
     description: `Private chauffeured transfer from Prague to Dresden in Mercedes E/S/V-Class. Fixed price from €${ePrice}. 2 hours door-to-door via D8. Same-day return.`,
     alternates: {
       canonical: '/routes/prague-dresden',
@@ -27,7 +27,7 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-dresden',
-      title: 'Prague to Dresden Private Transfer — Prestigo',
+      title: `Prague to Dresden Private Chauffeur Transfer — From €${ePrice}`,
       description: `Private chauffeured Mercedes from Prague to Dresden. Fixed price from €${ePrice}. 2 hours door-to-door via D8.`,
       images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
     },

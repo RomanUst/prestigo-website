@@ -80,6 +80,16 @@ const occasions = [
   { title: 'Security Transfers', body: 'Discreet, route-verified transfers for guests who require additional operational security.' },
 ]
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: features.map((item) => ({
+    '@type': 'Question',
+    name: item.title,
+    acceptedAnswer: { '@type': 'Answer', text: item.body },
+  })),
+}
+
 export default function VipEventsPage() {
   const ratingDoc = aggregateRatingDoc()
   return (
@@ -87,6 +97,7 @@ export default function VipEventsPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
       {/* Hero */}

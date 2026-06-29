@@ -15,8 +15,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-warsaw')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: `Prague to Warsaw Private Transfer — From €${ePrice}`,
-    description: `Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Polish capital.`,
+    title: `Prague to Warsaw Chauffeur — From €${ePrice}`,
+    description: `Book a private chauffeur from Prague to Warsaw. 660 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Polish capital. Tolls and vignette included.`,
     alternates: {
       canonical: '/routes/prague-warsaw',
       languages: {

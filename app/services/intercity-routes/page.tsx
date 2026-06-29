@@ -74,6 +74,16 @@ const editorial = [
   'PRESTIGO operates 30 confirmed routes from Prague, each with a published fixed price. The fleet is exclusively Mercedes: E-Class for solo and paired travel, S-Class for those who want the additional space and specification of a full executive saloon, and V-Class for groups of up to seven passengers with full luggage. Every route can be extended into a return trip, with a return discount applied automatically at booking.',
 ]
 
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: features.map((item) => ({
+    '@type': 'Question',
+    name: item.title,
+    acceptedAnswer: { '@type': 'Answer', text: item.body },
+  })),
+}
+
 export default async function IntercityRoutesPage() {
   const allRoutes = await getAllRoutes('display_order')
   const popularRoutes = allRoutes.slice(0, 6)
@@ -84,6 +94,7 @@ export default async function IntercityRoutesPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
       {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
       {/* Hero */}

@@ -16,7 +16,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-karlovy-vary')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   return {
-    title: `Prague to Karlovy Vary Private Transfer — From €${ePrice}`,
+    title: `Prague to Karlovy Vary Chauffeur — From €${ePrice}`,
     description: `Book a private chauffeur from Prague to Karlovy Vary. 130 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, spa town luxury transfer.`,
     alternates: {
       canonical: '/routes/prague-karlovy-vary',
