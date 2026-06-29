@@ -107,41 +107,6 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
         Continue with Google
       </button>
 
-      <button
-        type="button"
-        aria-label="Sign in with Apple"
-        style={buttonStyle}
-        onClick={() => handleOAuth('apple')}
-        onMouseEnter={e => {
-          const el = e.currentTarget
-          el.style.borderColor = 'var(--copper)'
-          el.style.color = 'var(--offwhite)'
-        }}
-        onMouseLeave={e => {
-          const el = e.currentTarget
-          el.style.borderColor = 'var(--anthracite-light)'
-          el.style.color = 'var(--warmgrey)'
-        }}
-        onMouseDown={e => {
-          e.currentTarget.style.transform = 'scale(0.97)'
-        }}
-        onMouseUp={e => {
-          e.currentTarget.style.transform = 'scale(1)'
-        }}
-      >
-        {/* Apple logo (18px inline SVG) */}
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 814 1000"
-          fill="currentColor"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105.2-57.9-157.6-127.3c-49.8-65.7-89.5-170.5-89.5-270 0-183.7 119.3-281.1 236.7-281.1 62.9 0 115.3 41.4 154.9 41.4 38 0 97.9-43.9 167.8-43.9zm-107-190.5c31.1-36.9 53.1-88.1 53.1-139.3 0-7.1-.6-14.3-1.9-20.1-50.6 1.9-110.8 33.7-147.1 75.8-28.5 32.4-55.1 83.6-55.1 135.5 0 7.8 1.3 15.6 1.9 18.1 3.2.6 8.4 1.3 13.6 1.3 45.4 0 102.5-30.4 135.5-71.3z" />
-        </svg>
-        Continue with Apple
-      </button>
     </div>
   )
 }

@@ -16,7 +16,7 @@ export default function BookingSection() {
 
             <h2 className="display text-[36px] md:text-[44px] mb-4">
               Book your<br />
-              <span className="display-italic">transfer now.</span>
+              <span className="display-italic">chauffeur now.</span>
             </h2>
 
             <p className="body-text mb-8 max-w-xs">

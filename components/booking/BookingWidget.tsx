@@ -10,13 +10,27 @@ import DurationSelector from '@/components/booking/DurationSelector'
 import { useBookingStore } from '@/lib/booking-store'
 import type { PlaceResult, TripType } from '@/types/booking'
 
-// Hour / minute lists for the custom time picker (5-minute increments)
-const WIDGET_HOURS: string[] = Array.from({ length: 24 }, (_, i) =>
-  i.toString().padStart(2, '0')
-)
-const WIDGET_MINUTES: string[] = Array.from({ length: 12 }, (_, i) =>
-  (i * 5).toString().padStart(2, '0')
-)
+// 96 AM/PM time slots at 15-minute granularity — same as EntryBar
+const TIME_SLOTS_AMPM: Array<{ display: string; value24h: string }> =
+  Array.from({ length: 96 }, (_, i) => {
+    const totalMinutes = i * 15
+    const h24 = Math.floor(totalMinutes / 60)
+    const m = totalMinutes % 60
+    const isPM = h24 >= 12
+    const h12 = h24 === 0 ? 12 : h24 > 12 ? h24 - 12 : h24
+    const display = `${h12}:${m.toString().padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`
+    const value24h = `${h24.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`
+    return { display, value24h }
+  })
+
+const MIN_LEAD_HOURS = 12
+
+function isSlotDisabled(slot24h: string, pickupDateStr: string): boolean {
+  if (!pickupDateStr) return false
+  const slotDT = new Date(`${pickupDateStr}T${slot24h}:00`)
+  const minDT = new Date(Date.now() + MIN_LEAD_HOURS * 60 * 60 * 1000)
+  return slotDT < minDT
+}
 
 // Format an ISO date (YYYY-MM-DD) as "April 14, 2026" for display in the trigger
 function formatDateDisplay(iso: string): string {
@@ -111,27 +125,24 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
   const [time, setTime] = useState<string>('')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [todayStr, setTodayStr] = useState<string>('')
-  const [openPicker, setOpenPicker] = useState<'date' | 'time' | null>(null)
+  const [datePickerOpen, setDatePickerOpen] = useState(false)
   const dateFieldRef = useRef<HTMLDivElement>(null)
-  const timeFieldRef = useRef<HTMLDivElement>(null)
 
   // Prevent hydration mismatch — set today's date on client only
   useEffect(() => {
     setTodayStr(new Date().toISOString().split('T')[0])
   }, [])
 
-  // Close popover on outside click + ESC key
+  // Close date popover on outside click + ESC key
   useEffect(() => {
-    if (!openPicker) return
+    if (!datePickerOpen) return
     function handlePointerDown(e: MouseEvent) {
-      const target = e.target as Node
-      const ref = openPicker === 'date' ? dateFieldRef : timeFieldRef
-      if (ref.current && !ref.current.contains(target)) {
-        setOpenPicker(null)
+      if (dateFieldRef.current && !dateFieldRef.current.contains(e.target as Node)) {
+        setDatePickerOpen(false)
       }
     }
     function handleKey(e: KeyboardEvent) {
-      if (e.key === 'Escape') setOpenPicker(null)
+      if (e.key === 'Escape') setDatePickerOpen(false)
     }
     document.addEventListener('mousedown', handlePointerDown)
     document.addEventListener('keydown', handleKey)
@@ -139,43 +150,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
       document.removeEventListener('mousedown', handlePointerDown)
       document.removeEventListener('keydown', handleKey)
     }
-  }, [openPicker])
-
-  const [selectedHour, selectedMinute] = time ? time.split(':') : [null, null]
-
-  function snapMinute(raw: string | null): string {
-    if (!raw) return '00'
-    const n = parseInt(raw, 10)
-    if (Number.isNaN(n)) return '00'
-    return (Math.floor(n / 5) * 5).toString().padStart(2, '0')
-  }
-
-  function handleHourSelect(hour: string) {
-    // Functional update to avoid stale closures when user taps hour + minute
-    // in quick succession before React re-renders.
-    setTime((prev) => {
-      const prevMinute = prev ? prev.split(':')[1] : null
-      return `${hour}:${snapMinute(prevMinute)}`
-    })
-    setErrors((prev) => {
-      const n = { ...prev }
-      delete n.time
-      return n
-    })
-  }
-
-  function handleMinuteSelect(minute: string) {
-    setTime((prev) => {
-      const prevHour = prev ? prev.split(':')[0] : '00'
-      return `${prevHour}:${minute}`
-    })
-    setErrors((prev) => {
-      const n = { ...prev }
-      delete n.time
-      return n
-    })
-    setOpenPicker(null)
-  }
+  }, [datePickerOpen])
 
   function handleDateSelect(d: Date | undefined) {
     if (!d) {
@@ -187,16 +162,11 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
       `${String(d.getMonth() + 1).padStart(2, '0')}-` +
       `${String(d.getDate()).padStart(2, '0')}`
     setDate(iso)
-    setErrors((prev) => {
-      const n = { ...prev }
-      delete n.date
-      return n
-    })
-    setOpenPicker(null)
+    setErrors((prev) => { const n = { ...prev }; delete n.date; return n })
+    setDatePickerOpen(false)
   }
 
   const handleBookNow = () => {
-    // Validate required fields
     const newErrors: Record<string, string> = {}
     if (!origin) newErrors.origin = 'required'
     if (tripType !== 'hourly' && !destination) newErrors.destination = 'required'
@@ -209,7 +179,6 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
     }
     setErrors({})
 
-    // Write to Zustand store
     const store = useBookingStore.getState()
     store.setTripType(tripType)
     store.setOrigin(origin)
@@ -219,13 +188,12 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
     store.setPickupDate(date)
     store.setPickupTime(time)
 
-    // Deep-link to Step 3
+    // Deep-link to Step 2 (vehicle selection)
     useBookingStore.setState({
-      currentStep: 3,
-      completedSteps: new Set([1, 2]),
+      currentStep: 2,
+      completedSteps: new Set([1]),
     })
 
-    // Mark this as a widget deeplink so BookingWizard doesn't reset to step 1
     sessionStorage.setItem('booking_deeplink', '1')
     router.push('/book')
   }
@@ -265,11 +233,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
           value={origin}
           onSelect={(place) => {
             setOrigin(place)
-            setErrors((prev) => {
-              const next = { ...prev }
-              delete next.origin
-              return next
-            })
+            setErrors((prev) => { const next = { ...prev }; delete next.origin; return next })
           }}
           onClear={() => setOrigin(null)}
           hasError={!!errors.origin}
@@ -287,11 +251,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             value={destination}
             onSelect={(place) => {
               setDestination(place)
-              setErrors((prev) => {
-                const next = { ...prev }
-                delete next.destination
-                return next
-              })
+              setErrors((prev) => { const next = { ...prev }; delete next.destination; return next })
             }}
             onClear={() => setDestination(null)}
             hasError={!!errors.destination}
@@ -300,12 +260,9 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
           />
         )}
 
-        {/* Date / Time row — custom triggers + popovers */}
-        <div
-          className="flex flex-col md:flex-row"
-          style={{ gap: '24px' }}
-        >
-          {/* Date field */}
+        {/* Date / Time row */}
+        <div className="flex flex-col md:flex-row" style={{ gap: '24px' }}>
+          {/* Date field — custom trigger + DayPicker popover */}
           <div ref={dateFieldRef} style={{ flex: 1, minWidth: 0, position: 'relative' }}>
             <label
               htmlFor={dateId}
@@ -318,9 +275,9 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
               id={dateId}
               type="button"
               aria-haspopup="dialog"
-              aria-expanded={openPicker === 'date'}
+              aria-expanded={datePickerOpen}
               aria-label="Pickup date"
-              onClick={() => setOpenPicker(openPicker === 'date' ? null : 'date')}
+              onClick={() => setDatePickerOpen((v) => !v)}
               style={{
                 ...inputStyle,
                 minHeight: '48px',
@@ -332,7 +289,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             >
               {date ? formatDateDisplay(date) : 'Select date'}
             </button>
-            {openPicker === 'date' && (
+            {datePickerOpen && (
               <div
                 role="dialog"
                 aria-label="Select pickup date"
@@ -359,8 +316,8 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             )}
           </div>
 
-          {/* Time field */}
-          <div ref={timeFieldRef} style={{ flex: 1, minWidth: 0, position: 'relative' }}>
+          {/* Time field — AM/PM select, same as EntryBar */}
+          <div style={{ flex: 1, minWidth: 0 }}>
             <label
               htmlFor={timeId}
               className="label"
@@ -368,142 +325,37 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             >
               TIME <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
             </label>
-            <button
+            <select
               id={timeId}
-              type="button"
-              aria-haspopup="dialog"
-              aria-expanded={openPicker === 'time'}
               aria-label="Pickup time"
-              onClick={() => setOpenPicker(openPicker === 'time' ? null : 'time')}
+              value={time}
+              onChange={(e) => {
+                const val = e.target.value
+                setTime(val || '')
+                if (val) setErrors((prev) => { const n = { ...prev }; delete n.time; return n })
+              }}
               style={{
                 ...inputStyle,
                 minHeight: '48px',
-                textAlign: 'left',
                 cursor: 'pointer',
                 color: time ? 'var(--offwhite)' : 'var(--warmgrey)',
                 border: errors.time ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
               }}
             >
-              {time || 'Select time'}
-            </button>
-            {openPicker === 'time' && (
-              <div
-                role="dialog"
-                aria-label="Select pickup time"
-                style={{
-                  position: 'absolute',
-                  top: 'calc(100% + 6px)',
-                  left: 0,
-                  right: 0,
-                  zIndex: 50,
-                  background: 'var(--anthracite)',
-                  border: '1px solid var(--anthracite-light)',
-                  padding: '16px',
-                  boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-                  display: 'flex',
-                  gap: '12px',
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <span
-                    className="label"
-                    style={{ display: 'block', marginBottom: 8, fontSize: 11, color: 'var(--warmgrey)' }}
-                  >
-                    HOUR
-                  </span>
-                  <ul
-                    role="listbox"
-                    aria-label="Pickup hour"
-                    style={{
-                      maxHeight: 200,
-                      overflowY: 'auto',
-                      margin: 0,
-                      padding: 0,
-                      border: '1px solid var(--anthracite-light)',
-                      listStyle: 'none',
-                    }}
-                  >
-                    {WIDGET_HOURS.map((h) => {
-                      const isSel = selectedHour === h
-                      return (
-                        <li
-                          key={h}
-                          role="option"
-                          aria-selected={isSel}
-                          onClick={() => handleHourSelect(h)}
-                          style={{
-                            minHeight: 36,
-                            padding: '0 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontFamily: 'var(--font-montserrat)',
-                            fontSize: 13,
-                            color: isSel ? 'var(--offwhite)' : 'var(--warmgrey)',
-                            background: isSel ? 'var(--anthracite-mid)' : 'transparent',
-                            borderLeft: isSel ? '3px solid var(--copper)' : '3px solid transparent',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {h}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-                <div style={{ flex: 1 }}>
-                  <span
-                    className="label"
-                    style={{ display: 'block', marginBottom: 8, fontSize: 11, color: 'var(--warmgrey)' }}
-                  >
-                    MIN
-                  </span>
-                  <ul
-                    role="listbox"
-                    aria-label="Pickup minute"
-                    style={{
-                      maxHeight: 200,
-                      overflowY: 'auto',
-                      margin: 0,
-                      padding: 0,
-                      border: '1px solid var(--anthracite-light)',
-                      listStyle: 'none',
-                    }}
-                  >
-                    {WIDGET_MINUTES.map((m) => {
-                      const isSel = selectedMinute === m
-                      return (
-                        <li
-                          key={m}
-                          role="option"
-                          aria-selected={isSel}
-                          onClick={() => handleMinuteSelect(m)}
-                          style={{
-                            minHeight: 36,
-                            padding: '0 12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontFamily: 'var(--font-montserrat)',
-                            fontSize: 13,
-                            color: isSel ? 'var(--offwhite)' : 'var(--warmgrey)',
-                            background: isSel ? 'var(--anthracite-mid)' : 'transparent',
-                            borderLeft: isSel ? '3px solid var(--copper)' : '3px solid transparent',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {m}
-                        </li>
-                      )
-                    })}
-                  </ul>
-                </div>
-              </div>
-            )}
+              <option value="">Choose a slot</option>
+              {TIME_SLOTS_AMPM.map((slot) => {
+                const disabled = isSlotDisabled(slot.value24h, date)
+                return (
+                  <option key={slot.value24h} value={slot.value24h} disabled={disabled}>
+                    {slot.display}
+                  </option>
+                )
+              })}
+            </select>
           </div>
         </div>
 
-        {/* Validation error — live region so screen readers announce */}
+        {/* Validation error */}
         <p
           role="alert"
           aria-live="polite"
@@ -534,7 +386,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             borderRadius: '10px',
           }}
         >
-          BOOK NOW
+          VIEW VEHICLES
         </button>
       </div>
     </div>
