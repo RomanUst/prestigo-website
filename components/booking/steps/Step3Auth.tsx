@@ -162,7 +162,10 @@ export default function Step3Auth() {
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { shouldCreateUser: true },
+      options: {
+        shouldCreateUser: true,
+        emailRedirectTo: `${window.location.origin}/auth/callback?return-to=/book`,
+      },
     })
 
     setSending(false)
