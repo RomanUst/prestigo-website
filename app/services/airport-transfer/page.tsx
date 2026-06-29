@@ -18,8 +18,8 @@ export async function generateMetadata(): Promise<Metadata> {
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur
   return {
-    title: 'Airport Transfer Prague — PRG Václav Havel',
-    description: `Prague airport transfer with flight tracking, meet & greet, and fixed price from €${businessPrice}. All terminals covered. Available 24/7. Book your PRG transfer online in seconds.`,
+    title: 'Prague Airport Transfer & Meet & Greet — PRG',
+    description: `Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €${businessPrice}, 24/7.`,
     alternates: {
       canonical: '/services/airport-transfer',
       languages: {
@@ -29,8 +29,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/services/airport-transfer',
-      title: 'Airport Transfer Prague — PRG Václav Havel | PRESTIGO',
-      description: `Prague airport transfer with flight tracking, meet & greet, and fixed price from €${businessPrice}. All terminals covered. Available 24/7.`,
+      title: 'Prague Airport Meet & Greet & Transfer — PRG | PRESTIGO',
+      description: `Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €${businessPrice}, 24/7.`,
       images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
     },
   }
@@ -67,6 +67,18 @@ const faqs = [
   {
     q: 'How do I find my driver at the airport?',
     a: 'Your driver will be waiting in the Arrivals hall with a name board. You will receive their name and phone number before the journey.',
+  },
+  {
+    q: 'What is the airport meet and greet service at Prague Airport?',
+    a: 'Meet and greet means your chauffeur waits inside the Arrivals hall at Prague Václav Havel (PRG) holding a name board with your name — not at a kerbside or a ride-hail zone. From the moment you clear customs, your driver takes your luggage and walks you straight to the car. It is included on every Prestigo airport transfer at no extra charge.',
+  },
+  {
+    q: 'Do you offer VIP or premium meet and greet at Prague Airport?',
+    a: 'Yes. For VIP, diplomatic, and executive arrivals we provide a Mercedes S-Class with a senior chauffeur, priority handling, and discretion throughout. Fast-track through passport control and porter assistance can be arranged in advance — useful for tight schedules, large parties, or first-time arrivals into Prague.',
+  },
+  {
+    q: 'Can you arrange fast-track through Prague Airport?',
+    a: 'Fast-track immigration and security can be added to any meet and greet booking on request. Combined with the name-board welcome at Arrivals, it turns a long-haul landing into a seamless handover — particularly valued by our arrivals from the United States, the United Kingdom, and the Gulf.',
   },
   {
     q: 'Can I book for early morning or late night arrivals?',
@@ -136,7 +148,7 @@ export default async function AirportTransferPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-airport-transfer.webp" alt="Prague Airport Transfer — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-airport-transfer.webp" alt="Prague Airport meet & greet chauffeur transfer — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Airport Transfer · Prague</p>
@@ -173,6 +185,43 @@ export default async function AirportTransferPage() {
                 <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{f.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Meet & Greet */}
+      <section className="bg-anthracite-mid py-16 md:py-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">Meet &amp; greet</p>
+          <span className="copper-line mb-10 block" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-14">
+            <div>
+              <h2 className="font-display font-light text-[26px] md:text-[30px] text-offwhite mb-5">
+                Prague Airport meet &amp; greet, included as standard
+              </h2>
+              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                Every Prestigo airport transfer is a full meet and greet. Your chauffeur is inside the Arrivals hall at Prague Václav Havel (PRG) holding a name board before you reach the exit — not waiting in a car park or a ride-hail queue. From the moment you clear customs, your driver takes your luggage and walks you to the car.
+              </p>
+              <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>
+                For VIP, diplomatic, and executive arrivals, a Mercedes S-Class with a senior chauffeur, fast-track through passport control, and porter assistance can be arranged in advance. It is the welcome we give arrivals from the United States, the United Kingdom, and the Gulf who land tired and want nothing left to manage.
+              </p>
+            </div>
+            <div className="flex flex-col gap-0">
+              {[
+                'Name-board welcome inside Arrivals (Terminal 1 and Terminal 2)',
+                'Up to 60 minutes free waiting after landing',
+                'Live flight tracking — delays handled automatically',
+                'Luggage carried from hall to car',
+                'Fast-track immigration on request',
+                'VIP S-Class and multi-vehicle groups on request',
+              ].map((line) => (
+                <div key={line} className="border-b border-anthracite-light py-3">
+                  <span className="font-body font-light text-[12px] text-offwhite tracking-wide" style={{ lineHeight: '1.7' }}>{line}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
