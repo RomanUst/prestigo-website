@@ -291,7 +291,6 @@ export default function FleetPage() {
                 </dl>
 
                 <div className="flex items-center gap-6">
-                  <a href="/services/airport-transfer" className="tier-cta" style={{ display: 'inline-block', marginTop: '0.5rem' }}>See pricing →</a>
                   <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
                     Book {v.model.split(' ').pop()}
                   </a>
