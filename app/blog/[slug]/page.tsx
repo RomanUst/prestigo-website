@@ -40,7 +40,7 @@ export async function generateMetadata({
   const canonical = `/blog/${slug}`
   const absolute = `https://rideprestigo.com${canonical}`
   return {
-    title: `${post.title} — Prestigo`,
+    title: { absolute: `${post.title} — Prestigo` },
     description: post.description,
     alternates: {
       canonical,
