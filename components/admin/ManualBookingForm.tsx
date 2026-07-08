@@ -52,13 +52,26 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 
+interface ManualBookingFormPrefill {
+  firstName?: string
+  lastName?: string
+  email?: string
+  phone?: string
+}
+
 interface ManualBookingFormProps {
   open: boolean
   onClose: () => void
   onCreated: () => void
+  /** When set, the created booking is linked to this account's auth user. */
+  accountUserId?: string | null
+  /** Optional label shown in the header (e.g. company name) for context. */
+  accountLabel?: string | null
+  /** Pre-fills the passenger fields (e.g. from the account's profile). */
+  prefill?: ManualBookingFormPrefill
 }
 
-export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFormProps) {
+export function ManualBookingForm({ open, onClose, onCreated, accountUserId, accountLabel, prefill }: ManualBookingFormProps) {
   const [tripType, setTripType] = useState('transfer')
   const [pickupDate, setPickupDate] = useState('')
   const [pickupTime, setPickupTime] = useState('')
@@ -74,10 +87,10 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
   const [flightNumber, setFlightNumber] = useState('')
   const [terminal, setTerminal] = useState('')
   const [specialRequests, setSpecialRequests] = useState('')
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
-  const [email, setEmail] = useState('')
-  const [phone, setPhone] = useState('')
+  const [firstName, setFirstName] = useState(prefill?.firstName ?? '')
+  const [lastName, setLastName] = useState(prefill?.lastName ?? '')
+  const [email, setEmail] = useState(prefill?.email ?? '')
+  const [phone, setPhone] = useState(prefill?.phone ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [priceLoading, setPriceLoading] = useState(false)
@@ -202,6 +215,7 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
       client_phone: phone,
     }
 
+    if (accountUserId) payload.user_id = accountUserId
     if (destinationPlace?.address) payload.destination_address = destinationPlace.address
     if (originPlace?.lat) payload.origin_lat = originPlace.lat
     if (originPlace?.lng) payload.origin_lng = originPlace.lng
@@ -284,6 +298,18 @@ export function ManualBookingForm({ open, onClose, onCreated }: ManualBookingFor
           }}>
             New Booking
           </h2>
+          {accountLabel && (
+            <div style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              color: 'var(--copper)',
+              marginTop: '4px',
+            }}>
+              For account · {accountLabel}
+            </div>
+          )}
 
           {/* Close button */}
           <button
