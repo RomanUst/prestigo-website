@@ -44,7 +44,7 @@ export async function GET(
 
   const { data: bookings, error: bErr } = await supabase
     .from('bookings')
-    .select('id, booking_reference, booking_source, pickup_date, pickup_time, trip_type, vehicle_class, origin_address, destination_address, amount_czk, status, created_at')
+    .select('id, booking_reference, booking_source, pickup_date, pickup_time, trip_type, vehicle_class, origin_address, destination_address, amount_czk, status, paid_at, invoice_number, created_at')
     .eq('user_id', id)
     .order('pickup_date', { ascending: false })
     .order('pickup_time', { ascending: false })
