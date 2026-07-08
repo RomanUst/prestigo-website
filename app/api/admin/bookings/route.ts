@@ -315,6 +315,10 @@ const manualBookingSchema = z.object({
   // server-computed price (e.g. negotiated/discounted fare). Still requires
   // admin auth; the divergence is logged server-side for audit purposes.
   override_price:      z.boolean().optional(),
+  // Optional account link — when the booking is created from an account page,
+  // this attaches it to that customer's auth user (customer_profiles.user_id).
+  // The FK on bookings.user_id enforces it references a real auth.users row.
+  user_id:             z.string().uuid().optional(),
 })
 
 /** Max diff in CZK between client-sent and server-computed price before rejecting. */
@@ -468,6 +472,7 @@ export async function POST(request: Request) {
     payment_intent_id:   null,
     status:              'pending',
     amount_eur,
+    user_id:             d.user_id ?? null,
     operator_notes:      priceDiverges
       ? `Price manually overridden by admin: ${authoritativeAmountCzk} CZK (standard rate would be ${computedTotalCzk} CZK).`
       : null,
