@@ -36,9 +36,12 @@ const bookingPatchSchema = z.object({
     'on_location',
   ]).optional(),
   operator_notes: z.string().max(2000).optional(),
-}).refine(d => d.status !== undefined || d.operator_notes !== undefined, {
-  message: 'At least one of status or operator_notes must be provided',
-})
+  // Driver fee (manual entry). null clears it; used in the driver assignment email.
+  driver_price_czk: z.number().int().min(0).max(1_000_000).nullable().optional(),
+}).refine(
+  d => d.status !== undefined || d.operator_notes !== undefined || d.driver_price_czk !== undefined,
+  { message: 'At least one of status, operator_notes or driver_price_czk must be provided' },
+)
 
 export async function GET(request: Request) {
   const { error } = await getAdminUser()
@@ -129,9 +132,10 @@ export async function PATCH(request: Request) {
       )
     }
 
-    const updatePayload: Record<string, string> = {}
+    const updatePayload: Record<string, unknown> = {}
     if (parsed.data.status !== undefined) updatePayload.status = parsed.data.status
     if (parsed.data.operator_notes !== undefined) updatePayload.operator_notes = parsed.data.operator_notes
+    if (parsed.data.driver_price_czk !== undefined) updatePayload.driver_price_czk = parsed.data.driver_price_czk
 
     const { error: dbError } = await supabase
       .from('bookings')
@@ -261,8 +265,9 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true })
   }
 
-  const updatePayload: Record<string, string> = {}
+  const updatePayload: Record<string, unknown> = {}
   if (parsed.data.operator_notes !== undefined) updatePayload.operator_notes = parsed.data.operator_notes
+  if (parsed.data.driver_price_czk !== undefined) updatePayload.driver_price_czk = parsed.data.driver_price_czk
 
   const { error: dbError } = await supabase
     .from('bookings')

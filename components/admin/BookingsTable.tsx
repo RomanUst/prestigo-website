@@ -28,6 +28,7 @@ interface Booking {
   trip_type: string
   vehicle_class: string
   amount_czk: number
+  driver_price_czk: number | null
   origin_address: string
   destination_address: string
   origin_lat: number
@@ -124,6 +125,9 @@ export default function BookingsTable() {
   const [notesSaving, setNotesSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
   const notesDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({})
 
+  const [localDriverPrice, setLocalDriverPrice] = useState<Record<string, string>>({})
+  const [driverPriceSaving, setDriverPriceSaving] = useState<Record<string, 'idle' | 'saving' | 'saved' | 'error'>>({})
+
   const [isMobile, setIsMobile] = useState(false)
   const [expandedCards, setExpandedCards] = useState<Record<string, boolean>>({})
 
@@ -147,7 +151,7 @@ export default function BookingsTable() {
     }
   }, [pendingCancel])
 
-  const patchBooking = useCallback(async (body: { id: string; status?: string; operator_notes?: string }) => {
+  const patchBooking = useCallback(async (body: { id: string; status?: string; operator_notes?: string; driver_price_czk?: number | null }) => {
     const res = await fetch('/api/admin/bookings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -211,6 +215,33 @@ export default function BookingsTable() {
     }
   }, [localNotes, flushNotes])
 
+  const saveDriverPrice = useCallback(async (bookingId: string, rawValue: string) => {
+    const trimmed = rawValue.trim()
+    // Empty clears the fee (null); otherwise must be a non-negative integer.
+    let value: number | null
+    if (trimmed === '') {
+      value = null
+    } else {
+      const n = Number(trimmed)
+      if (!Number.isInteger(n) || n < 0) {
+        setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'error' }))
+        return
+      }
+      value = n
+    }
+    setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'saving' }))
+    try {
+      await patchBooking({ id: bookingId, driver_price_czk: value })
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, driver_price_czk: value } : b))
+      setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'saved' }))
+      setTimeout(() => {
+        setDriverPriceSaving(prev => prev[bookingId] === 'saved' ? { ...prev, [bookingId]: 'idle' } : prev)
+      }, 2000)
+    } catch {
+      setDriverPriceSaving(prev => ({ ...prev, [bookingId]: 'error' }))
+    }
+  }, [patchBooking])
+
   const handleCancel = useCallback(async (booking: Booking) => {
     const cancelBody: { id: string; leg?: 'outbound' | 'return' } = { id: booking.id }
     if (booking.leg !== null && booking.linked_booking_id !== null) {
@@ -267,6 +298,15 @@ export default function BookingsTable() {
         fetched.forEach((b: Booking) => {
           if (!(b.id in next)) {
             next[b.id] = b.operator_notes ?? ''
+          }
+        })
+        return next
+      })
+      setLocalDriverPrice(prev => {
+        const next = { ...prev }
+        fetched.forEach((b: Booking) => {
+          if (!(b.id in next)) {
+            next[b.id] = b.driver_price_czk != null ? String(b.driver_price_czk) : ''
           }
         })
         return next
@@ -1258,6 +1298,52 @@ export default function BookingsTable() {
                             }}
                             onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
                           />
+                        </div>
+
+                        {/* Driver Price (shown to driver in assignment email) */}
+                        <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
+                          <div style={{
+                            fontFamily: 'var(--font-montserrat)', fontSize: '11px', textTransform: 'uppercase',
+                            letterSpacing: '0.3em', color: 'var(--warmgrey)', marginBottom: '4px',
+                            display: 'flex', alignItems: 'center', gap: '8px',
+                          }}>
+                            Driver Price (CZK)
+                            {driverPriceSaving[row.original.id] === 'saving' && <span style={{ color: 'var(--copper)', fontSize: '10px', letterSpacing: '0.1em' }}>Saving...</span>}
+                            {driverPriceSaving[row.original.id] === 'saved' && <span style={{ color: '#4ade80', fontSize: '10px', letterSpacing: '0.1em' }}>Saved</span>}
+                            {driverPriceSaving[row.original.id] === 'error' && <span style={{ color: '#f87171', fontSize: '10px', letterSpacing: '0.1em' }}>Enter a whole number ≥ 0</span>}
+                          </div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <input
+                              type="number"
+                              min={0}
+                              step={1}
+                              value={localDriverPrice[row.original.id] ?? ''}
+                              onChange={(e) => setLocalDriverPrice(prev => ({ ...prev, [row.original.id]: e.target.value }))}
+                              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); saveDriverPrice(row.original.id, localDriverPrice[row.original.id] ?? '') } }}
+                              placeholder="e.g. 1000 — leave empty to hide"
+                              style={{
+                                width: '220px', height: '32px', background: 'var(--anthracite-mid)',
+                                border: '1px solid var(--anthracite-light)', borderRadius: '2px', padding: '0 12px',
+                                fontFamily: 'var(--font-montserrat)', fontSize: '13px', color: 'var(--offwhite)',
+                                outline: 'none', boxSizing: 'border-box',
+                              }}
+                              onFocus={(e) => { e.target.style.borderColor = 'var(--copper)' }}
+                              onBlur={(e) => { e.target.style.borderColor = 'var(--anthracite-light)'; saveDriverPrice(row.original.id, localDriverPrice[row.original.id] ?? '') }}
+                            />
+                            <button
+                              onClick={() => saveDriverPrice(row.original.id, localDriverPrice[row.original.id] ?? '')}
+                              style={{
+                                height: '32px', padding: '0 16px', background: 'transparent',
+                                border: '1px solid var(--copper)', color: 'var(--copper)', borderRadius: '2px',
+                                fontFamily: 'var(--font-montserrat)', fontSize: '11px', letterSpacing: '0.15em',
+                                textTransform: 'uppercase', cursor: 'pointer',
+                              }}
+                            >Save</button>
+                          </div>
+                          <span style={{
+                            fontFamily: 'var(--font-montserrat)', fontSize: '11px', fontWeight: 300,
+                            color: 'var(--warmgrey)', marginTop: '4px', display: 'block',
+                          }}>Shown to the driver in the assignment email. Empty = no price shown.</span>
                         </div>
 
                         {/* Driver Assignment */}

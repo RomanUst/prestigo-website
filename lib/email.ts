@@ -1138,7 +1138,7 @@ export interface DriverAssignmentEmailData {
   passengerFirstName: string
   passengerLastName: string
   passengerPhone: string
-  amountCzk: number
+  driverPriceCzk: number | null
   specialRequests?: string | null
   acceptUrl: string
   declineUrl: string
@@ -1199,10 +1199,11 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Passenger Phone</td>
             <td style="font-size: 14px; font-weight: 400; color: #F5F2EE; padding: 8px 0;">${escapeHtml(data.passengerPhone)}</td>
           </tr>
+          ${data.driverPriceCzk != null ? `
           <tr>
-            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Trip Price</td>
-            <td style="font-size: 14px; font-weight: 600; color: #F5F2EE; padding: 8px 0;">${formatCZK(data.amountCzk)} (${formatEUR(czkToEur(data.amountCzk))})</td>
-          </tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Your Fee</td>
+            <td style="font-size: 14px; font-weight: 600; color: #F5F2EE; padding: 8px 0;">${formatCZK(data.driverPriceCzk)} (${formatEUR(czkToEur(data.driverPriceCzk))})</td>
+          </tr>` : ''}
           ${data.specialRequests ? `
           <tr>
             <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #CFC9C2; padding: 8px 16px 8px 0; width: 40%;">Notes</td>
