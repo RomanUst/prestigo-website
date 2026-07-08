@@ -30,6 +30,8 @@ interface AccountBooking {
   destination_address: string | null
   amount_czk: number
   status: string
+  paid_at: string | null
+  invoice_number: string | null
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -156,10 +158,27 @@ export default function AccountDetailPage({ params }: { params: Promise<{ id: st
                   <td style={tdStyle}>{vehicleClassMap[b.vehicle_class] ?? b.vehicle_class}</td>
                   <td style={{ ...tdStyle, textAlign: 'right' }}>{formatCZK(b.amount_czk)} CZK</td>
                   <td style={tdStyle}>
-                    <StatusBadge
-                      variant={b.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
-                      label={STATUS_LABELS[b.status] ?? b.status}
-                    />
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                      <StatusBadge
+                        variant={b.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                        label={STATUS_LABELS[b.status] ?? b.status}
+                      />
+                      {b.paid_at && (
+                        <span
+                          title={b.invoice_number ? `Invoice ${b.invoice_number}` : 'Paid'}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: 6,
+                            padding: '4px 8px', backgroundColor: '#1a3a2a', color: '#4ade80',
+                            border: '1px solid rgba(34,197,94,0.25)', borderRadius: '2px',
+                            fontFamily: 'var(--font-montserrat)', fontSize: '11px',
+                            textTransform: 'uppercase', letterSpacing: '0.08em',
+                          }}
+                        >
+                          <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#4ade80' }} />
+                          Paid
+                        </span>
+                      )}
+                    </span>
                   </td>
                 </tr>
               ))
