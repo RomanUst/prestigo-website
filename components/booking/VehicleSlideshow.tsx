@@ -9,19 +9,16 @@ import type { VehicleClass } from '@/types/booking'
 // ---------------------------------------------------------------------------
 const SLIDES_BY_CLASS: Record<string, { src: string; alt: string }[]> = {
   business: [
-    { src: '/vehicles/business-int-1.jpg', alt: 'Business interior view 1' },
-    { src: '/vehicles/business-int-2.jpg', alt: 'Business interior view 2' },
-    { src: '/vehicles/business-int-3.jpg', alt: 'Business interior view 3' },
+    { src: '/vehicles/business-int-1.jpg', alt: 'Mercedes E-Class rear cabin with bottled water' },
+    { src: '/vehicles/business-int-2.jpg', alt: 'Mercedes E-Class boot with three Rimowa suitcases' },
   ],
   first_class: [
-    { src: '/vehicles/first-int-1.jpg', alt: 'First Class interior view 1' },
-    { src: '/vehicles/first-int-2.jpg', alt: 'First Class interior view 2' },
-    { src: '/vehicles/first-int-3.jpg', alt: 'First Class interior view 3' },
+    { src: '/vehicles/first-int-1.jpg', alt: 'Mercedes S-Class rear cabin console detail' },
+    { src: '/vehicles/first-int-2.jpg', alt: 'Mercedes S-Class boot with three Rimowa suitcases' },
   ],
   business_van: [
-    { src: '/vehicles/van-int-1.jpg', alt: 'Business Van interior view 1' },
-    { src: '/vehicles/van-int-2.jpg', alt: 'Business Van interior view 2' },
-    { src: '/vehicles/van-int-3.jpg', alt: 'Business Van interior view 3' },
+    { src: '/vehicles/van-int-1.jpg', alt: 'Mercedes V-Class conference seating for six with bottled water' },
+    { src: '/vehicles/van-int-2.jpg', alt: 'Mercedes V-Class boot with Rimowa suitcases' },
   ],
 }
 
