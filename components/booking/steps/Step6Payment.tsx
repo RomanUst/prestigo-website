@@ -19,29 +19,32 @@ const VEHICLE_LABELS_FOR_ANALYTICS: Record<string, string> = {
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
+// Stripe Elements renders inside a cross-origin iframe and cannot read the
+// page's CSS custom properties, so these must be literal hex — kept in sync
+// with the navy + champagne-gold tokens in globals.css.
 const appearance = {
   theme: 'night' as const,
   variables: {
-    colorBackground: '#36363B',
-    colorText: '#F5F2EE',
-    colorTextPlaceholder: '#CFC9C2',
-    colorPrimary: '#B87333',
+    colorBackground: '#17293B',        // --anthracite-mid (navy card)
+    colorText: '#F3EEE3',              // --offwhite
+    colorTextPlaceholder: '#A9AEB0',   // --warmgrey
+    colorPrimary: '#BFA06A',           // --copper (champagne gold)
     colorDanger: '#f87171',
-    fontFamily: "'Montserrat', 'Helvetica Neue', sans-serif",
+    fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
     fontSizeBase: '14px',
     fontWeightNormal: '300',
     borderRadius: '4px',
   },
   rules: {
-    '.Input': { border: '1px solid #4E4E56', backgroundColor: '#36363B' },
-    '.Input:focus': { border: '1px solid #B87333', outline: '2px solid #B87333', outlineOffset: '4px' },
+    '.Input': { border: '1px solid #2B4056', backgroundColor: '#17293B' },
+    '.Input:focus': { border: '1px solid #BFA06A', outline: '2px solid #BFA06A', outlineOffset: '4px' },
     '.Label': {
-      fontFamily: "'Montserrat', 'Helvetica Neue', sans-serif",
+      fontFamily: "'Inter', 'Helvetica Neue', sans-serif",
       fontSize: '10px',
       fontWeight: '400',
       letterSpacing: '0.4em',
       textTransform: 'uppercase',
-      color: '#B87333',
+      color: '#D4BB86',
     },
   },
 }
@@ -371,7 +374,7 @@ export default function Step6Payment() {
           fontWeight: 400,
           letterSpacing: '0.3em',
           textTransform: 'uppercase',
-          color: '#CFC9C2',
+          color: '#A9AEB0',
           fontFamily: 'var(--font-montserrat)',
           marginBottom: 8,
         }}>
@@ -385,7 +388,7 @@ export default function Step6Payment() {
             <span style={{
               fontSize: '13px',
               fontWeight: 300,
-              color: '#F5F2EE',
+              color: '#F3EEE3',
               fontFamily: 'var(--font-montserrat)',
               letterSpacing: '0.08em',
             }}>{promoCode}</span>
@@ -395,7 +398,7 @@ export default function Step6Payment() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#CFC9C2',
+                color: '#A9AEB0',
                 fontSize: '11px',
                 fontFamily: 'var(--font-montserrat)',
                 cursor: 'pointer',
@@ -414,9 +417,9 @@ export default function Step6Payment() {
               placeholder="Enter code"
               style={{
                 flex: 1,
-                backgroundColor: '#36363B',
-                border: promoError ? '1px solid #f87171' : '1px solid #4E4E56',
-                color: '#F5F2EE',
+                backgroundColor: '#17293B',
+                border: promoError ? '1px solid #f87171' : '1px solid #2B4056',
+                color: '#F3EEE3',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: '13px',
                 fontWeight: 300,
@@ -432,8 +435,8 @@ export default function Step6Payment() {
               onClick={handleApplyPromo}
               disabled={promoLoading || !promoInput.trim()}
               style={{
-                backgroundColor: '#B87333',
-                color: '#F5F2EE',
+                backgroundColor: '#BFA06A',
+                color: '#F3EEE3',
                 border: 'none',
                 fontFamily: 'var(--font-montserrat)',
                 fontSize: '13px',

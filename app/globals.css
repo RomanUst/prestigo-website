@@ -3,17 +3,21 @@
 @source "../app/**/*.tsx";
 
 @theme {
-  --font-display: 'Cormorant Garamond', Georgia, serif;
-  --font-body: 'Montserrat', 'Helvetica Neue', sans-serif;
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', 'Helvetica Neue', sans-serif;
 
-  --color-anthracite: #28282B;
-  --color-anthracite-mid: #36363B;
-  --color-anthracite-light: #4E4E56;
-  --color-copper: #B87333;
-  --color-copper-light: #D4924A;
-  --color-copper-pale: #E8B87A;
-  --color-offwhite: #F5F2EE;
-  --color-warmgrey: #CFC9C2;
+  /* ── Palette — deep navy base + champagne gold accent (design refresh) ──
+     Token NAMES are kept (--anthracite / --copper) so the 500+ existing
+     var() references across the app repoint automatically. Values now carry
+     the navy + gold system from the design references. */
+  --color-anthracite: #0F1D2C;        /* primary dark navy background */
+  --color-anthracite-mid: #17293B;    /* card / raised navy surface */
+  --color-anthracite-light: #2B4056;  /* borders, dividers */
+  --color-copper: #BFA06A;            /* champagne gold — primary accent */
+  --color-copper-light: #D4BB86;      /* lighter gold — labels / hover (AA) */
+  --color-copper-pale: #E6D6B0;       /* pale gold — display italic tint */
+  --color-offwhite: #F3EEE3;          /* warm off-white text on navy */
+  --color-warmgrey: #A9AEB0;          /* muted grey — secondary text on navy */
 
   --letter-spacing-label: 0.25em;
   --letter-spacing-nav: 0.18em;
@@ -45,17 +49,17 @@
 }
 
 :root {
-  --font-cormorant: 'Cormorant Garamond', Georgia, serif;
-  --font-montserrat: 'Montserrat', 'Helvetica Neue', sans-serif;
+  --font-cormorant: 'Fraunces', Georgia, serif;
+  --font-montserrat: 'Inter', 'Helvetica Neue', sans-serif;
 
-  --anthracite: #28282B;
-  --anthracite-mid: #36363B;
-  --anthracite-light: #4E4E56;
-  --copper: #B87333;
-  --copper-light: #D4924A;
-  --copper-pale: #E8B87A;
-  --offwhite: #F5F2EE;
-  --warmgrey: #CFC9C2;
+  --anthracite: #0F1D2C;
+  --anthracite-mid: #17293B;
+  --anthracite-light: #2B4056;
+  --copper: #BFA06A;
+  --copper-light: #D4BB86;
+  --copper-pale: #E6D6B0;
+  --offwhite: #F3EEE3;
+  --warmgrey: #A9AEB0;
 }
 
 @layer base {
@@ -99,8 +103,8 @@ body {
 }
 
 /* ── Section label ─────────────────────────────────── */
-/* copper-light (#D4924A) instead of copper (#B87333) to meet WCAG AA
-   on --anthracite-mid surfaces (5.6:1 vs 3.77:1).
+/* copper-light (#D4BB86) instead of copper (#BFA06A) to meet WCAG AA
+   on --anthracite-mid (navy) surfaces — the lighter gold clears 4.5:1.
    11px + 0.28em instead of 9px + 0.4em — iOS HIG / Material minimum,
    preserves the "aloof label" rhythm without shrinking below legibility. */
 .label {
@@ -115,13 +119,19 @@ body {
 /* ── Display heading ───────────────────────────────── */
 .display {
   font-family: var(--font-cormorant);
-  font-weight: 300;
-  line-height: 1.1;
+  /* Fraunces reads heavier than Cormorant at the same weight; 360 keeps the
+     refined-but-present headline of the references. opsz 144 selects the
+     high-contrast display cut with delicate hairlines; SOFT rounds terminals. */
+  font-weight: 360;
+  font-variation-settings: 'opsz' 144, 'SOFT' 40, 'WONK' 0;
+  line-height: 1.08;
+  letter-spacing: -0.005em;
   color: var(--offwhite);
 }
 
 .display-italic {
   font-style: italic;
+  font-variation-settings: 'opsz' 144, 'SOFT' 60, 'WONK' 0;
   color: var(--copper-pale);
 }
 
@@ -146,28 +156,29 @@ body {
    so existing markup inverts with no structural changes. All colors meet
    WCAG AA on the #F7F4EF ivory surface. */
 .theme-light {
-  /* Tailwind utility tokens */
-  --color-anthracite: #F7F4EF;
-  --color-anthracite-mid: #EFEAE2;
-  --color-anthracite-light: #DDD7CE;
-  --color-offwhite: #211F1C;
-  --color-warmgrey: #6E6962;
-  --color-copper: #8A5A2E;
-  --color-copper-light: #8A5A2E;
-  --color-copper-pale: #9A6A3A;
+  /* Tailwind utility tokens — warm cream surface + navy ink + antique gold.
+     Ink/gold values darkened to hold WCAG AA on the #EFE8DA cream surface. */
+  --color-anthracite: #EFE8DA;
+  --color-anthracite-mid: #E5DCCB;
+  --color-anthracite-light: #D6CAB4;
+  --color-offwhite: #16202A;
+  --color-warmgrey: #5E6B75;
+  --color-copper: #8C6A34;
+  --color-copper-light: #8C6A34;
+  --color-copper-pale: #9A7A44;
 
   /* Bare vars (custom classes + inline styles) */
-  --anthracite: #F7F4EF;
-  --anthracite-mid: #EFEAE2;
-  --anthracite-light: #DDD7CE;
-  --offwhite: #211F1C;
-  --warmgrey: #6E6962;
-  --copper: #8A5A2E;
-  --copper-light: #8A5A2E;
-  --copper-pale: #9A6A3A;
+  --anthracite: #EFE8DA;
+  --anthracite-mid: #E5DCCB;
+  --anthracite-light: #D6CAB4;
+  --offwhite: #16202A;
+  --warmgrey: #5E6B75;
+  --copper: #8C6A34;
+  --copper-light: #8C6A34;
+  --copper-pale: #9A7A44;
 
-  background-color: #F7F4EF;
-  color: #211F1C;
+  background-color: #EFE8DA;
+  color: #16202A;
 }
 
 /* ── CTA button ────────────────────────────────────── */
@@ -257,10 +268,53 @@ body {
   transform: scale(0.97);
 }
 
+/* ── CTA — underlined text link, gentle zoom on hover ──────────────── */
+.cta-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-montserrat);
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--warmgrey);
+  text-decoration: none;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--anthracite-light);
+  transform-origin: left center;
+  transition: color 0.3s ease, border-color 0.3s ease,
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform;
+}
+
+.cta-text:hover {
+  color: var(--offwhite);
+  border-color: var(--copper);
+  transform: scale(1.06);
+}
+
+/* Primary variant — brighter default, gold underline already lit */
+.cta-text-primary {
+  color: var(--offwhite);
+  border-color: var(--copper);
+}
+
+.cta-text-primary:hover {
+  color: var(--copper-pale);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cta-text:hover {
+    transform: none;
+  }
+}
+
 /* ── Wordmark ───────────────────────────────────────── */
 .wordmark {
   font-family: var(--font-cormorant);
-  font-weight: 300;
+  font-weight: 400;
+  font-variation-settings: 'opsz' 144, 'SOFT' 30, 'WONK' 0;
   letter-spacing: 0.6em;
   line-height: 1;
   font-size: 1.1rem;
@@ -563,21 +617,21 @@ body {
 }
 .hourly-strip-row:first-child { border-top: 1px solid rgba(255,255,255,0.06); }
 .hourly-strip-name {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 18px; color: #f5f2ee;
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 20px; color: var(--offwhite);
 }
 .hourly-strip-vehicle {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 11px; letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.35); text-transform: uppercase;
+  color: var(--warmgrey); text-transform: uppercase;
 }
 .hourly-strip-price {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 28px; font-weight: 300; color: var(--copper);
+  font-family: var(--font-cormorant), Georgia, serif;
+  font-size: 28px; font-weight: 400; color: var(--copper-light);
 }
 .hourly-strip-cta {
   display: inline-flex; align-items: center; gap: 0.4rem;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-montserrat), sans-serif;
   font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
   color: var(--copper); text-decoration: none; margin-top: 1.5rem;
 }

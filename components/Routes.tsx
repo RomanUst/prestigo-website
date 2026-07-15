@@ -1,69 +1,66 @@
-import Image from 'next/image'
 import Reveal from '@/components/Reveal'
-import type { RoutePrice } from '@/lib/route-prices'
+import RoutesMap, { type MapCity } from '@/components/RoutesMap'
 
-type Props = { routes: RoutePrice[] }
+// Real geographic coordinates (same positions the booking map uses) + real
+// door-to-door times. Ordered clockwise so the animated dots sweep the map.
+const PRAGUE: MapCity = { name: 'Prague', lat: 50.0755, lng: 14.4378 }
 
-export default function Routes({ routes }: Props) {
+const CITIES: MapCity[] = [
+  { name: 'Berlin', lat: 52.52, lng: 13.405, time: '4h 10m' },
+  { name: 'Dresden', lat: 51.0504, lng: 13.7373, time: '2h 10m' },
+  { name: 'Frankfurt', lat: 50.1109, lng: 8.6821, time: '4h 50m' },
+  { name: 'Nuremberg', lat: 49.4521, lng: 11.0767, time: '2h 50m' },
+  { name: 'Munich', lat: 48.1351, lng: 11.582, time: '3h 30m' },
+  { name: 'Salzburg', lat: 47.8095, lng: 13.055, time: '3h 40m' },
+  { name: 'Vienna', lat: 48.2082, lng: 16.3738, time: '3h 30m' },
+  { name: 'Bratislava', lat: 48.1486, lng: 17.1077, time: '4h 00m' },
+  { name: 'Budapest', lat: 47.4979, lng: 19.0402, time: '6h 30m' },
+  { name: 'Kraków', lat: 50.0647, lng: 19.945, time: '5h 00m' },
+]
+
+export default function Routes() {
   return (
-    <section id="routes" aria-labelledby="routes-heading" className="relative overflow-hidden bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
-      <Image
-        src="/multi-day-itineraries-bg.png"
-        alt="Scenic Central European countryside along Prestigo intercity chauffeur routes"
-        fill
-        style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.22 }}
-      />
+    <section
+      id="routes"
+      aria-labelledby="routes-heading"
+      className="relative overflow-hidden bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light"
+    >
+      {/* Header row — heading left, intro + CTA right */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-end mb-12 md:mb-16">
+          <Reveal variant="up">
+            <p className="label mb-6">Popular routes</p>
+            <span className="copper-line mb-8 block" />
+            <h2 id="routes-heading" className="display text-[36px] md:text-[44px]">
+              Central Europe.<br />
+              <span className="display-italic">Connected.</span>
+            </h2>
+          </Reveal>
 
-        <Reveal variant="up" className="mb-14">
-          <p className="label mb-6">Intercity routes</p>
-          <span className="copper-line mb-8 block" />
-          <h2 id="routes-heading" className="display text-[36px] md:text-[44px]">
-            Central Europe,<br />
-            <span className="display-italic">at your pace.</span>
-          </h2>
-        </Reveal>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-anthracite-light">
-          {routes.map((r, i) => (
-            <Reveal key={`${r.fromLabel}-${r.toLabel}`} variant="up" delay={i * 70} className="bg-anthracite-mid">
-              <a
-                href={`/routes/${r.slug}`}
-                className="flex items-center justify-between px-8 py-6 hover:bg-anthracite transition-colors group"
-              >
-                <div className="flex items-center gap-4">
-                  <div>
-                    <p className="font-display font-light text-lg text-offwhite">
-                      {r.fromLabel}
-                      <span className="text-copper-pale italic mx-2">→</span>
-                      {r.toLabel}
-                    </p>
-                    <p className="body-text text-[11px] mt-1">{r.distanceKm} km</p>
-                  </div>
-                </div>
-                <div className="text-right">
-                  <p className="font-body font-light text-[11px] tracking-[0.1em] text-copper group-hover:text-copper-light transition-colors">
-                    {`From €${r.eClassEur}`}
-                  </p>
-                  <span className="font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey group-hover:text-offwhite transition-colors mt-1 block py-1">
-                    More details →
-                  </span>
-                </div>
-              </a>
-            </Reveal>
-          ))}
+          <Reveal variant="up" delay={120}>
+            <p className="body-text max-w-md mb-8">
+              Point to point or multi-city. We connect the key destinations of Central
+              Europe — with comfort, discretion and precision. One chauffeur, one fixed
+              fare, door to door.
+            </p>
+            <a href="/routes" className="btn-primary">
+              Explore routes
+            </a>
+          </Reveal>
         </div>
+      </div>
 
+      {/* Full-bleed live map — spans the whole section, edge to edge, no frame */}
+      <div className="relative z-10">
+        <RoutesMap hub={PRAGUE} cities={CITIES} />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12">
         <Reveal variant="fade" delay={150}>
           <p className="body-text text-[11px] mt-6 text-center">
-            All prices include tolls, waiting time, and meet &amp; greet. Fixed — guaranteed at booking.
+            All fares include tolls, vignettes, waiting time and meet &amp; greet — fixed
+            and guaranteed at booking.
           </p>
-        </Reveal>
-
-        <Reveal variant="fade" delay={200} className="mt-10 flex justify-center">
-          <a href="/routes" className="btn-ghost" style={{ borderColor: 'var(--copper)', color: 'var(--copper)' }}>
-            View all routes
-          </a>
         </Reveal>
       </div>
     </section>

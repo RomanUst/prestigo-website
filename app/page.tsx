@@ -8,6 +8,7 @@ import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
+import FeatureStrip from '@/components/FeatureStrip'
 import BookingSection from '@/components/BookingSection'
 import HowItWorks from '@/components/HowItWorks'
 import Services from '@/components/Services'
@@ -180,7 +181,6 @@ export default async function Home() {
       ? allRoutes.reduce((m, r) => Math.min(m, r.eClassEur), Infinity)
       : AIRPORT_FALLBACK.regular
   const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
-  const featuredRoutes = allRoutes.slice(0, 6)
 
   const schema = aggregateRating
     ? {
@@ -207,6 +207,7 @@ export default async function Home() {
       />
       <Nav />
       <Hero airportPrice={heroPrice} rating={aggregateRating} />
+      <FeatureStrip />
       <Divider />
       <BookingSection />
       <Divider />
@@ -216,7 +217,7 @@ export default async function Home() {
       <Divider />
       <Fleet />
       <Divider />
-      <Routes routes={featuredRoutes} />
+      <Routes />
       <Divider />
       <Testimonials />
       <Footer />

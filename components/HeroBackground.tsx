@@ -29,10 +29,10 @@ export default function HeroBackground() {
   return (
     <div className="absolute inset-0 overflow-hidden">
       <motion.div className="absolute inset-[-20%] will-change-transform" style={motionStyle}>
-        {/* Desktop (landscape) */}
+        {/* Desktop (landscape) — chauffeur POV, Prague skyline at golden hour */}
         <Image
-          src="/photohero.avif"
-          alt="Prestigo premium chauffeur — Prague airport transfer"
+          src="/photohero.jpg"
+          alt="Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset"
           fill
           priority
           fetchPriority="high"
@@ -43,8 +43,8 @@ export default function HeroBackground() {
 
         {/* Mobile (portrait crop) */}
         <Image
-          src="/photohero-mobile.avif"
-          alt="Prestigo premium chauffeur — Prague airport transfer"
+          src="/photohero-mobile.jpg"
+          alt="Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset"
           fill
           priority
           fetchPriority="high"

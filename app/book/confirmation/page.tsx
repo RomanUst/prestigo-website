@@ -363,7 +363,7 @@ function ConfirmationContent() {
                 flex: '1 1 240px',
                 padding: 16,
                 background: 'var(--anthracite-mid)',
-                borderLeft: '3px solid #B87333',
+                borderLeft: '3px solid #BFA06A',
               }}
             >
               <span
@@ -391,7 +391,7 @@ function ConfirmationContent() {
                 flex: '1 1 240px',
                 padding: 16,
                 background: 'var(--anthracite-mid)',
-                borderLeft: '3px solid #B87333',
+                borderLeft: '3px solid #BFA06A',
               }}
             >
               <span

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Cormorant_Garamond, Montserrat } from 'next/font/google'
+import { Fraunces, Inter } from 'next/font/google'
 import './globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
@@ -8,17 +8,26 @@ import MetaPixel from '@/components/MetaPixel'
 import CookieBanner from '@/components/CookieBanner'
 import EngagementTracker from '@/components/EngagementTracker'
 
-const cormorant = Cormorant_Garamond({
+// Display serif — Fraunces. High-contrast "old-style" cut with soft terminals,
+// closest freely-hostable match to the Canela/Ogg look in the design references.
+// Keeps the CSS var name --font-cormorant so the 500+ existing var() references
+// need no changes. Optical-size axis exposed so display headings can request the
+// delicate display cut (opsz 144) while body-sized serif stays readable.
+const fraunces = Fraunces({
   variable: '--font-cormorant',
   subsets: ['latin'],
-  weight: ['300', '400', '600'],
   style: ['normal', 'italic'],
+  axes: ['opsz', 'SOFT'],
+  display: 'swap',
 })
 
-const montserrat = Montserrat({
+// Body / UI grotesque — Inter (free stand-in for PP Neue Montreal until a
+// licensed .woff2 is self-hosted via next/font/local). Keeps var --font-montserrat.
+const inter = Inter({
   variable: '--font-montserrat',
   subsets: ['latin'],
-  weight: ['200', '300', '400', '500', '600'],
+  weight: ['300', '400', '500', '600'],
+  display: 'swap',
 })
 
 export const metadata: Metadata = {
@@ -107,7 +116,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://www.facebook.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
-      <body className={`${cormorant.variable} ${montserrat.variable}`}>
+      <body className={`${fraunces.variable} ${inter.variable}`}>
         <a href="#main-content" className="skip-link btn-primary">
           Skip to content
         </a>

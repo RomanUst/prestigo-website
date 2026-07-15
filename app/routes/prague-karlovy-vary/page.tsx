@@ -147,7 +147,7 @@ export default async function PragueKarlovyVaryPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/photohero.png" alt="Karlovy Vary — private chauffeur transfer from Prague to Karlovy Vary" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
+          <Image src="/photohero.jpg" alt="Karlovy Vary — private chauffeur transfer from Prague to Karlovy Vary" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Karlovy Vary</p>
@@ -255,7 +255,7 @@ export default async function PragueKarlovyVaryPage() {
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
                 <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}>
-                  <Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#F5F2EE', filter: 'brightness(0.92)' }} />
+                  <Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} />
                                   </div>
                 <div className="p-8 flex flex-col gap-6 flex-1">
                   <div>
