@@ -6,22 +6,22 @@ const steps = [
     number: '01',
     title: 'Book online',
     body: 'Enter your route and travel details. Receive instant confirmation with a fixed price — no hidden fees.',
-    photo: '/vehicles/business-int-1.jpg',
-    photoAlt: 'Executive Mercedes cabin, prepared for the journey',
+    photo: '/journey-01-book.jpg',
+    photoAlt: 'Booking a Prague chauffeur online, the Mercedes already waiting outside',
   },
   {
     number: '02',
     title: 'We track your flight',
     body: 'Your driver monitors your flight in real time. Delays, early arrivals — we adjust automatically.',
-    photo: '/prague-airport-arrivals-guide.avif',
-    photoAlt: 'Prague Airport arrivals — your chauffeur tracking the flight',
+    photo: '/journey-02-track.jpg',
+    photoAlt: 'Chauffeur checking the live flight status beside the Mercedes at Prague Airport',
   },
   {
     number: '03',
     title: 'Simply arrive',
     body: 'Your chauffeur is waiting at Arrivals with a name board. Direct transfer to your destination.',
-    photo: '/prague-airport-meet-and-greet-cover.jpg',
-    photoAlt: 'Chauffeur meet & greet at Prague Airport Arrivals',
+    photo: '/journey-03-arrive.jpg',
+    photoAlt: 'PRESTIGO chauffeur waiting with a name board at Prague Airport Arrivals',
   },
 ]
 
