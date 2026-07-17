@@ -11,8 +11,8 @@ type Props = { post: BlogPost }
  * - aria-label on the wrapping anchor so AT users hear the post title
  *   (the visible CTA "Read article →" is too generic alone).
  * - alt={post.title} on the cover image.
- * - Category text uses --copper-light (#D4924A) for WCAG AA contrast
- *   against --anthracite-mid; --copper (#B87333) fails AA.
+ * - Category text uses --copper-light (#D4BB86) for WCAG AA contrast
+ *   against --anthracite-mid (navy); the base --copper gold sits lower.
  */
 export default function BlogCard({ post }: Props) {
   return (

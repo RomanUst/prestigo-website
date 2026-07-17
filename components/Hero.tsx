@@ -15,8 +15,11 @@ export default function Hero({ airportPrice, rating }: Props) {
       {/* Full-screen background photo — parallax (desktop + mobile crop) */}
       <HeroBackground />
 
-      {/* Dark overlay — ensures text legibility */}
-      <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(18,17,16,0.85) 40%, rgba(18,17,16,0.4) 100%)' }} />
+      {/* Navy overlays — cinematic legibility, darkest bottom-left where the
+          headline sits, clearing toward the top-right so the photo reads through.
+          rgba is #0B1622 (deepest navy) to stay in the new palette. */}
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to right, rgba(11,22,34,0.88) 0%, rgba(11,22,34,0.5) 55%, rgba(11,22,34,0.12) 100%)' }} />
+      <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(11,22,34,0.85) 0%, rgba(11,22,34,0.25) 45%, transparent 80%)' }} />
 
       {/* Background texture — subtle grain */}
       <div
@@ -63,10 +66,10 @@ export default function Hero({ airportPrice, rating }: Props) {
               You simply arrive.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-4 animate-on-load delay-600">
-              <a href="#book" className="btn-primary">
-                Book a transfer
+            {/* CTAs — stacked underlined text links */}
+            <div className="flex flex-col items-start gap-5 animate-on-load delay-600">
+              <a href="#book" className="cta-text cta-text-primary">
+                Book a ride
               </a>
               <HeroWhatsApp />
             </div>
@@ -82,37 +85,6 @@ export default function Hero({ airportPrice, rating }: Props) {
             )}
           </div>
 
-          {/* Right — stat cards + quote */}
-          <div className="hidden lg:flex flex-col gap-4 items-end animate-on-load delay-700">
-
-            {/* Stats */}
-            <div className="flex gap-4">
-              {[
-                { number: '24 / 7', label: 'Availability' },
-                { number: 'Fixed', label: 'Price guarantee' },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="border border-anthracite-light bg-anthracite-mid px-6 py-5 min-w-[120px]"
-                  style={{ background: 'rgba(28,27,25,0.75)', backdropFilter: 'blur(8px)' }}
-                >
-                  <p className="font-display font-light text-2xl text-offwhite mb-1 tracking-wide">
-                    {stat.number}
-                  </p>
-                  <p className="label" style={{ color: 'var(--warmgrey)', fontSize: '10px' }}>
-                    {stat.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* Quote */}
-            <div className="border-l-2 border-copper pl-5 py-1 max-w-xs">
-              <p className="font-display font-light italic text-lg text-copper-pale leading-snug">
-                "We anticipate.<br />You simply arrive."
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Scroll hint — desktop/tablet only; hidden on mobile where it collides with stacked CTAs */}

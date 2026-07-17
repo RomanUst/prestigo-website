@@ -128,7 +128,7 @@ export default async function PragueHradecKralovePage() {
 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
-        <div className="absolute inset-0"><Image src="/photohero.png" alt="Hradec Králové — private chauffeur transfer from Prague to Hradec Králové" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
+        <div className="absolute inset-0"><Image src="/photohero.jpg" alt="Hradec Králové — private chauffeur transfer from Prague to Hradec Králové" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Hradec Králové</p>
           <span className="copper-line mb-8 block" />
@@ -218,7 +218,7 @@ export default async function PragueHradecKralovePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
-                <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#F5F2EE', filter: 'brightness(0.92)' }} /></div>
+                <div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div>
                 <div className="p-8 flex flex-col gap-6 flex-1">
                   <div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div>
                   <div className="flex flex-col gap-2">
