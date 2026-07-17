@@ -209,15 +209,15 @@ export default async function Home() {
       <Hero airportPrice={heroPrice} rating={aggregateRating} />
       <FeatureStrip />
       <Divider />
-      <BookingSection />
-      <Divider />
       <HowItWorks />
+      <Divider />
+      <BookingSection />
       <Divider />
       <Services airportPrice={heroPrice} hourlyFrom={hourlyFrom} cheapestIntercity={cheapestIntercity} />
       <Divider />
       <Fleet />
       <Divider />
-      <Routes />
+      <Routes routes={allRoutes} />
       <Divider />
       <Testimonials />
       <Footer />

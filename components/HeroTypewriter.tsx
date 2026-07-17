@@ -38,7 +38,7 @@ export default function HeroTypewriter() {
   return (
     <span
       style={{
-        color: 'var(--copper)',
+        color: 'var(--offwhite)',
         display: 'inline-block',
         transition: reducedMotion ? 'none' : 'opacity 0.35s ease, transform 0.35s ease',
         opacity: visible ? 1 : 0,

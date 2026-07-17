@@ -3,7 +3,15 @@
 import { useEffect, useRef } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 
-export type MapCity = { name: string; lat: number; lng: number; time?: string }
+export type MapCity = {
+  name: string
+  lat: number
+  lng: number
+  time?: string
+  // Optional pixel nudge for the label, to resolve overlaps between close cities.
+  dx?: number
+  dy?: number
+}
 
 type Props = { hub: MapCity; cities: MapCity[] }
 
@@ -70,7 +78,7 @@ export default function RoutesMap({ hub, cities }: Props) {
         map.fitBounds(bounds, 64)
 
         // Custom label overlay (name + optional time), rendered below each dot.
-        const makeLabel = (pos: google.maps.LatLngLiteral, name: string, time: string | undefined, isHub: boolean) => {
+        const makeLabel = (pos: google.maps.LatLngLiteral, name: string, time: string | undefined, isHub: boolean, dx = 0, dy = 0) => {
           class Label extends google.maps.OverlayView {
             private div: HTMLDivElement | null = null
             onAdd() {
@@ -87,8 +95,8 @@ export default function RoutesMap({ hub, cities }: Props) {
             draw() {
               const p = this.getProjection()?.fromLatLngToDivPixel(new google.maps.LatLng(pos.lat, pos.lng))
               if (this.div && p) {
-                this.div.style.left = `${p.x}px`
-                this.div.style.top = `${p.y + (isHub ? 12 : 9)}px`
+                this.div.style.left = `${p.x + dx}px`
+                this.div.style.top = `${p.y + (isHub ? 12 : 9) + dy}px`
               }
             }
             onRemove() {
@@ -127,7 +135,7 @@ export default function RoutesMap({ hub, cities }: Props) {
             },
           })
 
-          makeLabel(to, c.name, c.time, false)
+          makeLabel(to, c.name, c.time, false, c.dx, c.dy)
 
           dots.push(
             new google.maps.Marker({

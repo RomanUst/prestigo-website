@@ -132,7 +132,7 @@ body {
 .display-italic {
   font-style: italic;
   font-variation-settings: 'opsz' 144, 'SOFT' 60, 'WONK' 0;
-  color: var(--copper-pale);
+  color: var(--offwhite);
 }
 
 /* ── Body text ─────────────────────────────────────── */
@@ -292,6 +292,17 @@ body {
   color: var(--offwhite);
   border-color: var(--copper);
   transform: scale(1.06);
+}
+
+/* Routes map — hide the default Google logo + "Map data / Terms" attribution.
+   NOTE: hiding these violates the Google Maps Platform Terms of Service and can
+   get the API key suspended. Kept per explicit request. */
+#routes .gmnoprint,
+#routes .gm-style-cc,
+#routes .gm-style > div > a[href^="https://maps.google"],
+#routes a[title^="Report errors"],
+#routes img[alt="Google"] {
+  display: none !important;
 }
 
 /* Primary variant — brighter default, gold underline already lit */
