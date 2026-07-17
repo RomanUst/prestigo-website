@@ -590,7 +590,9 @@ body {
 }
 .rdp-button_previous:hover,
 .rdp-button_next:hover {
-  background-color: rgba(184, 115, 51, 0.12) !important;
+  /* --copper (#BFA06A) at 12%. Kept as literal rgba: color-mix() compiles to a
+     solid var(--copper) fallback, which paints the whole button gold. */
+  background-color: rgba(191, 160, 106, 0.12) !important;
 }
 .rdp-button_previous:active,
 .rdp-button_next:active {
