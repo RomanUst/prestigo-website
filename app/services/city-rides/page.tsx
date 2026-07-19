@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import HourlyBookingSection from '@/components/HourlyBookingSection'
 import { getPricingConfig } from '@/lib/pricing-config'
-import { aggregateRatingDoc } from '@/lib/jsonld'
+import { businessNodeDoc } from '@/lib/jsonld'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { hourlyRate } = await getPricingConfig()
@@ -103,13 +103,13 @@ export default async function CityRidesPage() {
     offers: { '@type': 'Offer', price: String(businessHourly), priceCurrency: 'EUR' },
   }
 
-  const ratingDoc = aggregateRatingDoc()
+  const businessDoc = businessNodeDoc()
 
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      {businessDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessDoc) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 

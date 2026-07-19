@@ -38,6 +38,14 @@ export const metadata: Metadata = {
     url: HOME_URL,
     title: 'Prague Chauffeur Service | PRESTIGO — Premium Private Transfers',
     description: HOME_DESCRIPTION,
+    images: [
+      {
+        url: `${HOME_URL}/og-image.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'PRESTIGO — premium chauffeur service in Prague',
+      },
+    ],
   },
 }
 
@@ -77,8 +85,8 @@ const localBusinessSchema = {
   logo: {
     '@type': 'ImageObject',
     url: 'https://rideprestigo.com/logo.png',
-    width: 300,
-    height: 60,
+    width: 512,
+    height: 512,
   },
   founder: {
     '@type': 'Person',

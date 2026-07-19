@@ -20,10 +20,15 @@ const routeFixture: RoutePrice = {
   displayOrder: 2, placeIds: [],
 }
 
+// @graph[0] is the #business provider node, @graph[1] the Service.
+function serviceNode(result: ReturnType<typeof buildRouteJsonLd>): Record<string, unknown> {
+  return result['@graph'][1] as Record<string, unknown>
+}
+
 describe('buildRouteJsonLd', () => {
   it('emits Offer per class with price/priceCurrency/availability/priceValidUntil', () => {
     const result = buildRouteJsonLd(routeFixture, 'prague-brno')
-    const items = (result['@graph'][0] as Record<string, unknown>)['hasOfferCatalog'] as Record<string, unknown>
+    const items = serviceNode(result)['hasOfferCatalog'] as Record<string, unknown>
     const list = items['itemListElement'] as Array<Record<string, unknown>>
     expect(list).toHaveLength(3)
     expect(list[0].price).toBe('290')
@@ -38,11 +43,19 @@ describe('buildRouteJsonLd', () => {
 
   it('Service has correct @id and provider', () => {
     const result = buildRouteJsonLd(routeFixture, 'prague-brno')
-    const service = result['@graph'][0] as Record<string, unknown>
+    const service = serviceNode(result)
     expect(service['@type']).toBe('Service')
     expect(service['@id']).toBe('https://rideprestigo.com/routes/prague-brno#service')
     const provider = service['provider'] as Record<string, unknown>
     expect(provider['@id']).toBe('https://rideprestigo.com/#business')
+  })
+
+  it('resolves the #business provider on-page without an aggregateRating', () => {
+    const result = buildRouteJsonLd(routeFixture, 'prague-brno')
+    const business = result['@graph'][0] as Record<string, unknown>
+    expect(business['@id']).toBe('https://rideprestigo.com/#business')
+    expect(business['aggregateRating']).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('aggregateRating')
   })
 })
 

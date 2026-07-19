@@ -4,7 +4,6 @@
 
 import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingGlobals } from '@/lib/pricing-config'
-import { getStaticAggregateRating } from '@/lib/google-reviews'
 
 const BASE_URL = 'https://rideprestigo.com'
 
@@ -21,12 +20,14 @@ export function futureIsoDate(daysFromNow: number): string {
     .split('T')[0]
 }
 
-// Schema.org AggregateRating node attached to the canonical #business entity.
-// Returns null when no rating data is available (env vars unset) so callers
-// can spread the result conditionally into a @graph array.
-export function aggregateRatingNode(): Record<string, unknown> | null {
-  const rating = getStaticAggregateRating()
-  if (!rating) return null
+// Schema.org business entity node for the canonical #business @id, so pages
+// whose Service nodes reference the provider by @id resolve it on-page.
+// Deliberately carries NO aggregateRating: the rating is Google-sourced and
+// not visible on these pages, which violates Google's review snippet
+// guidelines (self-serving LocalBusiness ratings are ignored anyway).
+// The home page — where the rating badge is actually displayed — composes
+// its own schema with the live rating.
+export function businessNode(): Record<string, unknown> {
   return {
     '@type': ['LocalBusiness', 'TaxiService'],
     '@id': `${BASE_URL}/#business`,
@@ -35,6 +36,12 @@ export function aggregateRatingNode(): Record<string, unknown> | null {
     telephone: '+420725986855',
     priceRange: '€€€',
     image: `${BASE_URL}/og-image.jpg`,
+    logo: {
+      '@type': 'ImageObject',
+      url: `${BASE_URL}/logo.png`,
+      width: 512,
+      height: 512,
+    },
     address: {
       '@type': 'PostalAddress',
       streetAddress: 'Spojovací 685',
@@ -43,32 +50,21 @@ export function aggregateRatingNode(): Record<string, unknown> | null {
       addressRegion: 'Central Bohemian Region',
       addressCountry: 'CZ',
     },
-    aggregateRating: {
-      '@type': 'AggregateRating',
-      ratingValue: rating.ratingValue.toFixed(1),
-      reviewCount: rating.reviewCount,
-      bestRating: '5',
-      worstRating: '1',
-    },
   }
 }
 
-// Wraps aggregateRatingNode() in a complete JSON-LD document so service-style
+// Wraps businessNode() in a complete JSON-LD document so service-style
 // pages can drop in a single <script> tag without composing their own @graph.
-// Returns null when no rating data is configured.
-export function aggregateRatingDoc(): JsonLdDocument | null {
-  const node = aggregateRatingNode()
-  if (!node) return null
-  return { '@context': 'https://schema.org', '@graph': [node] }
+export function businessNodeDoc(): JsonLdDocument {
+  return { '@context': 'https://schema.org', '@graph': [businessNode()] }
 }
 
 export function buildRouteJsonLd(route: RoutePrice, slug: string): JsonLdDocument {
   const priceValidUntil = futureIsoDate(365)
-  const rating = aggregateRatingNode()
   return {
     '@context': 'https://schema.org',
     '@graph': [
-      ...(rating ? [rating] : []),
+      businessNode(),
       {
         '@type': 'Service',
         '@id': `${BASE_URL}/routes/${slug}#service`,

@@ -104,10 +104,7 @@ export default function RootLayout({
             /_next/image srcset that the browser actually requests.
             A manual preload here would target /photohero.avif (raw) while
             <Image> loads /_next/image?url=... causing a wasted preload. */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="https://fonts.gstatic.com" />
+        {/* Fonts are self-hosted via next/font — no Google Fonts connections needed. */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
         <link rel="dns-prefetch" href="https://www.google-analytics.com" />

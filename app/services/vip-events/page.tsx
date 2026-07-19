@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import { aggregateRatingDoc } from '@/lib/jsonld'
+import { businessNodeDoc } from '@/lib/jsonld'
 
 export const metadata: Metadata = {
   title: 'VIP & Events Chauffeur Prague — Diplomatic & Private',
@@ -91,12 +91,12 @@ const faqSchema = {
 }
 
 export default function VipEventsPage() {
-  const ratingDoc = aggregateRatingDoc()
+  const businessDoc = businessNodeDoc()
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      {businessDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessDoc) }} />}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />
       <Nav />
 
