@@ -58,7 +58,7 @@ export default function HowItWorks() {
                     fill
                     sizes="(max-width: 768px) 100vw, 420px"
                     className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]"
-                    loading={i === 0 ? 'eager' : 'lazy'}
+                    loading="lazy"
                   />
                   {/* Navy veil for depth + legible numbering */}
                   <div

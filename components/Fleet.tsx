@@ -57,7 +57,7 @@ export default function Fleet() {
                     fill
                     className="object-contain"
                     sizes="(max-width: 768px) 100vw, 400px"
-                    loading={i === 0 ? 'eager' : 'lazy'}
+                    loading="lazy"
                   />
                 </div>
 

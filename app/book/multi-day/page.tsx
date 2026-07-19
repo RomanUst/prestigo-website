@@ -4,7 +4,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 import MetaViewContent from '@/components/MetaViewContent'
-import { aggregateRatingDoc } from '@/lib/jsonld'
+import { businessNodeDoc } from '@/lib/jsonld'
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -159,11 +159,11 @@ const FAQ = [
 ]
 
 export default function MultiDayPage() {
-  const ratingDoc = aggregateRatingDoc()
+  const businessDoc = businessNodeDoc()
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }} />
-      {ratingDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ratingDoc) }} />}
+      {businessDoc && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(businessDoc) }} />}
       <MetaViewContent contentName="Multi-Day Chauffeur" />
       <Nav />
     <main

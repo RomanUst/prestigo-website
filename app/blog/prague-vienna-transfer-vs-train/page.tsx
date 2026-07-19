@@ -11,7 +11,7 @@ const CANONICAL_PATH = '/blog/prague-vienna-transfer-vs-train'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
 
 const ARTICLE_PUBLISHED = '2026-04-09'
-const ARTICLE_MODIFIED = '2026-04-09'
+const ARTICLE_MODIFIED = '2026-07-19'
 
 // Long-form comparison built from real 2026 ÖBB/RegioJet/FlixBus fare data
 // and PRESTIGO's published intercity pricing (see Notion pricing ledger).
@@ -47,7 +47,7 @@ const modes = [
     id: 'prestigo',
     name: 'PRESTIGO private transfer',
     category: 'Chauffeur',
-    fareBand: '€485–€725 per vehicle (fixed)',
+    fareBand: '€455–€750 per vehicle (fixed)',
     pax: '1–6',
     doorTime: '3h 15min',
     notes: 'Door-to-door, flight tracking on return leg, fuel + tolls + vignettes + driver included. Return within 24h −10 %.',
@@ -104,10 +104,10 @@ const tableRows: Array<{ label: string; prestigo: string; railjet: string; flixb
   { label: 'Realistic door-to-door', prestigo: '3h 15min', railjet: '5h 15min – 5h 45min', flixbus: '5h 30min – 6h', rental: '3h 30min + parking' },
   { label: 'Pickup location', prestigo: 'Any Prague address', railjet: 'Praha hl.n. only', flixbus: 'Florenc bus station only', rental: 'Rental depot (walk/taxi)' },
   { label: 'Drop-off location', prestigo: 'Any Vienna address', railjet: 'Wien Hbf only', flixbus: 'Wien Erdberg / Hbf', rental: 'Vienna rental depot + parking' },
-  { label: '1 passenger fare', prestigo: '€485 (E-Class)', railjet: '€14.90–€59 (Sparschiene → flex)', flixbus: '€10–€18', rental: '€170–€320 all-in' },
-  { label: '2 passenger total', prestigo: '€485 (same fixed fare)', railjet: '€29.80–€118', flixbus: '€20–€36', rental: '€170–€320 + tolls' },
-  { label: '4 passenger total', prestigo: '€485 (E) or €560 (V)', railjet: '€59.60–€236', flixbus: '€40–€72', rental: '€200–€370 (7-seat van)' },
-  { label: '6 passenger total', prestigo: '€560 (V-Class, fixed)', railjet: '€89.40–€354', flixbus: '€60–€108', rental: '€250–€420 (7-seat van)' },
+  { label: '1 passenger fare', prestigo: '€455 (E-Class)', railjet: '€14.90–€59 (Sparschiene → flex)', flixbus: '€10–€18', rental: '€170–€320 all-in' },
+  { label: '2 passenger total', prestigo: '€455 (same fixed fare)', railjet: '€29.80–€118', flixbus: '€20–€36', rental: '€170–€320 + tolls' },
+  { label: '4 passenger total', prestigo: '€455 (E) or €505 (V)', railjet: '€59.60–€236', flixbus: '€40–€72', rental: '€200–€370 (7-seat van)' },
+  { label: '6 passenger total', prestigo: '€505 (V-Class, fixed)', railjet: '€89.40–€354', flixbus: '€60–€108', rental: '€250–€420 (7-seat van)' },
   { label: 'Luggage allowance', prestigo: 'Unlimited — V-Class takes 6 large + 6 cabin', railjet: 'No formal limit; racks fill at peak; max 90×60×40 cm', flixbus: '1 cabin bag + 1 checked bag per passenger', rental: 'Whatever fits the car' },
   { label: 'Flexibility / cancellation', prestigo: 'Free up to 1 h before', railjet: 'Sparschiene €14.90 non-refundable; flex €59+ changeable', flixbus: 'Paid cancellation 15 min before', rental: 'Depends on operator; drop-off fee non-refundable' },
   { label: 'Flight tracking on return', prestigo: 'Yes — free', railjet: 'No', flixbus: 'No', rental: 'N/A' },
@@ -123,7 +123,7 @@ const scenarios = [
     title: 'Solo traveller, light bag, booking 2 weeks ahead',
     winner: 'Train (ÖBB or RegioJet Sparschiene)',
     cost: '€14.90 – €25',
-    body: 'Book cd.cz or regiojet.com six to eight weeks out and you will pay between fifteen and twenty-five euros for a four-hour RailJet or RegioJet ride that\u2019s genuinely comfortable — power at every seat, restaurant car, Wi-Fi. The €1.60 Prague metro ride to Praha hl.n. and the €2 Vienna U-Bahn from Wien Hbf bring total door-to-door cost to about €20. No mode beats this for the solo traveller who is not in a hurry and travels light. A private transfer at €485 costs roughly 30× more per passenger for the same trip.',
+    body: 'Book cd.cz or regiojet.com six to eight weeks out and you will pay between fifteen and twenty-five euros for a four-hour RailJet or RegioJet ride that\u2019s genuinely comfortable — power at every seat, restaurant car, Wi-Fi. The €1.60 Prague metro ride to Praha hl.n. and the €2 Vienna U-Bahn from Wien Hbf bring total door-to-door cost to about €20. No mode beats this for the solo traveller who is not in a hurry and travels light. A private transfer at €455 costs roughly 30× more per passenger for the same trip.',
   },
   {
     title: 'Couple, moderate luggage, booking a week ahead',
@@ -134,19 +134,19 @@ const scenarios = [
   {
     title: 'Family of four, holiday, luggage and a child seat',
     winner: 'Private transfer ties with train — transfer wins on stress',
-    cost: 'PRESTIGO €485 / Train €60–€240',
-    body: 'On cost alone, four Sparschiene fares at €60 total beat the €485 E-Class transfer. But: four suitcases plus cabin bags in a RailJet second-class carriage at peak travel is an unpleasant experience — the overhead racks fill by the third car, the large-item bays at the car ends are normally full by Pardubice, and a family with small children plus luggage will typically end up with bags at their feet for four hours. A PRESTIGO E-Class absorbs all of that plus a free child seat, door-to-door pickup from your Prague hotel, and arrival at your Vienna hotel\u2019s actual entrance. For €106 per person it is the rational choice if your travel budget allows.',
+    cost: 'PRESTIGO €455 / Train €60–€240',
+    body: 'On cost alone, four Sparschiene fares at €60 total beat the €455 E-Class transfer. But: four suitcases plus cabin bags in a RailJet second-class carriage at peak travel is an unpleasant experience — the overhead racks fill by the third car, the large-item bays at the car ends are normally full by Pardubice, and a family with small children plus luggage will typically end up with bags at their feet for four hours. A PRESTIGO E-Class absorbs all of that plus a free child seat, door-to-door pickup from your Prague hotel, and arrival at your Vienna hotel\u2019s actual entrance. For €114 per person it is the rational choice if your travel budget allows.',
   },
   {
     title: 'Group of six, multi-stop weekend (Lednice + Wien)',
     winner: 'PRESTIGO V-Class (decisively)',
-    cost: '€560 fixed',
-    body: 'Six people on the train means six €15–€60 tickets (€90–€360 total), plus taxis on both ends, plus the logistics of keeping six people together through two station changes. A V-Class for six is €560 — about €93 per passenger — and includes a 30-minute stop at the Lednice palace gardens, another at Mikulov, and direct delivery to your Vienna apartment. Multi-stop itineraries are effectively impossible on the train. This is the scenario where the V-Class fixed fare becomes the cheapest option on a per-person basis compared to flexible train fares, and the only realistic option if you want to see the UNESCO Lednice-Valtice cultural landscape on the way.',
+    cost: '€505 fixed',
+    body: 'Six people on the train means six €15–€60 tickets (€90–€360 total), plus taxis on both ends, plus the logistics of keeping six people together through two station changes. A V-Class for six is €505 — about €84 per passenger — and includes a 30-minute stop at the Lednice palace gardens, another at Mikulov, and direct delivery to your Vienna apartment. Multi-stop itineraries are effectively impossible on the train. This is the scenario where the V-Class fixed fare becomes the cheapest option on a per-person basis compared to flexible train fares, and the only realistic option if you want to see the UNESCO Lednice-Valtice cultural landscape on the way.',
   },
   {
     title: 'Business traveller, tight meeting window, Tuesday 8am',
     winner: 'PRESTIGO E-Class or S-Class',
-    cost: '€485 – €725',
+    cost: '€455 – €750',
     body: 'The 8am meeting in Vienna\u2019s Innere Stadt requires you to leave Prague before 05:00 on the train (07:00 RailJet arrives Wien Hbf 11:00 — too late) and pray nothing delays the connection. A PRESTIGO S-Class collects you at 04:30 from any Prague address, drives directly to your meeting venue, and you arrive by 07:45 with forty-five minutes for coffee. You work, sleep, or take calls the whole way in a private cabin — the single most expensive thing in a tight business trip is not the transfer fare, it\u2019s an extra overnight hotel because you had to travel the day before.',
   },
   {
@@ -196,7 +196,7 @@ const faqs = [
   },
   {
     q: 'Is a PRESTIGO private transfer ever actually cheaper than the train?',
-    a: 'Yes, in two clear scenarios. First, groups of five or six with luggage: a V-Class at €560 fixed works out to €93 per passenger — cheaper than six flexible RailJet fares (€234–€354) and far cheaper than six last-minute Sparschiene purchases. Second, last-minute business trips inside 72 hours: advance train fares have disappeared and flex RailJet to Vienna with a mandatory seat reservation can reach €60 in 2nd class or €90+ in 1st. Three business travellers travelling together at €60 each is €180 on the train (plus €30 in taxis and metro); a PRESTIGO E-Class is €485 for the same three people, door-to-door — about €160 per head. Add the time saved (2 hours each way) and the ability to work or sleep privately in the cabin, and the transfer is genuinely better value in pure economic terms, not just convenience.',
+    a: 'Yes, in two clear scenarios. First, groups of five or six with luggage: a V-Class at €505 fixed works out to €84 per passenger — cheaper than six flexible RailJet fares (€234–€354) and far cheaper than six last-minute Sparschiene purchases. Second, last-minute business trips inside 72 hours: advance train fares have disappeared and flex RailJet to Vienna with a mandatory seat reservation can reach €60 in 2nd class or €90+ in 1st. Three business travellers travelling together at €60 each is €180 on the train (plus €30 in taxis and metro); a PRESTIGO E-Class is €455 for the same three people, door-to-door — about €152 per head. Add the time saved (2 hours each way) and the ability to work or sleep privately in the cabin, and the transfer is genuinely better value in pure economic terms, not just convenience.',
   },
   {
     q: 'Can I actually bring as much luggage as I want on the RailJet?',
@@ -208,7 +208,7 @@ const faqs = [
   },
   {
     q: 'I\u2019m travelling with kids. Is the train or a private transfer better?',
-    a: 'For kids under 6, RailJet 2nd class is free (ÖBB family ticket), RegioJet is similar, and the restaurant car is a genuine plus — kids love walking to the dining car for hot chocolate on a four-hour trip. The difficulty is luggage plus small children on a crowded train: if you\u2019re a family of four with two suitcases, two cabin bags, a pushchair, and children who need attention, the logistics of the train are tiring. A PRESTIGO E-Class at €485 door-to-door is expensive compared to €60 of Sparschiene tickets, but it includes a free EU-certified child seat or booster, the driver handles all the luggage, and the kids can nap in a quiet private cabin. For one or two kids with light luggage the train is more fun. For three or more kids, multiple cases, or a destination that isn\u2019t Wien Hbf, a V-Class at €560 is the lower-stress option every time.',
+    a: 'For kids under 6, RailJet 2nd class is free (ÖBB family ticket), RegioJet is similar, and the restaurant car is a genuine plus — kids love walking to the dining car for hot chocolate on a four-hour trip. The difficulty is luggage plus small children on a crowded train: if you\u2019re a family of four with two suitcases, two cabin bags, a pushchair, and children who need attention, the logistics of the train are tiring. A PRESTIGO E-Class at €455 door-to-door is expensive compared to €60 of Sparschiene tickets, but it includes a free EU-certified child seat or booster, the driver handles all the luggage, and the kids can nap in a quiet private cabin. For one or two kids with light luggage the train is more fun. For three or more kids, multiple cases, or a destination that isn\u2019t Wien Hbf, a V-Class at €505 is the lower-stress option every time.',
   },
   {
     q: 'What happens if I miss my Sparschiene train or my flight is delayed?',
@@ -275,7 +275,7 @@ export default function ComparePragueViennaPage() {
       {/* Hero */}
       <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20 border-b border-anthracite-light">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Comparison guide · Updated April 2026</p>
+          <p className="label mb-6">Comparison guide · Updated July 2026</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px]">
             Prague to Vienna:<br />
@@ -283,11 +283,11 @@ export default function ComparePragueViennaPage() {
           </h1>
           <p className="body-text text-[14px] mt-6 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Prague to Vienna by train (ÖBB RailJet, RegioJet) costs €15–€30 per person on Sparschiene fares
-            and takes 5h 15min city-centre to city-centre; a private chauffeur (Prestigo) costs from €485 in
+            and takes 5h 15min city-centre to city-centre; a private chauffeur (Prestigo) costs from €455 in
             a Mercedes-Benz E-Class for up to three passengers, runs 3h 15min door-to-door, and includes
             luggage and flexible stops. Bus (RegioJet, FlixBus) from €10 covers the same corridor. Every
             number on this page is verified against ÖBB, RegioJet, FlixBus, and our own dispatch records
-            as of April 2026.
+            as of spring 2026; Prestigo fares re-verified against the live pricing database in July 2026.
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline
@@ -315,7 +315,7 @@ export default function ComparePragueViennaPage() {
               <strong>Take a private transfer</strong> if you are a family or group of 4+, have real luggage,
               are travelling with kids, need door-to-door service to a specific address, or you\u2019re booking
               inside 72 hours and flexible train fares have already climbed above €50 per person. Budget
-              €485 (E-Class) or €560 (V-Class for six), 3h 15min door-to-door, flight tracking on return.
+              €455 (E-Class) or €505 (V-Class for six), 3h 15min door-to-door, flight tracking on return.
             </p>
             <p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
               <strong>Take the bus</strong> if you\u2019re a solo backpacker on a tight budget with no deadline.
@@ -359,7 +359,7 @@ export default function ComparePragueViennaPage() {
             </table>
           </div>
           <p className="body-text text-[11px] mt-4" style={{ lineHeight: '1.7' }}>
-            PRESTIGO fares: Mercedes E-Class €485, S-Class €725, V-Class €560 fixed per vehicle (Prague → Vienna,
+            PRESTIGO fares: Mercedes E-Class €455, S-Class €750, V-Class €505 fixed per vehicle (Prague → Vienna,
             door-to-door, all inclusive, 10 % off return within 24 h). Source: rideprestigo.com/routes/prague-vienna.
           </p>
         </div>
@@ -399,7 +399,11 @@ export default function ComparePragueViennaPage() {
             The direct RailJet runs through some of the best landscape and heritage in Central Europe and
             stops at none of it. If you are taking a private transfer you can add any of these to the itinerary
             at no extra cost beyond reasonable waiting time. A train trip effectively locks you out of all of
-            them unless you buy a flex fare and plan a multi-stop day.
+            them unless you buy a flex fare and plan a multi-stop day. If Brno itself is your destination,
+            we run a dedicated{' '}
+            <a href="/routes/prague-brno" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Prague to Brno transfer</a>;
+            for overnight combinations — Vienna plus Lednice and the Moravian wine country — see our{' '}
+            <a href="/book/multi-day" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>multi-day chauffeur itineraries</a>.
           </p>
           <div className="border border-anthracite-light overflow-x-auto">
             <table className="w-full text-left">
@@ -441,7 +445,11 @@ export default function ComparePragueViennaPage() {
                 you\u2019ll buy a new one at the station for €40–€60. The rule: if there is any chance your
                 outbound departure slips — delayed flight, tight connection, evening train after an all-day meeting —
                 never book Sparschiene. Pay €10–€15 more for the Komfort or flex version, or use RegioJet which
-                is refundable as standard. The same logic applies to connecting trains.
+                is refundable as standard. The same logic applies to connecting trains. And if your Vienna trip
+                starts the moment you land in Prague, an{' '}
+                <a href="/services/airport-transfer" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>airport pickup with flight tracking</a>{' '}
+                removes the missed-connection risk entirely — the driver simply waits (see our{' '}
+                <a href="/blog/prague-airport-to-city-center" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Prague Airport to city centre guide</a>).
               </p>
             </div>
             <div>
@@ -524,7 +532,7 @@ export default function ComparePragueViennaPage() {
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
               Ready for the transfer?<br />
-              <span className="display-italic">€485 fixed. 3h 15min door-to-door.</span>
+              <span className="display-italic">€455 fixed. 3h 15min door-to-door.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Flight tracking on return. 10 % off round trips within 24 h.</p>
           </div>

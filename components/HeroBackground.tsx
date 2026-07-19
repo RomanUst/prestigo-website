@@ -1,20 +1,27 @@
 'use client'
 
-import Image from 'next/image'
+import { getImageProps } from 'next/image'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
 
 /**
  * Parallax background for the Hero.
  *
- * The two cover images (desktop + mobile crop) drift slower than the page
- * scroll and gently zoom, creating depth behind the headline. The wrapper
- * clips with overflow-hidden; the motion layer is oversized (inset -20%) so
- * the translate/scale never reveals an edge.
+ * The two cover crops (desktop + mobile) are served through a single
+ * <picture> element instead of two stacked <Image priority> components:
+ * two priority Images both emit an unconditional preload, so every device
+ * downloaded BOTH hero files at highest priority, competing with the real
+ * LCP. Here each <link rel="preload"> carries a media condition, so a
+ * device preloads exactly one crop.
  *
- * Images are still server-rendered (priority + fetchPriority high) so the
- * Hero LCP is unaffected — Motion only adds transforms on hydration.
- * Respects prefers-reduced-motion: parallax is disabled, image stays static.
+ * Motion only adds transforms on hydration; the <img> itself is
+ * server-rendered. Respects prefers-reduced-motion: parallax is disabled.
  */
+
+const HERO_ALT = 'Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset'
+// Tailwind `sm` breakpoint — keep in sync with the class-based crop switch below.
+const DESKTOP_MEDIA = '(min-width: 640px)'
+const MOBILE_MEDIA = '(max-width: 639px)'
+
 export default function HeroBackground() {
   const reduced = useReducedMotion()
 
@@ -26,32 +33,48 @@ export default function HeroBackground() {
 
   const motionStyle = reduced ? undefined : { y, scale }
 
+  const { props: desktop } = getImageProps({
+    src: '/photohero.jpg',
+    alt: HERO_ALT,
+    fill: true,
+    sizes: '100vw',
+  })
+  const { props: mobile } = getImageProps({
+    src: '/photohero-mobile.jpg',
+    alt: HERO_ALT,
+    fill: true,
+    sizes: '100vw',
+  })
+
   return (
     <div className="absolute inset-0 overflow-hidden">
+      <link
+        rel="preload"
+        as="image"
+        imageSrcSet={desktop.srcSet}
+        imageSizes="100vw"
+        media={DESKTOP_MEDIA}
+        fetchPriority="high"
+      />
+      <link
+        rel="preload"
+        as="image"
+        imageSrcSet={mobile.srcSet}
+        imageSizes="100vw"
+        media={MOBILE_MEDIA}
+        fetchPriority="high"
+      />
       <motion.div className="absolute inset-[-20%] will-change-transform" style={motionStyle}>
-        {/* Desktop (landscape) — chauffeur POV, Prague skyline at golden hour */}
-        <Image
-          src="/photohero.jpg"
-          alt="Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset"
-          fill
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          className="hidden sm:block"
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
-        />
-
-        {/* Mobile (portrait crop) */}
-        <Image
-          src="/photohero-mobile.jpg"
-          alt="Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset"
-          fill
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          className="sm:hidden"
-          style={{ objectFit: 'cover', objectPosition: 'center' }}
-        />
+        <picture>
+          <source media={DESKTOP_MEDIA} srcSet={desktop.srcSet} sizes="100vw" />
+          <img
+            {...mobile}
+            alt={HERO_ALT}
+            loading="eager"
+            fetchPriority="high"
+            style={{ ...mobile.style, objectFit: 'cover', objectPosition: 'center' }}
+          />
+        </picture>
       </motion.div>
     </div>
   )
