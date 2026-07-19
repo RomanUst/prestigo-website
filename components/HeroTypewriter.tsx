@@ -18,6 +18,7 @@ export default function HeroTypewriter() {
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const [interacted, setInteracted] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -27,8 +28,21 @@ export default function HeroTypewriter() {
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
+  // Rotation only starts after the first user interaction. The LCP metric
+  // stops updating at the first input/scroll, so a post-interaction rotation
+  // can never register as a new LCP candidate — while a rotation that runs
+  // before any input re-paints the (briefly opacity-0) span and Chrome
+  // records the swapped word as a fresh, later LCP (observed 10.5 s in lab).
   useEffect(() => {
-    if (reducedMotion) return
+    if (interacted) return
+    const start = () => setInteracted(true)
+    const events: Array<keyof WindowEventMap> = ['scroll', 'pointerdown', 'keydown', 'touchstart', 'wheel']
+    events.forEach(e => window.addEventListener(e, start, { once: true, passive: true }))
+    return () => events.forEach(e => window.removeEventListener(e, start))
+  }, [interacted])
+
+  useEffect(() => {
+    if (reducedMotion || !interacted) return
     const interval = setInterval(() => {
       setVisible(false)
       setTimeout(() => {
@@ -37,7 +51,7 @@ export default function HeroTypewriter() {
       }, 350)
     }, 2500)
     return () => clearInterval(interval)
-  }, [reducedMotion])
+  }, [reducedMotion, interacted])
 
   return (
     <span
