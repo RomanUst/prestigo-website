@@ -6,9 +6,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // Wordmark as a static raster image — letter-spaced inline spans render
 // inconsistently (overlapping/garbled) across email clients (Outlook, some
 // webmail preview panes), so transactional emails use this fixed asset instead.
+// The host is read at call time (not frozen at module load) so the address is
+// always the one configured for the running environment.
 function emailLogoImg(heightPx: number): string {
+  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
   const width = Math.round(heightPx * (1112 / 224))
-  return `<img src="${SITE_URL}/brand/wordmark-email-dark.png" alt="PRESTIGO" width="${width}" height="${heightPx}" style="display: block; margin: 0 auto; border: 0;" />`
+  return `<img src="${base}/brand/wordmark-email-dark.png" alt="PRESTIGO" width="${width}" height="${heightPx}" style="display: block; margin: 0 auto; border: 0;" />`
 }
 
 
