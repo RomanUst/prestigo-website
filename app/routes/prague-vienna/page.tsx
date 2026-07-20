@@ -45,15 +45,6 @@ const inclusions = [
   'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Vienna take?', a: 'Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Vienna cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
-  { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Vienna concierge handoffs or business meetings on arrival. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-]
-
 const dayTripConfigurations = [
   {
     title: 'The Schönbrunn and Belvedere Day',
@@ -99,6 +90,15 @@ export default async function PragueViennaPage() {
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
   const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Vienna take?', a: 'Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Vienna cost?', a: `A fixed fare from €${ePrice} in a Mercedes E-Class for up to 3 passengers, €${vPrice} in the V-Class for up to 6, or €${sPrice} in the S-Class. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
+    { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Vienna concierge handoffs or business meetings on arrival. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+  ]
 
   const highlights = [
     { label: 'Distance', value: '330 km' },

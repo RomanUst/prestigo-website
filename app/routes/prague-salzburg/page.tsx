@@ -44,15 +44,6 @@ const inclusions = [
   'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
-const faqs = [
-  { q: 'How long does a private transfer from Prague to Salzburg take?', a: 'Approximately 3.5 to 4 hours door-to-door. The primary route runs south on the D3 through Tábor and České Budějovice, crosses the Austrian border at Wullowitz/Dolní Dvořiště, then joins the S10 to Linz and the A1 west to Salzburg. Friday afternoon traffic out of Prague or summer Festspiele congestion can add 20–30 minutes.' },
-  { q: 'How much does a chauffeur from Prague to Salzburg cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, both vignettes, all tolls, and driver time. No hidden charges at drop-off.' },
-  { q: 'Is a same-day round trip from Prague to Salzburg workable?', a: 'It is possible — roughly seven to eight hours of driving plus time on site — but most clients choose to overnight in Salzburg. The Altstadt, Hohensalzburg fortress, and Mirabell gardens are difficult to see properly in a few hours. If you do want a same-day return, your chauffeur waits on site and the return leg qualifies for a 10% discount.' },
-  { q: 'Is there a border crossing between the Czech Republic and Austria?', a: 'Both countries are inside the Schengen Area. The crossing at Wullowitz/Dolní Dvořiště is invisible — no passport booth, no stop. All Prestigo vehicles carry both the Czech e-vignette and the Austrian motorway vignette.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-]
-
 const dayTripConfigurations = [
   {
     title: 'The Mozart City Morning',
@@ -98,6 +89,15 @@ export default async function PragueSalzburgPage() {
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
   const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const faqs = [
+    { q: 'How long does a private transfer from Prague to Salzburg take?', a: 'Approximately 3.5 to 4 hours door-to-door. The primary route runs south on the D3 through Tábor and České Budějovice, crosses the Austrian border at Wullowitz/Dolní Dvořiště, then joins the S10 to Linz and the A1 west to Salzburg. Friday afternoon traffic out of Prague or summer Festspiele congestion can add 20–30 minutes.' },
+    { q: 'How much does a chauffeur from Prague to Salzburg cost?', a: `A fixed fare from €${ePrice} in a Mercedes E-Class for up to 3 passengers, €${vPrice} in the V-Class for up to 6, or €${sPrice} in the S-Class. The price covers fuel, both the Czech and Austrian vignettes, all tolls, and driver time. No hidden charges at drop-off.` },
+    { q: 'Is a same-day round trip from Prague to Salzburg workable?', a: 'It is possible — roughly seven to eight hours of driving plus time on site — but most clients choose to overnight in Salzburg. The Altstadt, Hohensalzburg fortress, and Mirabell gardens are difficult to see properly in a few hours. If you do want a same-day return, your chauffeur waits on site and the return leg qualifies for a 10% discount.' },
+    { q: 'Is there a border crossing between the Czech Republic and Austria?', a: 'Both countries are inside the Schengen Area. The crossing at Wullowitz/Dolní Dvořiště is invisible — no passport booth, no stop. All Prestigo vehicles carry both the Czech e-vignette and the Austrian motorway vignette.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+  ]
 
   const highlights = [
     { label: 'Distance', value: '~305 km' },
