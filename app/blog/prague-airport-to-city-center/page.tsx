@@ -365,7 +365,7 @@ export default function GuidePragueAirportPage() {
           <p className="label mb-6">Travel guide · Updated April 2026</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px]">
-            Prague Airport<br />
+            Prague Airport <br />
             <span className="display-italic">to the city centre.</span>
           </h1>
           <p className="body-text text-[14px] mt-6 max-w-2xl" style={{ lineHeight: '1.9' }}>
@@ -595,7 +595,7 @@ export default function GuidePragueAirportPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
-              Skip the airport taxi rank.<br />
+              Skip the airport taxi rank. <br />
               <span className="display-italic">€69 fixed. Chauffeur inside Arrivals.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.</p>

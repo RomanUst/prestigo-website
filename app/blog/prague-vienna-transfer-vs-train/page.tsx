@@ -284,7 +284,7 @@ export default function ComparePragueViennaPage() {
           <p className="label mb-6">Comparison guide · Updated July 2026</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px]">
-            Prague to Vienna:<br />
+            Prague to Vienna: <br />
             <span className="display-italic">the honest comparison.</span>
           </h1>
           <p className="body-text text-[14px] mt-6 max-w-2xl" style={{ lineHeight: '1.9' }}>
@@ -537,7 +537,7 @@ export default function ComparePragueViennaPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
-              Ready for the transfer?<br />
+              Ready for the transfer? <br />
               <span className="display-italic">€455 fixed. 3h 15min door-to-door.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Flight tracking on return. 10 % off round trips within 24 h.</p>

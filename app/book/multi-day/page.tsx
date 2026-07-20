@@ -228,7 +228,7 @@ export default function MultiDayPage() {
               color: 'var(--offwhite)',
             }}
           >
-            One chauffeur. Every day.<br />Wherever Central Europe takes you.
+            One chauffeur. Every day. <br />Wherever Central Europe takes you.
           </h1>
           <p
             style={{

@@ -130,7 +130,7 @@ export default async function PragueWroclawPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Wrocław</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Wrocław,<br /><span className="display-italic">Lower Silesia direct.</span></h1>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Wrocław, <br /><span className="display-italic">Lower Silesia direct.</span></h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>285 km northeast to Poland&apos;s city of dwarfs and one of Central Europe&apos;s most vibrant market squares. Three hours, one fixed price, door to door across the border.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
@@ -171,7 +171,7 @@ export default async function PragueWroclawPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Wrocław<br /><span className="display-italic">in three hours.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Wrocław <br /><span className="display-italic">in three hours.</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
@@ -194,7 +194,7 @@ export default async function PragueWroclawPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included, <br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Wrocław drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Polish tolls. Business meeting in Lower Silesia, cultural weekend on the Rynek, or a Silesian family visit — your driver handles the route while you focus on the destination.</p>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
@@ -222,7 +222,7 @@ export default async function PragueWroclawPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Wrocław,<br /><span className="display-italic">the route.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Wrocław, <br /><span className="display-italic">the route.</span></h2>
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
@@ -255,7 +255,7 @@ export default async function PragueWroclawPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
-            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect <br /><span className="display-italic">from your driver.</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
@@ -278,7 +278,7 @@ export default async function PragueWroclawPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
-            Why book with Prestigo<br /><span className="display-italic">for Prague to Wrocław.</span>
+            Why book with Prestigo <br /><span className="display-italic">for Prague to Wrocław.</span>
           </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {whyBook.map((w, i) => (
@@ -308,7 +308,7 @@ export default async function PragueWroclawPage() {
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
-            Continue across<br /><span className="display-italic">Central Europe.</span>
+            Continue across <br /><span className="display-italic">Central Europe.</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Wrocław is the gateway between Prague and the rest of Poland. Many clients combine the Wrocław run with Kraków, Warsaw, or a Czech stop on the way. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
@@ -335,7 +335,7 @@ export default async function PragueWroclawPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Wrocław.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Wrocław. <br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

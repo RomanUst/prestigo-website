@@ -124,7 +124,7 @@ export default function CorporatePage() {
           <p className="label mb-6">Corporate Accounts</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Corporate chauffeur accounts.<br />
+            Corporate chauffeur accounts. <br />
             <span className="display-italic">We make it effortless.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -256,7 +256,7 @@ export default function CorporatePage() {
           <div className="mb-14">
             <p className="label mb-6">Typical usage patterns</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">What a week on a<br /><span className="display-italic">PRESTIGO account looks like.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">What a week on a <br /><span className="display-italic">PRESTIGO account looks like.</span></h2>
           </div>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">

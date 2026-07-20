@@ -177,7 +177,7 @@ export default function FaqPage() {
           <p className="label mb-6">Frequently Asked Questions</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Everything you need to know.<br />
+            Everything you need to know. <br />
             <span className="display-italic">Before you ask.</span>
           </h1>
         </div>
@@ -211,7 +211,7 @@ export default function FaqPage() {
       <section className="bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-4">
-            Still have a question?<br />
+            Still have a question? <br />
             <span className="display-italic">We respond within the hour.</span>
           </h2></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">

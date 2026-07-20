@@ -231,7 +231,7 @@ export default function FleetPage() {
           <p className="label mb-6">Mercedes Fleet · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Mercedes Chauffeur Fleet.<br />
+            Mercedes Chauffeur Fleet. <br />
             <span className="display-italic">Part of the experience.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -364,7 +364,7 @@ export default function FleetPage() {
           <div className="mb-14">
             <p className="label mb-6">Maintenance &amp; Safety</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">Prepared before<br /><span className="display-italic">every journey.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">Prepared before <br /><span className="display-italic">every journey.</span></h2>
           </div>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -403,7 +403,7 @@ export default function FleetPage() {
           <div>
             <p className="label mb-6">Technology onboard</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px] mb-6">A rolling office.<br /><span className="display-italic">A quiet sanctuary.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-6">A rolling office. <br /><span className="display-italic">A quiet sanctuary.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
               Our passengers often arrive at the car with work still to finish — or nerves still to settle after a long flight. The cabin of every PRESTIGO vehicle is prepared for both. Whether you need to take a video call between meetings or simply close your eyes for an hour, the interior adapts to you, not the other way around.
             </p>
@@ -485,7 +485,7 @@ export default function FleetPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <Reveal variant="up">
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Choose your vehicle.<br />
+            Choose your vehicle. <br />
             <span className="display-italic">Book online.</span>
           </h2>
           <p className="body-text text-[13px] mt-4 mb-10">Select your preferred class at checkout.</p>
