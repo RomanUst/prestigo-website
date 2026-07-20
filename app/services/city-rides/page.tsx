@@ -122,7 +122,7 @@ export default async function CityRidesPage() {
           <p className="label mb-6">Hourly Car Rental with Chauffeur · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Prague at your pace.<br />
+            Prague at your pace. <br />
             <span className="display-italic">Your chauffeur waits.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -235,7 +235,7 @@ export default async function CityRidesPage() {
           <p className="label mb-6">Ready to explore Prague?</p>
           <span className="copper-line mb-8 block mx-auto" />
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Book your city ride<br />
+            Book your city ride <br />
             <span className="display-italic">in under 60 seconds.</span>
           </h2>
           <div className="mt-10">

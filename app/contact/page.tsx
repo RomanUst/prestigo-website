@@ -53,7 +53,7 @@ export default function ContactPage() {
           <p className="label mb-6">Contact · Prague Chauffeur Service</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Contact PRESTIGO Prague.<br />
+            Contact PRESTIGO Prague. <br />
             <span className="display-italic">We are here, always.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-md" style={{ lineHeight: '1.9' }}>

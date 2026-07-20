@@ -94,7 +94,7 @@ export default function BookPage() {
           <p className="label mb-6">Instant Booking</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[52px] max-w-xl">
-            Your transfer,<br />
+            Your transfer, <br />
             <span className="display-italic">confirmed in seconds.</span>
           </h1>
           <p className="body-text text-[13px] mt-4">Fixed price. Instant confirmation. No callbacks.</p>

@@ -113,7 +113,7 @@ export default async function RoutesPage() {
           <p className="label mb-6">Intercity Routes</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Central Europe,<br />
+            Central Europe, <br />
             <span className="display-italic">door to door.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -132,7 +132,7 @@ export default async function RoutesPage() {
               <Reveal variant="up"><div className="mb-10">
                 <p className="label mb-4">Most popular routes</p>
                 <span className="copper-line mb-6 block" />
-                <h2 className="display text-[28px] md:text-[36px]">Top routes from Prague,<br /><span className="display-italic">live pricing.</span></h2>
+                <h2 className="display text-[28px] md:text-[36px]">Top routes from Prague, <br /><span className="display-italic">live pricing.</span></h2>
               </div></Reveal>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {top10.map((r, i) => (
@@ -349,7 +349,7 @@ export default async function RoutesPage() {
           <Reveal variant="up"><div className="mb-14">
             <p className="label mb-6">Borders, tolls &amp; paperwork</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">Crossing borders<br /><span className="display-italic">without the friction.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">Crossing borders <br /><span className="display-italic">without the friction.</span></h2>
           </div></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
             {[
@@ -486,7 +486,7 @@ export default async function RoutesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
-              Not seeing your destination?<br />
+              Not seeing your destination? <br />
               <span className="display-italic">We go anywhere.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">PRESTIGO covers all destinations across Central Europe.</p>

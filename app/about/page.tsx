@@ -129,7 +129,7 @@ export default function AboutPage() {
           <p className="label mb-6">About PRESTIGO</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Prague's chauffeur service.<br />
+            Prague's chauffeur service. <br />
             <span className="display-italic">International standard.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -375,7 +375,7 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px]">
-            Travel with PRESTIGO.<br />
+            Travel with PRESTIGO. <br />
             <span className="display-italic">Experience the difference.</span>
           </h2>
           </Reveal>

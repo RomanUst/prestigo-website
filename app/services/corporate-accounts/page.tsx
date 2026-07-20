@@ -84,7 +84,7 @@ export default function CorporateAccountsPage() {
           <p className="label mb-6">Corporate Accounts · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Your company travels.<br />
+            Your company travels. <br />
             <span className="display-italic">We make it effortless.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
@@ -199,7 +199,7 @@ export default function CorporateAccountsPage() {
           <p className="label mb-6">Set up your account</p>
           <span className="copper-line mb-8 block mx-auto" />
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Account ready<br />
+            Account ready <br />
             <span className="display-italic">within 24 hours.</span>
           </h2>
           <div className="mt-10">

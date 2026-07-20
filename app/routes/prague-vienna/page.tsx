@@ -149,7 +149,7 @@ export default async function PragueViennaPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Prague → Vienna</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Vienna,<br /><span className="display-italic">door to door.</span></h1>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Vienna, <br /><span className="display-italic">door to door.</span></h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Prague to Vienna by private chauffeur is a 330 km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo&rsquo;s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">Book this Route</a>
@@ -190,7 +190,7 @@ export default async function PragueViennaPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Route</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Vienna<br /><span className="display-italic">in three and a half hours.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Vienna <br /><span className="display-italic">in three and a half hours.</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
@@ -213,7 +213,7 @@ export default async function PragueViennaPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">What&apos;s Included</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included,<br /><span className="display-italic">nothing to arrange.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included, <br /><span className="display-italic">nothing to arrange.</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Vienna drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Austrian vignette, every toll. Business meeting, opera evening, or a long weekend in the Habsburg capital — your driver handles the route while you focus on the destination.</p>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
@@ -241,7 +241,7 @@ export default async function PragueViennaPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Journey</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Vienna,<br /><span className="display-italic">the route.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Vienna, <br /><span className="display-italic">the route.</span></h2>
             <div className="flex flex-col gap-8 mt-10">
               {[
                 { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
@@ -274,7 +274,7 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Day Trips from Prague</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip<br /><span className="display-italic">configurations.</span></h2>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip <br /><span className="display-italic">configurations.</span></h2>
           <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Vienna is a longer day from Prague than Dresden, but the Prague–Vienna day trip is one of the most-requested Prestigo bookings. Three configurations cover most requests.
           </p></Reveal>
@@ -300,7 +300,7 @@ export default async function PragueViennaPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
             <p className="label mb-6">The Chauffeur</p>
-            <h2 className="display text-[28px] md:text-[38px]">What to expect<br /><span className="display-italic">from your driver.</span></h2>
+            <h2 className="display text-[28px] md:text-[38px]">What to expect <br /><span className="display-italic">from your driver.</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
@@ -323,7 +323,7 @@ export default async function PragueViennaPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
-            Why book with Prestigo<br /><span className="display-italic">for Prague to Vienna.</span>
+            Why book with Prestigo <br /><span className="display-italic">for Prague to Vienna.</span>
           </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {whyBook.map((w, i) => (
@@ -353,7 +353,7 @@ export default async function PragueViennaPage() {
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="label mb-6">Related Routes</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
-            Continue across<br /><span className="display-italic">Central Europe.</span>
+            Continue across <br /><span className="display-italic">Central Europe.</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
             Vienna sits at the centre of the old Habsburg corridor — Bratislava is an hour east, Budapest two hours beyond, and Salzburg lies west toward the Alps. Many clients combine the Vienna run with another capital or extend into Slovakia. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
@@ -380,7 +380,7 @@ export default async function PragueViennaPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Vienna.<br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Vienna. <br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
         </div>
       </section>

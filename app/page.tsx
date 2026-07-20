@@ -49,13 +49,24 @@ export const metadata: Metadata = {
   },
 }
 
+// Canonical Google Maps place URL built from the public Place ID (a Place ID
+// is public data — every Maps link exposes it — so it is safe to embed in
+// JSON-LD). Falls back to the share link only when GOOGLE_PLACE_ID is unset
+// (local dev); on Vercel the env var is always present at build.
+const MAPS_URL = process.env.GOOGLE_PLACE_ID
+  ? `https://www.google.com/maps/place/?q=place_id:${process.env.GOOGLE_PLACE_ID}`
+  : 'https://share.google/dPIa4HI97jeLPidw9'
+
 const localBusinessSchema = {
   '@context': 'https://schema.org',
   '@type': ['LocalBusiness', 'TaxiService'],
   '@id': 'https://rideprestigo.com/#business',
   name: 'PRESTIGO',
   legalName: 'chelautotrans s.r.o.',
-  taxID: '05650801',
+  // IČO is the Czech company registration number, not a tax ID — expose it as
+  // a typed identifier and give the actual VAT number (DIČ) via vatID.
+  identifier: { '@type': 'PropertyValue', propertyID: 'IČO', value: '05650801' },
+  vatID: 'CZ05650801',
   description:
     'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
   url: 'https://rideprestigo.com',
@@ -106,7 +117,7 @@ const localBusinessSchema = {
   ],
   foundingDate: '2016',
   slogan: 'The first person in Prague who is already on your side.',
-  hasMap: 'https://share.google/dPIa4HI97jeLPidw9',
+  hasMap: MAPS_URL,
   serviceArea: {
     '@type': 'GeoCircle',
     geoMidpoint: {
@@ -117,7 +128,7 @@ const localBusinessSchema = {
     geoRadius: '1000000',
   },
   sameAs: [
-    'https://share.google/dPIa4HI97jeLPidw9',
+    MAPS_URL,
     'https://www.instagram.com/rideprestigo/',
     'https://www.facebook.com/profile.php?id=61574283117859',
   ],
