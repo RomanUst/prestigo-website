@@ -120,6 +120,18 @@ export default async function ServicesPage() {
       image: '/hero-intercity-routes.png',
     },
     {
+      label: 'CONCIERGE',
+      title: 'Concierge Chauffeur',
+      description: 'Not just a driver — a concierge at the wheel. Reservations confirmed, local knowledge offered, errands absorbed, plans changed on the day without a second thought. One trusted, English-speaking person handles the logistics of your time in Prague.',
+      features: ['Reservations & hotel liaison', 'Local knowledge, not a GPS', 'Errands & shopping handled', 'Same chauffeur across your stay'],
+      price: null,
+      cta: 'LEARN MORE',
+      href: '/services/concierge',
+      bookHref: '/book',
+      bookCta: 'BOOK NOW',
+      image: '/hero-contact.webp',
+    },
+    {
       label: 'CORPORATE',
       title: 'Corporate Accounts',
       description: 'A dedicated account for your company. Monthly invoicing, consolidated reporting, a named account manager. Your travel manager books once, PRESTIGO handles everything else.',
