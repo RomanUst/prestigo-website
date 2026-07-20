@@ -14,8 +14,8 @@ export async function generateMetadata(): Promise<Metadata> {
   const { hourlyRate } = await getPricingConfig()
   const from = hourlyRate['business'] ?? 49
   return {
-    title: { absolute: 'City Rides — Hourly Chauffeur in Prague | PRESTIGO' },
-    description: `Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €${from}/hour.`,
+    title: { absolute: 'Car Rental with Chauffeur in Prague — Hourly Hire | PRESTIGO' },
+    description: `Rent a car with a private chauffeur in Prague by the hour — business meetings, sightseeing, dining, shopping. Mercedes fleet, from €${from}/hour, 2-hour minimum, 24/7.`,
     alternates: {
       canonical: '/services/city-rides',
       languages: {
@@ -25,8 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/services/city-rides',
-      title: 'Prague City Rides — Hourly Chauffeur Hire | PRESTIGO',
-      description: `Hourly chauffeur hire within Prague. Business meetings, sightseeing, theatre, private dinners. Airport-quality service at city rates. From €${from}/hour.`,
+      title: 'Car Rental with Chauffeur in Prague — Hourly Hire | PRESTIGO',
+      description: `Rent a car with a private chauffeur in Prague by the hour — business meetings, sightseeing, dining, shopping. Mercedes fleet, from €${from}/hour, 2-hour minimum, 24/7.`,
       images: [{ url: 'https://rideprestigo.com/hero-city-rides.png', width: 1200, height: 630 }],
     },
   }
@@ -38,7 +38,7 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
     { '@type': 'ListItem', position: 2, name: 'Services', item: 'https://rideprestigo.com/services' },
-    { '@type': 'ListItem', position: 3, name: 'City Rides', item: 'https://rideprestigo.com/services/city-rides' },
+    { '@type': 'ListItem', position: 3, name: 'Car Rental with Chauffeur', item: 'https://rideprestigo.com/services/city-rides' },
   ],
 }
 
@@ -95,8 +95,8 @@ export default async function CityRidesPage() {
   const serviceSchema = {
     '@context': 'https://schema.org',
     '@type': 'Service',
-    name: 'Prague City Rides — Hourly Chauffeur Hire',
-    description: 'Hourly chauffeur hire within Prague for business meetings, sightseeing, leisure, and events. Airport-quality service at city rates.',
+    name: 'Car Rental with Chauffeur in Prague — Hourly Hire',
+    description: 'Rent a car with a private chauffeur in Prague by the hour — for business meetings, sightseeing, leisure, dining, and events. Same Mercedes fleet and chauffeur standard as our airport service, at city rates.',
     provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
     areaServed: 'Prague, Czech Republic',
     url: 'https://rideprestigo.com/services/city-rides',
@@ -122,11 +122,11 @@ export default async function CityRidesPage() {
           <p className="label mb-6">Hourly Car Rental with Chauffeur · Prague</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Prague at your pace. <br />
-            <span className="display-italic">Your chauffeur waits.</span>
+            Rent a car with a chauffeur.<br />
+            <span className="display-italic">Prague, by the hour.</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prestigo Prague city rides offer hourly chauffeur hire in a Mercedes-Benz E-Class, S-Class, or V-Class, with a 2-hour minimum and no upper limit. Your driver and vehicle stay with you for the full duration — business meetings, theatre, shopping, private dining, or airport waits. Hourly rate is fixed at booking.
+            Rent a car with a private chauffeur in Prague by the hour — a Mercedes-Benz E-Class, S-Class, or V-Class with a 2-hour minimum and no upper limit. Your driver and vehicle stay with you for the full duration: business meetings, theatre, shopping, private dining, or airport waits. The hourly rate is fixed at booking.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <a href="/book" className="btn-primary">Book a City Ride</a>

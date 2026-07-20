@@ -41,10 +41,17 @@ const services: Service[] = [
   },
   {
     label: 'City',
-    title: 'Prague City Rides',
-    body: 'Hourly hire within Prague. Business meetings, sightseeing, theatre — at your pace.',
+    title: 'Car Rental with Chauffeur',
+    body: 'Rent a car with a private chauffeur in Prague by the hour. Business meetings, sightseeing, theatre — at your pace.',
     detail: '1–8 hours',
     href: '/services/city-rides',
+  },
+  {
+    label: 'Concierge',
+    title: 'Concierge Chauffeur',
+    body: 'Not just a driver — a concierge at the wheel. Reservations, local knowledge, errands and hotel liaison, handled around every ride.',
+    detail: 'Included on every journey',
+    href: '/services/concierge',
   },
   {
     label: 'Group',

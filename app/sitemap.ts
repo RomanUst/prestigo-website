@@ -46,6 +46,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     // /routes (see its metadata) to consolidate signals on the routes hub.
     entry('/services/vip-events', 'app/services/vip-events/page.tsx'),
     entry('/services/city-rides', 'app/services/city-rides/page.tsx'),
+    entry('/services/concierge', 'app/services/concierge/page.tsx'),
     entry('/services/group-transfers', 'app/services/group-transfers/page.tsx'),
     entry('/fleet', 'app/fleet/page.tsx'),
     entry('/routes', 'app/routes/page.tsx'),
