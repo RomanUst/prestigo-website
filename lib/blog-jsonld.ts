@@ -6,8 +6,10 @@
  *  editorial timestamp, correct distinction from existing editorial pages."
  *
  * Returns a @graph with BreadcrumbList + BlogPosting. The publisher node
- * references the existing #business LocalBusiness @id declared in the
- * site-wide schema; we don't re-emit the full LocalBusiness here.
+ * shares the #business @id declared in the site-wide schema but re-emits
+ * name + logo inline: Google validates Article publisher per-page, so an
+ * @id-only reference (whose target node isn't on the blog page) leaves the
+ * required name/logo unresolved.
  */
 
 import type { BlogPost } from '@/lib/blog'
@@ -42,9 +44,17 @@ export function buildBlogPostingJsonLd(post: BlogPost): Record<string, unknown> 
         },
         author: personSchemaFor(post.author),
         publisher: {
-          '@type': 'LocalBusiness',
+          '@type': 'Organization',
           '@id': `${ORIGIN}/#business`,
+          name: 'PRESTIGO',
+          logo: {
+            '@type': 'ImageObject',
+            url: `${ORIGIN}/logo.png`,
+            width: 512,
+            height: 512,
+          },
         },
+        mainEntityOfPage: articleUrl,
         url: articleUrl,
         datePublished: post.date,
         dateModified: post.dateModified ?? post.date,

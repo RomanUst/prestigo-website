@@ -44,15 +44,6 @@ const inclusions = [
   'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
 ]
 
-const faqs = [
-  { q: 'How long does the Prague to Warsaw transfer take?', a: 'Approximately 7 hours door-to-door. The primary route takes the Czech D1 east through Brno to Ostrava, crosses the Polish border near Cieszyn, then follows the A1 north and the S8 east to Warsaw. Traffic on the Polish A4 toll section around Katowice can add 20–30 minutes during weekday rush hour.' },
-  { q: 'How much does a chauffeur from Prague to Warsaw cost?', a: 'Please see current prices on this page — fares are loaded from our live pricing database. The price covers fuel, the Czech vignette, Polish tolls, and driver time. No hidden charges.' },
-  { q: 'Can I book a same-day round trip from Prague to Warsaw?', a: 'Technically yes, but the round trip is roughly 14 hours on the road, which is heavy for a single day. Most clients overnight in Warsaw and book the return for the following day. A return within 12 hours receives a 10% discount; a return the next morning is billed as two one-way transfers.' },
-  { q: 'Is there a border crossing between Prague and Warsaw?', a: 'Yes, the Czech–Polish Schengen border, typically crossed at Chotěbuz/Cieszyn near Český Těšín or alternatively at Náchod/Kudowa-Zdrój on the northern route. There are no passport checks for EU citizens. Non-EU passengers should carry valid travel documents in case of a random inspection.' },
-  { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-  { q: 'Can the chauffeur speak Polish?', a: 'A Polish-speaking chauffeur is available on request and recommended for business meetings in Warsaw where translation may help. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-]
-
 const whyBook = [
   {
     title: 'Fixed fare, no surprises',
@@ -80,6 +71,15 @@ export default async function PragueWarsawPage() {
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
   const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+
+  const faqs = [
+    { q: 'How long does the Prague to Warsaw transfer take?', a: 'Approximately 7 hours door-to-door. The primary route takes the Czech D1 east through Brno to Ostrava, crosses the Polish border near Cieszyn, then follows the A1 north and the S8 east to Warsaw. Traffic on the Polish A4 toll section around Katowice can add 20–30 minutes during weekday rush hour.' },
+    { q: 'How much does a chauffeur from Prague to Warsaw cost?', a: `A fixed fare from €${ePrice} in a Mercedes E-Class for up to 3 passengers, €${vPrice} in the V-Class for up to 6, or €${sPrice} in the S-Class. The price covers fuel, the Czech vignette, Polish motorway tolls, and driver time. No hidden charges.` },
+    { q: 'Can I book a same-day round trip from Prague to Warsaw?', a: 'Technically yes, but the round trip is roughly 14 hours on the road, which is heavy for a single day. Most clients overnight in Warsaw and book the return for the following day. A return within 12 hours receives a 10% discount; a return the next morning is billed as two one-way transfers.' },
+    { q: 'Is there a border crossing between Prague and Warsaw?', a: 'Yes, the Czech–Polish Schengen border, typically crossed at Chotěbuz/Cieszyn near Český Těšín or alternatively at Náchod/Kudowa-Zdrój on the northern route. There are no passport checks for EU citizens. Non-EU passengers should carry valid travel documents in case of a random inspection.' },
+    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
+    { q: 'Can the chauffeur speak Polish?', a: 'A Polish-speaking chauffeur is available on request and recommended for business meetings in Warsaw where translation may help. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
+  ]
 
   const highlights = [
     { label: 'Distance', value: '~660 km' },
