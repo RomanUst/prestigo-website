@@ -56,51 +56,51 @@ export function buildBespokeOperatorHtml(p: BespokePayload): string {
 
   const metaRows = `
     <tr>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
         Occasion
       </td>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
         ${safeOccasion}
       </td>
     </tr>
     <tr>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
         Guests
       </td>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
         ${p.guests}
       </td>
     </tr>
     <tr>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
         Date
       </td>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
         ${safeDate}
       </td>
     </tr>
     <tr>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
         Time
       </td>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
         ${safeTime}
       </td>
     </tr>
     <tr>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
         Name
       </td>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
         ${safeName}
       </td>
     </tr>
     <tr>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
         Email
       </td>
-      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
-        <a href="mailto:${safeEmail}" style="color:#B87333;text-decoration:none">${safeEmail}</a>
+      <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
+        <a href="mailto:${safeEmail}" style="color:#BFA06A;text-decoration:none">${safeEmail}</a>
       </td>
     </tr>
   `
@@ -112,18 +112,18 @@ export function buildBespokeOperatorHtml(p: BespokePayload): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bespoke Quote Request</title>
 </head>
-<body style="margin:0;padding:0;background:#28282B;font-family:Arial,Helvetica,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#28282B;padding:32px 16px">
+<body style="margin:0;padding:0;background:#0F1D2C;font-family:Arial,Helvetica,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1D2C;padding:32px 16px">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#36363B;border-radius:4px;padding:24px">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#17293B;border-radius:4px;padding:24px">
           <tr>
             <td>
               <!-- Header -->
-              <p style="margin:0 0 8px 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;color:#CFC9C2;letter-spacing:0.15em;text-transform:uppercase">
+              <p style="margin:0 0 8px 0;font-family:'Fraunces',Georgia,serif;font-size:14px;color:#A9AEB0;letter-spacing:0.15em;text-transform:uppercase">
                 PRESTIGO
               </p>
-              <h1 style="margin:0 0 24px 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#B87333;font-weight:300;line-height:1.1">
+              <h1 style="margin:0 0 24px 0;font-family:'Fraunces',Georgia,serif;font-size:28px;color:#BFA06A;font-weight:300;line-height:1.1">
                 Bespoke Quote Request
               </h1>
 
@@ -134,10 +134,10 @@ export function buildBespokeOperatorHtml(p: BespokePayload): string {
 
               <!-- Special requests block -->
               <div style="margin-bottom:24px">
-                <p style="margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;text-transform:uppercase;letter-spacing:0.1em">
+                <p style="margin:0 0 8px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;text-transform:uppercase;letter-spacing:0.1em">
                   Special Requests
                 </p>
-                <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#CFC9C2;background:#28282B;padding:12px;border-radius:2px;white-space:pre-wrap;line-height:1.6">
+                <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#A9AEB0;background:#0F1D2C;padding:12px;border-radius:2px;white-space:pre-wrap;line-height:1.6">
                   ${safeSpecialRequests}
                 </div>
               </div>
@@ -145,13 +145,13 @@ export function buildBespokeOperatorHtml(p: BespokePayload): string {
               <!-- Reply link -->
               <div style="margin-bottom:24px">
                 <a href="mailto:${safeEmail}"
-                   style="display:inline-block;background:transparent;border:1px solid #B87333;color:#F5F2EE;padding:14px 32px;font-size:11px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none;font-family:Arial,Helvetica,sans-serif">
+                   style="display:inline-block;background:transparent;border:1px solid #BFA06A;color:#F3EEE3;padding:14px 32px;font-size:11px;letter-spacing:0.35em;text-transform:uppercase;text-decoration:none;font-family:Arial,Helvetica,sans-serif">
                   REPLY TO CLIENT &rarr;
                 </a>
               </div>
 
               <!-- Footer -->
-              <p style="color:#CFC9C2;font-size:12px;font-family:Arial,Helvetica,sans-serif;margin:0">
+              <p style="color:#A9AEB0;font-size:12px;font-family:Arial,Helvetica,sans-serif;margin:0">
                 Prestigo &mdash; Premium Transfers &middot; bookings@rideprestigo.com
               </p>
             </td>
@@ -180,51 +180,51 @@ export function buildBespokeClientAckHtml(p: BespokePayload): string {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Your bespoke request is received</title>
 </head>
-<body style="margin:0;padding:0;background:#28282B;font-family:Arial,Helvetica,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#28282B;padding:32px 16px">
+<body style="margin:0;padding:0;background:#0F1D2C;font-family:Arial,Helvetica,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0F1D2C;padding:32px 16px">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#36363B;border-radius:4px;padding:24px">
+        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background:#17293B;border-radius:4px;padding:24px">
           <tr>
             <td>
               <!-- Header -->
-              <p style="margin:0 0 8px 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:14px;color:#CFC9C2;letter-spacing:0.15em;text-transform:uppercase">
+              <p style="margin:0 0 8px 0;font-family:'Fraunces',Georgia,serif;font-size:14px;color:#A9AEB0;letter-spacing:0.15em;text-transform:uppercase">
                 PRESTIGO
               </p>
-              <h1 style="margin:0 0 24px 0;font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#B87333;font-weight:300;line-height:1.1">
+              <h1 style="margin:0 0 24px 0;font-family:'Fraunces',Georgia,serif;font-size:28px;color:#BFA06A;font-weight:300;line-height:1.1">
                 Your bespoke request is received
               </h1>
 
               <!-- Body -->
-              <p style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#CFC9C2;line-height:1.6;margin:0 0 16px 0">
+              <p style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#A9AEB0;line-height:1.6;margin:0 0 16px 0">
                 Dear ${safeName},
               </p>
-              <p style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#CFC9C2;line-height:1.6;margin:0 0 16px 0">
+              <p style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#A9AEB0;line-height:1.6;margin:0 0 16px 0">
                 Thank you for reaching out to PRESTIGO. We have received your bespoke quote request and our team will respond within 24 hours with a tailored proposal.
               </p>
 
               <!-- Summary table -->
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px">
                 <tr>
-                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
                     Occasion
                   </td>
-                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
                     ${safeOccasion}
                   </td>
                 </tr>
                 <tr>
-                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56">
+                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056">
                     Date
                   </td>
-                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#CFC9C2;border-top:1px solid #4E4E56;text-align:right">
+                  <td style="padding:6px 0;font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#A9AEB0;border-top:1px solid #2B4056;text-align:right">
                     ${safeDate}
                   </td>
                 </tr>
               </table>
 
               <!-- Footer -->
-              <p style="color:#CFC9C2;font-size:12px;font-family:Arial,Helvetica,sans-serif;margin:0">
+              <p style="color:#A9AEB0;font-size:12px;font-family:Arial,Helvetica,sans-serif;margin:0">
                 Prestigo &mdash; Premium Transfers &middot; bookings@rideprestigo.com
               </p>
             </td>
