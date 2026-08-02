@@ -8,19 +8,19 @@
 
 import { renderPostHTML, renderStoryHTML, type BrandCopy } from "@/lib/content/brand-template";
 import { renderHtmlToImage } from "@/lib/content/hcti";
-import { createBufferPost, type BufferChannel, type BufferFormat } from "@/lib/content/buffer";
+import { createMetricoolPost, type MetricoolChannel, type MetricoolFormat } from "@/lib/content/metricool";
 import { publishBlogToGitHub } from "@/lib/content/github-publish";
 import { getContentItem, updateContentItem, type ContentItem } from "@/lib/content/store";
 
-/** Map a content type to the Buffer post format. */
-function bufferFormat(type: ContentItem["type"]): BufferFormat {
+/** Map a content type to the Metricool post format. */
+function metricoolFormat(type: ContentItem["type"]): MetricoolFormat {
   if (type === "reel") return "reel";
   if (type === "story") return "story";
   return "post";
 }
 
-function socialChannels(item: ContentItem): BufferChannel[] {
-  const out: BufferChannel[] = [];
+function socialChannels(item: ContentItem): MetricoolChannel[] {
+  const out: MetricoolChannel[] = [];
   if (item.channels.instagram) out.push("instagram");
   if (item.channels.facebook) out.push("facebook");
   return out;
@@ -36,7 +36,7 @@ function composeCaption(item: ContentItem): string {
  * per-channel variant (e.g. instagram=1080×1080, facebook=1200×630), then the
  * generic branded image, then the raw image.
  */
-function mediaForChannel(item: ContentItem, channel: BufferChannel): string | null {
+function mediaForChannel(item: ContentItem, channel: MetricoolChannel): string | null {
   return item.media_variants?.[channel] ?? item.media_branded_url ?? item.media_raw_url ?? null;
 }
 
@@ -106,19 +106,20 @@ export async function approveContent(id: string): Promise<ContentItem> {
       });
     }
 
-    // Social (post / story / reel). One Buffer post per channel, each with the
-    // platform-specific media (IG square / FB landscape) when available.
+    // Social (post / story / reel). One Metricool post per channel, each with
+    // the platform-specific media (IG square / FB landscape) when available.
     const channels = socialChannels(item);
     if (channels.length === 0) throw new Error("no social channels selected");
-    const text = composeCaption(item);
+    // Stories carry no caption of their own — Metricool rejects/ignores text there.
+    const text = item.type === "story" ? "" : composeCaption(item);
     const mediaKind = item.type === "reel" ? "video" : "image";
-    const format = bufferFormat(item.type);
+    const format = metricoolFormat(item.type);
 
     const postIds: Record<string, string> = {};
     for (const channel of channels) {
       const mediaUrl = mediaForChannel(item, channel);
       if (!mediaUrl) throw new Error(`no media to publish for ${channel}`);
-      const { postId } = await createBufferPost({
+      const { postId } = await createMetricoolPost({
         channel,
         text,
         mediaUrl,
