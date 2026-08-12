@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 
-const { mockGet, mockUpdate, mockBufferPost, mockPublishBlog, mockFetch } = vi.hoisted(() => ({
+const { mockGet, mockUpdate, mockMetricoolPost, mockPublishBlog, mockFetch } = vi.hoisted(() => ({
   mockGet: vi.fn(),
   mockUpdate: vi.fn(),
-  mockBufferPost: vi.fn(),
+  mockMetricoolPost: vi.fn(),
   mockPublishBlog: vi.fn(),
   mockFetch: vi.fn(),
 }))
@@ -12,7 +12,7 @@ vi.mock('@/lib/content/store', () => ({
   getContentItem: mockGet,
   updateContentItem: mockUpdate,
 }))
-vi.mock('@/lib/content/buffer', () => ({ createBufferPost: mockBufferPost }))
+vi.mock('@/lib/content/metricool', () => ({ createMetricoolPost: mockMetricoolPost }))
 vi.mock('@/lib/content/github-publish', () => ({ publishBlogToGitHub: mockPublishBlog }))
 vi.stubGlobal('fetch', mockFetch)
 
@@ -35,31 +35,31 @@ function item(overrides: Record<string, unknown> = {}) {
   }
 }
 
-/** Find the createBufferPost call for a given channel. */
+/** Find the createMetricoolPost call for a given channel. */
 function callFor(channel: string) {
-  return mockBufferPost.mock.calls.map((c) => c[0]).find((a) => a.channel === channel)
+  return mockMetricoolPost.mock.calls.map((c) => c[0]).find((a) => a.channel === channel)
 }
 
 describe('lib/content/publish', () => {
   beforeEach(() => {
     mockGet.mockReset()
     mockUpdate.mockReset()
-    mockBufferPost.mockReset()
+    mockMetricoolPost.mockReset()
     mockPublishBlog.mockReset()
     mockFetch.mockReset()
     mockUpdate.mockImplementation(async (_id, patch) => ({ ...item(), ...patch }))
     // Default: return a postId derived from the channel.
-    mockBufferPost.mockImplementation(async ({ channel }) => ({
+    mockMetricoolPost.mockImplementation(async ({ channel }) => ({
       postId: channel === 'instagram' ? 'ig' : 'fb',
     }))
   })
 
-  it('creates one Buffer post per channel with branded media + composed caption', async () => {
+  it('creates one Metricool post per channel with branded media + composed caption', async () => {
     mockGet.mockResolvedValueOnce(item())
 
     const res = await approveContent('c1')
 
-    expect(mockBufferPost).toHaveBeenCalledTimes(2)
+    expect(mockMetricoolPost).toHaveBeenCalledTimes(2)
     expect(callFor('instagram')).toMatchObject({
       channel: 'instagram',
       text: 'Caption\n\n#prague',
@@ -114,6 +114,15 @@ describe('lib/content/publish', () => {
     expect(callFor('instagram').format).toBe('reel')
   })
 
+  it('sends an empty caption for stories (Metricool stories carry no text of their own)', async () => {
+    mockGet.mockResolvedValueOnce(
+      item({ type: 'story', media_branded_url: 'https://hcti.io/v1/image/story', channels: { instagram: true } })
+    )
+    await approveContent('c1')
+    expect(callFor('instagram').text).toBe('')
+    expect(callFor('instagram').format).toBe('story')
+  })
+
   it('publishes a blog item to GitHub (fetches cover) and stores the commit sha', async () => {
     mockGet.mockResolvedValueOnce(
       item({ type: 'blog', channels: { blog: true }, blog_slug: 'prague-vienna', blog_mdx: '---\n---\nbody', media_branded_url: 'https://hcti.io/v1/image/cover' })
@@ -133,11 +142,11 @@ describe('lib/content/publish', () => {
 
   it('marks the item failed and rethrows when publishing errors', async () => {
     mockGet.mockResolvedValueOnce(item())
-    mockBufferPost.mockRejectedValueOnce(new Error('buffer down'))
-    await expect(approveContent('c1')).rejects.toThrow('buffer down')
+    mockMetricoolPost.mockRejectedValueOnce(new Error('metricool down'))
+    await expect(approveContent('c1')).rejects.toThrow('metricool down')
     const failPatch = mockUpdate.mock.calls.at(-1)![1]
     expect(failPatch.status).toBe('failed')
-    expect(failPatch.error).toContain('buffer down')
+    expect(failPatch.error).toContain('metricool down')
   })
 
   it('refuses to approve an item not in an approvable status', async () => {
