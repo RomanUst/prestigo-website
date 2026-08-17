@@ -68,9 +68,9 @@ describe('EntryBar', () => {
   })
 
   describe('D-04: CTA button', () => {
-    it('renders CTA with text "Посмотреть варианты"', () => {
+    it('renders CTA with text "View vehicles"', () => {
       render(<EntryBar />)
-      expect(screen.getByText('Посмотреть варианты')).toBeInTheDocument()
+      expect(screen.getByText('View vehicles')).toBeInTheDocument()
     })
   })
 
@@ -148,7 +148,7 @@ describe('EntryBar', () => {
         pickupTime: '10:00',
       })
       render(<EntryBar />)
-      const cta = screen.getByText('Посмотреть варианты')
+      const cta = screen.getByText('View vehicles')
       await user.click(cta)
 
       const gtagFn = window.gtag as ReturnType<typeof vi.fn>
@@ -179,9 +179,71 @@ describe('EntryBar', () => {
         completedSteps: new Set([]),
       })
       render(<EntryBar />)
-      const cta = screen.getByText('Посмотреть варианты')
+      const cta = screen.getByText('View vehicles')
       await user.click(cta)
       expect(useBookingStore.getState().currentStep).toBe(2)
+    })
+  })
+
+  describe('Round-trip toggle wires tripType (regression: return leg was never priced)', () => {
+    it('checking "Add return journey" flips tripType to round_trip', async () => {
+      const user = userEvent.setup()
+      render(<EntryBar />)
+      expect(useBookingStore.getState().tripType).toBe('transfer')
+      await user.click(screen.getByRole('checkbox', { name: /add return journey/i }))
+      expect(useBookingStore.getState().tripType).toBe('round_trip')
+    })
+
+    it('unchecking reverts to transfer and clears return date/time', async () => {
+      const user = userEvent.setup()
+      useBookingStore.setState({ returnDate: '2027-01-16', returnTime: '18:00' })
+      render(<EntryBar />)
+      const checkbox = screen.getByRole('checkbox', { name: /add return journey/i })
+      await user.click(checkbox) // on
+      expect(useBookingStore.getState().tripType).toBe('round_trip')
+      await user.click(checkbox) // off
+      const s = useBookingStore.getState()
+      expect(s.tripType).toBe('transfer')
+      expect(s.returnDate).toBeNull()
+      expect(s.returnTime).toBeNull()
+    })
+
+    it('round trip without return date/time is blocked from advancing', async () => {
+      const user = userEvent.setup()
+      useBookingStore.setState({
+        origin: { address: 'Wenceslas Square, Prague', placeId: 'ChIJa', lat: 50.0802, lng: 14.4280 },
+        destination: { address: 'Prague Main Station', placeId: 'ChIJb', lat: 50.0831, lng: 14.4357 },
+        pickupDate: '2027-01-15',
+        pickupTime: '10:00',
+        currentStep: 1,
+        completedSteps: new Set([]),
+      })
+      render(<EntryBar />)
+      await user.click(screen.getByRole('checkbox', { name: /add return journey/i }))
+      await user.click(screen.getByText('View vehicles'))
+      // Missing return date/time → validation blocks nextStep
+      expect(useBookingStore.getState().currentStep).toBe(1)
+      expect(screen.getByText(/return time is required for a round trip/i)).toBeInTheDocument()
+    })
+
+    it('round trip with a valid return leg advances to step 2 and stays round_trip', async () => {
+      const user = userEvent.setup()
+      useBookingStore.setState({
+        origin: { address: 'Wenceslas Square, Prague', placeId: 'ChIJa', lat: 50.0802, lng: 14.4280 },
+        destination: { address: 'Prague Main Station', placeId: 'ChIJb', lat: 50.0831, lng: 14.4357 },
+        pickupDate: '2027-01-15',
+        pickupTime: '10:00',
+        returnDate: '2027-01-16',
+        returnTime: '18:00',
+        currentStep: 1,
+        completedSteps: new Set([]),
+      })
+      render(<EntryBar />)
+      await user.click(screen.getByRole('checkbox', { name: /add return journey/i }))
+      await user.click(screen.getByText('View vehicles'))
+      const s = useBookingStore.getState()
+      expect(s.currentStep).toBe(2)
+      expect(s.tripType).toBe('round_trip')
     })
   })
 })

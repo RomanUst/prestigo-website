@@ -45,11 +45,16 @@ export default function EntryBar() {
   const setPickupTime = useBookingStore((s) => s.setPickupTime)
   const setReturnDate = useBookingStore((s) => s.setReturnDate)
   const setReturnTime = useBookingStore((s) => s.setReturnTime)
+  const setTripType = useBookingStore((s) => s.setTripType)
   const setPassengerDetails = useBookingStore((s) => s.setPassengerDetails)
   const nextStep = useBookingStore((s) => s.nextStep)
 
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [showReturn, setShowReturn] = useState(false)
+  // Initialise from the store so returning to Step 1 after choosing a round trip
+  // keeps the checkbox (and return fields) open instead of silently reverting.
+  const [showReturn, setShowReturn] = useState(
+    () => useBookingStore.getState().tripType === 'round_trip'
+  )
   const [flightNumber, setFlightNumber] = useState('')
 
   // ─── Analytics: fire form_start once on mount (TRACK-01) ──────────────────
@@ -83,6 +88,20 @@ export default function EntryBar() {
     if (tripType !== 'hourly' && !destination) errs.destination = 'Destination is required to continue.'
     if (!pickupDate) errs.date = 'Date is required to continue.'
     if (!pickupTime) errs.time = 'Time is required to continue.'
+    // Round trip: a return leg must be fully specified and after the outbound.
+    if (showReturn && tripType !== 'hourly') {
+      if (!returnDate) errs.returnDate = 'Return date is required for a round trip.'
+      if (!returnTime) errs.returnTime = 'Return time is required for a round trip.'
+      if (
+        returnDate &&
+        returnTime &&
+        pickupDate &&
+        pickupTime &&
+        `${returnDate}T${returnTime}` <= `${pickupDate}T${pickupTime}`
+      ) {
+        errs.returnTime = 'Return must be after pickup.'
+      }
+    }
     return errs
   }
 
@@ -382,7 +401,19 @@ export default function EntryBar() {
             id="entry-bar-return"
             type="checkbox"
             checked={showReturn}
-            onChange={(e) => setShowReturn(e.target.checked)}
+            onChange={(e) => {
+              const on = e.target.checked
+              setShowReturn(on)
+              // Flip the actual trip type so the return leg is priced, charged,
+              // and dispatched. Without this the checkbox only revealed the
+              // date/time inputs while the booking stayed a one-way transfer.
+              setTripType(on ? 'round_trip' : 'transfer')
+              if (!on) {
+                // setTripType('transfer') clears returnTime; clear the date too.
+                setReturnDate(null)
+                setReturnTime(null)
+              }
+            }}
             style={{ accentColor: 'var(--copper)', cursor: 'pointer' }}
           />
           <label
@@ -440,14 +471,18 @@ export default function EntryBar() {
                 id="entry-bar-return-date"
                 type="date"
                 value={returnDate ?? ''}
-                onChange={(e) => setReturnDate(e.target.value || null)}
+                min={pickupDate ?? undefined}
+                onChange={(e) => {
+                  setReturnDate(e.target.value || null)
+                  setErrors((prev) => { const n = { ...prev }; delete n.returnDate; return n })
+                }}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
                   fontFamily: 'var(--font-montserrat)',
                   fontSize: 14,
                   background: 'var(--anthracite-mid)',
-                  border: '1px solid var(--anthracite-light)',
+                  border: errors.returnDate ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
                   color: 'var(--offwhite)',
                   outline: 'none',
                   boxSizing: 'border-box',
@@ -476,14 +511,17 @@ export default function EntryBar() {
                 id="entry-bar-return-time"
                 aria-label="Return time"
                 value={returnTime ?? ''}
-                onChange={(e) => setReturnTime(e.target.value || null)}
+                onChange={(e) => {
+                  setReturnTime(e.target.value || null)
+                  setErrors((prev) => { const n = { ...prev }; delete n.returnTime; return n })
+                }}
                 style={{
                   width: '100%',
                   padding: '10px 12px',
                   fontFamily: 'var(--font-montserrat)',
                   fontSize: 14,
                   background: 'var(--anthracite-mid)',
-                  border: '1px solid var(--anthracite-light)',
+                  border: errors.returnTime ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
                   color: returnTime ? 'var(--offwhite)' : 'var(--warmgrey)',
                   outline: 'none',
                   cursor: 'pointer',
@@ -501,6 +539,19 @@ export default function EntryBar() {
               </select>
             </div>
           </div>
+        )}
+        {(errors.returnDate || errors.returnTime) && (
+          <p
+            role="alert"
+            style={{
+              marginTop: 8,
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: 13,
+              color: '#C0392B',
+            }}
+          >
+            {errors.returnTime || errors.returnDate}
+          </p>
         )}
       </div>
 
