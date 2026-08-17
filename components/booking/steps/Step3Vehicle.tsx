@@ -88,6 +88,7 @@ export default function Step3Vehicle() {
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const returnDiscountPercent = useBookingStore((s) => s.returnDiscountPercent)
   const quoteMode = useBookingStore((s) => s.quoteMode)
+  const returnDate = useBookingStore((s) => s.returnDate)
   const returnTime = useBookingStore((s) => s.returnTime)
   const pickupDate = useBookingStore((s) => s.pickupDate)
 
@@ -101,6 +102,9 @@ export default function Step3Vehicle() {
   const setDistanceKm = useBookingStore((s) => s.setDistanceKm)
   const setQuoteMode = useBookingStore((s) => s.setQuoteMode)
   const setVehicleClass = useBookingStore((s) => s.setVehicleClass)
+  const setTripType = useBookingStore((s) => s.setTripType)
+  const setReturnDate = useBookingStore((s) => s.setReturnDate)
+  const setReturnTime = useBookingStore((s) => s.setReturnTime)
 
   // Route edit bar state
   const [isEditingRoute, setIsEditingRoute] = useState(false)
@@ -108,10 +112,17 @@ export default function Step3Vehicle() {
   const [editDest, setEditDest] = useState<PlaceResult | null>(null)
   const [editDate, setEditDate] = useState<string | null>(null)
   const [editTime, setEditTime] = useState<string | null>(null)
+  // Return-journey controls inside the route edit form
+  const [editShowReturn, setEditShowReturn] = useState(false)
+  const [editReturnDate, setEditReturnDate] = useState<string | null>(null)
+  const [editReturnTime, setEditReturnTime] = useState<string | null>(null)
 
   function startEditRoute() {
     setEditOrigin(origin)
     setEditDest(destination)
+    setEditShowReturn(useBookingStore.getState().tripType === 'round_trip')
+    setEditReturnDate(returnDate)
+    setEditReturnTime(returnTime)
     setEditDate(pickupDate)
     setEditTime(pickupTime)
     setIsEditingRoute(true)
@@ -122,10 +133,30 @@ export default function Step3Vehicle() {
     if (editDest) setDestination(editDest)
     if (editDate) setPickupDate(editDate)
     if (editTime) setPickupTime(editTime)
+    // Apply the return-journey toggle: enable round trip with the chosen return
+    // date/time, or disable it and clear the return leg.
+    if (editShowReturn) {
+      setTripType('round_trip')
+      setReturnDate(editReturnDate)
+      setReturnTime(editReturnTime)
+    } else {
+      setTripType('transfer')
+      setReturnDate(null)
+      setReturnTime(null)
+    }
     setIsEditingRoute(false)
     // fetchPrice reads fresh state via getState() so calling after sync store updates is safe
     fetchPrice()
   }
+
+  // Return leg must be fully specified and after pickup when enabled.
+  const editReturnValid =
+    !editShowReturn ||
+    (!!editReturnDate &&
+      !!editReturnTime &&
+      !!editDate &&
+      !!editTime &&
+      `${editReturnDate}T${editReturnTime}` > `${editDate}T${editTime}`)
 
   const fetchPrice = useCallback(async () => {
     const s = useBookingStore.getState()
@@ -330,12 +361,71 @@ export default function Step3Vehicle() {
               </select>
             </div>
           </div>
+
+          {/* Return journey toggle */}
+          <div style={{ marginTop: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <input
+              id="edit-route-return"
+              type="checkbox"
+              checked={editShowReturn}
+              onChange={(e) => {
+                const on = e.target.checked
+                setEditShowReturn(on)
+                if (!on) {
+                  setEditReturnDate(null)
+                  setEditReturnTime(null)
+                }
+              }}
+              style={{ accentColor: 'var(--copper)', cursor: 'pointer' }}
+            />
+            <label htmlFor="edit-route-return" style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--offwhite)', cursor: 'pointer' }}>
+              Add return journey
+            </label>
+          </div>
+
+          {/* Return date / time — only when the toggle is on */}
+          {editShowReturn && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16, marginTop: 16 }}>
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 8 }}>RETURN DATE</label>
+                <input
+                  type="date"
+                  value={editReturnDate ?? ''}
+                  min={editDate ?? new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setEditReturnDate(e.target.value || null)}
+                  className="input"
+                  style={{ width: '100%', colorScheme: 'light', cursor: 'pointer' }}
+                />
+              </div>
+              <div>
+                <label className="label" style={{ display: 'block', marginBottom: 8 }}>RETURN TIME</label>
+                <select
+                  aria-label="Return time"
+                  value={editReturnTime ?? ''}
+                  onChange={(e) => setEditReturnTime(e.target.value || null)}
+                  className="input"
+                  style={{ width: '100%', appearance: 'none' }}
+                >
+                  <option value="">Select return time</option>
+                  {TIME_SLOTS.map((t) => (
+                    <option key={t} value={t}>{fmt12Slot(t)}</option>
+                  ))}
+                </select>
+              </div>
+              {!editReturnValid && editReturnDate && editReturnTime && (
+                <p role="alert" style={{ gridColumn: '1 / -1', fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--copper)', margin: 0 }}>
+                  Return must be after pickup
+                </p>
+              )}
+            </div>
+          )}
+
           {/* Apply / Cancel row */}
           <div style={{ display: 'flex', gap: 10, marginTop: 16 }}>
             <button
               type="button"
               onClick={applyRouteEdit}
-              disabled={!editOrigin || !editDest || !editDate || !editTime}
+              disabled={!editOrigin || !editDest || !editDate || !editTime || !editReturnValid}
               className="btn-primary"
               style={{ flex: 1, letterSpacing: '0.1em', fontSize: 11 }}
             >
