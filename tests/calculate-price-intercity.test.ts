@@ -260,4 +260,51 @@ describe('/api/calculate-price — intercity (CALC-05, CALC-07)', () => {
     )
     expect(json.matchedRouteSlug).toBeNull()
   })
+
+  it('round trip on a matched route prices BOTH legs (returnLegPrices not null)', async () => {
+    findRouteMock.mockResolvedValue(mockedRoute)
+
+    const res = await POST(makeRequest({
+      origin: PRAGUE_COORDS,
+      destination: BRNO_COORDS,
+      tripType: 'transfer',
+      pickupDate: '2026-05-10',
+      pickupTime: '10:00',
+      returnDate: '2026-05-12',
+      returnTime: '10:00',
+      originPlaceId: ORIGIN_PLACE_ID,
+      destinationPlaceId: DEST_PLACE_ID,
+    }))
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    // Outbound = flat route price
+    expect(json.prices.business.total).toBe(150)
+    // Return leg is now computed (regression: was null on matched routes)
+    expect(json.returnLegPrices).not.toBeNull()
+    expect(json.returnDiscountPercent).toBe(10)
+    // Return leg = flat base 150 minus 10% = 135, no extras
+    expect(json.returnLegPrices.business.total).toBe(135)
+    expect(json.returnLegPrices.business.extras).toBe(0)
+    // No second Google Routes call — return leg reuses the flat route price
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
+  it('one-way on a matched route keeps returnLegPrices null', async () => {
+    findRouteMock.mockResolvedValue(mockedRoute)
+
+    const res = await POST(makeRequest({
+      origin: PRAGUE_COORDS,
+      destination: BRNO_COORDS,
+      tripType: 'transfer',
+      pickupDate: '2026-05-10',
+      pickupTime: '10:00',
+      originPlaceId: ORIGIN_PLACE_ID,
+      destinationPlaceId: DEST_PLACE_ID,
+    }))
+
+    const json = await res.json()
+    expect(json.returnLegPrices).toBeNull()
+    expect(json.returnDiscountPercent).toBeNull()
+  })
 })
