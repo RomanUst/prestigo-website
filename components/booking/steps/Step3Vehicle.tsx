@@ -119,7 +119,6 @@ export default function Step3Vehicle() {
   const setDistanceKm = useBookingStore((s) => s.setDistanceKm)
   const setQuoteMode = useBookingStore((s) => s.setQuoteMode)
   const setVehicleClass = useBookingStore((s) => s.setVehicleClass)
-  const setTripType = useBookingStore((s) => s.setTripType)
   const setReturnDate = useBookingStore((s) => s.setReturnDate)
   const setReturnTime = useBookingStore((s) => s.setReturnTime)
 
@@ -241,9 +240,6 @@ export default function Step3Vehicle() {
     }
   }
 
-  // Only transfer trips support round-trip
-  const showRoundTripOption = tripType === 'transfer' || tripType === 'round_trip'
-
   const cards = VEHICLE_CONFIG.map((vc) => {
     const p = priceBreakdown?.[vc.key]
     return (
@@ -254,12 +250,9 @@ export default function Step3Vehicle() {
         price={p ? `€${p.base}` : null}
         onSelect={() => {
           setVehicleClass(vc.key)
-          if (tripType === 'round_trip') {
-            setTripType('transfer')
-            setReturnDate(null)
-            setReturnTime(null)
-          }
-          pushVehicleSelect(vc.key, p?.base ?? null, p?.currency ?? 'EUR', 'transfer')
+          // Preserve the round-trip selection made on Step 1 — selecting a
+          // vehicle must not silently downgrade the booking to one-way.
+          pushVehicleSelect(vc.key, p?.base ?? null, p?.currency ?? 'EUR', tripType === 'round_trip' ? 'round_trip' : 'transfer')
         }}
       />
     )
