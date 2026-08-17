@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 import { VEHICLE_CONFIG, isAirportPlace } from '@/types/booking'
 import type { VehicleClass } from '@/types/booking'
@@ -68,22 +67,6 @@ const TIME_SLOTS: string[] = Array.from({ length: 288 }, (_, i) => {
   return `${h}:${m}`
 })
 
-const calendarStyles = {
-  root: { fontFamily: 'var(--font-montserrat)', color: 'var(--offwhite)', background: 'transparent' },
-  caption_label: { color: 'var(--offwhite)', fontSize: 13, fontWeight: 400, fontFamily: 'var(--font-montserrat)' },
-  weekday: { color: 'var(--warmgrey)', fontSize: 13, fontWeight: 400 },
-  day: { color: 'var(--offwhite)', fontSize: 13, width: 44, height: 44 },
-  day_button: { color: 'var(--offwhite)', fontSize: 13, width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: 'transparent', border: 'none' },
-  button_previous: { color: 'var(--warmgrey)', border: '1px solid var(--anthracite-light)', background: 'transparent', cursor: 'pointer' },
-  button_next: { color: 'var(--warmgrey)', border: '1px solid var(--anthracite-light)', background: 'transparent', cursor: 'pointer' },
-}
-
-const modifiersStyles = {
-  selected: { background: 'var(--copper)', color: 'var(--anthracite)', borderRadius: 0 },
-  disabled: { color: 'var(--warmgrey)', opacity: 0.4, cursor: 'not-allowed' },
-  today: { outline: '1px solid var(--anthracite-light)', outlineOffset: '-2px' },
-}
-
 function fmt12Slot(t: string): string {
   const [h, m] = t.split(':').map(Number)
   const isPM = h >= 12
@@ -105,7 +88,6 @@ export default function Step3Vehicle() {
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
   const returnDiscountPercent = useBookingStore((s) => s.returnDiscountPercent)
   const quoteMode = useBookingStore((s) => s.quoteMode)
-  const returnDate = useBookingStore((s) => s.returnDate)
   const returnTime = useBookingStore((s) => s.returnTime)
   const pickupDate = useBookingStore((s) => s.pickupDate)
 
@@ -119,8 +101,6 @@ export default function Step3Vehicle() {
   const setDistanceKm = useBookingStore((s) => s.setDistanceKm)
   const setQuoteMode = useBookingStore((s) => s.setQuoteMode)
   const setVehicleClass = useBookingStore((s) => s.setVehicleClass)
-  const setReturnDate = useBookingStore((s) => s.setReturnDate)
-  const setReturnTime = useBookingStore((s) => s.setReturnTime)
 
   // Route edit bar state
   const [isEditingRoute, setIsEditingRoute] = useState(false)
@@ -146,8 +126,6 @@ export default function Step3Vehicle() {
     // fetchPrice reads fresh state via getState() so calling after sync store updates is safe
     fetchPrice()
   }
-
-  const isRoundTrip = tripType === 'round_trip'
 
   const fetchPrice = useCallback(async () => {
     const s = useBookingStore.getState()
@@ -218,27 +196,6 @@ export default function Step3Vehicle() {
     }
     prevReturnTime.current = returnTime ?? null
   }, [returnTime, fetchPrice])
-
-  // Min return date = pickup date (same day return allowed)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const returnDateMin = pickupDate ? new Date(pickupDate + 'T00:00:00') : today
-  const returnDateObj = returnDate ? new Date(returnDate + 'T00:00:00') : undefined
-
-  function handleReturnDateSelect(date: Date | undefined) {
-    if (date) {
-      const iso =
-        `${date.getFullYear()}-` +
-        `${String(date.getMonth() + 1).padStart(2, '0')}-` +
-        `${String(date.getDate()).padStart(2, '0')}`
-      setReturnDate(iso)
-      // Clear returnTime if it may now violate ordering
-      if (returnTime) setReturnTime(null)
-    } else {
-      setReturnDate(null)
-      setReturnTime(null)
-    }
-  }
 
   const cards = VEHICLE_CONFIG.map((vc) => {
     const p = priceBreakdown?.[vc.key]
@@ -513,107 +470,9 @@ export default function Step3Vehicle() {
         <VehicleSlideshow activeClass={vehicleClass} />
       </div>
 
-      {/* Return date/time — appears after clicking "Round Trip" on any card.
-         pb-32 on mobile keeps the last calendar row + return-time list clear of
-         the fixed PriceSummary bar (position:fixed bottom:0) that would otherwise
-         obscure the only selectable dates when pickup is near month-end. */}
-      {isRoundTrip && (
-        <div
-          className="pb-32 md:pb-0"
-          style={{
-            marginTop: 32,
-            paddingTop: 32,
-            borderTop: '1px solid var(--anthracite-light)',
-          }}
-        >
-          <p className="label" style={{ marginBottom: 24 }}>RETURN DATE &amp; TIME</p>
-
-          <div className="flex flex-col md:flex-row" style={{ gap: 32 }}>
-            {/* Return date calendar */}
-            <div className="md:w-[60%] w-full">
-              <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-                RETURN DATE
-              </span>
-              <DayPicker
-                mode="single"
-                selected={returnDateObj}
-                defaultMonth={returnDateObj ?? returnDateMin}
-                onSelect={handleReturnDateSelect}
-                disabled={{ before: returnDateMin }}
-                styles={calendarStyles as Parameters<typeof DayPicker>[0]['styles']}
-                modifiersStyles={modifiersStyles}
-              />
-            </div>
-
-            {/* Return time list */}
-            <div className="md:w-[40%] w-full">
-              <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-                RETURN TIME
-              </span>
-              {returnDate ? (
-                <ul
-                  role="listbox"
-                  aria-label="Return time"
-                  style={{
-                    maxHeight: 240,
-                    overflowY: 'auto',
-                    margin: 0,
-                    padding: 0,
-                    border: '1px solid var(--anthracite-light)',
-                  }}
-                >
-                  {TIME_SLOTS.map((slot) => (
-                    <li
-                      key={slot}
-                      role="option"
-                      aria-selected={returnTime === slot}
-                      onClick={() => setReturnTime(slot)}
-                      style={{
-                        minHeight: 44,
-                        padding: '0 16px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        fontFamily: 'var(--font-montserrat)',
-                        fontSize: 13,
-                        fontWeight: 400,
-                        color: returnTime === slot ? 'var(--offwhite)' : 'var(--warmgrey)',
-                        background: returnTime === slot ? 'var(--anthracite-mid)' : 'transparent',
-                        borderLeft: returnTime === slot ? '4px solid var(--copper)' : '4px solid transparent',
-                        cursor: 'pointer',
-                        transition: 'background 0.15s ease, color 0.15s ease',
-                        listStyle: 'none',
-                      }}
-                    >
-                      {slot}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--warmgrey)', lineHeight: 1.8 }}>
-                  Select a return date first
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Ordering validation */}
-          {returnDate && returnTime && pickupDate && useBookingStore.getState().pickupTime &&
-            `${returnDate}T${returnTime}` <= `${pickupDate}T${useBookingStore.getState().pickupTime}` && (
-            <p
-              role="alert"
-              style={{
-                fontFamily: 'var(--font-montserrat)',
-                fontSize: 13,
-                color: 'var(--copper)',
-                marginTop: 12,
-                letterSpacing: '0.03em',
-              }}
-            >
-              Return must be after pickup
-            </p>
-          )}
-        </div>
-      )}
+      {/* Return date/time is collected on Step 1 (EntryBar "Add return journey"),
+         so no return picker is rendered here — the price summary combines the
+         legs automatically when tripType === 'round_trip'. */}
 
       {/* Mobile fixed bottom bar */}
       <PriceSummary mobileOnly />
