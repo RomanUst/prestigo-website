@@ -197,14 +197,19 @@ export default function Step3Vehicle() {
     prevReturnTime.current = returnTime ?? null
   }, [returnTime, fetchPrice])
 
+  const isRoundTrip = tripType === 'round_trip'
   const cards = VEHICLE_CONFIG.map((vc) => {
     const p = priceBreakdown?.[vc.key]
+    const rt = roundTripPriceBreakdown?.[vc.key]
+    // Round trip: show combined (both legs) as the headline, one way as caption.
+    const combined = isRoundTrip && p && rt ? p.base + rt.total : null
     return (
       <VehicleCard
         key={vc.key}
         config={vc}
         isSelected={vehicleClass === vc.key}
         price={p ? `€${p.base}` : null}
+        combinedPrice={combined !== null ? `€${combined}` : null}
         onSelect={() => {
           setVehicleClass(vc.key)
           // Preserve the round-trip selection made on Step 1 — selecting a

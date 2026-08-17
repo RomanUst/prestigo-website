@@ -76,6 +76,18 @@ describe('VehicleCard', () => {
       const capacityValues = screen.getAllByText(String(config.maxPassengers))
       expect(capacityValues.length).toBeGreaterThanOrEqual(2) // pax + luggage both show 3
     })
+
+    it('shows only the one-way price when no combinedPrice', () => {
+      renderCard({ price: '€267' })
+      expect(screen.getByText('€267')).toBeInTheDocument()
+      expect(screen.queryByText(/one way/i)).toBeNull()
+    })
+
+    it('shows combined (both legs) headline with one-way caption for round trips', () => {
+      renderCard({ price: '€267', combinedPrice: '€507' })
+      expect(screen.getByText('€507')).toBeInTheDocument()
+      expect(screen.getByText('€267 one way')).toBeInTheDocument()
+    })
   })
 })
 
