@@ -175,10 +175,38 @@ export async function POST(req: Request) {
         const base = buildIntercityPrices(route)
         const adjusted = applyGlobals(base, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
         const withExtras = applyExtrasAndRound(adjusted, childSeats, extraStops)
+
+        // Round-trip return leg for matched intercity routes. Same flat route
+        // base, coefficient computed from the RETURN datetime, minus the return
+        // discount. Without this the price summary could never combine both legs
+        // on known routes (returnLegPrices was null), so round trips displayed a
+        // one-way price. Mirrors the distance-based branch below.
+        const routeDiscountPct = rates.globals.returnDiscountPercent
+        let routeReturnLegPrices:
+          | Record<string, { base: number; extras: number; total: number; currency: string }>
+          | null = null
+        if (returnDate && returnTime) {
+          const returnAdjusted = applyGlobals(
+            buildIntercityPrices(route),
+            rates.globals,
+            airportFlag,
+            isNightTime(returnTime ?? null),
+            isHolidayDate(returnDate ?? null, rates.globals.holidayDates),
+            rates.minFare,
+          )
+          routeReturnLegPrices = Object.fromEntries(
+            Object.entries(returnAdjusted).map(([vc, b]) => {
+              const discountedTotal = Math.round(b.base * (1 - routeDiscountPct / 100))
+              // No extras on the return leg (RTPR-03)
+              return [vc, { base: discountedTotal, extras: 0, total: discountedTotal, currency: b.currency }]
+            }),
+          )
+        }
+
         return NextResponse.json({
           prices: withExtras,
-          returnLegPrices: null,
-          returnDiscountPercent: null,
+          returnLegPrices: routeReturnLegPrices,
+          returnDiscountPercent: routeReturnLegPrices ? routeDiscountPct : null,
           distanceKm: route.distanceKm,
           quoteMode: false,
           matchedRouteSlug: route.slug,
