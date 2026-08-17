@@ -8,9 +8,12 @@ interface VehicleCardProps {
   isSelected: boolean
   onSelect: () => void
   price?: string | null
+  /** Round-trip combined total (both legs). When set, shown as the primary
+   *  price with `price` (one way) as a secondary caption. */
+  combinedPrice?: string | null
 }
 
-export default function VehicleCard({ config, isSelected, onSelect, price }: VehicleCardProps) {
+export default function VehicleCard({ config, isSelected, onSelect, price, combinedPrice }: VehicleCardProps) {
   return (
     <button
       type="button"
@@ -95,7 +98,31 @@ export default function VehicleCard({ config, isSelected, onSelect, price }: Veh
             </div>
           </div>
 
-          {price && (
+          {combinedPrice ? (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: 18,
+                fontWeight: 600,
+                color: isSelected ? 'var(--copper)' : 'var(--offwhite)',
+                letterSpacing: '0.02em',
+              }}>
+                {combinedPrice}
+              </span>
+              {price && (
+                <span style={{
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: 11,
+                  fontWeight: 400,
+                  color: 'var(--warmgrey)',
+                  letterSpacing: '0.02em',
+                  marginTop: 2,
+                }}>
+                  {price} one way
+                </span>
+              )}
+            </div>
+          ) : price ? (
             <span style={{
               fontFamily: 'var(--font-montserrat)',
               fontSize: 18,
@@ -105,7 +132,7 @@ export default function VehicleCard({ config, isSelected, onSelect, price }: Veh
             }}>
               {price}
             </span>
-          )}
+          ) : null}
         </div>
       </div>
 
