@@ -89,4 +89,43 @@ describe('StickyBookingPanel', () => {
       )
     })
   })
+
+  describe('Round-trip combined total (desktop panel)', () => {
+    const roundTripBreakdown: Record<VehicleClass, PriceBreakdown> = {
+      business: { base: 76, extras: 0, total: 76, currency: 'EUR' },
+      first_class: { base: 126, extras: 0, total: 126, currency: 'EUR' },
+      business_van: { base: 108, extras: 0, total: 108, currency: 'EUR' },
+    }
+
+    it('shows Outbound + Return + Combined breakdown for round trips', () => {
+      useBookingStore.setState({
+        tripType: 'round_trip',
+        roundTripPriceBreakdown: roundTripBreakdown,
+        returnDiscountPercent: 10,
+      })
+      render(<StickyBookingPanel />)
+      // Outbound 84 + return 76 = combined 160
+      expect(screen.getByText('Outbound')).toBeInTheDocument()
+      expect(screen.getByText('Combined')).toBeInTheDocument()
+      expect(screen.getByText('€84')).toBeInTheDocument()
+      expect(screen.getByText('€76')).toBeInTheDocument()
+      expect(screen.getByText('€160')).toBeInTheDocument()
+    })
+
+    it('begin_checkout value includes the return leg for round trips', async () => {
+      const user = userEvent.setup()
+      useBookingStore.setState({
+        tripType: 'round_trip',
+        roundTripPriceBreakdown: roundTripBreakdown,
+        returnDiscountPercent: 10,
+      })
+      render(<StickyBookingPanel />)
+      await user.click(screen.getByRole('button', { name: /select/i }))
+      const gtagFn = window.gtag as ReturnType<typeof vi.fn>
+      const call = gtagFn.mock.calls.find(
+        (c: unknown[]) => c[0] === 'event' && c[1] === 'begin_checkout'
+      )
+      expect(call?.[2]).toMatchObject({ value: 160 })
+    })
+  })
 })

@@ -60,6 +60,9 @@ function fmtDate(iso: string): string {
 export default function StickyBookingPanel() {
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
+  const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
+  const returnDiscountPercent = useBookingStore((s) => s.returnDiscountPercent)
+  const extras = useBookingStore((s) => s.extras)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
   const pickupTime = useBookingStore((s) => s.pickupTime)
@@ -72,6 +75,19 @@ export default function StickyBookingPanel() {
   const priceDisplay = selectedPrice
     ? `€${selectedPrice.base}`
     : null
+
+  // Round-trip combined total (mirrors PriceSummary). Return leg comes from
+  // roundTripPriceBreakdown; when present, the panel shows a two-leg breakdown
+  // instead of the one-way price.
+  const extrasTotal = computeExtrasTotal(extras)
+  const isRoundTripMode = tripType === 'round_trip'
+  const selectedReturnLegPrice =
+    vehicleClass && roundTripPriceBreakdown ? roundTripPriceBreakdown[vehicleClass] : null
+  const outboundWithExtras = selectedPrice ? selectedPrice.base + extrasTotal : 0
+  const combinedTotal =
+    isRoundTripMode && selectedPrice && selectedReturnLegPrice
+      ? outboundWithExtras + selectedReturnLegPrice.total
+      : null
 
   // CTA label
   const ctaLabel = vehicleClass
@@ -97,7 +113,13 @@ export default function StickyBookingPanel() {
     const breakdown = s.priceBreakdown
     const selectedBreakdown = breakdown ? breakdown[currentVehicleClass] : null
     const extrasTotal = computeExtrasTotal(s.extras)
-    const baseTotal = selectedBreakdown ? selectedBreakdown.base + extrasTotal : 0
+    // Include the return leg for round trips so analytics value matches the charge.
+    const returnLeg =
+      s.tripType === 'round_trip' && s.roundTripPriceBreakdown
+        ? s.roundTripPriceBreakdown[currentVehicleClass]
+        : null
+    const baseTotal =
+      (selectedBreakdown ? selectedBreakdown.base + extrasTotal : 0) + (returnLeg ? returnLeg.total : 0)
     const totalEur =
       s.promoDiscount > 0
         ? Math.round(baseTotal * (1 - s.promoDiscount / 100))
@@ -194,33 +216,58 @@ export default function StickyBookingPanel() {
         {vehicleClass ? VEHICLE_LABELS[vehicleClass] ?? vehicleClass : 'No class selected'}
       </p>
 
-      {/* Price */}
-      {priceDisplay && (
-        <p
-          style={{
-            fontFamily: 'var(--font-montserrat)',
-            fontSize: '20px',
-            fontWeight: 600,
-            color: 'var(--copper)',
-            marginBottom: 4,
-          }}
-        >
-          {priceDisplay}
-        </p>
-      )}
+      {/* Price — round-trip two-leg breakdown or one-way single price */}
+      {isRoundTripMode && combinedTotal !== null && selectedReturnLegPrice ? (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Outbound</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--offwhite)' }}>&euro;{outboundWithExtras}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
+              Return <span style={{ color: 'var(--copper)', letterSpacing: '0.08em', marginLeft: 4 }}>&minus;{returnDiscountPercent}%</span>
+            </span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--offwhite)' }}>&euro;{selectedReturnLegPrice.total}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 8, borderTop: '1px solid var(--anthracite-light)' }}>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--copper)' }}>Combined</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 20, fontWeight: 600, color: 'var(--copper)' }}>&euro;{combinedTotal}</span>
+          </div>
+          <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 400, color: 'var(--warmgrey)', marginTop: 8 }}>
+            Both legs · all fees included
+          </p>
+        </div>
+      ) : (
+        <>
+          {/* Price */}
+          {priceDisplay && (
+            <p
+              style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '20px',
+                fontWeight: 600,
+                color: 'var(--copper)',
+                marginBottom: 4,
+              }}
+            >
+              {priceDisplay}
+            </p>
+          )}
 
-      {/* "All fees included" note */}
-      <p
-        style={{
-          fontFamily: 'var(--font-montserrat)',
-          fontSize: '11px',
-          fontWeight: 400,
-          color: 'var(--warmgrey)',
-          marginBottom: 16,
-        }}
-      >
-        All fees included
-      </p>
+          {/* "All fees included" note */}
+          <p
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              fontWeight: 400,
+              color: 'var(--warmgrey)',
+              marginBottom: 16,
+            }}
+          >
+            All fees included
+          </p>
+        </>
+      )}
 
       {/* Select CTA */}
       <button
