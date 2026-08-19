@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Admin Booking Management & Payment Recovery
 status: planning
-last_updated: "2026-08-19T15:34:39.742Z"
+last_updated: "2026-08-19T15:43:33.000Z"
 last_activity: 2026-08-19
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 59 — booking-flow-redesign-blacklane
+**Current focus:** Phase 62 — abandoned-and-unpaid-booking-capture
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: Phase 62 — Abandoned & Unpaid Booking Capture (not started)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-08-19 — Milestone v2.1 started
+Status: Roadmap approved, ready for `/gsd-plan-phase 62`
+Last activity: 2026-08-19 — v2.1 roadmap created (Phases 62-64)
 
 ## Accumulated Context
 
@@ -36,6 +36,10 @@ Last activity: 2026-08-19 — Milestone v2.1 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v2.1 roadmap: ABND (abandoned/unpaid capture) is the foundation phase (62) — persists a booking row at the payment step and reconciles it in place on payment success (no duplicate insert). AEDIT (63) and ANEW (64) both depend on Phase 62's shared admin bookings surface / status vocabulary; ANEW-04 additionally reuses the reconcile-in-place webhook pattern for payment-link payments.
+- v2.1 (user decision): ABND captures the booking as soon as the client reaches the payment step (before payment completes) — not just on abandonment detection — then reconciles the same row to paid on `payment_intent.succeeded`. No separate "abandonment" event/timeout needed for v2.1 (that's FOLLOW-01, deferred to v2).
+- v2.1 (user decision): AEDIT-05 client notification is operator-controlled via an explicit "notify client" toggle at save time — not automatic on every edit.
+- v2.1 phase order: 62 (ABND foundation) → 63 (AEDIT) → 64 (ANEW). 63 and 64 are independent of each other, both depend only on 62.
 - v2.0 (57-01): TEXT + CHECK used for customer_profiles.account_type (not Postgres ENUM) — stays alterable, matches existing bookings status/source pattern.
 - v2.0 (57-01): No DELETE RLS policy on customer_profiles — row removal via ON DELETE CASCADE from auth.users only.
 - v2.0 (57-01): Migration 045 adds no RLS to bookings — deferred to Phase 60 (auth-in-checkout).
@@ -66,7 +70,7 @@ Recent decisions affecting current work:
 
 - Phases 54–56: SEO Blog — MDX pipeline, /blog UI, article migration + 301s
 
-### v2.0 roadmap (Phases 57-61)
+### v2.0 (shipped, Phases 57-61)
 
 - Phase 57: Customer Auth Foundation — AUTH-01..07, ACCT-04
 - Phase 58: Sign-in UI + Account Dashboard — NAV-01,02, ACCT-01,02,03
@@ -75,14 +79,27 @@ Recent decisions affecting current work:
 - Phase 61: Analytics Preservation & E2E Verify — TRACK-01..05 (verification)
 - Execution: 57 → (58 ∥ 59) → 60 → 61
 
+### v2.1 roadmap (Phases 62-64)
+
+- Phase 62: Abandoned & Unpaid Booking Capture — ABND-01..06
+- Phase 63: Admin Booking Editing + Change Notification — AEDIT-01..07
+- Phase 64: Admin-Created Bookings with Payment Link — ANEW-01..05
+- Execution: 62 → (63 ∥ 64)
+
 ### Pending Todos
 
 None yet.
 
 ### Blockers/Concerns
 
-- Apple Sign In via Supabase has fiddly setup (Service ID, key, return URLs) — confirm config during `/gsd-plan-phase 57`.
-- Next migration number is **044** (043_content_media_variants.sql is the latest); Phase 57 uses `044_customer_profiles.sql`.
+- Apple Sign In via Supabase has fiddly setup (Service ID, key, return URLs) — confirm config during a future OAuth-config phase.
+- Next migration number is **053** (052_bookings_driver_price.sql is the latest). Phase 62 will likely need a new `bookings.status` CHECK value for "unconfirmed/unpaid" — extend via DROP+ADD CONSTRAINT pattern (see migrations 039, 040).
+- Brownfield findings relevant to v2.1 (verify during `/gsd-plan-phase 62`):
+  - `app/api/create-payment-intent/route.ts` currently only creates a Stripe PaymentIntent — it does NOT write to `bookings`. Only the webhook (`payment_intent.succeeded`) inserts the row today. Phase 62 must move booking persistence earlier (into create-payment-intent, for both one-way and round-trip/linked-leg) and change the webhook from INSERT to UPDATE-if-exists.
+  - `app/api/admin/bookings/route.ts` POST already implements most of ANEW-01/ANEW-05 (manual booking creation with server-side price recompute + `override_price` escape hatch, `booking_source: 'manual'`, `payment_intent_id: null`, `status: 'pending'`) — Phase 64 mainly adds Stripe Payment Link generation/email + webhook reconciliation on top of this existing endpoint.
+  - `app/api/admin/bookings/route.ts` PATCH only supports `status`/`operator_notes`/`driver_price_czk` today — no date/vehicle/route/passenger edit exists yet. Phase 63 needs a new edit surface (endpoint + admin UI); there is currently no per-booking admin detail page (`app/admin/(dashboard)/bookings/page.tsx` is a single list view).
+  - Round-trip legs are separate `bookings` rows linked via `linked_booking_id` + `leg` ('outbound'/'return') columns (see `types/database.types.ts`) — Phase 63's leg-isolated edit (AEDIT-06) and Phase 62's round-trip capture must respect this shape.
+  - `lib/email.ts` already has branded senders to follow as a pattern (`sendStatusConfirmedEmail`, `sendStatusCancelledEmail`, `sendPostTripEmail`) — reuse this pattern for AEDIT-05's change-diff email and ANEW-03's payment-link email.
 
 ## Deferred Items
 
@@ -97,11 +114,18 @@ Items acknowledged and deferred at milestone v2.0 close on 2026-06-18:
 | verification_gap | Phase 58: 58-VERIFICATION.md | human_needed | 9/9 truths verified; all requirements satisfied per UAT/SECURITY/VALIDATION |
 | verification_gap | Phase 59: 59-VERIFICATION.md | human_needed | 9/9 truths verified; all requirements satisfied per UAT 7/7 |
 
+v2.1 deferred to v2 (per REQUIREMENTS.md):
+
+| Category | Item | Reason |
+|----------|------|--------|
+| v2 | FOLLOW-01: Automatic reminder email after N hours unpaid | Deferred — follow-up automation, not core payment recovery |
+| v2 | FOLLOW-02: Audit log of admin edits per booking | Deferred — nice-to-have, not blocking operator workflow |
+
 ## Session Continuity
 
-Last session: 2026-06-17T14:57:20.565Z
-Stopped at: Phase 59 UI-SPEC approved
-Resume file: .planning/phases/59-booking-flow-redesign-blacklane/59-UI-SPEC.md
+Last session: 2026-08-19 — ROADMAP.md created for v2.1 (Phases 62-64), REQUIREMENTS.md traceability filled, coverage 18/18
+Stopped at: Roadmap approved and written; awaiting `/gsd-plan-phase 62`
+Resume file: .planning/ROADMAP.md
 
 ## Performance Metrics
 
@@ -120,4 +144,4 @@ Resume file: .planning/phases/59-booking-flow-redesign-blacklane/59-UI-SPEC.md
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run `/gsd-plan-phase 62` to plan the Abandoned & Unpaid Booking Capture phase.

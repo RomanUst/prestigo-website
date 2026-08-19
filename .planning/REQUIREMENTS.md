@@ -60,21 +60,21 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AEDIT-01 | — | Pending |
-| AEDIT-02 | — | Pending |
-| AEDIT-03 | — | Pending |
-| AEDIT-04 | — | Pending |
-| AEDIT-05 | — | Pending |
-| AEDIT-06 | — | Pending |
-| AEDIT-07 | — | Pending |
-| ABND-01 | — | Pending |
-| ABND-02 | — | Pending |
-| ABND-03 | — | Pending |
-| ABND-04 | — | Pending |
-| ABND-05 | — | Pending |
-| ABND-06 | — | Pending |
-| ANEW-01 | — | Pending |
-| ANEW-02 | — | Pending |
-| ANEW-03 | — | Pending |
-| ANEW-04 | — | Pending |
-| ANEW-05 | — | Pending |
+| AEDIT-01 | Phase 63 | Pending |
+| AEDIT-02 | Phase 63 | Pending |
+| AEDIT-03 | Phase 63 | Pending |
+| AEDIT-04 | Phase 63 | Pending |
+| AEDIT-05 | Phase 63 | Pending |
+| AEDIT-06 | Phase 63 | Pending |
+| AEDIT-07 | Phase 63 | Pending |
+| ABND-01 | Phase 62 | Pending |
+| ABND-02 | Phase 62 | Pending |
+| ABND-03 | Phase 62 | Pending |
+| ABND-04 | Phase 62 | Pending |
+| ABND-05 | Phase 62 | Pending |
+| ABND-06 | Phase 62 | Pending |
+| ANEW-01 | Phase 64 | Pending |
+| ANEW-02 | Phase 64 | Pending |
+| ANEW-03 | Phase 64 | Pending |
+| ANEW-04 | Phase 64 | Pending |
+| ANEW-05 | Phase 64 | Pending |
