@@ -2,9 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Admin Booking Management & Payment Recovery
+current_phase: 62
+current_phase_name: Abandoned & Unpaid Booking Capture
 status: planning
-last_updated: "2026-08-19T15:43:33.000Z"
+stopped_at: Phase 62 context gathered
+last_updated: "2026-08-19T20:22:10.343Z"
 last_activity: 2026-08-19
+last_activity_desc: v2.1 roadmap created (Phases 62-64)
+state_head: d58e75f7c859c8d35c954cad04cd80f40cedde30
 progress:
   total_phases: 3
   completed_phases: 0
@@ -123,9 +128,9 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-19 — ROADMAP.md created for v2.1 (Phases 62-64), REQUIREMENTS.md traceability filled, coverage 18/18
-Stopped at: Roadmap approved and written; awaiting `/gsd-plan-phase 62`
-Resume file: .planning/ROADMAP.md
+Last session: 2026-08-19T20:22:10.325Z
+Stopped at: Phase 62 context gathered
+Resume file: .planning/phases/62-abandoned-unpaid-booking-capture/62-CONTEXT.md
 
 ## Performance Metrics
 
