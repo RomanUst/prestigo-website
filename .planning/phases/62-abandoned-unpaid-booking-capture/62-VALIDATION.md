@@ -47,7 +47,7 @@ created: 2026-08-19
 | ABND-01 | Unpaid row inserted on first `create-payment-intent` POST (one-way) | integration | `npx vitest run tests/create-payment-intent.test.ts` | ✅ extend | ⬜ pending |
 | ABND-01 | Two unpaid rows inserted for a round-trip attempt (per leg) | integration | `npx vitest run tests/create-payment-intent.test.ts` | ✅ extend | ⬜ pending |
 | ABND-02 | DB CHECK accepts `status='unpaid'`; migration applied | migration | Supabase MCP `execute_sql` post-migration (manual) | ❌ W0 | ⬜ pending |
-| ABND-05 | Passenger step (Step5) blocks progress without valid name/email/phone → contact present at payment | unit | `npx vitest run tests/` (Step5Passenger — confirm/add) | ❓ locate | ⬜ pending |
+| ABND-05 | Passenger step (Step5) blocks progress without valid name/email/phone → contact present at payment | unit | `npx vitest run tests/` (Step5Passenger — confirm existing) | ➖ pre-existing (v2.0 Phase 59/60 Step5Passenger Zod) | ➖ out-of-scope |
 | ABND-06 dedup | Retry / currency toggle with same `attempt_id` UPDATEs the same row in place (no 2nd row); overwrites full mutable field set incl. new `payment_intent_id` + `booking_reference` | unit | `npx vitest run tests/create-payment-intent.test.ts` | ✅ extend | ⬜ pending |
 | ABND-06 reconcile | `payment_intent.succeeded` on an `unpaid` row flips it to `confirmed` AND fires exactly the 4 side-effects once (client email, manager alert, GA4 purchase, QStash reminder) | unit | `npx vitest run tests/webhooks-stripe.test.ts` | ✅ extend | ⬜ pending |
 | ABND-06 idempotency | Duplicate Stripe delivery for an already-`confirmed` row fires zero side-effects | unit | `npx vitest run tests/webhooks-stripe.test.ts` | ✅ extend | ⬜ pending |
@@ -63,7 +63,7 @@ created: 2026-08-19
 ## Wave 0 Requirements
 
 - [ ] Locate or create a `StatusBadge` / `BookingsTable` test covering the `unpaid` variant rendering (ABND-03).
-- [ ] Locate or add Step5Passenger validation coverage for name/email/phone presence (ABND-05).
+- [x] Step5Passenger name/email/phone validation (ABND-05 upstream guarantee) is PRE-EXISTING from v2.0 (Phase 59/60 passenger step Zod). Out of scope for Phase 62 — Phase 62 only asserts the captured row STORES those fields (covered by 62-01's create-payment-intent.test.ts). Executor may confirm the existing Step5 test but need not add one.
 - [ ] New `vi.hoisted` mocks for whatever reconciliation helper replaces the `saveBooking`-based path (webhook UPDATE-to-confirmed), following `tests/webhooks-stripe.test.ts` pattern.
 - [ ] `create-payment-intent.test.ts` + `webhooks-stripe.test.ts` + `admin-bookings.test.ts` already exist — extend, do not recreate.
 

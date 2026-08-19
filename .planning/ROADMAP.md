@@ -49,38 +49,60 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 ## Phase Details
 
 ### Phase 62: Abandoned & Unpaid Booking Capture
+
 **Goal**: Every checkout attempt is captured for revenue recovery — a booking exists the moment a client reaches the payment step, is clearly flagged and followable in admin while unpaid, and reconciles cleanly to a single "confirmed/paid" record if the client does pay.
 **Depends on**: Nothing (first phase of v2.1; continues from Phase 61)
 **Requirements**: ABND-01, ABND-02, ABND-03, ABND-04, ABND-05, ABND-06
 **Success Criteria** (what must be TRUE):
+
   1. When a client reaches the payment step in checkout — even if they close the tab before paying — a booking row already exists with their trip details and contact info (name, email, phone), for both one-way and round-trip attempts.
   2. That booking carries an "unconfirmed / unpaid" status and is visually distinguished from confirmed bookings in the admin bookings list.
   3. Operator can filter the admin bookings list to show only unconfirmed/unpaid bookings, to work a follow-up queue.
   4. If the client completes payment later (same checkout attempt), the existing booking updates in place to "confirmed/paid" — the admin list never shows two rows for one attempt.
-**Plans**: TBD
+
+**Plans**: 4 plans
+**Wave 1**
+
+- [ ] 62-01-PLAN.md — Tracer: one-way unpaid capture → reconcile end-to-end (migration 053, buildBookingRow unpaid, reconcile helper, D-11 side-effects)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 62-02-PLAN.md — Round-trip capture + attempt_id dedup (retry/currency-toggle update-in-place, two-leg reconcile)
+- [ ] 62-03-PLAN.md — Admin surface: unpaid badge + row tint, Unpaid filter chip (p_status), unpaid→confirmed/cancelled transitions
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 62-04-PLAN.md — [BLOCKING] Author admin_search_bookings p_status migration (054) + apply 053/054 to live DB + verify
+
 **UI hint**: yes
 
 ### Phase 63: Admin Booking Editing + Change Notification
+
 **Goal**: Operator can correct or update any booking directly from the admin panel — schedule, vehicle, route, or passenger details — with price changes reviewed before saving and the client optionally notified of exactly what changed.
 **Depends on**: Phase 62 (shares the admin bookings list/detail surface and status vocabulary introduced there; edit UI must work across booking statuses, including the new unconfirmed/unpaid state)
 **Requirements**: AEDIT-01, AEDIT-02, AEDIT-03, AEDIT-04, AEDIT-05, AEDIT-06, AEDIT-07
 **Success Criteria** (what must be TRUE):
+
   1. From a booking's admin detail view, operator can edit pickup date/time, vehicle class, route (origin/destination), and passenger/contact details including flight number, then save the change.
   2. When an edit changes the price (vehicle or route change), operator sees the recalculated amount and can adjust it before confirming the save — price is never silently changed.
   3. At save time, a "notify client" toggle lets the operator choose whether the client receives a branded email showing old → new values of what changed; leaving it off saves without emailing.
   4. Editing one leg of a round-trip booking updates only that leg's record — the linked leg keeps its original date, route, and vehicle.
+
 **Plans**: TBD
 **UI hint**: yes
 
 ### Phase 64: Admin-Created Bookings with Payment Link
+
 **Goal**: Operator can originate a booking on behalf of a client from the admin panel — with or without collecting payment at that moment — and get paid without the client ever visiting the public booking flow.
 **Depends on**: Phase 62 (payment-link reconciliation reuses the "update existing booking to paid, no duplicate" webhook pattern built for abandoned-booking recovery)
 **Requirements**: ANEW-01, ANEW-02, ANEW-03, ANEW-04, ANEW-05
 **Success Criteria** (what must be TRUE):
+
   1. Operator can create a new booking from the admin panel by entering trip, vehicle, and client details, with the price calculated automatically from current rates.
   2. On saving, operator can choose to generate a Stripe payment link for that booking and email it to the client in the same action.
   3. When the client pays through that link, the booking's status updates to paid automatically, reconciled against the same booking record — no duplicate is created.
   4. Operator can instead save an admin-created booking with no payment link at all (e.g. cash or invoice payment), and it's created successfully without requiring any Stripe interaction.
+
 **Plans**: TBD
 **UI hint**: yes
 
@@ -96,6 +118,6 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 | 59. Booking Flow Redesign (Blacklane) | v2.0 | 5/5 | Complete | 2026-06-17 |
 | 60. Auth-in-Checkout + Guest Path | v2.0 | 1/1 | Complete | 2026-06-17 |
 | 61. Analytics Preservation & E2E Verify | v2.0 | 1/1 | Complete | 2026-06-17 |
-| 62. Abandoned & Unpaid Booking Capture | v2.1 | 0/? | Not started | - |
+| 62. Abandoned & Unpaid Booking Capture | v2.1 | 0/4 | Planned | - |
 | 63. Admin Booking Editing + Change Notification | v2.1 | 0/? | Not started | - |
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 0/? | Not started | - |
