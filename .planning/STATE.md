@@ -1,17 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-status: Awaiting next milestone
-stopped_at: Phase 59 UI-SPEC approved
-last_updated: "2026-06-18T18:24:17.818Z"
-last_activity: 2026-06-18 — Milestone v2.0 completed and archived
+milestone: v2.1
+milestone_name: Admin Booking Management & Payment Recovery
+status: planning
+last_updated: "2026-08-19T15:34:39.742Z"
+last_activity: 2026-08-19
 progress:
-  total_phases: 8
-  completed_phases: 6
-  total_plans: 22
-  completed_plans: 23
-  percent: 75
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -25,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: Milestone v2.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-06-18 — Milestone v2.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-08-19 — Milestone v2.1 started
 
 ## Accumulated Context
 

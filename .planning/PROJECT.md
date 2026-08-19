@@ -8,11 +8,20 @@ Prestigo is a premium chauffeur service based in Prague, Czech Republic. The sit
 
 Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction.
 
-## Current State: v2.0 Shipped — Planning v2.1
+## Current State: v2.0 Shipped — v2.1 In Planning
 
 v2.0 delivered Blacklane-style booking UX with full customer authentication and account management. The booking flow features a unified entry bar, Google Maps route visualization, vehicle cards with interior slideshows, and optional in-checkout sign-in. All GA4 + Meta Pixel/CAPI analytics signals preserved.
 
-**Next milestone candidates:** BOOK-06 (corporate booking-method step), Google/Apple OAuth config, corporate invoicing.
+## Current Milestone: v2.1 Admin Booking Management & Payment Recovery
+
+**Goal:** Give the operator full control of the booking lifecycle inside the admin panel — edit bookings with automatic client notification, capture abandoned/unpaid bookings for follow-up, and create bookings with an attachable payment link and client email.
+
+**Target features:**
+- Edit an existing booking through the admin UI (time, vehicle, route, details) and, on save, automatically email the client a branded change-confirmation.
+- Capture bookings where the client reached checkout but did not pay (card decline, closed window) — persist them with an "unconfirmed / unpaid" status, surfaced separately in admin so the operator can follow up and recover the payment.
+- When creating a booking in the admin panel, offer at save time an option to attach a Stripe payment link and email it to the client.
+
+**Key context:** Built on the existing stack — Supabase `bookings`, Stripe, Resend (branded PRESTIGO email templates already exist), Next.js admin. Guest checkout and admin auth session model remain untouched.
 
 ## Requirements
 
@@ -42,8 +51,11 @@ v2.0 delivered Blacklane-style booking UX with full customer authentication and 
 
 ### Active
 
-<!-- v2.1 candidates + infrastructure items -->
+<!-- v2.1 milestone (Admin Booking Management & Payment Recovery) + infrastructure items -->
 
+- [ ] v2.1: Admin booking edit UI with automatic client change-confirmation email
+- [ ] v2.1: Capture abandoned/unpaid bookings as "unconfirmed" for admin follow-up
+- [ ] v2.1: Admin-created bookings with attachable Stripe payment link + client email
 - [ ] AUTH-02: Google OAuth — code wired; Supabase Dashboard credential config still pending
 - [ ] AUTH-03: Apple OAuth — code wired; Supabase Dashboard credential config still pending
 - [ ] BOOK-06: Booking-method step — "Book for myself / Book as guest"; corporate also "Book for a guest" (deferred from v2.0)
@@ -115,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-18 — v2.0 shipped: Blacklane-style booking redesign + customer authentication & accounts. Phases 57–61 complete. Planning v2.1.*
+*Last updated: 2026-08-19 — v2.1 milestone started: Admin Booking Management & Payment Recovery (admin booking edits + change emails, abandoned-booking capture, admin-created bookings with payment links). Planning phase.*
