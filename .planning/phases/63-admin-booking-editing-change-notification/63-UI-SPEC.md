@@ -35,13 +35,14 @@ Declared values (must be multiples of 4 — verified against every spacing liter
 |-------|-------|-------|
 | xs | 4px | Icon/dot gaps, save-status badge inner spacing, label-to-value micro-gaps |
 | sm | 8px | Compact field gaps, input↔button gaps, block `gap`/`marginTop` between adjacent controls |
-| md | 16px | Default block spacing — gap between edit-mode field groups, section `marginTop` (e.g. Operator Notes, Driver Price blocks) |
+| sm-alt | 12px | Input/textarea horizontal padding (`padding: '8px 12px'`), and action-row button gaps (e.g. price-review step's Cancel/Confirm & Save row, mirroring the existing cancel-modal action row `gap: '12px'`). Formal, first-class token — not an informal carve-out — chosen because it matches the exact padding/gap literals already shipped in the input and button-row components this phase extends; do not introduce any other non-8-multiple value beyond this one. |
+| md | 16px | Default block spacing — gap between edit-mode field groups, section `marginTop` (e.g. Operator Notes, Driver Price blocks), button horizontal padding |
 | lg | 24px | Card/modal padding (`cardStyle.padding`, price-review step container padding), major block `marginTop` |
 | xl | 32px | Not used inside the expanded row (row content is denser); reserved if the price-review step needs top-level separation from the row's other blocks |
 | 2xl | 48px | Not used in this phase's surface |
 | 3xl | 64px | Not used in this phase's surface |
 
-Exceptions: **12px** appears as an established exception in this codebase (button `padding: '0 16px'`... wait — button horizontal padding is 16px; the 12px exception is textarea/input `padding: '8px 12px'` and gap-12 in some button rows, e.g. cancel-modal action row `gap: '12px'`). Treat 12px as a **project-sanctioned exception** (multiple of 4, just not of 8) — reuse it verbatim wherever this phase mirrors an existing input/button pattern; do not invent a new non-4-multiple value.
+Exceptions: none beyond `sm-alt` (12px) above — every other spacing value used in this phase is a multiple of 8.
 
 ---
 
@@ -54,7 +55,13 @@ Exceptions: **12px** appears as an established exception in this codebase (butto
 | Heading | 26px | 300 | 1.2 (modal heading — reuse verbatim for the price-review step's heading, e.g. "Review Price Change", same treatment as the existing "Cancel Booking" modal `<h2>`) |
 | Display | 28px | 400 | 1.2 (reserved for the new change-notification **email** `<h1>` only — matches `buildStatusEmailHtml`'s existing `<h1>`; not used anywhere in the in-app admin UI for this phase) |
 
-Save-state inline hints (Saving.../Saved/Error) use **10px**, `letter-spacing: 0.1em`, color-coded (`var(--copper)` saving, `#4ade80` saved, `#f87171` error) — reuse verbatim for every new per-field save control this phase adds (pickup date/time, passenger/contact, flight number).
+**Exactly 4 declared sizes (10/11/13/26/28 collapses to 11/13/26/28).** Save-state inline hints (Saving.../Saved/Error) fold into the **Label size (11px)** rather than introducing a 5th distinct size — `letter-spacing: 0.1em`, color-coded (`var(--copper)` saving, `#4ade80` saved, `#f87171` error). This is a deliberate rounding-up from the pre-existing 10px literal used by the two unchanged controls (`operator_notes`, `driver_price_czk`) to keep this phase's declared token set at 4 sizes; those two pre-existing 10px instances are untouched legacy code, not part of this phase's new surface, and are not being resized. Every new per-field save control this phase adds (pickup date/time, passenger/contact, flight number) uses 11px for its inline save-state hint.
+
+---
+
+## Visual Hierarchy
+
+In the expanded booking-row edit mode, the primary visual anchor is the currently-active per-field input (copper focus border, see Color below); when a price-affecting field triggers the price-review step, focus shifts entirely to that step's old→new amount diff and its **"Confirm & Save"** button, which together become the single dominant focal point of the row until the operator confirms or cancels.
 
 ---
 
@@ -69,7 +76,7 @@ Save-state inline hints (Saving.../Saved/Error) use **10px**, `letter-spacing: 0
 
 Accent (`--copper` / `--copper-light`) reserved for — explicit list, nothing else may use it:
 - Input/select/textarea **focus border** (`onFocus` → `borderColor: var(--copper)`), reverting to `var(--anthracite-light)` on blur
-- Outline/ghost buttons: per-field **"Save"** button and the price-review step's **"Confirm & Save"** button (`border: 1px solid var(--copper)`, `color: var(--copper)`, transparent background) — never a filled/solid copper background
+- Outline/ghost buttons: every per-field save CTA (see Copywriting Contract — the new specific-labeled buttons, "Review Price →", and the pre-existing "Save" exception) and the price-review step's **"Confirm & Save"** button (`border: 1px solid var(--copper)`, `color: var(--copper)`, transparent background) — never a filled/solid copper background
 - Uppercase micro-labels (section labels, "Operator Notes"-style block headers) — `var(--copper-light)` for AA
 - The **new (post-edit) amount** in the price-review old→new diff, to visually anchor "this is the number being saved" (mirrors the booking-reference emphasis pattern in `buildStatusEmailHtml`)
 - Change-history entry **timestamp/operator** micro-label (same uppercase-label treatment as existing section labels)
@@ -82,7 +89,9 @@ Existing `StatusBadge` semantic palette (locked, reuse verbatim, do not add new 
 
 | Element | Copy |
 |---------|------|
-| Primary CTA | **"Confirm & Save"** — price-review step's confirm action (D-06). Cheap per-field commits (pickup date/time, passenger/contact, flight number) keep the existing **"Save"** label verbatim — do not rename the shipped pattern. |
+| Primary CTA | **"Confirm & Save"** — price-review step's confirm action (D-06), the phase's single primary CTA. |
+| Per-field save CTA (new fields) | Each new cheap-field commit control this phase adds gets a **specific verb + field-noun label**, not a generic "Save": **"Save Date & Time"** (pickup date/time, committed together per D-02's bullet), **"Save Name"** (client first/last name), **"Save Email"**, **"Save Phone"**, **"Save Flight Number"**. Price-affecting fields don't commit directly — their trigger button reads **"Review Price →"** and opens the price-review step (whose own CTA is "Confirm & Save" above). |
+| Per-field save CTA (pre-existing, unchanged) | The two controls this phase does **not** touch — `operator_notes` and `driver_price_czk` — keep their shipped generic **"Save"** label verbatim, as a deliberate, documented exception: renaming a pre-existing, out-of-scope control's label would be an unrelated cosmetic change outside this phase's boundary (63-CONTEXT.md scopes this phase to trip/passenger fields + price review + notification + audit log, not to revisiting already-shipped notes/driver-price UI). |
 | Empty state heading | **"No changes recorded yet."** — change-history block (D-11) when a booking has zero audit rows |
 | Empty state body | **"Edits to this booking will appear here."** — secondary line under the empty-state heading |
 | Error state | **"Couldn't load change history — try again."** (history fetch failure, with a retry action, mirroring `FlightStatusBlock`'s `⚠ Refresh failed — ...` inline-error treatment) · **"Price mismatch — server recompute diverges from the submitted amount. Review and override if intentional."** (price-review 422, mirrors the existing POST-handler divergence message) |
@@ -110,7 +119,7 @@ Elements classified: (1) trip-field edit mode [form], (2) price-review step [for
 |----------|------------|--------|---------------------|
 | empty | trip-field edit mode | ✅ covered | Editable fields render **blank** (not a "—" placeholder) when the underlying value is genuinely null — e.g. missing `flight_number`, or `destination_address` on an hourly-type booking — so the operator can type directly into the field. |
 | partial | trip-field edit mode | ✅ covered | Route/destination fields are **hidden entirely** for hourly (non-transfer) bookings, mirroring the existing `trip_type`-conditional field visibility in `ManualBookingForm.tsx` — not shown-but-disabled. |
-| loading | trip-field edit mode | ✅ covered | Reuses the shipped three-state save indicator (`idle \| saving \| saved \| error`, 10px colored inline hint) verbatim for every new cheap field — see Copywriting Contract "Save-status inline hints". |
+| loading | trip-field edit mode | ✅ covered | Reuses the shipped three-state save indicator (`idle \| saving \| saved \| error`, 11px colored inline hint — see Typography's size-collapse note) verbatim for every new cheap field — see Copywriting Contract "Save-status inline hints". |
 | error | trip-field edit mode | ✅ covered | Field-level validation errors (CRLF injection guard, invalid email/phone) render inline in the existing error-hint slot, `#f87171`, same shape as the current "Enter a whole number ≥ 0" hint. |
 | long-text | trip-field edit mode | ✅ covered | Address/name inputs are full-width text inputs with **no truncation** — long values wrap, matching the operator-notes `textarea` sizing (no `text-overflow: ellipsis` anywhere in the edit surface). |
 | loading | price-review step | ✅ covered | Confirm button shows a disabled **"Calculating…"** state while `/api/calculate-price` (distance/price preview) or the PATCH recompute request is in flight — same disabled/opacity treatment as the existing "Updating..." status-transition button. |
