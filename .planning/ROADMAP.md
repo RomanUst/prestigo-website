@@ -60,10 +60,10 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
   3. Operator can filter the admin bookings list to show only unconfirmed/unpaid bookings, to work a follow-up queue.
   4. If the client completes payment later (same checkout attempt), the existing booking updates in place to "confirmed/paid" — the admin list never shows two rows for one attempt.
 
-**Plans**: 4 plans
+**Plans**: 1/4 plans executed
 **Wave 1**
 
-- [ ] 62-01-PLAN.md — Tracer: one-way unpaid capture → reconcile end-to-end (migration 053, buildBookingRow unpaid, reconcile helper, D-11 side-effects)
+- [x] 62-01-PLAN.md — Tracer: one-way unpaid capture → reconcile end-to-end (migration 053, buildBookingRow unpaid, reconcile helper, D-11 side-effects)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -118,6 +118,6 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 | 59. Booking Flow Redesign (Blacklane) | v2.0 | 5/5 | Complete | 2026-06-17 |
 | 60. Auth-in-Checkout + Guest Path | v2.0 | 1/1 | Complete | 2026-06-17 |
 | 61. Analytics Preservation & E2E Verify | v2.0 | 1/1 | Complete | 2026-06-17 |
-| 62. Abandoned & Unpaid Booking Capture | v2.1 | 0/4 | Planned | - |
+| 62. Abandoned & Unpaid Booking Capture | v2.1 | 0/4 | In Progress|  |
 | 63. Admin Booking Editing + Change Notification | v2.1 | 0/? | Not started | - |
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 0/? | Not started | - |
