@@ -268,8 +268,14 @@ describe('BookingsTable unpaid status — Phase 62 ABND-03', () => {
     const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
     render(<BookingsTable />)
 
+    // Scope to the row itself — the filter bar also has an "Unpaid" chip
+    // (D-08), so a bare screen-level query would be ambiguous / could
+    // false-positive on the chip before the row has even loaded.
+    const refCell = await screen.findByText('PRE-UNPAID')
+    const rowEl = refCell.closest('tr')
+    expect(rowEl).not.toBeNull()
     await waitFor(() => {
-      expect(screen.getByText('Unpaid')).toBeDefined()
+      expect(within(rowEl as HTMLElement).getByText('Unpaid')).toBeDefined()
     })
   })
 
@@ -288,6 +294,40 @@ describe('BookingsTable unpaid status — Phase 62 ABND-03', () => {
       expect(screen.getByTestId('mobile-cards')).toBeDefined()
     })
     expect(within(screen.getByTestId('mobile-cards')).getByText('Unpaid')).toBeDefined()
+  })
+
+  it('clicking the Unpaid chip fetches with status=unpaid; clicking it again returns to all', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ bookings: [], total: 0, page: 0, limit: 20 }),
+        })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const unpaidChip = await screen.findByRole('button', { name: 'Unpaid' })
+    fireEvent.click(unpaidChip)
+
+    await waitFor(() => {
+      const calledWithStatus = fetchMock.mock.calls.some(
+        ([url]) => typeof url === 'string' && url.includes('status=unpaid'),
+      )
+      expect(calledWithStatus).toBe(true)
+    })
+
+    // Toggle back to 'all' — no status param sent
+    fireEvent.click(unpaidChip)
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+      expect(typeof lastCall[0]).toBe('string')
+      expect((lastCall[0] as string).includes('status=')).toBe(false)
+    })
   })
 })
 
