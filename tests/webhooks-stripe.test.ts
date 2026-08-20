@@ -29,6 +29,10 @@ vi.mock('@/lib/supabase', () => ({
     return:   { booking_reference: 'PRG-20260417-DEF456', leg: 'return',   booking_type: 'confirmed' },
   }),
   saveRoundTripBookings: vi.fn().mockResolvedValue({ outbound_id: 'uuid-out', return_id: 'uuid-ret' }),
+  // Phase 62 D-11: default to "no unpaid row matched" so every pre-existing
+  // test in this file (written before Task 3) falls through to the original
+  // saveBooking-based insert path unchanged.
+  reconcileBookingToConfirmed: vi.fn().mockResolvedValue([]),
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
@@ -51,6 +55,13 @@ vi.mock('@/lib/qstash', () => ({
   scheduleQStashReminder: vi.fn().mockResolvedValue(undefined),
 }))
 
+// Mock lib/analytics-server — real implementation no-ops without GA4 env vars,
+// which would silently hide the "called exactly once" assertions in the new
+// D-11 test cases below.
+vi.mock('@/lib/analytics-server', () => ({
+  sendGa4Purchase: vi.fn().mockResolvedValue(true),
+}))
+
 // Mock Stripe — use a constructor function because route does `new Stripe(...)`
 vi.mock('stripe', () => {
   return {
@@ -62,12 +73,14 @@ vi.mock('stripe', () => {
   }
 })
 
-import { saveBooking, withRetry, buildBookingRow, buildBookingRows, saveRoundTripBookings } from '@/lib/supabase'
+import { saveBooking, withRetry, buildBookingRow, buildBookingRows, saveRoundTripBookings, reconcileBookingToConfirmed } from '@/lib/supabase'
 import {
   sendClientConfirmation, sendManagerAlert, sendEmergencyAlert,
   sendRoundTripClientConfirmation, sendRoundTripManagerAlert,
 } from '@/lib/email'
 import { buildIcs } from '@/lib/ics'
+import { scheduleQStashReminder } from '@/lib/qstash'
+import { sendGa4Purchase } from '@/lib/analytics-server'
 import { POST } from '@/app/api/webhooks/stripe/route'
 
 const mockPaymentIntentRoundTrip = {
@@ -197,11 +210,26 @@ beforeEach(() => {
   ;(sendRoundTripClientConfirmation as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendRoundTripManagerAlert as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(buildIcs as ReturnType<typeof vi.fn>).mockReturnValue('STUB-ICS')
+  // Phase 62 D-11 default: no unpaid row matched — pre-existing tests exercise
+  // the original saveBooking-based insert path unchanged.
+  ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+  ;(scheduleQStashReminder as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
+  ;(sendGa4Purchase as ReturnType<typeof vi.fn>).mockResolvedValue(true)
 
-  // Default: supabase.from('stripe_processed_events').insert(...) succeeds (no duplicate)
+  // Default: supabase.from('stripe_processed_events') supports both the
+  // pre-existing insert() claim AND the SEC-10 duplicate-check select() —
+  // the select() chain was missing here (pre-existing gap, unrelated to
+  // Phase 62; fixed per deviation Rule 3 since it 500s every single test in
+  // this file before Task 3's changes are even reached).
   supabaseServiceStub.from.mockImplementation((table: string) => {
     if (table === 'stripe_processed_events') {
-      return { insert: vi.fn().mockResolvedValue({ error: null }) }
+      const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+      const eq = vi.fn().mockReturnValue({ maybeSingle })
+      const select = vi.fn().mockReturnValue({ eq })
+      return {
+        select,
+        insert: vi.fn().mockResolvedValue({ error: null }),
+      }
     }
     // Default fallback for 'bookings' or any other table — no-op chains
     // Supports: .select().eq().single(), .select().eq(), .select().in(), .update().eq()
@@ -338,6 +366,61 @@ describe('/api/webhooks/stripe', () => {
       expect(saveBooking).toHaveBeenCalled()
       expect(sendClientConfirmation).not.toHaveBeenCalled()
       expect(sendManagerAlert).not.toHaveBeenCalled()
+    })
+  })
+
+  describe('ABND-06/D-11: unpaid→confirmed reconciliation (Phase 62 Task 3)', () => {
+    it('(a) fresh unpaid→confirmed reconcile fires all four side-effects exactly once, no fallback insert', async () => {
+      ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'unpaid-row-id' }])
+      supabaseServiceStub.from.mockImplementation((table: string) => {
+        if (table === 'stripe_processed_events') {
+          const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+          const eq = vi.fn().mockReturnValue({ maybeSingle })
+          const select = vi.fn().mockReturnValue({ eq })
+          return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+        }
+        const single = vi.fn().mockResolvedValue({ data: { pickup_utc: '2026-04-15T12:00:00Z' }, error: null })
+        const selectEq = vi.fn().mockReturnValue({ single })
+        const select = vi.fn().mockReturnValue({ eq: selectEq })
+        return { select }
+      })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      expect(reconcileBookingToConfirmed).toHaveBeenCalledWith('pi_test_123', 'outbound')
+      expect(saveBooking).not.toHaveBeenCalled()
+
+      expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+      expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+      expect(scheduleQStashReminder).toHaveBeenCalledTimes(1)
+      expect(scheduleQStashReminder).toHaveBeenCalledWith('unpaid-row-id', expect.any(Number))
+      expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    })
+
+    it('(b) duplicate/late webhook on an already-confirmed row fires zero side-effects, inserts nothing new', async () => {
+      ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue([])
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      expect(sendClientConfirmation).not.toHaveBeenCalled()
+      expect(sendManagerAlert).not.toHaveBeenCalled()
+      expect(scheduleQStashReminder).not.toHaveBeenCalled()
+      expect(sendGa4Purchase).not.toHaveBeenCalled()
+    })
+
+    it('(c) lost-capture defensive insert fires side-effects exactly once', async () => {
+      ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'fresh-insert-id' }])
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+      expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+      expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
     })
   })
 })

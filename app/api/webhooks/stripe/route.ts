@@ -6,6 +6,7 @@ import {
   buildBookingRow,
   buildBookingRows,
   saveRoundTripBookings,
+  reconcileBookingToConfirmed,
   createSupabaseServiceClient,
 } from '@/lib/supabase'
 import {
@@ -149,20 +150,46 @@ async function handleOneWaySucceeded(
   const bookingReference = meta.bookingReference || 'UNKNOWN'
   const bookingRow = buildBookingRow(meta, paymentIntent.id, 'confirmed')
 
-  let inserted: { id: string }[] = []
+  // Phase 62 D-11: reconcile a pre-captured `unpaid` row to `confirmed` FIRST —
+  // this is now the primary exactly-once gate (status-gated UPDATE), replacing
+  // the old `inserted.length > 0` ignoreDuplicates-upsert gate for the common
+  // case where checkout already captured the row (Plan 62-01/62-02).
+  let reconciled: { id: string }[] = []
   try {
-    inserted = await withRetry(() => saveBooking(bookingRow), 3, 1000)
+    reconciled = await withRetry(() => reconcileBookingToConfirmed(paymentIntent.id, 'outbound'), 3, 1000)
   } catch (err) {
     console.error(
-      'Supabase save failed after 3 retries:',
+      'reconcileBookingToConfirmed failed after 3 retries:',
       err instanceof Error ? err.message : 'Unknown error'
     )
     await sendEmergencyAlert(bookingReference, bookingRow)
     return
   }
 
-  // Duplicate event — row already existed, emails already sent
-  if (inserted.length === 0) return
+  // Defensive fallback: no matching `unpaid` row (lost capture, or a booking
+  // predating Phase 62's pre-capture) — fall back to the original insert-time
+  // idempotency path (ignoreDuplicates upsert on (payment_intent_id, leg)).
+  let inserted: { id: string }[] = []
+  if (reconciled.length === 0) {
+    try {
+      inserted = await withRetry(() => saveBooking(bookingRow), 3, 1000)
+    } catch (err) {
+      console.error(
+        'Supabase save failed after 3 retries:',
+        err instanceof Error ? err.message : 'Unknown error'
+      )
+      await sendEmergencyAlert(bookingReference, bookingRow)
+      return
+    }
+  }
+
+  // The confirmed row from whichever path produced one — used below both as
+  // the side-effect gate (D-11) and as the id for the QStash pickup_utc lookup.
+  const confirmedRows = reconciled.length > 0 ? reconciled : inserted
+
+  // Neither a fresh reconciliation nor a fresh insert — row was already
+  // `confirmed` (Stripe retry / duplicate delivery). Skip all side-effects.
+  if (confirmedRows.length === 0) return
 
   // SEC-01: claim the promo code NOW that payment is confirmed (not at PI creation).
   // Failure here is non-fatal — log and continue, booking is already saved.
@@ -205,16 +232,19 @@ async function handleOneWaySucceeded(
     console.error('sendManagerAlert unexpected error:', err)
   }
 
-  // Phase 41 D-01: Schedule 2h QStash reminder (fire-and-forget)
-  if (inserted.length > 0) {
+  // Phase 41 D-01: Schedule 2h QStash reminder (fire-and-forget).
+  // Phase 62: id comes from whichever path produced the confirmed row
+  // (reconciled unpaid→confirmed, or a fresh defensive insert).
+  if (confirmedRows.length > 0) {
+    const confirmedId = confirmedRows[0].id
     const supabase = createSupabaseServiceClient()
     const { data: savedBooking } = await supabase
       .from('bookings')
       .select('pickup_utc')
-      .eq('id', inserted[0].id)
+      .eq('id', confirmedId)
       .single()
     if (savedBooking?.pickup_utc) {
-      after(() => scheduleQStashReminder(inserted[0].id, new Date(savedBooking.pickup_utc).getTime()))
+      after(() => scheduleQStashReminder(confirmedId, new Date(savedBooking.pickup_utc).getTime()))
     }
   }
 
