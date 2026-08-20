@@ -13,17 +13,13 @@ import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
 import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
+import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 
-const VALID_TRANSITIONS: Record<string, string[]> = {
-  unpaid:      ['confirmed', 'cancelled'],
-  pending:     ['confirmed', 'cancelled'],
-  confirmed:   ['completed', 'cancelled', 'assigned'],
-  assigned:    ['en_route', 'cancelled'],
-  en_route:    ['on_location', 'cancelled'],
-  on_location: ['completed', 'cancelled'],
-  completed:   [],
-  cancelled:   [],
-}
+// VALID_TRANSITIONS is the canonical map from lib/booking-transitions.ts (the
+// same source assign/route.ts imports and BookingsTable's UI_TRANSITIONS derives
+// from). Previously this route kept a drifted inline copy whose `en_route` entry
+// lacked `completed`, so the admin dropdown offered en_route → Completed but the
+// API always 422'd it (WR-01). Importing the canonical map keeps API and UI in sync.
 
 // Whitelist for GET's `status` filter param — bound as p_status to the
 // admin_search_bookings RPC. Only known status strings are accepted; anything
