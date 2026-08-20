@@ -33,18 +33,19 @@ vi.mock('stripe', () => {
 
 // Phase 62-02: mock the createClient call itself (the TRUE module boundary),
 // not just the `createSupabaseServiceClient` export. `captureUnpaidBooking`
-// (kept REAL below, via `...actual`) calls `createSupabaseServiceClient()` as
-// an internal same-module reference — overriding only the export does not
-// intercept that internal call (a known ESM partial-mock limitation), so it
-// must be caught one layer down where there IS no self-reference.
+// and `reconcileRoundTripToConfirmed` (kept REAL below, via `...actual`) call
+// `createSupabaseServiceClient()` as an internal same-module reference —
+// overriding only the export does not intercept that internal call (a known
+// ESM partial-mock limitation), so it must be caught one layer down where
+// there IS no self-reference.
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn(() => supabaseServiceStub),
 }))
 
-// Keep the REAL buildBookingRow/withRetry/captureUnpaidBooking so their
-// field-mapping and branch logic (insert vs. update vs. no-op) is exercised
-// end-to-end (Phase 62-02 Task 1) — only override the DB-touching exports
-// that need custom per-test return values.
+// Keep the REAL buildBookingRow/withRetry/captureUnpaidBooking/
+// reconcileRoundTripToConfirmed so their field-mapping and branch logic
+// (insert vs. update vs. no-op) is exercised end-to-end (Phase 62-02) — only
+// override the DB-touching exports that need custom per-test return values.
 vi.mock('@/lib/supabase', async () => {
   const actual = await vi.importActual<typeof import('@/lib/supabase')>('@/lib/supabase')
   return {
@@ -591,7 +592,7 @@ describe('ABND-01/02/05: Phase 62 unpaid capture — no attemptId fallback (62-0
   })
 })
 
-describe('ABND-06: attempt_id dedup (Phase 62-02 Task 1)', () => {
+describe('ABND-06: attempt_id dedup + round-trip capture (Phase 62-02)', () => {
   const ATTEMPT_ID = '11111111-1111-4111-8111-111111111111'
 
   it('(a) a new attemptId inserts exactly one unpaid row carrying that attempt_id', async () => {
@@ -643,5 +644,52 @@ describe('ABND-06: attempt_id dedup (Phase 62-02 Task 1)', () => {
       makePostRequest({ bookingData: makeBookingData({ attemptId: 'not-a-uuid' }) })
     )
     expect(res.status).toBe(400)
+  })
+
+  it('(e) round-trip POST with attemptId captures exactly two unpaid rows (outbound + return) sharing one payment_intent_id', async () => {
+    const chain = mockCaptureChain(null)
+
+    const res = await POST(
+      makePostRequest({
+        bookingData: makeBookingData({
+          tripType: 'round_trip',
+          distanceKm: '10',
+          returnDate: futureDate(34),
+          returnTime: '15:00',
+          quoteMode: 'false',
+          attemptId: ATTEMPT_ID,
+        }),
+      })
+    )
+
+    expect(res.status).toBe(200)
+    expect(chain.insert).toHaveBeenCalledTimes(2)
+    const rows = chain.insert.mock.calls.map((call) => call[0][0])
+    const legs = rows.map((row) => row.leg).sort()
+    expect(legs).toEqual(['outbound', 'return'])
+    expect(rows.every((row) => row.status === 'unpaid')).toBe(true)
+    expect(rows.every((row) => row.attempt_id === ATTEMPT_ID)).toBe(true)
+    expect(rows.every((row) => row.payment_intent_id === 'pi_test_id')).toBe(true)
+  })
+
+  it('(f) round-trip retry with the SAME attemptId updates BOTH existing unpaid legs in place (no duplicate legs)', async () => {
+    const chain = mockCaptureChain({ id: 'existing-leg-id', status: 'unpaid' })
+
+    const res = await POST(
+      makePostRequest({
+        bookingData: makeBookingData({
+          tripType: 'round_trip',
+          distanceKm: '10',
+          returnDate: futureDate(34),
+          returnTime: '15:00',
+          quoteMode: 'false',
+          attemptId: ATTEMPT_ID,
+        }),
+      })
+    )
+
+    expect(res.status).toBe(200)
+    expect(chain.insert).not.toHaveBeenCalled()
+    expect(chain.update).toHaveBeenCalledTimes(2)
   })
 })

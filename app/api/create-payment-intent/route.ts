@@ -9,6 +9,7 @@ import { generateBookingReference } from '@/lib/booking-reference'
 import {
   createSupabaseServiceClient,
   buildBookingRow,
+  buildBookingRows,
   saveBooking,
   captureUnpaidBooking,
 } from '@/lib/supabase'
@@ -342,14 +343,25 @@ export async function POST(req: Request) {
     // Best-effort: a capture failure must never block the payment flow, so
     // it is caught and logged, not rethrown — the webhook's defensive
     // fallback insert covers a lost capture.
-    if (bookingData.attemptId && tripType !== 'round_trip') {
-      // Phase 62-02 D-06: attempt-keyed capture — a retry / currency toggle
-      // re-POST with the SAME attemptId UPDATEs the existing unpaid row in
-      // place instead of inserting a duplicate. Round-trip attempt-keyed
-      // capture (2 legs) is added below (62-02 Task 2).
+    if (bookingData.attemptId) {
+      // Phase 62-02 D-06/D-07: attempt-keyed capture — a retry / currency
+      // toggle re-POST with the SAME attemptId UPDATEs the existing unpaid
+      // row(s) in place instead of inserting a duplicate. Round-trip attempts
+      // capture TWO rows (outbound + return), keyed per leg, sharing the
+      // attempt and the single PaymentIntent.
       try {
-        const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
-        await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound')
+        if (tripType === 'round_trip') {
+          const { outbound: outboundUnpaid, return: returnUnpaid } = buildBookingRows(
+            meta,
+            paymentIntent.id,
+            'unpaid'
+          )
+          await captureUnpaidBooking(outboundUnpaid, bookingData.attemptId, 'outbound')
+          await captureUnpaidBooking(returnUnpaid, bookingData.attemptId, 'return')
+        } else {
+          const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
+          await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound')
+        }
       } catch (captureErr) {
         console.error(
           'create-payment-intent capture failed:',

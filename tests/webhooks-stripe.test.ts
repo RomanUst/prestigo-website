@@ -33,6 +33,10 @@ vi.mock('@/lib/supabase', () => ({
   // test in this file (written before Task 3) falls through to the original
   // saveBooking-based insert path unchanged.
   reconcileBookingToConfirmed: vi.fn().mockResolvedValue([]),
+  // Phase 62-02 D-07/D-11: same "no unpaid row matched" default for the
+  // round-trip reconcile — pre-existing Round-trip (Phase 27) tests fall
+  // through to the original saveRoundTripBookings RPC-insert path unchanged.
+  reconcileRoundTripToConfirmed: vi.fn().mockResolvedValue([]),
   createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
 }))
 
@@ -73,7 +77,7 @@ vi.mock('stripe', () => {
   }
 })
 
-import { saveBooking, withRetry, buildBookingRow, buildBookingRows, saveRoundTripBookings, reconcileBookingToConfirmed } from '@/lib/supabase'
+import { saveBooking, withRetry, buildBookingRow, buildBookingRows, saveRoundTripBookings, reconcileBookingToConfirmed, reconcileRoundTripToConfirmed } from '@/lib/supabase'
 import {
   sendClientConfirmation, sendManagerAlert, sendEmergencyAlert,
   sendRoundTripClientConfirmation, sendRoundTripManagerAlert,
@@ -213,6 +217,9 @@ beforeEach(() => {
   // Phase 62 D-11 default: no unpaid row matched — pre-existing tests exercise
   // the original saveBooking-based insert path unchanged.
   ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+  // Phase 62-02 D-07/D-11 default: no unpaid legs matched — pre-existing
+  // round-trip tests exercise the original saveRoundTripBookings RPC path.
+  ;(reconcileRoundTripToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
   ;(scheduleQStashReminder as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
   ;(sendGa4Purchase as ReturnType<typeof vi.fn>).mockResolvedValue(true)
 
@@ -420,6 +427,80 @@ describe('/api/webhooks/stripe', () => {
 
       expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
       expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+      expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('ABND-01/06/D-07/D-11: round-trip unpaid→confirmed reconciliation (Phase 62-02)', () => {
+    beforeEach(() => {
+      stripeStub.constructEvent.mockReturnValue({
+        type: 'payment_intent.succeeded',
+        data: { object: mockPaymentIntentRoundTrip },
+      })
+    })
+
+    it('(a) fresh round-trip reconcile flips BOTH legs and fires side-effects exactly once for the pair, no fallback insert', async () => {
+      ;(reconcileRoundTripToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { id: 'uuid-out' },
+        { id: 'uuid-ret' },
+      ])
+      supabaseServiceStub.from.mockImplementation((table: string) => {
+        if (table === 'stripe_processed_events') {
+          const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+          const eq = vi.fn().mockReturnValue({ maybeSingle })
+          const select = vi.fn().mockReturnValue({ eq })
+          return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+        }
+        const inFn = vi.fn().mockResolvedValue({
+          data: [
+            { id: 'uuid-out', pickup_utc: '2026-04-15T12:00:00Z' },
+            { id: 'uuid-ret', pickup_utc: '2026-04-17T16:30:00Z' },
+          ],
+          error: null,
+        })
+        const select = vi.fn().mockReturnValue({ in: inFn })
+        return { select }
+      })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      expect(reconcileRoundTripToConfirmed).toHaveBeenCalledWith('pi_test_rt')
+      expect(saveRoundTripBookings).not.toHaveBeenCalled()
+
+      expect(sendRoundTripClientConfirmation).toHaveBeenCalledTimes(1)
+      expect(sendRoundTripManagerAlert).toHaveBeenCalledTimes(1)
+      expect(scheduleQStashReminder).toHaveBeenCalledTimes(2)
+      expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-out', expect.any(Number))
+      expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-ret', expect.any(Number))
+      expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    })
+
+    it('(b) redelivery (both legs already confirmed) fires zero side-effects and creates zero rows', async () => {
+      ;(reconcileRoundTripToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(saveRoundTripBookings as ReturnType<typeof vi.fn>).mockResolvedValue(null)
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      expect(sendRoundTripClientConfirmation).not.toHaveBeenCalled()
+      expect(sendRoundTripManagerAlert).not.toHaveBeenCalled()
+      expect(scheduleQStashReminder).not.toHaveBeenCalled()
+      expect(sendGa4Purchase).not.toHaveBeenCalled()
+    })
+
+    it('(c) lost-capture round-trip falls back to saveRoundTripBookings and still fires side-effects once', async () => {
+      ;(reconcileRoundTripToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+      ;(saveRoundTripBookings as ReturnType<typeof vi.fn>).mockResolvedValue({
+        outbound_id: 'uuid-out',
+        return_id: 'uuid-ret',
+      })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      expect(sendRoundTripClientConfirmation).toHaveBeenCalledTimes(1)
+      expect(sendRoundTripManagerAlert).toHaveBeenCalledTimes(1)
       expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
     })
   })

@@ -7,6 +7,7 @@ import {
   buildBookingRows,
   saveRoundTripBookings,
   reconcileBookingToConfirmed,
+  reconcileRoundTripToConfirmed,
   createSupabaseServiceClient,
 } from '@/lib/supabase'
 import {
@@ -284,20 +285,54 @@ async function handleRoundTripSucceeded(
   // D-03: buildBookingRows returns BOTH rows in one call
   const { outbound: outboundRow, return: returnRow } = buildBookingRows(meta, paymentIntent.id)
 
-  let pair: { outbound_id: string; return_id: string } | null = null
+  // Phase 62 D-07/D-11: reconcile pre-captured `unpaid` legs FIRST — a single
+  // atomic UPDATE flips BOTH legs at once since they share payment_intent_id.
+  // This is now the primary exactly-once gate, replacing the `pair !== null`
+  // ignoreDuplicates-RPC gate for the common case where checkout already
+  // captured both rows (Plan 62-02).
+  let reconciledIds: { id: string }[] = []
   try {
-    // D-02: saveRoundTripBookings returns IDs only; null on 23505 (idempotent retry)
-    pair = await withRetry(() => saveRoundTripBookings(outboundRow, returnRow), 3, 1000)
+    reconciledIds = await withRetry(() => reconcileRoundTripToConfirmed(paymentIntent.id), 3, 1000)
   } catch (err) {
     console.error(
-      'saveRoundTripBookings failed after 3 retries:',
+      'reconcileRoundTripToConfirmed failed after 3 retries:',
       err instanceof Error ? err.message : 'Unknown error'
     )
     await sendEmergencyAlert(outboundRef, outboundRow as unknown as Record<string, unknown>)
     return
   }
 
-  if (!pair) return // Idempotent retry — emails already sent on first delivery
+  // Defensive fallback: no matching `unpaid` legs (lost capture, or a
+  // booking predating Phase 62's pre-capture) — fall back to the original
+  // atomic RPC insert path.
+  let pair: { outbound_id: string; return_id: string } | null = null
+  if (reconciledIds.length === 0) {
+    try {
+      // D-02: saveRoundTripBookings returns IDs only; null on 23505 (idempotent retry)
+      pair = await withRetry(() => saveRoundTripBookings(outboundRow, returnRow), 3, 1000)
+    } catch (err) {
+      console.error(
+        'saveRoundTripBookings failed after 3 retries:',
+        err instanceof Error ? err.message : 'Unknown error'
+      )
+      await sendEmergencyAlert(outboundRef, outboundRow as unknown as Record<string, unknown>)
+      return
+    }
+  }
+
+  // The confirmed leg ids from whichever path produced them — used below both
+  // as the side-effect gate (D-11) and for the per-leg QStash pickup_utc lookup.
+  const freshLegIds: string[] =
+    reconciledIds.length > 0
+      ? reconciledIds.map((row) => row.id)
+      : pair
+        ? [pair.outbound_id, pair.return_id]
+        : []
+
+  // Neither a fresh reconciliation nor a fresh insert — both legs were
+  // already `confirmed` (Stripe retry / duplicate delivery). Skip all
+  // side-effects.
+  if (freshLegIds.length === 0) return
 
   // SEC-01: claim the promo code NOW that payment is confirmed (not at PI creation).
   if (meta.promoCode) {
@@ -377,13 +412,15 @@ async function handleRoundTripSucceeded(
     console.error('sendRoundTripManagerAlert unexpected error:', err)
   }
 
-  // Phase 41 D-01/D-02: Schedule 2h QStash reminder for EACH leg (fire-and-forget)
-  if (pair) {
+  // Phase 41 D-01/D-02: Schedule 2h QStash reminder for EACH leg (fire-and-forget).
+  // Phase 62: leg ids come from whichever path produced the confirmed rows
+  // (reconciled unpaid→confirmed, or a fresh defensive RPC insert).
+  {
     const supabase = createSupabaseServiceClient()
     const { data: legs } = await supabase
       .from('bookings')
       .select('id, pickup_utc')
-      .in('id', [pair.outbound_id, pair.return_id])
+      .in('id', freshLegIds)
     for (const leg of legs ?? []) {
       if (leg.pickup_utc) {
         after(() => scheduleQStashReminder(leg.id, new Date(leg.pickup_utc).getTime()))

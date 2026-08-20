@@ -229,6 +229,32 @@ export async function captureUnpaidBooking(
 }
 
 /**
+ * Reconcile BOTH legs of a round-trip booking (Phase 62 D-07/D-11) from
+ * `unpaid` to `confirmed` in a single atomic UPDATE — the two legs share one
+ * `payment_intent_id`, so scoping by that column alone flips both rows at
+ * once without a second query.
+ *
+ * Returns the updated row id(s) (0, 1, or 2 elements). An empty result means
+ * no matching `unpaid` rows existed — either already `confirmed` (a Stripe
+ * retry, correctly a no-op) or a lost capture (caller falls back to a
+ * defensive `saveRoundTripBookings` insert). Mirrors
+ * `reconcileBookingToConfirmed`'s one-way "empty = already handled" contract.
+ */
+export async function reconcileRoundTripToConfirmed(
+  paymentIntentId: string
+): Promise<{ id: string }[]> {
+  const supabase = createSupabaseServiceClient()
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({ status: 'confirmed' })
+    .eq('payment_intent_id', paymentIntentId)
+    .eq('status', 'unpaid')
+    .select('id')
+  if (error) throw new Error(`Supabase round-trip reconcile failed: ${error.message}`)
+  return data ?? []
+}
+
+/**
  * Build BOTH booking rows for a round-trip booking in a single call.
  *
  * Phase 27 D-03 (locked decision): the external API is a single function
@@ -254,10 +280,18 @@ export async function captureUnpaidBooking(
  *
  * @see 27-CONTEXT.md D-03
  * @see 27-RESEARCH.md Pattern 3, Pitfall 5 (amount double-counting)
+ *
+ * Phase 62 D-07: `bookingType` widened to accept `'unpaid'` (default stays
+ * `'confirmed'` — every existing call site is unaffected) so the same builder
+ * produces the two pre-payment capture rows for a round-trip attempt.
+ * `buildBookingRow`'s own status ternary already derives `status: 'unpaid'`
+ * while leaving `booking_type: 'confirmed'` (the origin dimension, unchanged)
+ * for that value — see D-01 rationale in `buildBookingRow`.
  */
 export function buildBookingRows(
   meta: Record<string, string>,
-  paymentIntentId: string
+  paymentIntentId: string,
+  bookingType: 'confirmed' | 'unpaid' = 'confirmed'
 ): {
   outbound: ReturnType<typeof buildBookingRow>
   return: ReturnType<typeof buildBookingRow>
@@ -265,7 +299,7 @@ export function buildBookingRows(
   // Outbound mirrors buildBookingRow shape but with per-leg amount columns
   // populated from the dedicated metadata fields.
   const outbound = {
-    ...buildBookingRow(meta, paymentIntentId, 'confirmed'),
+    ...buildBookingRow(meta, paymentIntentId, bookingType),
     // Phase 27 adds per-leg amount columns to the outbound row too — this
     // overrides whatever buildBookingRow produced for amount_czk (which
     // reads meta.amountCzk = combined total). For round-trip, outbound
@@ -281,7 +315,7 @@ export function buildBookingRows(
     payment_intent_id: paymentIntentId,
     leg: 'return' as const,
     booking_type: 'confirmed' as const,
-    status: 'confirmed',
+    status: bookingType, // 'confirmed' | 'unpaid' — Phase 62 D-07
     trip_type: 'round_trip',
     // Origin ↔ destination SWAPPED: return trip goes destination → origin
     origin_address: meta.destinationAddress ?? null,
