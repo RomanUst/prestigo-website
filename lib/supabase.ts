@@ -62,16 +62,24 @@ export async function withRetry<T>(
 export function buildBookingRow(
   meta: Record<string, string>,
   paymentIntentId: string | null,
-  bookingType: 'confirmed' | 'quote'
+  bookingType: 'confirmed' | 'quote' | 'unpaid'
 ) {
   return {
     booking_reference: meta.bookingReference,
     payment_intent_id: paymentIntentId,
     leg: 'outbound' as const, // webhooks and quote submissions always create the outbound leg
-    booking_type: bookingType,
+    // booking_type encodes the ORIGIN dimension (checkout-originated vs a
+    // manually-priced quote request) — a Phase 62 'unpaid' capture row is
+    // still checkout-originated, so it reuses 'confirmed' here. `status`
+    // (below) is what encodes the unpaid/confirmed lifecycle distinction
+    // (D-01 rationale: keep the two dimensions separate; `booking_type` has
+    // no verified live CHECK constraint permitting a third distinct value).
+    booking_type: bookingType === 'quote' ? 'quote' : 'confirmed',
     // Paid bookings start as 'confirmed' — Stripe already validated the charge.
     // Quotes stay 'pending' until an operator prices them and sends a payment link.
-    status: bookingType === 'confirmed' ? 'confirmed' : 'pending',
+    // Phase 62 unpaid-capture rows start as 'unpaid' — a checkout attempt
+    // that reached the payment step but has not (yet) paid (D-02/ABND-02).
+    status: bookingType === 'confirmed' ? 'confirmed' : bookingType === 'unpaid' ? 'unpaid' : 'pending',
     trip_type: meta.tripType,
     origin_address: meta.originAddress ?? meta.origin ?? null,
     origin_lat: meta.originLat ? parseFloat(meta.originLat) : null,
@@ -120,6 +128,38 @@ export async function saveBooking(row: ReturnType<typeof buildBookingRow>): Prom
     .upsert([row], { onConflict: 'payment_intent_id,leg', ignoreDuplicates: true })
     .select('id')
   if (error) throw new Error(`Supabase insert failed: ${error.message}`)
+  return data ?? []
+}
+
+/**
+ * Reconcile a pre-captured `unpaid` bookings row to `confirmed` when its
+ * PaymentIntent succeeds (Phase 62 D-11).
+ *
+ * Returns the updated row(s) (one element) when a matching `unpaid` row was
+ * found and flipped, or an empty array when no row matched — either because
+ * the row is already `confirmed` (a Stripe retry, correctly a no-op) or
+ * because no capture row exists yet (a lost capture; the caller falls back
+ * to a defensive INSERT via `buildBookingRow`/`saveBooking`).
+ *
+ * The UPDATE's WHERE clause encodes the idempotency condition directly
+ * (`status = 'unpaid'`) instead of relying on `saveBooking`'s
+ * `ignoreDuplicates` upsert semantics, which can only skip-or-insert and can
+ * never flip an existing row's status — see 62-RESEARCH.md Pattern 2 /
+ * Anti-Patterns.
+ */
+export async function reconcileBookingToConfirmed(
+  paymentIntentId: string,
+  leg: 'outbound' | 'return'
+): Promise<{ id: string }[]> {
+  const supabase = createSupabaseServiceClient()
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({ status: 'confirmed' })
+    .eq('payment_intent_id', paymentIntentId)
+    .eq('leg', leg)
+    .eq('status', 'unpaid')
+    .select('id')
+  if (error) throw new Error(`Supabase reconcile failed: ${error.message}`)
   return data ?? []
 }
 

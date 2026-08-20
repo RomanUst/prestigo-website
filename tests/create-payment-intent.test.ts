@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // vi.hoisted ensures stubs are available inside vi.mock factories
-const { stripeMock, supabaseServiceStub, pricingConfigMock } = vi.hoisted(() => {
+const { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock } = vi.hoisted(() => {
   const paymentIntentCreateMock = vi.fn()
 
   const stripeMock = {
@@ -16,8 +16,9 @@ const { stripeMock, supabaseServiceStub, pricingConfigMock } = vi.hoisted(() => 
   }
 
   const pricingConfigMock = vi.fn()
+  const saveBookingMock = vi.fn()
 
-  return { stripeMock, supabaseServiceStub, pricingConfigMock }
+  return { stripeMock, supabaseServiceStub, pricingConfigMock, saveBookingMock }
 })
 
 vi.mock('stripe', () => {
@@ -30,8 +31,29 @@ vi.mock('stripe', () => {
   }
 })
 
-vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
+// Keep the REAL buildBookingRow/withRetry so buildBookingRow('unpaid') field-mapping
+// is exercised end-to-end (Phase 62 Task 2) — only override the DB-touching exports.
+vi.mock('@/lib/supabase', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/supabase')>('@/lib/supabase')
+  return {
+    ...actual,
+    createSupabaseServiceClient: vi.fn(() => supabaseServiceStub),
+    saveBooking: saveBookingMock,
+  }
+})
+
+// Pre-existing gap (not introduced by Phase 62): the route resolves
+// authenticatedUserId via createClient().auth.getUser(), which calls
+// next/headers cookies() outside a request scope when unmocked in Vitest.
+// This mock was missing before this plan and made every POST() in this
+// file 500 regardless of test intent — added per deviation Rule 3
+// (blocking-issue auto-fix) to unblock verification of Task 2/3.
+vi.mock('@/lib/supabase/server', () => ({
+  createClient: vi.fn(() =>
+    Promise.resolve({
+      auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+    })
+  ),
 }))
 
 vi.mock('@/lib/pricing-config', () => ({
@@ -73,13 +95,42 @@ function makePostRequest(body: Record<string, unknown>): Request {
   })
 }
 
+// The route enforces a ≥12h-advance business rule against wall-clock "now" —
+// a hardcoded calendar date rots as soon as real time catches up to it
+// (pre-existing gap, not introduced by Phase 62; fixed per deviation Rule 3
+// since it silently 422s every "happy path" test in this file once the
+// fixture date is in the past).
+function futureDate(daysAhead: number): string {
+  return new Date(Date.now() + daysAhead * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
+}
+
+// SEC-01: create-payment-intent VALIDATES a promo via a read
+// (from('promo_codes').select(...).eq('code').eq('is_active').maybeSingle())
+// and does NOT increment the usage counter here — the claim happens in the
+// Stripe webhook after payment_intent.succeeded. These promo tests predate that
+// refactor: they mocked rpc('claim_promo_code') and used a past pickupDate, so
+// they had rotted red on main. Modernized in Phase 62 to the current read-based
+// contract (test-only; no production behavior change). Pass `null` to simulate
+// an invalid/exhausted code (no matching active row).
+function mockPromoLookup(row: Record<string, unknown> | null) {
+  supabaseServiceStub.from.mockReturnValue({
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({ data: row, error: null }),
+        }),
+      }),
+    }),
+  })
+}
+
 function makeBookingData(overrides: Record<string, string> = {}): Record<string, string> {
   return {
     tripType: 'transfer',
     vehicleClass: 'business',
     currency: 'eur',
     distanceKm: '10',
-    pickupDate: '2026-06-01',
+    pickupDate: futureDate(30),
     pickupTime: '10:00',
     passengers: '2',
     luggage: '1',
@@ -108,6 +159,7 @@ beforeEach(() => {
     client_secret: 'pi_test_secret',
     id: 'pi_test_id',
   })
+  saveBookingMock.mockResolvedValue([{ id: 'unpaid-row-id' }])
 })
 
 describe('/api/create-payment-intent', () => {
@@ -124,25 +176,21 @@ describe('/api/create-payment-intent', () => {
 })
 
 describe('PROMO-04: promo code integration', () => {
-  it('Test 1: POST with promoCode calls supabaseService.rpc("claim_promo_code")', async () => {
-    supabaseServiceStub.rpc.mockResolvedValue({
-      data: [{ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', discount_value: 15 }],
-      error: null,
-    })
+  it('Test 1: POST with promoCode validates via a promo_codes read and does NOT claim here (SEC-01)', async () => {
+    mockPromoLookup({ discount_value: 15, max_uses: null, current_uses: 0, is_active: true })
 
     const res = await POST(
       makePostRequest({ bookingData: makeBookingData({ promoCode: 'SUMMER20' }) })
     )
 
     expect(res.status).toBe(200)
-    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith('claim_promo_code', { p_code: 'SUMMER20' })
+    expect(supabaseServiceStub.from).toHaveBeenCalledWith('promo_codes')
+    // Usage counter is incremented in the webhook after payment, never in this endpoint.
+    expect(supabaseServiceStub.rpc).not.toHaveBeenCalled()
   })
 
   it('Test 2: 15% discount on 100 EUR base → PaymentIntent amount is 8500 (85 EUR in cents)', async () => {
-    supabaseServiceStub.rpc.mockResolvedValue({
-      data: [{ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', discount_value: 15 }],
-      error: null,
-    })
+    mockPromoLookup({ discount_value: 15, max_uses: null, current_uses: 0, is_active: true })
 
     // Mock pricing config to yield exactly 100 EUR base:
     // ratePerKm.business = 10.0, distanceKm = 10 → 10 * 10 = 100 EUR
@@ -167,11 +215,8 @@ describe('PROMO-04: promo code integration', () => {
     )
   })
 
-  it('Test 3: exhausted code (empty claim result) returns 400 with specific error', async () => {
-    supabaseServiceStub.rpc.mockResolvedValue({
-      data: [],
-      error: null,
-    })
+  it('Test 3: invalid/exhausted code (no matching active row) returns 400 with specific error', async () => {
+    mockPromoLookup(null)
 
     const res = await POST(
       makePostRequest({ bookingData: makeBookingData({ promoCode: 'EXHAUSTED' }) })
@@ -193,10 +238,7 @@ describe('PROMO-04: promo code integration', () => {
   })
 
   it('Test 5: PaymentIntent metadata includes promoCode and discountPct when promo applied', async () => {
-    supabaseServiceStub.rpc.mockResolvedValue({
-      data: [{ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', discount_value: 20 }],
-      error: null,
-    })
+    mockPromoLookup({ discount_value: 20, max_uses: null, current_uses: 0, is_active: true })
 
     const res = await POST(
       makePostRequest({ bookingData: makeBookingData({ promoCode: 'WINTER20' }) })
@@ -218,9 +260,9 @@ describe('PAY26-RT: round-trip server-side recomputation', () => {
   function makeRoundTripBookingData(overrides: Record<string, string> = {}): Record<string, string> {
     return makeBookingData({
       tripType: 'round_trip',
-      pickupDate: '2026-06-01',
+      pickupDate: futureDate(30),
       pickupTime: '10:00',
-      returnDate: '2026-06-05',
+      returnDate: futureDate(34),
       returnTime: '15:00',
       originLat: '50.0755',
       originLng: '14.4378',
@@ -262,10 +304,7 @@ describe('PAY26-RT: round-trip server-side recomputation', () => {
   })
 
   it('PAY26-RT-PROMO: applies promo once on combined, not per leg (rounding regression)', async () => {
-    supabaseServiceStub.rpc.mockResolvedValue({
-      data: [{ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', discount_value: 15 }],
-      error: null,
-    })
+    mockPromoLookup({ discount_value: 15, max_uses: null, current_uses: 0, is_active: true })
     // Use ratePerKm that produces exactly outbound=150, return=135 (post-10%-discount), extras=10
     // With default night/holiday coefficients = 1.0 during daytime
     pricingConfigMock.mockResolvedValue({
@@ -380,9 +419,9 @@ describe('PAY26-META: round-trip metadata contract', () => {
   function makeRoundTripBookingData(overrides: Record<string, string> = {}): Record<string, string> {
     return makeBookingData({
       tripType: 'round_trip',
-      pickupDate: '2026-06-01',
+      pickupDate: futureDate(30),
       pickupTime: '10:00',
-      returnDate: '2026-06-05',
+      returnDate: futureDate(34),
       returnTime: '15:00',
       originLat: '50.0755',
       originLng: '14.4378',
@@ -465,5 +504,49 @@ describe('PAY26-META: round-trip metadata contract', () => {
       makePostRequest({ bookingData: makeBookingData({ tripType: 'invalid' as unknown as string }) })
     )
     expect(res2.status).toBe(400)
+  })
+})
+
+describe('ABND-01/02/05: Phase 62 unpaid capture (one-way tracer)', () => {
+  it('a valid one-way POST captures exactly one unpaid row keyed to the PaymentIntent', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData() })
+    )
+    expect(res.status).toBe(200)
+    expect(saveBookingMock).toHaveBeenCalledTimes(1)
+    const row = saveBookingMock.mock.calls[0][0]
+    expect(row.status).toBe('unpaid')
+    expect(row.payment_intent_id).toBe('pi_test_id')
+    expect(row.client_email).toBe('john@example.com')
+    expect(row.client_first_name).toBe('John')
+    expect(row.client_last_name).toBe('Doe')
+    expect(row.client_phone).toBe('+420123456789')
+  })
+
+  it('round-trip POST does NOT capture an unpaid row in this tracer plan (62-02 scope)', async () => {
+    const res = await POST(
+      makePostRequest({
+        bookingData: makeBookingData({
+          tripType: 'round_trip',
+          distanceKm: '10',
+          returnDate: futureDate(34),
+          returnTime: '15:00',
+          quoteMode: 'false',
+        }),
+      })
+    )
+    expect(res.status).toBe(200)
+    expect(saveBookingMock).not.toHaveBeenCalled()
+  })
+
+  it('a thrown capture failure is caught and the route still returns 200', async () => {
+    saveBookingMock.mockRejectedValueOnce(new Error('DB unavailable'))
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData() })
+    )
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.clientSecret).toBe('pi_test_secret')
+    expect(saveBookingMock).toHaveBeenCalledTimes(1)
   })
 })

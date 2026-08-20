@@ -6,7 +6,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import { generateBookingReference } from '@/lib/booking-reference'
-import { createSupabaseServiceClient } from '@/lib/supabase'
+import { createSupabaseServiceClient, buildBookingRow, saveBooking } from '@/lib/supabase'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody, NO_LINE_BREAKS } from '@/lib/request-guards'
@@ -277,52 +277,75 @@ export async function POST(req: Request) {
     // Defense-in-depth: truncate every metadata string to 500 chars (T-26-04)
     const clamp500 = (s: string) => (s.length > 500 ? s.slice(0, 500) : s)
 
+    // Single metadata map — sent to Stripe AND reused (below) as the `meta`
+    // input to buildBookingRow for the Phase 62 unpaid-capture write, so the
+    // capture row and the PaymentIntent's metadata never drift apart.
+    // Enumerate only the keys the webhook handler and email builder consume.
+    // Never spread the full client payload — Stripe has a 50-key / 500-char limit
+    // and arbitrary client keys should not reach Stripe.
+    const meta: Record<string, string> = {
+      bookingReference,
+      returnBookingReference, // empty string for one-way
+      tripType: bookingData.tripType ?? '',
+      originAddress: clamp500(bookingData.originAddress ?? ''),
+      originLat: bookingData.originLat ?? '',
+      originLng: bookingData.originLng ?? '',
+      destinationAddress: clamp500(bookingData.destinationAddress ?? ''),
+      destinationLat: bookingData.destinationLat ?? '',
+      destinationLng: bookingData.destinationLng ?? '',
+      pickupDate: bookingData.pickupDate ?? '',
+      pickupTime: bookingData.pickupTime ?? '',
+      returnDate: bookingData.returnDate ?? '',
+      returnTime: bookingData.returnTime ?? '',
+      vehicleClass: bookingData.vehicleClass ?? '',
+      passengers: bookingData.passengers ?? '',
+      luggage: bookingData.luggage ?? '',
+      hours: bookingData.hours ?? '',
+      distanceKm: bookingData.distanceKm ?? '',
+      extraChildSeat: bookingData.extraChildSeat ?? 'false',
+      extraMeetGreet: bookingData.extraMeetGreet ?? 'false',
+      extraLuggage: bookingData.extraLuggage ?? 'false',
+      firstName: clamp500(bookingData.firstName ?? ''),
+      lastName: clamp500(bookingData.lastName ?? ''),
+      email: clamp500(bookingData.email ?? ''),
+      phone: clamp500(bookingData.phone ?? ''),
+      flightNumber: clamp500(bookingData.flightNumber ?? ''),
+      terminal: clamp500(bookingData.terminal ?? ''),
+      specialRequests: clamp500((bookingData.specialRequests ?? '').slice(0, 490)),
+      amountEur: String(finalTotalEur),
+      amountCzk: String(totalCzk),
+      outboundAmountCzk: String(outboundAmountCzk),
+      returnAmountCzk: String(returnAmountCzk),
+      returnDiscountPct: String(rates.globals.returnDiscountPercent),
+      promoCode: promoCode || '',
+      discountPct: String(appliedPromoPct),
+      userId: authenticatedUserId ?? '',
+    }
+
     const paymentIntent = await getStripe().paymentIntents.create({
       amount: stripeAmount,
       currency: paymentCurrency,
       automatic_payment_methods: { enabled: true },
-      metadata: {
-        bookingReference,
-        returnBookingReference, // empty string for one-way
-        // Enumerate only the keys the webhook handler and email builder consume.
-        // Never spread the full client payload — Stripe has a 50-key / 500-char limit
-        // and arbitrary client keys should not reach Stripe.
-        tripType: bookingData.tripType ?? '',
-        originAddress: clamp500(bookingData.originAddress ?? ''),
-        originLat: bookingData.originLat ?? '',
-        originLng: bookingData.originLng ?? '',
-        destinationAddress: clamp500(bookingData.destinationAddress ?? ''),
-        destinationLat: bookingData.destinationLat ?? '',
-        destinationLng: bookingData.destinationLng ?? '',
-        pickupDate: bookingData.pickupDate ?? '',
-        pickupTime: bookingData.pickupTime ?? '',
-        returnDate: bookingData.returnDate ?? '',
-        returnTime: bookingData.returnTime ?? '',
-        vehicleClass: bookingData.vehicleClass ?? '',
-        passengers: bookingData.passengers ?? '',
-        luggage: bookingData.luggage ?? '',
-        hours: bookingData.hours ?? '',
-        distanceKm: bookingData.distanceKm ?? '',
-        extraChildSeat: bookingData.extraChildSeat ?? 'false',
-        extraMeetGreet: bookingData.extraMeetGreet ?? 'false',
-        extraLuggage: bookingData.extraLuggage ?? 'false',
-        firstName: clamp500(bookingData.firstName ?? ''),
-        lastName: clamp500(bookingData.lastName ?? ''),
-        email: clamp500(bookingData.email ?? ''),
-        phone: clamp500(bookingData.phone ?? ''),
-        flightNumber: clamp500(bookingData.flightNumber ?? ''),
-        terminal: clamp500(bookingData.terminal ?? ''),
-        specialRequests: clamp500((bookingData.specialRequests ?? '').slice(0, 490)),
-        amountEur: String(finalTotalEur),
-        amountCzk: String(totalCzk),
-        outboundAmountCzk: String(outboundAmountCzk),
-        returnAmountCzk: String(returnAmountCzk),
-        returnDiscountPct: String(rates.globals.returnDiscountPercent),
-        promoCode: promoCode || '',
-        discountPct: String(appliedPromoPct),
-        userId: authenticatedUserId ?? '',
-      },
+      metadata: meta,
     })
+
+    // Phase 62 D-05/ABND-01: capture an `unpaid` bookings row NOW, before the
+    // client completes payment — the revenue-recovery follow-up queue. Only
+    // the one-way path is captured in this tracer plan; round-trip capture
+    // (2 rows, one per leg) is Plan 62-02. Best-effort: a capture failure
+    // must never block the payment flow, so it is caught and logged, not
+    // rethrown — the webhook's defensive fallback insert covers a lost capture.
+    if (tripType !== 'round_trip') {
+      try {
+        const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
+        await saveBooking(unpaidRow)
+      } catch (captureErr) {
+        console.error(
+          'create-payment-intent capture failed:',
+          captureErr instanceof Error ? captureErr.message : String(captureErr)
+        )
+      }
+    }
 
     return NextResponse.json({
       clientSecret: paymentIntent.client_secret,
