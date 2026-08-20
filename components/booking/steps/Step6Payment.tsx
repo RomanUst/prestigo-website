@@ -210,6 +210,14 @@ export default function Step6Payment() {
   const setPromoCode = useBookingStore((s) => s.setPromoCode)
   const setPromoDiscount = useBookingStore((s) => s.setPromoDiscount)
 
+  // Phase 62 D-06: stable per-checkout-attempt dedup key. Generated once and
+  // persisted (sessionStorage, via the store's partialize) so every retry /
+  // currency-toggle / promo-apply re-POST from THIS attempt carries the SAME
+  // id — the server UPDATEs the existing unpaid row in place instead of
+  // inserting a duplicate.
+  const attemptId = useBookingStore((s) => s.attemptId)
+  const setAttemptId = useBookingStore((s) => s.setAttemptId)
+
   const [selectedCurrency, setSelectedCurrency] = useState<'eur' | 'czk'>('eur')
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [bookingRef, setBookingRef] = useState<string>('')
@@ -289,6 +297,17 @@ export default function Step6Payment() {
 
     setClientSecret(null)
 
+    // Phase 62 D-06: generate the attempt id lazily on first reach, once per
+    // checkout attempt. Read/write a local variable rather than relying on
+    // the `attemptId` render closure so THIS invocation's request body
+    // carries the freshly-generated id immediately (setAttemptId's effect on
+    // the store won't be visible until the next render).
+    let currentAttemptId = attemptId
+    if (!currentAttemptId) {
+      currentAttemptId = crypto.randomUUID()
+      setAttemptId(currentAttemptId)
+    }
+
     const fetchPaymentIntent = async () => {
       try {
         const res = await fetch('/api/create-payment-intent', {
@@ -296,6 +315,7 @@ export default function Step6Payment() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             bookingData: {
+              attemptId: currentAttemptId,
               tripType,
               vehicleClass: vehicleClass ?? '',
               originAddress: origin?.address ?? '',

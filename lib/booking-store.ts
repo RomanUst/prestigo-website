@@ -32,6 +32,7 @@ export const useBookingStore = create<BookingStore>()(
       promoCode: null,
       promoDiscount: 0,
       guestMode: false,
+      attemptId: null,
 
       setTripType: (type) => {
         const state = get()
@@ -111,6 +112,7 @@ export const useBookingStore = create<BookingStore>()(
       setPromoCode: (code) => set({ promoCode: code }),
       setPromoDiscount: (pct) => set({ promoDiscount: pct }),
       setGuestMode: (g) => set({ guestMode: g }),
+      setAttemptId: (id) => set({ attemptId: id }),
       resetBooking: () => set({
         tripType: 'transfer',
         origin: null,
@@ -139,6 +141,7 @@ export const useBookingStore = create<BookingStore>()(
         promoCode: null,
         promoDiscount: 0,
         guestMode: false,
+        attemptId: null,
       }),
     }),
     {
@@ -176,6 +179,11 @@ export const useBookingStore = create<BookingStore>()(
         promoCode: state.promoCode,
         promoDiscount: state.promoDiscount,
         guestMode: state.guestMode,
+        // Phase 62 D-06: persist attemptId across the 3DS redirect / same-tab
+        // reload so a retry re-POST carries the SAME dedup key (otherwise a
+        // fresh id would be generated and the retry would insert a second
+        // unpaid row instead of updating the existing one in place).
+        attemptId: state.attemptId,
       }),
       onRehydrateStorage: () => (state) => {
         if (state) {

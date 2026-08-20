@@ -31,8 +31,20 @@ vi.mock('stripe', () => {
   }
 })
 
-// Keep the REAL buildBookingRow/withRetry so buildBookingRow('unpaid') field-mapping
-// is exercised end-to-end (Phase 62 Task 2) — only override the DB-touching exports.
+// Phase 62-02: mock the createClient call itself (the TRUE module boundary),
+// not just the `createSupabaseServiceClient` export. `captureUnpaidBooking`
+// (kept REAL below, via `...actual`) calls `createSupabaseServiceClient()` as
+// an internal same-module reference — overriding only the export does not
+// intercept that internal call (a known ESM partial-mock limitation), so it
+// must be caught one layer down where there IS no self-reference.
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => supabaseServiceStub),
+}))
+
+// Keep the REAL buildBookingRow/withRetry/captureUnpaidBooking so their
+// field-mapping and branch logic (insert vs. update vs. no-op) is exercised
+// end-to-end (Phase 62-02 Task 1) — only override the DB-touching exports
+// that need custom per-test return values.
 vi.mock('@/lib/supabase', async () => {
   const actual = await vi.importActual<typeof import('@/lib/supabase')>('@/lib/supabase')
   return {
@@ -122,6 +134,34 @@ function mockPromoLookup(row: Record<string, unknown> | null) {
       }),
     }),
   })
+}
+
+// Phase 62-02: mocks the supabase chain that the REAL (unmocked)
+// `captureUnpaidBooking` drives — SELECT (attempt_id, leg) → maybeSingle,
+// then either INSERT (no existing row) or UPDATE (existing 'unpaid' row).
+// `existing: null` exercises the insert branch; `existing: {...}` the
+// update-or-noop branch depending on its `status`.
+function mockCaptureChain(existing: { id: string; status: string } | null) {
+  const maybeSingle = vi.fn().mockResolvedValue({ data: existing, error: null })
+  const selectEq2 = vi.fn().mockReturnValue({ maybeSingle })
+  const selectEq1 = vi.fn().mockReturnValue({ eq: selectEq2 })
+  const select = vi.fn().mockReturnValue({ eq: selectEq1 })
+
+  const insertSelect = vi.fn().mockResolvedValue({ data: [{ id: 'new-capture-id' }], error: null })
+  const insert = vi.fn().mockReturnValue({ select: insertSelect })
+
+  const updateSelect = vi.fn().mockResolvedValue({ data: [{ id: existing?.id ?? 'updated-id' }], error: null })
+  const updateEq2 = vi.fn().mockReturnValue({ select: updateSelect })
+  const updateEq1 = vi.fn().mockReturnValue({ eq: updateEq2 })
+  const update = vi.fn().mockReturnValue({ eq: updateEq1 })
+
+  supabaseServiceStub.from.mockImplementation((table: string) => {
+    if (table === 'bookings') return { select, insert, update }
+    // Not exercised by these tests (no promoCode sent) — keep a harmless stub.
+    return { select: vi.fn(), insert: vi.fn(), update: vi.fn() }
+  })
+
+  return { select, insert, update, insertSelect, updateSelect }
 }
 
 function makeBookingData(overrides: Record<string, string> = {}): Record<string, string> {
@@ -507,8 +547,8 @@ describe('PAY26-META: round-trip metadata contract', () => {
   })
 })
 
-describe('ABND-01/02/05: Phase 62 unpaid capture (one-way tracer)', () => {
-  it('a valid one-way POST captures exactly one unpaid row keyed to the PaymentIntent', async () => {
+describe('ABND-01/02/05: Phase 62 unpaid capture — no attemptId fallback (62-01 path)', () => {
+  it('a valid one-way POST without attemptId captures exactly one unpaid row keyed to the PaymentIntent', async () => {
     const res = await POST(
       makePostRequest({ bookingData: makeBookingData() })
     )
@@ -523,7 +563,7 @@ describe('ABND-01/02/05: Phase 62 unpaid capture (one-way tracer)', () => {
     expect(row.client_phone).toBe('+420123456789')
   })
 
-  it('round-trip POST does NOT capture an unpaid row in this tracer plan (62-02 scope)', async () => {
+  it('round-trip POST without attemptId does not capture (no dedup key to key the write on)', async () => {
     const res = await POST(
       makePostRequest({
         bookingData: makeBookingData({
@@ -548,5 +588,60 @@ describe('ABND-01/02/05: Phase 62 unpaid capture (one-way tracer)', () => {
     const json = await res.json()
     expect(json.clientSecret).toBe('pi_test_secret')
     expect(saveBookingMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('ABND-06: attempt_id dedup (Phase 62-02 Task 1)', () => {
+  const ATTEMPT_ID = '11111111-1111-4111-8111-111111111111'
+
+  it('(a) a new attemptId inserts exactly one unpaid row carrying that attempt_id', async () => {
+    const chain = mockCaptureChain(null)
+
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ attemptId: ATTEMPT_ID }) })
+    )
+
+    expect(res.status).toBe(200)
+    expect(chain.insert).toHaveBeenCalledTimes(1)
+    expect(chain.update).not.toHaveBeenCalled()
+    const insertedRow = chain.insert.mock.calls[0][0][0]
+    expect(insertedRow.status).toBe('unpaid')
+    expect(insertedRow.attempt_id).toBe(ATTEMPT_ID)
+    expect(insertedRow.payment_intent_id).toBe('pi_test_id')
+  })
+
+  it('(b) a second POST with the SAME attemptId issues an UPDATE (not a second insert), overwriting payment_intent_id + booking_reference', async () => {
+    const chain = mockCaptureChain({ id: 'existing-row-id', status: 'unpaid' })
+
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ attemptId: ATTEMPT_ID }) })
+    )
+
+    expect(res.status).toBe(200)
+    expect(chain.insert).not.toHaveBeenCalled()
+    expect(chain.update).toHaveBeenCalledTimes(1)
+    const updatedRow = chain.update.mock.calls[0][0]
+    expect(updatedRow.attempt_id).toBe(ATTEMPT_ID)
+    expect(updatedRow.payment_intent_id).toBe('pi_test_id')
+    expect(updatedRow.booking_reference).toBe('PRG-20260403-0001')
+  })
+
+  it('(c) capture no-ops when a confirmed row already exists for (attempt_id, leg)', async () => {
+    const chain = mockCaptureChain({ id: 'existing-row-id', status: 'confirmed' })
+
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ attemptId: ATTEMPT_ID }) })
+    )
+
+    expect(res.status).toBe(200)
+    expect(chain.insert).not.toHaveBeenCalled()
+    expect(chain.update).not.toHaveBeenCalled()
+  })
+
+  it('(d) a malformed attemptId (not a UUID) returns 400', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ attemptId: 'not-a-uuid' }) })
+    )
+    expect(res.status).toBe(400)
   })
 })

@@ -6,7 +6,12 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk } from '@/lib/currency'
 import { generateBookingReference } from '@/lib/booking-reference'
-import { createSupabaseServiceClient, buildBookingRow, saveBooking } from '@/lib/supabase'
+import {
+  createSupabaseServiceClient,
+  buildBookingRow,
+  saveBooking,
+  captureUnpaidBooking,
+} from '@/lib/supabase'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit, getClientIp } from '@/lib/rate-limit'
 import { enforceMaxBody, NO_LINE_BREAKS } from '@/lib/request-guards'
@@ -63,6 +68,9 @@ const createPaymentIntentSchema = z.object({
     phone:       z.string().max(30).regex(NO_LINE_BREAKS).optional(),
     flightNumber: z.string().max(20).regex(NO_LINE_BREAKS).optional(),
     terminal:     z.string().max(50).regex(NO_LINE_BREAKS).optional(),
+    // Phase 62 D-06/ASVS-V5: client-generated per-attempt dedup key — must be
+    // a well-formed UUID before it is ever used as a DB query key.
+    attemptId: z.string().uuid().optional(),
   }).catchall(BOUNDED_STRING), // anything else must be string ≤ 2000 chars
 })
 
@@ -330,12 +338,28 @@ export async function POST(req: Request) {
     })
 
     // Phase 62 D-05/ABND-01: capture an `unpaid` bookings row NOW, before the
-    // client completes payment — the revenue-recovery follow-up queue. Only
-    // the one-way path is captured in this tracer plan; round-trip capture
-    // (2 rows, one per leg) is Plan 62-02. Best-effort: a capture failure
-    // must never block the payment flow, so it is caught and logged, not
-    // rethrown — the webhook's defensive fallback insert covers a lost capture.
-    if (tripType !== 'round_trip') {
+    // client completes payment — the revenue-recovery follow-up queue.
+    // Best-effort: a capture failure must never block the payment flow, so
+    // it is caught and logged, not rethrown — the webhook's defensive
+    // fallback insert covers a lost capture.
+    if (bookingData.attemptId && tripType !== 'round_trip') {
+      // Phase 62-02 D-06: attempt-keyed capture — a retry / currency toggle
+      // re-POST with the SAME attemptId UPDATEs the existing unpaid row in
+      // place instead of inserting a duplicate. Round-trip attempt-keyed
+      // capture (2 legs) is added below (62-02 Task 2).
+      try {
+        const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
+        await captureUnpaidBooking(unpaidRow, bookingData.attemptId, 'outbound')
+      } catch (captureErr) {
+        console.error(
+          'create-payment-intent capture failed:',
+          captureErr instanceof Error ? captureErr.message : String(captureErr)
+        )
+      }
+    } else if (tripType !== 'round_trip') {
+      // Phase 62-01 fallback (no attemptId supplied): payment_intent_id-keyed
+      // insert, one-way only. Retained for backward compatibility with any
+      // caller that has not yet adopted attemptId.
       try {
         const unpaidRow = buildBookingRow(meta, paymentIntent.id, 'unpaid')
         await saveBooking(unpaidRow)

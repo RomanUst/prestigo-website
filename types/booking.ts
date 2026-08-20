@@ -146,6 +146,12 @@ export interface BookingStore {
   promoDiscount: number          // percentage (0 = no discount)
   setPromoCode: (code: string | null) => void
   setPromoDiscount: (pct: number) => void
+  // Phase 62 D-06: stable per-checkout-attempt dedup key (crypto.randomUUID,
+  // generated once, sessionStorage-backed) — sent to create-payment-intent so
+  // retries/currency-toggles UPDATE the existing unpaid row instead of
+  // inserting a new one.
+  attemptId: string | null
+  setAttemptId: (id: string | null) => void
   resetBooking: () => void
 }
 

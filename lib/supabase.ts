@@ -164,6 +164,71 @@ export async function reconcileBookingToConfirmed(
 }
 
 /**
+ * Attempt-keyed capture (Phase 62 D-06): dedups an unpaid checkout attempt so
+ * a retry / currency-toggle / promo-apply re-POST UPDATEs the SAME row in
+ * place instead of inserting a second one into the admin follow-up queue.
+ *
+ * SELECT-then-INSERT-or-UPDATE (not ON CONFLICT) per 62-RESEARCH.md Open
+ * Question 3 — checkout is single-tab/sequential, no realistic double-submit
+ * race; the partial unique index (attempt_id, leg) WHERE status='unpaid'
+ * (migration 053) still guards the DB against a genuine race.
+ *
+ * - No existing row for (attempt_id, leg)      → INSERT a fresh unpaid row.
+ * - Existing row is status='unpaid'             → UPDATE it in place,
+ *   overwriting the FULL mutable field set (payment_intent_id,
+ *   booking_reference, amounts, promo, PII — everything `row` carries) so the
+ *   admin-visible unpaid row never shows a stale reference/amount that
+ *   disagrees with the currently-active PaymentIntent (62-RESEARCH.md
+ *   Pitfall 3).
+ * - Existing row is already status='confirmed'  → no-op (never mutate a paid
+ *   booking via this client-supplied key — T-62-01 IDOR mitigation).
+ *
+ * Returns the affected row (one element) on insert/update, or an empty array
+ * on the confirmed no-op.
+ */
+export async function captureUnpaidBooking(
+  row: ReturnType<typeof buildBookingRow>,
+  attemptId: string,
+  leg: 'outbound' | 'return'
+): Promise<{ id: string }[]> {
+  const supabase = createSupabaseServiceClient()
+  const rowWithAttempt = { ...row, attempt_id: attemptId }
+
+  const { data: existing, error: selectError } = await supabase
+    .from('bookings')
+    .select('id, status')
+    .eq('attempt_id', attemptId)
+    .eq('leg', leg)
+    .maybeSingle()
+  if (selectError) throw new Error(`Supabase capture select failed: ${selectError.message}`)
+
+  if (!existing) {
+    const { data, error } = await supabase
+      .from('bookings')
+      .insert([rowWithAttempt])
+      .select('id')
+    if (error) throw new Error(`Supabase capture insert failed: ${error.message}`)
+    return data ?? []
+  }
+
+  const existingRow = existing as { id: string; status: string }
+  if (existingRow.status !== 'unpaid') {
+    // Already confirmed (or some other terminal state) — never mutate via
+    // a client-supplied attempt_id once the booking has been paid.
+    return []
+  }
+
+  const { data, error } = await supabase
+    .from('bookings')
+    .update(rowWithAttempt)
+    .eq('id', existingRow.id)
+    .eq('status', 'unpaid')
+    .select('id')
+  if (error) throw new Error(`Supabase capture update failed: ${error.message}`)
+  return data ?? []
+}
+
+/**
  * Build BOTH booking rows for a round-trip booking in a single call.
  *
  * Phase 27 D-03 (locked decision): the external API is a single function
