@@ -1,7 +1,7 @@
 ---
 phase: 63
 slug: admin-booking-editing-change-notification
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-20
@@ -112,28 +112,47 @@ Existing `StatusBadge` semantic palette (locked, reuse verbatim, do not add new 
 > Empty-state and error-state COPY live in `## Copywriting Contract` above — this section covers
 > state coverage and REFERENCES those rows rather than restating the copy (de-dup).
 
-Applicable state considerations resolved: **11 covered, 1 backstop, 0 unresolved** (6 additional considerations dismissed as not independently meaningful — fixed/short static copy or fully subsumed by a parent form's state — reasons noted inline where relevant).
+Reconciled against the compiled `ui-consideration-probe.cjs` engine (Step 9.5), which enumerated **35 applicable considerations** across 6 elements. Resolution: **18 covered (explicit), 1 backstop, 16 dismissed (each with a stated reason)** — 0 unresolved. Every engine-enumerated category is represented below so none silently passes.
 
-Elements classified: (1) trip-field edit mode [form], (2) price-review step [form + interactive-control], (3) change-history block [list-collection], (4) notify-client toggle [interactive-control, subsumed by (2)], (5) GNet-sourced edit warning [static-content], (6) read-only/terminal-status notice [static-content].
+Elements classified (engine `classifyElement` kinds in brackets): E1 trip-field edit mode [form], E2 price-review step [form + interactive-control], E3 change-history block [list-collection], E4 notify-client toggle [interactive-control, subsumed by E2], E5 GNet-sourced edit warning [static-content; engine returned `unclassified` → reasoned manual dismissal below], E6 read-only/terminal-status notice [static-content].
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| empty | trip-field edit mode | ✅ covered | Editable fields render **blank** (not a "—" placeholder) when the underlying value is genuinely null — e.g. missing `flight_number`, or `destination_address` on an hourly-type booking — so the operator can type directly into the field. |
-| partial | trip-field edit mode | ✅ covered | Route/destination fields are **hidden entirely** for hourly (non-transfer) bookings, mirroring the existing `trip_type`-conditional field visibility in `ManualBookingForm.tsx` — not shown-but-disabled. |
-| loading | trip-field edit mode | ✅ covered | Reuses the shipped three-state save indicator (`idle \| saving \| saved \| error`, 11px colored inline hint — see Typography's size-collapse note) verbatim for every new cheap field — see Copywriting Contract "Save-status inline hints". |
-| error | trip-field edit mode | ✅ covered | Field-level validation errors (CRLF injection guard, invalid email/phone) render inline in the existing error-hint slot, `#f87171`, same shape as the current "Enter a whole number ≥ 0" hint. |
-| long-text | trip-field edit mode | ✅ covered | Address/name inputs are full-width text inputs with **no truncation** — long values wrap, matching the operator-notes `textarea` sizing (no `text-overflow: ellipsis` anywhere in the edit surface). |
-| loading | price-review step | ✅ covered | Confirm button shows a disabled **"Calculating…"** state while `/api/calculate-price` (distance/price preview) or the PATCH recompute request is in flight — same disabled/opacity treatment as the existing "Updating..." status-transition button. |
-| error | price-review step | ✅ covered | On a 422 price-mismatch response, the step shows computed-vs-submitted amounts inline (`#f87171`) and surfaces the override control — see Copywriting Contract error row; identical shape to the existing POST-handler divergence response. |
-| overflow / long-text | price-review step (old→new diff) | ✅ covered | Long addresses in the diff table wrap, never truncate — same treatment as element 1. |
-| empty | change-history block | ✅ covered | Zero audit rows → Copywriting Contract "Empty state heading/body" rows. |
-| loading | change-history block | ✅ covered | Lazy-fetched on row expand (per RESEARCH.md Pitfall 4 recommendation) — shows a muted **"Loading history…"** 11px `var(--warmgrey)` line while the `GET /api/admin/bookings/[id]/audit-log` (or equivalent) request is in flight, matching the small-muted-text loading treatment already used elsewhere in the admin surface. |
-| error | change-history block | ✅ covered | Fetch failure → Copywriting Contract error row, with a retry affordance — same inline-error shape as `FlightStatusBlock`'s `⚠ Refresh failed` pattern. |
-| zero-one-many | change-history block | ✅ covered | 0 → empty-state copy; 1 → single entry, no pagination chrome; many → see overflow row below. Multiple field-changes from the same PATCH request are grouped under one shared timestamp/operator header (per D-10's "one row per changed field, shared `changed_at`"). |
-| overflow | change-history block | 🧪 backstop | History block should scroll internally past a threshold (suggested `max-height: ~240px`, `overflow-y: auto`) rather than growing the expanded row unbounded on a heavily-edited booking. Exact entry-count cutoff is left to the executor/planner — verify visually at build time (no explicit spec value locked here, so this does not silently pass without evidence). |
-| — (dismissed) | notify-toggle (loading/error) | dismissed | Toggle is synchronous local UI state submitted together with the price-review confirm action — no independent loading/error state; fully covered by "price-review step" rows above. |
-| — (dismissed) | notify-toggle (long-text) | dismissed | Fixed short label ("Notify client of this change") — not user-generated content, not overflow-prone. |
-| — (dismissed) | GNet warning / read-only notice (overflow, long-text) | dismissed | Both are fixed, short, operator-facing copy strings (see Copywriting Contract) — not overflow-prone, no dynamic content. |
+| Element | Category | Status | Resolution / Reason |
+|---------|----------|--------|---------------------|
+| E1 trip-field edit | empty | ✅ covered | Editable fields render **blank** (not a "—" placeholder) when the underlying value is genuinely null — e.g. missing `flight_number`, or `destination_address` on an hourly-type booking — so the operator can type directly. |
+| E1 trip-field edit | loading | ✅ covered | Reuses the shipped three-state save indicator (`idle \| saving \| saved \| error`, 11px colored inline hint) verbatim per new field — see Copywriting Contract "Save-status inline hints". |
+| E1 trip-field edit | error | ✅ covered | Field-level validation errors (CRLF injection guard, invalid email/phone) render inline in the existing error-hint slot, `#f87171`, same shape as the current "Enter a whole number ≥ 0" hint. |
+| E1 trip-field edit | populated | ✅ covered | Happy path: each field is a full-width editable input pre-filled with its current value, using `inputBaseStyle` from `PricingForm.tsx` — copper focus border on `onFocus`. |
+| E1 trip-field edit | partial | ✅ covered | Route/destination fields are **hidden entirely** for hourly (non-transfer) bookings, mirroring the existing `trip_type`-conditional visibility in `ManualBookingForm.tsx` — not shown-but-disabled. |
+| E1 trip-field edit | overflow | ✅ covered | Long values wrap inside the full-width input/textarea; no horizontal clipping — no `text-overflow: ellipsis` anywhere in the edit surface. |
+| E1 trip-field edit | long-text | ✅ covered | Address/name inputs are full-width with **no truncation** — long values wrap, matching operator-notes `textarea` sizing. |
+| E1 trip-field edit | zero-one-many | ⊘ dismissed | A per-field form, not a collection — no item-count axis. |
+| E2 price-review | loading | ✅ covered | Confirm button shows a disabled **"Calculating…"** state while the price preview or PATCH recompute request is in flight — same disabled/opacity treatment as the existing "Updating..." status button. |
+| E2 price-review | error | ✅ covered | On a 422 price-mismatch, the step shows computed-vs-submitted amounts inline (`#f87171`) and surfaces the override control — see Copywriting Contract error row; identical to the existing POST-handler divergence response. |
+| E2 price-review | populated | ✅ covered | Normal state renders the old→new amount diff table with the new amount in `var(--copper)` and the "Confirm & Save" CTA — the row's single focal point (see Visual Hierarchy). |
+| E2 price-review | overflow | ✅ covered | Long addresses in the diff table wrap, never truncate — same treatment as E1. |
+| E2 price-review | long-text | ✅ covered | Diff-table address/label cells wrap; no ellipsis. |
+| E2 price-review | empty | ⊘ dismissed | The step only ever renders **because** a price-affecting change exists — there is no empty/no-data variant of it. |
+| E2 price-review | partial | ⊘ dismissed | Old and new amounts are always both present when the step renders (server recompute guarantees both) — no partial-data variant. |
+| E2 price-review | zero-one-many | ⊘ dismissed | A single price diff, not a variable-count collection. |
+| E3 change-history | empty | ✅ covered | Zero audit rows → Copywriting Contract "Empty state heading/body" rows. |
+| E3 change-history | loading | ✅ covered | Lazy-fetched on row expand (RESEARCH.md Pitfall 4) — muted **"Loading history…"** 11px `var(--warmgrey)` line while the audit-log fetch is in flight. |
+| E3 change-history | error | ✅ covered | Fetch failure → Copywriting Contract error row, with a retry affordance — same inline-error shape as `FlightStatusBlock`'s `⚠ Refresh failed` pattern. |
+| E3 change-history | populated | ✅ covered | Entries render newest-first; multiple field-changes from one PATCH grouped under a shared timestamp/operator header (D-10 "one row per changed field, shared `changed_at`"). |
+| E3 change-history | zero-one-many | ✅ covered | 0 → empty-state copy; 1 → single entry, no pagination chrome; many → grouped entries + internal scroll (backstop row below). |
+| E3 change-history | overflow | 🧪 backstop | History block should scroll internally past a threshold (suggested `max-height: ~240px`, `overflow-y: auto`) rather than growing the expanded row unbounded on a heavily-edited booking. Exact cutoff left to the executor/planner — verify visually at build time (no explicit value locked, so this does not silently pass without evidence). |
+| E3 change-history | partial | ⊘ dismissed | Audit rows are complete immutable records — a row is never partially populated. |
+| E3 change-history | long-text | ✅ covered | Long changed-values in an entry wrap within the block — same no-truncation treatment as E1. |
+| E4 notify-toggle | loading | ⊘ dismissed | Synchronous local UI state submitted with the price-review confirm action — no independent loading state; subsumed by E2. |
+| E4 notify-toggle | error | ⊘ dismissed | No independent error state — submitted (and any error surfaced) via the parent save/price-review flow. |
+| E4 notify-toggle | empty | ⊘ dismissed | A boolean control that is always present when edit mode renders — no no-data variant. |
+| E4 notify-toggle | partial | ⊘ dismissed | Single boolean — no partial-data axis. |
+| E4 notify-toggle | overflow | ⊘ dismissed | Fixed short label ("Notify client of this change") — not overflow-prone. |
+| E4 notify-toggle | long-text | ⊘ dismissed | Fixed short label — not user-generated content. |
+| E5 GNet warning | unclassified (engine) | ⊘ dismissed | Fixed short static passive banner (see Copywriting Contract) — no data-driven state; the engine's `unclassified` is a manual-review nudge, resolved here as a reasoned dismissal, not an auto-skip. |
+| E6 read-only notice | loading | ⊘ dismissed | Static templated copy (`"{Status} bookings are final…"`) — nothing is fetched, no loading state. |
+| E6 read-only notice | error | ⊘ dismissed | Static copy — no submit/load to fail. |
+| E6 read-only notice | overflow | ⊘ dismissed | Fixed short copy with a bounded status name — not overflow-prone. |
+| E6 read-only notice | long-text | ⊘ dismissed | Bounded status-name template — no unbounded user text. |
 
 <!-- Status vocabulary (locked by probe-core projectTruths):
      ✅ covered   → a plain truth string lifted into must_haves.truths
@@ -155,11 +174,11 @@ Elements classified: (1) trip-field edit mode [form], (2) price-review step [for
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED — verified by gsd-ui-checker (2026-08-20), 6/6 dimensions PASS after 2 revision iterations. UI-consideration probe: 18 covered / 1 backstop / 16 dismissed / 0 unresolved.
