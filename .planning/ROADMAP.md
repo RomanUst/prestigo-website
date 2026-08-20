@@ -60,7 +60,7 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
   3. Operator can filter the admin bookings list to show only unconfirmed/unpaid bookings, to work a follow-up queue.
   4. If the client completes payment later (same checkout attempt), the existing booking updates in place to "confirmed/paid" — the admin list never shows two rows for one attempt.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 **Wave 1**
 
 - [x] 62-01-PLAN.md — Tracer: one-way unpaid capture → reconcile end-to-end (migration 053, buildBookingRow unpaid, reconcile helper, D-11 side-effects)
@@ -68,7 +68,7 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 62-02-PLAN.md — Round-trip capture + attempt_id dedup (retry/currency-toggle update-in-place, two-leg reconcile)
-- [ ] 62-03-PLAN.md — Admin surface: unpaid badge + row tint, Unpaid filter chip (p_status), unpaid→confirmed/cancelled transitions
+- [x] 62-03-PLAN.md — Admin surface: unpaid badge + row tint, Unpaid filter chip (p_status), unpaid→confirmed/cancelled transitions
 
 **Wave 3** *(blocked on Wave 2 completion)*
 

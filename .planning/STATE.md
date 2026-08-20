@@ -5,16 +5,16 @@ milestone_name: Admin Booking Management & Payment Recovery
 current_phase: 62
 current_phase_name: Abandoned & Unpaid Booking Capture
 status: executing
-stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-08-20T09:38:37.860Z"
+stopped_at: Completed 62-03-PLAN.md
+last_updated: "2026-08-20T09:59:13.497Z"
 last_activity: 2026-08-19
 last_activity_desc: Phase 62 execution started
-state_head: 07004f3186b276f7aa9d5fbc1ab51477be5f5eb7
+state_head: b5da766dc57515d5d992d721c6cfc148185b949a
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 62 (Abandoned & Unpaid Booking Capture) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Last activity: 2026-08-19 — Phase 62 execution started
 
@@ -65,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase ?]: v2.0 (59-03): begin_checkout relocated from BookingWizard to StickyBookingPanel (plan 59-04) per Pitfall 5
 - [Phase 62]: 62-02: SELECT-then-INSERT-or-UPDATE attempt-keyed capture (not ON CONFLICT) — matches single-tab/sequential checkout traffic and Supabase-js onConflict cannot target the partial unique index's WHERE predicate
 - [Phase 62]: 62-02: buildBookingRows widened with bookingType param (default 'confirmed') so round-trip capture reuses the same builder for unpaid rows without touching the existing confirmed-insert call site
+- [Phase 62]: 62-03: statusFilter is a separate chip dimension from tripType (own state, own query param); GET status filter whitelisted against KNOWN_STATUSES before threading as p_status
+- [Phase 62]: 62-03: unpaid double-gated in both VALID_TRANSITIONS maps (route.ts server + lib/booking-transitions.ts UI source), unpaid: [confirmed, cancelled] only, never manually into unpaid
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -130,8 +132,8 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-20T09:38:37.837Z
-Stopped at: Completed 62-02-PLAN.md
+Last session: 2026-08-20T09:59:13.479Z
+Stopped at: Completed 62-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -153,6 +155,7 @@ Resume file: None
 | Plan | Duration | Tasks | Files |
 |------|----------|-------|-------|
 | Phase 62 P02 | 45min | 2 tasks | 8 files |
+| Phase 62 P03 | 25min | 2 tasks | 7 files |
 
 ## Operator Next Steps
 

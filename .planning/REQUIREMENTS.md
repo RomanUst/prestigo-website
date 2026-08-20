@@ -21,7 +21,7 @@ Requirements for milestone v2.1. Each maps to a roadmap phase.
 
 - [x] **ABND-01**: A booking is persisted as soon as the client reaches the payment step, before payment completes
 - [ ] **ABND-02**: A booking that reaches the payment step but is never paid carries an "unconfirmed / unpaid" status
-- [ ] **ABND-03**: Unconfirmed/unpaid bookings appear in the admin bookings list, visually distinguished from confirmed bookings
+- [x] **ABND-03**: Unconfirmed/unpaid bookings appear in the admin bookings list, visually distinguished from confirmed bookings
 - [ ] **ABND-04**: Operator can filter the admin list to show only unconfirmed/unpaid bookings
 - [ ] **ABND-05**: Each captured booking stores the client's contact details (name, email, phone) so the operator can follow up
 - [x] **ABND-06**: A captured unpaid booking is reconciled to "confirmed/paid" when its payment later completes (no duplicate record)
@@ -69,7 +69,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AEDIT-07 | Phase 63 | Pending |
 | ABND-01 | Phase 62 | Complete |
 | ABND-02 | Phase 62 | Pending |
-| ABND-03 | Phase 62 | Pending |
+| ABND-03 | Phase 62 | Complete |
 | ABND-04 | Phase 62 | Pending |
 | ABND-05 | Phase 62 | Pending |
 | ABND-06 | Phase 62 | Complete |
