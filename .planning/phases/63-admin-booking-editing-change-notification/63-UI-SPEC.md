@@ -34,15 +34,16 @@ Declared values (must be multiples of 4 — verified against every spacing liter
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 4px | Icon/dot gaps, save-status badge inner spacing, label-to-value micro-gaps |
-| sm | 8px | Compact field gaps, input↔button gaps, block `gap`/`marginTop` between adjacent controls |
-| sm-alt | 12px | Input/textarea horizontal padding (`padding: '8px 12px'`), and action-row button gaps (e.g. price-review step's Cancel/Confirm & Save row, mirroring the existing cancel-modal action row `gap: '12px'`). Formal, first-class token — not an informal carve-out — chosen because it matches the exact padding/gap literals already shipped in the input and button-row components this phase extends; do not introduce any other non-8-multiple value beyond this one. |
-| md | 16px | Default block spacing — gap between edit-mode field groups, section `marginTop` (e.g. Operator Notes, Driver Price blocks), button horizontal padding |
+| sm | 8px | Compact field gaps, input↔button gaps, block `gap`/`marginTop` between adjacent controls, and **tight action-row button gaps** (e.g. price-review step's Cancel / Confirm & Save row) |
+| md | 16px | Default block spacing — gap between edit-mode field groups, section `marginTop` (e.g. Operator Notes, Driver Price blocks), button horizontal padding, and **input/textarea horizontal padding** for every new field this phase adds |
 | lg | 24px | Card/modal padding (`cardStyle.padding`, price-review step container padding), major block `marginTop` |
 | xl | 32px | Not used inside the expanded row (row content is denser); reserved if the price-review step needs top-level separation from the row's other blocks |
 | 2xl | 48px | Not used in this phase's surface |
 | 3xl | 64px | Not used in this phase's surface |
 
-Exceptions: none beyond `sm-alt` (12px) above — every other spacing value used in this phase is a multiple of 8.
+Exceptions: none — every spacing value used in this phase is a member of the standard set `{4, 8, 16, 24, 32, 48, 64}`.
+
+Note: the pre-existing `padding: '8px 12px'` (input/textarea) and `gap: '12px'` (cancel-modal action row) literals in `BookingsTable.tsx` / `PricingForm.tsx` use 12px, which is not in the standard set. Those are legacy, out-of-scope code (unchanged by this phase); this phase's **new** UI intentionally rounds those use cases to the nearest standard token — 16px for input/textarea horizontal padding, 8px for action-row button gaps — and is not required to match the legacy 12px literals bit-for-bit.
 
 ---
 
