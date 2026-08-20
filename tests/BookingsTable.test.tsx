@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 
 // Mock @tanstack/react-table (passthrough)
 vi.mock('@tanstack/react-table', async (importOriginal) => {
@@ -251,6 +251,43 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
     expect(screen.getByText(/PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG/)).toBeDefined()
     // Confirm button stays as-is
     expect(screen.getByRole('button', { name: /Confirm Cancel \+ Refund/i })).toBeDefined()
+  })
+})
+
+describe('BookingsTable unpaid status — Phase 62 ABND-03', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  it('desktop: renders the Unpaid badge label for a status="unpaid" row', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-unpaid', booking_reference: 'PRE-UNPAID', status: 'unpaid' }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Unpaid')).toBeDefined()
+    })
+  })
+
+  it('mobile: renders the Unpaid badge label for a status="unpaid" card', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-unpaid-mobile', booking_reference: 'PRE-UNPAID-M', status: 'unpaid' }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mobile-cards')).toBeDefined()
+    })
+    expect(within(screen.getByTestId('mobile-cards')).getByText('Unpaid')).toBeDefined()
   })
 })
 

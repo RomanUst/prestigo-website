@@ -71,6 +71,7 @@ const vehicleClassMap: Record<string, string> = {
 }
 
 const STATUS_LABELS: Record<string, string> = {
+  unpaid:      'Unpaid',
   pending:     'Pending',
   confirmed:   'Confirmed',
   completed:   'Completed',
@@ -459,7 +460,7 @@ export default function BookingsTable() {
       size: 120,
       cell: ({ row }) => (
         <StatusBadge
-          variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+          variant={row.original.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
           label={STATUS_LABELS[row.original.status] ?? row.original.status}
         />
       ),
@@ -695,7 +696,7 @@ export default function BookingsTable() {
                 <div
                   key={booking.id}
                   style={{
-                    backgroundColor: '#36363B',
+                    backgroundColor: booking.status === 'unpaid' ? 'rgba(245,158,11,0.06)' : '#36363B',
                     border: '1px solid #4E4E56',
                     borderRadius: 8,
                     padding: 16,
@@ -768,7 +769,7 @@ export default function BookingsTable() {
                       )}
                     </span>
                     <StatusBadge
-                      variant={booking.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                      variant={booking.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
                       label={STATUS_LABELS[booking.status] ?? booking.status}
                     />
                   </div>
@@ -1075,7 +1076,9 @@ export default function BookingsTable() {
                     style={{
                       background: row.getIsExpanded() || hoveredRow === row.id
                         ? 'var(--anthracite-light)'
-                        : 'var(--anthracite-mid)',
+                        : row.original.status === 'unpaid'
+                          ? 'rgba(245,158,11,0.06)'
+                          : 'var(--anthracite-mid)',
                       borderBottom: '1px solid var(--anthracite-light)',
                       minHeight: '44px',
                       cursor: 'pointer',
@@ -1245,7 +1248,7 @@ export default function BookingsTable() {
                             </select>
                           ) : (
                             <StatusBadge
-                              variant={row.original.status as 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
+                              variant={row.original.status as 'unpaid' | 'pending' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'}
                               label={`${STATUS_LABELS[row.original.status]} (final)`}
                             />
                           )}

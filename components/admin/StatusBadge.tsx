@@ -1,7 +1,7 @@
 'use client'
 
 interface StatusBadgeProps {
-  variant: 'active' | 'inactive' | 'pending' | 'quote' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location'
+  variant: 'active' | 'inactive' | 'pending' | 'quote' | 'confirmed' | 'completed' | 'cancelled' | 'assigned' | 'en_route' | 'on_location' | 'unpaid'
   label: string
 }
 
@@ -16,6 +16,7 @@ const variantStyles: Record<StatusBadgeProps['variant'], { bg: string; color: st
   assigned:    { bg: '#1a3a35', color: '#34d399', border: '1px solid rgba(52,211,153,0.25)' },
   en_route:    { bg: '#2a1f3a', color: '#a78bfa', border: '1px solid rgba(167,139,250,0.25)' },
   on_location: { bg: '#3a2a0a', color: '#fbbf24', border: '1px solid rgba(251,191,36,0.25)' },
+  unpaid:      { bg: '#3a1a12', color: '#f59e0b', border: '1px solid rgba(245,158,11,0.3)' },
 }
 
 export function StatusBadge({ variant, label }: StatusBadgeProps) {
