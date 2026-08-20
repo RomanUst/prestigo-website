@@ -152,7 +152,13 @@ function mockFromChain(rows: Array<Record<string, unknown>>) {
   const select = vi.fn().mockReturnValue({ eq: selectEqResolved, in: inFn })
   supabaseServiceStub.from.mockImplementation((table: string) => {
     if (table === 'stripe_processed_events') {
-      return { insert: vi.fn().mockResolvedValue({ error: null }) }
+      // WR-02: charge.refunded now read-checks (select→eq→maybeSingle) BEFORE
+      // running the handler, then claims (insert) AFTER — the SEC-10 ordering.
+      // Default read-check returns null (not yet processed) so the handler runs.
+      const speMaybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+      const speEq = vi.fn().mockReturnValue({ maybeSingle: speMaybeSingle })
+      const speSelect = vi.fn().mockReturnValue({ eq: speEq })
+      return { insert: vi.fn().mockResolvedValue({ error: null }), select: speSelect }
     }
     return { select, update }
   })
@@ -502,6 +508,53 @@ describe('/api/webhooks/stripe', () => {
       expect(sendRoundTripClientConfirmation).toHaveBeenCalledTimes(1)
       expect(sendRoundTripManagerAlert).toHaveBeenCalledTimes(1)
       expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    })
+
+    it('(d) CR-01: PARTIAL capture (exactly one leg pre-captured) backfills the MISSING leg and fires side-effects once for the full pair', async () => {
+      // Only the outbound leg was pre-captured; reconcile flips just that one.
+      ;(reconcileRoundTripToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { id: 'uuid-out', leg: 'outbound' },
+      ])
+      // The missing return leg must be backfilled via saveBooking (NOT the
+      // all-or-nothing saveRoundTripBookings, which would 23505 on the leg that
+      // already exists and drop both).
+      ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'uuid-ret-backfill' }])
+
+      supabaseServiceStub.from.mockImplementation((table: string) => {
+        if (table === 'stripe_processed_events') {
+          const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+          const eq = vi.fn().mockReturnValue({ maybeSingle })
+          const select = vi.fn().mockReturnValue({ eq })
+          return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+        }
+        const inFn = vi.fn().mockResolvedValue({
+          data: [
+            { id: 'uuid-out', pickup_utc: '2026-04-15T12:00:00Z' },
+            { id: 'uuid-ret-backfill', pickup_utc: '2026-04-17T16:30:00Z' },
+          ],
+          error: null,
+        })
+        const select = vi.fn().mockReturnValue({ in: inFn })
+        return { select }
+      })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+
+      // The missing (return) leg was backfilled; the all-or-nothing RPC was NOT used.
+      expect(saveBooking).toHaveBeenCalledTimes(1)
+      expect(saveBooking).toHaveBeenCalledWith(
+        expect.objectContaining({ leg: 'return' })
+      )
+      expect(saveRoundTripBookings).not.toHaveBeenCalled()
+
+      // Side-effects fire once for the full (now-complete) pair, both legs scheduled.
+      expect(sendRoundTripClientConfirmation).toHaveBeenCalledTimes(1)
+      expect(sendRoundTripManagerAlert).toHaveBeenCalledTimes(1)
+      expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+      expect(scheduleQStashReminder).toHaveBeenCalledTimes(2)
+      expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-out', expect.any(Number))
+      expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-ret-backfill', expect.any(Number))
     })
   })
 })

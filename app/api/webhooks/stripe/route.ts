@@ -57,19 +57,38 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Webhook signature verification failed' }, { status: 400 })
   }
 
-  // ── charge.refunded: upfront atomic idempotency claim (safe — no booking created here) ──
+  // ── charge.refunded (SEC-10 / WR-02): run the side effect FIRST, claim the
+  // idempotency row AFTER — same ordering as payment_intent.succeeded below.
+  // Claiming before handling means a crash between the claim and the handler
+  // permanently drops the refund's booking-cancel (a marked-processed event is
+  // never retried). Read-check first to short-circuit obvious re-deliveries;
+  // handleChargeRefunded is idempotent (re-cancelling a cancelled booking is a no-op).
   if (event.type === 'charge.refunded') {
-    const supabase = createSupabaseServiceClient()
-    const { error: claimErr } = await supabase
-      .from('stripe_processed_events')
-      .insert({ event_id: event.id, event_type: event.type })
-    if (claimErr) {
-      const code = (claimErr as { code?: string }).code
-      if (code === '23505') return NextResponse.json({ received: true, duplicate: true })
-      console.error('[webhook] stripe_processed_events insert failed:', claimErr.message)
-      return NextResponse.json({ error: 'Transient DB error' }, { status: 500 })
+    {
+      const supabase = createSupabaseServiceClient()
+      const { data: existing } = await supabase
+        .from('stripe_processed_events')
+        .select('event_id')
+        .eq('event_id', event.id)
+        .maybeSingle()
+      if (existing) return NextResponse.json({ received: true, duplicate: true })
     }
+
     await handleChargeRefunded(event.data.object as Stripe.Charge)
+
+    // Mark processed AFTER the refund side effect. Ignore 23505 (concurrent delivery).
+    {
+      const supabase = createSupabaseServiceClient()
+      const { error: claimErr } = await supabase
+        .from('stripe_processed_events')
+        .insert({ event_id: event.id, event_type: event.type })
+      if (claimErr) {
+        const code = (claimErr as { code?: string }).code
+        if (code !== '23505') {
+          console.error('[webhook] post-refund stripe_processed_events insert failed:', claimErr.message)
+        }
+      }
+    }
     return NextResponse.json({ received: true })
   }
 
@@ -290,7 +309,7 @@ async function handleRoundTripSucceeded(
   // This is now the primary exactly-once gate, replacing the `pair !== null`
   // ignoreDuplicates-RPC gate for the common case where checkout already
   // captured both rows (Plan 62-02).
-  let reconciledIds: { id: string }[] = []
+  let reconciledIds: { id: string; leg: string }[] = []
   try {
     reconciledIds = await withRetry(() => reconcileRoundTripToConfirmed(paymentIntent.id), 3, 1000)
   } catch (err) {
@@ -302,13 +321,17 @@ async function handleRoundTripSucceeded(
     return
   }
 
-  // Defensive fallback: no matching `unpaid` legs (lost capture, or a
-  // booking predating Phase 62's pre-capture) — fall back to the original
-  // atomic RPC insert path.
-  let pair: { outbound_id: string; return_id: string } | null = null
+  // Confirmed leg ids from whichever path(s) produced them — used below as the
+  // side-effect gate (D-11) and for the per-leg QStash pickup_utc lookup.
+  const freshLegIds: string[] = reconciledIds.map((row) => row.id)
+
   if (reconciledIds.length === 0) {
+    // No matching `unpaid` legs — either a fully lost capture (both legs never
+    // written) or a booking predating Phase 62's pre-capture. Fall back to the
+    // atomic RPC insert of BOTH legs. D-02: returns IDs on insert, or null on
+    // 23505 when a Stripe retry already inserted them (→ skip side-effects).
+    let pair: { outbound_id: string; return_id: string } | null = null
     try {
-      // D-02: saveRoundTripBookings returns IDs only; null on 23505 (idempotent retry)
       pair = await withRetry(() => saveRoundTripBookings(outboundRow, returnRow), 3, 1000)
     } catch (err) {
       console.error(
@@ -318,20 +341,32 @@ async function handleRoundTripSucceeded(
       await sendEmergencyAlert(outboundRef, outboundRow as unknown as Record<string, unknown>)
       return
     }
+    if (pair) freshLegIds.push(pair.outbound_id, pair.return_id)
+  } else if (reconciledIds.length === 1) {
+    // CR-01: PARTIAL capture — exactly one leg was pre-captured and just
+    // reconciled to `confirmed`; the other leg was never captured (or carries a
+    // stale payment_intent_id from an abandoned attempt). The customer was
+    // charged the combined (outbound + return) amount, so BOTH legs must end
+    // confirmed. Backfill ONLY the missing leg: saveRoundTripBookings can't —
+    // it is all-or-nothing and would 23505 on the leg that already exists.
+    // saveBooking upserts on (payment_intent_id, leg) with ignoreDuplicates, so
+    // it inserts the missing leg and no-ops if a concurrent delivery beat us.
+    const missingLegRow = reconciledIds[0].leg === 'outbound' ? returnRow : outboundRow
+    try {
+      const inserted = await withRetry(() => saveBooking(missingLegRow), 3, 1000)
+      freshLegIds.push(...inserted.map((r) => r.id))
+    } catch (err) {
+      console.error(
+        'round-trip missing-leg backfill (saveBooking) failed after 3 retries:',
+        err instanceof Error ? err.message : 'Unknown error'
+      )
+      await sendEmergencyAlert(outboundRef, outboundRow as unknown as Record<string, unknown>)
+      return
+    }
   }
 
-  // The confirmed leg ids from whichever path produced them — used below both
-  // as the side-effect gate (D-11) and for the per-leg QStash pickup_utc lookup.
-  const freshLegIds: string[] =
-    reconciledIds.length > 0
-      ? reconciledIds.map((row) => row.id)
-      : pair
-        ? [pair.outbound_id, pair.return_id]
-        : []
-
-  // Neither a fresh reconciliation nor a fresh insert — both legs were
-  // already `confirmed` (Stripe retry / duplicate delivery). Skip all
-  // side-effects.
+  // No fresh reconciliation and no fresh insert — both legs were already
+  // `confirmed` (Stripe retry / duplicate delivery). Skip all side-effects.
   if (freshLegIds.length === 0) return
 
   // SEC-01: claim the promo code NOW that payment is confirmed (not at PI creation).
