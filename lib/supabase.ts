@@ -207,7 +207,37 @@ export async function captureUnpaidBooking(
       .from('bookings')
       .insert([rowWithAttempt])
       .select('id')
-    if (error) throw new Error(`Supabase capture insert failed: ${error.message}`)
+    if (error) {
+      // 23505 = a concurrent request already inserted this (attempt_id, leg)
+      // via the migration-053 partial unique index between our SELECT and
+      // INSERT (genuine double-submit race). Treat it as "existing unpaid row
+      // found" and fall through to the update path so the function's
+      // idempotency contract holds regardless of caller try/catch discipline
+      // (WR-03). Any other error is a real failure and still throws.
+      if ((error as { code?: string }).code === '23505') {
+        const { data: raced } = await supabase
+          .from('bookings')
+          .select('id, status')
+          .eq('attempt_id', attemptId)
+          .eq('leg', leg)
+          .maybeSingle()
+        const racedRow = raced as { id: string; status: string } | null
+        if (racedRow && racedRow.status === 'unpaid') {
+          const { data: upd, error: updErr } = await supabase
+            .from('bookings')
+            .update(rowWithAttempt)
+            .eq('id', racedRow.id)
+            .eq('status', 'unpaid')
+            .select('id')
+          if (updErr) throw new Error(`Supabase capture update-after-race failed: ${updErr.message}`)
+          return upd ?? []
+        }
+        // Raced row is already confirmed (or vanished) — benign no-op, never
+        // mutate a paid booking via a client-supplied attempt_id.
+        return []
+      }
+      throw new Error(`Supabase capture insert failed: ${error.message}`)
+    }
     return data ?? []
   }
 
@@ -242,16 +272,18 @@ export async function captureUnpaidBooking(
  */
 export async function reconcileRoundTripToConfirmed(
   paymentIntentId: string
-): Promise<{ id: string }[]> {
+): Promise<{ id: string; leg: string }[]> {
   const supabase = createSupabaseServiceClient()
   const { data, error } = await supabase
     .from('bookings')
     .update({ status: 'confirmed' })
     .eq('payment_intent_id', paymentIntentId)
     .eq('status', 'unpaid')
-    .select('id')
+    // `leg` is returned so the webhook can detect a PARTIAL capture (exactly one
+    // leg was pre-captured) and backfill only the missing leg (CR-01).
+    .select('id, leg')
   if (error) throw new Error(`Supabase round-trip reconcile failed: ${error.message}`)
-  return data ?? []
+  return (data as { id: string; leg: string }[] | null) ?? []
 }
 
 /**
