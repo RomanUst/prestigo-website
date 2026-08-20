@@ -15,6 +15,7 @@ import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail }
 import { scheduleQStashReminder } from '@/lib/qstash'
 
 const VALID_TRANSITIONS: Record<string, string[]> = {
+  unpaid:      ['confirmed', 'cancelled'],
   pending:     ['confirmed', 'cancelled'],
   confirmed:   ['completed', 'cancelled', 'assigned'],
   assigned:    ['en_route', 'cancelled'],
@@ -24,9 +25,24 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   cancelled:   [],
 }
 
+// Whitelist for GET's `status` filter param — bound as p_status to the
+// admin_search_bookings RPC. Only known status strings are accepted; anything
+// else is treated as "no filter" (D-08).
+const KNOWN_STATUSES = new Set([
+  'unpaid',
+  'pending',
+  'confirmed',
+  'completed',
+  'cancelled',
+  'assigned',
+  'en_route',
+  'on_location',
+])
+
 const bookingPatchSchema = z.object({
   id: z.string().uuid(),
   status: z.enum([
+    'unpaid',
     'pending',
     'confirmed',
     'completed',
@@ -58,6 +74,11 @@ export async function GET(request: Request) {
   const endDate = searchParams.get('endDate')
   const tripType = searchParams.get('tripType')
   const search = searchParams.get('search')
+  // D-08: whitelist the status filter — only a known status string is passed
+  // through as p_status; anything else (including garbage/unknown values)
+  // is treated as "no filter" rather than forwarded to the RPC.
+  const rawStatusFilter = searchParams.get('status')
+  const statusFilter = rawStatusFilter && KNOWN_STATUSES.has(rawStatusFilter) ? rawStatusFilter : null
 
   const supabase = createSupabaseServiceClient()
 
@@ -76,6 +97,7 @@ export async function GET(request: Request) {
       p_start_date: startDate ?? null,
       p_end_date:   endDate ?? null,
       p_trip_type:  tripType ?? null,
+      p_status:     statusFilter,
       p_offset:     page * limit,
       p_limit:      limit,
     })

@@ -40,6 +40,12 @@ vi.mock('next/server', async () => {
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(supabaseAuthStub)),
+  getAdminUser: vi.fn(async () => {
+    const { data: { user }, error } = await supabaseAuthStub.auth.getUser()
+    if (error || !user) return { user: null, error: '401' as const }
+    if (!user.app_metadata?.is_admin) return { user: null, error: '403' as const }
+    return { user, error: null }
+  }),
 }))
 
 vi.mock('@/lib/supabase', () => ({
@@ -261,6 +267,48 @@ describe('/api/admin/bookings', () => {
       expect.objectContaining({ p_offset: 0, p_limit: 20, p_query: null }),
     )
   })
+
+  it('Test 8: status=unpaid passes p_status="unpaid" to rpc (D-08, ABND-04)', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?status=unpaid'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_status: 'unpaid' }),
+    )
+  })
+
+  it('Test 9: no status param passes p_status=null to rpc (Pitfall 5 — never mixes in pending)', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_status: null }),
+    )
+  })
+
+  it('Test 10: an unknown status value is whitelisted away — p_status=null, not forwarded raw', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?status=not-a-real-status'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({ p_status: null }),
+    )
+  })
 })
 
 describe('PATCH /api/admin/bookings', () => {
@@ -354,6 +402,68 @@ describe('PATCH /api/admin/bookings', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true })
+  })
+
+  it('Test 9: returns 200 for valid transition (unpaid -> confirmed) — D-04, D-10', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'unpaid', client_email: 'a@b.com' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectChainFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
+  })
+
+  it('Test 10: returns 200 for valid transition (unpaid -> cancelled) — D-04, D-10', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'unpaid', client_email: 'a@b.com' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectChainFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'cancelled' }))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
+  })
+
+  it('Test 11: returns 422 for invalid transition (unpaid -> completed) — no transition into unpaid skips other statuses', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'unpaid' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'completed' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain("Cannot transition from 'unpaid' to 'completed'")
+  })
+
+  it('Test 12: returns 422 for a manual transition INTO unpaid (confirmed -> unpaid is never allowed)', async () => {
+    const singleFn = vi.fn().mockResolvedValue({ data: { status: 'confirmed' }, error: null })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectChainFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'unpaid' }))
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain("Cannot transition from 'confirmed' to 'unpaid'")
   })
 })
 

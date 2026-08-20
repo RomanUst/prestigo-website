@@ -9,6 +9,7 @@
  */
 
 export const VALID_TRANSITIONS: Record<string, string[]> = {
+  unpaid:      ['confirmed', 'cancelled'],
   pending:     ['confirmed', 'cancelled'],
   confirmed:   ['assigned', 'completed', 'cancelled'],
   assigned:    ['en_route', 'cancelled', 'completed'],

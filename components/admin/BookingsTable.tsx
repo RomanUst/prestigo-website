@@ -111,6 +111,9 @@ export default function BookingsTable() {
   const [page, setPage] = useState(0)
   const [expanded, setExpanded] = useState<ExpandedState>({})
   const [tripType, setTripType] = useState<string>('all')
+  // D-08: a SEPARATE status dimension from tripType — the 'Unpaid' chip
+  // coexists with the trip-type chips rather than replacing them.
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -282,6 +285,7 @@ export default function BookingsTable() {
       if (startDate) params.set('startDate', startDate)
       if (endDate) params.set('endDate', endDate)
       if (tripType !== 'all') params.set('tripType', tripType)
+      if (statusFilter !== 'all') params.set('status', statusFilter)
       if (debouncedSearch) params.set('search', debouncedSearch)
 
       const res = await fetch(`/api/admin/bookings?${params.toString()}`)
@@ -317,7 +321,7 @@ export default function BookingsTable() {
     } finally {
       setLoading(false)
     }
-  }, [page, tripType, debouncedSearch, startDate, endDate])
+  }, [page, tripType, statusFilter, debouncedSearch, startDate, endDate])
 
   useEffect(() => {
     fetchBookings()
@@ -664,6 +668,26 @@ export default function BookingsTable() {
             </button>
           )
         })}
+
+        {/* Unpaid status chip — separate dimension from trip-type chips (D-08) */}
+        <button
+          onClick={() => handleFilterChange(setStatusFilter)(statusFilter === 'unpaid' ? 'all' : 'unpaid')}
+          style={{
+            height: '32px',
+            padding: '0 12px',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '11px',
+            letterSpacing: '0.06em',
+            borderRadius: '2px',
+            cursor: 'pointer',
+            background: statusFilter === 'unpaid' ? 'rgba(245,158,11,0.09)' : 'transparent',
+            border: statusFilter === 'unpaid' ? '1px solid #f59e0b' : '1px solid var(--anthracite-light)',
+            color: statusFilter === 'unpaid' ? 'var(--offwhite)' : 'var(--warmgrey)',
+            transition: 'border-color 150ms ease, color 150ms ease',
+          }}
+        >
+          Unpaid
+        </button>
       </div>
 
       {/* Mobile card layout */}
