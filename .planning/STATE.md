@@ -5,16 +5,16 @@ milestone_name: Admin Booking Management & Payment Recovery
 current_phase: 62
 current_phase_name: Abandoned & Unpaid Booking Capture
 status: executing
-stopped_at: Phase 62 context gathered
-last_updated: "2026-08-19T21:23:58.122Z"
+stopped_at: Completed 62-02-PLAN.md
+last_updated: "2026-08-20T09:38:37.860Z"
 last_activity: 2026-08-19
 last_activity_desc: Phase 62 execution started
-state_head: 87de5ab53c5f7efdca8117ade35183554597d158
+state_head: 07004f3186b276f7aa9d5fbc1ab51477be5f5eb7
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 2
   percent: 0
 ---
 
@@ -30,8 +30,8 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 62 (Abandoned & Unpaid Booking Capture) — EXECUTING
-Plan: 1 of 4
-Status: Executing Phase 62
+Plan: 2 of 4
+Status: Ready to execute
 Last activity: 2026-08-19 — Phase 62 execution started
 
 ## Accumulated Context
@@ -63,6 +63,8 @@ Recent decisions affecting current work:
 - [Phase ?]: v2.0 (58-05): Server actions in separate app/account/actions.ts — account mutations isolated from login actions
 - [Phase ?]: v2.0 (59-03): EntryBar return expander conditionally mounts DOM children (not just CSS hide) to avoid duplicate label text
 - [Phase ?]: v2.0 (59-03): begin_checkout relocated from BookingWizard to StickyBookingPanel (plan 59-04) per Pitfall 5
+- [Phase 62]: 62-02: SELECT-then-INSERT-or-UPDATE attempt-keyed capture (not ON CONFLICT) — matches single-tab/sequential checkout traffic and Supabase-js onConflict cannot target the partial unique index's WHERE predicate
+- [Phase 62]: 62-02: buildBookingRows widened with bookingType param (default 'confirmed') so round-trip capture reuses the same builder for unpaid rows without touching the existing confirmed-insert call site
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -128,9 +130,9 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-19T20:22:10.325Z
-Stopped at: Phase 62 context gathered
-Resume file: .planning/phases/62-abandoned-unpaid-booking-capture/62-CONTEXT.md
+Last session: 2026-08-20T09:38:37.837Z
+Stopped at: Completed 62-02-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -146,6 +148,11 @@ Resume file: .planning/phases/62-abandoned-unpaid-booking-capture/62-CONTEXT.md
 | Phase 59-booking-flow-redesign-blacklane P01 | 30min | 2 tasks | 13 files |
 | Phase 59-booking-flow-redesign-blacklane P03 | 10min | 3 tasks | 6 files |
 | Phase 59-booking-flow-redesign-blacklane P04 | 8min | 2 tasks | 3 files |
+**Per-Plan Metrics:**
+
+| Plan | Duration | Tasks | Files |
+|------|----------|-------|-------|
+| Phase 62 P02 | 45min | 2 tasks | 8 files |
 
 ## Operator Next Steps
 
