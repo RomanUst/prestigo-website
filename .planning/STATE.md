@@ -4,17 +4,17 @@ milestone: v2.1
 milestone_name: Admin Booking Management & Payment Recovery
 current_phase: 63
 current_phase_name: Admin Booking Editing + Change Notification
-status: executing
-stopped_at: Completed 63-04-PLAN.md
-last_updated: "2026-08-21T13:38:55.236Z"
+status: verifying
+stopped_at: Completed 63-05-PLAN.md (Phase 63 complete, 5/5 plans)
+last_updated: "2026-08-21T13:56:12.197Z"
 last_activity: 2026-08-21
 last_activity_desc: Phase 63 execution started
-state_head: e44507f9478a682010caffe888f5292434bae5d1
+state_head: a375f65f40406cf8aaffcc471668e869f6411eae
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 33
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 Phase: 63 (Admin Booking Editing + Change Notification) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-08-21 — Phase 63 execution started
 
 ## Accumulated Context
@@ -72,6 +72,8 @@ Recent decisions affecting current work:
 - [Phase 63]: Audited vehicle_class/origin_address/destination_address/distance_km changes in addition to amount_czk (D-10 compliance, Rule 2)
 - [Phase 63]: ADMIN_PRICE_TOLERANCE_CZK hoisted to a single top-level declaration reused by both POST and PATCH
 - [Phase 63]: [Phase 63] 63-04: BookingChangeHistory groups audit rows by raw changed_at string equality (not a derived bucket); operator shown as raw operator_id UUID (no name/email join exists yet)
+- [Phase 63]: 63-05: Notify-toggle scoped to price-review step only (not cheap-field saves) per UI-SPEC E4 classification
+- [Phase 63]: 63-05: Both plan tasks committed as one commit (price-review step is a nested sub-panel of the same TripEditPanel component Task 1 introduces)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -137,8 +139,8 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-21T13:38:55.133Z
-Stopped at: Completed 63-04-PLAN.md
+Last session: 2026-08-21T13:56:12.042Z
+Stopped at: Completed 63-05-PLAN.md (Phase 63 complete, 5/5 plans)
 Resume file: None
 
 ## Performance Metrics
@@ -165,6 +167,7 @@ Resume file: None
 | Phase 63 P02 | 10min | 2 tasks | 3 files |
 | Phase 63 P03 | 15min | 2 tasks | 2 files |
 | Phase 63 P04 | 12min | 2 tasks | 2 files |
+| Phase 63 P05 | ~15min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 
