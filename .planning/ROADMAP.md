@@ -88,7 +88,7 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
   3. At save time, a "notify client" toggle lets the operator choose whether the client receives a branded email showing old → new values of what changed; leaving it off saves without emailing.
   4. Editing one leg of a round-trip booking updates only that leg's record — the linked leg keeps its original date, route, and vehicle.
 
-**Plans**: 2/5 plans executed
+**Plans**: 3/5 plans executed
 
 Plans:
 **Wave 1**
@@ -101,7 +101,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 63-03-PLAN.md — Price-affecting edits: server recompute + override + record-only + leg/idempotency assertions
+- [x] 63-03-PLAN.md — Price-affecting edits: server recompute + override + record-only + leg/idempotency assertions
 - [ ] 63-04-PLAN.md — BookingChangeHistory component (lazy per-row audit fetch, all UI states)
 
 **Wave 4** *(blocked on Wave 3 completion)*

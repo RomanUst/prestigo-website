@@ -5,16 +5,16 @@ milestone_name: Admin Booking Management & Payment Recovery
 current_phase: 63
 current_phase_name: Admin Booking Editing + Change Notification
 status: executing
-stopped_at: Completed 63-02-PLAN.md
-last_updated: "2026-08-21T13:16:16.960Z"
+stopped_at: Completed 63-03-PLAN.md
+last_updated: "2026-08-21T13:33:00.228Z"
 last_activity: 2026-08-21
 last_activity_desc: Phase 63 execution started
-state_head: c009c72578011167876b882ccf494641d1704987
+state_head: b57d9162a829755d293a3be2f8ebdfe9ccf872cf
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
   percent: 33
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 63 (Admin Booking Editing + Change Notification) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-08-21 — Phase 63 execution started
 
@@ -69,6 +69,8 @@ Recent decisions affecting current work:
 - [Phase 62]: 62-03: unpaid double-gated in both VALID_TRANSITIONS maps (route.ts server + lib/booking-transitions.ts UI source), unpaid: [confirmed, cancelled] only, never manually into unpaid
 - [Phase 63]: Phase 63 Plan 01: approved researched-shape as-is for booking_edit_audit_log (8 columns, text old/new_value, ON DELETE CASCADE, no RLS, notification_flags key 'booking_changed')
 - [Phase 63]: [Phase 63] 63-02: notification AND-gate (flags select + logEmail) resolved before the booking_edit_audit_log insert, not after, so the audit rows' notified column is set correctly in one insert (diverges from Plan 01's Wave-0 fixture call order)
+- [Phase 63]: Audited vehicle_class/origin_address/destination_address/distance_km changes in addition to amount_czk (D-10 compliance, Rule 2)
+- [Phase 63]: ADMIN_PRICE_TOLERANCE_CZK hoisted to a single top-level declaration reused by both POST and PATCH
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -134,8 +136,8 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-21T13:16:10.589Z
-Stopped at: Completed 63-02-PLAN.md
+Last session: 2026-08-21T13:33:00.126Z
+Stopped at: Completed 63-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -160,6 +162,7 @@ Resume file: None
 | Phase 62 P03 | 25min | 2 tasks | 7 files |
 | Phase 63 P01 | 15min | 3 tasks | 4 files |
 | Phase 63 P02 | 10min | 2 tasks | 3 files |
+| Phase 63 P03 | 15min | 2 tasks | 2 files |
 
 ## Operator Next Steps
 
