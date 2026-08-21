@@ -1127,6 +1127,122 @@ export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Pro
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// BOOKING CHANGE-NOTIFICATION EMAIL (Phase 63 — AEDIT-05, D-07/D-08/D-09)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Renders a changed-fields-only old -> new diff (D-07) — never a full trip
+// snapshot. Reuses the buildStatusEmailHtml shell chrome (logo, brand
+// colors, escapeHtml discipline) but replaces the YOUR JOURNEY snapshot
+// table with a WHAT CHANGED diff table. Gated by the notify_client toggle +
+// notification_flags.booking_changed AND-gate (wired in Plan 02).
+
+/** One changed field, rendered as `label: oldValue -> newValue` in the change email. */
+export interface BookingChangeEntry {
+  field: string
+  label: string
+  oldValue: string
+  newValue: string
+}
+
+export function buildChangeEmailHtml(booking: StatusEmailBooking, changes: BookingChangeEntry[]): string {
+  const rows = changes
+    .map(
+      (change) => `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%; vertical-align: top;">${escapeHtml(change.label)}</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">
+              <span style="color: #A9AEB0; text-decoration: line-through;">${escapeHtml(change.oldValue)}</span>
+              <span style="color: #A9AEB0;"> &rarr; </span>
+              <span style="color: #BFA06A; font-weight: 600;">${escapeHtml(change.newValue)}</span>
+            </td>
+          </tr>`
+    )
+    .join('')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Booking Updated — Prestigo</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <!-- Header gold gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 32px;">Your Booking Was Updated</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #BFA06A;">${escapeHtml(booking.booking_reference)}</div>
+      </div>
+
+      <!-- Greeting -->
+      <div style="padding: 0 32px 16px; font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">
+        Dear ${escapeHtml(booking.client_first_name)} ${escapeHtml(booking.client_last_name)},
+      </div>
+      <div style="padding: 0 32px 16px; font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">
+        Our team has updated your booking. Here is exactly what changed:
+      </div>
+
+      <!-- What changed section (D-07 — changed fields only, never a full snapshot) -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">WHAT CHANGED</div>
+        <table style="width: 100%; border-collapse: collapse;">${rows}
+        </table>
+      </div>
+
+      <!-- Closing line -->
+      <div style="padding: 0 32px 32px; font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">
+        If you have any questions about this change, please contact us.
+      </div>
+
+      <!-- Support contact -->
+      <div style="padding: 0 32px 24px; color: #A9AEB0; font-size: 14px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendBookingChangedEmail(booking: StatusEmailBooking, changes: BookingChangeEntry[]): Promise<void> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [booking.client_email],
+      subject: `Your booking ${escapeHtml(booking.booking_reference)} was updated — Prestigo`,
+      html: buildChangeEmailHtml(booking, changes),
+    })
+    if (error) console.error('[booking-notify] changed email error:', error)
+  } catch (err) {
+    console.error('[booking-notify] changed email failed:', err)
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // DRIVER ASSIGNMENT EMAILS (Phase 40)
 // ═══════════════════════════════════════════════════════════════════════════
 

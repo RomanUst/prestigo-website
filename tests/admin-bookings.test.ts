@@ -112,6 +112,81 @@ function makeCancelRequest(body: Record<string, unknown>): Request {
 }
 
 
+// ═══════════════════════════════════════════════════════════════════════════
+// Wave 0 shared fixtures — PATCH trip-edit describe block (Phase 63, Plan 02/03)
+// Seeded in Plan 01 (63-01) so downstream plans can import/extend without
+// re-deriving the mock shape. See 63-RESEARCH.md "Validation Architecture".
+// ═══════════════════════════════════════════════════════════════════════════
+
+/** A representative "current row" for a trip-editable booking (confirmed, non-GNet, standalone leg). */
+const mockCurrentTripEditBooking: Record<string, unknown> = {
+  id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d',
+  status: 'confirmed',
+  booking_source: 'website',
+  linked_booking_id: null,
+  leg: null,
+  payment_intent_id: 'pi_test_123',
+  trip_type: 'transfer',
+  pickup_date: '2026-04-10',
+  pickup_time: '14:00',
+  return_date: null,
+  origin_address: 'Prague Airport Terminal 1',
+  destination_address: 'Hotel Four Seasons Prague',
+  distance_km: 20,
+  vehicle_class: 'business',
+  hours: 2,
+  is_airport: true,
+  amount_czk: 1500,
+  client_first_name: 'Jan',
+  client_last_name: 'Novak',
+  client_email: 'jan@example.com',
+  client_phone: '+420600123456',
+  flight_number: 'OK123',
+  special_requests: null,
+}
+
+/**
+ * Wires supabaseServiceStub.from() to the realistic call sequence a
+ * PATCH-trip-edit request drives once Plan 02 lands: current-row select ->
+ * bookings.update -> booking_edit_audit_log.insert -> (optional)
+ * pricing_globals select -> (optional) email_log insert (logEmail dedup).
+ * Plan 02/03 tests call this then override any returned mock as needed —
+ * e.g. `mockTripEditSupabaseChain({ notificationFlags: { booking_changed: false } })`.
+ */
+function mockTripEditSupabaseChain(overrides?: {
+  currentRow?: Record<string, unknown> | null
+  notificationFlags?: Record<string, boolean> | null
+}) {
+  const currentRow = overrides?.currentRow ?? mockCurrentTripEditBooking
+
+  const singleFn = vi.fn().mockResolvedValue({ data: currentRow, error: null })
+  const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+  const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+  const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+  const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+  const auditInsertFn = vi.fn().mockResolvedValue({ error: null })
+
+  const flagsSingleFn = vi.fn().mockResolvedValue({
+    data: { notification_flags: overrides?.notificationFlags ?? null },
+    error: null,
+  })
+  const flagsEqFn = vi.fn().mockReturnValue({ single: flagsSingleFn })
+  const flagsSelectFn = vi.fn().mockReturnValue({ eq: flagsEqFn })
+
+  const emailLogInsertFn = vi.fn().mockResolvedValue({ error: null })
+
+  supabaseServiceStub.from
+    .mockReturnValueOnce({ select: selectChainFn })    // 1. current booking row (SELECT * WHERE id = ...)
+    .mockReturnValueOnce({ update: updateFn })         // 2. bookings.update(...)
+    .mockReturnValueOnce({ insert: auditInsertFn })    // 3. booking_edit_audit_log.insert([...])
+    .mockReturnValueOnce({ select: flagsSelectFn })    // 4. pricing_globals.select('notification_flags')
+    .mockReturnValueOnce({ insert: emailLogInsertFn }) // 5. email_log.insert(...) (logEmail dedup gate)
+
+  return { singleFn, selectEqFn, updateFn, updateEqFn, auditInsertFn, flagsSelectFn, flagsSingleFn, emailLogInsertFn }
+}
+
 const validPostPayload = {
   trip_type: 'transfer',
   pickup_date: '2026-04-10',
