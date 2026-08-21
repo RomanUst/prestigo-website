@@ -80,7 +80,7 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 
 **Goal**: Operator can correct or update any booking directly from the admin panel — schedule, vehicle, route, or passenger details — with price changes reviewed before saving and the client optionally notified of exactly what changed.
 **Depends on**: Phase 62 (shares the admin bookings list/detail surface and status vocabulary introduced there; edit UI must work across booking statuses, including the new unconfirmed/unpaid state)
-**Requirements**: AEDIT-01, AEDIT-02, AEDIT-03, AEDIT-04, AEDIT-05, AEDIT-06, AEDIT-07
+**Requirements**: AEDIT-01, AEDIT-02, AEDIT-03, AEDIT-04, AEDIT-05, AEDIT-06, AEDIT-07, FOLLOW-02 (pulled in per D-10/D-11)
 **Success Criteria** (what must be TRUE):
 
   1. From a booking's admin detail view, operator can edit pickup date/time, vehicle class, route (origin/destination), and passenger/contact details including flight number, then save the change.
@@ -88,7 +88,14 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
   3. At save time, a "notify client" toggle lets the operator choose whether the client receives a branded email showing old → new values of what changed; leaving it off saves without emailing.
   4. Editing one leg of a round-trip booking updates only that leg's record — the linked leg keeps its original date, route, and vehicle.
 
-**Plans**: TBD
+**Plans**: 5 plans
+
+Plans:
+- [ ] 63-01-PLAN.md — Migration 055 (booking_edit_audit_log) + change-email builder + Wave 0 fixtures
+- [ ] 63-02-PLAN.md — TRACER: PATCH cheap-field trip-edit (persist + per-field audit + notify AND-gate) + GET audit-log route
+- [ ] 63-03-PLAN.md — Price-affecting edits: server recompute + override + record-only + leg/idempotency assertions
+- [ ] 63-04-PLAN.md — BookingChangeHistory component (lazy per-row audit fetch, all UI states)
+- [ ] 63-05-PLAN.md — Admin edit UI: inline edit mode, per-field save, price-review step, notify toggle, notices, history mount
 **UI hint**: yes
 
 ### Phase 64: Admin-Created Bookings with Payment Link

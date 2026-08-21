@@ -41,7 +41,7 @@ Deferred to a future release. Tracked but not in the current roadmap.
 ### Follow-up automation
 
 - **FOLLOW-01**: Automatic reminder email to clients with an unpaid booking after N hours
-- **FOLLOW-02**: Audit log of all admin edits per booking (who changed what, when)
+- ~~**FOLLOW-02**~~: Audit log of all admin edits per booking (who changed what, when) — **pulled into Phase 63** (per D-10/D-11); no longer deferred. See traceability table.
 
 ## Out of Scope
 
@@ -67,6 +67,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AEDIT-05 | Phase 63 | Pending |
 | AEDIT-06 | Phase 63 | Pending |
 | AEDIT-07 | Phase 63 | Pending |
+| FOLLOW-02 | Phase 63 | Pending |
 | ABND-01 | Phase 62 | Complete |
 | ABND-02 | Phase 62 | Complete |
 | ABND-03 | Phase 62 | Complete |
