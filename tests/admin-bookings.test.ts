@@ -30,6 +30,15 @@ const { stripeRefundsStub, MockStripeInvalidRequestError } = vi.hoisted(() => {
   return { stripeRefundsStub: { create }, MockStripeInvalidRequestError }
 })
 
+// Phase 63 Plan 02 — trip-edit branch: notification AND-gate spies (logEmail
+// dedup gate + the new sendBookingChangedEmail branded diff email).
+const { stubLogEmail, stubSendBookingChangedEmail } = vi.hoisted(() => {
+  return {
+    stubLogEmail: vi.fn(),
+    stubSendBookingChangedEmail: vi.fn(),
+  }
+})
+
 vi.mock('next/server', async () => {
   const actual = await vi.importActual<typeof import('next/server')>('next/server')
   return {
@@ -67,6 +76,17 @@ vi.mock('@/lib/server-pricing', () => ({
 
 vi.mock('@/lib/extras', () => ({
   computeExtrasTotal: vi.fn(() => 0),
+}))
+
+vi.mock('@/lib/email-log', () => ({
+  logEmail: stubLogEmail,
+}))
+
+vi.mock('@/lib/email', () => ({
+  sendStatusConfirmedEmail: vi.fn().mockResolvedValue(undefined),
+  sendStatusCancelledEmail: vi.fn().mockResolvedValue(undefined),
+  sendPostTripEmail: vi.fn().mockResolvedValue(undefined),
+  sendBookingChangedEmail: stubSendBookingChangedEmail,
 }))
 
 vi.mock('stripe', () => {
@@ -213,6 +233,11 @@ beforeEach(() => {
     data: { user: { id: '1', app_metadata: { is_admin: true } } },
     error: null,
   })
+
+  // Phase 63 Plan 02 trip-edit notification spies — default to "send succeeds".
+  // Individual tests override with .mockResolvedValueOnce(false) etc. as needed.
+  stubLogEmail.mockResolvedValue(true)
+  stubSendBookingChangedEmail.mockResolvedValue(undefined)
 
   // Default rpc: returns empty result set (used by GET handler via admin_search_bookings)
   supabaseServiceStub.rpc.mockResolvedValue({
@@ -539,6 +564,272 @@ describe('PATCH /api/admin/bookings', () => {
     expect(res.status).toBe(422)
     const json = await res.json()
     expect(json.error).toContain("Cannot transition from 'confirmed' to 'unpaid'")
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PATCH /api/admin/bookings — trip-edit branch (Phase 63 Plan 02)
+// TRACER: cheap-field edit (pickup date/time + passenger/contact + flight
+// number) -> persist -> per-field audit -> notify_client && booking_changed
+// AND-gate -> optional branded email. See 63-02-PLAN.md Task 1.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('PATCH /api/admin/bookings — trip-edit (Phase 63 Plan 02)', () => {
+  function makeSelectSingleChain(data: unknown, error: unknown = null) {
+    const singleFn = vi.fn().mockResolvedValue({ data, error })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+    return { chain: { select: selectFn }, singleFn, eqFn, selectFn }
+  }
+
+  function makeUpdateChain(error: unknown = null) {
+    const updateEqFn = vi.fn().mockResolvedValue({ error })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+    return { chain: { update: updateFn }, updateFn, updateEqFn }
+  }
+
+  function makeInsertChain(error: unknown = null) {
+    const insertFn = vi.fn().mockResolvedValue({ error })
+    return { chain: { insert: insertFn }, insertFn }
+  }
+
+  it('Test 1: pickup_time edit persists, DB update scoped by id, inserts one audit row', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+    }))
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
+
+    expect(update.updateFn).toHaveBeenCalledWith({ pickup_time: '11:00' })
+    expect(update.updateEqFn).toHaveBeenCalledWith('id', mockCurrentTripEditBooking.id)
+
+    expect(audit.insertFn).toHaveBeenCalledTimes(1)
+    const insertedRows = audit.insertFn.mock.calls[0][0]
+    expect(insertedRows).toHaveLength(1)
+    expect(insertedRows[0]).toMatchObject({
+      booking_id: mockCurrentTripEditBooking.id,
+      field: 'pickup_time',
+      old_value: '14:00',
+      new_value: '11:00',
+      notified: false,
+    })
+  })
+
+  it('Test 2: changing 3 cheap fields inserts exactly 3 audit rows sharing one changed_at', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+      flight_number: 'OK999',
+      client_phone: '+420600999999',
+    }))
+
+    expect(res.status).toBe(200)
+    expect(audit.insertFn).toHaveBeenCalledTimes(1)
+    const insertedRows = audit.insertFn.mock.calls[0][0] as Array<{ changed_at: string; field: string }>
+    expect(insertedRows).toHaveLength(3)
+    const changedAts = new Set(insertedRows.map(r => r.changed_at))
+    expect(changedAts.size).toBe(1)
+    expect(insertedRows.map(r => r.field).sort()).toEqual(['client_phone', 'flight_number', 'pickup_time'])
+  })
+
+  it('Test 3: client_email with CRLF injection returns 400 (NO_CRLF guard)', async () => {
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      client_email: 'a@b.com\r\nBcc:x@y.com',
+    }))
+    expect(res.status).toBe(400)
+  })
+
+  it('Test 4: notify_client=true + booking_changed flag enabled -> logEmail called once, then sendBookingChangedEmail fired via after()', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const flags = makeSelectSingleChain({ notification_flags: null })
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(flags.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+      notify_client: true,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(stubLogEmail).toHaveBeenCalledTimes(1)
+    expect(stubLogEmail).toHaveBeenCalledWith({
+      bookingId: mockCurrentTripEditBooking.id,
+      emailType: 'booking_changed',
+      recipient: mockCurrentTripEditBooking.client_email,
+    })
+    expect(stubSendBookingChangedEmail).toHaveBeenCalledTimes(1)
+
+    // logEmail is the dedup gate — it must fire BEFORE the send.
+    const logEmailOrder = stubLogEmail.mock.invocationCallOrder[0]
+    const sendOrder = stubSendBookingChangedEmail.mock.invocationCallOrder[0]
+    expect(logEmailOrder).toBeLessThan(sendOrder)
+
+    const insertedRows = audit.insertFn.mock.calls[0][0]
+    expect(insertedRows[0].notified).toBe(true)
+  })
+
+  it('Test 5: notify_client=false -> logEmail and sendBookingChangedEmail NOT called (toggle off)', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+      notify_client: false,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubSendBookingChangedEmail).not.toHaveBeenCalled()
+
+    const insertedRows = audit.insertFn.mock.calls[0][0]
+    expect(insertedRows[0].notified).toBe(false)
+  })
+
+  it('Test 6: notify_client=true but notification_flags.booking_changed=false -> not sent (flag off) even though toggle on', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const flags = makeSelectSingleChain({ notification_flags: { booking_changed: false } })
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(flags.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+      notify_client: true,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubSendBookingChangedEmail).not.toHaveBeenCalled()
+
+    const insertedRows = audit.insertFn.mock.calls[0][0]
+    expect(insertedRows[0].notified).toBe(false)
+  })
+
+  it('Test 7: trip-field edit on a completed booking returns 422 (terminal status)', async () => {
+    const current = makeSelectSingleChain({ ...mockCurrentTripEditBooking, status: 'completed' })
+    supabaseServiceStub.from.mockReturnValueOnce(current.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+    }))
+
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain('completed')
+  })
+
+  it('Test 8: trip-field edit on a cancelled booking returns 422 (terminal status)', async () => {
+    const current = makeSelectSingleChain({ ...mockCurrentTripEditBooking, status: 'cancelled' })
+    supabaseServiceStub.from.mockReturnValueOnce(current.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+    }))
+
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain('cancelled')
+  })
+
+  it('Test 9: a no-op edit (new value equals current) writes no audit row and sends no email', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: mockCurrentTripEditBooking.pickup_time as string, // same value — no-op
+      notify_client: true,
+    }))
+
+    expect(res.status).toBe(200)
+    // Only 2 supabase.from calls: select current + update. No flags lookup, no audit insert.
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(2)
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubSendBookingChangedEmail).not.toHaveBeenCalled()
+  })
+
+  it('Test 10: update is scoped strictly by booking id — never payment_intent_id or linked leg (AEDIT-06)', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+    }))
+
+    for (const call of update.updateEqFn.mock.calls) {
+      expect(call[0]).toBe('id')
+      expect(call[0]).not.toBe('payment_intent_id')
+      expect(call[0]).not.toBe('linked_booking_id')
+    }
+    expect(update.updateEqFn).toHaveBeenCalledWith('id', mockCurrentTripEditBooking.id)
+    expect(current.eqFn).toHaveBeenCalledWith('id', mockCurrentTripEditBooking.id)
+  })
+
+  it('Test 11: returns 404 when booking not found', async () => {
+    const current = makeSelectSingleChain(null, { message: 'not found' })
+    supabaseServiceStub.from.mockReturnValueOnce(current.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+    }))
+
+    expect(res.status).toBe(404)
   })
 })
 

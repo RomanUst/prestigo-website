@@ -11,7 +11,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { dateDiffDays } from '@/lib/pricing'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
-import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail } from '@/lib/email'
+import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, sendBookingChangedEmail, type BookingChangeEntry } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 
@@ -35,6 +35,26 @@ const KNOWN_STATUSES = new Set([
   'on_location',
 ])
 
+// Single-line PII fields: block CRLF to prevent header injection in email subjects.
+// Hoisted above bookingPatchSchema (originally defined later, near manualBookingSchema)
+// so it can be reused by the cheap trip-field edit fields below.
+const NO_CRLF = /^[^\r\n]*$/
+
+// Cheap trip-field edits (AEDIT-01, AEDIT-04) — Phase 63 Plan 02. These are the
+// fields the PATCH trip-edit branch diffs/audits/emails; kept as a single source
+// of truth for the schema, the .refine() presence check, and buildFieldChanges().
+const TRIP_EDIT_FIELDS = [
+  'pickup_date',
+  'pickup_time',
+  'client_first_name',
+  'client_last_name',
+  'client_email',
+  'client_phone',
+  'flight_number',
+] as const
+
+type TripEditField = typeof TRIP_EDIT_FIELDS[number]
+
 const bookingPatchSchema = z.object({
   id: z.string().uuid(),
   status: z.enum([
@@ -50,10 +70,73 @@ const bookingPatchSchema = z.object({
   operator_notes: z.string().max(2000).optional(),
   // Driver fee (manual entry). null clears it; used in the driver assignment email.
   driver_price_czk: z.number().int().min(0).max(1_000_000).nullable().optional(),
+  // Cheap trip-field edits (AEDIT-01, AEDIT-04)
+  pickup_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  pickup_time: z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  client_first_name: z.string().min(1).max(100).regex(NO_CRLF).optional(),
+  client_last_name: z.string().min(1).max(100).regex(NO_CRLF).optional(),
+  client_email: z.string().email().max(200).regex(NO_CRLF).optional(),
+  client_phone: z.string().min(1).max(50).regex(NO_CRLF).optional(),
+  flight_number: z.string().max(20).regex(NO_CRLF).optional(),
+  // Per-save "notify client" toggle (D-08) — AND-gated with notification_flags.booking_changed.
+  notify_client: z.boolean().optional(),
 }).refine(
-  d => d.status !== undefined || d.operator_notes !== undefined || d.driver_price_czk !== undefined,
-  { message: 'At least one of status, operator_notes or driver_price_czk must be provided' },
+  d => d.status !== undefined || d.operator_notes !== undefined || d.driver_price_czk !== undefined
+    || TRIP_EDIT_FIELDS.some(field => d[field] !== undefined),
+  { message: 'At least one of status, operator_notes, driver_price_czk, or a trip field must be provided' },
 )
+
+const TRIP_EDIT_FIELD_LABELS: Record<TripEditField, string> = {
+  pickup_date: 'Pickup date',
+  pickup_time: 'Pickup time',
+  client_first_name: 'First name',
+  client_last_name: 'Last name',
+  client_email: 'Email',
+  client_phone: 'Phone',
+  flight_number: 'Flight number',
+}
+
+/**
+ * Diffs the current booking row against the incoming trip-field patch,
+ * skipping any field whose new value equals the current value (no-op edit).
+ * Returns both the client-email-ready `entries` (human labels + display
+ * strings) and the DB-ready `auditRows` (raw old/new values for
+ * booking_edit_audit_log).
+ */
+function buildFieldChanges(
+  current: Record<string, unknown>,
+  patch: Partial<Record<TripEditField, string>>,
+): {
+  entries: BookingChangeEntry[]
+  auditRows: Array<{ field: string; old_value: string | null; new_value: string | null }>
+} {
+  const entries: BookingChangeEntry[] = []
+  const auditRows: Array<{ field: string; old_value: string | null; new_value: string | null }> = []
+
+  for (const field of TRIP_EDIT_FIELDS) {
+    const newValue = patch[field]
+    if (newValue === undefined) continue
+
+    const oldValueRaw = current[field]
+    const oldValueDisplay = oldValueRaw === null || oldValueRaw === undefined ? '' : String(oldValueRaw)
+
+    if (oldValueDisplay === newValue) continue // no-op edit — skip
+
+    entries.push({
+      field,
+      label: TRIP_EDIT_FIELD_LABELS[field],
+      oldValue: oldValueDisplay,
+      newValue,
+    })
+    auditRows.push({
+      field,
+      old_value: oldValueRaw === null || oldValueRaw === undefined ? null : String(oldValueRaw),
+      new_value: newValue,
+    })
+  }
+
+  return { entries, auditRows }
+}
 
 export async function GET(request: Request) {
   const { error } = await getAdminUser()
@@ -115,7 +198,7 @@ export async function PATCH(request: Request) {
   const tooBig = enforceMaxBody(request, 5_000)
   if (tooBig) return tooBig
 
-  const { error } = await getAdminUser()
+  const { user, error } = await getAdminUser()
   if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
@@ -283,6 +366,103 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: true })
   }
 
+  // ── Trip-edit branch (Phase 63 Plan 02 — AEDIT-01, AEDIT-04, AEDIT-05, AEDIT-06, FOLLOW-02) ──
+  // Cheap-field edit: pickup date/time + passenger/contact + flight number.
+  // Runs when any TRIP_EDIT_FIELDS key is present (mutually exclusive with the
+  // status branch above — a request never carries both `status` and a trip field).
+  const hasTripField = TRIP_EDIT_FIELDS.some(field => parsed.data[field] !== undefined)
+
+  if (hasTripField) {
+    const { data: current, error: fetchError } = await supabase
+      .from('bookings')
+      .select('*')
+      .eq('id', parsed.data.id)
+      .single()
+
+    if (fetchError || !current) {
+      return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
+    }
+
+    // Terminal-status gate — completed/cancelled bookings are final and read-only.
+    if (current.status === 'completed' || current.status === 'cancelled') {
+      return NextResponse.json(
+        { error: `${current.status} bookings are final and cannot be edited` },
+        { status: 422 }
+      )
+    }
+
+    // Build updatePayload field-by-field (mass-assignment guard) — never spread the body.
+    const tripUpdatePayload: Record<string, unknown> = {}
+    for (const field of TRIP_EDIT_FIELDS) {
+      const value = parsed.data[field]
+      if (value !== undefined) tripUpdatePayload[field] = value
+    }
+
+    // Diff current vs incoming — skips fields whose new value equals current (no-op).
+    const { entries, auditRows } = buildFieldChanges(current, parsed.data)
+
+    const { error: dbError } = await supabase
+      .from('bookings')
+      .update(tripUpdatePayload)
+      .eq('id', parsed.data.id)
+
+    if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+
+    // Notification AND-gate (D-08): per-save notify_client toggle AND the global
+    // notification_flags.booking_changed flag must both hold. logEmail runs as the
+    // dedup gate BEFORE Resend (AEDIT-05 idempotency) — computed before the audit
+    // insert so the inserted rows' `notified` column reflects the real outcome.
+    let shouldSend = false
+    if (entries.length > 0 && parsed.data.notify_client === true) {
+      const { data: flagsRow } = await supabase
+        .from('pricing_globals')
+        .select('notification_flags')
+        .eq('id', 1)
+        .single()
+
+      const flags = flagsRow?.notification_flags as Record<string, boolean> | null
+      const flagEnabled = !flags || flags['booking_changed'] !== false
+
+      if (flagEnabled) {
+        shouldSend = await logEmail({
+          bookingId: current.id,
+          emailType: 'booking_changed',
+          recipient: current.client_email,
+        })
+      }
+    }
+
+    // Per-field audit trail — one row per changed field, sharing one changed_at (D-10).
+    if (entries.length > 0) {
+      const changedAt = new Date().toISOString()
+      const { error: auditError } = await supabase
+        .from('booking_edit_audit_log')
+        .insert(
+          auditRows.map(row => ({
+            booking_id: current.id,
+            field: row.field,
+            old_value: row.old_value,
+            new_value: row.new_value,
+            operator_id: user?.id ?? null,
+            changed_at: changedAt,
+            notified: shouldSend,
+          }))
+        )
+
+      if (auditError) {
+        console.error('[admin/bookings.PATCH] audit log insert failed:', auditError.message)
+      }
+    }
+
+    if (shouldSend) {
+      after(() => sendBookingChangedEmail(current, entries).catch(err =>
+        console.error('[booking-notify] changed:', err)
+      ))
+    }
+
+    return NextResponse.json({ ok: true })
+  }
+
   const updatePayload: Record<string, unknown> = {}
   if (parsed.data.operator_notes !== undefined) updatePayload.operator_notes = parsed.data.operator_notes
   if (parsed.data.driver_price_czk !== undefined) updatePayload.driver_price_czk = parsed.data.driver_price_czk
@@ -296,8 +476,6 @@ export async function PATCH(request: Request) {
 
   return NextResponse.json({ ok: true })
 }
-
-const NO_CRLF = /^[^\r\n]*$/
 
 const manualBookingSchema = z.object({
   trip_type:           z.enum(['transfer', 'hourly', 'daily']),
