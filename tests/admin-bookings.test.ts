@@ -99,6 +99,7 @@ vi.mock('stripe', () => {
 
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
+import { GET as AUDIT_LOG_GET } from '@/app/api/admin/bookings/[id]/audit-log/route'
 
 function makeRequest(url?: string): Request {
   return new Request(url ?? 'http://localhost/api/admin/bookings', {
@@ -172,7 +173,17 @@ const mockCurrentTripEditBooking: Record<string, unknown> = {
  * pricing_globals select -> (optional) email_log insert (logEmail dedup).
  * Plan 02/03 tests call this then override any returned mock as needed —
  * e.g. `mockTripEditSupabaseChain({ notificationFlags: { booking_changed: false } })`.
+ *
+ * Deviation (63-02, Task 1): the shipped PATCH trip-edit branch resolves the
+ * notification decision (pricing_globals flags select + logEmail) BEFORE the
+ * booking_edit_audit_log insert, so the audit rows' `notified` column can be
+ * set correctly in a single insert — the opposite order this Wave-0 helper
+ * assumed. 63-02's own tests build their own inline mock chains instead (see
+ * the "PATCH /api/admin/bookings — trip-edit" describe block below). Left
+ * here, unused-but-not-deleted, in case Plan 03 finds its (still-representative)
+ * shape useful for the price-affecting branch.
  */
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- see deviation note above
 function mockTripEditSupabaseChain(overrides?: {
   currentRow?: Record<string, unknown> | null
   notificationFlags?: Record<string, boolean> | null
@@ -830,6 +841,103 @@ describe('PATCH /api/admin/bookings — trip-edit (Phase 63 Plan 02)', () => {
     }))
 
     expect(res.status).toBe(404)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GET /api/admin/bookings/[id]/audit-log — history read (Phase 63 Plan 02, Task 2)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('GET /api/admin/bookings/[id]/audit-log', () => {
+  function makeAuditLogRequest(bookingId: string): Request {
+    return new Request(`http://localhost/api/admin/bookings/${bookingId}/audit-log`, {
+      method: 'GET',
+    })
+  }
+
+  function makeAuditLogCtx(bookingId: string) {
+    return { params: Promise.resolve({ id: bookingId }) }
+  }
+
+  it('Test 1: returns 401 when no session', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: null },
+      error: { message: 'No session' },
+    })
+
+    const res = await AUDIT_LOG_GET(
+      makeAuditLogRequest(mockCurrentTripEditBooking.id as string),
+      makeAuditLogCtx(mockCurrentTripEditBooking.id as string),
+    )
+    expect(res.status).toBe(401)
+  })
+
+  it('Test 2: returns 403 for non-admin user', async () => {
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: '2', app_metadata: { is_admin: false } } },
+      error: null,
+    })
+
+    const res = await AUDIT_LOG_GET(
+      makeAuditLogRequest(mockCurrentTripEditBooking.id as string),
+      makeAuditLogCtx(mockCurrentTripEditBooking.id as string),
+    )
+    expect(res.status).toBe(403)
+  })
+
+  it('Test 3: returns 200 with rows ordered changed_at DESC for an admin session', async () => {
+    const rows = [
+      { id: 'audit-2', field: 'pickup_time', old_value: '10:00', new_value: '11:00', operator_id: '1', changed_at: '2026-04-10T12:00:00Z', notified: true },
+      { id: 'audit-1', field: 'flight_number', old_value: 'OK100', new_value: 'OK123', operator_id: '1', changed_at: '2026-04-09T08:00:00Z', notified: false },
+    ]
+    const orderFn = vi.fn().mockResolvedValue({ data: rows, error: null })
+    const eqFn = vi.fn().mockReturnValue({ order: orderFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    const res = await AUDIT_LOG_GET(
+      makeAuditLogRequest(mockCurrentTripEditBooking.id as string),
+      makeAuditLogCtx(mockCurrentTripEditBooking.id as string),
+    )
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toEqual({ rows })
+    expect(eqFn).toHaveBeenCalledWith('booking_id', mockCurrentTripEditBooking.id)
+    expect(orderFn).toHaveBeenCalledWith('changed_at', { ascending: false })
+  })
+
+  it('Test 4: returns 200 with { rows: [] } for a booking with zero audit rows (not 404)', async () => {
+    const orderFn = vi.fn().mockResolvedValue({ data: [], error: null })
+    const eqFn = vi.fn().mockReturnValue({ order: orderFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    const res = await AUDIT_LOG_GET(
+      makeAuditLogRequest(mockCurrentTripEditBooking.id as string),
+      makeAuditLogCtx(mockCurrentTripEditBooking.id as string),
+    )
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toEqual({ rows: [] })
+  })
+
+  it('Test 5: returns 500 when the DB read fails', async () => {
+    const orderFn = vi.fn().mockResolvedValue({ data: null, error: { message: 'db down' } })
+    const eqFn = vi.fn().mockReturnValue({ order: orderFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+
+    supabaseServiceStub.from.mockReturnValueOnce({ select: selectFn })
+
+    const res = await AUDIT_LOG_GET(
+      makeAuditLogRequest(mockCurrentTripEditBooking.id as string),
+      makeAuditLogCtx(mockCurrentTripEditBooking.id as string),
+    )
+
+    expect(res.status).toBe(500)
   })
 })
 
