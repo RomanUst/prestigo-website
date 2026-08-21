@@ -43,7 +43,7 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 **Milestone Goal:** Give the operator full control of the booking lifecycle inside the admin panel — edit bookings with automatic client notification, capture abandoned/unpaid bookings for follow-up, and create bookings with an attachable payment link and client email.
 
 - [x] **Phase 62: Abandoned & Unpaid Booking Capture** - Checkout attempts are persisted before payment completes, surfaced as a followable "unconfirmed/unpaid" queue in admin, and reconciled without duplicates when payment succeeds. (completed 2026-08-20)
-- [ ] **Phase 63: Admin Booking Editing + Change Notification** - Operator can edit any booking's schedule, vehicle, route, and passenger details, review price changes, and optionally notify the client of the change by branded email.
+- [x] **Phase 63: Admin Booking Editing + Change Notification** - Operator can edit any booking's schedule, vehicle, route, and passenger details, review price changes, and optionally notify the client of the change by branded email. (completed 2026-08-21)
 - [ ] **Phase 64: Admin-Created Bookings with Payment Link** - Operator can originate a booking from admin, optionally attach and email a Stripe payment link, and have payment reconcile automatically — or save without payment for cash/invoice.
 
 ## Phase Details
@@ -138,5 +138,5 @@ Plans:
 | 60. Auth-in-Checkout + Guest Path | v2.0 | 1/1 | Complete | 2026-06-17 |
 | 61. Analytics Preservation & E2E Verify | v2.0 | 1/1 | Complete | 2026-06-17 |
 | 62. Abandoned & Unpaid Booking Capture | v2.1 | 0/4 | Complete    | 2026-08-20 |
-| 63. Admin Booking Editing + Change Notification | v2.1 | 0/? | In Progress|  |
+| 63. Admin Booking Editing + Change Notification | v2.1 | 0/? | Complete    | 2026-08-21 |
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 0/? | Not started | - |

@@ -1,23 +1,28 @@
 ---
 phase: 63-admin-booking-editing-change-notification
 verified: 2026-08-21T14:12:55Z
-status: human_needed
+status: passed
 score: 22/22 truths verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "Interactive TripEditPanel field editing: expand a booking row, edit pickup date/time, name, email, phone, flight number one at a time, click each 'Save …' control, and observe the Saving.../Saved/Error hint and a PATCH round trip."
     expected: "Each per-field save persists only that field, shows the three-state hint, and the row reflects the new value without a page reload."
     why_human: "No automated test drives TripEditPanel's interactive click/type/save flow end-to-end in a browser; existing coverage is at the API layer (admin-bookings.test.ts) and structural grep checks on BookingsTable.tsx, not simulated user interaction."
+
   - test: "Vehicle-class or route change: select a new vehicle class or edit the pickup/destination address, click 'Review Price →', confirm the price-review panel opens with a live /api/calculate-price round trip against real Google Maps, and the old->new amount renders correctly."
     expected: "The price-review panel shows a real recomputed amount (not a stale/hardcoded value), origin/destination diff wraps without truncation, and Confirm & Save persists the new price."
     why_human: "The live network round trip to Google Maps + /api/calculate-price is not exercised by any test in this phase (network-dependent); only import/call-site presence is grep-confirmed."
+
   - test: "Trigger a deliberate 422 price mismatch (e.g. submit an override amount before the price finishes recomputing, or manually alter the override input) and confirm computedCzk/submittedCzk render inline in #f87171, and Confirm & Save stays disabled until the 'I confirm overriding the price...' checkbox is checked."
     expected: "The mismatch UI renders correctly and the override checkbox gates the Confirm & Save button as designed."
     why_human: "Source-level wiring (PatchError propagation, mismatch state, confirmDisabled gating) is confirmed by reading the code, but no automated test drives an actual 422 response through the live TripEditPanel UI."
+
   - test: "Open a completed or cancelled booking's expanded row and confirm the read-only notice replaces edit controls; open a booking_source='gnet' booking and confirm the passive banner shows while edit controls remain usable."
     expected: "Terminal-status bookings show only the read-only notice (no edit form); GNet-sourced bookings show the banner but are still editable."
     why_human: "Copy presence is grep-confirmed and the isTerminal/booking_source branch was read directly in source, but BookingsTable.test.tsx's existing fixtures don't include a completed/cancelled or gnet+terminal row, so the actual conditional-render path is not exercised by an automated test."
+
   - test: "Send a real branded change-notification email (toggle 'Notify client of this change' on a save) and visually confirm the rendered email in an inbox matches the UI-SPEC brand chrome (logo, gold gradient, WHAT CHANGED diff table) and shows only the fields that changed."
     expected: "Email renders correctly in a real mail client, old->new diff is legible, and no unchanged trip fields leak into the email."
     why_human: "HTML-string assertions in tests/booking-changed-email.test.ts prove structure and escaping, not visual rendering in a real email client."
@@ -142,6 +147,7 @@ None. Scanned all 6 phase-touched files (`app/api/admin/bookings/route.ts`, `app
 63-REVIEW.md's one Critical finding (CR-01 — change email sent to stale `client_email` when that field was the one being edited) is **fixed** in commit `1b35c33` (verified in source: `route.ts:647` builds `updatedBooking = { ...current, ...tripUpdatePayload }` and both the `logEmail` recipient and `sendBookingChangedEmail` call now use it).
 
 The review's 5 Warnings and 2 Info items remain open and do not break any must-have verified above:
+
 - WR-01 (`operator_notes`/`driver_price_czk` silently dropped when combined with a trip field in one PATCH) — not reachable from the current UI (each save issues its own single-purpose PATCH); real gap for a future raw-API caller.
 - WR-02 (`distance_km` has no server-side lower bound for non-transfer bookings) — cosmetic data-integrity gap.
 - WR-03 (`destination_address` accepts empty string even for transfer trips) — cosmetic data-integrity gap.
