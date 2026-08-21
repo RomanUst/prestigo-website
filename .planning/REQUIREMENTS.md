@@ -9,12 +9,12 @@ Requirements for milestone v2.1. Each maps to a roadmap phase.
 
 ### AEDIT — Admin Booking Editing + Client Notification
 
-- [ ] **AEDIT-01**: Operator can edit a booking's pickup date and time from the admin booking detail view
+- [x] **AEDIT-01**: Operator can edit a booking's pickup date and time from the admin booking detail view
 - [ ] **AEDIT-02**: Operator can change a booking's vehicle class from the admin
 - [ ] **AEDIT-03**: Operator can edit a booking's route (origin/destination addresses) from the admin
-- [ ] **AEDIT-04**: Operator can edit passenger/contact details and flight number from the admin
+- [x] **AEDIT-04**: Operator can edit passenger/contact details and flight number from the admin
 - [x] **AEDIT-05**: On saving an edit, the operator can choose (via a "notify client" toggle) to send the client a branded email confirming the change, showing old → new values
-- [ ] **AEDIT-06**: Editing one leg of a round-trip booking updates only that leg; the linked leg is unaffected
+- [x] **AEDIT-06**: Editing one leg of a round-trip booking updates only that leg; the linked leg is unaffected
 - [ ] **AEDIT-07**: When a route or vehicle change affects the price, the operator can review and adjust the amount before saving
 
 ### ABND — Abandoned / Unpaid Booking Capture
@@ -60,12 +60,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| AEDIT-01 | Phase 63 | Pending |
+| AEDIT-01 | Phase 63 | Complete |
 | AEDIT-02 | Phase 63 | Pending |
 | AEDIT-03 | Phase 63 | Pending |
-| AEDIT-04 | Phase 63 | Pending |
+| AEDIT-04 | Phase 63 | Complete |
 | AEDIT-05 | Phase 63 | Complete |
-| AEDIT-06 | Phase 63 | Pending |
+| AEDIT-06 | Phase 63 | Complete |
 | AEDIT-07 | Phase 63 | Pending |
 | FOLLOW-02 | Phase 63 | Complete |
 | ABND-01 | Phase 62 | Complete |

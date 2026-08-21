@@ -88,7 +88,7 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
   3. At save time, a "notify client" toggle lets the operator choose whether the client receives a branded email showing old → new values of what changed; leaving it off saves without emailing.
   4. Editing one leg of a round-trip booking updates only that leg's record — the linked leg keeps its original date, route, and vehicle.
 
-**Plans**: 1/5 plans executed
+**Plans**: 2/5 plans executed
 
 Plans:
 **Wave 1**
@@ -97,7 +97,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 63-02-PLAN.md — TRACER: PATCH cheap-field trip-edit (persist + per-field audit + notify AND-gate) + GET audit-log route
+- [x] 63-02-PLAN.md — TRACER: PATCH cheap-field trip-edit (persist + per-field audit + notify AND-gate) + GET audit-log route
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
