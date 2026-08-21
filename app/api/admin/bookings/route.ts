@@ -640,6 +640,12 @@ export async function PATCH(request: Request) {
 
     if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
 
+    // Post-update view: the notification recipient and email body must reflect the
+    // MERGED post-update state, not the stale `current` row. Critical when the edited
+    // field IS client_email — otherwise the "your booking changed" notice (and its
+    // dedup recipient key) goes to the OLD address and the client never learns.
+    const updatedBooking = { ...current, ...tripUpdatePayload }
+
     // Notification AND-gate (D-08): per-save notify_client toggle AND the global
     // notification_flags.booking_changed flag must both hold. logEmail runs as the
     // dedup gate BEFORE Resend (AEDIT-05 idempotency) — computed before the audit
@@ -659,7 +665,7 @@ export async function PATCH(request: Request) {
         shouldSend = await logEmail({
           bookingId: current.id,
           emailType: 'booking_changed',
-          recipient: current.client_email,
+          recipient: updatedBooking.client_email,
         })
       }
     }
@@ -687,7 +693,7 @@ export async function PATCH(request: Request) {
     }
 
     if (shouldSend) {
-      after(() => sendBookingChangedEmail(current, entries).catch(err =>
+      after(() => sendBookingChangedEmail(updatedBooking, entries).catch(err =>
         console.error('[booking-notify] changed:', err)
       ))
     }
