@@ -91,11 +91,23 @@ See [milestones/v2.0-ROADMAP.md](milestones/v2.0-ROADMAP.md) for full phase deta
 **Plans**: 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 63-01-PLAN.md — Migration 055 (booking_edit_audit_log) + change-email builder + Wave 0 fixtures
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 63-02-PLAN.md — TRACER: PATCH cheap-field trip-edit (persist + per-field audit + notify AND-gate) + GET audit-log route
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 63-03-PLAN.md — Price-affecting edits: server recompute + override + record-only + leg/idempotency assertions
 - [ ] 63-04-PLAN.md — BookingChangeHistory component (lazy per-row audit fetch, all UI states)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 63-05-PLAN.md — Admin edit UI: inline edit mode, per-field save, price-review step, notify toggle, notices, history mount
+
 **UI hint**: yes
 
 ### Phase 64: Admin-Created Bookings with Payment Link
