@@ -472,17 +472,19 @@ CREATE INDEX IF NOT EXISTS booking_edit_audit_log_booking_id_idx
 ```
 Store `old_value`/`new_value` as `text` (not typed columns) since the field set spans dates, strings, enums, and numeric amounts — matching the "field, old→new value" shape D-10 asks for without needing a column-per-field-type schema. The planner should confirm whether RLS is needed (existing `bookings` table has RLS deferred per STATE.md note "Migration 045 adds no RLS to bookings — deferred to Phase 60"; this service-role-only table likely needs no RLS since only the service-role PATCH handler writes/reads it, mirroring `email_log`'s apparent lack of a tracked RLS policy).
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Exact `notification_flags` key name for the change email**
    - What we know: the pattern (`flags[key] !== false` = enabled-by-default) is fully verified.
    - What's unclear: whether the operator-facing pricing-globals admin UI (if one exists for editing `notification_flags`) needs a matching label/toggle added.
    - Recommendation: planner picks a key (`booking_changed` suggested) and checks whether `pricing_globals.notification_flags` is edited anywhere in the admin UI today — if not, this is a DB-only flag (defaults to enabled via the `!flags` fallback) and needs no UI work this phase.
+   - **RESOLVED:** Key name `booking_changed` adopted (mirrors `booking_${status}`). It is a DB-only flag (defaults to enabled via the `!flags` fallback) — no admin-UI toggle added this phase. Seeded as the artifact convention in Plan 01 (`63-01-PLAN.md` `<artifacts_produced>`, Task 1 decision) and consumed by the notification AND-gate in Plan 02 (`63-02-PLAN.md` Task 1: `flagEnabled = !flags || flags['booking_changed'] !== false`).
 
 2. **Whether the price-review step (D-06) needs a distinct "preview" endpoint or reuses `/api/calculate-price` directly**
    - What we know: `/api/calculate-price` already returns exactly the preview data needed (`prices`, `distanceKm`).
    - What's unclear: whether the admin-specific vehicle-class selection and existing-booking context (e.g. matched intercity route by `route_prices`) needs any admin-specific parameter not in `calculatePriceSchema`.
    - Recommendation: reuse `/api/calculate-price` as-is (same as `ManualBookingForm`) — it already accepts `originPlaceId`/`destinationPlaceId` for intercity route matching, which the edit flow should also pass through when available.
+   - **RESOLVED:** Reuse `/api/calculate-price` as-is — no new preview endpoint. Adopted in Plan 05 (`63-05-PLAN.md` Task 2 + `key_links`: route editing replicates `ManualBookingForm.handleCalculatePrice` → POST `/api/calculate-price` → `distanceKm`), with the resulting `distance_km` trusted only at the price level and tolerance-checked server-side in Plan 03 (Pitfall 2).
 
 ## Environment Availability
 
