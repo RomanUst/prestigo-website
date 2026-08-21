@@ -148,3 +148,12 @@ None further — the only external-service step this plan required (SUPABASE_ACC
 ---
 *Phase: 63-admin-booking-editing-change-notification*
 *Completed: 2026-08-21*
+
+## Self-Check: PASSED
+
+All claimed artifacts verified on disk/in git history:
+- FOUND: `.planning/phases/63-admin-booking-editing-change-notification/63-01-SUMMARY.md`
+- FOUND: commit `78c6674` (test)
+- FOUND: commit `134526a` (feat)
+- FOUND: `supabase/migrations/055_booking_edit_audit_log.sql`
+- FOUND: `tests/booking-changed-email.test.ts`
