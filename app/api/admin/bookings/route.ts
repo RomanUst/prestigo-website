@@ -40,6 +40,13 @@ const KNOWN_STATUSES = new Set([
 // so it can be reused by the cheap trip-field edit fields below.
 const NO_CRLF = /^[^\r\n]*$/
 
+// Max diff in CZK between client-sent and server-computed price before rejecting.
+// Hoisted above bookingPatchSchema/manualBookingSchema (originally defined only
+// near the POST handler) — Phase 63 Plan 03 reuses this exact constant for the
+// PATCH price-affecting sub-branch. Declared ONCE; both POST and PATCH import it
+// from this single top-level declaration (do NOT redefine a second tolerance).
+const ADMIN_PRICE_TOLERANCE_CZK = 2
+
 // Cheap trip-field edits (AEDIT-01, AEDIT-04) — Phase 63 Plan 02. These are the
 // fields the PATCH trip-edit branch diffs/audits/emails; kept as a single source
 // of truth for the schema, the .refine() presence check, and buildFieldChanges().
@@ -54,6 +61,28 @@ const TRIP_EDIT_FIELDS = [
 ] as const
 
 type TripEditField = typeof TRIP_EDIT_FIELDS[number]
+
+// Price-affecting trip-field edits (AEDIT-02, AEDIT-03, AEDIT-07) — Phase 63
+// Plan 03. Presence of ANY of these triggers the server-side recompute +
+// tolerance + override sub-branch (ported from the POST handler's
+// recompute+override block). distance_km is client-supplied (from the
+// admin UI's /api/calculate-price round trip) and trusted only at the price
+// level — see Pitfall 2 in 63-RESEARCH.md.
+const PRICE_EDIT_FIELDS = [
+  'vehicle_class',
+  'origin_address',
+  'destination_address',
+  'distance_km',
+] as const
+
+type PriceEditField = typeof PRICE_EDIT_FIELDS[number]
+
+const PRICE_EDIT_FIELD_LABELS: Record<PriceEditField, string> = {
+  vehicle_class: 'Vehicle class',
+  origin_address: 'Pickup address',
+  destination_address: 'Drop-off address',
+  distance_km: 'Distance (km)',
+}
 
 const bookingPatchSchema = z.object({
   id: z.string().uuid(),
@@ -80,10 +109,34 @@ const bookingPatchSchema = z.object({
   flight_number: z.string().max(20).regex(NO_CRLF).optional(),
   // Per-save "notify client" toggle (D-08) — AND-gated with notification_flags.booking_changed.
   notify_client: z.boolean().optional(),
+  // Price-affecting trip-field edits (AEDIT-02, AEDIT-03, AEDIT-07) — Phase 63 Plan 03.
+  vehicle_class: z.enum(['business', 'first_class', 'business_van']).optional(),
+  origin_address: z.string().min(1).max(500).optional(),
+  destination_address: z.string().max(500).optional(),
+  origin_lat: z.number().optional(),
+  origin_lng: z.number().optional(),
+  destination_lat: z.number().optional(),
+  destination_lng: z.number().optional(),
+  distance_km: z.number().nullable().optional(),
+  // Operator's reviewed/submitted amount — REQUIRED (see second .refine below)
+  // whenever a price-affecting field is present, so the server always has
+  // something to tolerance-check against (mirrors manualBookingSchema).
+  amount_czk: z.number().int().positive().optional(),
+  // When true, admin explicitly accepts amount_czk even if it diverges from the
+  // server-computed price. Still requires admin auth; divergence is logged
+  // server-side for audit purposes (mirrors POST handler's override_price).
+  override_price: z.boolean().optional(),
 }).refine(
   d => d.status !== undefined || d.operator_notes !== undefined || d.driver_price_czk !== undefined
-    || TRIP_EDIT_FIELDS.some(field => d[field] !== undefined),
+    || TRIP_EDIT_FIELDS.some(field => d[field] !== undefined)
+    || PRICE_EDIT_FIELDS.some(field => d[field] !== undefined),
   { message: 'At least one of status, operator_notes, driver_price_czk, or a trip field must be provided' },
+).refine(
+  d => {
+    const priceFieldPresent = PRICE_EDIT_FIELDS.some(field => d[field] !== undefined)
+    return !priceFieldPresent || d.amount_czk !== undefined
+  },
+  { message: 'amount_czk is required when vehicle_class, origin_address, destination_address, or distance_km is provided' },
 )
 
 const TRIP_EDIT_FIELD_LABELS: Record<TripEditField, string> = {
@@ -97,15 +150,20 @@ const TRIP_EDIT_FIELD_LABELS: Record<TripEditField, string> = {
 }
 
 /**
- * Diffs the current booking row against the incoming trip-field patch,
- * skipping any field whose new value equals the current value (no-op edit).
+ * Diffs the current booking row against an incoming patch for a given field
+ * set, skipping any field whose new value equals the current value (no-op
+ * edit). Shared by buildFieldChanges() (cheap trip fields, Plan 02) and the
+ * price-affecting sub-branch (vehicle_class/origin_address/destination_address/
+ * distance_km, Plan 03) so both diff paths stay byte-identical in shape.
  * Returns both the client-email-ready `entries` (human labels + display
  * strings) and the DB-ready `auditRows` (raw old/new values for
  * booking_edit_audit_log).
  */
-function buildFieldChanges(
+function diffFields<F extends string>(
   current: Record<string, unknown>,
-  patch: Partial<Record<TripEditField, string>>,
+  patch: Partial<Record<F, unknown>>,
+  fields: readonly F[],
+  labels: Record<F, string>,
 ): {
   entries: BookingChangeEntry[]
   auditRows: Array<{ field: string; old_value: string | null; new_value: string | null }>
@@ -113,29 +171,41 @@ function buildFieldChanges(
   const entries: BookingChangeEntry[] = []
   const auditRows: Array<{ field: string; old_value: string | null; new_value: string | null }> = []
 
-  for (const field of TRIP_EDIT_FIELDS) {
+  for (const field of fields) {
     const newValue = patch[field]
     if (newValue === undefined) continue
 
     const oldValueRaw = current[field]
     const oldValueDisplay = oldValueRaw === null || oldValueRaw === undefined ? '' : String(oldValueRaw)
+    const newValueDisplay = String(newValue)
 
-    if (oldValueDisplay === newValue) continue // no-op edit — skip
+    if (oldValueDisplay === newValueDisplay) continue // no-op edit — skip
 
     entries.push({
       field,
-      label: TRIP_EDIT_FIELD_LABELS[field],
+      label: labels[field],
       oldValue: oldValueDisplay,
-      newValue,
+      newValue: newValueDisplay,
     })
     auditRows.push({
       field,
       old_value: oldValueRaw === null || oldValueRaw === undefined ? null : String(oldValueRaw),
-      new_value: newValue,
+      new_value: newValueDisplay,
     })
   }
 
   return { entries, auditRows }
+}
+
+/** Cheap trip-field diff (AEDIT-01, AEDIT-04) — thin wrapper over diffFields(). */
+function buildFieldChanges(
+  current: Record<string, unknown>,
+  patch: Partial<Record<TripEditField, string>>,
+): {
+  entries: BookingChangeEntry[]
+  auditRows: Array<{ field: string; old_value: string | null; new_value: string | null }>
+} {
+  return diffFields(current, patch, TRIP_EDIT_FIELDS, TRIP_EDIT_FIELD_LABELS)
 }
 
 export async function GET(request: Request) {
@@ -368,9 +438,14 @@ export async function PATCH(request: Request) {
 
   // ── Trip-edit branch (Phase 63 Plan 02 — AEDIT-01, AEDIT-04, AEDIT-05, AEDIT-06, FOLLOW-02) ──
   // Cheap-field edit: pickup date/time + passenger/contact + flight number.
-  // Runs when any TRIP_EDIT_FIELDS key is present (mutually exclusive with the
-  // status branch above — a request never carries both `status` and a trip field).
-  const hasTripField = TRIP_EDIT_FIELDS.some(field => parsed.data[field] !== undefined)
+  // Extended by Plan 03 (AEDIT-02, AEDIT-03, AEDIT-07) with a price-affecting
+  // sub-branch: vehicle_class / origin_address / destination_address / distance_km.
+  // Runs when any TRIP_EDIT_FIELDS or PRICE_EDIT_FIELDS key is present (mutually
+  // exclusive with the status branch above — a request never carries both
+  // `status` and a trip field).
+  const hasCheapField = TRIP_EDIT_FIELDS.some(field => parsed.data[field] !== undefined)
+  const hasPriceField = PRICE_EDIT_FIELDS.some(field => parsed.data[field] !== undefined)
+  const hasTripField = hasCheapField || hasPriceField
 
   if (hasTripField) {
     const { data: current, error: fetchError } = await supabase
@@ -399,7 +474,164 @@ export async function PATCH(request: Request) {
     }
 
     // Diff current vs incoming — skips fields whose new value equals current (no-op).
-    const { entries, auditRows } = buildFieldChanges(current, parsed.data)
+    const { entries: cheapEntries, auditRows: cheapAuditRows } = buildFieldChanges(current, parsed.data)
+
+    // ── Price-affecting sub-branch (Phase 63 Plan 03 — AEDIT-02, AEDIT-03, AEDIT-07) ──
+    // Server NEVER trusts a client-supplied amount_czk. Recompute from
+    // pricing_config (ported verbatim from the POST handler's recompute+
+    // override block, lines ~547-641), tolerance-check, accept the operator's
+    // amount only via explicit override_price. distance_km is trusted only at
+    // the price level (Pitfall 2) — no second geocode call is made here.
+    let priceEntries: BookingChangeEntry[] = []
+    let priceAuditRows: Array<{ field: string; old_value: string | null; new_value: string | null }> = []
+
+    if (hasPriceField) {
+      let rates
+      try {
+        rates = await getPricingConfig()
+      } catch (err) {
+        console.error('[admin/bookings.PATCH] failed to load pricing config:', err)
+        return NextResponse.json({ error: 'Pricing configuration unavailable' }, { status: 503 })
+      }
+
+      // Effective trip inputs: submitted fields overlaid on the current row.
+      const effectiveVehicleClass = parsed.data.vehicle_class ?? current.vehicle_class
+      const effectiveDistanceKm = parsed.data.distance_km !== undefined ? parsed.data.distance_km : current.distance_km
+      const effectiveTripType = current.trip_type as 'transfer' | 'hourly' | 'daily'
+      const effectivePickupDate = (parsed.data.pickup_date ?? current.pickup_date) as string
+      const effectivePickupTime = (parsed.data.pickup_time ?? current.pickup_time) as string | null
+      const effectiveReturnDate = current.return_date as string | null
+      const effectiveIsAirport = Boolean(current.is_airport)
+      const effectiveHours = (current.hours as number | null) ?? 2
+
+      if (effectiveTripType === 'transfer' && (effectiveDistanceKm === null || effectiveDistanceKm === undefined || effectiveDistanceKm <= 0)) {
+        return NextResponse.json(
+          { error: 'distance_km is required and must be positive for transfer trips' },
+          { status: 400 }
+        )
+      }
+
+      const days = effectiveReturnDate ? dateDiffDays(effectivePickupDate, effectiveReturnDate) : 1
+
+      const outboundLegEur = computeOutboundLegTotal(
+        effectiveVehicleClass,
+        effectiveDistanceKm ?? null,
+        effectiveHours,
+        days,
+        effectiveTripType,
+        effectivePickupDate,
+        effectivePickupTime,
+        effectiveIsAirport,
+        rates,
+      )
+
+      const extrasEur = computeExtrasTotal(
+        {
+          infantSeat: false,
+          childSeat: Boolean(current.extra_child_seat),
+          boosterSeat: false,
+          meetAndGreet: Boolean(current.extra_meet_greet),
+          extraLuggage: Boolean(current.extra_luggage),
+        },
+        {
+          infantSeat: 0,
+          childSeat: rates.globals.extraChildSeat,
+          boosterSeat: 0,
+          meetAndGreet: 0,
+          extraLuggage: rates.globals.extraLuggage,
+        },
+      )
+
+      const computedTotalEur = outboundLegEur + extrasEur
+      const computedTotalCzk = eurToCzk(computedTotalEur)
+      // amount_czk is guaranteed present by the schema's second .refine() whenever
+      // a PRICE_EDIT_FIELDS key is set.
+      const submittedAmountCzk = parsed.data.amount_czk as number
+      const priceDiverges = Math.abs(computedTotalCzk - submittedAmountCzk) > ADMIN_PRICE_TOLERANCE_CZK
+
+      if (priceDiverges && !parsed.data.override_price) {
+        return NextResponse.json(
+          {
+            error: 'Price mismatch — server recompute diverges from submitted amount',
+            submittedCzk: submittedAmountCzk,
+            computedCzk: computedTotalCzk,
+          },
+          { status: 422 }
+        )
+      }
+
+      // Authoritative amount = recompute unless the operator explicitly overrode it.
+      const authoritativeAmountCzk = priceDiverges ? submittedAmountCzk : computedTotalCzk
+      const amount_eur = priceDiverges ? czkToEur(submittedAmountCzk) : computedTotalEur
+
+      // Raw price-affecting fields (mass-assignment guard — never spread the body).
+      if (parsed.data.vehicle_class !== undefined) tripUpdatePayload.vehicle_class = parsed.data.vehicle_class
+      if (parsed.data.origin_address !== undefined) tripUpdatePayload.origin_address = parsed.data.origin_address
+      if (parsed.data.destination_address !== undefined) tripUpdatePayload.destination_address = parsed.data.destination_address
+      if (parsed.data.origin_lat !== undefined) tripUpdatePayload.origin_lat = parsed.data.origin_lat
+      if (parsed.data.origin_lng !== undefined) tripUpdatePayload.origin_lng = parsed.data.origin_lng
+      if (parsed.data.destination_lat !== undefined) tripUpdatePayload.destination_lat = parsed.data.destination_lat
+      if (parsed.data.destination_lng !== undefined) tripUpdatePayload.destination_lng = parsed.data.destination_lng
+      if (parsed.data.distance_km !== undefined) tripUpdatePayload.distance_km = parsed.data.distance_km
+      tripUpdatePayload.amount_czk = authoritativeAmountCzk
+      tripUpdatePayload.amount_eur = amount_eur
+
+      if (priceDiverges) {
+        // D-05: Phase 63 only RECORDS the new amount — no payment link, no
+        // auto-charge, no top-up. The override note is an audit trail, not a
+        // collection action.
+        console.warn('[admin/bookings.PATCH] price override applied', {
+          adminUserId: user?.id,
+          bookingId: current.id,
+          submittedCzk: submittedAmountCzk,
+          computedCzk: computedTotalCzk,
+        })
+        const overrideNote = `Price manually overridden by admin: ${authoritativeAmountCzk} CZK (standard rate would be ${computedTotalCzk} CZK).`
+        tripUpdatePayload.operator_notes = current.operator_notes
+          ? `${current.operator_notes}\n${overrideNote}`
+          : overrideNote
+      }
+
+      // Diff the raw price-affecting fields (vehicle_class/route/distance) using
+      // the same shared diffFields() helper as the cheap fields.
+      const { entries: rawFieldEntries, auditRows: rawFieldAuditRows } = diffFields(
+        current,
+        parsed.data,
+        PRICE_EDIT_FIELDS,
+        PRICE_EDIT_FIELD_LABELS,
+      )
+      priceEntries = [...rawFieldEntries]
+      priceAuditRows = [...rawFieldAuditRows]
+
+      // D-10: the amount itself is always audited/emailed as its own entry
+      // whenever it actually changes (recompute or override).
+      const oldAmountCzk = current.amount_czk === null || current.amount_czk === undefined
+        ? null
+        : String(current.amount_czk)
+      const newAmountCzk = String(authoritativeAmountCzk)
+      if (oldAmountCzk !== newAmountCzk) {
+        priceEntries.push({
+          field: 'amount_czk',
+          label: 'Price (CZK)',
+          oldValue: oldAmountCzk ?? '',
+          newValue: newAmountCzk,
+        })
+        priceAuditRows.push({
+          field: 'amount_czk',
+          old_value: oldAmountCzk,
+          new_value: newAmountCzk,
+        })
+      }
+    }
+
+    const entries = [...cheapEntries, ...priceEntries]
+    const auditRows = [...cheapAuditRows, ...priceAuditRows]
+
+    // GNet guard: no trip-detail push exists for GNet (lib/gnet-client.ts only
+    // pushes status) — trip-field edits on booking_source='gnet' bookings are
+    // ALWAYS local-only (persist + audit + optional email), regardless of
+    // whether the edit was a cheap field or a price-affecting field. No push
+    // call is made here — this is intentionally the absence of a GNet call.
 
     const { error: dbError } = await supabase
       .from('bookings')
@@ -522,8 +754,9 @@ const manualBookingSchema = z.object({
   user_id:             z.string().uuid().optional(),
 })
 
-/** Max diff in CZK between client-sent and server-computed price before rejecting. */
-const ADMIN_PRICE_TOLERANCE_CZK = 2
+// ADMIN_PRICE_TOLERANCE_CZK is declared once, near the top of the file
+// (Phase 63 Plan 03) — reused unchanged by both this POST handler and the
+// PATCH price-affecting sub-branch. Do not redeclare it here.
 
 export async function POST(request: Request) {
   const tooBig = enforceMaxBody(request, 20_000)

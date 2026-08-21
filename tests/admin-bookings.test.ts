@@ -39,6 +39,13 @@ const { stubLogEmail, stubSendBookingChangedEmail } = vi.hoisted(() => {
   }
 })
 
+// Phase 63 Plan 03 — price-affecting trip-edit branch: spy on pushGnetStatus
+// so tests can assert it is NEVER called for a trip-detail edit (local-only,
+// no GNet trip-detail-push API exists).
+const { stubPushGnetStatus } = vi.hoisted(() => {
+  return { stubPushGnetStatus: vi.fn().mockResolvedValue(undefined) }
+})
+
 vi.mock('next/server', async () => {
   const actual = await vi.importActual<typeof import('next/server')>('next/server')
   return {
@@ -89,6 +96,14 @@ vi.mock('@/lib/email', () => ({
   sendBookingChangedEmail: stubSendBookingChangedEmail,
 }))
 
+vi.mock('@/lib/gnet-client', async () => {
+  const actual = await vi.importActual<typeof import('@/lib/gnet-client')>('@/lib/gnet-client')
+  return {
+    ...actual,
+    pushGnetStatus: stubPushGnetStatus,
+  }
+})
+
 vi.mock('stripe', () => {
   const MockStripeDefault = function MockStripe() {
     return { refunds: stripeRefundsStub }
@@ -100,6 +115,7 @@ vi.mock('stripe', () => {
 import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
 import { GET as AUDIT_LOG_GET } from '@/app/api/admin/bookings/[id]/audit-log/route'
+import { computeOutboundLegTotal } from '@/lib/server-pricing'
 
 function makeRequest(url?: string): Request {
   return new Request(url ?? 'http://localhost/api/admin/bookings', {
@@ -249,6 +265,10 @@ beforeEach(() => {
   // Individual tests override with .mockResolvedValueOnce(false) etc. as needed.
   stubLogEmail.mockResolvedValue(true)
   stubSendBookingChangedEmail.mockResolvedValue(undefined)
+
+  // Phase 63 Plan 03 — pushGnetStatus spy: default resolved; trip-edit tests
+  // assert it is never called (no GNet trip-detail-push API exists).
+  stubPushGnetStatus.mockResolvedValue(undefined)
 
   // Default rpc: returns empty result set (used by GET handler via admin_search_bookings)
   supabaseServiceStub.rpc.mockResolvedValue({
@@ -841,6 +861,177 @@ describe('PATCH /api/admin/bookings — trip-edit (Phase 63 Plan 02)', () => {
     }))
 
     expect(res.status).toBe(404)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PATCH /api/admin/bookings — price-affecting trip-edit (Phase 63 Plan 03)
+// AEDIT-02 (vehicle class), AEDIT-03 (route), AEDIT-07 (review/override).
+// computeOutboundLegTotal is mocked to always return 60 EUR, computeExtrasTotal
+// always returns 0, and eurToCzk is mocked to always return 1500 CZK (see
+// top-of-file mocks) — so the server-recomputed price is deterministic across
+// every test: computedCzk is always 1500 regardless of the actual inputs.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('PATCH /api/admin/bookings — price-affecting trip-edit (Phase 63 Plan 03)', () => {
+  function makeSelectSingleChain(data: unknown, error: unknown = null) {
+    const singleFn = vi.fn().mockResolvedValue({ data, error })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+    return { chain: { select: selectFn }, singleFn, eqFn, selectFn }
+  }
+
+  function makeUpdateChain(error: unknown = null) {
+    const updateEqFn = vi.fn().mockResolvedValue({ error })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+    return { chain: { update: updateFn }, updateFn, updateEqFn }
+  }
+
+  function makeInsertChain(error: unknown = null) {
+    const insertFn = vi.fn().mockResolvedValue({ error })
+    return { chain: { insert: insertFn }, insertFn }
+  }
+
+  it('Test 1: vehicle_class change with matching recomputed amount_czk -> 200, saves recomputed amount, audits vehicle_class + amount_czk', async () => {
+    const currentRow: Record<string, unknown> = { ...mockCurrentTripEditBooking, amount_czk: 1400 }
+    const current = makeSelectSingleChain(currentRow)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: currentRow.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1500, // matches the mocked recompute (eurToCzk always returns 1500)
+    }))
+
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toMatchObject({ ok: true })
+
+    expect(update.updateFn).toHaveBeenCalledWith(
+      expect.objectContaining({ vehicle_class: 'first_class', amount_czk: 1500, amount_eur: 60 })
+    )
+    expect(update.updateEqFn).toHaveBeenCalledWith('id', currentRow.id)
+
+    expect(audit.insertFn).toHaveBeenCalledTimes(1)
+    const insertedRows = audit.insertFn.mock.calls[0][0] as Array<{ field: string; old_value: string | null; new_value: string | null }>
+    expect(insertedRows).toHaveLength(2)
+    expect(insertedRows.find(r => r.field === 'amount_czk')).toMatchObject({ old_value: '1400', new_value: '1500' })
+    expect(insertedRows.find(r => r.field === 'vehicle_class')).toMatchObject({ old_value: 'business', new_value: 'first_class' })
+  })
+
+  it('Test 2: submitted amount diverges by more than tolerance without override_price -> 422 with computedCzk/submittedCzk', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    supabaseServiceStub.from.mockReturnValueOnce(current.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1550, // off by 50 from the mocked 1500 recompute (tolerance is 2)
+    }))
+
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json).toMatchObject({ computedCzk: 1500, submittedCzk: 1550 })
+    // No DB write occurred — only the current-row select happened.
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+  })
+
+  it('Test 3: same divergence WITH override_price=true -> 200, saves submitted amount, appends override note, audits amount_czk', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1550,
+      override_price: true,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(update.updateFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount_czk: 1550,
+        operator_notes: expect.stringContaining(
+          'Price manually overridden by admin: 1550 CZK (standard rate would be 1500 CZK).'
+        ),
+      })
+    )
+
+    const insertedRows = audit.insertFn.mock.calls[0][0] as Array<{ field: string; old_value: string | null; new_value: string | null }>
+    expect(insertedRows.find(r => r.field === 'amount_czk')).toMatchObject({ old_value: '1500', new_value: '1550' })
+  })
+
+  it('Test 4: route edit recomputes using the supplied distance_km (no second geocode call)', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      origin_address: 'New Origin Address',
+      destination_address: 'New Destination Address',
+      distance_km: 35,
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(200)
+    // Recompute uses the freshly supplied distance_km, everything else overlaid from current row.
+    expect(computeOutboundLegTotal).toHaveBeenCalledWith(
+      mockCurrentTripEditBooking.vehicle_class,
+      35,
+      mockCurrentTripEditBooking.hours,
+      1,
+      mockCurrentTripEditBooking.trip_type,
+      mockCurrentTripEditBooking.pickup_date,
+      mockCurrentTripEditBooking.pickup_time,
+      mockCurrentTripEditBooking.is_airport,
+      expect.any(Object),
+    )
+    expect(update.updateFn).toHaveBeenCalledWith(
+      expect.objectContaining({
+        origin_address: 'New Origin Address',
+        destination_address: 'New Destination Address',
+        distance_km: 35,
+      })
+    )
+  })
+
+  it('Test 5: price change on a booking_source=gnet booking persists+audits locally; pushGnetStatus is NOT called', async () => {
+    const gnetRow: Record<string, unknown> = { ...mockCurrentTripEditBooking, booking_source: 'gnet', amount_czk: 1400 }
+    const current = makeSelectSingleChain(gnetRow)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: gnetRow.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(stubPushGnetStatus).not.toHaveBeenCalled()
   })
 })
 
