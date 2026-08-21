@@ -1036,6 +1036,167 @@ describe('PATCH /api/admin/bookings — price-affecting trip-edit (Phase 63 Plan
 })
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PATCH /api/admin/bookings — leg isolation, idempotency, precision
+// (Phase 63 Plan 03, Task 2 — AEDIT-06, AEDIT-05, AEDIT-07)
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('PATCH /api/admin/bookings — leg isolation, idempotency, precision (Phase 63 Plan 03, Task 2)', () => {
+  function makeSelectSingleChain(data: unknown, error: unknown = null) {
+    const singleFn = vi.fn().mockResolvedValue({ data, error })
+    const eqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
+    return { chain: { select: selectFn }, singleFn, eqFn, selectFn }
+  }
+
+  function makeUpdateChain(error: unknown = null) {
+    const updateEqFn = vi.fn().mockResolvedValue({ error })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+    return { chain: { update: updateFn }, updateFn, updateEqFn }
+  }
+
+  function makeInsertChain(error: unknown = null) {
+    const insertFn = vi.fn().mockResolvedValue({ error })
+    return { chain: { insert: insertFn }, insertFn }
+  }
+
+  const OUTBOUND_ID = mockCurrentTripEditBooking.id as string
+  const RETURN_LEG_ID = 'b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e'
+  const SHARED_PAYMENT_INTENT_ID = 'pi_test_shared_roundtrip'
+
+  it('Test 1: AEDIT-06 — a price-affecting edit on the outbound leg never references the linked return leg id or payment_intent_id', async () => {
+    const outboundRow: Record<string, unknown> = {
+      ...mockCurrentTripEditBooking,
+      id: OUTBOUND_ID,
+      leg: 'outbound',
+      linked_booking_id: RETURN_LEG_ID,
+      payment_intent_id: SHARED_PAYMENT_INTENT_ID,
+      amount_czk: 1400,
+    }
+    const current = makeSelectSingleChain(outboundRow)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: OUTBOUND_ID,
+      vehicle_class: 'first_class',
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(200)
+    // Exactly 3 supabase.from() calls — no extra query was ever issued against
+    // the return leg (a payment_intent_id-scoped read/write would show up here).
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(3)
+
+    // Every .eq() scoping call — on the select AND the update — must reference
+    // ONLY the outbound booking's own id.
+    const allEqCalls = [...current.eqFn.mock.calls, ...update.updateEqFn.mock.calls]
+    expect(allEqCalls.length).toBeGreaterThan(0)
+    for (const [key, value] of allEqCalls) {
+      expect(key).toBe('id')
+      expect(key).not.toBe('payment_intent_id')
+      expect(key).not.toBe('linked_booking_id')
+      expect(value).toBe(OUTBOUND_ID)
+      expect(value).not.toBe(RETURN_LEG_ID)
+    }
+
+    // The audit trail is scoped to the outbound booking_id only — the return
+    // leg's row is never touched, i.e. byte-identical afterward.
+    const insertedRows = audit.insertFn.mock.calls[0][0] as Array<{ booking_id: string }>
+    expect(insertedRows.length).toBeGreaterThan(0)
+    for (const row of insertedRows) {
+      expect(row.booking_id).toBe(OUTBOUND_ID)
+      expect(row.booking_id).not.toBe(RETURN_LEG_ID)
+    }
+  })
+
+  it('Test 2: AEDIT-05 — repeating the same edit twice consults logEmail on each request but sends at most once (dedup gate)', async () => {
+    // First PATCH — logEmail's dedup window is fresh -> should send.
+    const current1 = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update1 = makeUpdateChain()
+    const flags1 = makeSelectSingleChain({ notification_flags: null })
+    const audit1 = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current1.chain)
+      .mockReturnValueOnce(update1.chain)
+      .mockReturnValueOnce(flags1.chain)
+      .mockReturnValueOnce(audit1.chain)
+
+    stubLogEmail.mockResolvedValueOnce(true)
+
+    const res1 = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+      notify_client: true,
+    }))
+    expect(res1.status).toBe(200)
+
+    // Second PATCH — the identical edit repeated. logEmail's own dedup window
+    // (out of scope here — lib/email-log.ts owns that) reports "already sent".
+    const current2 = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update2 = makeUpdateChain()
+    const flags2 = makeSelectSingleChain({ notification_flags: null })
+    const audit2 = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current2.chain)
+      .mockReturnValueOnce(update2.chain)
+      .mockReturnValueOnce(flags2.chain)
+      .mockReturnValueOnce(audit2.chain)
+
+    stubLogEmail.mockResolvedValueOnce(false)
+
+    const res2 = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      pickup_time: '11:00',
+      notify_client: true,
+    }))
+    expect(res2.status).toBe(200)
+
+    // The dedup gate is consulted on EVERY request...
+    expect(stubLogEmail).toHaveBeenCalledTimes(2)
+    // ...but the actual branded email fires at most once across both requests.
+    expect(stubSendBookingChangedEmail).toHaveBeenCalledTimes(1)
+
+    // Both audit inserts still record `notified` correctly per-request outcome.
+    const firstAuditRows = audit1.insertFn.mock.calls[0][0] as Array<{ notified: boolean }>
+    const secondAuditRows = audit2.insertFn.mock.calls[0][0] as Array<{ notified: boolean }>
+    expect(firstAuditRows[0].notified).toBe(true)
+    expect(secondAuditRows[0].notified).toBe(false)
+  })
+
+  it('Test 3: AEDIT-07 — saved amount_czk is an integer equal to the recomputed CZK amount on the non-override path', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1500, // matches the mocked recompute exactly — non-override path
+    }))
+
+    expect(res.status).toBe(200)
+    const savedPayload = update.updateFn.mock.calls[0][0] as { amount_czk: number }
+    expect(Number.isInteger(savedPayload.amount_czk)).toBe(true)
+    // eurToCzk is mocked to always return 1500 (the "recomputed EUR -> CZK"
+    // value) — the saved amount must equal it exactly on the non-diverging,
+    // non-override path (no second rounding rule is introduced).
+    expect(savedPayload.amount_czk).toBe(1500)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
 // GET /api/admin/bookings/[id]/audit-log — history read (Phase 63 Plan 02, Task 2)
 // ═══════════════════════════════════════════════════════════════════════════
 
