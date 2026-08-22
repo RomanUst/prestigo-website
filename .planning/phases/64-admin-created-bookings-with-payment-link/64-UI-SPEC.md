@@ -1,7 +1,7 @@
 ---
 phase: 64
 slug: admin-created-bookings-with-payment-link
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-22
@@ -115,25 +115,41 @@ Existing `StatusBadge` semantic palette (locked, reuse verbatim, no new status c
 > Empty-state and error-state COPY live in `## Copywriting Contract` above — this section covers
 > state coverage and REFERENCES those rows rather than restating the copy (de-dup).
 
-Elements classified against the 8-category taxonomy (element kinds in brackets): E1 collect-payment toggle + status choice in `ManualBookingForm` [form, interactive-control], E2 payment-link result panel — URL + Copy + Resend, appearing in both the create-flow modal and the `BookingsTable` expanded row [interactive-control, static-content], E3 `BookingsTable` row-level "Generate Payment Link" action, pre-link state [interactive-control], E4 payment-request email template [static-content].
+Elements classified against the 8-category taxonomy (element kinds in brackets, confirmed with the operator during the ui-phase probe): E1 collect-payment toggle + status choice in `ManualBookingForm` [form, interactive-control], E2 payment-link result panel — URL + Copy + Resend, appearing in both the create-flow modal and the `BookingsTable` expanded row [interactive-control, static-content], E3 `BookingsTable` row-level "Generate Payment Link" action, pre-link state [interactive-control], E4 payment-request email template [static-content].
 
-Resolution: **11 covered, 0 backstop, 3 dismissed** across the 14 applicable considerations (categories not applicable to an element's kind — e.g. `populated`/`zero-one-many` for non-collection elements — are excluded per the taxonomy's relevance filter, not silently dropped).
+Resolution: **22 covered, 0 backstop, 8 dismissed** across all 30 applicable considerations surfaced by the `ui-consideration-probe` engine (operator confirmed the 4-surface classification and accepted the recommended resolutions during Step 9.5).
 
 | Element | Category | Status | Resolution / Reason |
 |---------|----------|--------|---------------------|
-| E1 toggle + status choice | empty | ✅ covered | Form defaults: "Collect payment via link" unchecked (operator opts in); when unchecked, "Booking status" defaults to **Confirmed** per D-02. |
-| E1 toggle + status choice | loading | ✅ covered | Submit button shows a disabled loading label — **"Creating..."** (no link) or **"Creating & Sending Link..."** (link path) — while the POST is in flight, same disabled/opacity treatment as the existing submit state. |
+| E1 toggle + status choice | empty | ✅ covered | Form defaults: "Collect payment via link" unchecked (operator opts in); when unchecked, "Booking status" defaults to **Confirmed** per D-02. No zero-data variant beyond the initial unfilled form. |
+| E1 toggle + status choice | loading | ✅ covered | Submit button shows a disabled loading label — **"Creating..."** (no-link path) or **"Creating & Sending Link..."** (link path) — while the POST is in flight, same disabled/opacity treatment as the existing submit state. |
 | E1 toggle + status choice | error | ✅ covered | See Copywriting Contract "Error state" (create-flow row) — booking creation and Stripe link generation are explicitly non-atomic; the UI must not imply the booking failed when only the link step did. |
 | E1 toggle + status choice | partial | ⊘ dismissed | The form already requires a fully calculated price + complete contact fields before submit (existing required-field/price-calculation guard, unchanged) — no partial-render variant exists beyond the error state already covered above. |
+| E1 toggle + status choice | overflow | ✅ covered | Toggle/status controls hold fixed short strings, not user content — no clip/scroll case; deduped against the form's existing field-overflow handling (unchanged). |
 | E1 toggle + status choice | long-text | ✅ covered | Toggle helper text and status-option labels are short, fixed strings, not user-generated — no wrap/truncation concern; deduped against the form's existing long-text handling for its other fields (unchanged). |
+| E2 payment-link result panel | empty | ✅ covered | The panel renders **only once a link exists**; the pre-link empty state belongs to E3 (see E3 empty — "No payment link yet."). |
 | E2 payment-link result panel | loading | ✅ covered | While the link is being generated (both the create-flow panel and the D-05 row-action panel), a muted **"Generating link…"** line (11px, `var(--warmgrey)`) replaces the URL/Copy/Resend controls. |
 | E2 payment-link result panel | error | ✅ covered | Resend failure → Copywriting Contract "Failed to send — try again" inline error. Copy has no error state in supported browsers; unsupported-clipboard falls back to auto-select-for-manual-copy, never a silent no-op (see Copywriting Contract "Copy action"). |
+| E2 payment-link result panel | populated | ✅ covered | Happy path = heading **"Payment link ready"**, body copy, the (truncated) URL, **Copy Link** + **Resend Email**, and the EUR amount in copper — the panel's single-focal-point layout (Visual Hierarchy). |
+| E2 payment-link result panel | partial | ⊘ dismissed | Link generation is atomic — either a full payment URL exists (panel shown) or it does not (E3 empty/error). No partial-URL render variant exists. |
 | E2 payment-link result panel | overflow | ✅ covered | The URL truncates visually with a middle ellipsis if it exceeds the panel width, but the **full untruncated URL** is always what's placed on the clipboard and used as the email/href target — truncation is display-only, never data loss. |
+| E2 payment-link result panel | zero-one-many | ✅ covered | Exactly one link per booking; a link covering a linked round-trip leg surfaces the **"This link also covers the linked return/outbound leg"** notice (Copywriting) — the one-covers-both case is explicit copy, never a many-links list. |
 | E2 payment-link result panel | long-text | ✅ covered | Same rule as overflow above — deduped, one resolution covers both categories for this element. |
+| E3 row-level "Generate Payment Link" | empty | ✅ covered | Pre-link empty state — Copywriting Contract **"No payment link yet." / "Generate one to let the client pay online."** shown in the row-level payment section before the operator generates one. |
 | E3 row-level "Generate Payment Link" | loading | ✅ covered | Button shows **"Generating…"** disabled, identical treatment to `DriverAssignmentSection.tsx`'s existing "Assigning..." state. |
 | E3 row-level "Generate Payment Link" | error | ✅ covered | See Copywriting Contract "Could not generate payment link. Please try again." — same shape/tone as `DriverAssignmentSection.tsx`'s existing assignment-failure copy. |
+| E3 row-level "Generate Payment Link" | populated | ✅ covered | Once a link exists the button is replaced by the E2 result panel; the button renders **only** for `unpaid`/`pending` bookings with no `payment_link_url` (D-05). |
+| E3 row-level "Generate Payment Link" | partial | ⊘ dismissed | Single action — no partial state. |
+| E3 row-level "Generate Payment Link" | overflow | ⊘ dismissed | Fixed short button label, not user-generated content — not overflow-prone. |
+| E3 row-level "Generate Payment Link" | zero-one-many | ⊘ dismissed | One button per eligible row, not a collection — no zero/one/many variance. |
 | E3 row-level "Generate Payment Link" | long-text | ⊘ dismissed | Fixed short button label, not user-generated content — not overflow-prone. |
+| E4 payment-request email | empty | ⊘ dismissed | The payment-request email is only ever sent for a fully-populated booking (D-03/D-06) — no empty-data email variant exists. |
+| E4 payment-request email | loading | ⊘ dismissed | The email is a static rendered/sent artifact — it has no client-side loading state; the send-in-flight state lives in E2 Resend ("Sending..."). |
+| E4 payment-request email | error | ✅ covered | Send failure surfaces in-app via E2 Resend "Failed to send — try again" and the create-flow error row; the email artifact itself has no error render — deduped against the E2/E1 error rows. |
+| E4 payment-request email | populated | ✅ covered | Happy path = `<h1>` heading, trip-summary table (route, date/time, vehicle class), EUR amount, and a single **"Pay Now"** CTA — the `buildDriverAssignmentHtml` single-CTA pattern cited in 64-RESEARCH.md. |
+| E4 payment-request email | partial | ✅ covered | Trip-table rows render from booking data; an absent optional field (e.g. flight number) omits its row rather than showing a blank — reusing the existing branded-email conditional-row convention in `lib/email.ts`. |
 | E4 payment-request email | overflow | ✅ covered | Trip-summary table cells (route, date/time, vehicle class) wrap rather than truncate, reusing the exact no-truncation convention already established across every existing branded email's "TRIP DETAILS" table (`buildDriverAssignmentHtml`, `buildStatusEmailHtml`). |
+| E4 payment-request email | zero-one-many | ✅ covered | One email per booking; a round-trip link produces **one** email whose EUR figure is the combined amount and whose body carries the "covers both legs" framing — never a many-item list. |
 | E4 payment-request email | long-text | ✅ covered | Same rule as overflow above — deduped, one resolution covers both categories for this element. |
 
 <!-- Status vocabulary (locked by probe-core projectTruths):
@@ -156,11 +172,11 @@ Resolution: **11 covered, 0 backstop, 3 dismissed** across the 14 applicable con
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED (gsd-ui-checker, 2026-08-22) — UI Considerations probe resolved 22 covered / 8 dismissed across 30 applicable states.
