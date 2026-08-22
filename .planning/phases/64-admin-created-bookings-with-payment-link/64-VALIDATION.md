@@ -4,7 +4,7 @@ slug: admin-created-bookings-with-payment-link
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-08-21
 ---
@@ -42,25 +42,32 @@ created: 2026-08-21
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-----------|--------|
-| 64-01-01 | 01 | 1 | ANEW-02 | T-64-01 | Payment link created server-side with booking UUID in metadata; amount from server-authoritative recompute, never client-supplied | unit | `npx vitest run lib/__tests__/payment-link.test.ts` | ❌ W0 | ⬜ pending |
-| 64-02-01 | 02 | 2 | ANEW-04 | T-64-02 | `checkout.session.completed` reconciles the existing `unpaid` row keyed on `session.metadata.bookingId` → `confirmed`; no duplicate row inserted | unit | `npx vitest run app/api/webhooks/__tests__/checkout-session.test.ts` | ❌ W0 | ⬜ pending |
-| 64-02-02 | 02 | 2 | ANEW-04 | T-64-03 | Replayed/duplicate `checkout.session.completed` event is idempotent — side-effects fire once, `stripe_processed_events` claim honored | unit | `npx vitest run app/api/webhooks/__tests__/checkout-session.test.ts` | ❌ W0 | ⬜ pending |
-| 64-03-01 | 03 | 2 | ANEW-03 | T-64-04 | Payment-request email logged via `logEmail` before Resend send (dedup gate); resend bypasses dedup by explicit operator action | unit | `npx vitest run lib/__tests__/email-payment-request.test.ts` | ❌ W0 | ⬜ pending |
+| 64-01-01 | 01 | 1 | ANEW-02/04/03 | — | Wave 0: RED scaffolds for payment-link create, checkout-session reconcile, payment-request email | unit | `npx vitest run tests/payment-links.test.ts tests/webhooks-stripe-checkout-session.test.ts tests/email-payment-request.test.ts` | ❌ W0 | ⬜ pending |
+| 64-01-02 | 01 | 1 | ANEW-02 | T-64-01 | Payment link created server-side with booking UUID in metadata; `unit_amount = Math.round(amount_eur*100)`, never client-supplied | unit | `npx vitest run tests/payment-links.test.ts` | ❌ W0 | ⬜ pending |
+| 64-01-02 | 01 | 1 | ANEW-04 | T-64-02/03 | `checkout.session.completed` reconciles the `unpaid` row keyed on `session.metadata.bookingId` → `confirmed`; duplicate delivery idempotent; already-confirmed no-op | unit | `npx vitest run tests/webhooks-stripe-checkout-session.test.ts` | ❌ W0 | ⬜ pending |
+| 64-01-02 | 01 | 1 | ANEW-03 | T-64-05/06 | Payment-request email built (Pay Now CTA, EUR amount) with escapeHtml; no admin internals | unit | `npx vitest run tests/email-payment-request.test.ts` | ❌ W0 | ⬜ pending |
+| 64-01-02 | 01 | 1 | ANEW-01/05 | T-64-01 | POST status choice: `collect_payment` → `unpaid`; no-link → operator status (default `confirmed`) | unit | `npx vitest run tests/admin-bookings.test.ts` | ✅ (extend) | ⬜ pending |
+| 64-02-01 | 02 | 2 | ANEW-02/03/05 | T-64-04/07 | `[id]/payment-link` route: pending→unpaid direct, guard confirmed/existing-link, round-trip linkedBookingId, resend bypasses logEmail | unit | `npx vitest run tests/admin-bookings-payment-link.test.ts` | ❌ W0 | ⬜ pending |
+| 64-02-02 | 02 | 2 | ANEW-04 | T-64-03 | Round-trip: linkedBookingId reconciles both legs once, single confirmation, idempotent | unit | `npx vitest run tests/webhooks-stripe-checkout-session.test.ts` | ❌ W0 | ⬜ pending |
+| 64-03-01 | 03 | 3 | ANEW-01/03/05 | T-64-08 | ManualBookingForm toggle + status choice + result panel; copy uses full URL | typecheck | `npx tsc --noEmit` | n/a | ⬜ pending |
+| 64-03-02 | 03 | 3 | ANEW-02/03 | T-64-04/09 | BookingsTable row action + result panel; guards status/existing-link client-side | typecheck | `npx tsc --noEmit` | n/a | ⬜ pending |
+| 64-04-01 | 04 | 4 | ANEW-02/04/05 | T-64-11 | [BLOCKING] migration 056 applied to live DB; columns confirmed via Supabase MCP | manual/MCP | Supabase MCP `list_tables` / probe | n/a | ⬜ pending |
+| 64-04-02 | 04 | 4 | ANEW-04 | T-64-10 | Stripe webhook subscribes to `checkout.session.completed`; live E2E reconcile no-duplicate | human-verify | manual (Stripe Dashboard + live smoke) | n/a | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-*Planner to expand: add rows for ANEW-01 (create form status choice, D-02) and ANEW-05 (no-link save), and for the D-05 attach-later path.*
+*Test files use the repo `tests/` convention (not `lib/__tests__/`) — matches tests/admin-bookings.test.ts, tests/webhooks-stripe.test.ts. Wave 0 authored in Plan 01 Task 1.*
 
 ---
 
-## Wave 0 Requirements
+## Wave 0 Requirements (authored in Plan 01 Task 1)
 
-- [ ] `lib/__tests__/payment-link.test.ts` — stubs for ANEW-02 (Stripe Payment Link creation + metadata keying)
-- [ ] `app/api/webhooks/__tests__/checkout-session.test.ts` — stubs for ANEW-04 (reconcile-in-place, no duplicate, idempotency)
-- [ ] `lib/__tests__/email-payment-request.test.ts` — stubs for ANEW-03 (payment-request email + logEmail dedup)
-- [ ] Stripe SDK mock/fixtures for `paymentLinks.create` and `checkout.session.completed` event payloads
-- [ ] Confirm vitest config + existing webhook test harness (Phase 62 tests are the reuse reference)
+- [ ] `tests/payment-links.test.ts` — RED stubs for ANEW-02 (Stripe Payment Link creation + metadata keying + amount source)
+- [ ] `tests/webhooks-stripe-checkout-session.test.ts` — RED stubs for ANEW-04 (reconcile-in-place, no duplicate, idempotency, payment_status guard, round-trip)
+- [ ] `tests/email-payment-request.test.ts` — RED stubs for ANEW-03 (payment-request email + Pay Now CTA + conditional row + logEmail dedup)
+- [ ] `tests/admin-bookings-payment-link.test.ts` — RED stubs for the D-05 `[id]/payment-link` route (Plan 02) + the ANEW-05 no-link invariant
+- [ ] Stripe SDK mock/fixtures for `paymentLinks.create` and `checkout.session.completed` event payloads (vi.hoisted, mirroring tests/webhooks-stripe.test.ts)
 
-*Planner refines exact file names against the repo's existing test conventions (see project_testing_patterns memory: vi.hoisted pattern, component mocks).*
+*Repo test convention is `tests/` (flat), not `lib/__tests__/` — file names above are final.*
 
 ---
 

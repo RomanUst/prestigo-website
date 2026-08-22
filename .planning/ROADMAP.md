@@ -122,7 +122,24 @@ Plans:
   3. When the client pays through that link, the booking's status updates to paid automatically, reconciled against the same booking record — no duplicate is created.
   4. Operator can instead save an admin-created booking with no payment link at all (e.g. cash or invoice payment), and it's created successfully without requiring any Stripe interaction.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+**Wave 1**
+
+- [ ] 64-01-PLAN.md — Tracer: one-way admin create-with-payment-link → checkout.session.completed reconcile end-to-end (migration 056, createBookingPaymentLink, reconcileBookingByIdToConfirmed, sendPaymentRequestEmail, POST + webhook branches) + Wave 0
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 64-02-PLAN.md — Expansion: D-05 attach-later [id]/payment-link route + resend (D-07) + round-trip linked-leg reconciliation
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 64-03-PLAN.md — Admin UI: ManualBookingForm collect-payment toggle + status choice + result panel; BookingsTable row-level Generate Payment Link action
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 64-04-PLAN.md — [BLOCKING] apply migration 056 to live DB + Stripe webhook checkout.session.completed subscription checkpoint
+
 **UI hint**: yes
 
 ## Progress
@@ -139,4 +156,4 @@ Plans:
 | 61. Analytics Preservation & E2E Verify | v2.0 | 1/1 | Complete | 2026-06-17 |
 | 62. Abandoned & Unpaid Booking Capture | v2.1 | 0/4 | Complete    | 2026-08-20 |
 | 63. Admin Booking Editing + Change Notification | v2.1 | 0/? | Complete    | 2026-08-21 |
-| 64. Admin-Created Bookings with Payment Link | v2.1 | 0/? | Not started | - |
+| 64. Admin-Created Bookings with Payment Link | v2.1 | 0/4 | Planned | - |
