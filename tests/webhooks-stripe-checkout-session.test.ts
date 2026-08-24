@@ -122,6 +122,43 @@ const mockCheckoutSession = {
   },
 }
 
+// Phase 64 Plan 02 (T-64-03): the sibling leg of a round-trip pair, reconciled
+// with the SAME payment_intent_id as the primary — a fresh capture-time pair
+// carries a stale/abandoned payment_intent_id that gets overwritten by
+// reconcileBookingByIdToConfirmed's UPDATE (mirrors RECONCILED_ROW's shape).
+const RECONCILED_SIBLING_ROW = {
+  id: 'booking-uuid-2',
+  booking_reference: 'PRG-20260503-EFGH',
+  trip_type: 'round_trip',
+  origin_address: 'Hotel Alcron',
+  destination_address: 'Prague Airport',
+  pickup_date: '2026-05-03',
+  pickup_time: '10:00',
+  vehicle_class: 'business',
+  passengers: 2,
+  luggage: 1,
+  amount_czk: 1500,
+  amount_eur: 60,
+  client_first_name: 'Jan',
+  client_last_name: 'Novak',
+  client_email: 'jan@example.com',
+  client_phone: '+420600123456',
+  flight_number: null,
+  terminal: null,
+  special_requests: null,
+  pickup_utc: '2026-05-03T08:00:00Z',
+  status: 'confirmed',
+  payment_intent_id: 'pi_link_123',
+}
+
+const mockRoundTripCheckoutSession = {
+  ...mockCheckoutSession,
+  metadata: {
+    bookingId: 'booking-uuid-1',
+    linkedBookingId: 'booking-uuid-2',
+  },
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
 
@@ -231,5 +268,93 @@ describe('checkout.session.completed webhook (ANEW-04, T-64-02/03)', () => {
     const res = await POST(makeRequest())
     expect(res.status).toBe(200)
     expect(reconcileBookingByIdToConfirmed).not.toHaveBeenCalled()
+  })
+
+  // ── Phase 64 Plan 02 (T-64-03): round-trip linkedBookingId reconciliation ──
+
+  it('(f) linkedBookingId present reconciles BOTH primary and sibling rows with the same payment_intent_id, fires side-effects exactly once', async () => {
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: mockRoundTripCheckoutSession },
+    })
+    ;(reconcileBookingByIdToConfirmed as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([RECONCILED_ROW])
+      .mockResolvedValueOnce([RECONCILED_SIBLING_ROW])
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+
+    expect(reconcileBookingByIdToConfirmed).toHaveBeenCalledTimes(2)
+    expect(reconcileBookingByIdToConfirmed).toHaveBeenNthCalledWith(1, 'booking-uuid-1', 'pi_link_123')
+    expect(reconcileBookingByIdToConfirmed).toHaveBeenNthCalledWith(2, 'booking-uuid-2', 'pi_link_123')
+
+    // ONE combined confirmation for the pair — never two client emails.
+    expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+    expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+
+    // QStash reminder fires PER reconciled leg with a pickup_utc — both legs here.
+    expect(scheduleQStashReminder).toHaveBeenCalledTimes(2)
+    expect(scheduleQStashReminder).toHaveBeenCalledWith('booking-uuid-1', expect.any(Number))
+    expect(scheduleQStashReminder).toHaveBeenCalledWith('booking-uuid-2', expect.any(Number))
+  })
+
+  it('(g) linkedBookingId pair already confirmed (both reconcile calls return []) fires zero side-effects', async () => {
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: mockRoundTripCheckoutSession },
+    })
+    ;(reconcileBookingByIdToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+
+    expect(reconcileBookingByIdToConfirmed).toHaveBeenCalledTimes(2)
+    expect(sendClientConfirmation).not.toHaveBeenCalled()
+    expect(sendManagerAlert).not.toHaveBeenCalled()
+    expect(scheduleQStashReminder).not.toHaveBeenCalled()
+    expect(sendGa4Purchase).not.toHaveBeenCalled()
+  })
+
+  it('(h) only the sibling newly reconciles (primary already confirmed) — side-effects still fire once, sourced from the reconciled row', async () => {
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: mockRoundTripCheckoutSession },
+    })
+    ;(reconcileBookingByIdToConfirmed as ReturnType<typeof vi.fn>)
+      .mockResolvedValueOnce([]) // primary already confirmed (Stripe retry)
+      .mockResolvedValueOnce([RECONCILED_SIBLING_ROW])
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+
+    expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+    const emailArg = (sendClientConfirmation as ReturnType<typeof vi.fn>).mock.calls[0][0]
+    expect(emailArg.bookingReference).toBe('PRG-20260503-EFGH')
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+  })
+
+  it('(i) duplicate delivery of a round-trip event short-circuits before any reconcile call', async () => {
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'stripe_processed_events') {
+        const maybeSingle = vi.fn().mockResolvedValue({ data: { event_id: 'evt_dup_rt' }, error: null })
+        const eq = vi.fn().mockReturnValue({ maybeSingle })
+        const select = vi.fn().mockReturnValue({ eq })
+        return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+      }
+      return { select: vi.fn() }
+    })
+    stripeStub.constructEvent.mockReturnValue({
+      type: 'checkout.session.completed',
+      data: { object: mockRoundTripCheckoutSession },
+    })
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toEqual({ received: true, duplicate: true })
+
+    expect(reconcileBookingByIdToConfirmed).not.toHaveBeenCalled()
+    expect(sendClientConfirmation).not.toHaveBeenCalled()
   })
 })
