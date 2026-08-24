@@ -213,63 +213,96 @@ export async function POST(request: Request) {
 // PAYMENT-LINK HANDLER — Phase 64 ANEW-02/03/04 (checkout.session.completed)
 // ─────────────────────────────────────────────────────────────────────────
 
+type PaymentLinkReconciledRow = {
+  id: string
+  booking_reference: string
+  trip_type?: string | null
+  origin_address?: string | null
+  destination_address?: string | null
+  pickup_date?: string | null
+  pickup_time?: string | null
+  return_date?: string | null
+  vehicle_class?: string | null
+  passengers?: number | null
+  luggage?: number | null
+  hours?: number | null
+  distance_km?: number | null
+  amount_czk?: number | null
+  amount_eur?: number | null
+  extra_child_seat?: boolean | null
+  extra_meet_greet?: boolean | null
+  extra_luggage?: boolean | null
+  client_first_name?: string | null
+  client_last_name?: string | null
+  client_email?: string | null
+  client_phone?: string | null
+  flight_number?: string | null
+  terminal?: string | null
+  special_requests?: string | null
+  pickup_utc?: string | null
+}
+
 /**
  * Reconcile a payment-link booking to `confirmed` and fire the same
  * confirmation side-effect suite `handleOneWaySucceeded` fires — sourced from
  * the reconciled DB row (a full `bookings` row via `select('*')`), not from
  * thin Payment Link metadata.
  *
- * In this tracer (Plan 64-01), only the primary `bookingId` is reconciled.
- * Round-trip `linkedBookingId` leg reconciliation is wired in Plan 64-02.
+ * Phase 64 Plan 02 (T-64-03): when `linkedBookingId` is present (a payment
+ * link generated for one leg of a Phase-62-captured round-trip pair —
+ * 64-RESEARCH.md Pitfall 3), the SIBLING leg is ALSO reconciled to
+ * `confirmed` with the same `paymentIntentId` — two explicit by-id calls,
+ * each independently status-gated (`WHERE status = 'unpaid'`) so a Stripe
+ * retry is a no-op on whichever leg(s) already flipped. The confirmation
+ * side-effect suite (client confirmation + manager alert + GA4 purchase)
+ * fires ONCE for the pair — never two client emails, matching how
+ * `handleRoundTripSucceeded` emits a single round-trip confirmation — while
+ * the QStash reminder is scheduled PER reconciled leg that carries its own
+ * `pickup_utc` (outbound and return have different pickup times).
  */
 async function handlePaymentLinkSucceeded(
   bookingId: string,
-  _linkedBookingId: string | null,
+  linkedBookingId: string | null,
   paymentIntentId: string
 ): Promise<void> {
-  let reconciled: Record<string, unknown>[] = []
+  let primaryReconciled: Record<string, unknown>[] = []
   try {
-    reconciled = await withRetry(() => reconcileBookingByIdToConfirmed(bookingId, paymentIntentId), 3, 1000)
+    primaryReconciled = await withRetry(() => reconcileBookingByIdToConfirmed(bookingId, paymentIntentId), 3, 1000)
   } catch (err) {
     console.error(
-      'reconcileBookingByIdToConfirmed failed after 3 retries:',
+      'reconcileBookingByIdToConfirmed (primary) failed after 3 retries:',
       err instanceof Error ? err.message : 'Unknown error'
     )
     return
   }
 
-  // Empty array = already handled (Stripe retry / duplicate delivery, or an
-  // already-confirmed row) — skip all side-effects, never mutate again.
-  if (reconciled.length === 0) return
-
-  const row = reconciled[0] as {
-    id: string
-    booking_reference: string
-    trip_type?: string | null
-    origin_address?: string | null
-    destination_address?: string | null
-    pickup_date?: string | null
-    pickup_time?: string | null
-    return_date?: string | null
-    vehicle_class?: string | null
-    passengers?: number | null
-    luggage?: number | null
-    hours?: number | null
-    distance_km?: number | null
-    amount_czk?: number | null
-    amount_eur?: number | null
-    extra_child_seat?: boolean | null
-    extra_meet_greet?: boolean | null
-    extra_luggage?: boolean | null
-    client_first_name?: string | null
-    client_last_name?: string | null
-    client_email?: string | null
-    client_phone?: string | null
-    flight_number?: string | null
-    terminal?: string | null
-    special_requests?: string | null
-    pickup_utc?: string | null
+  let siblingReconciled: Record<string, unknown>[] = []
+  if (linkedBookingId) {
+    try {
+      siblingReconciled = await withRetry(
+        () => reconcileBookingByIdToConfirmed(linkedBookingId, paymentIntentId),
+        3,
+        1000
+      )
+    } catch (err) {
+      console.error(
+        'reconcileBookingByIdToConfirmed (linked sibling) failed after 3 retries:',
+        err instanceof Error ? err.message : 'Unknown error'
+      )
+      return
+    }
   }
+
+  // Union of both calls determines "newly reconciled". Empty union = already
+  // handled (Stripe retry / duplicate delivery, or an already-confirmed row
+  // or pair) — skip all side-effects, never mutate again.
+  const reconciledRows = [...primaryReconciled, ...siblingReconciled] as PaymentLinkReconciledRow[]
+  if (reconciledRows.length === 0) return
+
+  // Build the ONE combined confirmation from whichever row(s) succeeded —
+  // the primary row when it reconciled, else the sibling (e.g. a retry where
+  // the primary was already confirmed but the sibling had not yet flipped).
+  const row = reconciledRows[0]
 
   const emailData: BookingEmailData = {
     bookingReference: row.booking_reference,
@@ -304,14 +337,22 @@ async function handlePaymentLinkSucceeded(
     console.error('sendManagerAlert unexpected error (payment-link):', err)
   }
 
-  // Phase 41-style QStash reminder — the reconciled row already carries
-  // pickup_utc from the `select('*')` in reconcileBookingByIdToConfirmed, so
-  // no extra lookup query is needed (unlike handleOneWaySucceeded).
-  if (row.pickup_utc) {
-    after(() => scheduleQStashReminder(row.id, new Date(row.pickup_utc as string).getTime()))
+  // Phase 41-style QStash reminder — PER reconciled leg with its own
+  // pickup_utc (outbound and return differ). The reconciled row(s) already
+  // carry pickup_utc from the `select('*')` in reconcileBookingByIdToConfirmed,
+  // so no extra lookup query is needed (unlike handleOneWaySucceeded).
+  for (const reconciledRow of reconciledRows) {
+    if (reconciledRow.pickup_utc) {
+      const legId = reconciledRow.id
+      const pickupUtc = reconciledRow.pickup_utc
+      after(() => scheduleQStashReminder(legId, new Date(pickupUtc).getTime()))
+    }
   }
 
-  const valueEur = row.amount_eur ?? 0
+  // ONE GA4 purchase event for the pair — combined amount across whichever
+  // leg(s) newly reconciled (mirrors handleRoundTripSucceeded's combined
+  // value), sourced from the reconciled row(s) rather than thin metadata.
+  const valueEur = reconciledRows.reduce((sum, r) => sum + (r.amount_eur ?? 0), 0)
   const vehicleClass = row.vehicle_class || 'transfer'
   after(() => sendGa4Purchase({
     transactionId: row.booking_reference,
