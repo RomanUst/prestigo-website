@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Admin Booking Management & Payment Recovery
 current_phase: 64
-current_phase_name: admin-created-bookings-with-payment-link
+current_phase_name: Admin-Created Bookings with Payment Link
 status: executing
-stopped_at: Phase 64 UI-SPEC approved
-last_updated: "2026-08-22T20:58:33.836Z"
-last_activity: 2026-08-21
-last_activity_desc: Phase 63 complete, transitioned to Phase 64
-state_head: 78e1a0ef2b6625afa56c60e36fa4c2645252813b
+stopped_at: Completed 64-01-PLAN.md
+last_updated: "2026-08-24T16:36:42.791Z"
+last_activity: 2026-08-24
+last_activity_desc: Phase 64 execution started
+state_head: 30f56a5f617c00e7de69f9f1b59731f36b59acba
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 13
-  completed_plans: 9
+  completed_plans: 10
   percent: 67
 ---
 
@@ -25,14 +25,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 63 — Admin Booking Editing + Change Notification
+**Current focus:** Phase 64 — Admin-Created Bookings with Payment Link
 
 ## Current Position
 
-Phase: 64 (admin-created-bookings-with-payment-link) — READY TO EXECUTE
-Plan: Not started
+Phase: 64 (Admin-Created Bookings with Payment Link) — EXECUTING
+Plan: 2 of 4
 Status: Ready to execute
-Last activity: 2026-08-21 — Phase 63 complete, transitioned to Phase 64
+Last activity: 2026-08-24 — Phase 64 execution started
 
 ## Accumulated Context
 
@@ -74,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 63]: [Phase 63] 63-04: BookingChangeHistory groups audit rows by raw changed_at string equality (not a derived bucket); operator shown as raw operator_id UUID (no name/email join exists yet)
 - [Phase 63]: 63-05: Notify-toggle scoped to price-review step only (not cheap-field saves) per UI-SPEC E4 classification
 - [Phase 63]: 63-05: Both plan tasks committed as one commit (price-review step is a nested sub-panel of the same TripEditPanel component Task 1 introduces)
+- [Phase 64]: 64-01: collect_payment drives a single status branch — true => unpaid (Phase 62 recovery queue), false/absent => operator's explicit status choice, default confirmed (D-02, was universal 'pending' pre-Phase-64)
+- [Phase 64]: 64-01: checkout.session.completed reconciliation keys on session.metadata.bookingId, never PaymentIntent metadata (Payment Link metadata is not auto-copied to the resulting PaymentIntent)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -139,9 +141,9 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-22T20:30:31.232Z
-Stopped at: Phase 64 UI-SPEC approved
-Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/64-admin-created-bookings-with-payment-link/64-UI-SPEC.md
+Last session: 2026-08-24T16:36:42.599Z
+Stopped at: Completed 64-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -168,6 +170,7 @@ Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/64-admin-cre
 | Phase 63 P03 | 15min | 2 tasks | 2 files |
 | Phase 63 P04 | 12min | 2 tasks | 2 files |
 | Phase 63 P05 | ~15min | 2 tasks | 1 files |
+| Phase 64 P01 | 30min | 2 tasks | 10 files |
 
 ## Operator Next Steps
 
