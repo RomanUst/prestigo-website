@@ -122,7 +122,7 @@ Plans:
   3. When the client pays through that link, the booking's status updates to paid automatically, reconciled against the same booking record — no duplicate is created.
   4. Operator can instead save an admin-created booking with no payment link at all (e.g. cash or invoice payment), and it's created successfully without requiring any Stripe interaction.
 
-**Plans**: 2/4 plans executed
+**Plans**: 3/4 plans executed
 
 **Wave 1**
 
@@ -134,7 +134,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2)*
 
-- [ ] 64-03-PLAN.md — Admin UI: ManualBookingForm collect-payment toggle + status choice + result panel; BookingsTable row-level Generate Payment Link action
+- [x] 64-03-PLAN.md — Admin UI: ManualBookingForm collect-payment toggle + status choice + result panel; BookingsTable row-level Generate Payment Link action
 
 **Wave 4** *(blocked on Wave 3)*
 

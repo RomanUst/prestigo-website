@@ -5,16 +5,16 @@ milestone_name: Admin Booking Management & Payment Recovery
 current_phase: 64
 current_phase_name: Admin-Created Bookings with Payment Link
 status: executing
-stopped_at: Completed 64-02-PLAN.md
-last_updated: "2026-08-24T16:56:08.120Z"
+stopped_at: Completed 64-03-PLAN.md
+last_updated: "2026-08-24T17:11:59.955Z"
 last_activity: 2026-08-24
 last_activity_desc: Phase 64 execution started
-state_head: fb08842c461aa1f2bbe4969760580af95d35f7a1
+state_head: 1fe44166888ce4fbfc48777494501a9bbb3dc386
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 13
-  completed_plans: 11
+  completed_plans: 12
   percent: 67
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 ## Current Position
 
 Phase: 64 (Admin-Created Bookings with Payment Link) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Last activity: 2026-08-24 — Phase 64 execution started
 
@@ -77,6 +77,7 @@ Recent decisions affecting current work:
 - [Phase 64]: 64-01: collect_payment drives a single status branch — true => unpaid (Phase 62 recovery queue), false/absent => operator's explicit status choice, default confirmed (D-02, was universal 'pending' pre-Phase-64)
 - [Phase 64]: 64-01: checkout.session.completed reconciliation keys on session.metadata.bookingId, never PaymentIntent metadata (Payment Link metadata is not auto-copied to the resulting PaymentIntent)
 - [Phase 64]: [Phase 64] 64-02: D-05 attach-later route sets status='unpaid' directly (bypasses VALID_TRANSITIONS); round-trip sibling detection keys on shared payment_intent_id, with return-leg amount_eur NULL fallback to sibling's combined total; webhook reconciles both legs with one combined confirmation
+- [Phase 64]: [Phase 64] 64-03: create-flow modal swaps entire body (form -> result panel/error) on success, not layered alongside the form, per UI-SPEC single-focal-point rule; PaymentLinkSection defined once in BookingsTable.tsx and mounted in both desktop/mobile expanded views
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -142,8 +143,8 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 
 ## Session Continuity
 
-Last session: 2026-08-24T16:56:07.827Z
-Stopped at: Completed 64-02-PLAN.md
+Last session: 2026-08-24T17:11:59.661Z
+Stopped at: Completed 64-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -173,6 +174,7 @@ Resume file: None
 | Phase 63 P05 | ~15min | 2 tasks | 1 files |
 | Phase 64 P01 | 30min | 2 tasks | 10 files |
 | Phase 64 P02 | 20min | 2 tasks | 5 files |
+| Phase 64 P03 | 15min | 2 tasks | 2 files |
 
 ## Operator Next Steps
 
