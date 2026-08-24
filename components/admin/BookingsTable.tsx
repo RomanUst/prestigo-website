@@ -9,7 +9,7 @@ import {
   type ExpandedState,
 } from '@tanstack/react-table'
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { ChevronDown, ChevronUp, Search, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Search, X, Copy, Send } from 'lucide-react'
 import { StatusBadge } from './StatusBadge'
 import { FlightStatusBlock } from './FlightStatusBlock'
 import { BookingChangeHistory } from './BookingChangeHistory'
@@ -17,7 +17,7 @@ import { DriverAssignmentSection } from '@/components/admin/DriverAssignmentSect
 import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import AddressInput from '@/components/booking/AddressInput'
 import type { PlaceResult } from '@/types/booking'
-import { eurToCzk } from '@/lib/currency'
+import { eurToCzk, czkToEur } from '@/lib/currency'
 
 interface Booking {
   id: string
@@ -50,6 +50,11 @@ interface Booking {
   return_date: string | null
   special_requests: string | null
   payment_intent_id: string | null
+  // Phase 64 D-05: persisted Stripe Payment Link (migration 056). Null until
+  // an operator generates one via the row-level "Generate Payment Link"
+  // action or the ManualBookingForm create-with-payment flow.
+  payment_link_url: string | null
+  payment_link_id: string | null
   status: string
   operator_notes: string | null
   created_at: string
@@ -755,6 +760,303 @@ function TripEditPanel({ booking, patchBooking, onUpdated }: TripEditPanelProps)
   )
 }
 
+// D-05: row-level "Generate Payment Link" action + result panel. Renders
+// ONLY for unpaid/pending bookings (64-UI-SPEC.md E3/E2). Mounted identically
+// in the desktop expanded row and the mobile expanded card.
+interface PaymentLinkSectionProps {
+  bookingId: string
+  status: string
+  paymentLinkUrl: string | null
+  clientEmail: string
+  amountCzk: number
+  onGenerated: (bookingId: string, url: string, linkedBookingId: string | null) => void
+}
+
+/** E2 overflow rule: display-truncate with a middle ellipsis; the FULL url is
+ * always what gets copied / used as the href — truncation is display-only. */
+function truncatePaymentLinkUrl(str: string, max = 46): string {
+  if (str.length <= max) return str
+  const keep = Math.floor((max - 3) / 2)
+  return `${str.slice(0, keep)}...${str.slice(str.length - keep)}`
+}
+
+const paymentLinkIconButtonStyle: React.CSSProperties = {
+  background: 'var(--anthracite)',
+  border: '1px solid var(--anthracite-light)',
+  borderRadius: '2px',
+  color: 'var(--copper)',
+  cursor: 'pointer',
+  padding: '8px 12px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontFamily: 'var(--font-montserrat)',
+  fontSize: '11px',
+  fontWeight: 500,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+}
+
+function PaymentLinkSection({ bookingId, status, paymentLinkUrl, clientEmail, amountCzk, onGenerated }: PaymentLinkSectionProps) {
+  const [generating, setGenerating] = useState(false)
+  const [generateError, setGenerateError] = useState(false)
+  const [linkedBookingId, setLinkedBookingId] = useState<string | null>(null)
+  const [copied, setCopied] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendState, setResendState] = useState<'idle' | 'sent' | 'error'>('idle')
+
+  // D-05: only unpaid/pending bookings are eligible for a payment link.
+  if (status !== 'unpaid' && status !== 'pending') return null
+
+  async function handleGenerate() {
+    setGenerating(true)
+    setGenerateError(false)
+    try {
+      const res = await fetch(`/api/admin/bookings/${bookingId}/payment-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setLinkedBookingId(data.linkedBookingId ?? null)
+        onGenerated(bookingId, data.paymentLinkUrl, data.linkedBookingId ?? null)
+      } else {
+        setGenerateError(true)
+      }
+    } catch {
+      setGenerateError(true)
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  async function handleCopyLink(url: string) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        return
+      } catch {
+        // fall through to manual-select fallback — never a silent no-op
+      }
+    }
+    const el = document.getElementById(`payment-link-url-text-${bookingId}`)
+    if (el && typeof window !== 'undefined') {
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    }
+  }
+
+  async function handleResend() {
+    setResending(true)
+    setResendState('idle')
+    try {
+      const res = await fetch(`/api/admin/bookings/${bookingId}/payment-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resend: true }),
+      })
+      if (res.ok) {
+        setResendState('sent')
+        setTimeout(() => setResendState('idle'), 2000)
+      } else {
+        setResendState('error')
+      }
+    } catch {
+      setResendState('error')
+    } finally {
+      setResending(false)
+    }
+  }
+
+  const amountEur = czkToEur(amountCzk)
+  const sectionLabel: React.CSSProperties = {
+    fontFamily: 'var(--font-montserrat)',
+    fontSize: '11px',
+    fontWeight: 300,
+    textTransform: 'uppercase',
+    letterSpacing: '0.3em',
+    color: 'var(--warmgrey)',
+    marginBottom: '8px',
+  }
+
+  if (paymentLinkUrl) {
+    return (
+      <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
+        <div style={sectionLabel}>Payment Link</div>
+        <div style={{
+          background: 'var(--anthracite-mid)',
+          borderLeft: '3px solid var(--copper)',
+          padding: '24px',
+        }}>
+          <div style={{
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '13px',
+            fontWeight: 400,
+            color: 'var(--offwhite)',
+            marginBottom: '8px',
+          }}>
+            Payment link ready
+          </div>
+          <div style={{
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '13px',
+            fontWeight: 300,
+            lineHeight: 1.5,
+            color: 'var(--warmgrey)',
+            marginBottom: '16px',
+          }}>
+            Already emailed to {clientEmail}. Copy the link to share it another way (e.g. WhatsApp), or resend the email.
+          </div>
+          <div
+            id={`payment-link-url-text-${bookingId}`}
+            style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '13px',
+              fontWeight: 300,
+              lineHeight: 1.5,
+              color: 'var(--offwhite)',
+              wordBreak: 'break-all',
+              marginBottom: '16px',
+            }}
+          >
+            {truncatePaymentLinkUrl(paymentLinkUrl)}
+          </div>
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button type="button" onClick={() => handleCopyLink(paymentLinkUrl)} style={paymentLinkIconButtonStyle}>
+              <Copy size={14} />
+              {copied ? 'Copied!' : 'Copy Link'}
+            </button>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resending}
+              style={{ ...paymentLinkIconButtonStyle, opacity: resending ? 0.6 : 1, cursor: resending ? 'not-allowed' : 'pointer' }}
+            >
+              <Send size={14} />
+              {resending ? 'Sending...' : resendState === 'sent' ? 'Sent' : 'Resend Email'}
+            </button>
+          </div>
+          {resendState === 'error' && (
+            <div style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              fontWeight: 300,
+              color: '#f87171',
+              marginTop: '8px',
+            }}>
+              Failed to send — try again
+            </div>
+          )}
+          {linkedBookingId && (
+            <div style={{
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '11px',
+              fontWeight: 300,
+              color: 'var(--warmgrey)',
+              marginTop: '8px',
+            }}>
+              This link also covers the linked return/outbound leg — paying once settles both.
+            </div>
+          )}
+          <div style={{
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '13px',
+            fontWeight: 400,
+            color: 'var(--copper)',
+            marginTop: '16px',
+          }}>
+            {amountEur} EUR
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{ marginTop: '16px' }} onClick={(e) => e.stopPropagation()}>
+      <div style={sectionLabel}>Payment Link</div>
+      <div style={{
+        fontFamily: 'var(--font-montserrat)',
+        fontSize: '13px',
+        fontWeight: 300,
+        color: 'var(--offwhite)',
+        marginBottom: '4px',
+      }}>
+        No payment link yet.
+      </div>
+      <div style={{
+        fontFamily: 'var(--font-montserrat)',
+        fontSize: '11px',
+        fontWeight: 300,
+        color: 'var(--warmgrey)',
+        marginBottom: '8px',
+      }}>
+        Generate one to let the client pay online.
+      </div>
+      <button
+        type="button"
+        onClick={handleGenerate}
+        disabled={generating}
+        style={{
+          border: '1px solid var(--copper)',
+          color: 'var(--offwhite)',
+          background: 'transparent',
+          minHeight: '44px',
+          padding: '0 24px',
+          fontSize: '11px',
+          fontWeight: 500,
+          letterSpacing: '0.15em',
+          textTransform: 'uppercase',
+          fontFamily: 'var(--font-montserrat)',
+          cursor: generating ? 'not-allowed' : 'pointer',
+          borderRadius: '2px',
+          opacity: generating ? 0.5 : 1,
+        }}
+        onMouseEnter={(e) => {
+          if (!generating) {
+            e.currentTarget.style.background = 'var(--copper)'
+            e.currentTarget.style.color = 'var(--anthracite)'
+          }
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'transparent'
+          e.currentTarget.style.color = 'var(--offwhite)'
+        }}
+      >
+        {generating ? 'Generating…' : 'Generate Payment Link'}
+      </button>
+      {status === 'pending' && (
+        <div style={{
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: '11px',
+          fontWeight: 300,
+          color: 'var(--warmgrey)',
+          marginTop: '8px',
+        }}>
+          Generating a payment link will mark this booking as Unpaid until the client pays.
+        </div>
+      )}
+      {generateError && (
+        <div style={{
+          fontFamily: 'var(--font-montserrat)',
+          fontSize: '11px',
+          fontWeight: 300,
+          color: '#f87171',
+          marginTop: '8px',
+        }}>
+          Could not generate payment link. Please try again.
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function BookingsTable() {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [total, setTotal] = useState(0)
@@ -826,6 +1128,13 @@ export default function BookingsTable() {
   // the fields that were actually saved, mirroring handleStatusChange's pattern.
   const handleTripUpdated = useCallback((bookingId: string, patch: Partial<Booking>) => {
     setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, ...patch } : b))
+  }, [])
+
+  // D-05: sink for PaymentLinkSection's row-level "Generate Payment Link"
+  // action — the route also flips a 'pending' source booking to 'unpaid'
+  // directly (Pitfall 2), so both fields are optimistically updated here.
+  const handlePaymentLinkGenerated = useCallback((bookingId: string, url: string) => {
+    setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, payment_link_url: url, status: 'unpaid' } : b))
   }, [])
 
   const handleStatusChange = useCallback(async (bookingId: string, newStatus: string) => {
@@ -1646,6 +1955,16 @@ export default function BookingsTable() {
                         />
                       </div>
 
+                      {/* Payment Link (D-05) */}
+                      <PaymentLinkSection
+                        bookingId={booking.id}
+                        status={booking.status}
+                        paymentLinkUrl={booking.payment_link_url}
+                        clientEmail={booking.client_email}
+                        amountCzk={booking.amount_czk}
+                        onGenerated={handlePaymentLinkGenerated}
+                      />
+
                       {/* Trip-edit mode (Phase 63 Plan 05) */}
                       <TripEditPanel booking={booking} patchBooking={patchBooking} onUpdated={handleTripUpdated} />
 
@@ -2050,6 +2369,16 @@ export default function BookingsTable() {
                               prev.map(b => b.id === row.original.id ? { ...b, status: newStatus } : b)
                             )
                           }}
+                        />
+
+                        {/* Payment Link (D-05) */}
+                        <PaymentLinkSection
+                          bookingId={row.original.id}
+                          status={row.original.status}
+                          paymentLinkUrl={row.original.payment_link_url}
+                          clientEmail={row.original.client_email}
+                          amountCzk={row.original.amount_czk}
+                          onGenerated={handlePaymentLinkGenerated}
                         />
 
                         {/* Trip-edit mode (Phase 63 Plan 05) */}
