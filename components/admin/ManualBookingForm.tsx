@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { X, Calculator } from 'lucide-react'
+import { X, Calculator, Copy, Send } from 'lucide-react'
 import AddressInput from '@/components/booking/AddressInput'
 import { czkToEur, eurToCzk } from '@/lib/currency'
 import { IATA_RE } from '@/lib/iata-pattern'
@@ -40,6 +40,42 @@ const sectionLabelStyle: React.CSSProperties = {
   color: 'var(--copper)',
   marginBottom: '16px',
   marginTop: '24px',
+}
+
+// D-01/D-03: "PAYMENT" section label uses copper-light (not copper) for AA
+// contrast per 64-UI-SPEC.md's Color contract — same section-label convention
+// as TRIP DETAILS/PASSENGER DETAILS above, different accent shade only.
+const paymentSectionLabelStyle: React.CSSProperties = {
+  ...sectionLabelStyle,
+  color: 'var(--copper-light)',
+}
+
+// Icon-button convention reused verbatim from the existing Calculator/Check
+// buttons (border var(--anthracite-light), icon color var(--copper)) — never
+// a filled copper background, per 64-UI-SPEC.md's accent-reserved list.
+const linkIconButtonStyle: React.CSSProperties = {
+  background: 'var(--anthracite)',
+  border: '1px solid var(--anthracite-light)',
+  borderRadius: '2px',
+  color: 'var(--copper)',
+  cursor: 'pointer',
+  padding: '8px 12px',
+  display: 'flex',
+  alignItems: 'center',
+  gap: '4px',
+  fontFamily: 'var(--font-montserrat)',
+  fontSize: '11px',
+  fontWeight: 500,
+  letterSpacing: '0.1em',
+  textTransform: 'uppercase',
+}
+
+/** E2 overflow rule: display-truncate with a middle ellipsis; the FULL url is
+ * always what gets copied / used as the href — truncation is display-only. */
+function truncateMiddle(str: string, max = 46): string {
+  if (str.length <= max) return str
+  const keep = Math.floor((max - 3) / 2)
+  return `${str.slice(0, keep)}...${str.slice(str.length - keep)}`
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -99,6 +135,16 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
   const [overridePrice, setOverridePrice] = useState(false)
   const [flightCheckLoading, setFlightCheckLoading] = useState(false)
   const [flightCheckNote, setFlightCheckNote] = useState<string | null>(null)
+
+  // D-01/D-02/D-03: Payment section state
+  const [collectPayment, setCollectPayment] = useState(false)
+  const [bookingStatus, setBookingStatus] = useState<'confirmed' | 'pending'>('confirmed')
+  const [createdBookingId, setCreatedBookingId] = useState<string | null>(null)
+  const [paymentLinkUrl, setPaymentLinkUrl] = useState<string | null>(null)
+  const [linkGenerationFailed, setLinkGenerationFailed] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const [resending, setResending] = useState(false)
+  const [resendState, setResendState] = useState<'idle' | 'sent' | 'error'>('idle')
 
   async function handleCalculatePrice() {
     if (!originPlace?.lat || !originPlace?.lng) {
@@ -176,6 +222,64 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
     }
   }
 
+  // Reset post-success panel state so a future reopen doesn't show a stale
+  // result panel from a previous create (component stays mounted; only its
+  // subtree is hidden via the `if (!open) return null` guard below).
+  function handleClose() {
+    setPaymentLinkUrl(null)
+    setLinkGenerationFailed(false)
+    setCreatedBookingId(null)
+    setCopied(false)
+    setResendState('idle')
+    onClose()
+  }
+
+  async function handleCopyLink(url: string) {
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+        return
+      } catch {
+        // fall through to manual-select fallback — never a silent no-op
+      }
+    }
+    // Unsupported-clipboard fallback: auto-select the link text so the
+    // operator can copy manually (E2 error/overflow rule — never silent).
+    const el = document.getElementById('payment-link-url-text')
+    if (el && typeof window !== 'undefined') {
+      const range = document.createRange()
+      range.selectNodeContents(el)
+      const sel = window.getSelection()
+      sel?.removeAllRanges()
+      sel?.addRange(range)
+    }
+  }
+
+  async function handleResend() {
+    if (!createdBookingId) return
+    setResending(true)
+    setResendState('idle')
+    try {
+      const res = await fetch(`/api/admin/bookings/${createdBookingId}/payment-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resend: true }),
+      })
+      if (res.ok) {
+        setResendState('sent')
+        setTimeout(() => setResendState('idle'), 2000)
+      } else {
+        setResendState('error')
+      }
+    } catch {
+      setResendState('error')
+    } finally {
+      setResending(false)
+    }
+  }
+
   if (!open) return null
 
   function openPicker(e: React.MouseEvent<HTMLInputElement>) {
@@ -213,7 +317,12 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
       client_last_name: lastName,
       client_email: email,
       client_phone: phone,
+      // D-01/D-02/D-03: collect_payment routes the booking into the 'unpaid'
+      // recovery queue + generates/emails a Stripe payment link; otherwise
+      // the operator's explicit status choice applies (default 'confirmed').
+      collect_payment: collectPayment,
     }
+    if (!collectPayment) payload.status = bookingStatus
 
     if (accountUserId) payload.user_id = accountUserId
     if (destinationPlace?.address) payload.destination_address = destinationPlace.address
@@ -237,7 +346,21 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
 
       if (res.status === 201) {
         onCreated()
-        onClose()
+        if (collectPayment) {
+          // E1 error rule: the booking insert and the Stripe link step are
+          // non-atomic — the booking always persists even if the link step
+          // fails. Never imply the booking itself failed here.
+          let data: { booking?: { id?: string }; paymentLinkUrl?: string | null } = {}
+          try { data = await res.json() } catch { /* keep defaults */ }
+          setCreatedBookingId(data.booking?.id ?? null)
+          if (data.paymentLinkUrl) {
+            setPaymentLinkUrl(data.paymentLinkUrl)
+          } else {
+            setLinkGenerationFailed(true)
+          }
+        } else {
+          onClose()
+        }
       } else {
         let msg = 'Something went wrong. Please try again.'
         try {
@@ -268,7 +391,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
         alignItems: 'center',
         justifyContent: 'center',
       }}
-      onClick={onClose}
+      onClick={handleClose}
     >
       <div
         style={{
@@ -314,7 +437,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
           {/* Close button */}
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleClose}
             aria-label="Close"
             style={{
               position: 'absolute',
@@ -332,6 +455,141 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             <X size={18} />
           </button>
 
+          {paymentLinkUrl ? (
+            <div style={{ marginTop: '24px' }}>
+              <div style={{
+                background: 'var(--anthracite-mid)',
+                borderLeft: '3px solid var(--copper)',
+                padding: '24px',
+              }}>
+                <div style={{
+                  fontFamily: 'var(--font-cormorant)',
+                  fontSize: '26px',
+                  fontWeight: 300,
+                  lineHeight: 1.2,
+                  color: 'var(--offwhite)',
+                  marginBottom: '8px',
+                }}>
+                  Payment link ready
+                </div>
+                <div style={{
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: '13px',
+                  fontWeight: 300,
+                  lineHeight: 1.5,
+                  color: 'var(--warmgrey)',
+                  marginBottom: '16px',
+                }}>
+                  Already emailed to {email}. Copy the link to share it another way (e.g. WhatsApp), or resend the email.
+                </div>
+                <div
+                  id="payment-link-url-text"
+                  style={{
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '13px',
+                    fontWeight: 300,
+                    lineHeight: 1.5,
+                    color: 'var(--offwhite)',
+                    wordBreak: 'break-all',
+                    marginBottom: '16px',
+                  }}
+                >
+                  {truncateMiddle(paymentLinkUrl)}
+                </div>
+                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => handleCopyLink(paymentLinkUrl)} style={linkIconButtonStyle}>
+                    <Copy size={14} />
+                    {copied ? 'Copied!' : 'Copy Link'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResend}
+                    disabled={resending}
+                    style={{ ...linkIconButtonStyle, opacity: resending ? 0.6 : 1, cursor: resending ? 'not-allowed' : 'pointer' }}
+                  >
+                    <Send size={14} />
+                    {resending ? 'Sending...' : resendState === 'sent' ? 'Sent' : 'Resend Email'}
+                  </button>
+                </div>
+                {resendState === 'error' && (
+                  <div style={{
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '11px',
+                    fontWeight: 300,
+                    color: '#f87171',
+                    marginTop: '8px',
+                  }}>
+                    Failed to send — try again
+                  </div>
+                )}
+                <div style={{
+                  fontFamily: 'var(--font-montserrat)',
+                  fontSize: '13px',
+                  fontWeight: 400,
+                  color: 'var(--copper)',
+                  marginTop: '16px',
+                }}>
+                  {amountEur || czkToEur(Number(amountCzk) || 0)} EUR
+                </div>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  style={{
+                    border: '1px solid var(--anthracite-light)',
+                    color: 'var(--warmgrey)',
+                    background: 'transparent',
+                    minHeight: '44px',
+                    padding: '0 24px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    letterSpacing: '3px',
+                    textTransform: 'uppercase',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          ) : linkGenerationFailed ? (
+            <div style={{ marginTop: '24px' }}>
+              <div style={{
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '13px',
+                fontWeight: 300,
+                lineHeight: 1.5,
+                color: '#f87171',
+              }}>
+                Booking was created, but the payment link could not be generated — use &quot;Generate Payment Link&quot; from the bookings list to retry.
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  style={{
+                    border: '1px solid var(--anthracite-light)',
+                    color: 'var(--warmgrey)',
+                    background: 'transparent',
+                    minHeight: '44px',
+                    padding: '0 24px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '11px',
+                    fontWeight: 500,
+                    letterSpacing: '3px',
+                    textTransform: 'uppercase',
+                    borderRadius: '2px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          ) : (
           <form onSubmit={handleSubmit}>
             {/* Section A: Trip Details */}
             <div style={sectionLabelStyle}>TRIP DETAILS</div>
@@ -670,6 +928,84 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </div>
             </div>
 
+            {/* Section C: Payment (D-01/D-02/D-03) */}
+            <div style={paymentSectionLabelStyle}>PAYMENT</div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  cursor: 'pointer',
+                }}>
+                  <input
+                    type="checkbox"
+                    checked={collectPayment}
+                    onChange={(e) => setCollectPayment(e.target.checked)}
+                  />
+                  <span style={{
+                    fontSize: '13px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontWeight: 300,
+                    color: 'var(--offwhite)',
+                  }}>
+                    Collect payment via link
+                  </span>
+                </label>
+                <span style={{
+                  fontSize: '11px',
+                  fontFamily: 'var(--font-montserrat)',
+                  fontWeight: 300,
+                  color: 'var(--warmgrey)',
+                  marginTop: '8px',
+                  display: 'block',
+                }}>
+                  Generates a Stripe payment link and emails it to the client immediately. The link never expires and can be resent anytime.
+                </span>
+              </div>
+
+              {!collectPayment && (
+                <div>
+                  <label style={labelStyle}>BOOKING STATUS</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="bookingStatus"
+                        checked={bookingStatus === 'confirmed'}
+                        onChange={() => setBookingStatus('confirmed')}
+                      />
+                      <span style={{
+                        fontSize: '13px',
+                        fontFamily: 'var(--font-montserrat)',
+                        fontWeight: 300,
+                        color: 'var(--offwhite)',
+                      }}>
+                        Confirmed — paid offline (cash/invoice)
+                      </span>
+                    </label>
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                      <input
+                        type="radio"
+                        name="bookingStatus"
+                        checked={bookingStatus === 'pending'}
+                        onChange={() => setBookingStatus('pending')}
+                      />
+                      <span style={{
+                        fontSize: '13px',
+                        fontFamily: 'var(--font-montserrat)',
+                        fontWeight: 300,
+                        color: 'var(--offwhite)',
+                      }}>
+                        Pending
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Footer */}
             <div style={{
               display: 'flex',
@@ -679,7 +1015,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
             }}>
               <button
                 type="button"
-                onClick={onClose}
+                onClick={handleClose}
                 style={{
                   border: '1px solid var(--anthracite-light)',
                   color: 'var(--warmgrey)',
@@ -716,7 +1052,9 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                   opacity: loading ? 0.7 : 1,
                 }}
               >
-                {loading ? 'Creating...' : 'Create Booking'}
+                {loading
+                  ? (collectPayment ? 'Creating & Sending Link...' : 'Creating...')
+                  : (collectPayment ? 'Create & Send Payment Link' : 'Create Booking')}
               </button>
             </div>
 
@@ -733,6 +1071,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
               </div>
             )}
           </form>
+          )}
         </div>
       </div>
     </div>
