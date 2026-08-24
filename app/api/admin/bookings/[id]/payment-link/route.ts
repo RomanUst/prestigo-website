@@ -21,7 +21,10 @@ interface PaymentLinkBookingRow {
   id: string
   booking_reference: string
   status: string
-  amount_eur: number
+  // The RETURN leg of a round-trip pair always persists amount_eur as NULL
+  // (lib/supabase.ts buildBookingRows) — the OUTBOUND leg carries the
+  // combined total. See the sibling-fallback comment below.
+  amount_eur: number | null
   leg: 'outbound' | 'return' | null
   payment_intent_id: string | null
   payment_link_url: string | null
@@ -85,6 +88,40 @@ export async function POST(
 
   const booking = bookingData as unknown as PaymentLinkBookingRow
 
+  // Round-trip sibling detection (64-RESEARCH.md Pitfall 3): key on the
+  // shared (stale) payment_intent_id — linked_booking_id is never populated
+  // by any insert path in this codebase. Computed once, up front, so BOTH
+  // the resend and generate paths carry the same "covers both legs" framing
+  // (UI-SPEC E4 zero-one-many) and combined amount.
+  //
+  // Data-model quirk (buildBookingRows, lib/supabase.ts): the OUTBOUND leg's
+  // amount_eur already holds the COMBINED round-trip total (meta.amountEur is
+  // the full charge); the RETURN leg's amount_eur is always persisted NULL.
+  // Generating a link directly on the return leg would otherwise send Stripe
+  // `unit_amount: NaN`. Fall back to the sibling's amount_eur when this
+  // booking's own is null so BOTH legs resolve to the same correct combined
+  // figure regardless of which leg the operator generates from.
+  let linkedBookingId: string | null = null
+  let amountEurSource: number | null = booking.amount_eur
+  if ((booking.leg === 'outbound' || booking.leg === 'return') && booking.payment_intent_id) {
+    const { data: sibling } = await supabase
+      .from('bookings')
+      .select('id, amount_eur')
+      .eq('payment_intent_id', booking.payment_intent_id)
+      .neq('leg', booking.leg)
+      .eq('status', 'unpaid')
+      .maybeSingle()
+    if (sibling) {
+      const siblingRow = sibling as { id: string; amount_eur: number | null }
+      linkedBookingId = siblingRow.id
+      if (amountEurSource === null || amountEurSource === undefined) {
+        amountEurSource = siblingRow.amount_eur
+      }
+    }
+  }
+  const coversBothLegs = linkedBookingId !== null
+  const effectiveAmountEur = amountEurSource ?? 0
+
   // ── RESEND path (D-07/Pitfall 5): its own code path — calls
   // sendPaymentRequestEmail directly, bypassing logEmail's dedup window by
   // design. An operator clicking resend within 10 minutes must never be
@@ -104,9 +141,10 @@ export async function POST(
       pickupDate: booking.pickup_date,
       pickupTime: booking.pickup_time,
       vehicleClass: booking.vehicle_class,
-      amountEur: booking.amount_eur,
+      amountEur: effectiveAmountEur,
       paymentLinkUrl: booking.payment_link_url,
       flightNumber: booking.flight_number ?? null,
+      coversBothLegs,
     })
 
     return NextResponse.json({ resent: true })
@@ -125,27 +163,12 @@ export async function POST(
     return NextResponse.json({ error: 'A payment link already exists for this booking' }, { status: 409 })
   }
 
-  // Round-trip sibling detection (64-RESEARCH.md Pitfall 3): key on the
-  // shared (stale) payment_intent_id — linked_booking_id is never populated
-  // by any insert path in this codebase.
-  let linkedBookingId: string | null = null
-  if ((booking.leg === 'outbound' || booking.leg === 'return') && booking.payment_intent_id) {
-    const { data: sibling } = await supabase
-      .from('bookings')
-      .select('id')
-      .eq('payment_intent_id', booking.payment_intent_id)
-      .neq('leg', booking.leg)
-      .eq('status', 'unpaid')
-      .maybeSingle()
-    if (sibling) linkedBookingId = (sibling as { id: string }).id
-  }
-
   let link: { url: string; id: string }
   try {
     link = await createBookingPaymentLink({
       bookingId: booking.id,
       bookingReference: booking.booking_reference,
-      amountEur: booking.amount_eur,
+      amountEur: effectiveAmountEur,
       leg: booking.leg,
       ...(linkedBookingId ? { linkedBookingId } : {}),
     })
@@ -185,9 +208,10 @@ export async function POST(
       pickupDate: booking.pickup_date,
       pickupTime: booking.pickup_time,
       vehicleClass: booking.vehicle_class,
-      amountEur: booking.amount_eur,
+      amountEur: effectiveAmountEur,
       paymentLinkUrl: link.url,
       flightNumber: booking.flight_number ?? null,
+      coversBothLegs,
     })
   }
 

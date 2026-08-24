@@ -1267,6 +1267,11 @@ export interface PaymentRequestEmailData {
   amountEur: number
   paymentLinkUrl: string
   flightNumber?: string | null
+  /** Phase 64 Plan 02 (D-05 round-trip, UI-SPEC E4): true when this link was
+   * generated for one leg of a round-trip pair and settles BOTH legs on one
+   * payment — amountEur is already the combined total in that case. Renders
+   * a "covers both legs" notice instead of a many-item list. */
+  coversBothLegs?: boolean
 }
 
 export function buildPaymentRequestHtml(data: PaymentRequestEmailData): string {
@@ -1338,6 +1343,13 @@ export function buildPaymentRequestHtml(data: PaymentRequestEmailData): string {
           </tr>
         </table>
       </div>
+
+      ${data.coversBothLegs ? `
+      <!-- Round-trip combined-payment notice (UI-SPEC E4 zero-one-many): ONE
+           payment covers both legs — never a many-item list. -->
+      <div style="padding: 0 32px 24px; font-size: 13px; font-style: italic; color: #BFA06A;">
+        This payment covers both legs of your round trip — one payment settles the outbound and return journey.
+      </div>` : ''}
 
       <!-- CTA button -->
       <div style="text-align: center; padding: 8px 32px 24px;">

@@ -125,8 +125,21 @@ const OUTBOUND_LEG_BOOKING = {
   id: 'booking-outbound-1',
   leg: 'outbound' as const,
   payment_intent_id: 'pi_stale_123',
+  // Data-model reality (buildBookingRows): the outbound leg's amount_eur is
+  // already the COMBINED round-trip total.
+  amount_eur: 150,
 }
-const SIBLING_RETURN_LEG = { id: 'booking-return-sibling-1' }
+// The return leg's amount_eur is always persisted NULL (buildBookingRows) —
+// only the sibling outbound leg carries the correct combined total.
+const RETURN_LEG_BOOKING = {
+  ...UNPAID_BOOKING,
+  id: 'booking-return-1',
+  leg: 'return' as const,
+  payment_intent_id: 'pi_stale_123',
+  amount_eur: null,
+}
+const SIBLING_RETURN_LEG = { id: 'booking-return-sibling-1', amount_eur: null }
+const SIBLING_OUTBOUND_LEG = { id: 'booking-outbound-sibling-1', amount_eur: 150 }
 
 // ── Mock chain builders (match the route's exact Supabase call shape) ───
 
@@ -253,7 +266,31 @@ describe('POST /api/admin/bookings/[id]/payment-link (D-05 attach-later + resend
     expect(json.linkedBookingId).toBe(SIBLING_RETURN_LEG.id)
 
     expect(stubCreateBookingPaymentLink).toHaveBeenCalledWith(
-      expect.objectContaining({ linkedBookingId: SIBLING_RETURN_LEG.id, leg: 'outbound' })
+      expect.objectContaining({ linkedBookingId: SIBLING_RETURN_LEG.id, leg: 'outbound', amountEur: 150 })
+    )
+    // UI-SPEC E4 zero-one-many: ONE payment-request email, combined amount,
+    // "covers both legs" framing.
+    expect(stubSendPaymentRequestEmail).toHaveBeenCalledTimes(1)
+    expect(stubSendPaymentRequestEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ amountEur: 150, coversBothLegs: true })
+    )
+  })
+
+  it('Test 7b: generating from the RETURN leg (amount_eur NULL) falls back to the sibling outbound leg amount — never NaN', async () => {
+    const updateStub = makeUpdateStub()
+    supabaseServiceStub.from
+      .mockReturnValueOnce(makeBookingFetchStub(RETURN_LEG_BOOKING))
+      .mockReturnValueOnce(makeSiblingStub(SIBLING_OUTBOUND_LEG))
+      .mockReturnValueOnce(updateStub)
+
+    const res = await PAYMENT_LINK_POST(makeRequest(RETURN_LEG_BOOKING.id), makeParams(RETURN_LEG_BOOKING.id))
+    expect(res.status).toBe(200)
+
+    expect(stubCreateBookingPaymentLink).toHaveBeenCalledWith(
+      expect.objectContaining({ amountEur: 150, linkedBookingId: SIBLING_OUTBOUND_LEG.id, leg: 'return' })
+    )
+    expect(stubSendPaymentRequestEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ amountEur: 150, coversBothLegs: true })
     )
   })
 
