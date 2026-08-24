@@ -122,7 +122,7 @@ Plans:
   3. When the client pays through that link, the booking's status updates to paid automatically, reconciled against the same booking record — no duplicate is created.
   4. Operator can instead save an admin-created booking with no payment link at all (e.g. cash or invoice payment), and it's created successfully without requiring any Stripe interaction.
 
-**Plans**: 1/4 plans executed
+**Plans**: 2/4 plans executed
 
 **Wave 1**
 
@@ -130,7 +130,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1)*
 
-- [ ] 64-02-PLAN.md — Expansion: D-05 attach-later [id]/payment-link route + resend (D-07) + round-trip linked-leg reconciliation
+- [x] 64-02-PLAN.md — Expansion: D-05 attach-later [id]/payment-link route + resend (D-07) + round-trip linked-leg reconciliation
 
 **Wave 3** *(blocked on Wave 2)*
 
