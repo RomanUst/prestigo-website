@@ -1243,6 +1243,148 @@ export async function sendBookingChangedEmail(booking: StatusEmailBooking, chang
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// PAYMENT-REQUEST EMAIL (Phase 64 — ANEW-02/03, D-06, T-64-05/06)
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// Sent when an operator saves an admin booking with "collect payment"
+// checked. Reuses the branded shell + booking-reference box + "TRIP DETAILS"
+// section header conventions (buildStatusEmailHtml / buildDriverAssignmentHtml)
+// and the single-CTA-button pattern (buildDriverAssignmentHtml's ACCEPT TRIP
+// button) as a single "PAY NOW" button — no decline/second button. Never
+// includes operator-only internals (operator_notes, override rationale,
+// driver_price) per the phase prohibitions.
+
+export interface PaymentRequestEmailData {
+  bookingReference: string
+  clientEmail: string
+  clientFirstName: string
+  clientLastName: string
+  originAddress: string
+  destinationAddress: string | null
+  pickupDate: string
+  pickupTime: string
+  vehicleClass: string
+  amountEur: number
+  paymentLinkUrl: string
+  flightNumber?: string | null
+}
+
+export function buildPaymentRequestHtml(data: PaymentRequestEmailData): string {
+  const formattedDate = formatPickupDate(data.pickupDate)
+  const route = data.destinationAddress
+    ? `${escapeHtml(data.originAddress)} &rarr; ${escapeHtml(data.destinationAddress)}`
+    : escapeHtml(data.originAddress)
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Complete Your Payment — Prestigo</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <!-- Header gold gradient line -->
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <!-- Logo wordmark -->
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <!-- Heading -->
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 32px;">Complete Your Payment</h1>
+
+      <!-- Booking reference box -->
+      <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 24px; margin: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">BOOKING REFERENCE</div>
+        <div style="font-size: 22px; font-weight: 600; color: #BFA06A;">${escapeHtml(data.bookingReference)}</div>
+      </div>
+
+      <!-- Greeting -->
+      <div style="padding: 0 32px 16px; font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">
+        Dear ${escapeHtml(data.clientFirstName)} ${escapeHtml(data.clientLastName)},
+      </div>
+      <div style="padding: 0 32px 16px; font-size: 14px; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">
+        Please complete your payment below to confirm your trip.
+      </div>
+
+      <!-- TRIP DETAILS section -->
+      <div style="padding: 0 32px 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 12px;">TRIP DETAILS</div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Route</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${route}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Date</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(formattedDate)} at ${escapeHtml(data.pickupTime)}</td>
+          </tr>
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Vehicle</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${formatVehicleLabel(data.vehicleClass)}</td>
+          </tr>
+          ${data.flightNumber ? `
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Flight</td>
+            <td style="font-size: 14px; font-weight: 400; color: #F3EEE3; padding: 8px 0;">${escapeHtml(data.flightNumber)}</td>
+          </tr>` : ''}
+          <tr>
+            <td style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; padding: 8px 16px 8px 0; width: 40%;">Amount Due</td>
+            <td style="font-size: 14px; font-weight: 600; color: #F3EEE3; padding: 8px 0;">${formatEUR(data.amountEur)}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- CTA button -->
+      <div style="text-align: center; padding: 8px 32px 24px;">
+        <a href="${escapeHtml(data.paymentLinkUrl)}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">PAY NOW</a>
+      </div>
+
+      <!-- Support contact -->
+      <div style="padding: 0 32px 24px; color: #A9AEB0; font-size: 14px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+/**
+ * Send the payment-request email with a "Pay Now" CTA. Non-fatal — catches
+ * and logs errors, does not throw, so a booking's persisted payment_link_url
+ * always survives an email-send failure (must_have truth: link-ok/email-fails).
+ */
+export async function sendPaymentRequestEmail(data: PaymentRequestEmailData): Promise<void> {
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.clientEmail],
+      subject: `Complete your payment for ${escapeHtml(data.bookingReference)} — Prestigo`,
+      html: buildPaymentRequestHtml(data),
+    })
+    if (error) console.error('[payment-request] email error:', error)
+  } catch (err) {
+    console.error('[payment-request] email failed:', err)
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // DRIVER ASSIGNMENT EMAILS (Phase 40)
 // ═══════════════════════════════════════════════════════════════════════════
 

@@ -8,6 +8,7 @@ import {
   saveRoundTripBookings,
   reconcileBookingToConfirmed,
   reconcileRoundTripToConfirmed,
+  reconcileBookingByIdToConfirmed,
   createSupabaseServiceClient,
 } from '@/lib/supabase'
 import {
@@ -156,7 +157,177 @@ export async function POST(request: Request) {
     return NextResponse.json({ received: true })
   }
 
+  // ── checkout.session.completed (Phase 64 ANEW-04): the only path that can
+  // flip a payment-link `unpaid` booking to `confirmed`. New branch, same
+  // file, same signature-verified block, same `stripe_processed_events`
+  // idempotency table (event_id is generic across event types) and
+  // side-effect-first/claim-after ordering as payment_intent.succeeded above.
+  if (event.type === 'checkout.session.completed') {
+    {
+      const supabase = createSupabaseServiceClient()
+      const { data: existing } = await supabase
+        .from('stripe_processed_events')
+        .select('event_id')
+        .eq('event_id', event.id)
+        .maybeSingle()
+      if (existing) return NextResponse.json({ received: true, duplicate: true })
+    }
+
+    // data.object here is a Checkout Session, NOT a PaymentIntent — Payment
+    // Link metadata is copied to the session as a one-time snapshot, but is
+    // NOT automatically copied to the resulting PaymentIntent. Read
+    // session.metadata, never a PaymentIntent's own metadata (Pitfall 1).
+    const session = event.data.object as Stripe.Checkout.Session
+    const meta = (session.metadata ?? {}) as Record<string, string>
+    const paymentIntentId = typeof session.payment_intent === 'string' ? session.payment_intent : null
+
+    // Stripe recommends this guard even on checkout.session.completed —
+    // delayed payment methods can complete the SESSION before the PAYMENT
+    // clears. payment_method_types is restricted to ['card'] at link-creation
+    // time (lib/stripe-payment-links.ts), making this effectively always
+    // true, but keep the check as defense in depth.
+    if (session.payment_status === 'paid' && meta.bookingId && paymentIntentId) {
+      await handlePaymentLinkSucceeded(meta.bookingId, meta.linkedBookingId ?? null, paymentIntentId)
+    }
+
+    // Claim AFTER side effects (SEC-10 ordering). Ignore 23505 (concurrent delivery).
+    {
+      const supabase = createSupabaseServiceClient()
+      const { error: claimErr } = await supabase
+        .from('stripe_processed_events')
+        .insert({ event_id: event.id, event_type: event.type })
+      if (claimErr) {
+        const code = (claimErr as { code?: string }).code
+        if (code !== '23505') {
+          console.error('[webhook] post-payment-link stripe_processed_events insert failed:', claimErr.message)
+        }
+      }
+    }
+    return NextResponse.json({ received: true })
+  }
+
   return NextResponse.json({ received: true })
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// PAYMENT-LINK HANDLER — Phase 64 ANEW-02/03/04 (checkout.session.completed)
+// ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Reconcile a payment-link booking to `confirmed` and fire the same
+ * confirmation side-effect suite `handleOneWaySucceeded` fires — sourced from
+ * the reconciled DB row (a full `bookings` row via `select('*')`), not from
+ * thin Payment Link metadata.
+ *
+ * In this tracer (Plan 64-01), only the primary `bookingId` is reconciled.
+ * Round-trip `linkedBookingId` leg reconciliation is wired in Plan 64-02.
+ */
+async function handlePaymentLinkSucceeded(
+  bookingId: string,
+  _linkedBookingId: string | null,
+  paymentIntentId: string
+): Promise<void> {
+  let reconciled: Record<string, unknown>[] = []
+  try {
+    reconciled = await withRetry(() => reconcileBookingByIdToConfirmed(bookingId, paymentIntentId), 3, 1000)
+  } catch (err) {
+    console.error(
+      'reconcileBookingByIdToConfirmed failed after 3 retries:',
+      err instanceof Error ? err.message : 'Unknown error'
+    )
+    return
+  }
+
+  // Empty array = already handled (Stripe retry / duplicate delivery, or an
+  // already-confirmed row) — skip all side-effects, never mutate again.
+  if (reconciled.length === 0) return
+
+  const row = reconciled[0] as {
+    id: string
+    booking_reference: string
+    trip_type?: string | null
+    origin_address?: string | null
+    destination_address?: string | null
+    pickup_date?: string | null
+    pickup_time?: string | null
+    return_date?: string | null
+    vehicle_class?: string | null
+    passengers?: number | null
+    luggage?: number | null
+    hours?: number | null
+    distance_km?: number | null
+    amount_czk?: number | null
+    amount_eur?: number | null
+    extra_child_seat?: boolean | null
+    extra_meet_greet?: boolean | null
+    extra_luggage?: boolean | null
+    client_first_name?: string | null
+    client_last_name?: string | null
+    client_email?: string | null
+    client_phone?: string | null
+    flight_number?: string | null
+    terminal?: string | null
+    special_requests?: string | null
+    pickup_utc?: string | null
+  }
+
+  const emailData: BookingEmailData = {
+    bookingReference: row.booking_reference,
+    tripType: row.trip_type || '',
+    originAddress: row.origin_address || '',
+    destinationAddress: row.destination_address || '',
+    pickupDate: row.pickup_date || '',
+    pickupTime: row.pickup_time || '',
+    returnDate: row.return_date ?? undefined,
+    vehicleClass: row.vehicle_class || '',
+    passengers: row.passengers ?? 1,
+    luggage: row.luggage ?? 0,
+    hours: row.hours ?? undefined,
+    distanceKm: row.distance_km ?? undefined,
+    amountCzk: row.amount_czk ?? Math.round(row.amount_eur ? row.amount_eur / 0.04 : 0),
+    extraChildSeat: row.extra_child_seat ?? false,
+    extraMeetGreet: row.extra_meet_greet ?? false,
+    extraLuggage: row.extra_luggage ?? false,
+    firstName: row.client_first_name || '',
+    lastName: row.client_last_name || '',
+    email: row.client_email || '',
+    phone: row.client_phone || '',
+    flightNumber: row.flight_number ?? undefined,
+    terminal: row.terminal ?? undefined,
+    specialRequests: row.special_requests ?? undefined,
+  }
+
+  try { await sendClientConfirmation(emailData) } catch (err) {
+    console.error('sendClientConfirmation unexpected error (payment-link):', err)
+  }
+  try { await sendManagerAlert(emailData) } catch (err) {
+    console.error('sendManagerAlert unexpected error (payment-link):', err)
+  }
+
+  // Phase 41-style QStash reminder — the reconciled row already carries
+  // pickup_utc from the `select('*')` in reconcileBookingByIdToConfirmed, so
+  // no extra lookup query is needed (unlike handleOneWaySucceeded).
+  if (row.pickup_utc) {
+    after(() => scheduleQStashReminder(row.id, new Date(row.pickup_utc as string).getTime()))
+  }
+
+  const valueEur = row.amount_eur ?? 0
+  const vehicleClass = row.vehicle_class || 'transfer'
+  after(() => sendGa4Purchase({
+    transactionId: row.booking_reference,
+    valueEur,
+    currency: 'EUR',
+    items: [
+      {
+        item_id: vehicleClass,
+        item_name: VEHICLE_LABELS[vehicleClass] ?? 'Chauffeur Transfer',
+        item_category: row.trip_type || 'transfer',
+        item_variant: row.trip_type || 'transfer',
+        price: valueEur,
+        quantity: 1,
+      },
+    ],
+  }))
 }
 
 // ─────────────────────────────────────────────────────────────────────────

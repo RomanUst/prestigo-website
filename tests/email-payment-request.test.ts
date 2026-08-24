@@ -70,7 +70,11 @@ describe('lib/email — buildPaymentRequestHtml (ANEW-03, D-06, T-64-05/06)', ()
     expect(html.toLowerCase()).not.toContain('operator')
     expect(html.toLowerCase()).not.toContain('override')
     expect(html.toLowerCase()).not.toContain('driver_price')
-    expect(html.toLowerCase()).not.toContain('margin')
+    // Word-boundary check (not a plain substring) — "margin" as CSS shorthand
+    // (margin-bottom, margin: 0 auto) legitimately appears in every branded
+    // email's inline styles; only a standalone "margin" (business-margin
+    // internals) would be a leak.
+    expect(html.toLowerCase()).not.toMatch(/\bmargin\b(?!-|:)/)
   })
 
   it('Test 6: escapes a malicious client name / booking reference', () => {

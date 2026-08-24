@@ -11,9 +11,10 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { dateDiffDays } from '@/lib/pricing'
 import { enforceMaxBody } from '@/lib/request-guards'
 import { logEmail } from '@/lib/email-log'
-import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, sendBookingChangedEmail, type BookingChangeEntry } from '@/lib/email'
+import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, sendBookingChangedEmail, sendPaymentRequestEmail, type BookingChangeEntry } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
+import { createBookingPaymentLink } from '@/lib/stripe-payment-links'
 
 // VALID_TRANSITIONS is the canonical map from lib/booking-transitions.ts (the
 // same source assign/route.ts imports and BookingsTable's UI_TRANSITIONS derives
@@ -758,6 +759,12 @@ const manualBookingSchema = z.object({
   // this attaches it to that customer's auth user (customer_profiles.user_id).
   // The FK on bookings.user_id enforces it references a real auth.users row.
   user_id:             z.string().uuid().optional(),
+  // Phase 64 ANEW-01/02/05 (D-01/D-02): when true, the server generates a
+  // Stripe Payment Link at save time and the row lands in the Phase 62
+  // 'unpaid' recovery queue. When false/omitted, `status` is the operator's
+  // explicit choice for a no-link (cash/invoice) booking — default 'confirmed'.
+  collect_payment:     z.boolean().optional(),
+  status:              z.enum(['confirmed', 'pending']).optional(),
 })
 
 // ADMIN_PRICE_TOLERANCE_CZK is declared once, near the top of the file
@@ -910,7 +917,10 @@ export async function POST(request: Request) {
     booking_source:      'manual',
     booking_type:        'confirmed',
     payment_intent_id:   null,
-    status:              'pending',
+    // D-01/D-02: collect_payment routes the row into the Phase 62 'unpaid'
+    // recovery queue; otherwise the operator's explicit status choice applies
+    // (default 'confirmed' — a no-link save is not a payment-pending state).
+    status:              d.collect_payment ? 'unpaid' : (d.status ?? 'confirmed'),
     amount_eur,
     user_id:             d.user_id ?? null,
     operator_notes:      priceDiverges
@@ -927,5 +937,58 @@ export async function POST(request: Request) {
 
   if (dbError) return NextResponse.json({ error: 'DB insert failed' }, { status: 500 })
 
-  return NextResponse.json({ booking: data }, { status: 201 })
+  // Phase 64 ANEW-02/03: generate the Stripe Payment Link + persist + email
+  // AFTER the booking row is committed — the booking insert and the
+  // Stripe/email step are non-atomic. If this step throws, the booking (and
+  // whatever of this step already landed, e.g. a persisted payment_link_url)
+  // still survives; the response degrades to paymentLinkUrl: null.
+  let paymentLinkUrl: string | null = null
+  if (d.collect_payment === true) {
+    try {
+      const link = await createBookingPaymentLink({
+        bookingId: data.id,
+        bookingReference,
+        amountEur: amount_eur,
+        leg: null,
+      })
+      paymentLinkUrl = link.url
+
+      const { error: linkUpdateError } = await supabase
+        .from('bookings')
+        .update({ payment_link_url: link.url, payment_link_id: link.id })
+        .eq('id', data.id)
+      if (linkUpdateError) {
+        console.error('[admin/bookings.POST] failed to persist payment_link_url:', linkUpdateError.message)
+      }
+
+      const allowed = await logEmail({
+        bookingId: data.id,
+        emailType: 'payment_request',
+        recipient: d.client_email,
+      })
+      if (allowed) {
+        await sendPaymentRequestEmail({
+          bookingReference,
+          clientEmail: d.client_email,
+          clientFirstName: d.client_first_name,
+          clientLastName: d.client_last_name,
+          originAddress: d.origin_address,
+          destinationAddress: d.destination_address ?? null,
+          pickupDate: d.pickup_date,
+          pickupTime: d.pickup_time,
+          vehicleClass: d.vehicle_class,
+          amountEur: amount_eur,
+          paymentLinkUrl: link.url,
+          flightNumber: d.flight_number ?? null,
+        })
+      }
+    } catch (err) {
+      console.error('[admin/bookings.POST] payment link / payment-request email step failed:', err)
+    }
+  }
+
+  return NextResponse.json(
+    d.collect_payment === true ? { booking: data, paymentLinkUrl } : { booking: data },
+    { status: 201 }
+  )
 }

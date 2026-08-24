@@ -164,6 +164,29 @@ export async function reconcileBookingToConfirmed(
 }
 
 /**
+ * Reconcile a payment-link booking (Phase 64 ANEW-04) from `unpaid` to
+ * `confirmed`, keyed on the row's own primary key — the only value known at
+ * Payment Link creation time (payment_intent_id does not exist until the
+ * client pays). Mirrors `reconcileBookingToConfirmed`'s "empty array =
+ * already handled" contract exactly, but returns the FULL row (`select('*')`)
+ * so the webhook can build BookingEmailData without a second SELECT.
+ */
+export async function reconcileBookingByIdToConfirmed(
+  bookingId: string,
+  paymentIntentId: string
+): Promise<Record<string, unknown>[]> {
+  const supabase = createSupabaseServiceClient()
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({ status: 'confirmed', payment_intent_id: paymentIntentId })
+    .eq('id', bookingId)
+    .eq('status', 'unpaid')
+    .select('*')
+  if (error) throw new Error(`Supabase payment-link reconcile failed: ${error.message}`)
+  return data ?? []
+}
+
+/**
  * Attempt-keyed capture (Phase 62 D-06): dedups an unpaid checkout attempt so
  * a retry / currency-toggle / promo-apply re-POST UPDATEs the SAME row in
  * place instead of inserting a second one into the admin follow-up queue.

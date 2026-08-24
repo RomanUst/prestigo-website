@@ -46,6 +46,14 @@ const { stubPushGnetStatus } = vi.hoisted(() => {
   return { stubPushGnetStatus: vi.fn().mockResolvedValue(undefined) }
 })
 
+// Phase 64 Plan 01 — ANEW-02/03: collect-payment POST branch spies.
+const { stubCreateBookingPaymentLink, stubSendPaymentRequestEmail } = vi.hoisted(() => {
+  return {
+    stubCreateBookingPaymentLink: vi.fn(),
+    stubSendPaymentRequestEmail: vi.fn(),
+  }
+})
+
 vi.mock('next/server', async () => {
   const actual = await vi.importActual<typeof import('next/server')>('next/server')
   return {
@@ -94,6 +102,11 @@ vi.mock('@/lib/email', () => ({
   sendStatusCancelledEmail: vi.fn().mockResolvedValue(undefined),
   sendPostTripEmail: vi.fn().mockResolvedValue(undefined),
   sendBookingChangedEmail: stubSendBookingChangedEmail,
+  sendPaymentRequestEmail: stubSendPaymentRequestEmail,
+}))
+
+vi.mock('@/lib/stripe-payment-links', () => ({
+  createBookingPaymentLink: stubCreateBookingPaymentLink,
 }))
 
 vi.mock('@/lib/gnet-client', async () => {
@@ -269,6 +282,10 @@ beforeEach(() => {
   // Phase 63 Plan 03 — pushGnetStatus spy: default resolved; trip-edit tests
   // assert it is never called (no GNet trip-detail-push API exists).
   stubPushGnetStatus.mockResolvedValue(undefined)
+
+  // Phase 64 Plan 01 — collect-payment POST branch: default happy-path resolves.
+  stubCreateBookingPaymentLink.mockResolvedValue({ url: 'https://buy.stripe.com/test_x', id: 'plink_123' })
+  stubSendPaymentRequestEmail.mockResolvedValue(undefined)
 
   // Default rpc: returns empty result set (used by GET handler via admin_search_bookings)
   supabaseServiceStub.rpc.mockResolvedValue({
@@ -1326,22 +1343,12 @@ describe('POST /api/admin/bookings', () => {
   })
 
   it('Test 5: returns 201 with { booking } for valid payload and correct DB fields', async () => {
-    // getPricingConfig() calls pricing_config then pricing_globals in Promise.all
-    const pricingConfigSelectFn = vi.fn().mockResolvedValue({
-      data: [{ vehicle_class: 'business', rate_per_km: '2', hourly_rate: '50', daily_rate: '400', min_fare: '100' }],
-      error: null,
-    })
-    const pricingGlobalsSingleFn = vi.fn().mockResolvedValue({
-      data: {
-        airport_fee: '200', night_coefficient: '1.2', holiday_coefficient: '1.5',
-        holiday_dates: [], return_discount_percent: '10',
-        hourly_min_hours: '2', hourly_max_hours: '8', notification_flags: null,
-      },
-      error: null,
-    })
-    const pricingGlobalsEqFn = vi.fn().mockReturnValue({ single: pricingGlobalsSingleFn })
-    const pricingGlobalsSelectFn = vi.fn().mockReturnValue({ eq: pricingGlobalsEqFn })
-
+    // getPricingConfig() short-circuits to PRICING_FALLBACK when SUPABASE_URL /
+    // SUPABASE_SERVICE_ROLE_KEY are absent (as in this test env) — it issues
+    // ZERO supabase.from() calls in that path. computeOutboundLegTotal /
+    // eurToCzk / czkToEur are separately mocked above and ignore `rates`
+    // entirely, so the fallback's actual field values never matter here.
+    // The bookings insert is therefore the FIRST and ONLY supabase.from() call.
     const singleFn = vi.fn().mockResolvedValue({
       data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
       error: null,
@@ -1349,10 +1356,7 @@ describe('POST /api/admin/bookings', () => {
     const selectFn = vi.fn().mockReturnValue({ single: singleFn })
     const insertFn = vi.fn().mockReturnValue({ select: selectFn })
 
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: pricingConfigSelectFn })
-      .mockReturnValueOnce({ select: pricingGlobalsSelectFn })
-      .mockReturnValue({ insert: insertFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
 
     const res = await POST(makePostRequest(validPostPayload))
     expect(res.status).toBe(201)
@@ -1360,36 +1364,24 @@ describe('POST /api/admin/bookings', () => {
     expect(json).toHaveProperty('booking')
     expect(json.booking).toMatchObject({ id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' })
 
-    // Verify insert was called with correct booking_source, payment_intent_id, status, booking_type
+    // Verify insert was called with correct booking_source, payment_intent_id, status, booking_type.
+    // Phase 64 D-02: a no-link save (no collect_payment, no explicit status)
+    // defaults to 'confirmed' — 'pending' was the pre-Phase-64 default.
     expect(insertFn).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           booking_source: 'manual',
           payment_intent_id: null,
-          status: 'pending',
+          status: 'confirmed',
           booking_type: 'confirmed',
         }),
       ])
     )
+    expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
+    expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
   })
 
   it('Test 6: POST generates booking_reference matching PRG-YYYYMMDD-XXXX pattern', async () => {
-    // getPricingConfig() calls pricing_config then pricing_globals in Promise.all
-    const pricingConfigSelectFn = vi.fn().mockResolvedValue({
-      data: [{ vehicle_class: 'business', rate_per_km: '2', hourly_rate: '50', daily_rate: '400', min_fare: '100' }],
-      error: null,
-    })
-    const pricingGlobalsSingleFn = vi.fn().mockResolvedValue({
-      data: {
-        airport_fee: '200', night_coefficient: '1.2', holiday_coefficient: '1.5',
-        holiday_dates: [], return_discount_percent: '10',
-        hourly_min_hours: '2', hourly_max_hours: '8', notification_flags: null,
-      },
-      error: null,
-    })
-    const pricingGlobalsEqFn = vi.fn().mockReturnValue({ single: pricingGlobalsSingleFn })
-    const pricingGlobalsSelectFn = vi.fn().mockReturnValue({ eq: pricingGlobalsEqFn })
-
     const singleFn = vi.fn().mockResolvedValue({
       data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
       error: null,
@@ -1397,10 +1389,7 @@ describe('POST /api/admin/bookings', () => {
     const selectFn = vi.fn().mockReturnValue({ single: singleFn })
     const insertFn = vi.fn().mockReturnValue({ select: selectFn })
 
-    supabaseServiceStub.from
-      .mockReturnValueOnce({ select: pricingConfigSelectFn })
-      .mockReturnValueOnce({ select: pricingGlobalsSelectFn })
-      .mockReturnValue({ insert: insertFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
 
     await POST(makePostRequest(validPostPayload))
 
@@ -1411,6 +1400,104 @@ describe('POST /api/admin/bookings', () => {
         }),
       ])
     )
+  })
+
+  // Phase 64 Plan 01 — ANEW-01/02/03/05 (D-01/D-02): collect-payment branch +
+  // operator status choice for no-link saves.
+
+  it('Test 7: collect_payment=true yields status "unpaid", generates + persists a payment link, sends the payment-request email, returns paymentLinkUrl', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+
+    const updateEqFn = vi.fn().mockResolvedValue({ data: null, error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    // First from('bookings') call is the insert; every subsequent call
+    // (the payment-link persist UPDATE) gets the update chain.
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ insert: insertFn })
+      .mockReturnValue({ update: updateFn })
+
+    const res = await POST(makePostRequest({ ...validPostPayload, collect_payment: true }))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.paymentLinkUrl).toBe('https://buy.stripe.com/test_x')
+    expect(json.booking).toMatchObject({ id: 'test-id' })
+
+    expect(insertFn).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ status: 'unpaid', payment_intent_id: null, booking_source: 'manual' }),
+      ])
+    )
+
+    // T-64-01: amount is the server-recomputed amount_eur, never a client field.
+    expect(stubCreateBookingPaymentLink).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bookingId: 'test-id',
+        bookingReference: 'PRG-20260403-AB12CD',
+        amountEur: 60,
+        leg: null,
+      })
+    )
+    expect(updateFn).toHaveBeenCalledWith({ payment_link_url: 'https://buy.stripe.com/test_x', payment_link_id: 'plink_123' })
+    expect(updateEqFn).toHaveBeenCalledWith('id', 'test-id')
+
+    expect(stubLogEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ bookingId: 'test-id', emailType: 'payment_request', recipient: 'jan@example.com' })
+    )
+    expect(stubSendPaymentRequestEmail).toHaveBeenCalledTimes(1)
+  })
+
+  it('Test 8: explicit status="pending" (no collect_payment) persists status "pending", no Stripe call, no email, response has no paymentLinkUrl key (D-02)', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const res = await POST(makePostRequest({ ...validPostPayload, status: 'pending' }))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json).not.toHaveProperty('paymentLinkUrl')
+
+    expect(insertFn).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({ status: 'pending', payment_intent_id: null }),
+      ])
+    )
+    expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
+    expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+  })
+
+  it('Test 9: collect_payment=true still returns 201 with paymentLinkUrl: null when the payment-link step throws — booking is never lost', async () => {
+    stubCreateBookingPaymentLink.mockRejectedValueOnce(new Error('stripe down'))
+
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const res = await POST(makePostRequest({ ...validPostPayload, collect_payment: true }))
+    expect(res.status).toBe(201)
+    const json = await res.json()
+    expect(json.paymentLinkUrl).toBeNull()
+    expect(json.booking).toMatchObject({ id: 'test-id' })
+
+    expect(insertFn).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ status: 'unpaid' })])
+    )
+    expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
   })
 })
 
