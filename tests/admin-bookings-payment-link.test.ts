@@ -166,10 +166,25 @@ function makeSiblingStub(row: Record<string, unknown> | null) {
   return { select }
 }
 
-function makeUpdateStub(error: unknown = null) {
-  const inFn = vi.fn().mockResolvedValue({ error })
+// WR-01: the real update chain is .update().in(ids).is('payment_link_url',
+// null).select('id') and resolves { data, error }. By default (matchIds
+// omitted) it simulates every id passed to .in() as successfully updated —
+// the "won the race" happy path every existing test exercises. Pass
+// matchIds explicitly to simulate a TOCTOU loss (e.g. matchIds: [] means
+// zero rows still had payment_link_url IS NULL by the time this UPDATE ran).
+function makeUpdateStub(error: unknown = null, matchIds?: string[]) {
+  let inIds: string[] = []
+  const select = vi.fn().mockImplementation(() => {
+    const data = error ? null : (matchIds ?? inIds).map((id) => ({ id }))
+    return Promise.resolve({ data, error })
+  })
+  const is = vi.fn().mockReturnValue({ select })
+  const inFn = vi.fn().mockImplementation((_col: string, ids: string[]) => {
+    inIds = ids
+    return { is }
+  })
   const update = vi.fn().mockReturnValue({ in: inFn })
-  return { update, in: inFn }
+  return { update, in: inFn, is, select }
 }
 
 beforeEach(() => {
@@ -336,6 +351,26 @@ describe('POST /api/admin/bookings/[id]/payment-link (D-05 attach-later + resend
     expect(json.linkedBookingId).toBeNull()
     const callArg = stubCreateBookingPaymentLink.mock.calls[0][0]
     expect(callArg.linkedBookingId).toBeUndefined()
+  })
+
+  it('Test 8b (WR-01): lost TOCTOU race — own row not updated → no duplicate email, still returns 200', async () => {
+    // matchIds: [] simulates a concurrent request already having claimed
+    // payment_link_url (IS NULL no longer matches) between our read and write.
+    const updateStub = makeUpdateStub(null, [])
+    supabaseServiceStub.from
+      .mockReturnValueOnce(makeBookingFetchStub(UNPAID_BOOKING))
+      .mockReturnValueOnce(updateStub)
+
+    const res = await PAYMENT_LINK_POST(makeRequest(UNPAID_BOOKING.id), makeParams(UNPAID_BOOKING.id))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.paymentLinkUrl).toBe('https://buy.stripe.com/test_link')
+
+    // Stripe WAS called (link already minted before we discovered the race)
+    // but no duplicate payment-request email was sent for it.
+    expect(stubCreateBookingPaymentLink).toHaveBeenCalledTimes(1)
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
   })
 
   it('Test 9: resend path — sendPaymentRequestEmail called directly, logEmail NOT called (D-07/Pitfall 5)', async () => {

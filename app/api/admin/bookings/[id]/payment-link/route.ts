@@ -206,15 +206,38 @@ export async function POST(
   // query so the sibling's own payment_link_url correctly reflects "already
   // linked" the next time its own PaymentLinkSection renders — closing the
   // UI-layer loophole that let an operator mint a second link on the sibling.
+  //
+  // WR-01: the persist is conditional on `payment_link_url IS NULL` and the
+  // row count is checked — the same status-gated-UPDATE pattern already used
+  // by reconcileBookingToConfirmed/reconcileBookingByIdToConfirmed elsewhere
+  // in this codebase. Without this, two near-simultaneous "Generate Payment
+  // Link" requests for the same booking (double-click, two admin tabs) can
+  // both pass the initial read-check, both call Stripe, and both persist —
+  // minting two live links and potentially sending two emails.
   const idsToUpdate = linkedBookingId ? [booking.id, linkedBookingId] : [booking.id]
-  const { error: updateError } = await supabase
+  const { data: updatedRows, error: updateError } = await supabase
     .from('bookings')
     .update({ payment_link_url: link.url, payment_link_id: link.id, status: 'unpaid' })
     .in('id', idsToUpdate)
+    .is('payment_link_url', null)
+    .select('id')
 
   if (updateError) {
     console.error('[admin/bookings/[id]/payment-link] failed to persist payment link:', updateError.message)
     return NextResponse.json({ error: 'Failed to persist payment link' }, { status: 500 })
+  }
+
+  // WR-01: if OUR OWN row isn't among the updated rows, a concurrent request
+  // already persisted a (different) link for this booking between our
+  // initial read and this write — we lost the race. Do not send a second
+  // payment-request email for the link we just (uselessly) minted at Stripe.
+  const ownRowUpdated = (updatedRows ?? []).some((row) => (row as { id: string }).id === booking.id)
+  if (!ownRowUpdated) {
+    console.warn(
+      '[admin/bookings/[id]/payment-link] lost TOCTOU race — a payment link was already persisted concurrently for this booking; skipping duplicate email',
+      { bookingId: booking.id }
+    )
+    return NextResponse.json({ paymentLinkUrl: link.url, linkedBookingId: linkedBookingId ?? null })
   }
 
   const allowed = await logEmail({
