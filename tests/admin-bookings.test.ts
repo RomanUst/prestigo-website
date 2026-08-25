@@ -1030,6 +1030,73 @@ describe('PATCH /api/admin/bookings — price-affecting trip-edit (Phase 63 Plan
     )
   })
 
+  it('Test 4b (WR-02): distance_km implausibly small for the submitted coordinates -> 422, requires override_price', async () => {
+    // origin/destination ~1 degree of longitude apart at the equator ->
+    // haversine ~111km. Submitting distance_km: 10 is far below even
+    // haversine/2 (~55.5km) — implausible for any real road route.
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    supabaseServiceStub.from.mockReturnValueOnce(current.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      distance_km: 10,
+      origin_lat: 0,
+      origin_lng: 0,
+      destination_lat: 0,
+      destination_lng: 1,
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain('implausibly small')
+    // No DB write occurred — only the current-row select happened.
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+  })
+
+  it('Test 4c (WR-02): same implausible distance_km WITH override_price=true -> 200, bypasses the sanity check', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      distance_km: 10,
+      origin_lat: 0,
+      origin_lng: 0,
+      destination_lat: 0,
+      destination_lng: 1,
+      amount_czk: 1500,
+      override_price: true,
+    }))
+
+    expect(res.status).toBe(200)
+  })
+
+  it('Test 4d (WR-02): no coordinates submitted -> sanity check skipped, existing distance_km-only behavior unchanged', async () => {
+    const current = makeSelectSingleChain(mockCurrentTripEditBooking)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: mockCurrentTripEditBooking.id as string,
+      distance_km: 10, // implausible per WR-02 IF coordinates were known, but none are submitted here
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(200)
+  })
+
   it('Test 5: price change on a booking_source=gnet booking persists+audits locally; pushGnetStatus is NOT called', async () => {
     const gnetRow: Record<string, unknown> = { ...mockCurrentTripEditBooking, booking_source: 'gnet', amount_czk: 1400 }
     const current = makeSelectSingleChain(gnetRow)
@@ -1427,6 +1494,45 @@ describe('POST /api/admin/bookings', () => {
     )
     expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
     expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+  })
+
+  it('Test 5b (WR-02): distance_km implausibly small for the submitted coordinates -> 422, requires override_price', async () => {
+    const res = await POST(makePostRequest({
+      ...validPostPayload,
+      distance_km: 10,
+      origin_lat: 0,
+      origin_lng: 0,
+      destination_lat: 0,
+      destination_lng: 1,
+    }))
+
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.error).toContain('implausibly small')
+    // No DB write occurred.
+    expect(supabaseServiceStub.from).not.toHaveBeenCalled()
+  })
+
+  it('Test 5c (WR-02): same implausible distance_km WITH override_price=true -> 201, bypasses the sanity check', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { id: 'test-id', booking_reference: 'PRG-20260403-AB12CD' },
+      error: null,
+    })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn })
+
+    const res = await POST(makePostRequest({
+      ...validPostPayload,
+      distance_km: 10,
+      origin_lat: 0,
+      origin_lng: 0,
+      destination_lat: 0,
+      destination_lng: 1,
+      override_price: true,
+    }))
+
+    expect(res.status).toBe(201)
   })
 
   it('Test 6: POST generates booking_reference matching PRG-YYYYMMDD-XXXX pattern', async () => {

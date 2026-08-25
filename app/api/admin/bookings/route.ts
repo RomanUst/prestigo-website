@@ -15,6 +15,7 @@ import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, 
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { createBookingPaymentLink } from '@/lib/stripe-payment-links'
+import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 
 // VALID_TRANSITIONS is the canonical map from lib/booking-transitions.ts (the
 // same source assign/route.ts imports and BookingsTable's UI_TRANSITIONS derives
@@ -521,12 +522,43 @@ export async function PATCH(request: Request) {
       const effectiveReturnDate = current.return_date as string | null
       const effectiveIsAirport = Boolean(current.is_airport)
       const effectiveHours = (current.hours as number | null) ?? 2
+      const effectiveOriginLat = parsed.data.origin_lat !== undefined ? parsed.data.origin_lat : (current.origin_lat as number | null)
+      const effectiveOriginLng = parsed.data.origin_lng !== undefined ? parsed.data.origin_lng : (current.origin_lng as number | null)
+      const effectiveDestinationLat = parsed.data.destination_lat !== undefined ? parsed.data.destination_lat : (current.destination_lat as number | null)
+      const effectiveDestinationLng = parsed.data.destination_lng !== undefined ? parsed.data.destination_lng : (current.destination_lng as number | null)
 
       if (effectiveTripType === 'transfer' && (effectiveDistanceKm === null || effectiveDistanceKm === undefined || effectiveDistanceKm <= 0)) {
         return NextResponse.json(
           { error: 'distance_km is required and must be positive for transfer trips' },
           { status: 400 }
         )
+      }
+
+      // WR-02: cheap, no-API sanity check on the (fully client-controlled)
+      // distance_km price input — only runs when both endpoints' coordinates
+      // are known (skipped otherwise: no regression vs. current behavior when
+      // addresses weren't geocoded). Requires override_price to accept a
+      // distance_km implausibly smaller than the haversine straight-line
+      // distance, closing the gap where a compromised admin session could
+      // under-price a correctly-addressed transfer.
+      if (
+        effectiveTripType === 'transfer' &&
+        typeof effectiveDistanceKm === 'number' &&
+        typeof effectiveOriginLat === 'number' && typeof effectiveOriginLng === 'number' &&
+        typeof effectiveDestinationLat === 'number' && typeof effectiveDestinationLng === 'number' &&
+        !parsed.data.override_price
+      ) {
+        const haversineKm = haversineDistanceKm(effectiveOriginLat, effectiveOriginLng, effectiveDestinationLat, effectiveDestinationLng)
+        if (haversineKm > 0 && effectiveDistanceKm < haversineKm / DISTANCE_SANITY_MULTIPLIER) {
+          return NextResponse.json(
+            {
+              error: 'distance_km is implausibly small for the given coordinates — requires override_price to accept',
+              submittedDistanceKm: effectiveDistanceKm,
+              haversineDistanceKm: Math.round(haversineKm * 10) / 10,
+            },
+            { status: 422 }
+          )
+        }
       }
 
       const days = effectiveReturnDate ? dateDiffDays(effectivePickupDate, effectiveReturnDate) : 1
@@ -840,6 +872,31 @@ export async function POST(request: Request) {
       { error: 'return_date is required for daily trips' },
       { status: 400 }
     )
+  }
+
+  // WR-02: cheap, no-API sanity check on the (fully client-controlled)
+  // distance_km price input — only runs when both endpoints' coordinates are
+  // known (skipped otherwise, e.g. free-text addresses with no Google Places
+  // selection). Requires override_price to accept a distance_km implausibly
+  // smaller than the haversine straight-line distance.
+  if (
+    d.trip_type === 'transfer' &&
+    typeof d.distance_km === 'number' &&
+    typeof d.origin_lat === 'number' && typeof d.origin_lng === 'number' &&
+    typeof d.destination_lat === 'number' && typeof d.destination_lng === 'number' &&
+    !d.override_price
+  ) {
+    const haversineKm = haversineDistanceKm(d.origin_lat, d.origin_lng, d.destination_lat, d.destination_lng)
+    if (haversineKm > 0 && d.distance_km < haversineKm / DISTANCE_SANITY_MULTIPLIER) {
+      return NextResponse.json(
+        {
+          error: 'distance_km is implausibly small for the given coordinates — requires override_price to accept',
+          submittedDistanceKm: d.distance_km,
+          haversineDistanceKm: Math.round(haversineKm * 10) / 10,
+        },
+        { status: 422 }
+      )
+    }
   }
 
   const days = d.return_date ? dateDiffDays(d.pickup_date, d.return_date) : 1
