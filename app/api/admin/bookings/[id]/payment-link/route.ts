@@ -103,17 +103,24 @@ export async function POST(
   // figure regardless of which leg the operator generates from.
   let linkedBookingId: string | null = null
   let amountEurSource: number | null = booking.amount_eur
+  // CR-01: select the sibling's OWN payment_link_url too — without it, a link
+  // minted on one leg leaves the sibling row's payment_link_url NULL forever,
+  // so its own "already has a link" guard below never fires and an operator
+  // can mint a SECOND, independently payable Stripe Payment Link for the same
+  // combined charge (see 64-REVIEW.md CR-01).
+  let siblingPaymentLinkUrl: string | null = null
   if ((booking.leg === 'outbound' || booking.leg === 'return') && booking.payment_intent_id) {
     const { data: sibling } = await supabase
       .from('bookings')
-      .select('id, amount_eur')
+      .select('id, amount_eur, payment_link_url')
       .eq('payment_intent_id', booking.payment_intent_id)
       .neq('leg', booking.leg)
       .eq('status', 'unpaid')
       .maybeSingle()
     if (sibling) {
-      const siblingRow = sibling as { id: string; amount_eur: number | null }
+      const siblingRow = sibling as { id: string; amount_eur: number | null; payment_link_url: string | null }
       linkedBookingId = siblingRow.id
+      siblingPaymentLinkUrl = siblingRow.payment_link_url
       if (amountEurSource === null || amountEurSource === undefined) {
         amountEurSource = siblingRow.amount_eur
       }
@@ -163,6 +170,18 @@ export async function POST(
     return NextResponse.json({ error: 'A payment link already exists for this booking' }, { status: 409 })
   }
 
+  // CR-01: the SIBLING leg of a round-trip pair already having a live link
+  // covers this booking too (both legs share one combined charge) — reuse it
+  // instead of minting a second, independently payable Stripe Payment Link
+  // for the same trip. No new email is sent; the client already received the
+  // "covers both legs" payment request when the sibling's link was created.
+  if (siblingPaymentLinkUrl) {
+    return NextResponse.json({
+      paymentLinkUrl: siblingPaymentLinkUrl,
+      linkedBookingId,
+    })
+  }
+
   let link: { url: string; id: string }
   try {
     link = await createBookingPaymentLink({
@@ -182,10 +201,16 @@ export async function POST(
   // Persist link + set status directly to 'unpaid' (bypasses VALID_TRANSITIONS
   // — same as [id]/assign/route.ts sets driver fields directly). Applies
   // uniformly whether the source status was 'unpaid' or 'pending'.
+  //
+  // CR-01: when this leg is linked to a sibling, persist to BOTH rows in one
+  // query so the sibling's own payment_link_url correctly reflects "already
+  // linked" the next time its own PaymentLinkSection renders — closing the
+  // UI-layer loophole that let an operator mint a second link on the sibling.
+  const idsToUpdate = linkedBookingId ? [booking.id, linkedBookingId] : [booking.id]
   const { error: updateError } = await supabase
     .from('bookings')
     .update({ payment_link_url: link.url, payment_link_id: link.id, status: 'unpaid' })
-    .eq('id', booking.id)
+    .in('id', idsToUpdate)
 
   if (updateError) {
     console.error('[admin/bookings/[id]/payment-link] failed to persist payment link:', updateError.message)

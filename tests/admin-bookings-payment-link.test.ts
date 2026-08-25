@@ -138,8 +138,15 @@ const RETURN_LEG_BOOKING = {
   payment_intent_id: 'pi_stale_123',
   amount_eur: null,
 }
-const SIBLING_RETURN_LEG = { id: 'booking-return-sibling-1', amount_eur: null }
-const SIBLING_OUTBOUND_LEG = { id: 'booking-outbound-sibling-1', amount_eur: 150 }
+const SIBLING_RETURN_LEG = { id: 'booking-return-sibling-1', amount_eur: null, payment_link_url: null }
+const SIBLING_OUTBOUND_LEG = { id: 'booking-outbound-sibling-1', amount_eur: 150, payment_link_url: null }
+// CR-01: sibling already has a live payment link — generating on this leg
+// must reuse it instead of minting a second, independently payable link.
+const SIBLING_RETURN_LEG_ALREADY_LINKED = {
+  id: 'booking-return-sibling-1',
+  amount_eur: null,
+  payment_link_url: 'https://buy.stripe.com/sibling_existing_link',
+}
 
 // ── Mock chain builders (match the route's exact Supabase call shape) ───
 
@@ -160,9 +167,9 @@ function makeSiblingStub(row: Record<string, unknown> | null) {
 }
 
 function makeUpdateStub(error: unknown = null) {
-  const eq = vi.fn().mockResolvedValue({ error })
-  const update = vi.fn().mockReturnValue({ eq })
-  return { update }
+  const inFn = vi.fn().mockResolvedValue({ error })
+  const update = vi.fn().mockReturnValue({ in: inFn })
+  return { update, in: inFn }
 }
 
 beforeEach(() => {
@@ -274,6 +281,29 @@ describe('POST /api/admin/bookings/[id]/payment-link (D-05 attach-later + resend
     expect(stubSendPaymentRequestEmail).toHaveBeenCalledWith(
       expect.objectContaining({ amountEur: 150, coversBothLegs: true })
     )
+    // CR-01: the persist step writes payment_link_url/id to BOTH legs (the
+    // primary row AND the sibling), not just the one the operator generated
+    // from — otherwise the sibling's own "already has a link" guard never
+    // fires and a second, independent link can be minted on it later.
+    expect(updateStub.in).toHaveBeenCalledWith('id', [OUTBOUND_LEG_BOOKING.id, SIBLING_RETURN_LEG.id])
+  })
+
+  it('Test 7c (CR-01): sibling leg already has a live payment link → reuse it, do NOT mint a second link or send a new email', async () => {
+    supabaseServiceStub.from
+      .mockReturnValueOnce(makeBookingFetchStub(OUTBOUND_LEG_BOOKING))
+      .mockReturnValueOnce(makeSiblingStub(SIBLING_RETURN_LEG_ALREADY_LINKED))
+
+    const res = await PAYMENT_LINK_POST(makeRequest(OUTBOUND_LEG_BOOKING.id), makeParams(OUTBOUND_LEG_BOOKING.id))
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json.paymentLinkUrl).toBe(SIBLING_RETURN_LEG_ALREADY_LINKED.payment_link_url)
+    expect(json.linkedBookingId).toBe(SIBLING_RETURN_LEG_ALREADY_LINKED.id)
+
+    expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
+    expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+    expect(stubLogEmail).not.toHaveBeenCalled()
+    // Only the booking fetch + sibling lookup ran — no update() call.
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(2)
   })
 
   it('Test 7b: generating from the RETURN leg (amount_eur NULL) falls back to the sibling outbound leg amount — never NaN', async () => {
