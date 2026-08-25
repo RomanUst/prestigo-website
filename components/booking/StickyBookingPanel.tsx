@@ -4,6 +4,7 @@ import { useBookingStore } from '@/lib/booking-store'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { computeExtrasTotal } from '@/lib/extras'
 import RouteMap from '@/components/booking/RouteMap'
+import { estimateTravelMinutes } from '@/lib/travel-time'
 
 // ---------------------------------------------------------------------------
 // Vehicle class labels for CTA copy
@@ -42,11 +43,12 @@ function fmt24to12(t: string): string {
   return `${h12}:${m.toString().padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`
 }
 
-function estDropoff(pickupTime: string, distanceKm: number | null): string | null {
-  if (!distanceKm) return null
-  const durationMin = Math.round((distanceKm / 45) * 60) + 5
+function estDropoff(pickupTime: string, distanceKm: number | null, durationMin: number | null): string | null {
+  // Prefer Google's real drive time; fall back to the distance-based estimate.
+  const min = durationMin ?? estimateTravelMinutes(distanceKm)
+  if (min === null) return null
   const [h, m] = pickupTime.split(':').map(Number)
-  const total = h * 60 + m + durationMin
+  const total = h * 60 + m + min
   const hh = Math.floor(total / 60) % 24
   const mm = total % 60
   return fmt24to12(`${hh.toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`)
@@ -68,6 +70,7 @@ export default function StickyBookingPanel() {
   const pickupTime = useBookingStore((s) => s.pickupTime)
   const pickupDate = useBookingStore((s) => s.pickupDate)
   const distanceKm = useBookingStore((s) => s.distanceKm)
+  const durationMin = useBookingStore((s) => s.durationMin)
   const tripType = useBookingStore((s) => s.tripType)
 
   // Compute price display
@@ -179,10 +182,10 @@ export default function StickyBookingPanel() {
               <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Pick up</span>
               <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{fmt24to12(pickupTime)}</span>
             </div>
-            {estDropoff(pickupTime, distanceKm) && (
+            {estDropoff(pickupTime, distanceKm, durationMin) && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Est. drop-off</span>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{estDropoff(pickupTime, distanceKm)}</span>
+                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{estDropoff(pickupTime, distanceKm, durationMin)}</span>
               </div>
             )}
             <div style={{ marginTop: 6 }}>
