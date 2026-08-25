@@ -97,6 +97,7 @@ export interface BookingStore {
   // Step 3
   vehicleClass: VehicleClass | null
   distanceKm: number | null        // cached from API response
+  durationMin: number | null       // real drive time (min) from Google Routes; null for predefined/hourly routes
   priceBreakdown: Record<VehicleClass, PriceBreakdown> | null
   roundTripPriceBreakdown: Record<VehicleClass, PriceBreakdown> | null
   returnDiscountPercent: number    // admin-configurable round trip discount %
@@ -125,6 +126,7 @@ export interface BookingStore {
   setReturnTime: (time: string | null) => void
   setVehicleClass: (v: VehicleClass | null) => void
   setDistanceKm: (km: number | null) => void
+  setDurationMin: (min: number | null) => void
   setPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
   setRoundTripPriceBreakdown: (p: Record<VehicleClass, PriceBreakdown> | null) => void
   setReturnDiscountPercent: (pct: number) => void

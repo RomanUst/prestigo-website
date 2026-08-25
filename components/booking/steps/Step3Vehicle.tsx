@@ -100,6 +100,7 @@ export default function Step3Vehicle() {
   const setRoundTripPriceBreakdown = useBookingStore((s) => s.setRoundTripPriceBreakdown)
   const setReturnDiscountPercent = useBookingStore((s) => s.setReturnDiscountPercent)
   const setDistanceKm = useBookingStore((s) => s.setDistanceKm)
+  const setDurationMin = useBookingStore((s) => s.setDurationMin)
   const setQuoteMode = useBookingStore((s) => s.setQuoteMode)
   const setVehicleClass = useBookingStore((s) => s.setVehicleClass)
   const setTripType = useBookingStore((s) => s.setTripType)
@@ -190,6 +191,7 @@ export default function Step3Vehicle() {
         setReturnDiscountPercent(data.returnDiscountPercent)
       }
       setDistanceKm(data.distanceKm)
+      setDurationMin(data.durationMin ?? null)
       setQuoteMode(data.quoteMode)
       setFetchError(false)
     } catch {
@@ -200,7 +202,7 @@ export default function Step3Vehicle() {
     } finally {
       setLoading(false)
     }
-  }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setQuoteMode])
+  }, [setPriceBreakdown, setRoundTripPriceBreakdown, setReturnDiscountPercent, setDistanceKm, setDurationMin, setQuoteMode])
 
   // Initial fetch on mount
   useEffect(() => {

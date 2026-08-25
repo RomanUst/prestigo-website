@@ -262,7 +262,7 @@ export async function POST(req: Request) {
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'routes.distanceMeters',
+        'X-Goog-FieldMask': 'routes.distanceMeters,routes.duration',
         'Referer': 'https://rideprestigo.com',
       },
       body: JSON.stringify(googleBody),
@@ -282,6 +282,14 @@ export async function POST(req: Request) {
     }
 
     const distanceKm = distanceMeters / 1000
+
+    // Real drive time (typical traffic) from the same Routes response.
+    // `duration` is a protobuf-style string like "14523s"; parse to minutes.
+    // Falls back to null so the client uses its distance-based estimate.
+    const durationRaw: string | undefined = data?.routes?.[0]?.duration
+    const durationSec = durationRaw ? parseInt(durationRaw.replace(/[^0-9]/g, ''), 10) : NaN
+    const durationMin = Number.isFinite(durationSec) && durationSec > 0 ? Math.round(durationSec / 60) : null
+
     const prices = buildPriceMap('transfer', distanceKm, 0, 0, rates)
     const adjusted = applyGlobals(prices, rates.globals, airportFlag, isNightTime(pickupTime ?? null), isHoliday, rates.minFare)
     const discountPct = rates.globals.returnDiscountPercent
@@ -303,7 +311,7 @@ export async function POST(req: Request) {
       )
     }
 
-    return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices, returnDiscountPercent: discountPct, distanceKm, quoteMode: false, matchedRouteSlug: null })
+    return NextResponse.json({ prices: applyExtrasAndRound(adjusted, childSeats, extraStops), returnLegPrices, returnDiscountPercent: discountPct, distanceKm, durationMin, quoteMode: false, matchedRouteSlug: null })
   } catch (error) {
     console.error('calculate-price error:', error)
     return NextResponse.json({

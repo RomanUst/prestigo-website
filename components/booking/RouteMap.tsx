@@ -134,29 +134,6 @@ function createMapLabel(
 }
 
 // ---------------------------------------------------------------------------
-// Time label helpers
-// ---------------------------------------------------------------------------
-function formatTime24To12(time24: string): string {
-  const [hStr, mStr] = time24.split(':')
-  const h = parseInt(hStr, 10)
-  const m = parseInt(mStr, 10)
-  const isPM = h >= 12
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${h12}:${m.toString().padStart(2, '0')} ${isPM ? 'PM' : 'AM'}`
-}
-
-function estimateDropoffTime(pickupTime: string, distanceKm: number | null): string {
-  if (!distanceKm) return '+ est. duration'
-  // Rough estimate: 45 km/h average urban + 5 min buffer
-  const durationMin = Math.round((distanceKm / 45) * 60) + 5
-  const [hStr, mStr] = pickupTime.split(':')
-  const totalMinutes = parseInt(hStr, 10) * 60 + parseInt(mStr, 10) + durationMin
-  const h = Math.floor(totalMinutes / 60) % 24
-  const m = totalMinutes % 60
-  return formatTime24To12(`${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`)
-}
-
-// ---------------------------------------------------------------------------
 // Component props
 // ---------------------------------------------------------------------------
 interface RouteMapProps {
