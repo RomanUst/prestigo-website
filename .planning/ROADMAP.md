@@ -122,7 +122,7 @@ Plans:
   3. When the client pays through that link, the booking's status updates to paid automatically, reconciled against the same booking record — no duplicate is created.
   4. Operator can instead save an admin-created booking with no payment link at all (e.g. cash or invoice payment), and it's created successfully without requiring any Stripe interaction.
 
-**Plans**: 3/4 plans executed
+**Plans**: 4/4 plans executed
 
 **Wave 1**
 
@@ -138,7 +138,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 64-04-PLAN.md — [BLOCKING] apply migration 056 to live DB + Stripe webhook checkout.session.completed subscription checkpoint
+- [x] 64-04-PLAN.md — [BLOCKING] apply migration 056 to live DB + Stripe webhook checkout.session.completed subscription checkpoint
 
 **UI hint**: yes
 
