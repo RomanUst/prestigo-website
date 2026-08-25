@@ -31,7 +31,7 @@ Requirements for milestone v2.1. Each maps to a roadmap phase.
 - [x] **ANEW-01**: Operator can create a new booking manually from the admin panel
 - [x] **ANEW-02**: On saving an admin-created booking, the operator can generate and attach a Stripe payment link
 - [x] **ANEW-03**: Operator can send the client an email containing the payment link
-- [ ] **ANEW-04**: The booking's payment status updates to paid when the client pays via the link
+- [x] **ANEW-04**: The booking's payment status updates to paid when the client pays via the link
 - [x] **ANEW-05**: An admin-created booking can be saved without a payment link (e.g. cash or invoice)
 
 ## v2 Requirements
@@ -77,5 +77,5 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ANEW-01 | Phase 64 | Complete |
 | ANEW-02 | Phase 64 | Complete |
 | ANEW-03 | Phase 64 | Complete |
-| ANEW-04 | Phase 64 | Pending |
+| ANEW-04 | Phase 64 | Complete |
 | ANEW-05 | Phase 64 | Complete |
