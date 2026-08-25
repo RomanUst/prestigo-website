@@ -467,6 +467,23 @@ export async function PATCH(request: Request) {
       )
     }
 
+    // CR-02: a live Stripe Payment Link is a static object — its unit_amount
+    // can never be updated after creation. Editing the price on a booking
+    // that still carries a live payment_link_url would silently desync the
+    // DB's "authoritative" amount from what Stripe will actually collect if
+    // the client pays via the old link. Block unless the operator explicitly
+    // acknowledges it via override_price (the existing price-tolerance
+    // escape hatch, audited the same way). Deactivating/regenerating the
+    // Stripe link itself is tracked as follow-up — see 64-REVIEW-FIX.md CR-02.
+    if (hasPriceField && current.payment_link_url && !parsed.data.override_price) {
+      return NextResponse.json(
+        {
+          error: 'This booking has a live payment link — its price cannot be edited without override_price, because the link would still charge the old amount',
+        },
+        { status: 409 }
+      )
+    }
+
     // Build updatePayload field-by-field (mass-assignment guard) — never spread the body.
     const tripUpdatePayload: Record<string, unknown> = {}
     for (const field of TRIP_EDIT_FIELDS) {

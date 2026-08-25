@@ -1050,6 +1050,54 @@ describe('PATCH /api/admin/bookings — price-affecting trip-edit (Phase 63 Plan
     expect(res.status).toBe(200)
     expect(stubPushGnetStatus).not.toHaveBeenCalled()
   })
+
+  it('Test 6 (CR-02): price edit on a booking with a live payment_link_url is blocked with 409 unless override_price is set', async () => {
+    const linkedRow: Record<string, unknown> = {
+      ...mockCurrentTripEditBooking,
+      status: 'unpaid',
+      payment_link_url: 'https://buy.stripe.com/live_link',
+      payment_link_id: 'plink_live_123',
+    }
+    const current = makeSelectSingleChain(linkedRow)
+    supabaseServiceStub.from.mockReturnValueOnce(current.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: linkedRow.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1500,
+    }))
+
+    expect(res.status).toBe(409)
+    // No DB write occurred — only the current-row select happened.
+    expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+  })
+
+  it('Test 6b (CR-02): price edit on a live-link booking succeeds when override_price=true', async () => {
+    const linkedRow: Record<string, unknown> = {
+      ...mockCurrentTripEditBooking,
+      status: 'unpaid',
+      payment_link_url: 'https://buy.stripe.com/live_link',
+      payment_link_id: 'plink_live_123',
+    }
+    const current = makeSelectSingleChain(linkedRow)
+    const update = makeUpdateChain()
+    const audit = makeInsertChain()
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce(current.chain)
+      .mockReturnValueOnce(update.chain)
+      .mockReturnValueOnce(audit.chain)
+
+    const res = await PATCH(makePatchRequest({
+      id: linkedRow.id as string,
+      vehicle_class: 'first_class',
+      amount_czk: 1500,
+      override_price: true,
+    }))
+
+    expect(res.status).toBe(200)
+    expect(update.updateFn).toHaveBeenCalledWith(expect.objectContaining({ vehicle_class: 'first_class' }))
+  })
 })
 
 // ═══════════════════════════════════════════════════════════════════════════

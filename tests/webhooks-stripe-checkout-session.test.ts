@@ -334,6 +334,91 @@ describe('checkout.session.completed webhook (ANEW-04, T-64-02/03)', () => {
     expect(sendManagerAlert).toHaveBeenCalledTimes(1)
   })
 
+  it('(j) CR-02: 0-rows-reconciled because the booking left `unpaid` via another path (stale payment link paid) logs a loud alert instead of silently returning', async () => {
+    ;(reconcileBookingByIdToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    // The booking is already `confirmed`, but via a DIFFERENT payment_intent_id
+    // than the one that just paid — e.g. it was manually confirmed (cash) while
+    // its Stripe Payment Link was still live, and the client later paid it too.
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'stripe_processed_events') {
+        const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+        const eq = vi.fn().mockReturnValue({ maybeSingle })
+        const select = vi.fn().mockReturnValue({ eq })
+        return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+      }
+      // table === 'bookings'
+      const single = vi.fn().mockResolvedValue({
+        data: {
+          id: 'booking-uuid-1',
+          status: 'confirmed',
+          payment_intent_id: 'pi_manual_confirm_different',
+          booking_reference: 'PRG-20260501-ABCD',
+        },
+        error: null,
+      })
+      const eq = vi.fn().mockReturnValue({ single })
+      const select = vi.fn().mockReturnValue({ eq })
+      return { select }
+    })
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      expect.stringContaining('possible stale/duplicate payment link'),
+      expect.objectContaining({
+        paymentIntentId: 'pi_link_123',
+        bookingId: 'booking-uuid-1',
+        unexpectedRows: expect.arrayContaining([
+          expect.objectContaining({ id: 'booking-uuid-1', status: 'confirmed', paymentIntentId: 'pi_manual_confirm_different' }),
+        ]),
+      })
+    )
+    // Still no client-facing side-effects — this is a diagnostic-only branch.
+    expect(sendClientConfirmation).not.toHaveBeenCalled()
+    expect(sendManagerAlert).not.toHaveBeenCalled()
+
+    consoleErrorSpy.mockRestore()
+  })
+
+  it('(k) 0-rows-reconciled because the booking is genuinely already confirmed via THIS SAME payment_intent_id (a real Stripe retry) does NOT alert', async () => {
+    ;(reconcileBookingByIdToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    supabaseServiceStub.from.mockImplementation((table: string) => {
+      if (table === 'stripe_processed_events') {
+        const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+        const eq = vi.fn().mockReturnValue({ maybeSingle })
+        const select = vi.fn().mockReturnValue({ eq })
+        return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+      }
+      const single = vi.fn().mockResolvedValue({
+        data: {
+          id: 'booking-uuid-1',
+          status: 'confirmed',
+          payment_intent_id: 'pi_link_123', // SAME payment_intent_id as this event
+          booking_reference: 'PRG-20260501-ABCD',
+        },
+        error: null,
+      })
+      const eq = vi.fn().mockReturnValue({ single })
+      const select = vi.fn().mockReturnValue({ eq })
+      return { select }
+    })
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+
+    expect(consoleErrorSpy).not.toHaveBeenCalledWith(
+      expect.stringContaining('possible stale/duplicate payment link'),
+      expect.anything()
+    )
+
+    consoleErrorSpy.mockRestore()
+  })
+
   it('(i) duplicate delivery of a round-trip event short-circuits before any reconcile call', async () => {
     supabaseServiceStub.from.mockImplementation((table: string) => {
       if (table === 'stripe_processed_events') {

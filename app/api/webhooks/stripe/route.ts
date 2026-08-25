@@ -297,7 +297,43 @@ async function handlePaymentLinkSucceeded(
   // handled (Stripe retry / duplicate delivery, or an already-confirmed row
   // or pair) — skip all side-effects, never mutate again.
   const reconciledRows = [...primaryReconciled, ...siblingReconciled] as PaymentLinkReconciledRow[]
-  if (reconciledRows.length === 0) return
+  if (reconciledRows.length === 0) {
+    // CR-02: an empty union does NOT always mean "harmless Stripe retry".
+    // reconcileBookingByIdToConfirmed's UPDATE is gated on `status = 'unpaid'`
+    // — zero rows also results from a booking that left `unpaid` via some
+    // OTHER path (an operator manually confirmed it, or a price edit),
+    // leaving its Stripe Payment Link live and forgotten. If the client then
+    // pays via that stale link, Stripe just captured a REAL charge with zero
+    // application-level record of it. Distinguish the two cases: a genuine
+    // retry means the row is already `confirmed` under THIS SAME
+    // payment_intent_id; anything else is an untracked capture — alert
+    // loudly so a human investigates (deeper fix — deactivating the Stripe
+    // link itself — is tracked as follow-up, see 64-REVIEW-FIX.md CR-02).
+    const idsToCheck = linkedBookingId ? [bookingId, linkedBookingId] : [bookingId]
+    const supabase = createSupabaseServiceClient()
+    const unexpected: Array<{ id: string; status: unknown; paymentIntentId: unknown; bookingReference: unknown }> = []
+    for (const id of idsToCheck) {
+      const { data: row } = await supabase
+        .from('bookings')
+        .select('id, status, payment_intent_id, booking_reference')
+        .eq('id', id)
+        .single()
+      if (row) {
+        const r = row as { id: string; status: string; payment_intent_id: string | null; booking_reference: string }
+        const isGenuineRetry = r.status === 'confirmed' && r.payment_intent_id === paymentIntentId
+        if (!isGenuineRetry) {
+          unexpected.push({ id: r.id, status: r.status, paymentIntentId: r.payment_intent_id, bookingReference: r.booking_reference })
+        }
+      }
+    }
+    if (unexpected.length > 0) {
+      console.error(
+        '[webhook] checkout.session.completed: Stripe captured a payment for a booking that is no longer `unpaid` and was NOT reconciled — possible stale/duplicate payment link. Manual investigation required.',
+        { paymentIntentId, bookingId, linkedBookingId, unexpectedRows: unexpected }
+      )
+    }
+    return
+  }
 
   // Build the ONE combined confirmation from whichever row(s) succeeded —
   // the primary row when it reconciled, else the sibling (e.g. a retry where
