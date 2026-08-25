@@ -5,6 +5,7 @@ import AddressInput from '@/components/booking/AddressInput'
 import { czkToEur, eurToCzk } from '@/lib/currency'
 import { IATA_RE } from '@/lib/iata-pattern'
 import type { PlaceResult } from '@/types/booking'
+import { truncatePaymentLinkUrl, copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 
 const labelStyle: React.CSSProperties = {
   fontSize: '11px',
@@ -68,14 +69,6 @@ const linkIconButtonStyle: React.CSSProperties = {
   fontWeight: 500,
   letterSpacing: '0.1em',
   textTransform: 'uppercase',
-}
-
-/** E2 overflow rule: display-truncate with a middle ellipsis; the FULL url is
- * always what gets copied / used as the href — truncation is display-only. */
-function truncateMiddle(str: string, max = 46): string {
-  if (str.length <= max) return str
-  const keep = Math.floor((max - 3) / 2)
-  return `${str.slice(0, keep)}...${str.slice(str.length - keep)}`
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
@@ -235,25 +228,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
   }
 
   async function handleCopyLink(url: string) {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(url)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-        return
-      } catch {
-        // fall through to manual-select fallback — never a silent no-op
-      }
-    }
-    // Unsupported-clipboard fallback: auto-select the link text so the
-    // operator can copy manually (E2 error/overflow rule — never silent).
-    const el = document.getElementById('payment-link-url-text')
-    if (el && typeof window !== 'undefined') {
-      const range = document.createRange()
-      range.selectNodeContents(el)
-      const sel = window.getSelection()
-      sel?.removeAllRanges()
-      sel?.addRange(range)
+    const didCopy = await copyPaymentLinkToClipboard(url, 'payment-link-url-text')
+    if (didCopy) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
@@ -494,7 +472,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                     marginBottom: '16px',
                   }}
                 >
-                  {truncateMiddle(paymentLinkUrl)}
+                  {truncatePaymentLinkUrl(paymentLinkUrl)}
                 </div>
                 <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <button type="button" onClick={() => handleCopyLink(paymentLinkUrl)} style={linkIconButtonStyle}>

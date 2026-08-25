@@ -18,6 +18,7 @@ import { UI_TRANSITIONS } from '@/lib/booking-transitions'
 import AddressInput from '@/components/booking/AddressInput'
 import type { PlaceResult } from '@/types/booking'
 import { eurToCzk, czkToEur } from '@/lib/currency'
+import { truncatePaymentLinkUrl, copyPaymentLinkToClipboard } from '@/lib/ui/payment-link-display'
 
 interface Booking {
   id: string
@@ -772,14 +773,6 @@ interface PaymentLinkSectionProps {
   onGenerated: (bookingId: string, url: string, linkedBookingId: string | null) => void
 }
 
-/** E2 overflow rule: display-truncate with a middle ellipsis; the FULL url is
- * always what gets copied / used as the href — truncation is display-only. */
-function truncatePaymentLinkUrl(str: string, max = 46): string {
-  if (str.length <= max) return str
-  const keep = Math.floor((max - 3) / 2)
-  return `${str.slice(0, keep)}...${str.slice(str.length - keep)}`
-}
-
 const paymentLinkIconButtonStyle: React.CSSProperties = {
   background: 'var(--anthracite)',
   border: '1px solid var(--anthracite-light)',
@@ -832,23 +825,10 @@ function PaymentLinkSection({ bookingId, status, paymentLinkUrl, clientEmail, am
   }
 
   async function handleCopyLink(url: string) {
-    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
-      try {
-        await navigator.clipboard.writeText(url)
-        setCopied(true)
-        setTimeout(() => setCopied(false), 2000)
-        return
-      } catch {
-        // fall through to manual-select fallback — never a silent no-op
-      }
-    }
-    const el = document.getElementById(`payment-link-url-text-${bookingId}`)
-    if (el && typeof window !== 'undefined') {
-      const range = document.createRange()
-      range.selectNodeContents(el)
-      const sel = window.getSelection()
-      sel?.removeAllRanges()
-      sel?.addRange(range)
+    const didCopy = await copyPaymentLinkToClipboard(url, `payment-link-url-text-${bookingId}`)
+    if (didCopy) {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
     }
   }
 
