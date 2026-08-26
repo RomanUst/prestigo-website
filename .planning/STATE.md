@@ -24,7 +24,7 @@ current_phase: 64
 See: .planning/PROJECT.md (updated 2026-06-10)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 64 — Admin-Created Bookings with Payment Link
+**Current focus:** Planning next milestone (v2.1 shipped 2026-08-26)
 
 ## Current Position
 

@@ -56,6 +56,37 @@
 
 ---
 
+## Milestone: v2.1 — Admin Booking Management & Payment Recovery
+
+**Shipped:** 2026-08-26
+**Phases:** 3 (62-64) | **Plans:** 13 | **Tasks:** 28
+
+### What Was Built
+Abandoned/unpaid checkout capture with a no-duplicate webhook reconcile and an admin revenue-recovery queue (62); full admin booking editing across schedule/vehicle/route/passenger with server-authoritative price recompute, a per-field edit audit log, and optional branded change-notification email (63); admin-originated bookings with an optional Stripe Payment Link + client email that reconciles the same booking row on `checkout.session.completed` incl. round-trip both legs, plus a no-link cash/invoice path (64).
+
+### What Worked
+- **One webhook, two reconcile paths** — Phase 64's payment-link reconcile deliberately reused Phase 62's status-gated "update existing row, no duplicate" pattern; the integration checker confirmed both branches coexist cleanly in a single handler.
+- **Server-authoritative money** — price and payment-link amounts are always recomputed server-side; the code-review found no client-trust gaps in the core reconcile logic.
+- **Tracer-first phase shape** — 64-01 proved the entire create→link→pay→reconcile path end-to-end before expanding to attach-later and round-trip, keeping later plans low-risk.
+
+### What Was Inefficient
+- **Payment-link lifecycle blind spots** — the code review surfaced 2 blockers (round-trip sibling double-link; stale link after price edit / manual confirm) that the plans missed; caught and fixed post-hoc rather than designed in.
+- **Live-infra gating** — the final phase (64-04) was pure operational work (apply migration, confirm Stripe webhook, live E2E) that stalled twice on a disconnected Supabase connector and a deferred prod test.
+
+### Patterns Established
+- Operational "close the live gap" plans (`files_modified: []`) applying migrations via Supabase MCP + information_schema probe, then gating the real payment on a blocking-human checkpoint.
+- Code-review `--fix` on money logic run conservatively: prefer application-level guards + loud alerts over speculative external-API calls, defer the deeper fix.
+
+### Key Lessons
+- Design the *lifecycle* of a payment artifact (create/edit/cancel/expire), not just its happy-path creation — most blockers lived in the "what happens to the link afterwards" gap.
+- A green unit suite (mocks) is not evidence a payment feature works live; the migration + webhook subscription + a real payment are separate, verification-blocking facts.
+
+### Cost Observations
+- Model mix: Opus orchestration + Sonnet executors/reviewers/fixers.
+- Notable: one code-review pass caught 2 money-logic blockers that unit tests (all green) never would have.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -64,6 +95,7 @@
 |-----------|--------|-------|-----------------|
 | v1.0 SEO Blog | 3 (54-56) | 9 | MDX hybrid model (static JSX + dynamic MDX route) |
 | v2.0 Booking + Auth | 5 (57-61) | 22 | Wave-0 TDD + Supabase MCP live verification |
+| v2.1 Admin Booking + Payment | 3 (62-64) | 13 | Tracer-first phases + one webhook, two reconcile paths |
 
 ### Recurring Issues
 
