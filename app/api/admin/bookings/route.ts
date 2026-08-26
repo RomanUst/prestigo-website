@@ -14,7 +14,7 @@ import { logEmail } from '@/lib/email-log'
 import { sendStatusConfirmedEmail, sendStatusCancelledEmail, sendPostTripEmail, sendBookingChangedEmail, sendPaymentRequestEmail, type BookingChangeEntry } from '@/lib/email'
 import { scheduleQStashReminder } from '@/lib/qstash'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
-import { createBookingPaymentLink } from '@/lib/stripe-payment-links'
+import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
 
 // VALID_TRANSITIONS is the canonical map from lib/booking-transitions.ts (the
@@ -310,12 +310,36 @@ export async function PATCH(request: Request) {
     if (parsed.data.operator_notes !== undefined) updatePayload.operator_notes = parsed.data.operator_notes
     if (parsed.data.driver_price_czk !== undefined) updatePayload.driver_price_czk = parsed.data.driver_price_czk
 
+    // CR-02: a manual transition to a terminal state (confirmed/cancelled) makes any
+    // live payment link stale — the booking has left the payable state by a path other
+    // than the link itself. Clear the link fields now and deactivate it in Stripe after
+    // the row is updated, so a client can no longer pay a forgotten link.
+    let staleLinkIdOnStatus: string | null = null
+    if (
+      current.payment_link_id &&
+      previousStatus !== parsed.data.status &&
+      (parsed.data.status === 'confirmed' || parsed.data.status === 'cancelled')
+    ) {
+      staleLinkIdOnStatus = current.payment_link_id as string
+      updatePayload.payment_link_url = null
+      updatePayload.payment_link_id = null
+    }
+
     const { error: dbError } = await supabase
       .from('bookings')
       .update(updatePayload)
       .eq('id', parsed.data.id)
 
     if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+
+    // CR-02: deactivate the now-cleared Stripe link (fire-and-forget; failure never
+    // blocks the transition — the webhook's stale-capture alert remains the backstop).
+    if (staleLinkIdOnStatus) {
+      const staleId = staleLinkIdOnStatus
+      after(() => deactivateBookingPaymentLink(staleId).catch(err =>
+        console.error('[admin/bookings.PATCH] payment-link deactivate (status):', err)
+      ))
+    }
 
     // D-11: Only fire email when status actually changed
     if (previousStatus !== parsed.data.status) {
@@ -683,12 +707,37 @@ export async function PATCH(request: Request) {
     // whether the edit was a cheap field or a price-affecting field. No push
     // call is made here — this is intentionally the absence of a GNet call.
 
+    // CR-02: a price-affecting edit only reaches here on a linked booking under
+    // override_price (the 409 guard blocks it otherwise). The static link still
+    // charges the OLD amount, so retire it when the CZK amount actually changed:
+    // clear the link fields and deactivate it in Stripe after the row is updated.
+    let staleLinkIdOnPrice: string | null = null
+    if (
+      hasPriceField &&
+      current.payment_link_id &&
+      current.payment_link_url &&
+      tripUpdatePayload.amount_czk !== undefined &&
+      tripUpdatePayload.amount_czk !== current.amount_czk
+    ) {
+      staleLinkIdOnPrice = current.payment_link_id as string
+      tripUpdatePayload.payment_link_url = null
+      tripUpdatePayload.payment_link_id = null
+    }
+
     const { error: dbError } = await supabase
       .from('bookings')
       .update(tripUpdatePayload)
       .eq('id', parsed.data.id)
 
     if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+
+    // CR-02: deactivate the now-cleared, stale-priced Stripe link (fire-and-forget).
+    if (staleLinkIdOnPrice) {
+      const staleId = staleLinkIdOnPrice
+      after(() => deactivateBookingPaymentLink(staleId).catch(err =>
+        console.error('[admin/bookings.PATCH] payment-link deactivate (price override):', err)
+      ))
+    }
 
     // Post-update view: the notification recipient and email body must reflect the
     // MERGED post-update state, not the stale `current` row. Critical when the edited

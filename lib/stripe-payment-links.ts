@@ -70,3 +70,19 @@ export async function createBookingPaymentLink(
 
   return { url: paymentLink.url, id: paymentLink.id }
 }
+
+/**
+ * Deactivate a Payment Link so its URL can no longer be paid (CR-02).
+ *
+ * Payment Links are static/reusable, so a link minted for one amount keeps
+ * charging that amount forever. When a booking leaves the payable state by a
+ * path OTHER than the link itself — an operator manually confirms/cancels it,
+ * or edits its price under override_price — the old link is stale: a client
+ * paying it would capture money the webhook can no longer reconcile in place.
+ * `paymentLinks.update(id, { active: false })` makes the URL show Stripe's
+ * "no longer available" page. Idempotent and safe to call on an already
+ * inactive link.
+ */
+export async function deactivateBookingPaymentLink(paymentLinkId: string): Promise<void> {
+  await getStripe().paymentLinks.update(paymentLinkId, { active: false })
+}

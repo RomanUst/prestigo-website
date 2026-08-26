@@ -47,9 +47,10 @@ const { stubPushGnetStatus } = vi.hoisted(() => {
 })
 
 // Phase 64 Plan 01 — ANEW-02/03: collect-payment POST branch spies.
-const { stubCreateBookingPaymentLink, stubSendPaymentRequestEmail } = vi.hoisted(() => {
+const { stubCreateBookingPaymentLink, stubDeactivateBookingPaymentLink, stubSendPaymentRequestEmail } = vi.hoisted(() => {
   return {
     stubCreateBookingPaymentLink: vi.fn(),
+    stubDeactivateBookingPaymentLink: vi.fn(),
     stubSendPaymentRequestEmail: vi.fn(),
   }
 })
@@ -107,6 +108,7 @@ vi.mock('@/lib/email', () => ({
 
 vi.mock('@/lib/stripe-payment-links', () => ({
   createBookingPaymentLink: stubCreateBookingPaymentLink,
+  deactivateBookingPaymentLink: stubDeactivateBookingPaymentLink,
 }))
 
 vi.mock('@/lib/gnet-client', async () => {
@@ -285,6 +287,7 @@ beforeEach(() => {
 
   // Phase 64 Plan 01 — collect-payment POST branch: default happy-path resolves.
   stubCreateBookingPaymentLink.mockResolvedValue({ url: 'https://buy.stripe.com/test_x', id: 'plink_123' })
+  stubDeactivateBookingPaymentLink.mockResolvedValue(undefined)
   stubSendPaymentRequestEmail.mockResolvedValue(undefined)
 
   // Default rpc: returns empty result set (used by GET handler via admin_search_bookings)
@@ -568,6 +571,57 @@ describe('PATCH /api/admin/bookings', () => {
     expect(res.status).toBe(200)
     const json = await res.json()
     expect(json).toMatchObject({ ok: true })
+  })
+
+  it('CR-02: unpaid -> confirmed on a linked booking clears + deactivates the stale payment link', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: {
+        status: 'unpaid',
+        client_email: 'a@b.com',
+        payment_link_id: 'plink_stale',
+        payment_link_url: 'https://buy.stripe.com/stale',
+      },
+      error: null,
+    })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+
+    let capturedUpdate: Record<string, unknown> | null = null
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockImplementation((payload: Record<string, unknown>) => {
+      capturedUpdate = payload
+      return { eq: updateEqFn }
+    })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectChainFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(200)
+    // The status update nulls the link fields so the UI stops showing a live link…
+    expect(capturedUpdate).toMatchObject({ status: 'confirmed', payment_link_url: null, payment_link_id: null })
+    // …and the stale Stripe link is deactivated so it can no longer be paid.
+    expect(stubDeactivateBookingPaymentLink).toHaveBeenCalledWith('plink_stale')
+  })
+
+  it('CR-02: a status change on a booking with NO link makes no deactivation call', async () => {
+    const singleFn = vi.fn().mockResolvedValue({
+      data: { status: 'unpaid', client_email: 'a@b.com', payment_link_id: null, payment_link_url: null },
+      error: null,
+    })
+    const selectEqFn = vi.fn().mockReturnValue({ single: singleFn })
+    const selectChainFn = vi.fn().mockReturnValue({ eq: selectEqFn })
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    const updateFn = vi.fn().mockReturnValue({ eq: updateEqFn })
+
+    supabaseServiceStub.from
+      .mockReturnValueOnce({ select: selectChainFn })
+      .mockReturnValueOnce({ update: updateFn })
+
+    const res = await PATCH(makePatchRequest({ id: 'a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d', status: 'confirmed' }))
+    expect(res.status).toBe(200)
+    expect(stubDeactivateBookingPaymentLink).not.toHaveBeenCalled()
   })
 
   it('Test 10: returns 200 for valid transition (unpaid -> cancelled) — D-04, D-10', async () => {
