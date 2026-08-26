@@ -5,18 +5,26 @@ status: human_needed
 score: 5/5 must-haves verified
 overrides_applied: 0
 human_verification:
+
   - test: "Открыть http://localhost:3000/blog и проверить визуальный контракт"
     expected: "Сетка карточек 1/2/3 колонки, герой-секция 'Prague travel, explained clearly.', hover-эффекты (copper border, copper-light title, scale 1.02), 4 карточки (1 MDX + 3 JSX)"
     why_human: "Визуальное соответствие дизайн-системе Prestigo нельзя верифицировать grep-анализом; hover-анимации и адаптивность требуют браузера"
+
   - test: "Открыть http://localhost:3000/blog/premium-airport-transfer-prague-shortcut и проверить MDX-рендеринг"
     expected: "Герой с категорией (copper-light), copper-line, h1, ArticleByline; full-bleed cover image 16:9; MDX body с Cormorant Garamond h2/h3, Montserrat 14px p, copper bullet dots; bottom CTA 'Skip the taxi rank. Chauffeur inside Arrivals.'"
     why_human: "Применение MDX-компонентов к prose-контенту, правильные типографические стили и визуальная иерархия требуют браузерной проверки"
+
   - test: "curl -o /dev/null -s -w '%{http_code}' http://localhost:3000/blog/non-existent-slug"
     expected: "HTTP 404"
     why_human: "Требует запущенного сервера (npm run build && npm run start) — нельзя верифицировать статически; поведение dynamicParams=false проверяется только в production build"
+
   - test: "Проверить sitemap.xml в production build"
     expected: "Содержит <loc>https://rideprestigo.com/blog</loc> и <loc>https://rideprestigo.com/blog/premium-airport-transfer-prague-shortcut</loc>; НЕ содержит /blog/prague-airport-to-city-center (JSX slug)"
     why_human: "Sitemap генерируется Next.js при запуске сервера — не доступен для статической проверки"
+audit_acknowledged:
+  milestone: v2.1
+  at: 2026-08-26
+  status: human_needed
 ---
 
 # Phase 55: Blog UI — Listing + Article Pages Verification Report
@@ -117,22 +125,26 @@ human_verification:
 
 **Test:** `npm run dev` → открыть http://localhost:3000/blog
 **Expected:**
+
 - Герой: "Prague travel, explained clearly." (вторая фраза italic copper-pale)
 - Сетка: 4 карточки (1 MDX + 3 JSX), 3 колонки на десктопе
 - Hover на карточке: border → copper, title → copper-light, image scale ~1.02
 - Mobile ≤768px: одна колонка
 - Tab-навигация: focus-visible copper outline на каждой карточке
+
 **Why human:** Адаптивная верстка, CSS hover/focus-стили, визуальное соответствие дизайн-системе — требуют браузера.
 
 #### 2. Визуальный контракт /blog/[slug]
 
 **Test:** `npm run dev` → открыть http://localhost:3000/blog/premium-airport-transfer-prague-shortcut
 **Expected:**
+
 - Герой: category label (copper-light), copper-line, h1, описание, ArticleByline
 - Cover image под героем, full-width 16:9, max-w-4xl
 - MDX body: h2/h3 Cormorant Garamond font-light, p Montserrat 14px warmgrey, li с copper bullet dot
 - Bottom CTA: "Skip the taxi rank. Chauffeur inside Arrivals." + Book button
 - `application/ld+json` в источнике: `"@type":"BlogPosting"`, BreadcrumbList, author block
+
 **Why human:** MDX prose-рендеринг и применение типографических стилей требуют визуальной проверки.
 
 #### 3. HTTP 404 для неизвестного slug
@@ -145,10 +157,12 @@ human_verification:
 
 **Test:** `npm run build && npm run start` → curl http://localhost:3000/sitemap.xml
 **Expected:**
+
 - Содержит `<loc>https://rideprestigo.com/blog</loc>`
 - Содержит `<loc>https://rideprestigo.com/blog/premium-airport-transfer-prague-shortcut</loc>`
 - НЕ содержит `<loc>https://rideprestigo.com/blog/prague-airport-to-city-center</loc>` (JSX slug)
 - Каждая /blog/* запись имеет `<lastmod>` и `<xhtml:link hreflang="en">`, `<xhtml:link hreflang="x-default">`
+
 **Why human:** Sitemap генерируется Next.js роутом — требует запущенного production сервера.
 
 ### Gaps Summary

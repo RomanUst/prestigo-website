@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v2.1
 milestone_name: Admin Booking Management & Payment Recovery
-current_phase: 64
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 64 complete — all phases complete
-last_updated: "2026-08-25T17:32:42.455Z"
-last_activity: 2026-08-25
-last_activity_desc: Phase 64 complete
-state_head: 5b71c86577d33c025e22ca945de1622ce8e66335
+last_updated: "2026-08-26T09:51:45.247Z"
+last_activity: 2026-08-26
+last_activity_desc: Milestone v2.1 completed and archived
+state_head: 92ecdd512fbb502f7b63c84a80c92c616e5b8f79
 progress:
   total_phases: 3
   completed_phases: 3
   total_plans: 13
   completed_plans: 13
   percent: 100
+current_phase: 64
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: 64
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-08-25 — Phase 64 complete
+Phase: Milestone v2.1 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-08-26 — Milestone v2.1 completed and archived
 
 ## Accumulated Context
 
@@ -140,6 +140,19 @@ v2.1 deferred to v2 (per REQUIREMENTS.md):
 | v2 | FOLLOW-01: Automatic reminder email after N hours unpaid | Deferred — follow-up automation, not core payment recovery |
 | v2 | FOLLOW-02: Audit log of admin edits per booking | Deferred — nice-to-have, not blocking operator workflow |
 
+Items acknowledged and deferred at milestone v2.1 close on 2026-08-25 (8 newly acknowledged, 0 carried forward):
+
+| Category | Item | Status | Deferred At | Milestone |
+|----------|------|--------|-------------|-----------|
+| deferred_items | Phase 63: deferred-items.md — pre-existing tests/admin-bookings.test.ts mock failures | acknowledged | 2026-08-25 | v2.1 |
+| uat_gaps | Phase 64: 64-UAT.md | partial (0 pending) | 2026-08-25 | v2.1 |
+| uat_gaps | Phase 53: 53-HUMAN-UAT.md (archived v2.0) | passed | 2026-08-25 | v2.1 |
+| verification_gaps | Phase 55: 55-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
+| verification_gaps | Phase 56: 56-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
+| verification_gaps | Phase 57: 57-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
+| verification_gaps | Phase 58: 58-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
+| verification_gaps | Phase 59: 59-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
+
 ## Session Continuity
 
 Last session: 2026-08-24T17:11:59.661Z
@@ -177,4 +190,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Run `/gsd-plan-phase 62` to plan the Abandoned & Unpaid Booking Capture phase.
+- Start the next milestone with /gsd-new-milestone

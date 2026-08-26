@@ -5,28 +5,39 @@ status: human_needed
 score: 9/9 must-haves verified
 overrides_applied: 0
 deferred:
+
   - truth: "All Meta Pixel + CAPI events preserved (AddPaymentInfo, Purchase) with eventId deduplication — full verification"
     addressed_in: "Phase 61"
     evidence: "REQUIREMENTS.md traceability: 'TRACK-02 | Phase 59 (verified Phase 61) | Pending'. AddPaymentInfo preserved in BookingWizard.tsx line 198. Phase 61 is the end-to-end analytics verification phase."
 human_verification:
+
   - test: "Открыть /book, заполнить форму EntryBar (From/To/Date/Time), нажать «Посмотреть варианты» — убедиться что переход на шаг 2 происходит, ProgressBar показывает Step 1 of 5"
     expected: "Единый экран EntryBar отображается на шаге 1; при валидном заполнении форма переходит на шаг 2 (выбор авто)"
     why_human: "Полный рендеринг Next.js клиентских компонентов, Google Maps не инициализируется в jsdom"
+
   - test: "На шаге 1 ввести аэропортный адрес в поле From (например 'Prague Airport') — убедиться что появляется поле FLIGHT NUMBER"
     expected: "Поле Flight Number появляется только при аэропортном адресе в From (isAirportPlace = true)"
     why_human: "Зависит от реального результата Google Places Autocomplete (PlaceResult с типом airport)"
+
   - test: "На шаге 2 (выбор авто) проверить десктопный layout: карточки слева, StickyBookingPanel справа с картой маршрута"
     expected: "Три карточки авто горизонтально слева, VehicleSlideshow под ними, справа — StickyBookingPanel с RouteMap (если задан origin+destination), заголовок «Choose your experience»"
     why_human: "CSS layout (hidden md:block, sticky panel) требует реального браузера; Google Maps рендерится только с реальным API ключом"
+
   - test: "Нажать кнопку «SELECT BUSINESS» в StickyBookingPanel — проверить что GA4 begin_checkout и Meta InitiateCheckout срабатывают в Network tab"
     expected: "В консоли браузера или Network: gtag('event','begin_checkout',...) и fbq('track','InitiateCheckout',...) вызываются, currentStep переходит на 3"
     why_human: "Реальное поведение аналитики требует живого браузера с подключёнными GA4 и Meta Pixel"
+
   - test: "Проверить визуальное качество vehicle images в /public/vehicles/ — убедиться что Wikimedia placeholder-фото приемлемы для разработки"
     expected: "12 изображений отображаются без 404; контент — реальные Mercedes E-Class/S-Class/V-Class (placeholder, не финальные Higgsfield)"
     why_human: "Визуальная проверка качества изображений; вопрос о времени замены на Higgsfield AI фото — решение человека"
+
   - test: "Автовоспроизведение VehicleSlideshow в браузере — убедиться что смена слайдов происходит каждые 4 секунды и пауза при наведении работает"
     expected: "Слайды переключаются каждые 4с; при наведении мыши на slideshow пауза срабатывает; кнопки Prev/Next работают"
     why_human: "Поведение setInterval + hover-pause требует реального браузера; тесты используют fake timers"
+audit_acknowledged:
+  milestone: v2.1
+  at: 2026-08-26
+  status: human_needed
 ---
 
 # Phase 59: Booking Flow Redesign (Blacklane) — Verification Report

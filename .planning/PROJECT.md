@@ -8,20 +8,15 @@ Prestigo is a premium chauffeur service based in Prague, Czech Republic. The sit
 
 Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction.
 
-## Current State: v2.0 Shipped — v2.1 In Planning
+## Current State: v2.1 Shipped — Next Milestone In Planning
 
-v2.0 delivered Blacklane-style booking UX with full customer authentication and account management. The booking flow features a unified entry bar, Google Maps route visualization, vehicle cards with interior slideshows, and optional in-checkout sign-in. All GA4 + Meta Pixel/CAPI analytics signals preserved.
+v2.1 delivered full operator control of the booking lifecycle inside the admin panel: abandoned/unpaid checkout capture with a no-duplicate webhook reconcile and a revenue-recovery queue (Phase 62); admin booking editing across schedule/vehicle/route/passenger with server-authoritative price recompute, a per-field edit audit log, and optional branded change-notification email (Phase 63); and admin-originated bookings with an optional Stripe payment link + client email that reconciles the same booking row on payment (incl. round-trip both legs), or a no-link cash/invoice save (Phase 64). Milestone audit passed (19/19 requirements, integration sound). Live and deployed on production.
 
-## Current Milestone: v2.1 Admin Booking Management & Payment Recovery
+v2.0 (prior) delivered Blacklane-style booking UX with full customer authentication and account management, all GA4 + Meta Pixel/CAPI analytics signals preserved.
 
-**Goal:** Give the operator full control of the booking lifecycle inside the admin panel — edit bookings with automatic client notification, capture abandoned/unpaid bookings for follow-up, and create bookings with an attachable payment link and client email.
+## Next Milestone: TBD
 
-**Target features:**
-- Edit an existing booking through the admin UI (time, vehicle, route, details) and, on save, automatically email the client a branded change-confirmation.
-- Capture bookings where the client reached checkout but did not pay (card decline, closed window) — persist them with an "unconfirmed / unpaid" status, surfaced separately in admin so the operator can follow up and recover the payment.
-- When creating a booking in the admin panel, offer at save time an option to attach a Stripe payment link and email it to the client.
-
-**Key context:** Built on the existing stack — Supabase `bookings`, Stripe, Resend (branded PRESTIGO email templates already exist), Next.js admin. Guest checkout and admin auth session model remain untouched.
+Start with `/gsd-new-milestone` (questioning → research → requirements → roadmap). Candidate directions carried forward: CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth dashboard credential config (AUTH-02/03), corporate "book for a guest" step (BOOK-06), multilingual account UI, and clearing the pre-existing red test baseline.
 
 ## Requirements
 
@@ -48,14 +43,19 @@ v2.0 delivered Blacklane-style booking UX with full customer authentication and 
 - ✓ BOOK-08: Guest checkout available at every stage; sign-in optional — v2.0 (Phase 60)
 - ✓ TRACK-01/02/03/05: GA4 + Meta Pixel/CAPI events preserved, price snapshot + server-side GA4, CSP/Consent Mode — v2.0 (Phases 59+61)
 - ✓ TRACK-04: GA4 login/sign_up events fire (code-verified; live testing blocked by OTP) — v2.0 (Phase 60+61)
+- ✓ ABND-01..06: Abandoned/unpaid checkout capture, admin unpaid queue + filter, no-duplicate webhook reconcile — v2.1 (Phase 62)
+- ✓ AEDIT-01..07: Admin booking editing (schedule/vehicle/route/passenger), server-authoritative price-change review, optional branded change-notification email — v2.1 (Phase 63)
+- ✓ FOLLOW-02: Per-field audit log of admin edits per booking — v2.1 (Phase 63)
+- ✓ ANEW-01..05: Admin-created bookings, auto price, optional Stripe payment link + email, auto no-duplicate reconcile (incl. round-trip), no-link cash/invoice save — v2.1 (Phase 64)
 
 ### Active
 
-<!-- v2.1 milestone (Admin Booking Management & Payment Recovery) + infrastructure items -->
+<!-- Next milestone (TBD) + infrastructure/tech-debt items carried forward -->
 
-- [ ] v2.1: Admin booking edit UI with automatic client change-confirmation email
-- [ ] v2.1: Capture abandoned/unpaid bookings as "unconfirmed" for admin follow-up
-- [ ] v2.1: Admin-created bookings with attachable Stripe payment link + client email
+- [ ] FOLLOW-01: Automatic reminder email after N hours unpaid (deferred from v2.1)
+- [ ] CR-02 follow-up: actual Stripe Payment Link deactivation (paymentLinks.update active:false) after price edit / manual confirm — v2.1 shipped a 409 guard + loud webhook alert only
+- [ ] Nyquist validation not run for phases 62/63/64 (VALIDATION.md status: draft)
+- [ ] Clear pre-existing red test baseline (12 files failing on main, not v2.1 regressions)
 - [ ] AUTH-02: Google OAuth — code wired; Supabase Dashboard credential config still pending
 - [ ] AUTH-03: Apple OAuth — code wired; Supabase Dashboard credential config still pending
 - [ ] BOOK-06: Booking-method step — "Book for myself / Book as guest"; corporate also "Book for a guest" (deferred from v2.0)
@@ -127,4 +127,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-19 — v2.1 milestone started: Admin Booking Management & Payment Recovery (admin booking edits + change emails, abandoned-booking capture, admin-created bookings with payment links). Planning phase.*
+*Last updated: 2026-08-26 after v2.1 milestone — Admin Booking Management & Payment Recovery shipped (Phases 62–64): abandoned/unpaid capture + recovery queue, admin booking editing with change emails + audit log, admin-created bookings with Stripe payment links. Audit passed 19/19.*

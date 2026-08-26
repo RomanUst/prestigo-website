@@ -1,5 +1,30 @@
 # Milestones
 
+## v2.1 Admin Booking Management & Payment Recovery (Shipped: 2026-08-26)
+
+**Phases completed:** 3 phases, 13 plans, 28 tasks
+
+**Key accomplishments:**
+
+- Proved the whole Phase-62 architecture end-to-end on the thinnest path: a booking row is now written as `unpaid` at PaymentIntent creation and reconciled to `confirmed` by the Stripe webhook (one-way path).
+- Client-generated `attempt_id` now dedups every checkout retry to one unpaid row per (attempt, leg), and round-trip attempts capture and reconcile both legs atomically — the operator's unpaid follow-up queue stays clean for both one-way and round-trip checkouts.
+- Unpaid bookings now get a distinct amber "Unpaid" badge and row tint in the admin list, a dedicated "Unpaid" filter chip independent of trip-type, and a double-gated unpaid→confirmed/unpaid→cancelled transition — turning the captured unpaid rows from 62-01/62-02 into a usable revenue-recovery queue.
+- Closed the live-schema gap: migrations 053 + 054 are applied to the production `rideprestigo` project, so the live DB now matches the phase-62 code (unpaid status, attempt_id capture key, and the admin status filter).
+- booking_edit_audit_log table (migration 055) applied to live Supabase, plus a branded changed-fields-only diff email (sendBookingChangedEmail/buildChangeEmailHtml) that reuses the existing status-email shell chrome.
+- Cheap-field trip-edit PATCH branch (pickup date/time, contact fields, flight number) with per-field audit trail and a notify_client && booking_changed AND-gate, plus a new admin-guarded GET audit-log history route — the backend spine end-to-end from Plan 01's migration and email builder through to a readable change history.
+- Server-authoritative price recompute (never trusting client amount_czk), tolerance-gated 422, explicit-override acceptance, and per-field audit trail for vehicle_class/route/distance_km changes — faithfully ported from the existing POST-handler recompute+override block into the PATCH trip-edit branch, with leg isolation, notification idempotency, and integer-CZK precision pinned by tests.
+- Lazy-per-row-fetch `BookingChangeHistory` component (mirrors `FlightStatusBlock`'s fetch pattern) rendering the Plan 02 audit-log route's rows grouped by shared `changed_at`, newest-first, covering every UI-SPEC state (empty/loading/error+retry/populated) with inline-style-only navy/gold styling.
+- Inline trip-edit mode in BookingsTable.tsx's expandable row — per-field save controls for date/time, name, email, phone, and flight number, plus a vehicle-class/route price-review step (AddressInput + /api/calculate-price + old->new diff + override + notify toggle + 422 handling) and BookingChangeHistory mounted in both mobile and desktop views.
+- Stripe Payment Link generation with server-authoritative amount, persisted URL, branded payment-request email, and a `checkout.session.completed` webhook branch that reconciles the same `unpaid` booking row to `confirmed` with no duplicate insert.
+- D-05 attach-later `[id]/payment-link` route (generate + resend, status set directly) plus round-trip payment-link support: shared-`payment_intent_id` sibling detection with combined-amount email framing, and a webhook branch that reconciles both legs of a round-trip pair with one combined confirmation.
+- Wired the Plan 01/02 payment-link backend onto the operator UI: `ManualBookingForm.tsx` gained a "Collect payment via link" toggle with a no-link status choice and a post-create result panel (copy/resend/EUR), and `BookingsTable.tsx` gained a row-level "Generate Payment Link" action + the same result panel for existing unpaid/pending bookings — all in the established navy/gold inline-style admin idiom, no shadcn.
+
+**Milestone audit:** passed — 19/19 requirements satisfied, cross-phase integration sound, all E2E flows complete (see milestones/v2.1-MILESTONE-AUDIT.md).
+
+**Known verification overrides:** 8 newly acknowledged, 0 carried forward from a prior close (see STATE.md Deferred Items). Closeout type: override_closeout. Notable non-blocking tech debt: CR-02 Stripe Payment Link deactivation follow-up, 12 pre-existing failing test files (baseline, not v2.1 regressions), Nyquist validation not run on 62/63/64.
+
+---
+
 ## v2.0 Blacklane-style Booking + Customer Accounts (Shipped: 2026-06-18)
 
 **Phases completed:** 8 phases, 22 plans, 24 tasks

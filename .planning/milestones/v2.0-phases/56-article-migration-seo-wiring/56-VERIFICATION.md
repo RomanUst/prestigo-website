@@ -8,6 +8,7 @@ re_verification:
   previous_status: gaps_found
   previous_score: 5/7 (8/11 truths)
   gaps_closed:
+
     - "app/guides/ and app/compare/ directories fully gone (empty orphan dirs removed)"
     - "safeJsonLd() applied to all 3 migrated JSX article pages (CR-01)"
     - "BreadcrumbList position 2 item points to /blog hub, not article URL (WR-01)"
@@ -16,15 +17,22 @@ re_verification:
   gaps_remaining: []
   regressions: []
 human_verification:
+
   - test: "curl -sIL https://rideprestigo.com/guides/prague-airport-to-city-center after deploy — verify single 301 hop to /blog/prague-airport-to-city-center (no redirect chain)"
     expected: "HTTP/1.1 301 → Location: https://rideprestigo.com/blog/prague-airport-to-city-center"
     why_human: "Redirect behavior requires live deployed app with new next.config.ts"
+
   - test: "curl -sIL https://rideprestigo.com/guides and curl -sIL https://rideprestigo.com/compare — verify 301 to /blog"
     expected: "HTTP/1.1 301 → Location: /blog in both cases"
     why_human: "Requires live deployment"
+
   - test: "Google Rich Results Test on each of the 3 migrated article URLs — validate BreadcrumbList schema after WR-01 fix"
     expected: "Breadcrumb rich result displayed; position 2 (Blog) points to https://rideprestigo.com/blog; no structural errors"
     why_human: "Requires Google Rich Results Test tooling (search.google.com/test/rich-results); confirms SERP impact of WR-01 fix"
+audit_acknowledged:
+  milestone: v2.1
+  at: 2026-08-26
+  status: human_needed
 ---
 
 # Phase 56: Article Migration + SEO Wiring — Verification Report (Re-verification)

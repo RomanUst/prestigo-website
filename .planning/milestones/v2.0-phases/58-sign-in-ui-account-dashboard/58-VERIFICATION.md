@@ -5,15 +5,22 @@ status: human_needed
 score: 9/9 must-haves verified
 overrides_applied: 0
 human_verification:
+
   - test: "Google OAuth button redirects to provider in a live browser"
     expected: "Clicking 'Continue with Google' on /login initiates an OAuth flow to Google's consent screen"
     why_human: "Requires live Supabase project with Google provider enabled and a real browser session — cannot be verified via grep or unit tests. AUTH-02 scope (Phase 57), not blocking Phase 58 functional completeness."
+
   - test: "Apple OAuth button redirects to provider in a live browser"
     expected: "Clicking 'Continue with Apple' on /login initiates an OAuth flow to Apple's sign-in page"
     why_human: "Requires live Supabase project with Apple provider enabled and a real browser session. AUTH-03 scope (Phase 57), not blocking Phase 58 functional completeness."
+
   - test: "No flash of 'Sign in' for authenticated users on page load"
     expected: "On fresh page load while signed in, the Nav immediately shows the account trigger (avatar circle + chevron) without first rendering 'Sign in'"
     why_human: "Visual timing behavior — depends on browser rendering and Supabase SDK hydration. UAT test 3 confirmed PASS by the user; the eager getUser() call (WR-06) in Nav.tsx is the implementation mechanism. Cannot verify timing programmatically."
+audit_acknowledged:
+  milestone: v2.1
+  at: 2026-08-26
+  status: human_needed
 ---
 
 # Phase 58: Sign-in UI + Account Dashboard — Verification Report
@@ -134,6 +141,7 @@ No anti-patterns found. The grep for `TBD|FIXME|XXX|placeholder|coming soon|will
 | (none) | — | — | — | — |
 
 **Note:** Two blockers were found and fixed during UAT before the review phase completed:
+
 1. CSP `script-src` missing `'self'` in dev mode (`middleware.ts`) — fixed, severity: blocker
 2. `<Nav />` missing on `/account`, `/account/trips`, `/account/profile`, `/login` — fixed, severity: blocker
 

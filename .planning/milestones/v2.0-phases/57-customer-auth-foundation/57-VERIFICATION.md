@@ -5,27 +5,38 @@ status: human_needed
 score: 8/8 must-haves verified
 overrides_applied: 0
 human_verification:
+
   - test: "Magic-link email: visit /login, запросить magic-link, открыть письмо, перейти по ссылке — убедиться, что открывается /account в состоянии «You are signed in.», строка customer_profiles создана (account_type = personal)"
     expected: "Успешная аутентификация через email magic-link; строка customer_profiles появляется в Supabase"
     why_human: "Требует реального почтового ящика и живого SMTP Supabase"
+
   - test: "Google OAuth: на /login нажать «Continue with Google», завершить вход — убедиться, что редирект ведёт на /account, console без CSP-нарушений, строка customer_profiles создана"
     expected: "Успешный вход через Google; строка customer_profiles с account_type = personal"
     why_human: "Требует live-провайдера Google в Supabase Dashboard и реального браузера"
+
   - test: "Apple OAuth: на /login нажать «Continue with Apple» — если провайдер включён, убедиться в аналогичном результате. Если Apple не настроен, зафиксировать как отложенное."
     expected: "Успешный вход через Apple (или явная отметка «не настроен»)"
     why_human: "Требует Apple Services ID, .p8-ключа и live-провайдера в Supabase Dashboard"
+
   - test: "Регистрация Corporate: /login → «Create one» → выбрать Corporate, ввести название компании + email + пароль → подтвердить email → /account; строка customer_profiles с account_type = corporate и company_name"
     expected: "Корпоративный профиль создан с нужным account_type и company_name"
     why_human: "Требует реального email-подтверждения"
+
   - test: "Password reset: /login → «Forgot password?» → submit email → перейти по ссылке из письма → /account/reset-password, задать новый пароль → редирект на /account → войти с новым паролем"
     expected: "Полный end-to-end reset-flow работает"
     why_human: "Требует реального письма со ссылкой для сброса"
+
   - test: "Разделение admin/customer: войдя как customer, перейти на /admin → убедиться в редиректе на / (не на /admin/login, не 403). Проверить, что вход администратора через /admin/login по-прежнему работает."
     expected: "Customer не может получить доступ к /admin; admin-маршрут не нарушен"
     why_human: "Требует двух реальных аккаунтов (customer + admin) и браузера"
+
   - test: "Sign-out: на /account нажать «Sign out» → редирект на /; затем зайти на /account напрямую → редирект на /login?return-to=%2Faccount"
     expected: "Сессия полностью очищается; /account снова защищён"
     why_human: "Требует браузерной сессии для проверки cookie-invalidation"
+audit_acknowledged:
+  milestone: v2.1
+  at: 2026-08-26
+  status: human_needed
 ---
 
 # Phase 57: Customer Auth Foundation — Verification Report
