@@ -13,33 +13,44 @@ vi.stubGlobal('fetch', fetchMock)
 
 const ORIGINAL_ENV = { ...process.env }
 
-// ── helper: build a Places API New (v1) review object ────────────────────────
+// ── The reviews layer now uses OAuth (refresh-token) + the Google Business
+//    Profile API (mybusiness.googleapis.com/v4/{location}/reviews), NOT the old
+//    Places API New (v1) with an API key. Each getReviews() therefore issues TWO
+//    fetches: the OAuth token exchange, then the reviews call. ──
+
+const STAR: Record<number, string> = { 1: 'ONE', 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 'FIVE' }
+
+// helper: build a Business Profile API review object
 function makeReview(overrides: {
   displayName?: string
   rating?: number
   text?: string
-  relativeTime?: string
+  createTime?: string
   photoUri?: string
-  publishTime?: string
 }) {
   return {
-    rating: overrides.rating ?? 5,
-    text: { text: overrides.text ?? 'Great service', languageCode: 'en' },
-    originalText: { text: overrides.text ?? 'Great service', languageCode: 'en' },
-    relativePublishTimeDescription: overrides.relativeTime ?? '1 month ago',
-    publishTime: overrides.publishTime ?? '2026-01-01T00:00:00Z',
-    authorAttribution: {
+    starRating: STAR[overrides.rating ?? 5],
+    comment: overrides.text ?? 'Great service',
+    createTime: overrides.createTime ?? '2026-01-01T00:00:00Z',
+    reviewer: {
       displayName: overrides.displayName ?? 'Test User',
-      uri: 'https://google.com/maps/contrib/123',
-      photoUri: overrides.photoUri ?? 'https://lh3.googleusercontent.com/photo.jpg',
+      profilePhotoUrl: overrides.photoUri ?? 'https://lh3.googleusercontent.com/photo.jpg',
     },
   }
 }
 
+// Queue the OAuth token response followed by a reviews response for one getReviews() call.
+function queueGoogleFlow(reviews: unknown[]) {
+  fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'tok-123' }) })
+  fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ reviews }) })
+}
+
 beforeEach(() => {
   vi.clearAllMocks()
-  process.env.GOOGLE_PLACE_ID = 'ChIJtest_place_id'
-  process.env.GOOGLE_MAPS_API_KEY = 'test_api_key'
+  process.env.GOOGLE_OAUTH_CLIENT_ID = 'test-client-id'
+  process.env.GOOGLE_OAUTH_CLIENT_SECRET = 'test-client-secret'
+  process.env.GOOGLE_OAUTH_REFRESH_TOKEN = 'test-refresh-token'
+  process.env.GOOGLE_BUSINESS_LOCATION_NAME = 'accounts/111/locations/222'
 })
 
 afterEach(() => {
@@ -50,23 +61,26 @@ import { getReviews, HARDCODED_TESTIMONIALS, MAX_POOL } from '@/lib/google-revie
 
 // ─── GRVW-01: API call parameters ────────────────────────────────────────────
 
-describe('GRVW-01: fetchGoogleReviews calls Places API New (v1) with correct params', () => {
-  it('requests places.googleapis.com/v1/places/{place_id} with correct headers', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ reviews: [] }),
-    })
+describe('GRVW-01: fetchGoogleReviews calls OAuth + Business Profile API with correct params', () => {
+  it('exchanges the refresh token, then requests mybusiness.googleapis.com/.../reviews with a Bearer token', async () => {
+    queueGoogleFlow([])
 
     await getReviews()
 
-    expect(fetchMock).toHaveBeenCalledTimes(1)
-    const calledUrl = fetchMock.mock.calls[0][0] as string
-    const calledOptions = fetchMock.mock.calls[0][1] as RequestInit & { headers: Record<string, string> }
+    expect(fetchMock).toHaveBeenCalledTimes(2)
 
-    expect(calledUrl).toMatch(/places\.googleapis\.com\/v1\/places\/ChIJtest_place_id/)
-    expect(calledOptions.headers['X-Goog-Api-Key']).toBe('test_api_key')
-    expect(calledOptions.headers['X-Goog-FieldMask']).toBe('reviews')
-    expect(calledOptions.cache).toBe('no-store')
+    // 1st call: OAuth token exchange
+    const oauthUrl = fetchMock.mock.calls[0][0] as string
+    const oauthOpts = fetchMock.mock.calls[0][1] as RequestInit
+    expect(oauthUrl).toBe('https://oauth2.googleapis.com/token')
+    expect(oauthOpts.method).toBe('POST')
+
+    // 2nd call: Business Profile reviews
+    const reviewsUrl = fetchMock.mock.calls[1][0] as string
+    const reviewsOpts = fetchMock.mock.calls[1][1] as RequestInit & { headers: Record<string, string> }
+    expect(reviewsUrl).toMatch(/mybusiness\.googleapis\.com\/v4\/accounts\/111\/locations\/222\/reviews/)
+    expect(reviewsOpts.headers.Authorization).toBe('Bearer tok-123')
+    expect(reviewsOpts.cache).toBe('no-store')
   })
 })
 
@@ -74,16 +88,11 @@ describe('GRVW-01: fetchGoogleReviews calls Places API New (v1) with correct par
 
 describe('GRVW-01 + GRVW-03: rating and text filter', () => {
   it('includes reviews with rating >= 4 and non-empty text', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [
-          makeReview({ displayName: 'Alice', rating: 5, text: 'great' }),
-          makeReview({ displayName: 'Bob', rating: 4, text: 'ok' }),
-          makeReview({ displayName: 'Carol', rating: 3, text: 'meh' }),
-        ],
-      }),
-    })
+    queueGoogleFlow([
+      makeReview({ displayName: 'Alice', rating: 5, text: 'great' }),
+      makeReview({ displayName: 'Bob', rating: 4, text: 'ok' }),
+      makeReview({ displayName: 'Carol', rating: 3, text: 'meh' }),
+    ])
 
     const result = await getReviews()
     const googleItems = result.filter((r) => r.source === 'google')
@@ -93,12 +102,7 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
   })
 
   it('excludes reviews with rating < 4', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [makeReview({ displayName: 'Dave', rating: 3, text: 'Not great' })],
-      }),
-    })
+    queueGoogleFlow([makeReview({ displayName: 'Dave', rating: 3, text: 'Not great' })])
 
     const result = await getReviews()
     const googleItems = result.filter((r) => r.source === 'google')
@@ -106,15 +110,10 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
   })
 
   it('excludes reviews with empty or whitespace-only text', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [
-          { ...makeReview({ displayName: 'Eve', rating: 5 }), text: { text: '', languageCode: 'en' } },
-          { ...makeReview({ displayName: 'Frank', rating: 5 }), text: { text: '   ', languageCode: 'en' } },
-        ],
-      }),
-    })
+    queueGoogleFlow([
+      makeReview({ displayName: 'Eve', rating: 5, text: '' }),
+      makeReview({ displayName: 'Frank', rating: 5, text: '   ' }),
+    ])
 
     const result = await getReviews()
     const googleItems = result.filter((r) => r.source === 'google')
@@ -122,21 +121,15 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
   })
 
   it('maps response fields to GoogleReview shape', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [
-          makeReview({
-            displayName: 'Alice',
-            rating: 5,
-            text: 'Excellent',
-            relativeTime: '3 months ago',
-            photoUri: 'https://x/p.jpg',
-            publishTime: '2025-10-01T00:00:00Z',
-          }),
-        ],
+    queueGoogleFlow([
+      makeReview({
+        displayName: 'Alice',
+        rating: 5,
+        text: 'Excellent',
+        photoUri: 'https://x/p.jpg',
+        createTime: '2025-10-01T00:00:00Z',
       }),
-    })
+    ])
 
     const result = await getReviews()
     const googleItem = result.find((r) => r.source === 'google')
@@ -145,7 +138,9 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
       expect(googleItem.author).toBe('Alice')
       expect(googleItem.rating).toBe(5)
       expect(googleItem.text).toBe('Excellent')
-      expect(googleItem.relativeTime).toBe('3 months ago')
+      // relativeTime is computed from createTime (not taken from the response)
+      expect(typeof googleItem.relativeTime).toBe('string')
+      expect(googleItem.relativeTime).toMatch(/ago$/)
       expect(googleItem.profilePhotoUrl).toBe('https://x/p.jpg')
       expect(typeof googleItem.time).toBe('number')
     }
@@ -154,23 +149,18 @@ describe('GRVW-01 + GRVW-03: rating and text filter', () => {
 
 // ─── GRVW-02: 24h cache ───────────────────────────────────────────────────────
 
-describe('GRVW-02: 24h cache — fetch called once across repeated invocations', () => {
-  it('calls fetch twice when getReviews is invoked twice (pass-through mock does not cache)', async () => {
-    const mockResponse = {
-      ok: true,
-      json: async () => ({
-        reviews: [makeReview({ displayName: 'Alice', rating: 5, text: 'Great' })],
-      }),
-    }
-    fetchMock.mockResolvedValueOnce(mockResponse)
-    fetchMock.mockResolvedValueOnce(mockResponse)
+describe('GRVW-02: 24h cache — fetch not re-issued in production', () => {
+  it('issues two fetches (OAuth + reviews) per getReviews when the cache is a pass-through', async () => {
+    queueGoogleFlow([makeReview({ displayName: 'Alice', rating: 5, text: 'Great' })])
+    queueGoogleFlow([makeReview({ displayName: 'Alice', rating: 5, text: 'Great' })])
 
     await getReviews()
     await getReviews()
 
-    // unstable_cache mock is a pass-through, so fetch is called twice
-    // Production uses real cache which would call once
-    expect(fetchMock.mock.calls.length).toBe(2)
+    // unstable_cache is mocked as a pass-through, so each call hits the network:
+    // 2 getReviews × (OAuth + reviews) = 4 fetches. Production's real cache would
+    // collapse repeated invocations within the TTL.
+    expect(fetchMock.mock.calls.length).toBe(4)
   })
 })
 
@@ -185,8 +175,8 @@ describe('GRVW-02: unstable_cache wraps fetchGoogleReviews', () => {
 // ─── GRVW-04: graceful fallback ───────────────────────────────────────────────
 
 describe('GRVW-04: graceful fallback', () => {
-  it('returns hardcoded-only pool when GOOGLE_PLACE_ID is unset', async () => {
-    delete process.env.GOOGLE_PLACE_ID
+  it('returns hardcoded-only pool with no fetch when OAuth credentials are unset', async () => {
+    delete process.env.GOOGLE_OAUTH_REFRESH_TOKEN
 
     const result = await getReviews()
 
@@ -195,39 +185,35 @@ describe('GRVW-04: graceful fallback', () => {
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
   })
 
-  it('returns hardcoded-only pool when GOOGLE_MAPS_API_KEY is unset', async () => {
-    delete process.env.GOOGLE_MAPS_API_KEY
+  it('returns hardcoded-only pool when the business location name is unset', async () => {
+    delete process.env.GOOGLE_BUSINESS_LOCATION_NAME
+    // OAuth still resolves; the reviews call is skipped once no location is present.
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'tok-123' }) })
 
     const result = await getReviews()
 
-    expect(fetchMock.mock.calls.length).toBe(0)
     expect(result).toHaveLength(3)
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
   })
 
-  it('returns hardcoded-only pool when fetch throws', async () => {
+  it('returns hardcoded-only pool when the OAuth exchange throws', async () => {
     fetchMock.mockRejectedValueOnce(new Error('network down'))
 
     const result = await getReviews()
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
   })
 
-  it('returns hardcoded-only pool when response is not ok', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 404,
-      json: async () => ({}),
-    })
+  it('returns hardcoded-only pool when the reviews response is not ok', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'tok-123' }) })
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 404, json: async () => ({}) })
 
     const result = await getReviews()
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
   })
 
-  it('returns hardcoded-only pool when reviews array is absent', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({}),
-    })
+  it('returns hardcoded-only pool when the reviews array is absent', async () => {
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({ access_token: 'tok-123' }) })
+    fetchMock.mockResolvedValueOnce({ ok: true, json: async () => ({}) })
 
     const result = await getReviews()
     expect(result.every((r) => r.source === 'hardcoded')).toBe(true)
@@ -238,15 +224,10 @@ describe('GRVW-04: graceful fallback', () => {
 
 describe('GRVW-05: merge order — Google first, hardcoded fills remainder', () => {
   it('puts Google reviews first when both sources have content', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [
-          makeReview({ displayName: 'Alice', rating: 5, text: 'Great' }),
-          makeReview({ displayName: 'Bob', rating: 4, text: 'Good' }),
-        ],
-      }),
-    })
+    queueGoogleFlow([
+      makeReview({ displayName: 'Alice', rating: 5, text: 'Great' }),
+      makeReview({ displayName: 'Bob', rating: 4, text: 'Good' }),
+    ])
 
     const result = await getReviews()
     expect(result[0].source).toBe('google')
@@ -255,18 +236,13 @@ describe('GRVW-05: merge order — Google first, hardcoded fills remainder', () 
   })
 
   it('omits hardcoded testimonials when Google returns 5 qualifying reviews', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [
-          makeReview({ displayName: 'A', rating: 5, text: 'Excellent 1' }),
-          makeReview({ displayName: 'B', rating: 5, text: 'Excellent 2' }),
-          makeReview({ displayName: 'C', rating: 5, text: 'Excellent 3' }),
-          makeReview({ displayName: 'D', rating: 5, text: 'Excellent 4' }),
-          makeReview({ displayName: 'E', rating: 5, text: 'Excellent 5' }),
-        ],
-      }),
-    })
+    queueGoogleFlow([
+      makeReview({ displayName: 'A', rating: 5, text: 'Excellent 1' }),
+      makeReview({ displayName: 'B', rating: 5, text: 'Excellent 2' }),
+      makeReview({ displayName: 'C', rating: 5, text: 'Excellent 3' }),
+      makeReview({ displayName: 'D', rating: 5, text: 'Excellent 4' }),
+      makeReview({ displayName: 'E', rating: 5, text: 'Excellent 5' }),
+    ])
 
     const result = await getReviews()
     expect(result).toHaveLength(5)
@@ -274,29 +250,19 @@ describe('GRVW-05: merge order — Google first, hardcoded fills remainder', () 
   })
 
   it('returns up to MAX_POOL items when Google returns fewer than MAX_GOOGLE reviews', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: [
-          makeReview({ displayName: 'A', rating: 5, text: 'Great 1' }),
-          makeReview({ displayName: 'B', rating: 5, text: 'Great 2' }),
-        ],
-      }),
-    })
+    queueGoogleFlow([
+      makeReview({ displayName: 'A', rating: 5, text: 'Great 1' }),
+      makeReview({ displayName: 'B', rating: 5, text: 'Great 2' }),
+    ])
 
     const result = await getReviews()
     expect(result).toHaveLength(Math.min(MAX_POOL, 2 + 3))
   })
 
   it('caps the merged pool at MAX_POOL items', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        reviews: Array.from({ length: 5 }, (_, i) =>
-          makeReview({ displayName: String(i), rating: 5, text: `Review ${i}` }),
-        ),
-      }),
-    })
+    queueGoogleFlow(
+      Array.from({ length: 5 }, (_, i) => makeReview({ displayName: String(i), rating: 5, text: `Review ${i}` })),
+    )
 
     const result = await getReviews()
     expect(result.length).toBeLessThanOrEqual(MAX_POOL)
