@@ -26,7 +26,7 @@ describe('VehicleSlideshow', () => {
       expect(images.length).toBeGreaterThanOrEqual(1)
     })
 
-    it('auto-advances to the next slide after 4000 ms', async () => {
+    it('auto-advances to the next slide after one interval (1500 ms)', async () => {
       render(<VehicleSlideshow />)
 
       // Capture what is "active" before advancing (e.g. aria-current or data-active)
@@ -38,10 +38,12 @@ describe('VehicleSlideshow', () => {
         : 0
 
       act(() => {
-        vi.advanceTimersByTime(4000)
+        vi.advanceTimersByTime(1500)
       })
 
-      // After 4 s, active index must have changed
+      // After one interval, active index must have advanced (0 -> 1).
+      // NB: the class has 2 slides at a 1500 ms cadence, so advancing a full
+      // 4000 ms would wrap 0 -> 1 -> 0 and appear unchanged; assert one step.
       const afterActiveSlides = document.querySelectorAll('[aria-current="true"], [data-active="true"]')
       const afterIndex = afterActiveSlides.length > 0
         ? parseInt((afterActiveSlides[0] as HTMLElement).dataset.index ?? '0', 10)

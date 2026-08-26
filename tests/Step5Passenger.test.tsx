@@ -1,6 +1,31 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import type { FlightCheckResult } from '@/types/booking'
+
+// Step5Passenger builds a Supabase browser client at render (createBrowserClient
+// for passenger prefill). Provide the required public env + a stub client so the
+// component mounts without a live Supabase project.
+process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://test.supabase.co'
+process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = 'test-anon-key'
+
+vi.mock('@supabase/ssr', () => ({
+  createBrowserClient: () => ({
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user: null }, error: null }),
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+    },
+    from: vi.fn(() => {
+      const chain = {
+        select: vi.fn(() => chain),
+        eq: vi.fn(() => chain),
+        single: vi.fn().mockResolvedValue({ data: null, error: null }),
+        maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+      }
+      return chain
+    }),
+  }),
+}))
+
 import Step5Passenger from '@/components/booking/steps/Step5Passenger'
 
 // ---------------------------------------------------------------------------
