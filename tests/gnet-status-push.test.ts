@@ -47,6 +47,8 @@ vi.mock('@/lib/supabase/server', () => ({
   createClient: async () => ({
     auth: { getUser: async () => ({ data: { user: { id: 'admin', app_metadata: { is_admin: true } } }, error: null }) },
   }),
+  // Route auth migrated to getAdminUser(); these tests always run as an admin.
+  getAdminUser: async () => ({ user: { id: 'admin', app_metadata: { is_admin: true } }, error: null }),
 }))
 
 vi.mock('@/lib/email-log', () => ({

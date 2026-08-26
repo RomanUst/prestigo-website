@@ -425,7 +425,7 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
     expect(json).toHaveProperty('ok', true)
   })
 
-  it('Test 11: returns 400 with error=expired for expired token', async () => {
+  it('Test 11: returns 400 with uniform error=invalid_token for expired token (anti-enumeration)', async () => {
     const mockAssignment = {
       id: 'a1a2a3a4-0000-0000-0000-000000000001',
       booking_id: bookingId,
@@ -443,10 +443,10 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
     const res = await respondPost(makeRespondRequest({ token: assignmentToken, action: 'accepted' }))
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error).toBe('expired')
+     expect(json.error).toBe('invalid_token')
   })
 
-  it('Test 12: returns 400 with error=used for already-used token', async () => {
+  it('Test 12: returns 400 with uniform error=invalid_token for already-used token (anti-enumeration)', async () => {
     const mockAssignment = {
       id: 'a1a2a3a4-0000-0000-0000-000000000001',
       booking_id: bookingId,
@@ -464,10 +464,10 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
     const res = await respondPost(makeRespondRequest({ token: assignmentToken, action: 'accepted' }))
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error).toBe('used')
+     expect(json.error).toBe('invalid_token')
   })
 
-  it('Test 13: returns 400 with error=not_found for unknown token', async () => {
+  it('Test 13: returns 400 with uniform error=invalid_token for unknown token (anti-enumeration)', async () => {
     const singleFn = vi.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } })
     const eqFn = vi.fn().mockReturnValue({ single: singleFn })
     const selectFn = vi.fn().mockReturnValue({ eq: eqFn })
@@ -476,7 +476,7 @@ describe('DRIVER-04: POST /api/driver/respond', () => {
     const res = await respondPost(makeRespondRequest({ token: assignmentToken, action: 'accepted' }))
     expect(res.status).toBe(400)
     const json = await res.json()
-    expect(json.error).toBe('not_found')
+     expect(json.error).toBe('invalid_token')
   })
 
   it('Test 14: calls sendDriverDeclineNotification when action=declined', async () => {

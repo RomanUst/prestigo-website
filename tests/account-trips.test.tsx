@@ -30,7 +30,18 @@ vi.mock('@/lib/supabase/server', () => ({
     auth: {
       getUser: mockGetUser,
     },
-    // Note: no `from` mock needed — Phase 58 trips page makes no DB query (D-01)
+    // The trips page now queries bookings (added post-Phase-58): from('bookings')
+    // .select().eq().order().limit(). Return an empty result so the ACCT-01
+    // empty-state assertions hold.
+    from: vi.fn(() => {
+      const chain = {
+        select: vi.fn(() => chain),
+        eq: vi.fn(() => chain),
+        order: vi.fn(() => chain),
+        limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+      }
+      return chain
+    }),
   }),
 }))
 

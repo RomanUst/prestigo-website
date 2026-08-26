@@ -33,6 +33,15 @@ const { supabaseAuthStub, supabaseServiceStub } = vi.hoisted(() => {
 
 vi.mock('@/lib/supabase/server', () => ({
   createClient: vi.fn(() => Promise.resolve(supabaseAuthStub)),
+  // Route auth migrated from createClient() to getAdminUser(); mirror the real
+  // getAdminUser logic against the same auth stub so existing per-test
+  // getUser.mockResolvedValue() 401/403/200 drivers keep working.
+  getAdminUser: vi.fn(async () => {
+    const { data: { user } = { user: null }, error } = await supabaseAuthStub.auth.getUser()
+    if (error || !user) return { user: null, error: '401' as const }
+    if (!user.app_metadata?.is_admin) return { user: null, error: '403' as const }
+    return { user, error: null }
+  }),
 }))
 
 vi.mock('@/lib/supabase', () => ({

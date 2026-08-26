@@ -43,7 +43,7 @@ describe('GET /api/validate-promo', () => {
     expect(json).toEqual({ valid: true, discountPct: 15 })
   })
 
-  it('Test 2: expired/inactive code returns { valid: false, error: "Code not found, expired, or inactive." }', async () => {
+  it('Test 2: expired/inactive code returns uniform { valid: false, error: "Invalid or unavailable code." } (SEC-12 anti-enumeration)', async () => {
     const maybeSingleFn = vi.fn().mockResolvedValue({
       data: null,
       error: null,
@@ -57,10 +57,10 @@ describe('GET /api/validate-promo', () => {
     const res = await GET(makeGetRequest('http://localhost/api/validate-promo?code=EXPIRED'))
     expect(res.status).toBe(200)
     const json = await res.json()
-    expect(json).toEqual({ valid: false, error: 'Code not found, expired, or inactive.' })
+    expect(json).toEqual({ valid: false, error: 'Invalid or unavailable code.' })
   })
 
-  it('Test 3: exhausted code (current_uses >= max_uses) returns { valid: false, error: "...usage limit." }', async () => {
+  it('Test 3: exhausted code (current_uses >= max_uses) returns uniform { valid: false, error: "Invalid or unavailable code." } (SEC-12 anti-enumeration)', async () => {
     const maybeSingleFn = vi.fn().mockResolvedValue({
       data: { discount_value: 10, max_uses: 10, current_uses: 10 },
       error: null,
@@ -74,7 +74,7 @@ describe('GET /api/validate-promo', () => {
     const res = await GET(makeGetRequest('http://localhost/api/validate-promo?code=MAXED'))
     expect(res.status).toBe(200)
     const json = await res.json()
-    expect(json).toEqual({ valid: false, error: 'This promo code has reached its usage limit.' })
+    expect(json).toEqual({ valid: false, error: 'Invalid or unavailable code.' })
   })
 
   it('Test 4: missing code param returns { valid: false, error: "No code provided." }', async () => {

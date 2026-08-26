@@ -143,11 +143,18 @@ beforeEach(() => {
 })
 
 describe('GET /api/gnet/farmin (FARMIN-02)', () => {
-  it('returns 200 with { success: true } and no auth required', async () => {
-    const res = await GET()
+  it('returns 200 with { success: true } for a valid Basic-Auth health check (SEC-19)', async () => {
+    const req = new Request('http://localhost/api/gnet/farmin', { headers: { authorization: validAuth } })
+    const res = await GET(req)
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual({ success: true })
+  })
+
+  it('returns 401 for the health check without Basic Auth (SEC-19)', async () => {
+    const req = new Request('http://localhost/api/gnet/farmin')
+    const res = await GET(req)
+    expect(res.status).toBe(401)
   })
 })
 
