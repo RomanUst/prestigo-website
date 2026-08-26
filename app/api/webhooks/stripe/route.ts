@@ -1,5 +1,6 @@
 import { NextResponse, after } from 'next/server'
 import Stripe from 'stripe'
+import { eurToCzk } from '@/lib/currency'
 import {
   saveBooking,
   withRetry,
@@ -353,7 +354,7 @@ async function handlePaymentLinkSucceeded(
     luggage: row.luggage ?? 0,
     hours: row.hours ?? undefined,
     distanceKm: row.distance_km ?? undefined,
-    amountCzk: row.amount_czk ?? Math.round(row.amount_eur ? row.amount_eur / 0.04 : 0),
+    amountCzk: row.amount_czk ?? eurToCzk(row.amount_eur ?? 0),
     extraChildSeat: row.extra_child_seat ?? false,
     extraMeetGreet: row.extra_meet_greet ?? false,
     extraLuggage: row.extra_luggage ?? false,

@@ -140,7 +140,6 @@ interface RouteMapProps {
   origin: PlaceResult | null
   destination: PlaceResult | null
   pickupTime?: string | null    // 24h HH:MM
-  distanceKm?: number | null
 }
 
 // ---------------------------------------------------------------------------
@@ -150,7 +149,6 @@ export default function RouteMap({
   origin,
   destination,
   pickupTime = null,
-  distanceKm = null,
 }: RouteMapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
 
@@ -286,7 +284,7 @@ export default function RouteMap({
       cancelled = true
       if (cancelAnimation) cancelAnimation()
     }
-  }, [origin, destination, pickupTime, distanceKm])
+  }, [origin, destination, pickupTime])
 
   // Empty state when no route info available
   if (!origin || !destination) {

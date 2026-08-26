@@ -170,7 +170,6 @@ export default function StickyBookingPanel() {
         origin={origin}
         destination={destination}
         pickupTime={pickupTime}
-        distanceKm={distanceKm}
       />
 
       {/* Pickup / dropoff time row */}

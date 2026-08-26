@@ -1103,7 +1103,7 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
-      subject: `Your booking ${escapeHtml(booking.booking_reference)} is confirmed — Prestigo`,
+      subject: `Your booking ${booking.booking_reference} is confirmed — Prestigo`,
       html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.'),
     })
     if (error) console.error('[booking-notify] confirmed email error:', error)
@@ -1117,7 +1117,7 @@ export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Pro
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
-      subject: `Booking ${escapeHtml(booking.booking_reference)} cancelled — Prestigo`,
+      subject: `Booking ${booking.booking_reference} cancelled — Prestigo`,
       html: buildStatusEmailHtml(booking, 'Booking Cancelled', 'If you have any questions, please contact us.'),
     })
     if (error) console.error('[booking-notify] cancelled email error:', error)
@@ -1233,7 +1233,7 @@ export async function sendBookingChangedEmail(booking: StatusEmailBooking, chang
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
-      subject: `Your booking ${escapeHtml(booking.booking_reference)} was updated — Prestigo`,
+      subject: `Your booking ${booking.booking_reference} was updated — Prestigo`,
       html: buildChangeEmailHtml(booking, changes),
     })
     if (error) console.error('[booking-notify] changed email error:', error)
@@ -1387,7 +1387,7 @@ export async function sendPaymentRequestEmail(data: PaymentRequestEmailData): Pr
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.clientEmail],
-      subject: `Complete your payment for ${escapeHtml(data.bookingReference)} — Prestigo`,
+      subject: `Complete your payment for ${data.bookingReference} — Prestigo`,
       html: buildPaymentRequestHtml(data),
     })
     if (error) console.error('[payment-request] email error:', error)
@@ -1996,7 +1996,7 @@ export async function sendPostTripEmail(booking: StatusEmailBooking): Promise<vo
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
-      subject: `Thank you for riding with Prestigo — ${escapeHtml(booking.booking_reference)}`,
+      subject: `Thank you for riding with Prestigo — ${booking.booking_reference}`,
       html: buildPostTripHtml(booking),
     })
     if (error) console.error('[booking-notify] post-trip email error:', error)
