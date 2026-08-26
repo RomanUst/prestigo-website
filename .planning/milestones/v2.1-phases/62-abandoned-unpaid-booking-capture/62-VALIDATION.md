@@ -3,10 +3,11 @@ phase: 62
 slug: abandoned-unpaid-booking-capture
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-08-19
+validated: 2026-08-26
 ---
 
 # Phase 62 — Validation Strategy
@@ -89,3 +90,25 @@ created: 2026-08-19
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
+
+## Validation Audit 2026-08-26
+
+Retroactive Nyquist reconciliation at v2.1 backlog cleanup. All ABND requirements
+have automated verification in existing, green test files; no gaps required new tests.
+
+| Requirement | Coverage | Test file |
+|-------------|----------|-----------|
+| ABND-01 (unpaid capture, one-way + round-trip) | COVERED | tests/create-payment-intent.test.ts |
+| ABND-02 (live CHECK accepts `unpaid`, migration applied) | MANUAL-ONLY | migrations 053/054 applied live (Supabase MCP) |
+| ABND-03 (unpaid badge/tint + chip) | COVERED | tests/BookingsTable.test.tsx |
+| ABND-04 (status filter + PATCH transitions) | COVERED | tests/admin-bookings.test.ts |
+| ABND-05 (captured row stores contact fields) | COVERED (upstream, pre-existing) | tests/create-payment-intent.test.ts + v2.0 Step5Passenger Zod |
+| ABND-06 (dedup, reconcile, idempotency, round-trip) | COVERED | tests/create-payment-intent.test.ts, tests/webhooks-stripe.test.ts |
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 (ABND-02 is inherently manual — live DB migration) |
+
+Full `npx vitest run` suite green at time of audit.

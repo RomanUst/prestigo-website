@@ -3,10 +3,11 @@ phase: 64
 slug: admin-created-bookings-with-payment-link
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
+status: validated
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-08-21
+validated: 2026-08-26
 ---
 
 # Phase 64 — Validation Strategy
@@ -91,3 +92,13 @@ created: 2026-08-21
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
+
+## Validation Audit 2026-08-26
+
+Retroactive Nyquist reconciliation at v2.1 backlog cleanup. Frontmatter already
+asserted `nyquist_compliant: true`; status flipped draft → validated and
+wave_0_complete → true (#2117 NOT-VALIDATED → VALIDATED). ANEW-01..05 covered by
+green tests (tests/payment-links.test.ts, tests/webhooks-stripe-checkout-session.test.ts,
+tests/admin-bookings-payment-link.test.ts, tests/email-payment-request.test.ts).
+ANEW-02/04 live infra (migration 056 + Stripe webhook) is manual-only, done + human-verified.
+Full `npx vitest run` suite green. Gaps: 0.

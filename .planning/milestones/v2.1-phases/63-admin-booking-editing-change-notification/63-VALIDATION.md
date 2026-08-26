@@ -3,10 +3,11 @@ phase: 63
 slug: admin-booking-editing-change-notification
 # status lifecycle: draft (seeded by plan-phase) → validated (set by validate-phase §6)
 # audit-milestone §5.5 distinguishes NOT-VALIDATED (draft) from PARTIAL (validated + nyquist_compliant: false) (#2117)
-status: draft
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-08-20
+validated: 2026-08-26
 ---
 
 # Phase 63 — Validation Strategy
@@ -91,3 +92,11 @@ created: 2026-08-20
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** planner-approved (plan-time); revalidate after execution via `/gsd-validate-phase` (flips `status: validated`).
+
+## Validation Audit 2026-08-26
+
+Retroactive Nyquist reconciliation at v2.1 backlog cleanup. Frontmatter already
+asserted `nyquist_compliant: true`; status flipped draft → validated (#2117
+NOT-VALIDATED → VALIDATED). AEDIT-01..07 + FOLLOW-02 covered by green tests
+(tests/admin-bookings.test.ts, tests/booking-change-history.test.tsx,
+tests/booking-changed-email.test.ts). Full `npx vitest run` suite green. Gaps: 0.
