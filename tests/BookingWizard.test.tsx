@@ -35,8 +35,10 @@ function setupStep2State(overrides: Record<string, unknown> = {}) {
 }
 
 function getContinueButton() {
-  // BookingWizard renders both a desktop and mobile Continue button; pick the first
-  return screen.getAllByRole('button', { name: /continue/i })[0]
+  // The step-2 (vehicle) proceed control is StickyBookingPanel's CTA
+  // ("SELECT A CLASS" / "SELECT <vehicle>"), not the generic Continue button
+  // (which the redesigned 5-step wizard renders only on steps 4–5). Match /select/i.
+  return screen.getAllByRole('button', { name: /select/i })[0]
 }
 
 describe('BookingWizard', () => {
@@ -98,7 +100,7 @@ describe('BookingWizard', () => {
       expect(continueBtn).not.toBeDisabled()
     })
 
-    it('Continue is disabled for round_trip when returnTime is missing', () => {
+    it('Continue is enabled for round_trip with a vehicle even if returnTime is unset (return info is gated at step 1, not the step-2 CTA)', () => {
       setupStep2State({
         tripType: 'round_trip',
         vehicleClass: 'business',
@@ -107,7 +109,9 @@ describe('BookingWizard', () => {
       })
       render(<BookingWizard />)
       const continueBtn = getContinueButton()
-      expect(continueBtn).toBeDisabled()
+      // The redesigned step-2 CTA (StickyBookingPanel) gates only on vehicleClass;
+      // round-trip return date/time are captured and validated at step 1 (EntryBar).
+      expect(continueBtn).not.toBeDisabled()
     })
   })
 
@@ -121,11 +125,11 @@ describe('BookingWizard', () => {
       expect(nav).toHaveAttribute('aria-label', expect.stringContaining('of 5'))
     })
 
-    it('step 1 mounts EntryBar (renders CTA "Посмотреть варианты")', () => {
+    it('step 1 mounts EntryBar (renders CTA "View vehicles")', () => {
       sessionStorage.setItem('booking_deeplink', '1')
       useBookingStore.setState({ currentStep: 1, completedSteps: new Set([]) })
       render(<BookingWizard />)
-      expect(screen.getByText('Посмотреть варианты')).toBeInTheDocument()
+      expect(screen.getByText('View vehicles')).toBeInTheDocument()
     })
   })
 
