@@ -65,9 +65,9 @@ describe('VehicleCard', () => {
       expect(screen.getByText('Business')).toBeInTheDocument()
     })
 
-    it('renders exterior photo with class label in alt text', () => {
+    it('renders vehicle photo with class label in alt text', () => {
       renderCard()
-      const img = screen.getByRole('img', { name: /business.*exterior/i })
+      const img = screen.getByRole('img', { name: /prestigo\s+business/i })
       expect(img).toBeInTheDocument()
     })
 
@@ -149,12 +149,12 @@ describe('Step3Vehicle', () => {
 
     it('renders VehicleSlideshow stub in desktop layout', () => {
       render(<Step3Vehicle />)
-      expect(screen.getByTestId('vehicle-slideshow-stub')).toBeInTheDocument()
+      expect(screen.getAllByTestId('vehicle-slideshow-stub').length).toBeGreaterThanOrEqual(1)
     })
 
-    it('renders section heading "Choose your experience"', () => {
+    it('renders section heading "Choose your vehicle"', () => {
       render(<Step3Vehicle />)
-      expect(screen.getByText('Choose your experience')).toBeInTheDocument()
+      expect(screen.getByText('Choose your vehicle')).toBeInTheDocument()
     })
   })
 })

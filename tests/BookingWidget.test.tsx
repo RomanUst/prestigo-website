@@ -97,7 +97,7 @@ describe('HOME-01: BookingWidget renders on the homepage', () => {
 
   it('renders BookingWidget without crashing', () => {
     render(<BookingWidget />)
-    expect(screen.getByRole('button', { name: /BOOK NOW/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /VIEW VEHICLES/i })).toBeInTheDocument()
   })
 
   it('renders the trip type tablist', () => {
@@ -119,13 +119,13 @@ describe('HOME-02: Widget renders required form fields', () => {
 
   it('renders a time picker trigger', () => {
     render(<BookingWidget />)
-    const timeButton = screen.getByRole('button', { name: /pickup time/i })
+    const timeButton = screen.getByRole('combobox', { name: /pickup time/i })
     expect(timeButton).toBeTruthy()
   })
 
   it('renders Book Now button', () => {
     render(<BookingWidget />)
-    expect(screen.getByRole('button', { name: /BOOK NOW/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /VIEW VEHICLES/i })).toBeInTheDocument()
   })
 
   it('renders DurationSelector when tripType is hourly', () => {
@@ -148,7 +148,7 @@ describe('HOME-03: Book Now CTA behavior', () => {
 
   it('shows validation error when origin is empty and Book Now is clicked', () => {
     render(<BookingWidget />)
-    fireEvent.click(screen.getByRole('button', { name: /BOOK NOW/i }))
+    fireEvent.click(screen.getByRole('button', { name: /VIEW VEHICLES/i }))
     expect(
       screen.getByText(/Please fill in all required fields before continuing\./i)
     ).toBeInTheDocument()
@@ -156,7 +156,7 @@ describe('HOME-03: Book Now CTA behavior', () => {
 
   it('does not navigate when validation fails', () => {
     render(<BookingWidget />)
-    fireEvent.click(screen.getByRole('button', { name: /BOOK NOW/i }))
+    fireEvent.click(screen.getByRole('button', { name: /VIEW VEHICLES/i }))
     expect(mockPush).not.toHaveBeenCalled()
   })
 
@@ -172,28 +172,14 @@ describe('HOME-03: Book Now CTA behavior', () => {
     if (available) fireEvent.click(available)
   }
 
-  /** Helper: open time popover and pick 10:00 */
-  function openTimePicker() {
-    fireEvent.click(screen.getByRole('button', { name: /pickup time/i }))
+  /** Helper: pick 10:00 on the native time <select> (was a custom hour/minute picker) */
+  function pickTime(value24h = '10:00') {
+    fireEvent.change(screen.getByRole('combobox', { name: /pickup time/i }), {
+      target: { value: value24h },
+    })
   }
 
-  function selectHour10() {
-    const hourListbox = screen.getByRole('listbox', { name: /pickup hour/i })
-    const tenOption = Array.from(hourListbox.querySelectorAll('[role="option"]')).find(
-      (el) => el.textContent === '10'
-    )
-    fireEvent.click(tenOption!)
-  }
-
-  function selectMinute00() {
-    const minListbox = screen.getByRole('listbox', { name: /pickup minute/i })
-    const zeroOption = Array.from(minListbox.querySelectorAll('[role="option"]')).find(
-      (el) => el.textContent === '00'
-    )
-    fireEvent.click(zeroOption!)
-  }
-
-  it('sets currentStep to 3 and completedSteps {1,2} on valid submit', () => {
+  it('sets currentStep to 2 and completedSteps {1} on valid submit (deep-link to vehicle step)', () => {
     render(<BookingWidget />)
 
     act(() => { capturedOnSelect.get('Pick-up address')?.(mockOrigin) })
@@ -201,16 +187,14 @@ describe('HOME-03: Book Now CTA behavior', () => {
 
     act(() => { openDatePicker() })
     act(() => { clickFirstAvailableDay() })
-    act(() => { openTimePicker() })
-    act(() => { selectHour10() })
-    act(() => { selectMinute00() })
+    act(() => { pickTime() })
 
-    fireEvent.click(screen.getByRole('button', { name: /BOOK NOW/i }))
+    fireEvent.click(screen.getByRole('button', { name: /VIEW VEHICLES/i }))
 
     const state = useBookingStore.getState()
-    expect(state.currentStep).toBe(3)
+    expect(state.currentStep).toBe(2)
     expect(state.completedSteps.has(1)).toBe(true)
-    expect(state.completedSteps.has(2)).toBe(true)
+    expect(state.completedSteps.has(2)).toBe(false)
   })
 
   it('calls router.push("/book") on valid submit', () => {
@@ -221,11 +205,9 @@ describe('HOME-03: Book Now CTA behavior', () => {
 
     act(() => { openDatePicker() })
     act(() => { clickFirstAvailableDay() })
-    act(() => { openTimePicker() })
-    act(() => { selectHour10() })
-    act(() => { selectMinute00() })
+    act(() => { pickTime() })
 
-    fireEvent.click(screen.getByRole('button', { name: /BOOK NOW/i }))
+    fireEvent.click(screen.getByRole('button', { name: /VIEW VEHICLES/i }))
 
     expect(mockPush).toHaveBeenCalledWith('/book')
   })
@@ -238,11 +220,9 @@ describe('HOME-03: Book Now CTA behavior', () => {
 
     act(() => { openDatePicker() })
     act(() => { clickFirstAvailableDay() })
-    act(() => { openTimePicker() })
-    act(() => { selectHour10() })
-    act(() => { selectMinute00() })
+    act(() => { pickTime() })
 
-    fireEvent.click(screen.getByRole('button', { name: /BOOK NOW/i }))
+    fireEvent.click(screen.getByRole('button', { name: /VIEW VEHICLES/i }))
 
     expect(mockPush).toHaveBeenCalledWith('/book')
     expect(
