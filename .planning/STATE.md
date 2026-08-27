@@ -1,20 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.1
-milestone_name: Admin Booking Management & Payment Recovery
-status: Awaiting next milestone
-stopped_at: Phase 64 complete — all phases complete
-last_updated: "2026-08-26T09:51:45.247Z"
-last_activity: 2026-08-26
-last_activity_desc: Milestone v2.1 completed and archived
-state_head: 92ecdd512fbb502f7b63c84a80c92c616e5b8f79
+milestone: v2.2
+milestone_name: Dispatch & Driver Trip Portal
+status: planning
+last_updated: "2026-08-27T19:54:26.580Z"
+last_activity: 2026-08-27
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
-  percent: 100
-current_phase: 64
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -28,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-06-10)
 
 ## Current Position
 
-Phase: Milestone v2.1 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-08-26 — Milestone v2.1 completed and archived
+Status: Defining requirements
+Last activity: 2026-08-27 — Milestone v2.2 started
 
 ## Accumulated Context
 

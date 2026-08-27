@@ -14,9 +14,17 @@ v2.1 delivered full operator control of the booking lifecycle inside the admin p
 
 v2.0 (prior) delivered Blacklane-style booking UX with full customer authentication and account management, all GA4 + Meta Pixel/CAPI analytics signals preserved.
 
-## Next Milestone: TBD
+## Current Milestone: v2.2 Dispatch & Driver Trip Portal
 
-Start with `/gsd-new-milestone` (questioning → research → requirements → roadmap). Candidate directions carried forward: CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth dashboard credential config (AUTH-02/03), corporate "book for a guest" step (BOOK-06), multilingual account UI, and clearing the pre-existing red test baseline.
+**Goal:** Speed up dispatcher work (the admin bookings list focuses on future trips by default) and give each driver a permanent working link to the trip — a trip sheet they can show to police control, with live status marking that stays separate from the client-facing booking status.
+
+**Target features:**
+- Admin bookings list defaults to future trips only, with a persistent default-horizon setting plus in-session filters to reveal past/all
+- Permanent per-assignment driver link (token valid until the order completes) opening a noindex trip sheet
+- Driver trip-progress status marking (en route → arrived → on board → completed, plus no-show) written to a separate trip-progress field that does NOT touch `booking.status`
+- Driver can leave a trip note/feedback
+
+Carried forward (not necessarily in this milestone): CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth dashboard credential config (AUTH-02/03), corporate "book for a guest" step (BOOK-06), multilingual account UI, and clearing the pre-existing red test baseline.
 
 ## Requirements
 
@@ -50,8 +58,12 @@ Start with `/gsd-new-milestone` (questioning → research → requirements → r
 
 ### Active
 
-<!-- Next milestone (TBD) + infrastructure/tech-debt items carried forward -->
+<!-- v2.2 milestone requirements + infrastructure/tech-debt items carried forward -->
 
+- [ ] DISP-*: Admin bookings list defaults to future trips; persistent default-horizon setting + in-session past/all filters — v2.2
+- [ ] DTRIP-*: Permanent driver trip link (token valid until order completes) with noindex trip sheet for police control — v2.2
+- [ ] DTRIP-*: Driver trip-progress marking (en route/arrived/on board/completed/no-show) in a separate field, not `booking.status` — v2.2
+- [ ] DTRIP-*: Driver trip note/feedback — v2.2
 - [ ] FOLLOW-01: Automatic reminder email after N hours unpaid (deferred from v2.1)
 - [ ] CR-02 follow-up: actual Stripe Payment Link deactivation (paymentLinks.update active:false) after price edit / manual confirm — v2.1 shipped a 409 guard + loud webhook alert only
 - [ ] Nyquist validation not run for phases 62/63/64 (VALIDATION.md status: draft)
@@ -127,4 +139,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-08-26 after v2.1 milestone — Admin Booking Management & Payment Recovery shipped (Phases 62–64): abandoned/unpaid capture + recovery queue, admin booking editing with change emails + audit log, admin-created bookings with Stripe payment links. Audit passed 19/19.*
+*Last updated: 2026-08-27 — started milestone v2.2 Dispatch & Driver Trip Portal: future-first admin bookings list with persistent default + filters, permanent driver trip link with noindex trip sheet, separate driver trip-progress marking, driver trip note.*
