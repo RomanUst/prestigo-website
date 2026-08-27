@@ -3,10 +3,10 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Dispatch & Driver Trip Portal
 status: planning
-last_updated: "2026-08-27T19:54:26.580Z"
+last_updated: "2026-08-27T20:10:00.000Z"
 last_activity: 2026-08-27
 progress:
-  total_phases: 0
+  total_phases: 3
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -17,17 +17,19 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-06-10)
+See: .planning/PROJECT.md (updated 2026-08-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Planning next milestone (v2.1 shipped 2026-08-26)
+**Current focus:** v2.2 roadmap created — ready to plan Phase 65 (Dispatch — Future-First Bookings List)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-08-27 — Milestone v2.2 started
+Phase: 65 of 67 (v2.2: Dispatch — Future-First Bookings List)
+Plan: — (not yet planned)
+Status: Roadmap created — ready to plan
+Last activity: 2026-08-27 — v2.2 ROADMAP.md created (Phases 65-67), 12/12 requirements mapped
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Accumulated Context
 
@@ -36,6 +38,8 @@ Last activity: 2026-08-27 — Milestone v2.2 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v2.2 roadmap: 3 phases derived from DISP-* and DTRIP-* — Phase 65 (DISP-01..04, dispatch list defaults) is independent of the driver portal. Phase 66 (DTRIP-01,02,07,08 — permanent link + trip sheet) is the foundation the status-marking work builds on; Phase 67 (DTRIP-03,04,05,06 — status marking, note, admin visibility) depends on Phase 66's token/trip-sheet infrastructure. Execution order: (65 ∥ 66) → 67.
+- v2.2 roadmap: DTRIP-04's constraint (trip-progress is a separate field, never mutates `booking.status`, no GNet push) is carried as an explicit success criterion in Phase 67, not left implicit — matches REQUIREMENTS.md Out of Scope guardrail.
 - v2.1 roadmap: ABND (abandoned/unpaid capture) is the foundation phase (62) — persists a booking row at the payment step and reconciles it in place on payment success (no duplicate insert). AEDIT (63) and ANEW (64) both depend on Phase 62's shared admin bookings surface / status vocabulary; ANEW-04 additionally reuses the reconcile-in-place webhook pattern for payment-link payments.
 - v2.1 (user decision): ABND captures the booking as soon as the client reaches the payment step (before payment completes) — not just on abandonment detection — then reconciles the same row to paid on `payment_intent.succeeded`. No separate "abandonment" event/timeout needed for v2.1 (that's FOLLOW-01, deferred to v2).
 - v2.1 (user decision): AEDIT-05 client notification is operator-controlled via an explicit "notify client" toggle at save time — not automatic on every edit.
@@ -94,12 +98,19 @@ Recent decisions affecting current work:
 - Phase 61: Analytics Preservation & E2E Verify — TRACK-01..05 (verification)
 - Execution: 57 → (58 ∥ 59) → 60 → 61
 
-### v2.1 roadmap (Phases 62-64)
+### v2.1 roadmap (Phases 62-64, shipped)
 
 - Phase 62: Abandoned & Unpaid Booking Capture — ABND-01..06
 - Phase 63: Admin Booking Editing + Change Notification — AEDIT-01..07
 - Phase 64: Admin-Created Bookings with Payment Link — ANEW-01..05
 - Execution: 62 → (63 ∥ 64)
+
+### v2.2 roadmap (Phases 65-67)
+
+- Phase 65: Dispatch — Future-First Bookings List — DISP-01..04
+- Phase 66: Driver Trip Portal — Permanent Link & Trip Sheet — DTRIP-01, DTRIP-02, DTRIP-07, DTRIP-08
+- Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility — DTRIP-03, DTRIP-04, DTRIP-05, DTRIP-06
+- Execution: (65 ∥ 66) → 67
 
 ### Pending Todos
 
@@ -108,13 +119,11 @@ None yet.
 ### Blockers/Concerns
 
 - Apple Sign In via Supabase has fiddly setup (Service ID, key, return URLs) — confirm config during a future OAuth-config phase.
-- Next migration number is **053** (052_bookings_driver_price.sql is the latest). Phase 62 will likely need a new `bookings.status` CHECK value for "unconfirmed/unpaid" — extend via DROP+ADD CONSTRAINT pattern (see migrations 039, 040).
-- Brownfield findings relevant to v2.1 (verify during `/gsd-plan-phase 62`):
-  - `app/api/create-payment-intent/route.ts` currently only creates a Stripe PaymentIntent — it does NOT write to `bookings`. Only the webhook (`payment_intent.succeeded`) inserts the row today. Phase 62 must move booking persistence earlier (into create-payment-intent, for both one-way and round-trip/linked-leg) and change the webhook from INSERT to UPDATE-if-exists.
-  - `app/api/admin/bookings/route.ts` POST already implements most of ANEW-01/ANEW-05 (manual booking creation with server-side price recompute + `override_price` escape hatch, `booking_source: 'manual'`, `payment_intent_id: null`, `status: 'pending'`) — Phase 64 mainly adds Stripe Payment Link generation/email + webhook reconciliation on top of this existing endpoint.
-  - `app/api/admin/bookings/route.ts` PATCH only supports `status`/`operator_notes`/`driver_price_czk` today — no date/vehicle/route/passenger edit exists yet. Phase 63 needs a new edit surface (endpoint + admin UI); there is currently no per-booking admin detail page (`app/admin/(dashboard)/bookings/page.tsx` is a single list view).
-  - Round-trip legs are separate `bookings` rows linked via `linked_booking_id` + `leg` ('outbound'/'return') columns (see `types/database.types.ts`) — Phase 63's leg-isolated edit (AEDIT-06) and Phase 62's round-trip capture must respect this shape.
-  - `lib/email.ts` already has branded senders to follow as a pattern (`sendStatusConfirmedEmail`, `sendStatusCancelledEmail`, `sendPostTripEmail`) — reuse this pattern for AEDIT-05's change-diff email and ANEW-03's payment-link email.
+- Next migration number is **058** (057_security_rls_hardening.sql is the latest). Phase 66 will likely need a schema change for the permanent driver trip-link token — extend `driver_assignments` (or add a sibling table) rather than replace its existing single-use `token`/`token_expires_at` columns, since accept/decline (DTRIP-07) must keep working unchanged.
+- Brownfield findings relevant to v2.2 (verify during `/gsd-plan-phase 65` and `/gsd-plan-phase 66`):
+  - `GET /api/admin/bookings` → `admin_search_bookings` RPC currently defaults to an empty date range (shows all bookings). Phase 65 changes this client/server-side default to future-only; KPI counters already pass explicit date ranges so should be unaffected by the change, but must be re-verified once the default filter ships (DISP-04).
+  - `driver_assignments` (booking_id, driver_id, status, token, token_expires_at) is a SINGLE-USE EXPIRING token today, created by `POST /api/admin/bookings/[id]/assign`; driver responds at `app/driver/response/page.tsx` → `POST /api/driver/respond`. Phase 66's permanent trip-link token is a distinct, longer-lived credential that must coexist with this token, not replace it.
+  - Booking status machine lives in `lib/booking-transitions.ts` (`VALID_TRANSITIONS`) and GNet push in `lib/gnet-client.ts` (`pushGnetStatus`). Phase 67's trip-progress field must NOT hook into either — DTRIP-04 requires it to be a fully separate column with no transition validation and no GNet call.
 
 ## Deferred Items
 
@@ -149,10 +158,12 @@ Items acknowledged and deferred at milestone v2.1 close on 2026-08-25 (8 newly a
 | verification_gaps | Phase 58: 58-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
 | verification_gaps | Phase 59: 59-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
 
+v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.md/REQUIREMENTS.md): FOLLOW-01, CR-02 follow-up, Nyquist validation gap (62/63/64), red test baseline, AUTH-02/03 OAuth config, BOOK-06 — none scheduled into the v2.2 roadmap (Phases 65-67 cover only DISP-*/DTRIP-*); remain candidates for a future milestone.
+
 ## Session Continuity
 
-Last session: 2026-08-24T17:11:59.661Z
-Stopped at: Phase 64 complete — all phases complete
+Last session: 2026-08-27T20:10:00.000Z
+Stopped at: v2.2 ROADMAP.md created (Phases 65-67), REQUIREMENTS.md traceability filled, 12/12 requirements mapped — ready for /gsd-plan-phase 65
 Resume file: None
 
 ## Performance Metrics
@@ -186,4 +197,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run /gsd-plan-phase 65 to begin Phase 65 (Dispatch — Future-First Bookings List)

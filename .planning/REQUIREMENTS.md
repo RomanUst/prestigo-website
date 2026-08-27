@@ -60,24 +60,24 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISP-01 | TBD | Pending |
-| DISP-02 | TBD | Pending |
-| DISP-03 | TBD | Pending |
-| DISP-04 | TBD | Pending |
-| DTRIP-01 | TBD | Pending |
-| DTRIP-02 | TBD | Pending |
-| DTRIP-03 | TBD | Pending |
-| DTRIP-04 | TBD | Pending |
-| DTRIP-05 | TBD | Pending |
-| DTRIP-06 | TBD | Pending |
-| DTRIP-07 | TBD | Pending |
-| DTRIP-08 | TBD | Pending |
+| DISP-01 | Phase 65 | Pending |
+| DISP-02 | Phase 65 | Pending |
+| DISP-03 | Phase 65 | Pending |
+| DISP-04 | Phase 65 | Pending |
+| DTRIP-01 | Phase 66 | Pending |
+| DTRIP-02 | Phase 66 | Pending |
+| DTRIP-03 | Phase 67 | Pending |
+| DTRIP-04 | Phase 67 | Pending |
+| DTRIP-05 | Phase 67 | Pending |
+| DTRIP-06 | Phase 67 | Pending |
+| DTRIP-07 | Phase 66 | Pending |
+| DTRIP-08 | Phase 66 | Pending |
 
 **Coverage:**
 - v2.2 requirements: 12 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 12 ⚠️
+- Mapped to phases: 12 (Phase 65: 4, Phase 66: 4, Phase 67: 4)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-08-27*
-*Last updated: 2026-08-27 after milestone v2.2 definition*
+*Last updated: 2026-08-27 after v2.2 ROADMAP.md creation (Phases 65-67)*
