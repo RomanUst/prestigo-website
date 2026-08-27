@@ -36,31 +36,42 @@ export async function GET() {
 
   // Emails live in auth.users — fetch and map by id. Small install (handful of
   // accounts) so a single large page is sufficient; revisit if this grows.
+  // Also build a reverse email→user_id map so guest bookings (placed without a
+  // login, so bookings.user_id is null) can be attributed to the account whose
+  // email matches — matching the admin detail view and preventing real trips
+  // from showing as 0.
   const emailById = new Map<string, string | null>()
+  const userIdByEmail = new Map<string, string>()
   const { data: usersPage, error: uErr } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
   if (uErr) {
     console.error('[admin/accounts.GET] listUsers failed:', uErr.message)
   } else {
-    for (const u of usersPage.users) emailById.set(u.id, u.email ?? null)
+    for (const u of usersPage.users) {
+      emailById.set(u.id, u.email ?? null)
+      if (u.email) userIdByEmail.set(u.email.toLowerCase(), u.id)
+    }
   }
 
-  // Booking counts + revenue per account, aggregated from linked bookings.
+  // Booking counts + revenue per account, aggregated from bookings linked by
+  // user_id OR by matching client_email. Cancelled bookings are excluded from
+  // both the trip count and revenue.
   const countById = new Map<string, number>()
   const spentById = new Map<string, number>()
   const { data: bookingRows, error: bErr } = await supabase
     .from('bookings')
-    .select('user_id, amount_czk, status')
-    .not('user_id', 'is', null)
+    .select('user_id, client_email, amount_czk, status')
 
   if (bErr) {
     console.error('[admin/accounts.GET] bookings read failed:', bErr.message)
   } else {
     for (const b of bookingRows ?? []) {
-      const uid = b.user_id as string
+      if (b.status === 'cancelled') continue
+      const uid =
+        (b.user_id as string | null) ??
+        (b.client_email ? userIdByEmail.get((b.client_email as string).toLowerCase()) : undefined)
+      if (!uid) continue
       countById.set(uid, (countById.get(uid) ?? 0) + 1)
-      if (b.status !== 'cancelled') {
-        spentById.set(uid, (spentById.get(uid) ?? 0) + (b.amount_czk ?? 0))
-      }
+      spentById.set(uid, (spentById.get(uid) ?? 0) + (b.amount_czk ?? 0))
     }
   }
 

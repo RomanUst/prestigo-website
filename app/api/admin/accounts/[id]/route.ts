@@ -42,10 +42,17 @@ export async function GET(
     email = userRes.user?.email ?? null
   }
 
+  // Match bookings linked by user_id OR by the account's email (case-insensitive),
+  // so guest bookings placed without a login still surface on the profile.
+  const bookingCols =
+    'id, booking_reference, booking_source, pickup_date, pickup_time, trip_type, vehicle_class, origin_address, destination_address, amount_czk, status, paid_at, invoice_number, created_at'
+  const orFilter = email
+    ? `user_id.eq.${id},client_email.ilike.${email}`
+    : `user_id.eq.${id}`
   const { data: bookings, error: bErr } = await supabase
     .from('bookings')
-    .select('id, booking_reference, booking_source, pickup_date, pickup_time, trip_type, vehicle_class, origin_address, destination_address, amount_czk, status, paid_at, invoice_number, created_at')
-    .eq('user_id', id)
+    .select(bookingCols)
+    .or(orFilter)
     .order('pickup_date', { ascending: false })
     .order('pickup_time', { ascending: false })
 
