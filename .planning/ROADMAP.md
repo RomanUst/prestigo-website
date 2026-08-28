@@ -76,7 +76,14 @@ See [milestones/v2.1-ROADMAP.md](milestones/v2.1-ROADMAP.md) for full phase deta
   3. Within a session, admin can switch the list to "Past" or "All" via an in-session filter control without changing the persisted default setting.
   4. KPI counters (today's bookings, week revenue) on the bookings page continue to show correct totals regardless of which list filter/horizon is currently active.
 
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 65-01-PLAN.md — Foundation: Prague-date helper + migrations 058/059 + live operator apply (Wave 1)
+- [ ] 65-02-PLAN.md — Tracer: end-to-end future-first list + full horizon resolution (Wave 2)
+- [ ] 65-03-PLAN.md — Settings persistence backend + Dispatch Default widget (Wave 2)
+- [ ] 65-04-PLAN.md — BookingsTable segmented control + page wiring + KPI decoupling guard (Wave 3)
+
 **UI hint**: yes
 
 ### Phase 66: Driver Trip Portal — Permanent Link & Trip Sheet
@@ -124,6 +131,6 @@ See [milestones/v2.1-ROADMAP.md](milestones/v2.1-ROADMAP.md) for full phase deta
 | 62. Abandoned & Unpaid Booking Capture | v2.1 | 4/4 | Complete | 2026-08-20 |
 | 63. Admin Booking Editing + Change Notification | v2.1 | 5/5 | Complete | 2026-08-21 |
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 4/4 | Complete | 2026-08-25 |
-| 65. Dispatch — Future-First Bookings List | v2.2 | 0/? | Not started | - |
+| 65. Dispatch — Future-First Bookings List | v2.2 | 0/4 | Planned | - |
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 0/? | Not started | - |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 0/? | Not started | - |
