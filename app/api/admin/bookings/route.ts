@@ -260,10 +260,21 @@ export async function GET(request: Request) {
       resolvedEndDate = shiftIsoDate(today, -1)
       sort = 'pickup_desc'
     } else if (horizon === 'last_n_days') {
-      // V5: defensive clamp — parseInt failure or non-positive value falls
-      // back to the default 7 (DoS mitigation, T-65-03).
+      // V5/WR-01: defensive clamp — parseInt failure, non-positive, or
+      // out-of-range value falls back to the default 7 (DoS mitigation,
+      // T-65-03). The upper bound (3650 days / 10 years) mirrors the
+      // persisted-settings max intent (dispatch_horizon_days is capped at
+      // 365 by the Zod schema in app/api/admin/settings/route.ts) but is
+      // set generously higher here since this is an ad-hoc query param, not
+      // a persisted default — the real purpose is keeping shiftIsoDate()'s
+      // date arithmetic well within JS's representable Date range
+      // (~±100,000,000 days from the epoch), not enforcing a business rule.
+      // Without an upper bound, an extreme horizonDays pushes the shifted
+      // date past that range, Date becomes invalid, and toISOString() throws
+      // an uncaught RangeError instead of the graceful clamp this comment
+      // promises.
       const rawDays = parseInt(searchParams.get('horizonDays') ?? '7', 10)
-      const days = Number.isFinite(rawDays) && rawDays > 0 ? rawDays : 7
+      const days = Number.isFinite(rawDays) && rawDays > 0 && rawDays <= 3650 ? rawDays : 7
       // D-06: end stays OPEN (future-inclusive) — no resolvedEndDate bound.
       resolvedStartDate = shiftIsoDate(today, -days)
       sort = 'pickup_desc'
