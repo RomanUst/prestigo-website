@@ -94,6 +94,63 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
     })
   })
 
+  it('CR-01 regression: a persisted horizon that differs from the hardcoded "future" fallback is honored on initial load, not silently dropped', async () => {
+    // Distinct from stubFetch() above — settings resolves with 'all', which
+    // is NOT the same value as BookingsTable's hardcoded 'future' prop
+    // default. Prior to the CR-01 fix, BookingsTable mounted synchronously
+    // (seeding its ephemeral horizon state from the hardcoded 'future'
+    // fallback via useState) before this async settings fetch could ever
+    // resolve, so its list fetch would carry horizon=future regardless of
+    // what settings actually returned.
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (typeof url !== 'string') {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+      }
+      if (url.includes('/api/admin/settings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({
+            notification_flags: {},
+            dispatch_default_horizon: 'all',
+            dispatch_horizon_days: 7,
+          }),
+        })
+      }
+      if (isKpiTodayUrl(url)) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ total: 0, bookings: [], page: 0, limit: 1 }) })
+      }
+      if (isKpiWeekUrl(url)) {
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ total: 0, bookings: [], page: 0, limit: 100 }) })
+      }
+      if (url.includes('/api/admin/bookings')) {
+        // BookingsTable's own list fetch (limit=20)
+        return Promise.resolve({ ok: true, json: () => Promise.resolve({ bookings: [], total: 0, page: 0, limit: 20 }) })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { default: BookingsPage } = await import('@/app/admin/(dashboard)/bookings/page')
+    render(<BookingsPage />)
+
+    await waitFor(() => {
+      const listCalls = fetchMock.mock.calls.filter(
+        ([url]) => typeof url === 'string' && url.includes('/api/admin/bookings') && !isKpiTodayUrl(url) && !isKpiWeekUrl(url),
+      )
+      expect(listCalls.length).toBeGreaterThan(0)
+    })
+
+    const listCalls = fetchMock.mock.calls.filter(
+      ([url]) => typeof url === 'string' && url.includes('/api/admin/bookings') && !isKpiTodayUrl(url) && !isKpiWeekUrl(url),
+    )
+    // Every list fetch must carry the persisted 'all' horizon — never the
+    // hardcoded 'future' fallback that CR-01 exposed.
+    listCalls.forEach(([url]) => {
+      expect(url as string).toContain('horizon=all')
+    })
+    expect(listCalls.some(([url]) => (url as string).includes('horizon=future'))).toBe(false)
+  })
+
   it('toggling the segmented control issues exactly one additional list fetch and ZERO additional KPI fetches; todayCount/weekRevenue stay unchanged', async () => {
     const fetchMock = stubFetch()
     const { default: BookingsPage } = await import('@/app/admin/(dashboard)/bookings/page')
