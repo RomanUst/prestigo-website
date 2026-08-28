@@ -131,6 +131,7 @@ import { GET, PATCH, POST } from '@/app/api/admin/bookings/route'
 import { POST as CANCEL_POST } from '@/app/api/admin/bookings/cancel/route'
 import { GET as AUDIT_LOG_GET } from '@/app/api/admin/bookings/[id]/audit-log/route'
 import { computeOutboundLegTotal } from '@/lib/server-pricing'
+import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 
 function makeRequest(url?: string): Request {
   return new Request(url ?? 'http://localhost/api/admin/bookings', {
@@ -1993,5 +1994,220 @@ describe('POST /api/admin/bookings/cancel', () => {
     expect(stripeRefundsStub.create).not.toHaveBeenCalled()
     // DB update NOT called — only 1 supabase.from call (the select)
     expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GET /api/admin/bookings — horizon resolution (Phase 65 Plan 02, Task 2)
+// DISP-01/DISP-03: per-horizon p_start_date/p_end_date/p_sort resolution,
+// D-07 manual-date precedence, and the KNOWN_HORIZONS whitelist/clamp. Uses
+// the REAL getPragueTodayISO()/shiftIsoDate() helpers (not mocked) so
+// expected dates stay deterministic against whatever "today" the route
+// handler computes at test-run time — both sides call the same function.
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe('GET /api/admin/bookings — horizon resolution (Phase 65 Plan 02)', () => {
+  it('horizon=future -> p_start_date=Prague-today, p_end_date=null, p_sort=pickup_asc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const today = getPragueTodayISO()
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=future'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: today,
+        p_end_date: null,
+        p_sort: 'pickup_asc',
+      }),
+    )
+  })
+
+  it('horizon=past -> p_end_date=today-1, p_start_date=null, p_sort=pickup_desc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const today = getPragueTodayISO()
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=past'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: null,
+        p_end_date: shiftIsoDate(today, -1),
+        p_sort: 'pickup_desc',
+      }),
+    )
+  })
+
+  it('horizon=all -> no date bound, p_sort=pickup_desc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=all'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: null,
+        p_end_date: null,
+        p_sort: 'pickup_desc',
+      }),
+    )
+  })
+
+  it('horizon=last_n_days&horizonDays=3 -> p_start_date=today-3, p_end_date=null (open-ended, D-06), p_sort=pickup_desc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const today = getPragueTodayISO()
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=last_n_days&horizonDays=3'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: shiftIsoDate(today, -3),
+        p_end_date: null,
+        p_sort: 'pickup_desc',
+      }),
+    )
+  })
+
+  it('horizon=last_n_days with missing horizonDays clamps to 7', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const today = getPragueTodayISO()
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=last_n_days'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: shiftIsoDate(today, -7),
+        p_end_date: null,
+        p_sort: 'pickup_desc',
+      }),
+    )
+  })
+
+  it('horizon=last_n_days with garbage horizonDays (non-numeric) clamps to 7', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const today = getPragueTodayISO()
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=last_n_days&horizonDays=not-a-number'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: shiftIsoDate(today, -7),
+        p_end_date: null,
+        p_sort: 'pickup_desc',
+      }),
+    )
+  })
+
+  it('horizon=last_n_days with negative horizonDays clamps to 7', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const today = getPragueTodayISO()
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=last_n_days&horizonDays=-3'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: shiftIsoDate(today, -7),
+        p_end_date: null,
+        p_sort: 'pickup_desc',
+      }),
+    )
+  })
+
+  it('D-07: explicit startDate takes precedence over horizon=future — manual bound used as-is, sort stays created_desc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?startDate=2026-01-01&horizon=future'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: '2026-01-01',
+        p_end_date: null,
+        p_sort: 'created_desc',
+      }),
+    )
+  })
+
+  it('D-07: explicit endDate takes precedence over horizon=past — manual bound used as-is, sort stays created_desc', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?endDate=2026-02-01&horizon=past'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: null,
+        p_end_date: '2026-02-01',
+        p_sort: 'created_desc',
+      }),
+    )
+  })
+
+  it('horizon=bogus_value is whitelisted away — treated as no override, p_sort stays created_desc, no horizon-derived date bound', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings?horizon=bogus_value'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: null,
+        p_end_date: null,
+        p_sort: 'created_desc',
+      }),
+    )
+  })
+
+  it('no horizon param at all -> default created_desc sort, no date bound (backward-compatible)', async () => {
+    supabaseServiceStub.rpc.mockResolvedValue({
+      data: [{ rows: [], total_count: 0 }],
+      error: null,
+    })
+
+    const res = await GET(makeRequest('http://localhost/api/admin/bookings'))
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub.rpc).toHaveBeenCalledWith(
+      'admin_search_bookings',
+      expect.objectContaining({
+        p_start_date: null,
+        p_end_date: null,
+        p_sort: 'created_desc',
+      }),
+    )
   })
 })
