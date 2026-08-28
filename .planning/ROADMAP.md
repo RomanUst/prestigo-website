@@ -79,9 +79,17 @@ See [milestones/v2.1-ROADMAP.md](milestones/v2.1-ROADMAP.md) for full phase deta
 **Plans**: 4 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 65-01-PLAN.md — Foundation: Prague-date helper + migrations 058/059 + live operator apply (Wave 1)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 65-02-PLAN.md — Tracer: end-to-end future-first list + full horizon resolution (Wave 2)
 - [ ] 65-03-PLAN.md — Settings persistence backend + Dispatch Default widget (Wave 2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 65-04-PLAN.md — BookingsTable segmented control + page wiring + KPI decoupling guard (Wave 3)
 
 **UI hint**: yes
