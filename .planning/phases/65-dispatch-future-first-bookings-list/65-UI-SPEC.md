@@ -1,7 +1,7 @@
 ---
 phase: 65
 slug: dispatch-future-first-bookings-list
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-28
@@ -105,17 +105,48 @@ Accent reserved for: **only** the active/selected state of the new segmented con
 
 ## UI Considerations
 
-Applicable state considerations resolved: 6 covered, 1 backstop, 0 unresolved.
+State-coverage axis computed by the post-verification UI-consideration probe across the three touched
+surfaces — **E1** Future/Past/All segmented control (interactive-control), **E2** bookings list/table body
+(list-collection), **E3** Dispatch Default widget (form). 22 applicable considerations: **21 resolved
+(explicit)**, **1 resolved (backstop)**, **0 unresolved**. Material states are governed by the locked
+decisions D-01…D-07 (CONTEXT.md); the remaining state-axis expansions are determined by existing,
+unchanged admin-surface behavior and are stated below so the planner treats each as a truth, not an
+assumption.
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| empty | Future-segment bookings list (list-collection) | ✅ covered | New distinct empty-state copy above ("No upcoming trips") — must render only when the active horizon/segment is `future` and zero rows return, never overwriting the existing generic "No bookings found." used by Past/All |
-| loading | Segmented control switch triggering a refetch (interactive-control → list-collection) | ✅ covered | Reuses the existing `loading` boolean / "Loading..." row — no new loading UI; switching segments must not cause a layout-shifting flash (keep table header/filter bar mounted, only the row-body area shows the loading text, matching current behavior) |
-| zero-one-many | Future segment at 1 vs many upcoming trips (list-collection) | ✅ covered | No plural/singular copy change needed — the list renders individual booking rows regardless of count; only the empty (zero) case needs new copy, already covered above |
-| partial | Dispatch Default widget — `Last N days` selected but N-days field cleared/invalid (form) | ✅ covered | Client clamps to the persisted/default value of 7 on blur if empty or non-positive (mirrors the RPC's own `p_limit`/`p_offset` defensive-clamp pattern in migration 054); never submits an invalid PATCH body |
-| partial | Segmented control vs. manual Date Range picker both active (interactive-control) | ✅ covered | Per CONTEXT.md D-07: explicit Date Range dates take precedence for that session; visually indicate this by graying out (not disabling) the segmented control's active-state styling while Date Range has explicit values set, so the admin understands which control is currently driving the query — exact graying treatment: inactive-chip style (`border: 1px solid var(--anthracite-light)`, `color: var(--warmgrey)`) even on the "selected" segment |
-| overflow | N-days helper text at narrow admin-panel widths (static-content) | ✅ covered | Helper text wraps to a second line (no truncation/ellipsis) — matches existing `body-text` wrapping behavior elsewhere in the admin panel; do not set `white-space: nowrap` |
-| error | List refetch failure on a horizon/segment switch (list-collection) | 🧪 backstop | `fetchBookings()` currently only `console.error`s on failure with no user-visible banner (pre-existing gap, not introduced by this phase) — now more consequential since the default view can legitimately show zero rows, making a silent failure indistinguishable from "no upcoming trips." Recommended copy if the planner chooses to close this gap: `Couldn't load bookings — check your connection and try again.` in the existing warmgrey/#f87171 error-text style used elsewhere (e.g. `SaveHint`'s error branch). Not mandated by DISP-01..04's locked decisions, so it lifts as a backstop truth — verify via an explicit test (mock a failed fetch, assert the distinct error copy renders) or it resolves to `human_needed` at verification, never a silent pass. |
+### E1 — Future/Past/All segmented control (interactive-control)
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| populated | ✅ resolved (explicit) | Three fixed segments render; exactly one is active with the copper active-state styling (`border: 1px solid var(--copper)`, `background: rgba(191,160,106,0.09)`); the other two use inactive-chip styling. |
+| partial | ✅ resolved (explicit) | Per D-07, when the manual Date Range picker holds explicit values it takes session precedence: the segmented control's active segment is **grayed** (not disabled) to inactive-chip style (`border: 1px solid var(--anthracite-light)`, `color: var(--warmgrey)`) so the admin sees which control drives the query. |
+| loading | ✅ resolved (explicit) | The control itself never shows a loading state — it stays mounted and interactive; a segment switch delegates the loading affordance to E2's row-body "Loading..." (no control-level spinner, no layout shift). |
+| error | ✅ resolved (explicit) | The control has no independent failure mode; a failed refetch after a switch is E2's concern (backstop below). The control's selected segment stays visually selected regardless of fetch outcome. |
+| empty / zero-one-many | ✅ resolved (explicit) | Not data-driven — the control always renders its three fixed labels; it cannot be empty and has no count-varying copy. |
+| overflow / long-text | ✅ resolved (explicit) | Labels are fixed short words (`Future`/`Past`/`All`); no dynamic or user text, so no truncation/wrap/reflow case exists. |
+
+### E2 — bookings list / table body (list-collection)
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| empty | ✅ resolved (explicit) | Distinct copy by active horizon: Future segment with zero rows → `No upcoming trips` (+ body, see Copywriting Contract); Past/All → existing `No bookings found.` verbatim. The Future copy must render only when the active segment is `future`, never overwriting the generic message. |
+| loading | ✅ resolved (explicit) | Reuses the existing `loading` boolean / `Loading...` row; the filter bar and table header stay mounted, only the row-body area swaps to the loading text — no layout-shifting flash. |
+| populated | ✅ resolved (explicit) | Rows render future-first (nearest upcoming trip first), matching D-01; existing row markup/styling is unchanged. |
+| zero-one-many | ✅ resolved (explicit) | Individual booking rows render regardless of count; no singular/plural copy change — only the zero case needs new copy (covered by `empty`). |
+| partial | ✅ resolved (explicit) | A row with missing optional fields (e.g., no return leg) uses the existing table cell rendering, unchanged by this phase — no new partial-row handling introduced. |
+| overflow | ✅ resolved (explicit) | Many rows are paged by the existing `p_limit`/`p_offset` pagination (migration 054) — unchanged; the list does not introduce a new scroll/clip behavior. |
+| long-text | ✅ resolved (explicit) | Long customer name/address in a cell uses the existing cell wrap/truncate behavior, unchanged by this phase. |
+| error | 🧪 resolved (backstop) | `{ statement: "On a refetch failure after a horizon/segment switch, show a user-visible error distinct from the empty state — recommended copy 'Couldn't load bookings — check your connection and try again.' in the existing warmgrey/#f87171 error-text style (e.g. SaveHint's error branch)", verification: backstop }`. `fetchBookings()` currently only `console.error`s (pre-existing gap, not introduced here) — now consequential because the default Future view can legitimately be empty, making a silent failure indistinguishable from "no upcoming trips." Not mandated by DISP-01…04, so it lifts as a backstop: verify via an explicit test (mock a failed fetch, assert the distinct error copy renders) or it routes to `human_needed` at verification — never a silent pass. |
+
+### E3 — Dispatch Default widget (form)
+
+| Category | Status | Resolution |
+|----------|--------|------------|
+| populated | ✅ resolved (explicit) | Renders the persisted horizon: one of `Future only` / `Last N days` / `All` selected (copper radio dot), with the `Days` field + helper text visible when `Last N days` is active. |
+| partial | ✅ resolved (explicit) | `Last N days` selected but the N-days field cleared/invalid → client clamps to the persisted/default `7` on blur (mirrors the RPC's defensive `p_limit`/`p_offset` clamp in migration 054); never submits an invalid PATCH body. |
+| loading | ✅ resolved (explicit) | While the persisted setting hydrates on Settings-page mount, reuses the existing `NotificationToggles` load pattern (no bespoke skeleton); the widget is inert until hydrated. |
+| error | ✅ resolved (explicit) | Save failure shows `Failed to save — try again` (verbatim reuse of `NotificationToggles`'s error feedback); the prior persisted value remains selected. |
+| empty | ✅ resolved (explicit) | The form is never truly empty — it always loads a persisted default (falls back to `Future only` if no row exists), so there is no unfilled-form state to design. |
+| overflow / long-text | ✅ resolved (explicit) | The N-days helper text wraps to a second line at narrow admin-panel widths (no `white-space: nowrap`, no ellipsis), matching existing `body-text` wrapping; all other copy is fixed and short. |
 
 ---
 
@@ -130,11 +161,11 @@ Applicable state considerations resolved: 6 covered, 1 backstop, 0 unresolved.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (non-blocking) — no explicit focal-point declared per surface. Recommendation for the planner: filter bar → the active copper-tinted segment is the primary anchor; Settings → the copper-lit selected radio dot in Dispatch Default is the anchor (matching `NotificationToggles`). Does not block plan-phase.
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** approved (5/6 PASS, 1 non-blocking FLAG) — verified by gsd-ui-checker
