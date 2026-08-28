@@ -102,4 +102,12 @@ BEGIN
 END;
 $function$;
 
+-- A newly-created function receives a DEFAULT EXECUTE grant to PUBLIC (and thus
+-- anon/authenticated) — the DROP+CREATE above produces a brand-new function
+-- object, so 057's revoke on the old 7-arg signature does NOT carry over. Revoke
+-- it here to keep the RPC unreachable by anon/authenticated (T-65-02), mirroring
+-- migration 057's revoke on the prior signature. postgres (owner) and
+-- service_role retain their explicit grants.
+REVOKE EXECUTE ON FUNCTION public.admin_search_bookings(text, text, text, text, text, text, integer, integer) FROM PUBLIC, anon, authenticated;
+
 GRANT EXECUTE ON FUNCTION public.admin_search_bookings(text, text, text, text, text, text, integer, integer) TO service_role;
