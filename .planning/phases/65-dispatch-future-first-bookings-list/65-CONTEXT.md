@@ -66,11 +66,28 @@ in-session Future/Past/All override, list sort suited to dispatch, KPI accuracy.
   totals through the list query. — **Reversibility:** reversible — a test/guard,
   not a schema change.
 
+### "Last N days" horizon semantics (DISP-02) — resolved post-research
+- **D-06:** "Last N days" means **last N days PLUS all future trips** — window is
+  `startDate = today − N`, `endDate = none (open-ended)`. The dispatcher sees a
+  short recent-past tail plus every upcoming trip, consistent with the
+  "future-first" intent. Chosen over a bounded past-only `[today−N .. today]`
+  window. — **Reversibility:** reversible — a predicate/param choice in the list
+  loader, no schema impact.
+
+### Horizon vs. manual Date Range picker (DISP-03) — resolved post-research
+- **D-07:** The persisted **horizon is the primary control**; the existing
+  manual **Date Range picker refines/overrides** it. When the admin opens the
+  Date Range picker and selects explicit dates, those explicit dates take
+  precedence over the horizon-derived window for that session. The two are NOT
+  mutually exclusive (no reset-on-toggle). — **Reversibility:** reversible —
+  client-side precedence rule in `BookingsTable`.
+
 ### Claude's Discretion
-- Storage mechanism for the persisted horizon (dedicated column vs JSONB key in
-  `pricing_globals`), the RPC parameter names for future-cutoff and sort, and
-  the exact Settings-page UI widget layout are implementation details for
-  research/planning.
+- Storage mechanism for the persisted horizon (research recommends **dedicated
+  typed columns** on `pricing_globals`: `dispatch_default_horizon text CHECK` +
+  `dispatch_horizon_days integer CHECK`, not a JSONB key), the RPC parameter
+  names for sort, and the exact Settings-page UI widget layout are
+  implementation details for research/planning.
 </decisions>
 
 <canonical_refs>
