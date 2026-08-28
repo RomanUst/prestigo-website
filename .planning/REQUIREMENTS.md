@@ -9,8 +9,8 @@ Requirements for milestone v2.2. Each maps to a roadmap phase (numbering continu
 
 ### Dispatch — Admin Bookings List
 
-- [ ] **DISP-01**: Admin bookings list defaults to showing only future trips (pickup ≥ now) on load.
-- [ ] **DISP-02**: Admin can set a persistent default horizon in admin settings (Future only / Last N days / All) that applies on every visit.
+- [x] **DISP-01**: Admin bookings list defaults to showing only future trips (pickup ≥ now) on load.
+- [x] **DISP-02**: Admin can set a persistent default horizon in admin settings (Future only / Last N days / All) that applies on every visit.
 - [ ] **DISP-03**: In-session UI filters override the saved default (reveal past/all) without changing the persisted setting.
 - [ ] **DISP-04**: KPI counters (today's bookings, week revenue) remain accurate regardless of the active default/filter.
 
@@ -60,8 +60,8 @@ Which phases cover which requirements. Filled during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISP-01 | Phase 65 | Pending |
-| DISP-02 | Phase 65 | Pending |
+| DISP-01 | Phase 65 | Complete |
+| DISP-02 | Phase 65 | Complete |
 | DISP-03 | Phase 65 | Pending |
 | DISP-04 | Phase 65 | Pending |
 | DTRIP-01 | Phase 66 | Pending |
@@ -74,6 +74,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | DTRIP-08 | Phase 66 | Pending |
 
 **Coverage:**
+
 - v2.2 requirements: 12 total
 - Mapped to phases: 12 (Phase 65: 4, Phase 66: 4, Phase 67: 4)
 - Unmapped: 0 ✓

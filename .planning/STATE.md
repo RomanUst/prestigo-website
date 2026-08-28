@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Dispatch & Driver Trip Portal
 current_phase: 65
-current_phase_name: dispatch-future-first-bookings-list
-status: planning
-stopped_at: Phase 65 UI-SPEC approved
-last_updated: "2026-08-28T12:44:30.732Z"
-last_activity: 2026-08-27
-last_activity_desc: v2.2 ROADMAP.md created (Phases 65-67), 12/12 requirements mapped
-state_head: 7da546cec3af70a1339e4a4ae5c4757d18aeb95b
+current_phase_name: Dispatch — Future-First Bookings List
+status: executing
+stopped_at: Completed 65-01-PLAN.md
+last_updated: "2026-08-28T13:19:11.037Z"
+last_activity: 2026-08-28
+last_activity_desc: Phase 65 execution started
+state_head: 75130f9d05b4df38345b2ded9879f513d311fda0
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 0
+  completed_plans: 1
   percent: 0
 ---
 
@@ -25,15 +25,15 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 65 (Dispatch — Future-First Bookings List) planned — 4 plans across 3 waves, ready to execute
+**Current focus:** Phase 65 — Dispatch — Future-First Bookings List
 
 ## Current Position
 
-Phase: 65 (dispatch-future-first-bookings-list) — READY TO EXECUTE
-Plan: 4 plans across 3 waves
-Status: Planned — ready to execute
+Phase: 65 (Dispatch — Future-First Bookings List) — EXECUTING
+Plan: 2 of 4
+Status: Ready to execute
 Total Plans in Phase: 4
-Last activity: 2026-08-28 — Phase 65 planned (4 plans, verification passed, no blockers)
+Last activity: 2026-08-28 — Phase 65 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -83,6 +83,9 @@ Recent decisions affecting current work:
 - [Phase 64]: 64-01: checkout.session.completed reconciliation keys on session.metadata.bookingId, never PaymentIntent metadata (Payment Link metadata is not auto-copied to the resulting PaymentIntent)
 - [Phase 64]: [Phase 64] 64-02: D-05 attach-later route sets status='unpaid' directly (bypasses VALID_TRANSITIONS); round-trip sibling detection keys on shared payment_intent_id, with return-leg amount_eur NULL fallback to sibling's combined total; webhook reconciles both legs with one combined confirmation
 - [Phase 64]: [Phase 64] 64-03: create-flow modal swaps entire body (form -> result panel/error) on success, not layered alongside the form, per UI-SPEC single-focal-point rule; PaymentLinkSection defined once in BookingsTable.tsx and mounted in both desktop/mobile expanded views
+- [Phase 65]: 65-01: TEXT+CHECK (not ENUM) for dispatch_default_horizon, matching customer_profiles.account_type precedent
+- [Phase 65]: 65-01: p_sort adaptive CASE ORDER BY duplicated identically in both paged CTE and jsonb_agg sites (Pitfall 1) — never dynamic/concatenated SQL (T-65-01)
+- [Phase 65]: 65-01: 059's DROP+CREATE produces a new function object receiving a default PUBLIC EXECUTE grant — added explicit REVOKE after every RPC signature-change migration (Rule 2 fix, commit 472e132)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -168,9 +171,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-28T12:18:05.278Z
-Stopped at: Phase 65 UI-SPEC approved
-Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/65-dispatch-future-first-bookings-list/65-UI-SPEC.md
+Last session: 2026-08-28T13:19:11.012Z
+Stopped at: Completed 65-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -200,6 +203,7 @@ Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/65-dispatch-
 | Phase 64 P01 | 30min | 2 tasks | 10 files |
 | Phase 64 P02 | 20min | 2 tasks | 5 files |
 | Phase 64 P03 | 15min | 2 tasks | 2 files |
+| Phase 65 P01 | 52min | 3 tasks | 4 files |
 
 ## Operator Next Steps
 

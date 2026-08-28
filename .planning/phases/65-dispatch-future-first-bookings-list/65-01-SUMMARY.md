@@ -145,3 +145,11 @@ Schema and server-helper foundation is live and confirmed. Plan 65-02 (end-to-en
 ---
 *Phase: 65-dispatch-future-first-bookings-list*
 *Completed: 2026-08-28*
+
+## Self-Check: PASSED
+
+All created files (lib/prague-date.ts, tests/prague-date.test.ts,
+supabase/migrations/058_pricing_globals_dispatch_horizon.sql,
+supabase/migrations/059_admin_search_bookings_sort.sql, this SUMMARY.md) and
+all commit hashes (83a1f35, 213d5eb, 879e66e, 472e132, 75130f9) verified
+present on disk / in git log.
