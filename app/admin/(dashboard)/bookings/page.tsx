@@ -27,6 +27,11 @@ export default function BookingsPage() {
   const [weekRevenue, setWeekRevenue] = useState<number | null>(null)
   const [showNewBooking, setShowNewBooking] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  // DISP-02 read side: the persisted default horizon/days, hydrated from a
+  // THIRD, separate fetch below — NOT one of the two KPI /api/admin/bookings
+  // fetches. Falls back to the shipped defaults if the fetch fails.
+  const [defaultHorizon, setDefaultHorizon] = useState('future')
+  const [defaultHorizonDays, setDefaultHorizonDays] = useState(7)
 
   const handleBookingCreated = useCallback(() => {
     setRefreshKey(k => k + 1)
@@ -56,6 +61,20 @@ export default function BookingsPage() {
             .reduce((acc, b) => acc + (b.amount_czk ?? 0), 0)
           setWeekRevenue(sum)
         }
+      })
+      .catch(() => {})
+  }, [])
+
+  // DISP-02: read the persisted dispatch-horizon default once on mount, in a
+  // dedicated fetch decoupled from the two KPI fetches above (D-05) and from
+  // BookingsTable's own list fetch — never routes the segmented-control's
+  // ephemeral state back into this settings read.
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data?.dispatch_default_horizon) setDefaultHorizon(data.dispatch_default_horizon)
+        if (data?.dispatch_horizon_days) setDefaultHorizonDays(data.dispatch_horizon_days)
       })
       .catch(() => {})
   }, [])
@@ -118,7 +137,7 @@ export default function BookingsPage() {
         />
       </div>
 
-      <BookingsTable key={refreshKey} />
+      <BookingsTable key={refreshKey} defaultHorizon={defaultHorizon} horizonDays={defaultHorizonDays} />
 
       <ManualBookingForm
         open={showNewBooking}
