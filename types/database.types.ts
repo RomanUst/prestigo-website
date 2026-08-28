@@ -798,6 +798,10 @@ export type Database = {
           airport_promo_active: boolean
           airport_promo_price_eur: number
           airport_regular_price_eur: number
+          // Migration 058 (WR-02): DEFAULT 'future', CHECK IN ('future', 'last_n_days', 'all')
+          dispatch_default_horizon: string
+          // Migration 058 (WR-02): DEFAULT 7, CHECK > 0
+          dispatch_horizon_days: number
           extra_child_seat: number
           extra_luggage: number
           google_review_url: string | null
@@ -816,6 +820,8 @@ export type Database = {
           airport_promo_active?: boolean
           airport_promo_price_eur?: number
           airport_regular_price_eur?: number
+          dispatch_default_horizon?: string
+          dispatch_horizon_days?: number
           extra_child_seat: number
           extra_luggage: number
           google_review_url?: string | null
@@ -834,6 +840,8 @@ export type Database = {
           airport_promo_active?: boolean
           airport_promo_price_eur?: number
           airport_regular_price_eur?: number
+          dispatch_default_horizon?: string
+          dispatch_horizon_days?: number
           extra_child_seat?: number
           extra_luggage?: number
           google_review_url?: string | null
