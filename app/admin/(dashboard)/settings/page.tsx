@@ -1,4 +1,5 @@
 import NotificationToggles from '@/components/admin/NotificationToggles'
+import DispatchDefault from '@/components/admin/DispatchDefault'
 import { cookies } from 'next/headers'
 
 export default async function SettingsPage() {
@@ -47,6 +48,10 @@ export default async function SettingsPage() {
         Settings
       </h1>
       <NotificationToggles initialFlags={data.notification_flags} />
+      <DispatchDefault
+        initialHorizon={data.dispatch_default_horizon}
+        initialDays={data.dispatch_horizon_days}
+      />
     </div>
   )
 }
