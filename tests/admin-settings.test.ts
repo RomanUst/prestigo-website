@@ -75,6 +75,28 @@ describe('NOTIF-06: admin settings API', () => {
     expect(body.notification_flags).toEqual({ confirmed: true, cancelled: false })
   })
 
+  it('GET returns notification_flags AND dispatch_default_horizon AND dispatch_horizon_days', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+    supabaseServiceStub._chain.single.mockResolvedValue({
+      data: {
+        notification_flags: { confirmed: true },
+        dispatch_default_horizon: 'future',
+        dispatch_horizon_days: 7,
+      },
+      error: null,
+    })
+
+    const res = await GET()
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.notification_flags).toEqual({ confirmed: true })
+    expect(body.dispatch_default_horizon).toBe('future')
+    expect(body.dispatch_horizon_days).toBe(7)
+    expect(supabaseServiceStub._chain.select).toHaveBeenCalledWith(
+      'notification_flags, dispatch_default_horizon, dispatch_horizon_days'
+    )
+  })
+
   it('PATCH returns 401 without session', async () => {
     getAdminUserMock.mockResolvedValue({ user: null, error: '401' })
 
@@ -125,5 +147,108 @@ describe('NOTIF-06: admin settings API', () => {
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.error).toBe('Invalid payload')
+  })
+
+  it('PATCH { dispatch_default_horizon, dispatch_horizon_days } persists both and round-trips via GET', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+    supabaseServiceStub._chain.eq.mockResolvedValue({ error: null })
+
+    const patchReq = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ dispatch_default_horizon: 'last_n_days', dispatch_horizon_days: 14 }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+    const patchRes = await PATCH(patchReq)
+    expect(patchRes.status).toBe(200)
+    expect(supabaseServiceStub._chain.update).toHaveBeenCalledWith({
+      dispatch_default_horizon: 'last_n_days',
+      dispatch_horizon_days: 14,
+    })
+
+    // Follow-up GET reflects persisted values
+    supabaseServiceStub._chain.eq.mockReturnValue(supabaseServiceStub._chain)
+    supabaseServiceStub._chain.single.mockResolvedValue({
+      data: {
+        notification_flags: { confirmed: true },
+        dispatch_default_horizon: 'last_n_days',
+        dispatch_horizon_days: 14,
+      },
+      error: null,
+    })
+    const getRes = await GET()
+    const getBody = await getRes.json()
+    expect(getBody.dispatch_default_horizon).toBe('last_n_days')
+    expect(getBody.dispatch_horizon_days).toBe(14)
+  })
+
+  it('PATCH { dispatch_default_horizon } only does NOT overwrite notification_flags', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+    supabaseServiceStub._chain.eq.mockResolvedValue({ error: null })
+
+    const req = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ dispatch_default_horizon: 'future' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const res = await PATCH(req)
+    expect(res.status).toBe(200)
+    expect(supabaseServiceStub._chain.update).toHaveBeenCalledWith({
+      dispatch_default_horizon: 'future',
+    })
+    const updateArg = supabaseServiceStub._chain.update.mock.calls[0][0]
+    expect(updateArg).not.toHaveProperty('notification_flags')
+  })
+
+  it('PATCH { dispatch_default_horizon: "bogus" } → 400', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+
+    const req = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ dispatch_default_horizon: 'bogus' }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('PATCH { dispatch_horizon_days: 0 } → 400 (below min)', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+
+    const req = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ dispatch_horizon_days: 0 }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('PATCH { dispatch_horizon_days: 500 } → 400 (above max)', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+
+    const req = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ dispatch_horizon_days: 500 }),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
+  })
+
+  it('PATCH {} (no recognized field) → 400', async () => {
+    getAdminUserMock.mockResolvedValue({ user: { id: 'admin-1' }, error: null })
+
+    const req = new Request('http://localhost/api/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({}),
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    const res = await PATCH(req)
+    expect(res.status).toBe(400)
   })
 })
