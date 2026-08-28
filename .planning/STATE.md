@@ -2,9 +2,14 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Dispatch & Driver Trip Portal
+current_phase: 65
+current_phase_name: "v2.2: Dispatch — Future-First Bookings List"
 status: planning
-last_updated: "2026-08-27T20:10:00.000Z"
+stopped_at: Phase 65 context gathered
+last_updated: "2026-08-28T10:01:40.836Z"
 last_activity: 2026-08-27
+last_activity_desc: v2.2 ROADMAP.md created (Phases 65-67), 12/12 requirements mapped
+state_head: a19fef0909651dfbd0d2e063c4a897767c9dc652
 progress:
   total_phases: 3
   completed_phases: 0
@@ -162,9 +167,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-27T20:10:00.000Z
-Stopped at: v2.2 ROADMAP.md created (Phases 65-67), REQUIREMENTS.md traceability filled, 12/12 requirements mapped — ready for /gsd-plan-phase 65
-Resume file: None
+Last session: 2026-08-28T10:01:40.814Z
+Stopped at: Phase 65 context gathered
+Resume file: .planning/phases/65-dispatch-future-first-bookings-list/65-CONTEXT.md
 
 ## Performance Metrics
 
