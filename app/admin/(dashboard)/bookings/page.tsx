@@ -32,6 +32,15 @@ export default function BookingsPage() {
   // fetches. Falls back to the shipped defaults if the fetch fails.
   const [defaultHorizon, setDefaultHorizon] = useState('future')
   const [defaultHorizonDays, setDefaultHorizonDays] = useState(7)
+  // CR-01 fix: BookingsTable seeds its ephemeral `horizon` state via
+  // `useState(defaultHorizon)`, which only reads the prop on the component's
+  // FIRST render. Since the settings fetch below is async, it always
+  // resolves after BookingsTable's initial mount — so without this gate the
+  // resolved persisted default is silently dropped and the table is stuck on
+  // the hardcoded 'future' fallback forever. Gating the mount until the
+  // settings fetch has settled (success or failure) guarantees BookingsTable
+  // only ever mounts once it can see the real value.
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
 
   const handleBookingCreated = useCallback(() => {
     setRefreshKey(k => k + 1)
@@ -77,6 +86,7 @@ export default function BookingsPage() {
         if (data?.dispatch_horizon_days) setDefaultHorizonDays(data.dispatch_horizon_days)
       })
       .catch(() => {})
+      .finally(() => setSettingsLoaded(true))
   }, [])
 
   const formatCZK = (value: number) =>
@@ -137,7 +147,9 @@ export default function BookingsPage() {
         />
       </div>
 
-      <BookingsTable key={refreshKey} defaultHorizon={defaultHorizon} horizonDays={defaultHorizonDays} />
+      {settingsLoaded && (
+        <BookingsTable key={refreshKey} defaultHorizon={defaultHorizon} horizonDays={defaultHorizonDays} />
+      )}
 
       <ManualBookingForm
         open={showNewBooking}
