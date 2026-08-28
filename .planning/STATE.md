@@ -5,16 +5,16 @@ milestone_name: Dispatch & Driver Trip Portal
 current_phase: 65
 current_phase_name: Dispatch — Future-First Bookings List
 status: executing
-stopped_at: Completed 65-02-PLAN.md
-last_updated: "2026-08-28T13:28:25.826Z"
+stopped_at: Completed 65-03-PLAN.md
+last_updated: "2026-08-28T13:33:52.964Z"
 last_activity: 2026-08-28
 last_activity_desc: Phase 65 execution started
-state_head: ed5fec88fe96880b43af464a91803c8625d3f265
+state_head: 27c88aa98a879c358ed3dc9c7b243dcdccc71d04
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-27)
 ## Current Position
 
 Phase: 65 (Dispatch — Future-First Bookings List) — EXECUTING
-Plan: 3 of 4
+Plan: 4 of 4
 Status: Ready to execute
 Total Plans in Phase: 4
 Last activity: 2026-08-28 — Phase 65 execution started
@@ -88,6 +88,8 @@ Recent decisions affecting current work:
 - [Phase 65]: 65-01: 059's DROP+CREATE produces a new function object receiving a default PUBLIC EXECUTE grant — added explicit REVOKE after every RPC signature-change migration (Rule 2 fix, commit 472e132)
 - [Phase 65]: [Phase 65] 65-02: D-07 implemented as researched-corrected (manual startDate/endDate suppress the horizon branch entirely, sort stays created_desc) — diverges from RESEARCH Pattern 2's horizon-overrides-manual snippet per the plan's explicit research_correction
 - [Phase 65]: [Phase 65] 65-02: BookingsTable horizon state shipped as a read-only useState (no setter) defaulting to 'future' — the switchable segmented control is deferred to Plan 65-04
+- [Phase 65]: 65-03: PATCH .update() built field-by-field from parsed.data (only present keys) so a horizon-only or days-only PATCH never clobbers notification_flags — same discipline extended from the existing handler
+- [Phase 65]: 65-03: DispatchDefault widget PATCHes only the single field that changed per interaction (not the full pair) so the non-clobber guarantee is exercised on every real save, not just in tests
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -173,8 +175,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-28T13:28:25.809Z
-Stopped at: Completed 65-02-PLAN.md
+Last session: 2026-08-28T13:33:52.945Z
+Stopped at: Completed 65-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -207,6 +209,7 @@ Resume file: None
 | Phase 64 P03 | 15min | 2 tasks | 2 files |
 | Phase 65 P01 | 52min | 3 tasks | 4 files |
 | Phase 65 P02 | 7min | 2 tasks | 4 files |
+| Phase 65 P03 | 4min | 2 tasks | 4 files |
 
 ## Operator Next Steps
 
