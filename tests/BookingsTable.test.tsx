@@ -494,3 +494,160 @@ describe('Phase 51 — GNet UI', () => {
     expect(allCancelButtons.length).toBeGreaterThan(0)
   })
 })
+
+describe('BookingsTable Future/Past/All segmented control — Phase 65 Plan 04 (DISP-03/D-04/D-07)', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  function stubFetchTracking(bookings: PartialBooking[] = []) {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ bookings, total: bookings.length, page: 0, limit: 20 }),
+        })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+    return fetchMock
+  }
+
+  it('clicking the Past segment updates the horizon fetch param and issues NO PATCH to /api/admin/settings', async () => {
+    const fetchMock = stubFetchTracking([])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=future'))).toBe(true)
+    })
+
+    const pastSegment = screen.getByRole('button', { name: 'Past' })
+    fireEvent.click(pastSegment)
+
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+      expect(typeof lastCall[0]).toBe('string')
+      expect((lastCall[0] as string)).toContain('horizon=past')
+    })
+
+    // Never PATCHes (or otherwise calls) /api/admin/settings
+    expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('/api/admin/settings'))).toBe(false)
+  })
+
+  it('remounting with the same defaultHorizon prop resets the active segment to the persisted default, not the last-used override (D-04)', async () => {
+    const fetchMock = stubFetchTracking([])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    const { unmount } = render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=future'))).toBe(true)
+    })
+
+    // Switch to Past in-session
+    fireEvent.click(screen.getByRole('button', { name: 'Past' }))
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+      expect((lastCall[0] as string)).toContain('horizon=past')
+    })
+
+    // Unmount (simulating a fresh page load / remount) and mount again with
+    // the SAME persisted defaultHorizon prop.
+    unmount()
+    fetchMock.mockClear()
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+      expect((lastCall[0] as string)).toContain('horizon=future')
+    })
+    // The remounted instance must NOT resume the prior session's 'past' override.
+    expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=past'))).toBe(false)
+  })
+
+  it('Future segment + zero rows renders "No upcoming trips" distinct from Past/All\'s "No bookings found."', async () => {
+    stubFetchTracking([])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitFor(() => {
+      expect(screen.getByText('No upcoming trips')).toBeDefined()
+    })
+    expect(screen.getByText(/Every confirmed booking has passed\. Switch to Past or All to see historical trips\./)).toBeDefined()
+    expect(screen.queryByText('No bookings found.')).toBeNull()
+
+    // Switch to Past — the generic empty copy should replace the Future one.
+    fireEvent.click(screen.getByRole('button', { name: 'Past' }))
+    await waitFor(() => {
+      expect(screen.getByText('No bookings found.')).toBeDefined()
+    })
+    expect(screen.queryByText('No upcoming trips')).toBeNull()
+  })
+
+  it('D-07: explicit startDate/endDate omits the horizon param and grays the active segment to the inactive style', async () => {
+    const fetchMock = stubFetchTracking([])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.some(([url]) => typeof url === 'string' && url.includes('horizon=future'))).toBe(true)
+    })
+
+    // Open the Date Range picker and set an explicit startDate. Query by
+    // type="date" (there's no accessible label) — the "From" input renders
+    // first, "To" second.
+    fireEvent.click(screen.getByRole('button', { name: 'Date Range' }))
+    const dateInputs = await waitFor(() => {
+      const inputs = document.querySelectorAll('input[type="date"]')
+      expect(inputs.length).toBe(2)
+      return inputs
+    })
+    fireEvent.change(dateInputs[0], { target: { value: '2026-05-01' } })
+
+    await waitFor(() => {
+      const lastCall = fetchMock.mock.calls[fetchMock.mock.calls.length - 1]
+      const url = lastCall[0] as string
+      expect(url).toContain('startDate=2026-05-01')
+      expect(url).not.toContain('horizon=')
+    })
+
+    // The Future segment (which would normally be active) is grayed to the
+    // inactive-chip style — no copper border, no active-tint background.
+    const futureSegment = screen.getByRole('button', { name: 'Future' })
+    expect(futureSegment.style.border).not.toContain('var(--copper)')
+    expect(futureSegment.style.background).not.toContain('rgba(191, 160, 106, 0.09)')
+  })
+
+  it('a mocked failed fetch renders the distinct refetch-error copy (not the empty-state copy)', async () => {
+    const fetchMock = vi.fn().mockImplementation((url: string) => {
+      if (typeof url === 'string' && url.includes('/api/admin/bookings')) {
+        return Promise.resolve({ ok: false, status: 500, json: () => Promise.resolve({ error: 'boom' }) })
+      }
+      return Promise.resolve({ ok: true, json: () => Promise.resolve({}) })
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    await waitFor(() => {
+      expect(screen.getByText(/Couldn.t load bookings — check your connection and try again\./)).toBeDefined()
+    })
+    expect(screen.queryByText('No upcoming trips')).toBeNull()
+    expect(screen.queryByText('No bookings found.')).toBeNull()
+  })
+
+  it('the active-segment style uses the current brand copper tint and border', async () => {
+    stubFetchTracking([])
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable defaultHorizon="future" horizonDays={7} />)
+
+    const futureSegment = await screen.findByRole('button', { name: 'Future' })
+    await waitFor(() => {
+      expect(futureSegment.style.background).toContain('rgba(191, 160, 106, 0.09)')
+      expect(futureSegment.style.border).toContain('var(--copper)')
+    })
+  })
+})

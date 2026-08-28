@@ -1037,7 +1037,16 @@ function PaymentLinkSection({ bookingId, status, paymentLinkUrl, clientEmail, am
   )
 }
 
-export default function BookingsTable() {
+interface BookingsTableProps {
+  // DISP-02: the persisted default, read from /api/admin/settings by the
+  // parent page. Treated as read-only here — this component NEVER writes
+  // back to it. Falls back to the shipped defaults ('future'/7) so the
+  // component still renders correctly if the parent hasn't hydrated yet.
+  defaultHorizon?: string
+  horizonDays?: number
+}
+
+export default function BookingsTable({ defaultHorizon = 'future', horizonDays: horizonDaysProp = 7 }: BookingsTableProps) {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [total, setTotal] = useState(0)
   const [page, setPage] = useState(0)
@@ -1050,12 +1059,19 @@ export default function BookingsTable() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showDateFilter, setShowDateFilter] = useState(false)
-  // DISP-01/DISP-03 (Plan 65-02 tracer): ephemeral horizon state, default
-  // 'future' so a fresh admin load renders only upcoming trips soonest-first
-  // end-to-end. Read-only for now — the switchable segmented control and the
-  // persisted-setting default prop land in Plan 65-04. NEVER PATCHes settings.
-  const [horizon] = useState<string>('future')
-  const [horizonDays] = useState<number>(7)
+  // DISP-01/DISP-03/DISP-04 (Plan 65-04): TWO distinct state slots.
+  // 1) The persisted default is the `defaultHorizon`/`horizonDaysProp` props
+  //    themselves — never re-stored, never mutated by this component.
+  // 2) `horizon`/`horizonDays` is the EPHEMERAL in-session override, seeded
+  //    from the persisted default on mount. The Future/Past/All segmented
+  //    control only ever calls setHorizon — it NEVER PATCHes
+  //    /api/admin/settings. A remount (fresh props) re-seeds from the
+  //    persisted default, not from whatever was last clicked (D-04).
+  const [horizon, setHorizon] = useState<string>(defaultHorizon)
+  const [horizonDays] = useState<number>(horizonDaysProp)
+  // D-05 refetch-error state (E2 backstop): distinct from "zero rows" so a
+  // legitimately-empty Future view is never confused with a silent failure.
+  const [fetchFailed, setFetchFailed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1242,15 +1258,22 @@ export default function BookingsTable() {
       if (tripType !== 'all') params.set('tripType', tripType)
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (debouncedSearch) params.set('search', debouncedSearch)
-      params.set('horizon', horizon)
-      if (horizon === 'last_n_days') params.set('horizonDays', String(horizonDays))
+      // D-07: an explicit manual Date Range takes session precedence over the
+      // segmented-control horizon — omit horizon entirely so the manual bound
+      // (already set above) drives the query untouched.
+      if (!startDate && !endDate) {
+        params.set('horizon', horizon)
+        if (horizon === 'last_n_days') params.set('horizonDays', String(horizonDays))
+      }
 
       const res = await fetch(`/api/admin/bookings?${params.toString()}`)
       if (!res.ok) {
         console.error('Failed to load bookings', res.status)
+        setFetchFailed(true)
         return
       }
       const data = await res.json()
+      setFetchFailed(false)
       setBookings(data.bookings ?? [])
       setTotal(data.total ?? 0)
       // Seed localNotes for bookings that don't already have a local edit
@@ -1275,6 +1298,7 @@ export default function BookingsTable() {
       })
     } catch (err) {
       console.error('fetchBookings error', err)
+      setFetchFailed(true)
     } finally {
       setLoading(false)
     }
@@ -1467,6 +1491,24 @@ export default function BookingsTable() {
     { label: 'Daily', value: 'daily' },
   ]
 
+  // DISP-03/D-07: an explicit manual Date Range takes session precedence over
+  // the segmented control — gray every segment to the inactive-chip style so
+  // the admin sees the Date Range is driving the query (not disabled, just
+  // visually deferred).
+  const dateRangeActive = Boolean(startDate || endDate)
+  // 'last_n_days' (persisted-default-only, not a segment) displays as its
+  // nearest visible peer, Future, per UI-SPEC.
+  const displayHorizon = horizon === 'last_n_days' ? 'future' : horizon
+  const horizonSegments = [
+    { label: 'Future', value: 'future' },
+    { label: 'Past', value: 'past' },
+    { label: 'All', value: 'all' },
+  ]
+  // E2 empty: the Future-segment "nothing upcoming" copy only applies when
+  // the segmented control (not a manual Date Range) is actually driving a
+  // future-only query.
+  const isFutureEmpty = displayHorizon === 'future' && !dateRangeActive
+
   return (
     <div>
       {/* Filter bar */}
@@ -1477,6 +1519,37 @@ export default function BookingsTable() {
         marginBottom: '16px',
         flexWrap: 'wrap',
       }}>
+        {/* Future/Past/All segmented control (DISP-03) — ephemeral in-session
+            override, never PATCHes /api/admin/settings. Sits at the top of
+            the filter bar per UI-SPEC. */}
+        {horizonSegments.map(seg => {
+          const isActive = !dateRangeActive && displayHorizon === seg.value
+          return (
+            <button
+              key={seg.value}
+              onClick={() => handleFilterChange(setHorizon)(seg.value)}
+              style={{
+                height: '32px',
+                padding: '0 12px',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '11px',
+                letterSpacing: '0.06em',
+                borderRadius: '2px',
+                cursor: 'pointer',
+                background: isActive ? 'rgba(191,160,106,0.09)' : 'transparent',
+                border: isActive ? '1px solid var(--copper)' : '1px solid var(--anthracite-light)',
+                color: isActive ? 'var(--offwhite)' : 'var(--warmgrey)',
+                transition: 'border-color 150ms ease, color 150ms ease',
+              }}
+            >
+              {seg.label}
+            </button>
+          )
+        })}
+
+        {/* Separator */}
+        <div style={{ width: '1px', height: '20px', background: 'var(--anthracite-light)' }} />
+
         {/* Search input */}
         <div style={{ position: 'relative' }}>
           <span style={{
@@ -1658,6 +1731,16 @@ export default function BookingsTable() {
               fontSize: '13px',
               color: 'var(--warmgrey)',
             }}>Loading...</div>
+          ) : fetchFailed ? (
+            <div style={{
+              padding: '32px',
+              textAlign: 'center',
+              fontFamily: 'var(--font-montserrat)',
+              fontSize: '13px',
+              color: '#f87171',
+            }}>
+              Couldn&apos;t load bookings — check your connection and try again.
+            </div>
           ) : bookings.length === 0 ? (
             <div style={{
               padding: '32px',
@@ -1666,8 +1749,17 @@ export default function BookingsTable() {
               fontSize: '13px',
               color: 'var(--warmgrey)',
             }}>
-              <div>No bookings found.</div>
-              <div style={{ marginTop: '8px' }}>Adjust your filters or check back later.</div>
+              {isFutureEmpty ? (
+                <>
+                  <div>No upcoming trips</div>
+                  <div style={{ marginTop: '8px' }}>Every confirmed booking has passed. Switch to Past or All to see historical trips.</div>
+                </>
+              ) : (
+                <>
+                  <div>No bookings found.</div>
+                  <div style={{ marginTop: '8px' }}>Adjust your filters or check back later.</div>
+                </>
+              )}
             </div>
           ) : (
             bookings.map((booking) => {
@@ -2049,6 +2141,21 @@ export default function BookingsTable() {
                   Loading...
                 </td>
               </tr>
+            ) : fetchFailed ? (
+              <tr>
+                <td
+                  colSpan={columns.length}
+                  style={{
+                    padding: '32px',
+                    textAlign: 'center',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontSize: '13px',
+                    color: '#f87171',
+                  }}
+                >
+                  Couldn&apos;t load bookings — check your connection and try again.
+                </td>
+              </tr>
             ) : bookings.length === 0 ? (
               <tr>
                 <td
@@ -2061,8 +2168,17 @@ export default function BookingsTable() {
                     color: 'var(--warmgrey)',
                   }}
                 >
-                  <div>No bookings found.</div>
-                  <div style={{ marginTop: '8px' }}>Adjust your filters or check back later.</div>
+                  {isFutureEmpty ? (
+                    <>
+                      <div>No upcoming trips</div>
+                      <div style={{ marginTop: '8px' }}>Every confirmed booking has passed. Switch to Past or All to see historical trips.</div>
+                    </>
+                  ) : (
+                    <>
+                      <div>No bookings found.</div>
+                      <div style={{ marginTop: '8px' }}>Adjust your filters or check back later.</div>
+                    </>
+                  )}
                 </td>
               </tr>
             ) : (
