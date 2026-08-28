@@ -16,6 +16,7 @@ import { scheduleQStashReminder } from '@/lib/qstash'
 import { VALID_TRANSITIONS } from '@/lib/booking-transitions'
 import { createBookingPaymentLink, deactivateBookingPaymentLink } from '@/lib/stripe-payment-links'
 import { haversineDistanceKm, DISTANCE_SANITY_MULTIPLIER } from '@/lib/geo-distance'
+import { getPragueTodayISO, shiftIsoDate } from '@/lib/prague-date'
 
 // VALID_TRANSITIONS is the canonical map from lib/booking-transitions.ts (the
 // same source assign/route.ts imports and BookingsTable's UI_TRANSITIONS derives
@@ -36,6 +37,11 @@ const KNOWN_STATUSES = new Set([
   'en_route',
   'on_location',
 ])
+
+// Whitelist for GET's `horizon` filter param (DISP-01, D-01, D-02, D-06, D-07).
+// Only a known horizon string is accepted; anything else is treated as "no
+// override" (never forwarded raw to the resolver below) — mirrors KNOWN_STATUSES.
+const KNOWN_HORIZONS = new Set(['future', 'past', 'all', 'last_n_days'])
 
 // Single-line PII fields: block CRLF to prevent header injection in email subjects.
 // Hoisted above bookingPatchSchema (originally defined later, near manualBookingSchema)
@@ -231,6 +237,42 @@ export async function GET(request: Request) {
   const rawStatusFilter = searchParams.get('status')
   const statusFilter = rawStatusFilter && KNOWN_STATUSES.has(rawStatusFilter) ? rawStatusFilter : null
 
+  // DISP-01/DISP-03: whitelist the horizon filter param — anything not in
+  // KNOWN_HORIZONS is treated as "no override" (never forwarded raw).
+  const rawHorizon = searchParams.get('horizon')
+  const horizon = rawHorizon && KNOWN_HORIZONS.has(rawHorizon) ? rawHorizon : null
+
+  // Horizon → date-range + sort resolution (D-01: server-computed Prague
+  // "today", never client-derived). D-07: an explicit manual startDate/endDate
+  // takes session precedence over horizon — the horizon branch runs ONLY when
+  // BOTH are absent. When either manual bound is present, sort stays
+  // 'created_desc' and the manual bound is used as-is (also keeps the KPI
+  // fetches, which always pass explicit startDate+endDate, untouched — D-05).
+  let resolvedStartDate = startDate ?? null
+  let resolvedEndDate = endDate ?? null
+  let sort = 'created_desc'
+  if (horizon && !startDate && !endDate) {
+    const today = getPragueTodayISO()
+    if (horizon === 'future') {
+      resolvedStartDate = today
+      sort = 'pickup_asc'
+    } else if (horizon === 'past') {
+      resolvedEndDate = shiftIsoDate(today, -1)
+      sort = 'pickup_desc'
+    } else if (horizon === 'last_n_days') {
+      // V5: defensive clamp — parseInt failure or non-positive value falls
+      // back to the default 7 (DoS mitigation, T-65-03).
+      const rawDays = parseInt(searchParams.get('horizonDays') ?? '7', 10)
+      const days = Number.isFinite(rawDays) && rawDays > 0 ? rawDays : 7
+      // D-06: end stays OPEN (future-inclusive) — no resolvedEndDate bound.
+      resolvedStartDate = shiftIsoDate(today, -days)
+      sort = 'pickup_desc'
+    } else {
+      // 'all' — no date bound, adaptive sort still applies.
+      sort = 'pickup_desc'
+    }
+  }
+
   const supabase = createSupabaseServiceClient()
 
   // LOW-1 mitigation: route the search term through a parameterized RPC
@@ -245,10 +287,11 @@ export async function GET(request: Request) {
   const { data, error: dbError } = await supabase
     .rpc('admin_search_bookings', {
       p_query:      boundedSearch,
-      p_start_date: startDate ?? null,
-      p_end_date:   endDate ?? null,
+      p_start_date: resolvedStartDate,
+      p_end_date:   resolvedEndDate,
       p_trip_type:  tripType ?? null,
       p_status:     statusFilter,
+      p_sort:       sort,
       p_offset:     page * limit,
       p_limit:      limit,
     })

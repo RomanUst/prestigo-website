@@ -1050,6 +1050,12 @@ export default function BookingsTable() {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
   const [showDateFilter, setShowDateFilter] = useState(false)
+  // DISP-01/DISP-03 (Plan 65-02 tracer): ephemeral horizon state, default
+  // 'future' so a fresh admin load renders only upcoming trips soonest-first
+  // end-to-end. Read-only for now — the switchable segmented control and the
+  // persisted-setting default prop land in Plan 65-04. NEVER PATCHes settings.
+  const [horizon] = useState<string>('future')
+  const [horizonDays] = useState<number>(7)
   const [loading, setLoading] = useState(true)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
   const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -1236,6 +1242,8 @@ export default function BookingsTable() {
       if (tripType !== 'all') params.set('tripType', tripType)
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (debouncedSearch) params.set('search', debouncedSearch)
+      params.set('horizon', horizon)
+      if (horizon === 'last_n_days') params.set('horizonDays', String(horizonDays))
 
       const res = await fetch(`/api/admin/bookings?${params.toString()}`)
       if (!res.ok) {
@@ -1270,7 +1278,7 @@ export default function BookingsTable() {
     } finally {
       setLoading(false)
     }
-  }, [page, tripType, statusFilter, debouncedSearch, startDate, endDate])
+  }, [page, tripType, statusFilter, debouncedSearch, startDate, endDate, horizon, horizonDays])
 
   useEffect(() => {
     fetchBookings()

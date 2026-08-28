@@ -1136,7 +1136,9 @@ export type Database = {
           p_limit?: number
           p_offset?: number
           p_query?: string
+          p_sort?: string
           p_start_date?: string
+          p_status?: string
           p_trip_type?: string
         }
         Returns: {
