@@ -5,16 +5,16 @@ milestone_name: Dispatch & Driver Trip Portal
 current_phase: 65
 current_phase_name: Dispatch — Future-First Bookings List
 status: executing
-stopped_at: Completed 65-01-PLAN.md
-last_updated: "2026-08-28T13:19:11.037Z"
+stopped_at: Completed 65-02-PLAN.md
+last_updated: "2026-08-28T13:28:25.826Z"
 last_activity: 2026-08-28
 last_activity_desc: Phase 65 execution started
-state_head: 75130f9d05b4df38345b2ded9879f513d311fda0
+state_head: ed5fec88fe96880b43af464a91803c8625d3f265
 progress:
   total_phases: 3
   completed_phases: 0
   total_plans: 4
-  completed_plans: 1
+  completed_plans: 2
   percent: 0
 ---
 
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-08-27)
 ## Current Position
 
 Phase: 65 (Dispatch — Future-First Bookings List) — EXECUTING
-Plan: 2 of 4
+Plan: 3 of 4
 Status: Ready to execute
 Total Plans in Phase: 4
 Last activity: 2026-08-28 — Phase 65 execution started
@@ -86,6 +86,8 @@ Recent decisions affecting current work:
 - [Phase 65]: 65-01: TEXT+CHECK (not ENUM) for dispatch_default_horizon, matching customer_profiles.account_type precedent
 - [Phase 65]: 65-01: p_sort adaptive CASE ORDER BY duplicated identically in both paged CTE and jsonb_agg sites (Pitfall 1) — never dynamic/concatenated SQL (T-65-01)
 - [Phase 65]: 65-01: 059's DROP+CREATE produces a new function object receiving a default PUBLIC EXECUTE grant — added explicit REVOKE after every RPC signature-change migration (Rule 2 fix, commit 472e132)
+- [Phase 65]: [Phase 65] 65-02: D-07 implemented as researched-corrected (manual startDate/endDate suppress the horizon branch entirely, sort stays created_desc) — diverges from RESEARCH Pattern 2's horizon-overrides-manual snippet per the plan's explicit research_correction
+- [Phase 65]: [Phase 65] 65-02: BookingsTable horizon state shipped as a read-only useState (no setter) defaulting to 'future' — the switchable segmented control is deferred to Plan 65-04
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -171,8 +173,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-28T13:19:11.012Z
-Stopped at: Completed 65-01-PLAN.md
+Last session: 2026-08-28T13:28:25.809Z
+Stopped at: Completed 65-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -204,6 +206,7 @@ Resume file: None
 | Phase 64 P02 | 20min | 2 tasks | 5 files |
 | Phase 64 P03 | 15min | 2 tasks | 2 files |
 | Phase 65 P01 | 52min | 3 tasks | 4 files |
+| Phase 65 P02 | 7min | 2 tasks | 4 files |
 
 ## Operator Next Steps
 
