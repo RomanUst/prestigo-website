@@ -1,7 +1,7 @@
 ---
 phase: 66
 slug: driver-trip-portal-permanent-link-trip-sheet
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-08-31
@@ -97,21 +97,29 @@ Accent reserved for: wordmark "GO" half, field-label color, booking-reference em
 > Empty-state and error-state COPY live in `## Copywriting Contract` above — this section covers
 > state coverage and REFERENCES those rows rather than restating the copy (de-dup).
 
-Elements classified: **Trip detail fields** (kind: `form` — a fixed, non-editable set of labeled fields with real partial-data and long-text risk), **Embedded map** (kind: `media`), **Admin "Copy Trip Link" control** (kind: `interactive-control`), **Invalid trip-link placeholder** (kind: `static-content`, fixed system copy — no state considerations raised, dismissed as out-of-scope for length/overflow).
+Elements classified (probe engine `classifyElement` + kind-confirmation): **Trip detail fields** (kind: `form` — fixed, non-editable labeled field set with real partial-data and long-text risk), **Embedded map** (kind: `media` — **reclassified from probe `unclassified` via kind-confirmation**: the prose media cue did not trip the heuristic, so the `media` kind was added by hand, raising its empty/loading/error/populated states), **Admin "Copy Trip Link" control** (kind: `interactive-control`), **Invalid trip-link placeholder** (kind: `static-content`, fixed system copy).
 
-Applicable state considerations resolved: 8 covered, 1 backstop, 0 unresolved.
+Probe coverage: **23 applicable** considerations across the 4 elements (E1×8, E2×4 after media override, E3×6, E4×8) → **11 covered**, **1 backstop**, **11 dismissed (reason recorded)**, **0 unresolved**. Dismissed rows are architecture-determined N/A (server-rendered view-only page per D-09; fixed non-repeating field set; fixed short static copy) — surfaced here, never silently dropped.
 
 | Category | Element(s) | Status | Resolution / Reason |
 |----------|------------|--------|---------------------|
 | partial | Trip detail fields | ✅ covered | Null/empty optional fields (flight info, special requests, driver `vehicle_info`) are omitted as whole rows rather than rendered blank or as "N/A" — keeps the trip sheet clean and unambiguous for police-control legibility (Pitfall 4 requires showing both `bookings.vehicle_class` and `drivers.vehicle_info` distinctly when present). |
+| populated | Trip detail fields | ✅ covered | Happy path: all sections (Trip Details, Passenger, Vehicle & Driver) rendered from the joined `bookings` + `driver_assignments` row in the D-06 order; the always-present core fields (date, time, from, to, passenger name, phone) never omit. |
 | long-text | Trip detail fields — `special_requests` | ✅ covered | Renders as wrapped body text (`white-space: normal`, no truncation/ellipsis) — the full note must stay legible since the page is presentable to police control. |
+| overflow | Trip detail fields — long addresses / names | ✅ covered | Same wrap-not-truncate rule as long-text: label/value grid cells wrap; no ellipsis or fixed-width clipping on any field value. |
 | error | Trip detail fields — orphaned/missing joined booking | ✅ covered | If `trip_token` resolves a `driver_assignments` row but the joined `bookings` row is unexpectedly missing, treat identically to an invalid token — render the same neutral placeholder (D-11), never a raw error page or stack trace. |
+| empty | Trip detail fields | ⛔ dismissed | A valid `trip_token` always resolves real booking data; "no data" for the whole sheet is definitionally the invalid-link case, handled by E4. No separate empty-form state exists. |
+| loading | Trip detail fields | ⛔ dismissed | Page is server-rendered (mirrors `app/driver/response/page.tsx`, D-09 app-shell) — field data is present at first paint; no client-side fetch, so no skeleton/spinner state. |
+| zero-one-many | Trip detail fields | ⛔ dismissed | Fields are a fixed, singular labeled set — not a repeating collection — so singular/plural copy and count-driven spacing do not apply. |
 | empty | Embedded map — missing coordinates | ✅ covered | When `origin_lat/lng` or `destination_lat/lng` is `null`, reuse `RouteMap.tsx`'s existing null-safe empty state, copy adapted to "Map unavailable — see address above." Text pickup/dropoff address rows render independently of map success (Pitfall 3 — pass `null`, never `{lat:0,lng:0}`). |
 | loading | Embedded map — Google Maps JS SDK loading | 🧪 backstop | Map container shows the card-surface color (`var(--anthracite-mid)`) as a placeholder background while the SDK loads client-side; sub-second in practice, so no spinner is specified. This is a visual-only claim — verify by screenshot/manual check, not asserted by a unit test. |
 | error | Embedded map — SDK fails to load | ✅ covered | Address text rows (From/To) are independent static content, not conditioned on map success — a failed map load never removes the police-control-relevant address text; only the visual map panel is affected. |
 | populated | Embedded map — normal draw | ✅ covered | Reuses `RouteMap.tsx` as-is: polyline + origin/destination markers, attribution-safe rendering (Google logo/"Terms" links are never hidden — confirmed by reading the component's render tree this session; see project memory "Google Maps attribution hidden — ToS risk"). |
 | error | Admin "Copy Trip Link" control | ✅ covered | On `navigator.clipboard` write failure (e.g. non-secure context), falls back to a selectable read-only text input containing the link so the dispatcher can copy manually — see Copywriting Contract "Couldn't copy" row. |
-| loading | Admin "Copy Trip Link" control | ✅ covered | Button label swaps to "Copied!" for 2s after a successful clipboard write — matches the existing `DriverResponseClient` button-state-swap pattern ("Confirming..." → done state). |
+| loading | Admin "Copy Trip Link" control | ✅ covered | Button label swaps to "Copied!" for 2s after a successful clipboard write, then reverts — matches the existing `DriverResponseClient` button-state-swap pattern ("Confirming..." → done state). |
+| empty / partial / overflow / long-text | Admin "Copy Trip Link" control | ⛔ dismissed | Fixed-label secondary button with no data-driven content — no empty, partial, container-overflow, or long-text state applies. |
+| populated | Invalid trip-link placeholder | ✅ covered | The placeholder card *is* its own rendered state: wordmark + the single neutral line "This trip link is no longer active." (D-11), no data, no per-reason distinction. |
+| empty / loading / error / partial / overflow / zero-one-many / long-text | Invalid trip-link placeholder | ⛔ dismissed | Fixed, short, static system copy with no data binding and no variable length — none of the data-shape state categories apply; the placeholder is a terminal static view. |
 
 <!-- Status vocabulary (locked by probe-core projectTruths):
      ✅ covered   → a plain truth string lifted into must_haves.truths
@@ -133,14 +141,14 @@ Applicable state considerations resolved: 8 covered, 1 backstop, 0 unresolved.
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (non-blocking) — no explicit focal-point declaration for the trip-sheet screen; header → title → booking-reference sequence + D-05/D-06 section order give strong implicit hierarchy. Recommend one sentence naming the booking-reference/header block as primary anchor.
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED (2026-08-31, gsd-ui-checker) — 6/6 dimensions, 1 non-blocking recommendation.
 
 ---
 
