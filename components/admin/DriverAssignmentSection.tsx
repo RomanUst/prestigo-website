@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { Copy } from 'lucide-react'
 import { StatusBadge } from '@/components/admin/StatusBadge'
 
 interface Driver {
@@ -12,6 +13,7 @@ interface Assignment {
   id: string
   driver_id: string
   status: string
+  trip_token: string
   drivers: {
     name: string
     email: string
@@ -39,6 +41,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
   const [selectedDriverId, setSelectedDriverId] = useState<string>('')
   const [mode, setMode] = useState<Mode>('loading')
   const [driversLoading, setDriversLoading] = useState(true)
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
 
   useEffect(() => {
     let cancelled = false
@@ -116,6 +119,10 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             id: postData.assignment.id,
             driver_id: postData.assignment.driver_id,
             status: postData.assignment.status,
+            // trip_token is never in the POST response (SEC-18 discipline) — this
+            // degraded fallback path only runs when the immediate re-fetch GET
+            // fails, so the Copy Trip Link control is hidden until reload.
+            trip_token: '',
             drivers: { name: 'Driver assigned', email: '' },
           })
         }
@@ -133,6 +140,18 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
   function handleReassign() {
     setMode('reassigning')
     setSelectedDriverId('')
+  }
+
+  async function handleCopyTripLink() {
+    if (!assignment) return
+    const tripUrl = `${window.location.origin}/driver/trip/${assignment.trip_token}`
+    try {
+      await navigator.clipboard.writeText(tripUrl)
+      setCopyState('copied')
+      setTimeout(() => setCopyState('idle'), 2000)
+    } catch {
+      setCopyState('failed')
+    }
   }
 
   const sectionLabelStyle: React.CSSProperties = {
@@ -214,7 +233,7 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
     return (
       <div style={{ marginTop: '16px' }}>
         <div style={sectionLabelStyle}>Driver</div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           <span style={{ fontSize: '13px', fontWeight: 300, color: 'var(--offwhite)' }}>
             {assignment.drivers?.name ?? 'Unknown driver'}
           </span>
@@ -222,6 +241,21 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             variant={getStatusBadgeVariant(assignment.status)}
             label={assignment.status}
           />
+          {assignment.trip_token && (
+            <button
+              onClick={handleCopyTripLink}
+              style={{ ...reassignButtonStyle, borderColor: 'var(--copper)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--offwhite)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--warmgrey)'
+              }}
+            >
+              <Copy size={14} />
+              {copyState === 'copied' ? 'Copied!' : 'Copy Trip Link'}
+            </button>
+          )}
           <button
             onClick={handleReassign}
             style={reassignButtonStyle}
@@ -237,6 +271,38 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             Reassign
           </button>
         </div>
+        {copyState === 'failed' && (
+          <div style={{ marginTop: '8px' }}>
+            <div style={{
+              fontSize: '11px',
+              fontWeight: 300,
+              color: '#f87171',
+              marginBottom: '4px',
+              letterSpacing: '0.05em',
+              fontFamily: 'var(--font-montserrat)',
+            }}>
+              Couldn&apos;t copy — select and copy the link manually.
+            </div>
+            <input
+              type="text"
+              readOnly
+              value={`${window.location.origin}/driver/trip/${assignment.trip_token}`}
+              onFocus={(e) => e.currentTarget.select()}
+              style={{
+                width: '100%',
+                maxWidth: '420px',
+                height: '32px',
+                background: 'var(--anthracite)',
+                border: '1px solid var(--anthracite-light)',
+                borderRadius: '2px',
+                fontFamily: 'var(--font-montserrat)',
+                fontSize: '12px',
+                color: 'var(--offwhite)',
+                padding: '0 8px',
+              }}
+            />
+          </div>
+        )}
       </div>
     )
   }

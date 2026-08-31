@@ -107,4 +107,62 @@ describe('DriverAssignmentSection — Phase 53 prop evolution', () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(3))
     expect(onAssigned).not.toHaveBeenCalled()
   })
+
+  it('renders Copy Trip Link in assigned mode and copies the trip URL (D-10b)', async () => {
+    const driverId = '33333333-3333-3333-3333-333333333333'
+    const tripToken = '44444444-4444-4444-4444-444444444444'
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assignment: {
+          id: 'a1',
+          driver_id: driverId,
+          status: 'pending',
+          trip_token: tripToken,
+          drivers: { name: 'Test Driver', email: 'driver@example.com' },
+        },
+      }),
+    }) as unknown as typeof fetch
+
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    Object.assign(navigator, { clipboard: { writeText } })
+
+    render(<DriverAssignmentSection bookingId="b1" bookingStatus="assigned" />)
+
+    const copyBtn = await screen.findByRole('button', { name: /copy trip link/i })
+    await userEvent.click(copyBtn)
+
+    await waitFor(() => expect(writeText).toHaveBeenCalledWith(expect.stringMatching(/\/driver\/trip\//)))
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining(tripToken))
+    await waitFor(() => expect(screen.getByRole('button', { name: /copied!/i })).toBeDefined())
+  })
+
+  it('falls back to a selectable text field when clipboard copy fails (D-10b)', async () => {
+    const driverId = '55555555-5555-5555-5555-555555555555'
+    const tripToken = '66666666-6666-6666-6666-666666666666'
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assignment: {
+          id: 'a2',
+          driver_id: driverId,
+          status: 'pending',
+          trip_token: tripToken,
+          drivers: { name: 'Test Driver', email: 'driver@example.com' },
+        },
+      }),
+    }) as unknown as typeof fetch
+
+    const writeText = vi.fn().mockRejectedValue(new Error('denied'))
+    Object.assign(navigator, { clipboard: { writeText } })
+
+    render(<DriverAssignmentSection bookingId="b1" bookingStatus="assigned" />)
+
+    const copyBtn = await screen.findByRole('button', { name: /copy trip link/i })
+    await userEvent.click(copyBtn)
+
+    await waitFor(() => expect(screen.getByText(/couldn.t copy/i)).toBeDefined())
+    const input = screen.getByDisplayValue(new RegExp(`/driver/trip/${tripToken}`))
+    expect(input).toBeDefined()
+  })
 })
