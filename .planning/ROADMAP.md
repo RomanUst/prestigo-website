@@ -106,7 +106,17 @@ Plans:
   3. The existing accept/decline assignment flow (email + response page) still works unchanged; the permanent trip link is additive and works independently of accept/decline.
   4. The trip link token is unguessable, exposes only the assigned booking's own data, and stops working once that booking reaches a terminal status or is reassigned to a different driver.
 
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+**Wave 1**
+
+- [ ] 66-01-PLAN.md — Tracer: trip_token schema (migration 060) + validity seam + end-to-end noindex trip sheet (DTRIP-01, DTRIP-02, DTRIP-08)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 66-02-PLAN.md — Delivery: assignment-email trip link + admin copy-link, accept/decline coexistence regression (DTRIP-01, DTRIP-07)
+
 **UI hint**: yes
 
 ### Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility
@@ -140,5 +150,5 @@ Plans:
 | 63. Admin Booking Editing + Change Notification | v2.1 | 5/5 | Complete | 2026-08-21 |
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 4/4 | Complete | 2026-08-25 |
 | 65. Dispatch — Future-First Bookings List | v2.2 | 4/4 | Complete    | 2026-08-31 |
-| 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 0/? | Not started | - |
+| 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 0/2 | Planned | - |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 0/? | Not started | - |
