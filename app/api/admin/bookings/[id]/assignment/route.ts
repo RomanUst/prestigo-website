@@ -19,7 +19,7 @@ export async function GET(
   // 3. Query latest assignment with driver join
   const { data } = await supabase
     .from('driver_assignments')
-    .select('id, driver_id, status, created_at, drivers(name, email)')
+    .select('id, driver_id, status, created_at, trip_token, drivers(name, email)')
     .eq('booking_id', bookingId)
     .order('created_at', { ascending: false })
     .limit(1)

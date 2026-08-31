@@ -85,6 +85,7 @@ import { POST as respondPost } from '@/app/api/driver/respond/route'
 const bookingId = 'a0000001-0000-4000-8000-000000000001'
 const driverId = 'a0000002-0000-4000-8000-000000000002'
 const assignmentToken = 'a0000003-0000-4000-8000-000000000003'
+const tripToken = 'a0000004-0000-4000-8000-000000000004'
 
 function makeAssignRequest(body: Record<string, unknown>): Request {
   return new Request(`http://localhost/api/admin/bookings/${bookingId}/assign`, {
@@ -165,7 +166,7 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
       status: 'pending',
       booking_source: 'website',
     }
-    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: true } }
 
     let callCount = 0
@@ -205,6 +206,8 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
     const json = await res.json()
     expect(json).toHaveProperty('assignment')
     expect(json.assignment.status).toBe('pending')
+    // SEC-18-style discipline: raw trip_token must NOT be exposed in the POST response body
+    expect(json.assignment).not.toHaveProperty('trip_token')
   })
 
   it('Test 4: returns 404 for unknown driver_id', async () => {
@@ -235,7 +238,7 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
       status: 'pending',
       booking_source: 'website',
     }
-    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: true } }
 
     let callCount = 0
@@ -278,6 +281,11 @@ describe('DRIVER-02: POST /api/admin/bookings/[id]/assign', () => {
     // sendDriverAssignmentEmail is fire-and-forget, give it a tick to run
     await new Promise((r) => setTimeout(r, 10))
     expect(stubSendDriverAssignmentEmail).toHaveBeenCalledTimes(1)
+    expect(stubSendDriverAssignmentEmail).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tripUrl: expect.stringContaining('/driver/trip/'),
+      })
+    )
   })
 })
 
@@ -297,6 +305,7 @@ describe('DRIVER-02/05: GET /api/admin/bookings/[id]/assignment', () => {
       driver_id: driverId,
       status: 'pending',
       created_at: '2026-05-01T10:00:00Z',
+      trip_token: tripToken,
       drivers: { name: 'John Driver', email: 'driver@example.com' },
     }
 
@@ -314,6 +323,7 @@ describe('DRIVER-02/05: GET /api/admin/bookings/[id]/assignment', () => {
     const json = await res.json()
     expect(json).toHaveProperty('assignment')
     expect(json.assignment.drivers.name).toBe('John Driver')
+    expect(json.assignment.trip_token).toBe(tripToken)
   })
 
   it('Test 8: returns 200 with null when no assignment exists', async () => {
@@ -557,7 +567,7 @@ function makeFullAssignMock(
     booking_source: 'website',
     ...bookingOverrides,
   }
-  const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+  const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
   const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
 
   let callCount = 0
@@ -610,7 +620,7 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
       client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
       status: 'confirmed', booking_source: 'website',
     }
-    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
 
     let callCount = 0
@@ -655,7 +665,7 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
       client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
       status: 'assigned', booking_source: 'website', driver_id: 'a0000009-0000-4000-8000-000000000099',
     }
-    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
 
     let callCount = 0
@@ -698,7 +708,7 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
       client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
       status: 'confirmed', booking_source: 'gnet',
     }
-    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
     const mockGnetRow = { id: 'g0000001-0000-4000-8000-000000000001', gnet_res_no: 'GR-123' }
 
@@ -767,7 +777,7 @@ describe('DRIVER-ASSIGN-02: bookings.driver_id + status transition (D-04, D-05, 
       client_first_name: 'Alice', client_last_name: 'Smith', client_phone: '+420123456789',
       status: 'pending', booking_source: 'website',
     }
-    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken }
+    const mockAssignment = { id: 'a1a2a3a4-0000-0000-0000-000000000001', driver_id: driverId, status: 'pending', token: assignmentToken, trip_token: tripToken }
     const mockNotificationFlags = { notification_flags: { driver_assigned: false } }
 
     let callCount = 0

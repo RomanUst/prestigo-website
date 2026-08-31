@@ -70,7 +70,7 @@ export async function POST(
   const { data: assignment, error: insertError } = await supabase
     .from('driver_assignments')
     .insert({ booking_id: bookingId, driver_id: driverId })
-    .select('id, driver_id, status, token')
+    .select('id, driver_id, status, token, trip_token')
     .single()
 
   if (insertError || !assignment) {
@@ -173,6 +173,7 @@ export async function POST(
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
       const acceptUrl = `${siteUrl}/driver/response?token=${assignment.token}&action=accepted`
       const declineUrl = `${siteUrl}/driver/response?token=${assignment.token}&action=declined`
+      const tripUrl = `${siteUrl}/driver/trip/${assignment.trip_token}`
 
       after(() => sendDriverAssignmentEmail({
         driverName: driver.name,
@@ -189,6 +190,7 @@ export async function POST(
         specialRequests: booking.special_requests,
         acceptUrl,
         declineUrl,
+        tripUrl,
       }).catch(err => console.error('[driver-assign]:', err)))
     }
   }
