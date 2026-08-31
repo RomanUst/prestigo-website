@@ -64,7 +64,7 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;')
 }
 
-function formatVehicleLabel(vehicleClass: string): string {
+export function formatVehicleLabel(vehicleClass: string): string {
   if (vehicleClass === 'first_class') return 'First Class'
   if (vehicleClass === 'business_van') return 'Business Van'
   return vehicleClass.charAt(0).toUpperCase() + vehicleClass.slice(1)

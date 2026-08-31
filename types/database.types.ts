@@ -396,6 +396,7 @@ export type Database = {
           token: string
           token_expires_at: string
           token_used_at: string | null
+          trip_token: string
         }
         Insert: {
           booking_id?: string | null
@@ -406,6 +407,7 @@ export type Database = {
           token?: string
           token_expires_at?: string
           token_used_at?: string | null
+          trip_token?: string
         }
         Update: {
           booking_id?: string | null
@@ -416,6 +418,7 @@ export type Database = {
           token?: string
           token_expires_at?: string
           token_used_at?: string | null
+          trip_token?: string
         }
         Relationships: [
           {
