@@ -4,17 +4,17 @@ milestone: v2.2
 milestone_name: Dispatch & Driver Trip Portal
 current_phase: 66
 current_phase_name: Driver Trip Portal — Permanent Link & Trip Sheet
-status: executing
-stopped_at: Completed 66-01-PLAN.md
-last_updated: "2026-08-31T21:27:44.104Z"
+status: verifying
+stopped_at: Completed 66-02-PLAN.md
+last_updated: "2026-08-31T21:36:01.955Z"
 last_activity: 2026-08-31
 last_activity_desc: Phase 66 execution started
-state_head: 5eb50414a20ae62e58e0232c985fda79b7d81f54
+state_head: 1d3def2f2adf6e6f3d5405d273dfef6989d3e40f
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 33
 ---
 
@@ -31,7 +31,7 @@ See: .planning/PROJECT.md (updated 2026-08-27)
 
 Phase: 66 (Driver Trip Portal — Permanent Link & Trip Sheet) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Total Plans in Phase: 2
 Last activity: 2026-08-31 — Phase 66 execution started
 
@@ -96,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 65]: [Phase 65] 65-04: bookings/page.tsx's settings fetch is a third, independent useEffect — structurally decoupled from the two KPI fetches (D-05), not merged into the existing KPI-fetch effect
 - [Phase 66]: 66-01: operator selected add-column (D-01) over sibling-table at the Task 2 checkpoint — matches locked D-01
 - [Phase 66]: 66-01: TripSheetAssignmentRow/Booking/Driver interfaces cast around the untyped Supabase select-string join (bookings!inner(*) infers as array without a Database generic)
+- [Phase 66]: trip_token kept required on Assignment interface; POST-fallback path sets it to '' and hides Copy Trip Link rather than making the field optional (SEC-18 discipline preserved)
+- [Phase 66]: VIEW TRIP SHEET CTA placed as its own div below the ACCEPT/DECLINE button row, not inside it, keeping DTRIP-07's unchanged-DOM guarantee literal
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -181,8 +183,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-31T21:27:43.978Z
-Stopped at: Completed 66-01-PLAN.md
+Last session: 2026-08-31T21:36:01.828Z
+Stopped at: Completed 66-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -218,6 +220,7 @@ Resume file: None
 | Phase 65 P03 | 4min | 2 tasks | 4 files |
 | Phase 65 P04 | 15min | 2 tasks | 4 files |
 | Phase 66 P01 | ~7min | 4 tasks | 6 files |
+| Phase 66 P02 | 5min | 3 tasks | 6 files |
 
 ## Operator Next Steps
 

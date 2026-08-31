@@ -22,7 +22,7 @@ Requirements for milestone v2.2. Each maps to a roadmap phase (numbering continu
 - [ ] **DTRIP-04**: Trip-progress is stored in a separate field and does NOT modify `booking.status` (and is not pushed to GNet by default).
 - [ ] **DTRIP-05**: Admin sees the driver's live trip-progress in the bookings admin.
 - [ ] **DTRIP-06**: Driver can leave an optional trip note/feedback from the link.
-- [ ] **DTRIP-07**: The existing accept/decline assignment flow remains available; the permanent trip link coexists with it.
+- [x] **DTRIP-07**: The existing accept/decline assignment flow remains available; the permanent trip link coexists with it.
 - [x] **DTRIP-08**: The trip link token is unguessable and only exposes the assigned booking's data; it becomes invalid on terminal status or reassignment.
 
 ## Future Requirements
@@ -70,7 +70,7 @@ Which phases cover which requirements. Filled during roadmap creation.
 | DTRIP-04 | Phase 67 | Pending |
 | DTRIP-05 | Phase 67 | Pending |
 | DTRIP-06 | Phase 67 | Pending |
-| DTRIP-07 | Phase 66 | Pending |
+| DTRIP-07 | Phase 66 | Complete |
 | DTRIP-08 | Phase 66 | Complete |
 
 **Coverage:**
