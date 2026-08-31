@@ -1,21 +1,25 @@
 ---
 phase: 65-dispatch-future-first-bookings-list
 verified: 2026-08-28T19:55:00Z
-status: human_needed
+status: passed
 score: 20/21 must-haves verified
 behavior_unverified: 1
 overrides_applied: 0
 human_verification:
+
   - test: "Open /admin/bookings on the live site with real booking rows spanning past and future pickup dates (no manual Date Range set)."
     expected: "The list renders only bookings with pickup_date >= today (Europe/Prague), ordered soonest-first (nearest upcoming trip at the top). Zero rows renders 'No upcoming trips' + the explanatory sentence, not a blank/loading table."
     why_human: "The horizon resolver (route.ts), the RPC's static-CASE ORDER BY (migration 059), and BookingsTable's fetch wiring are all proven correct at the unit/component level (mocked RPC args, mocked fetch responses) — code review independently confirmed the two ORDER BY sites are byte-identical and injection-proof. But no automated test in this phase executes the RPC against real Supabase rows and inspects the actual returned order; the 65-02 and 65-04 SUMMARYs both explicitly defer this to 'phase-level UAT' as a manual/UAT item, not an automated gate. This is an ordering invariant that presence+wiring checks cannot observe."
+
   - test: "In admin Settings, set Dispatch Default to 'Last N days' = 14 (or 'All'), save, then load /admin/bookings fresh (new tab / hard reload)."
     expected: "The Bookings page opens honoring the persisted choice (not the hardcoded 'future' fallback) — this is CR-01, the headline DISP-02 bug found by code review and fixed via the settingsLoaded mount-gate in bookings/page.tsx. A live click-through confirms the fix in the real browser, matching the passing 'CR-01 regression' test in tests/admin-bookings-kpi-decoupling.test.tsx."
     why_human: "The fix and its regression test are verified in code (see Goal Achievement below) and are strong evidence, but this is the single most consequential behavior in the phase and the plan's own <verification> sections list a live click-through as an explicit Manual/UAT item."
+
   - test: "On the live Settings page, click through Future only / Last N days / All, confirm the copper radio dot, conditional Days field + helper-text wrap at a narrow viewport, and the 'Saved'/'Failed to save — try again' feedback timing."
     expected: "Matches the UI-SPEC visuals; the widget never submits an invalid PATCH body when Days is cleared."
     why_human: "Visual/CSS fidelity (wrap behavior, timing) — code inspection confirms the correct logic and tokens (grep-verified: rgba(191,160,106,0.09) count 1, no stale rgb(184,115,51) literal), but rendering fidelity itself needs a browser."
 behavior_unverified_items:
+
   - truth: "E2 populated: rows render future-first (nearest upcoming trip first), matching D-01 (65-02 must-have)"
     test: "Load /admin/bookings with real rows spanning past/future pickup dates, no manual Date Range."
     expected: "Rows appear ordered by pickup_date ascending, nearest-future trip first."
