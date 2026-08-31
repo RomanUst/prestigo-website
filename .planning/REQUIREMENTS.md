@@ -16,14 +16,14 @@ Requirements for milestone v2.2. Each maps to a roadmap phase (numbering continu
 
 ### Driver Trip Portal
 
-- [ ] **DTRIP-01**: On assignment, a permanent per-assignment driver link is generated with a token valid until the order reaches a terminal status (no immediate expiry).
-- [ ] **DTRIP-02**: The driver link opens a `noindex` trip sheet with full trip details (pickup/dropoff, date/time, passenger, phone, flight, special requests, booking reference) — presentable to police control.
+- [x] **DTRIP-01**: On assignment, a permanent per-assignment driver link is generated with a token valid until the order reaches a terminal status (no immediate expiry).
+- [x] **DTRIP-02**: The driver link opens a `noindex` trip sheet with full trip details (pickup/dropoff, date/time, passenger, phone, flight, special requests, booking reference) — presentable to police control.
 - [ ] **DTRIP-03**: Driver can mark trip-progress statuses from the link: en route → arrived → on board → completed, plus no-show.
 - [ ] **DTRIP-04**: Trip-progress is stored in a separate field and does NOT modify `booking.status` (and is not pushed to GNet by default).
 - [ ] **DTRIP-05**: Admin sees the driver's live trip-progress in the bookings admin.
 - [ ] **DTRIP-06**: Driver can leave an optional trip note/feedback from the link.
 - [ ] **DTRIP-07**: The existing accept/decline assignment flow remains available; the permanent trip link coexists with it.
-- [ ] **DTRIP-08**: The trip link token is unguessable and only exposes the assigned booking's data; it becomes invalid on terminal status or reassignment.
+- [x] **DTRIP-08**: The trip link token is unguessable and only exposes the assigned booking's data; it becomes invalid on terminal status or reassignment.
 
 ## Future Requirements
 
@@ -64,14 +64,14 @@ Which phases cover which requirements. Filled during roadmap creation.
 | DISP-02 | Phase 65 | Complete |
 | DISP-03 | Phase 65 | Complete |
 | DISP-04 | Phase 65 | Complete |
-| DTRIP-01 | Phase 66 | Pending |
-| DTRIP-02 | Phase 66 | Pending |
+| DTRIP-01 | Phase 66 | Complete |
+| DTRIP-02 | Phase 66 | Complete |
 | DTRIP-03 | Phase 67 | Pending |
 | DTRIP-04 | Phase 67 | Pending |
 | DTRIP-05 | Phase 67 | Pending |
 | DTRIP-06 | Phase 67 | Pending |
 | DTRIP-07 | Phase 66 | Pending |
-| DTRIP-08 | Phase 66 | Pending |
+| DTRIP-08 | Phase 66 | Complete |
 
 **Coverage:**
 

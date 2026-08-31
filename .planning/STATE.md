@@ -5,16 +5,16 @@ milestone_name: Dispatch & Driver Trip Portal
 current_phase: 66
 current_phase_name: Driver Trip Portal — Permanent Link & Trip Sheet
 status: executing
-stopped_at: Phase 66 UI-SPEC approved
-last_updated: "2026-08-31T17:49:38.049Z"
+stopped_at: Completed 66-01-PLAN.md
+last_updated: "2026-08-31T21:27:44.104Z"
 last_activity: 2026-08-31
-last_activity_desc: Phase 65 complete, transitioned to Phase 66
-state_head: d4401b47277a89950d8956d234b2137164c26b4b
+last_activity_desc: Phase 66 execution started
+state_head: 5eb50414a20ae62e58e0232c985fda79b7d81f54
 progress:
   total_phases: 3
   completed_phases: 1
   total_plans: 6
-  completed_plans: 4
+  completed_plans: 5
   percent: 33
 ---
 
@@ -25,17 +25,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-08-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 65 — Dispatch — Future-First Bookings List
+**Current focus:** Phase 66 — Driver Trip Portal — Permanent Link & Trip Sheet
 
 ## Current Position
 
-Phase: 66 (Driver Trip Portal — Permanent Link & Trip Sheet) — READY TO EXECUTE
-Plan: Not started
+Phase: 66 (Driver Trip Portal — Permanent Link & Trip Sheet) — EXECUTING
+Plan: 2 of 2
 Status: Ready to execute
 Total Plans in Phase: 2
-Last activity: 2026-08-31 — Phase 65 complete, transitioned to Phase 66
+Last activity: 2026-08-31 — Phase 66 execution started
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [███░░░░░░░] 33%
 
 ## Accumulated Context
 
@@ -94,6 +94,8 @@ Recent decisions affecting current work:
 - [Phase 65]: [Phase 65] 65-04: 'last_n_days' displays as its nearest visible peer 'Future' in the segmented control (highlight only) — the real fetch param stays 'last_n_days' until the admin clicks a real segment
 - [Phase 65]: [Phase 65] 65-04: D-07 grayed-segment styling reuses the existing inactive-chip style verbatim (isActive forced false for all three segments when a manual Date Range is active) rather than introducing a third visual state
 - [Phase 65]: [Phase 65] 65-04: bookings/page.tsx's settings fetch is a third, independent useEffect — structurally decoupled from the two KPI fetches (D-05), not merged into the existing KPI-fetch effect
+- [Phase 66]: 66-01: operator selected add-column (D-01) over sibling-table at the Task 2 checkpoint — matches locked D-01
+- [Phase 66]: 66-01: TripSheetAssignmentRow/Booking/Driver interfaces cast around the untyped Supabase select-string join (bookings!inner(*) infers as array without a Database generic)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -179,9 +181,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-31T14:06:10.360Z
-Stopped at: Phase 66 UI-SPEC approved
-Resume file: .planning/phases/66-driver-trip-portal-permanent-link-trip-sheet/66-UI-SPEC.md
+Last session: 2026-08-31T21:27:43.978Z
+Stopped at: Completed 66-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -215,6 +217,7 @@ Resume file: .planning/phases/66-driver-trip-portal-permanent-link-trip-sheet/66
 | Phase 65 P02 | 7min | 2 tasks | 4 files |
 | Phase 65 P03 | 4min | 2 tasks | 4 files |
 | Phase 65 P04 | 15min | 2 tasks | 4 files |
+| Phase 66 P01 | ~7min | 4 tasks | 6 files |
 
 ## Operator Next Steps
 
