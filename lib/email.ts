@@ -1415,6 +1415,7 @@ export interface DriverAssignmentEmailData {
   specialRequests?: string | null
   acceptUrl: string
   declineUrl: string
+  tripUrl: string
 }
 
 function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
@@ -1489,6 +1490,11 @@ function buildDriverAssignmentHtml(data: DriverAssignmentEmailData): string {
       <div style="text-align: center; padding: 24px 32px; display: flex; gap: 16px; justify-content: center;">
         <a href="${escapeHtml(data.acceptUrl)}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif; margin-right: 12px;">ACCEPT TRIP</a>
         <a href="${escapeHtml(data.declineUrl)}" style="display: inline-block; border: 1px solid #CC3333; color: #CC3333; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">DECLINE TRIP</a>
+      </div>
+
+      <!-- View trip sheet link (permanent, DTRIP-01) -->
+      <div style="text-align: center; padding: 0 32px 24px;">
+        <a href="${escapeHtml(data.tripUrl)}" style="display: inline-block; border: 1px solid #BFA06A; color: #BFA06A; padding: 14px 28px; text-decoration: none; font-size: 9px; font-weight: 600; letter-spacing: 3px; text-transform: uppercase; font-family: 'Inter', Arial, sans-serif;">VIEW TRIP SHEET</a>
       </div>
 
       <!-- Note about link expiry -->
