@@ -1,17 +1,20 @@
 ---
 phase: 66-driver-trip-portal-permanent-link-trip-sheet
 verified: 2026-08-31T22:47:08Z
-status: human_needed
+status: passed
 score: 27/28 must-haves verified
 behavior_unverified: 0 # no state-transition/cancellation-invariant truths left unexercised
 overrides_applied: 0
 human_verification:
+
   - test: "Open a real /driver/trip/{trip_token} link (for an active, non-terminal assignment) in an actual browser after the Task 4 live migration apply."
     expected: "Trip sheet renders as an official, police-presentable document: wordmark + 'Trip Sheet' heading, booking reference prominent, all Trip Details/Passenger/Route Map/Vehicle & Driver fields present with English labels, the embedded Google map draws and its logo/'Map data / Terms' attribution is visibly NOT hidden."
     why_human: "jsdom unit tests mock RouteMap to a stub and cannot render live Google Maps JS SDK tiles/attribution or true visual layout — this is the plan's own deferred <human-check> (Plan 01 Task 3), recorded pending in both SUMMARYs."
+
   - test: "While the Google Maps SDK is still loading client-side on the trip sheet's Route Map section, observe the map container's placeholder."
     expected: "The container shows the card-surface color (var(--anthracite-mid)) as a background with no spinner, per the UI-SPEC map-loading row."
     why_human: "This must-have carries `verification: backstop` in the 66-01-PLAN.md frontmatter (explicitly non-inferable) — code presence (RouteMap.tsx does render an anthracite-mid background div before the SDK mounts) is necessary but, per the backstop tag, not sufficient; requires directly observed behavior."
+
   - test: "Open a real assignment email in an inbox and confirm the VIEW TRIP SHEET button renders correctly (styling, clickability) next to ACCEPT TRIP / DECLINE TRIP; click 'Copy Trip Link' in the live admin UI and confirm the OS clipboard actually receives the URL."
     expected: "VIEW TRIP SHEET renders as a distinct gold-bordered CTA below the accept/decline row in real email clients (Gmail/Outlook rendering can differ from browser preview); clicking Copy Trip Link in a real browser writes to the OS clipboard and the 'Copied!' swap is visible."
     why_human: "Flagged in 66-02-SUMMARY.md as not exercised — jsdom mocks navigator.clipboard.writeText and does not render actual email-client HTML; external service/visual rendering per Step 8 'always needs human'."
