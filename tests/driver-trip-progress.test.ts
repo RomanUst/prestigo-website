@@ -214,4 +214,39 @@ describe('POST /api/driver/trip/[token]/progress (DTRIP-03/04/08)', () => {
     expect(json.error).toBe('invalid_token')
     expect(stubSupabaseFrom).not.toHaveBeenCalled()
   })
+
+  // DTRIP-06 — optional driver note, independent of status marking
+  it('writes trip_note (not trip_progress) for a note-only POST', async () => {
+    const { updateFn } = mockLookupThenUpdate(makeAssignmentRow())
+
+    const res = await callRoute(validToken, { note: 'Passenger running late' })
+    expect(res.status).toBe(200)
+    const json = await res.json()
+    expect(json).toHaveProperty('ok', true)
+
+    expect(updateFn).toHaveBeenCalledTimes(1)
+    const payload = updateFn.mock.calls[0][0]
+    expect(payload).toMatchObject({ trip_note: 'Passenger running late' })
+    expect(payload).not.toHaveProperty('trip_progress')
+    expect(typeof payload.trip_progress_updated_at).toBe('string')
+  })
+
+  it('rejects a POST with neither progress nor note with 400 Invalid payload', async () => {
+    mockLookupThenUpdate(makeAssignmentRow())
+
+    const res = await callRoute(validToken, {})
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.error).toBe('Invalid payload')
+  })
+
+  it('ISOLATION: a note-only write never invokes Supabase from() with "bookings" for an update', async () => {
+    const { updateFn } = mockLookupThenUpdate(makeAssignmentRow())
+
+    await callRoute(validToken, { note: 'All good, on schedule' })
+
+    expect(stubSupabaseFrom).toHaveBeenCalledWith('driver_assignments')
+    expect(stubSupabaseFrom).not.toHaveBeenCalledWith('bookings')
+    expect(updateFn).toHaveBeenCalledTimes(1)
+  })
 })
