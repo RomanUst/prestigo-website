@@ -1,6 +1,15 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
+
+// A 404 must never be indexed. Overriding robots here replaces the site-wide
+// "index, follow" default from the root layout so the page emits a single,
+// unambiguous noindex directive instead of two conflicting robots tags.
+export const metadata: Metadata = {
+  title: 'Page Not Found — PRESTIGO',
+  robots: { index: false, follow: false },
+}
 
 export default function NotFound() {
   return (
