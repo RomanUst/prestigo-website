@@ -1,14 +1,16 @@
 ---
 phase: 67-driver-trip-portal-status-marking-notes-admin-visibility
 verified: 2026-09-02T22:10:00Z
-status: human_needed
+status: passed
 score: 11/11 must-haves verified
 behavior_unverified: 0
 overrides_applied: 0
 human_verification:
+
   - test: "On a mobile viewport, open a real /driver/trip/[token] for an active assignment and tap through the five trip-progress buttons and the note textarea + Save Note button"
     expected: "All five status buttons and the note field are legible, at least 44-56px tall, and comfortably tappable in the live dark theme (police-show context)"
     why_human: "jsdom (the vitest/RTL environment) cannot exercise real viewport rendering, tap-target ergonomics, or the live dark-theme CSS — this is the plan's own deferred <human-check> (Task 2, Plan 67-02), harvested per project convention for end-of-phase verification"
+
   - test: "In admin, expand a booking row for the same assignment and visually confirm the trip-progress badge, driver note text, and 'Updated' timestamp all render correctly beside the existing booking status badge"
     expected: "Three elements are simultaneously visible and legible: (1) the booking's own StatusBadge (bookings.status), (2) the accept/decline assignment StatusBadge + new trip-progress StatusBadge, (3) the Driver Note text block and 'Updated {datetime}' line — none overlapping or clipped in the live dark theme"
     why_human: "Same jsdom limitation — component-level render tests confirm the JSX conditionally renders, but not that the live visual layout is legible/uncluttered"
