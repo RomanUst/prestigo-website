@@ -567,9 +567,11 @@ this exact file to expose `trip_token` for the admin copy-link control
 
 **If this table is empty:** N/A — see entries above.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Does `trip_progress` need ordering/transition enforcement, or can the driver freely jump between states?**
+> All three resolved during `/gsd-plan-phase` and recorded in `67-CONTEXT.md`; plans implement the resolutions.
+
+1. **[RESOLVED → CONTEXT D-02: permissive]** Does `trip_progress` need ordering/transition enforcement, or can the driver freely jump between states?
    - What we know: `bookings.status` enforces `VALID_TRANSITIONS`; the phase description lists the
      states in a natural order ("en route → arrived → on board → completed") but also says "or mark
      the trip as a no-show" as a parallel/exception path.
@@ -581,7 +583,7 @@ this exact file to expose `trip_token` for the admin copy-link control
      without hard-blocking a correction. This is the simpler, lower-risk default; confirm during
      planning if the user wants a hard gate.
 
-2. **Does "live" (DTRIP-05) require push-without-interaction, or is re-fetch-on-expand sufficient?**
+2. **[RESOLVED → CONTEXT D-05: re-fetch-on-expand]** Does "live" (DTRIP-05) require push-without-interaction, or is re-fetch-on-expand sufficient?
    - What we know: No polling/websocket/Realtime infrastructure exists anywhere in this codebase
      today (verified via grep). The existing `FlightStatusBlock.tsx` pattern is a manual
      "Refresh" button (fetch-on-click), and `DriverAssignmentSection.tsx` re-fetches automatically
@@ -594,8 +596,8 @@ this exact file to expose `trip_token` for the admin copy-link control
      update, note that during planning as a follow-up (e.g. Supabase Realtime channel on
      `driver_assignments`), not a Phase 67 blocker.
 
-3. **Should the admin bookings LIST (collapsed row, not just the row-detail expansion) show a
-   trip-progress badge?**
+3. **[RESOLVED → CONTEXT D-05: detail-only, LIST deferred]** Should the admin bookings LIST (collapsed row, not just the row-detail expansion) show a
+   trip-progress badge?
    - What we know: The collapsed list row currently renders only `bookings.status` via `StatusBadge`
      (`components/admin/BookingsTable.tsx:1443-1449`), sourced from the `admin_search_bookings` RPC
      which does `SELECT b.* FROM bookings b` with no join to `driver_assignments`
