@@ -5,7 +5,7 @@
 - ✅ **v1.0 SEO Blog** — Phases 54-56 (shipped 2026-05-15)
 - ✅ **v2.0 Blacklane-style Booking + Customer Accounts** — Phases 57-61 (shipped 2026-06-18)
 - ✅ **v2.1 Admin Booking Management & Payment Recovery** — Phases 62-64 (shipped 2026-08-26)
-- 🚧 **v2.2 Dispatch & Driver Trip Portal** — Phases 65-67 (in progress)
+- ✅ **v2.2 Dispatch & Driver Trip Portal** — Phases 65-67 (shipped 2026-09-02)
 
 ## Phases
 
@@ -54,95 +54,20 @@ See [milestones/v2.1-ROADMAP.md](milestones/v2.1-ROADMAP.md) for full phase deta
 
 </details>
 
-### 🚧 v2.2 Dispatch & Driver Trip Portal (Phases 65-67, in progress)
+<details>
+<summary>✅ v2.2 Dispatch & Driver Trip Portal (Phases 65-67) — SHIPPED 2026-09-02</summary>
 
 **Milestone Goal:** Speed up dispatcher work with a future-first admin bookings list (persistent default + in-session filters), and give each driver a permanent working link to their trip — a trip sheet they can show to police control, with live status marking and an optional note that stay separate from the client-facing booking status.
 
-- [x] **Phase 65: Dispatch — Future-First Bookings List** - Admin bookings list page defaults to future trips only, with a persistent default-horizon setting and in-session filters to reveal past/all; KPI counters stay accurate. (completed 2026-08-31)
-- [x] **Phase 66: Driver Trip Portal — Permanent Link & Trip Sheet** - Each driver assignment gets a permanent, unguessable link to a noindex trip sheet page, coexisting with the existing accept/decline flow. (completed 2026-09-01)
-- [x] **Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility** - Driver marks live trip-progress and leaves a note from the trip sheet; admin sees progress live in the bookings admin, with no effect on `booking.status` or GNet. (completed 2026-09-02)
+- [x] **Phase 65: Dispatch — Future-First Bookings List** — Future-first admin bookings list with a persistent default-horizon setting + in-session past/all filters; KPI counters stay accurate (4/4 plans, completed 2026-08-31)
+- [x] **Phase 66: Driver Trip Portal — Permanent Link & Trip Sheet** — Permanent, unguessable per-assignment link to a noindex trip sheet, coexisting with the existing accept/decline flow (2/2 plans, completed 2026-09-01)
+- [x] **Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility** — Driver marks live trip-progress and leaves an optional note; admin sees it in the bookings admin, with no effect on `booking.status` or GNet (2/2 plans, completed 2026-09-02)
 
-## Phase Details
+**Audit:** passed — 12/12 requirements satisfied, cross-phase integration INTEGRATED, all E2E flows wired. See [milestones/v2.2-MILESTONE-AUDIT.md](milestones/v2.2-MILESTONE-AUDIT.md).
 
-### Phase 65: Dispatch — Future-First Bookings List
+See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase details.
 
-**Goal**: Dispatcher opens the admin bookings list page and by default sees only relevant upcoming trips, with control over the time horizon that persists across visits but can be overridden per session.
-**Depends on**: Nothing (first phase of v2.2; continues from Phase 64)
-**Requirements**: DISP-01, DISP-02, DISP-03, DISP-04
-**Success Criteria** (what must be TRUE):
-
-  1. On opening the admin bookings list page with no filter applied, only bookings with pickup date/time at or after now are shown.
-  2. Admin can choose and save a default horizon (Future only / Last N days / All) in admin Settings, and that choice is what the bookings list applies on every subsequent visit.
-  3. Within a session, admin can switch the list to "Past" or "All" via an in-session filter control without changing the persisted default setting.
-  4. KPI counters (today's bookings, week revenue) on the bookings page continue to show correct totals regardless of which list filter/horizon is currently active.
-
-**Plans**: 4/4 plans executed
-
-Plans:
-**Wave 1**
-
-- [x] 65-01-PLAN.md — Foundation: Prague-date helper + migrations 058/059 + live operator apply (Wave 1)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 65-02-PLAN.md — Tracer: end-to-end future-first list + full horizon resolution (Wave 2)
-- [x] 65-03-PLAN.md — Settings persistence backend + Dispatch Default widget (Wave 2)
-
-**Wave 3** *(blocked on Wave 2 completion)*
-
-- [x] 65-04-PLAN.md — BookingsTable segmented control + page wiring + KPI decoupling guard (Wave 3)
-
-**UI hint**: yes
-
-### Phase 66: Driver Trip Portal — Permanent Link & Trip Sheet
-
-**Goal**: Each driver assigned to a booking gets one permanent, secure link to a trip sheet page — presentable to police control — that coexists with the existing accept/decline assignment flow.
-**Depends on**: Nothing structurally (builds on existing `driver_assignments` infrastructure; can run independently of Phase 65)
-**Requirements**: DTRIP-01, DTRIP-02, DTRIP-07, DTRIP-08
-**Success Criteria** (what must be TRUE):
-
-  1. When a booking is assigned to a driver, a permanent trip-link token is generated that stays valid until the booking reaches a terminal status — no immediate single-use expiry like the existing accept/decline token.
-  2. Opening the driver's trip link shows a `noindex` trip sheet page with pickup/dropoff, date/time, passenger name, phone, flight info, special requests, and booking reference — sufficient to show to police control.
-  3. The existing accept/decline assignment flow (email + response page) still works unchanged; the permanent trip link is additive and works independently of accept/decline.
-  4. The trip link token is unguessable, exposes only the assigned booking's own data, and stops working once that booking reaches a terminal status or is reassigned to a different driver.
-
-**Plans**: 2/2 plans executed
-
-Plans:
-**Wave 1**
-
-- [x] 66-01-PLAN.md — Tracer: trip_token schema (migration 060) + validity seam + end-to-end noindex trip sheet (DTRIP-01, DTRIP-02, DTRIP-08)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 66-02-PLAN.md — Delivery: assignment-email trip link + admin copy-link, accept/decline coexistence regression (DTRIP-01, DTRIP-07)
-
-**UI hint**: yes
-
-### Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility
-
-**Goal**: From the trip sheet, the driver can mark real-time trip progress and leave an optional note, and the admin can view that progress live in the bookings admin — all without touching the client-facing `booking.status` or pushing to GNet.
-**Depends on**: Phase 66 (requires the permanent trip-link token and trip sheet page)
-**Requirements**: DTRIP-03, DTRIP-04, DTRIP-05, DTRIP-06
-**Success Criteria** (what must be TRUE):
-
-  1. From the trip sheet, the driver can mark trip-progress through en route → arrived → on board → completed, or mark the trip as a no-show.
-  2. Marking trip-progress updates a dedicated trip-progress field only; `booking.status` is unchanged and no GNet status push occurs as a result.
-  3. Admin can view the driver's current trip-progress live in the bookings admin list/detail, alongside the existing booking status.
-  4. Driver can submit an optional free-text trip note/feedback from the trip sheet, and it becomes visible to admin.
-
-**Plans**: 2/2 plans executed
-
-Plans:
-**Wave 1**
-
-- [x] 67-01-PLAN.md — Tracer: migration 061 (trip_progress/trip_note/trip_progress_updated_at) + live apply + end-to-end token-gated status write + admin detail badge (DTRIP-03, DTRIP-04, DTRIP-05)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-
-- [x] 67-02-PLAN.md — Expansion: optional driver note + admin note/last-updated visibility (DTRIP-05, DTRIP-06)
-
-**UI hint**: yes
+</details>
 
 ## Progress
 
@@ -159,6 +84,6 @@ Plans:
 | 62. Abandoned & Unpaid Booking Capture | v2.1 | 4/4 | Complete | 2026-08-20 |
 | 63. Admin Booking Editing + Change Notification | v2.1 | 5/5 | Complete | 2026-08-21 |
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 4/4 | Complete | 2026-08-25 |
-| 65. Dispatch — Future-First Bookings List | v2.2 | 4/4 | Complete    | 2026-08-31 |
-| 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete    | 2026-09-01 |
-| 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete    | 2026-09-02 |
+| 65. Dispatch — Future-First Bookings List | v2.2 | 4/4 | Complete | 2026-08-31 |
+| 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete | 2026-09-01 |
+| 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |

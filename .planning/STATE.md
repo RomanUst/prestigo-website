@@ -2,39 +2,36 @@
 gsd_state_version: 1.0
 milestone: v2.2
 milestone_name: Dispatch & Driver Trip Portal
-current_phase: 67
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 67 complete — all phases complete
-last_updated: "2026-09-02T20:30:47.238Z"
+last_updated: "2026-09-02T20:44:45.784Z"
 last_activity: 2026-09-02
-last_activity_desc: Phase 67 complete
-state_head: 599d93cc55d3de2ea9c624849aa3d4492a3b70f6
+last_activity_desc: Milestone v2.2 completed and archived
+state_head: 18019b036a2f7c943ee511c4d28bc05e61cb6188
 progress:
   total_phases: 3
   completed_phases: 3
   total_plans: 8
   completed_plans: 8
   percent: 100
+current_phase: 67
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-27)
+See: .planning/PROJECT.md (updated 2026-09-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 67 — Driver Trip Portal — Status Marking, Notes & Admin Visibility
+**Current focus:** Planning next milestone (v2.2 shipped & archived)
 
 ## Current Position
 
-Phase: 67
-Plan: Not started
-Status: All phases complete
-Total Plans in Phase: 2
-Last activity: 2026-09-02 — Phase 67 complete
-
-Progress: [███░░░░░░░] 33%
+Phase: Milestone v2.2 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-02 — Milestone v2.2 completed and archived
 
 ## Accumulated Context
 
@@ -223,4 +220,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Run /gsd-plan-phase 65 to begin Phase 65 (Dispatch — Future-First Bookings List)
+- Start the next milestone with /gsd-new-milestone
