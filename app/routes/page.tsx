@@ -425,33 +425,21 @@ export default async function RoutesPage() {
           </p>
           <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
             {[
-              { label: 'Erfurt', href: '/routes/prague-to-erfurt' },
-              { label: 'Frankfurt', href: '/routes/prague-to-frankfurt' },
-              { label: 'Augsburg', href: '/routes/prague-to-augsburg' },
-              { label: 'Stuttgart', href: '/routes/prague-to-stuttgart' },
-              { label: 'Cologne', href: '/routes/prague-to-cologne' },
-              { label: 'Düsseldorf', href: '/routes/prague-to-dusseldorf' },
-              { label: 'Hamburg', href: '/routes/prague-to-hamburg' },
-              { label: 'Innsbruck', href: '/routes/prague-to-innsbruck' },
-              { label: 'Košice', href: '/routes/prague-to-kosice' },
-              { label: 'Basel', href: '/routes/prague-to-basel' },
-              { label: 'Zürich', href: '/routes/prague-to-zurich' },
-              { label: 'Bern', href: '/routes/prague-to-bern' },
-              { label: 'Geneva', href: '/routes/prague-to-geneva' },
-              { label: 'Venice', href: '/routes/prague-to-venice' },
-              { label: 'Verona', href: '/routes/prague-to-verona' },
-              { label: 'Milan', href: '/routes/prague-to-milan' },
-              { label: 'Strasbourg', href: '/routes/prague-to-strasbourg' },
-              { label: 'Paris', href: '/routes/prague-to-paris' },
-              { label: 'Brussels', href: '/routes/prague-to-brussels' },
-              { label: 'Amsterdam', href: '/routes/prague-to-amsterdam' },
-            ].map((r) => (
-              <li key={r.href}>
+              // Long-distance destinations have no fixed-price landing page — the
+              // dedicated route pages were removed 2026-04-09 (see next.config.ts,
+              // redirects to /routes). These are quote-on-request, so each links to
+              // the contact form rather than a removed URL that 301s back here.
+              'Erfurt', 'Frankfurt', 'Augsburg', 'Stuttgart', 'Cologne',
+              'Düsseldorf', 'Hamburg', 'Innsbruck', 'Košice', 'Basel',
+              'Zürich', 'Bern', 'Geneva', 'Venice', 'Verona',
+              'Milan', 'Strasbourg', 'Paris', 'Brussels', 'Amsterdam',
+            ].map((label) => (
+              <li key={label}>
                 <a
-                  href={r.href}
+                  href={`/contact?destination=${encodeURIComponent(label)}`}
                   className="flex items-center justify-between border border-anthracite-light px-4 py-3 hover:border-copper/40 transition-colors group"
                 >
-                  <span className="font-body font-light text-[12px] text-warmgrey group-hover:text-offwhite transition-colors">Prague → {r.label}</span>
+                  <span className="font-body font-light text-[12px] text-warmgrey group-hover:text-offwhite transition-colors">Prague → {label}</span>
                   <span className="font-body text-[10px]" style={{ color: 'var(--copper)' }}>→</span>
                 </a>
               </li>

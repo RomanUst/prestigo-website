@@ -396,6 +396,9 @@ export type Database = {
           token: string
           token_expires_at: string
           token_used_at: string | null
+          trip_note: string | null
+          trip_progress: string | null
+          trip_progress_updated_at: string | null
           trip_token: string
         }
         Insert: {
@@ -407,6 +410,9 @@ export type Database = {
           token?: string
           token_expires_at?: string
           token_used_at?: string | null
+          trip_note?: string | null
+          trip_progress?: string | null
+          trip_progress_updated_at?: string | null
           trip_token?: string
         }
         Update: {
@@ -418,6 +424,9 @@ export type Database = {
           token?: string
           token_expires_at?: string
           token_used_at?: string | null
+          trip_note?: string | null
+          trip_progress?: string | null
+          trip_progress_updated_at?: string | null
           trip_token?: string
         }
         Relationships: [

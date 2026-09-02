@@ -4,6 +4,7 @@ import { createSupabaseServiceClient } from '@/lib/supabase'
 import { isTripLinkValid } from '@/lib/trip-token'
 import { formatVehicleLabel } from '@/lib/email'
 import RouteMap from '@/components/booking/RouteMap'
+import TripProgressClient from './TripProgressClient'
 import type { PlaceResult } from '@/types/booking'
 
 // D-08: this page must never be indexed — it is a permanent, unguessable
@@ -51,6 +52,8 @@ interface TripSheetDriverRow {
 interface TripSheetAssignmentRow {
   id: string
   driver_id: string
+  trip_progress: string | null
+  trip_note: string | null
   bookings: TripSheetBookingRow | null
   drivers: TripSheetDriverRow | null
 }
@@ -175,7 +178,7 @@ export default async function TripSheetPage({ params }: PageProps) {
   // data, no enumeration parameter, no writes anywhere on this page.
   const { data: rawAssignment, error } = await supabase
     .from('driver_assignments')
-    .select('id, driver_id, bookings!inner(*), drivers(name, phone, vehicle_info)')
+    .select('id, driver_id, trip_progress, trip_note, bookings!inner(*), drivers(name, phone, vehicle_info)')
     .eq('trip_token', parsedToken.data)
     .single()
 
@@ -327,6 +330,13 @@ export default async function TripSheetPage({ params }: PageProps) {
           <FieldRow label="Driver" value={driver?.name ?? ''} />
           <FieldRow label="Driver Phone" value={driver?.phone ?? ''} />
         </div>
+
+        {/* Section 5 (DTRIP-03): trip-progress island — driver self-reports status */}
+        <TripProgressClient
+          token={parsedToken.data}
+          initialProgress={assignment.trip_progress ?? null}
+          initialNote={assignment.trip_note ?? null}
+        />
       </div>
     </main>
   )

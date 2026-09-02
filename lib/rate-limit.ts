@@ -30,6 +30,7 @@ const LIMITS: Record<string, number> = {
   '/api/check-flight':            5, // 5 checks per minute — protects FlightStats API quota
   '/api/corporate-contact':       5, // 5 corporate enquiries per minute per IP
   '/api/driver/respond':         10, // SEC-02: prevent token oracle enumeration
+  '/api/driver/trip/progress':   20, // DTRIP-08: driver taps through up to 5 states, higher than respond's 10
 }
 
 export interface RateLimitResult {

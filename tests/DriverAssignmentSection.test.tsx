@@ -165,4 +165,106 @@ describe('DriverAssignmentSection — Phase 53 prop evolution', () => {
     const input = screen.getByDisplayValue(new RegExp(`/driver/trip/${tripToken}`))
     expect(input).toBeDefined()
   })
+
+  it('renders a labeled trip-progress badge distinct from the accept/decline badge when trip_progress is non-null (DTRIP-05)', async () => {
+    const driverId = '77777777-7777-7777-7777-777777777777'
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assignment: {
+          id: 'a3',
+          driver_id: driverId,
+          status: 'accepted',
+          trip_token: '',
+          trip_progress: 'on_board',
+          trip_note: null,
+          trip_progress_updated_at: '2026-05-01T11:00:00Z',
+          drivers: { name: 'Test Driver', email: 'driver@example.com' },
+        },
+      }),
+    }) as unknown as typeof fetch
+
+    render(<DriverAssignmentSection bookingId="b1" bookingStatus="assigned" />)
+
+    await waitFor(() => expect(screen.getByText(/on board/i)).toBeDefined())
+    // Distinct from the accept/decline StatusBadge, which renders the raw status
+    expect(screen.getByText(/^accepted$/i)).toBeDefined()
+    expect(screen.getByText(/^on board$/i)).toBeDefined()
+  })
+
+  it('renders the driver note text + an "Updated" line when trip_note is non-null (DTRIP-05/06)', async () => {
+    const driverId = '99999999-9999-9999-9999-999999999999'
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assignment: {
+          id: 'a5',
+          driver_id: driverId,
+          status: 'accepted',
+          trip_token: '',
+          trip_progress: 'en_route',
+          trip_note: 'Passenger running late',
+          trip_progress_updated_at: '2026-05-01T11:00:00Z',
+          drivers: { name: 'Test Driver', email: 'driver@example.com' },
+        },
+      }),
+    }) as unknown as typeof fetch
+
+    render(<DriverAssignmentSection bookingId="b1" bookingStatus="assigned" />)
+
+    await waitFor(() => expect(screen.getByText(/passenger running late/i)).toBeDefined())
+    expect(screen.getByText(/updated/i)).toBeDefined()
+  })
+
+  it('renders no note block when trip_note is null (DTRIP-05/06)', async () => {
+    const driverId = '10101010-1010-1010-1010-101010101010'
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assignment: {
+          id: 'a6',
+          driver_id: driverId,
+          status: 'accepted',
+          trip_token: '',
+          trip_progress: 'en_route',
+          trip_note: null,
+          trip_progress_updated_at: null,
+          drivers: { name: 'Test Driver', email: 'driver@example.com' },
+        },
+      }),
+    }) as unknown as typeof fetch
+
+    render(<DriverAssignmentSection bookingId="b1" bookingStatus="assigned" />)
+
+    await waitFor(() => expect(screen.getByText(/en route/i)).toBeDefined())
+    expect(screen.queryByText(/updated/i)).not.toBeInTheDocument()
+  })
+
+  it('renders no trip-progress badge when trip_progress is null (DTRIP-05)', async () => {
+    const driverId = '88888888-8888-8888-8888-888888888888'
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        assignment: {
+          id: 'a4',
+          driver_id: driverId,
+          status: 'pending',
+          trip_token: '',
+          trip_progress: null,
+          trip_note: null,
+          trip_progress_updated_at: null,
+          drivers: { name: 'Test Driver', email: 'driver@example.com' },
+        },
+      }),
+    }) as unknown as typeof fetch
+
+    render(<DriverAssignmentSection bookingId="b1" bookingStatus="assigned" />)
+
+    await waitFor(() => expect(screen.getByText(/^pending$/i)).toBeDefined())
+    expect(screen.queryByText(/en route/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^arrived$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/on board/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^completed$/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/no-show/i)).not.toBeInTheDocument()
+  })
 })

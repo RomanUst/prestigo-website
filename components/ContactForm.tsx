@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const services = [
   'Airport Transfer',
@@ -35,6 +35,19 @@ export default function ContactForm() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
   const [state, setState] = useState<FormState>('idle')
   const [formStartFired, setFormStartFired] = useState(false)
+
+  // Prefill when arriving from the /routes "Quote on request" long-distance list
+  // (e.g. /contact?destination=Paris). Read from window.location rather than
+  // useSearchParams so the page stays statically rendered (no Suspense boundary).
+  useEffect(() => {
+    const destination = new URLSearchParams(window.location.search).get('destination')
+    if (!destination) return
+    setForm((prev) => ({
+      ...prev,
+      service: prev.service || 'Intercity Route',
+      message: prev.message || `I'd like a quote for a private transfer from Prague to ${destination}. Please include date and passenger details in your reply.`,
+    }))
+  }, [])
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     // Fire form_start once on the user's first real interaction. GA4 Enhanced

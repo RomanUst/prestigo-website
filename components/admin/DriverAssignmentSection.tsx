@@ -14,6 +14,9 @@ interface Assignment {
   driver_id: string
   status: string
   trip_token: string
+  trip_progress: string | null
+  trip_note: string | null
+  trip_progress_updated_at: string | null
   drivers: {
     name: string
     email: string
@@ -32,6 +35,23 @@ function getStatusBadgeVariant(status: string): 'pending' | 'active' | 'inactive
   if (status === 'accepted') return 'active'
   if (status === 'declined') return 'inactive'
   return 'pending'
+}
+
+// DTRIP-05 (Phase 67): driver-reported trip-progress labels + badge variants,
+// distinct from the accept/decline StatusBadge above. trip_note and
+// trip_progress_updated_at rendering are deferred to Plan 67-02.
+const TRIP_PROGRESS_LABELS: Record<string, string> = {
+  en_route: 'En Route',
+  arrived: 'Arrived',
+  on_board: 'On Board',
+  completed: 'Completed',
+  no_show: 'No-Show',
+}
+
+function getTripProgressBadgeVariant(
+  value: string
+): 'en_route' | 'arrived' | 'on_board' | 'completed' | 'no_show' {
+  return value as 'en_route' | 'arrived' | 'on_board' | 'completed' | 'no_show'
 }
 
 export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }: DriverAssignmentSectionProps) {
@@ -123,6 +143,9 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             // degraded fallback path only runs when the immediate re-fetch GET
             // fails, so the Copy Trip Link control is hidden until reload.
             trip_token: '',
+            trip_progress: null,
+            trip_note: null,
+            trip_progress_updated_at: null,
             drivers: { name: 'Driver assigned', email: '' },
           })
         }
@@ -241,6 +264,12 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             variant={getStatusBadgeVariant(assignment.status)}
             label={assignment.status}
           />
+          {assignment.trip_progress && (
+            <StatusBadge
+              variant={getTripProgressBadgeVariant(assignment.trip_progress)}
+              label={TRIP_PROGRESS_LABELS[assignment.trip_progress] ?? assignment.trip_progress}
+            />
+          )}
           {assignment.trip_token && (
             <button
               onClick={handleCopyTripLink}
@@ -271,6 +300,41 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             Reassign
           </button>
         </div>
+        {/* DTRIP-05/06: driver note + freshness — rendered as plain JSX text
+            interpolation only (React auto-escapes it), no raw-HTML injection
+            sink of any kind. Both blocks are independently gated on their
+            own field being present. */}
+        {assignment.trip_note && (
+          <div style={{ marginTop: '8px' }}>
+            <div style={sectionLabelStyle}>Driver Note</div>
+            <div
+              style={{
+                fontSize: '13px',
+                fontWeight: 300,
+                color: 'var(--offwhite)',
+                letterSpacing: '0.03em',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+              }}
+            >
+              {assignment.trip_note}
+            </div>
+          </div>
+        )}
+        {assignment.trip_progress_updated_at && (
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 300,
+              color: 'var(--warmgrey)',
+              letterSpacing: '0.03em',
+              marginTop: '4px',
+            }}
+          >
+            Updated {new Date(assignment.trip_progress_updated_at).toLocaleString()}
+          </div>
+        )}
+
         {copyState === 'failed' && (
           <div style={{ marginTop: '8px' }}>
             <div style={{
