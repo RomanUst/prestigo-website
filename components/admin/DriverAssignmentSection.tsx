@@ -300,6 +300,41 @@ export function DriverAssignmentSection({ bookingId, bookingStatus, onAssigned }
             Reassign
           </button>
         </div>
+        {/* DTRIP-05/06: driver note + freshness — rendered as plain JSX text
+            interpolation only (React auto-escapes it), no raw-HTML injection
+            sink of any kind. Both blocks are independently gated on their
+            own field being present. */}
+        {assignment.trip_note && (
+          <div style={{ marginTop: '8px' }}>
+            <div style={sectionLabelStyle}>Driver Note</div>
+            <div
+              style={{
+                fontSize: '13px',
+                fontWeight: 300,
+                color: 'var(--offwhite)',
+                letterSpacing: '0.03em',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+              }}
+            >
+              {assignment.trip_note}
+            </div>
+          </div>
+        )}
+        {assignment.trip_progress_updated_at && (
+          <div
+            style={{
+              fontSize: '11px',
+              fontWeight: 300,
+              color: 'var(--warmgrey)',
+              letterSpacing: '0.03em',
+              marginTop: '4px',
+            }}
+          >
+            Updated {new Date(assignment.trip_progress_updated_at).toLocaleString()}
+          </div>
+        )}
+
         {copyState === 'failed' && (
           <div style={{ marginTop: '8px' }}>
             <div style={{
