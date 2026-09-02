@@ -306,6 +306,9 @@ describe('DRIVER-02/05: GET /api/admin/bookings/[id]/assignment', () => {
       status: 'pending',
       created_at: '2026-05-01T10:00:00Z',
       trip_token: tripToken,
+      trip_progress: 'on_board',
+      trip_note: null,
+      trip_progress_updated_at: '2026-05-01T11:00:00Z',
       drivers: { name: 'John Driver', email: 'driver@example.com' },
     }
 
@@ -324,6 +327,8 @@ describe('DRIVER-02/05: GET /api/admin/bookings/[id]/assignment', () => {
     expect(json).toHaveProperty('assignment')
     expect(json.assignment.drivers.name).toBe('John Driver')
     expect(json.assignment.trip_token).toBe(tripToken)
+    // DTRIP-05: the admin read surface must carry the driver-reported trip_progress
+    expect(json.assignment.trip_progress).toBe('on_board')
   })
 
   it('Test 8: returns 200 with null when no assignment exists', async () => {
