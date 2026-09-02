@@ -131,7 +131,7 @@ Plans:
   3. Admin can view the driver's current trip-progress live in the bookings admin list/detail, alongside the existing booking status.
   4. Driver can submit an optional free-text trip note/feedback from the trip sheet, and it becomes visible to admin.
 
-**Plans**: 1/2 plans executed
+**Plans**: 2/2 plans executed
 
 Plans:
 **Wave 1**
@@ -140,7 +140,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 67-02-PLAN.md — Expansion: optional driver note + admin note/last-updated visibility (DTRIP-05, DTRIP-06)
+- [x] 67-02-PLAN.md — Expansion: optional driver note + admin note/last-updated visibility (DTRIP-05, DTRIP-06)
 
 **UI hint**: yes
 
@@ -161,4 +161,4 @@ Plans:
 | 64. Admin-Created Bookings with Payment Link | v2.1 | 4/4 | Complete | 2026-08-25 |
 | 65. Dispatch — Future-First Bookings List | v2.2 | 4/4 | Complete    | 2026-08-31 |
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete    | 2026-09-01 |
-| 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 1/2 | In Progress|  |
+| 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | In Progress|  |
