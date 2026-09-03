@@ -122,7 +122,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 65. Dispatch — Future-First Bookings List | v2.2 | 4/4 | Complete | 2026-08-31 |
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete | 2026-09-01 |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
-| 68. i18n Foundation & Routing | v3.0 | 0/? | Planning | — |
+| 68. i18n Foundation & Routing | v3.0 | 1/2 | In Progress|  |
 | 69. String Externalization — UI Chrome | v3.0 | 0/? | Pending | — |
 | 70. String Externalization — Booking & Account | v3.0 | 0/? | Pending | — |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |

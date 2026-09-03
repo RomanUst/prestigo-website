@@ -4,17 +4,17 @@ milestone: v3.0
 milestone_name: Site Internationalization (i18n)
 current_phase: 68
 current_phase_name: i18n Foundation & Routing
-status: planning
-stopped_at: Milestone v3.0 defined — awaiting /gsd-plan-phase 68
-last_updated: "2026-09-03T12:05:43.624Z"
+status: executing
+stopped_at: Completed 68-01-PLAN.md
+last_updated: "2026-09-03T19:22:29.762Z"
 last_activity: 2026-09-03
-last_activity_desc: Milestone v3.0 opened — requirements + roadmap written (Phases 68–75)
-state_head: a1ea0c34a918f39fb4ee17a126cd01fa3549d5d2
+last_activity_desc: Phase 68 execution started
+state_head: 3fed8f2b6ffa44779d249a9ff4a459f5e6365fbe
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 1
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** v3.0 Site Internationalization (i18n) — planning; next is /gsd-plan-phase 68
+**Current focus:** Phase 68 — i18n Foundation & Routing
 
 ## Current Position
 
-Phase: 68 (i18n Foundation & Routing) — READY TO EXECUTE
-Plan: —
-Status: planning — milestone v3.0 defined (REQUIREMENTS.md + ROADMAP.md written)
-Last activity: 2026-09-03 — Milestone v3.0 opened (Phases 68–75)
+Phase: 68 (i18n Foundation & Routing) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-09-03 — Phase 68 execution started
 
 ## Accumulated Context
 
@@ -94,6 +94,9 @@ Recent decisions affecting current work:
 - [Phase 66]: 66-01: TripSheetAssignmentRow/Booking/Driver interfaces cast around the untyped Supabase select-string join (bookings!inner(*) infers as array without a Database generic)
 - [Phase 66]: trip_token kept required on Assignment interface; POST-fallback path sets it to '' and hides Copy Trip Link rather than making the field optional (SEC-18 discipline preserved)
 - [Phase 66]: VIEW TRIP SHEET CTA placed as its own div below the ACCEPT/DECLINE button row, not inside it, keeping DTRIP-07's unchanged-DOM guarantee literal
+- [Phase 68]: 68-01: next-intl@4.14.2 exact pin approved via blocking-human package-legitimacy checkpoint (amannn/next-intl, 5+ yr package, [SUS] too-new signal dispositioned as false positive on latest patch date)
+- [Phase 68]: 68-01: useNonceCsp decided from the raw request pathname (not the locale-stripped decisionPathname) so /ru/admin can never acquire a nonce CSP (T-68-04 fix found during Task 2 TDD)
+- [Phase 68]: 68-01: shared runCspAndAuthChain helper consolidates the CSP/Supabase branch logic for both non-localized and public middleware branches rather than duplicating the block
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -201,8 +204,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-31T21:36:01.828Z
-Stopped at: Phase 67 complete — all phases complete
+Last session: 2026-09-03T19:22:29.735Z
+Stopped at: Completed 68-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -239,6 +242,7 @@ Resume file: None
 | Phase 65 P04 | 15min | 2 tasks | 4 files |
 | Phase 66 P01 | ~7min | 4 tasks | 6 files |
 | Phase 66 P02 | 5min | 3 tasks | 6 files |
+| Phase 68 P01 | 55min | 2 tasks | 118 files |
 
 ## Operator Next Steps
 

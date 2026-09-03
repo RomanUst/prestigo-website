@@ -23,10 +23,10 @@ Make the entire public site multilingual. English stays the default at the site 
 
 ### Internationalization Foundation
 
-- [ ] **I18N-01**: Adopt `next-intl` with `app/[locale]/` routing and `localePrefix: 'as-needed'` — EN resolves at root with no `/en` prefix and existing English URLs are unchanged.
-- [ ] **I18N-02**: Compose the next-intl locale middleware into the existing `middleware.ts` chain so per-request CSP nonce, Supabase `updateSession`, and CSRF Origin-guard all continue to work byte-for-byte, with locale detection added.
-- [ ] **I18N-03**: `<html lang>` and `dir` are set dynamically per locale (`dir="rtl"` for `ar`).
-- [ ] **I18N-04**: Typed, single-source locale config (`en, ru, es, fr, ar, hi, zh`); admin/api/auth/driver routes stay non-localized at root.
+- [x] **I18N-01**: Adopt `next-intl` with `app/[locale]/` routing and `localePrefix: 'as-needed'` — EN resolves at root with no `/en` prefix and existing English URLs are unchanged.
+- [x] **I18N-02**: Compose the next-intl locale middleware into the existing `middleware.ts` chain so per-request CSP nonce, Supabase `updateSession`, and CSRF Origin-guard all continue to work byte-for-byte, with locale detection added.
+- [x] **I18N-03**: `<html lang>` and `dir` are set dynamically per locale (`dir="rtl"` for `ar`).
+- [x] **I18N-04**: Typed, single-source locale config (`en, ru, es, fr, ar, hi, zh`); admin/api/auth/driver routes stay non-localized at root.
 
 ### String Externalization
 
@@ -92,10 +92,10 @@ Populated during roadmap creation (Phases 68–75).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| I18N-01 | 68 | Pending |
-| I18N-02 | 68 | Pending |
-| I18N-03 | 68 | Pending |
-| I18N-04 | 68 | Pending |
+| I18N-01 | 68 | Complete |
+| I18N-02 | 68 | Complete |
+| I18N-03 | 68 | Complete |
+| I18N-04 | 68 | Complete |
 | STR-01 | 69 | Pending |
 | STR-02 | 70 | Pending |
 | CNT-01 | 71 | Pending |
@@ -114,6 +114,7 @@ Populated during roadmap creation (Phases 68–75).
 | VER-01 | 75 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 20 total
 - Mapped to phases: 20
 - Unmapped: 0 ✓
