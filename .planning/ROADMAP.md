@@ -28,6 +28,20 @@
 
 **Proposed execution order:** 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69 and 70 may run in parallel after 68; 71 and 72 pipeline can overlap once the content model from 71 is stable).
 
+### Phase 68: i18n Foundation & Routing
+
+**Goal**: The public site is served through next-intl locale routing with English at the root (existing English URLs unchanged, `localePrefix: 'as-needed'`), all seven locales configured as a single typed source, the locale middleware composed non-destructively into the existing CSP/Supabase/CSRF chain, and per-locale `<html lang>`/`dir` plus not-found handling in place — with public routes rendering under `app/[locale]/` in English only (no translations yet).
+**Depends on**: Nothing (first phase of v3.0; continues from Phase 67)
+**Requirements**: I18N-01, I18N-02, I18N-03, I18N-04
+**Success Criteria** (what must be TRUE):
+
+  1. Existing English URLs resolve unchanged at the root with no `/en` prefix (`localePrefix: 'as-needed'`), and public routes now render from `app/[locale]/`.
+  2. The composed `middleware.ts` preserves the per-request CSP nonce, Supabase `updateSession`, and CSRF Origin-guard behavior byte-for-byte, with locale detection added; admin/api/auth/driver routes stay non-localized at root.
+  3. `<html lang>` and `dir` are emitted dynamically per locale (`dir="rtl"` for `ar`), and each locale resolves a per-locale not-found page.
+  4. Locale config is typed and single-source for `en, ru, es, fr, ar, hi, zh`; visiting a configured non-EN subpath (e.g. `/ru/...`) renders the page in English (no translation yet) without a 404.
+
+**UI hint**: yes
+
 </details>
 
 <details>
