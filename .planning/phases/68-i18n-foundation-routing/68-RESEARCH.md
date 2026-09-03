@@ -388,7 +388,12 @@ export default withNextIntl(withMDX(nextConfig))
 | A2 | The "multiple root layouts" (route-group) pattern is the right call over `next/root-params` for splitting `<html lang>` between `[locale]` and `(internal)`. | Summary, Architecture Patterns, Anti-Patterns | If `next/root-params` turns out to behave safely (returns `undefined`, doesn't throw, doesn't force full-dynamic rendering) for routes outside `[locale]`, the route-group split is still a correct and shippable choice — it is not a wrong answer, just possibly more file-moves than strictly necessary. Low risk either way. |
 | A3 | `messages: {}` (empty object) is an acceptable `i18n/request.ts` return for Phase 68, since zero `useTranslations`/`getTranslations` call sites exist yet. | Code Examples | If any component unexpectedly calls a next-intl hook before Phase 69, it would throw a missing-message error at render time — grep confirmed zero such call sites this session, so risk is low, but the planner should still smoke-test one page from each locale in Phase 68's verification. |
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> **RESOLVED (2026-09-03, plan-phase):** All three are operationalized by Phase 68 plan artifacts —
+> Q1 → route-group split shipped now (68-01), `next/root-params` deferred to a later cleanup;
+> Q2 → next-intl pin handled by the `checkpoint:human-verify` task in 68-01 (default `4.14.2`);
+> Q3 → internal `app/(internal)/not-found.tsx` empirically checked in 68-02 Task 2, added only if the built-in fallback is broken.
 
 1. **Should `next/root-params` replace the route-group split in a later cleanup?**
    - What we know: The API is available without a flag in Next.js 16.2.3 and next-intl's own blog documents a `getRequestConfig` recipe using it (Context7 `/amannn/next-intl`, `blog/nextjs-root-params.mdx`).
@@ -429,9 +434,9 @@ export default withNextIntl(withMDX(nextConfig))
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|---------------------|--------------|
-| I18N-01 | `/book`, `/about`, etc. resolve unchanged at root, no `/en` prefix | integration (middleware unit test) | `npx vitest run tests/middleware-composition.test.ts` | ❌ Wave 0 |
+| I18N-01 | `/book`, `/about`, etc. resolve unchanged at root, no `/en` prefix | integration (middleware unit test) | `npx vitest run tests/middleware-i18n.test.ts` | ❌ Wave 0 |
 | I18N-02 | CSP nonce / Supabase `updateSession` / CSRF Origin-guard preserved byte-for-byte on `/admin`, `/api`, `/auth`, `/driver` | unit (existing suite, must stay green) | `npx vitest run tests/middleware-customer.test.ts` | ✅ (`tests/middleware-customer.test.ts` — must continue passing with ZERO changes to its assertions [VERIFIED: tests/middleware-customer.test.ts:1-217, read in full this session — all assertions use unprefixed paths like `/admin`, `/account`, matching Pattern 1's non-localized branch or the default-locale no-prefix case]) |
-| I18N-02 | Locale-prefixed public path (e.g. `/ru/book`) still gets the correct dynamic/static CSP branch and (where applicable) Supabase redirect | unit | `npx vitest run tests/middleware-composition.test.ts` | ❌ Wave 0 |
+| I18N-02 | Locale-prefixed public path (e.g. `/ru/book`) still gets the correct dynamic/static CSP branch and (where applicable) Supabase redirect | unit | `npx vitest run tests/middleware-i18n.test.ts` | ❌ Wave 0 |
 | I18N-03 | `<html lang>`/`dir` dynamic per locale, `dir="rtl"` for `ar` | integration/manual (SSR HTML string) | manual: `curl -s https://localhost:3000/ar | grep -o '<html[^>]*>'` or a Vitest RSC-render test if feasible | ❌ Wave 0 (or manual — RSC layout testing is not currently exercised anywhere in this test suite, confirm feasibility during planning) |
 | I18N-03 | Per-locale not-found renders (no 404-of-404) | manual | Visit `/ru/this-does-not-exist` in a dev server | manual only — no existing not-found test in `tests/` |
 | I18N-04 | Typed locale list is the single source consumed by middleware + layouts | unit (type-level, implicit) | TypeScript compile (`npx tsc --noEmit` or `npm run build`) | ❌ Wave 0 (compile-time check, not a runtime test) |
@@ -443,7 +448,7 @@ export default withNextIntl(withMDX(nextConfig))
 - **Phase gate:** Full suite green before `/gsd-verify-work`, plus the manual `<html lang>/dir` and per-locale-render checks listed above (these are not currently automatable within this test suite's existing patterns without adding RSC-render test infrastructure — flag as human-verify items rather than inventing new test infra scope for a routing phase)
 
 ### Wave 0 Gaps
-- [ ] `tests/middleware-composition.test.ts` — new file covering I18N-01/I18N-02 for locale-prefixed public paths (the gap `tests/middleware-customer.test.ts` doesn't cover, since it only exercises unprefixed/default-locale paths)
+- [ ] `tests/middleware-i18n.test.ts` — new file covering I18N-01/I18N-02 for locale-prefixed public paths (the gap `tests/middleware-customer.test.ts` doesn't cover, since it only exercises unprefixed/default-locale paths)
 - [ ] No new shared fixtures needed — `tests/middleware-customer.test.ts`'s `makeRequest`/`makeAdminUser`/`makeCustomerUser` helpers (lines 47-69) are reusable as-is for the new file
 - [ ] No framework install needed — Vitest is already configured
 
