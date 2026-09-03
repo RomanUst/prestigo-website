@@ -4,17 +4,17 @@ milestone: v3.0
 milestone_name: Site Internationalization (i18n)
 current_phase: 68
 current_phase_name: i18n Foundation & Routing
-status: executing
-stopped_at: Completed 68-01-PLAN.md
-last_updated: "2026-09-03T19:22:29.762Z"
+status: verifying
+stopped_at: Completed 68-02-PLAN.md (Phase 68 complete)
+last_updated: "2026-09-03T19:44:45.781Z"
 last_activity: 2026-09-03
 last_activity_desc: Phase 68 execution started
-state_head: 3fed8f2b6ffa44779d249a9ff4a459f5e6365fbe
+state_head: 60860e586278beb20d02c06a463ddd4737b7b53f
 progress:
   total_phases: 1
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 Phase: 68 (i18n Foundation & Routing) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-03 — Phase 68 execution started
 
 ## Accumulated Context
@@ -97,6 +97,8 @@ Recent decisions affecting current work:
 - [Phase 68]: 68-01: next-intl@4.14.2 exact pin approved via blocking-human package-legitimacy checkpoint (amannn/next-intl, 5+ yr package, [SUS] too-new signal dispositioned as false positive on latest patch date)
 - [Phase 68]: 68-01: useNonceCsp decided from the raw request pathname (not the locale-stripped decisionPathname) so /ru/admin can never acquire a nonce CSP (T-68-04 fix found during Task 2 TDD)
 - [Phase 68]: 68-01: shared runCspAndAuthChain helper consolidates the CSP/Supabase branch logic for both non-localized and public middleware branches rather than duplicating the block
+- [Phase 68]: [Phase 68] 68-02: stripLocalePrefix moved from middleware.ts to i18n/routing.ts (single-source I18N-04, avoids next/server import in plain unit tests)
+- [Phase 68]: [Phase 68] 68-02: ACCEPTED DEVIATION T-68-06 — case-variant locale prefixes (/RU, /Ru) canonicalize via next-intl's own 307 redirect to the lowercase locale rather than hard-404ing; non-bypass and non-reflection invariants hold, human-approved at the Task 3 checkpoint
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -204,8 +206,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-03T19:22:29.735Z
-Stopped at: Completed 68-01-PLAN.md
+Last session: 2026-09-03T19:44:45.755Z
+Stopped at: Completed 68-02-PLAN.md (Phase 68 complete)
 Resume file: None
 
 ## Performance Metrics
@@ -243,6 +245,7 @@ Resume file: None
 | Phase 66 P01 | ~7min | 4 tasks | 6 files |
 | Phase 66 P02 | 5min | 3 tasks | 6 files |
 | Phase 68 P01 | 55min | 2 tasks | 118 files |
+| Phase 68 P02 | ~19min | 3 tasks | 6 files |
 
 ## Operator Next Steps
 
