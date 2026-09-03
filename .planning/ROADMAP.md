@@ -42,6 +42,21 @@
 
 **UI hint**: yes
 
+### Phase 69: String Externalization — UI Chrome
+
+**Goal**: All hardcoded UI-chrome strings across the shared site components (Nav, Footer, Hero and its sub-parts, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip) are moved into a `messages/en.json` catalog under stable namespaces and rendered via next-intl `useTranslations`/`getTranslations`, with the namespace and key conventions established as the pattern for later phases. Locale-aware navigation is in place so links rendered from a non-EN subpath keep their locale prefix (next-intl `createNavigation` / `Link`), closing the Phase 68 IN-01 gap. English output stays byte-for-byte unchanged (English is the source catalog) and no translation of other locales happens yet.
+
+**Depends on**: Phase 68 (next-intl runtime, `app/[locale]/` routing, `i18n/routing.ts` typed locale source, request config)
+**Requirements**: STR-01
+**Success Criteria** (what must be TRUE):
+
+  1. `messages/en.json` exists as the source catalog, organized into per-component namespaces, and `i18n/request.ts` loads it; a documented namespace + key naming convention is recorded for reuse in Phases 70–71.
+  2. Nav, Footer, Hero (incl. HeroTypewriter/HeroRating/HeroWhatsApp), Services, Fleet, HowItWorks, Testimonials(+Carousel), CookieBanner, and FeatureStrip render every visible string through `useTranslations`/`getTranslations` — no hardcoded user-facing copy remains in those components.
+  3. Locale-aware navigation is wired via next-intl (`createNavigation`/`Link` from `i18n/routing.ts`), so internal links clicked from `/ru/...` (any configured locale) preserve the locale prefix instead of dropping to root EN.
+  4. The rendered English site is byte-for-byte unchanged (visual + existing tests green); non-EN locales still render English chrome (no translations added yet), served correctly under their subpath.
+
+**UI hint**: yes
+
 </details>
 
 <details>
