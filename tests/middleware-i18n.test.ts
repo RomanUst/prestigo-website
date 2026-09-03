@@ -236,19 +236,42 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
     })
   })
 
-  describe('edge: case-variant locale prefix (/RU/) is not treated as the ru locale (T-68-06)', () => {
-    it('does not fire ru-locale-specific handling — stripLocalePrefix leaves /RU/ unchanged, static branch, no auth call', async () => {
+  describe('edge: case-variant locale prefix (/RU/) canonicalizes via redirect — accepted deviation (T-68-06)', () => {
+    // ACCEPTED DEVIATION (Task 3 human-verify checkpoint, confirmed live):
+    // case-variant locale prefixes do NOT hard-404 — next-intl itself
+    // case-normalizes the locale segment and issues a 307 redirect to the
+    // canonical lowercase locale (/RU -> /ru, /Ru -> /ru, /aR -> /ar) BEFORE
+    // middleware.ts's own stripLocalePrefix/isDynamicPath logic ever runs.
+    // This is next-intl-native locale-segment normalization, not a security
+    // gap: the redirect target is always one of the 7 fixed, known-good
+    // configured locales (never attacker-controlled/reflected), and only the
+    // locale segment is normalized — arbitrary path segments beyond it are
+    // NOT case-normalized or reflected. Non-bypass still holds after
+    // normalization: /RU/admin redirects to /ru/admin, which itself 404s
+    // (see 'security: /ru/admin does not bypass admin gating' above).
+    // Verified live in a browser: /RU -> /ru, /Ru -> /ru, /aR -> /ar,
+    // /%52%55 -> /ru, and /RU/admin -> /ru/admin -> 404 (non-bypass intact).
+    it('307-redirects to the canonical lowercase locale, short-circuiting before the CSP/auth chain', async () => {
+      mockHandleI18nRouting.mockReturnValue(makeIntlRedirectResponse('/ru'))
       const response = await middleware(makeRequest('/RU/'))
 
       expect(mockHandleI18nRouting).toHaveBeenCalledTimes(1)
-      // '/RU/' does not match isDynamicPath after stripLocalePrefix (case
-      // mismatch means it isn't stripped at all), so the static branch runs
-      // and Supabase's getUser() is never invoked.
+      expect(response.status).toBe(307)
+      expect(new URL(response.headers.get('location')!).pathname).toBe('/ru')
+      // Short-circuited before ever reaching the Supabase auth chain.
       expect(mockGetUser).not.toHaveBeenCalled()
+    })
 
-      const csp = response.headers.get('Content-Security-Policy')
-      expect(csp).toBeTruthy()
-      expect(csp).not.toMatch(/nonce-/)
+    it('case-variant admin path /RU/admin redirects to canonical /ru/admin (non-bypass preserved after normalization)', async () => {
+      mockHandleI18nRouting.mockReturnValue(makeIntlRedirectResponse('/ru/admin'))
+      const response = await middleware(makeRequest('/RU/admin'))
+
+      expect(response.status).toBe(307)
+      expect(new URL(response.headers.get('location')!).pathname).toBe('/ru/admin')
+      // No admin auth logic runs on the redirect itself — the eventual
+      // /ru/admin request 404s via hasLocale, covered by the dedicated
+      // /ru/admin security test above.
+      expect(mockGetUser).not.toHaveBeenCalled()
     })
   })
 

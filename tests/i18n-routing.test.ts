@@ -71,7 +71,16 @@ describe('i18n/routing.ts — typed single-source locale config (I18N-04)', () =
 // single-source (I18N-04).
 // -----------------------------------------------------------------------------
 describe('stripLocalePrefix — locale-prefix stripping edges (I18N-01/02/04)', () => {
-  it('does NOT strip an uppercase locale-lookalike segment (/RU/account stays /RU/account)', () => {
+  it('does NOT strip an uppercase locale-lookalike segment (/RU/account stays /RU/account) — defense-in-depth only', () => {
+    // NOTE (accepted deviation, T-68-06, Task 3 checkpoint): in the live
+    // request path, next-intl's own createMiddleware case-normalizes /RU
+    // and 307-redirects to /ru BEFORE this helper is ever reached with the
+    // original uppercase pathname — see
+    // tests/middleware-i18n.test.ts#'edge: case-variant locale prefix
+    // (/RU/) canonicalizes via redirect'. This unit test documents the
+    // helper's own behavior in isolation (it never silently strips a
+    // case-mismatched segment) as defense-in-depth, not the end-to-end
+    // system behavior for a raw /RU/ request.
     expect(stripLocalePrefix('/RU/account', routing.locales)).toBe('/RU/account')
   })
 
