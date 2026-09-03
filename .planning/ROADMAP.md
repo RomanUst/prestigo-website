@@ -6,8 +6,29 @@
 - ✅ **v2.0 Blacklane-style Booking + Customer Accounts** — Phases 57-61 (shipped 2026-06-18)
 - ✅ **v2.1 Admin Booking Management & Payment Recovery** — Phases 62-64 (shipped 2026-08-26)
 - ✅ **v2.2 Dispatch & Driver Trip Portal** — Phases 65-67 (shipped 2026-09-02)
+- 🚧 **v3.0 Site Internationalization (i18n)** — Phases 68-75 (planning, started 2026-09-03)
 
 ## Phases
+
+<details open>
+<summary>🚧 v3.0 Site Internationalization (Phases 68-75) — IN PLANNING</summary>
+
+**Milestone Goal:** Make the whole public site multilingual — English stays the default at root (existing URLs unchanged, zero ranking risk), and six locales (RU, ES, FR, AR, HI, ZH) are served under subpaths with full SEO wiring. UI chrome, booking flow, account, and the complete SEO content set are translated by an AI-only, re-runnable pipeline. Arabic ships RTL; Hindi and Chinese ship with Noto Devanagari/SC fonts.
+
+**Locales:** `en` (root, default) · `/ru/` · `/es/` · `/fr/` · `/ar/` (RTL) · `/hi/` · `/zh/`
+
+- [ ] **Phase 68: i18n Foundation & Routing** — next-intl + `app/[locale]/` (`localePrefix: as-needed`, EN at root), 7-locale config, locale-middleware composed into existing CSP/Supabase/CSRF chain, dynamic `<html lang>`/`dir`, per-locale not-found. Public routes move under `[locale]` rendering EN only (no translation yet). Risk-first. — I18N-01/02/03/04
+- [ ] **Phase 69: String Externalization — UI Chrome** — Nav, Footer, Hero, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip → `messages/en.json` + `useTranslations`; namespace conventions established. — STR-01
+- [ ] **Phase 70: String Externalization — Booking & Account** — Booking wizard/EntryBar/vehicle cards, forms, validation/error/toast, account + auth pages. — STR-02
+- [ ] **Phase 71: Content Externalization — Marketing & SEO Pages** — Home long-form, 8 service pages, about/faq/contact/corporate/legal, 29–30 route-page bodies, blog → `content/blog/<locale>/`. Largest content restructure (may split 71a/71b). — CNT-01/02/03
+- [ ] **Phase 72: AI Translation Pipeline & Catalogs** — Build re-runnable `scripts/i18n-translate.mjs` (glossary + do-not-translate); generate RU/ES/FR catalogs + content; QA sampling. — TR-01/02
+- [ ] **Phase 73: Non-Latin & RTL Infra (AR, HI, ZH)** — `dir="rtl"` for AR, logical-property audit + fixes (~42 files), Noto Arabic/Devanagari/SC via next/font, generate + render AR/HI/ZH, RTL visual QA. — RTL-01, FONT-01, TR-02
+- [ ] **Phase 74: SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher** — `getAlternates`→6+`x-default`, locale-aware `generateMetadata`, sitemap all-locale URLs + alternates, JSON-LD `inLanguage`, language switcher + `NEXT_LOCALE` cookie, Accept-Language detection. — SEO-01/02/03/04, UX-01/02
+- [ ] **Phase 75: E2E Verification & Launch** — Cross-locale E2E (render, switcher, per-locale booking incl. RTL, analytics locale dimension, no EN leakage, hreflang validator, Rich Results, no CSP regression, guest checkout intact); clear red baseline in touched files. — VER-01
+
+**Proposed execution order:** 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69 and 70 may run in parallel after 68; 71 and 72 pipeline can overlap once the content model from 71 is stable).
+
+</details>
 
 <details>
 <summary>✅ v1.0 SEO Blog (Phases 54-56) — SHIPPED 2026-05-15</summary>
@@ -87,3 +108,11 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 65. Dispatch — Future-First Bookings List | v2.2 | 4/4 | Complete | 2026-08-31 |
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete | 2026-09-01 |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
+| 68. i18n Foundation & Routing | v3.0 | 0/? | Planning | — |
+| 69. String Externalization — UI Chrome | v3.0 | 0/? | Pending | — |
+| 70. String Externalization — Booking & Account | v3.0 | 0/? | Pending | — |
+| 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
+| 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
+| 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
+| 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |

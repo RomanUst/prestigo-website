@@ -8,19 +8,23 @@ Prestigo is a premium chauffeur service based in Prague, Czech Republic. The sit
 
 Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction.
 
-## Current State: v2.2 Shipped — Next Milestone In Planning
+## Current State: v3.0 In Planning — Site Internationalization (i18n)
 
-v2.2 delivered dispatcher and driver tooling: a future-first admin bookings list with a persistent default-horizon setting (Future only / Last N days / All) plus in-session past/all filter overrides that never touch the saved default, with KPI counters kept accurate (Phase 65); a permanent, unguessable per-assignment driver trip link opening a `noindex` trip sheet presentable to police control, coexisting byte-for-byte with the existing accept/decline flow (Phase 66); and driver trip-progress marking (en route → arrived → on board → completed / no-show) plus an optional note, both written to dedicated `driver_assignments` columns that are structurally isolated from `booking.status` and GNet, surfaced live to admin (Phase 67). Milestone audit passed (12/12 requirements, cross-phase integration INTEGRATED). Live and deployed on production.
+**Active milestone (v3.0):** Make the whole public site multilingual without sacrificing English SEO positions. English stays the default at the site root (existing URLs unchanged → zero ranking risk); six locales — **Russian, Spanish, French, Arabic (RTL), Hindi, Chinese (Simplified)** — are served under URL subpaths (`/ru/`, `/es/`, `/fr/`, `/ar/`, `/hi/`, `/zh/`) with full SEO wiring (hreflang, localized metadata, per-locale sitemap entries). Scope covers the entire public surface — UI chrome, booking flow, account, and the complete SEO content set (29–30 route pages, 8 service pages, blog, legal) — translated by an AI-only, re-runnable pipeline. Stack: `next-intl` + `app/[locale]/` with `localePrefix: 'as-needed'`. Phases 68–75. See REQUIREMENTS.md / ROADMAP.md.
+
+---
+
+v2.2 (shipped 2026-09-02) delivered dispatcher and driver tooling: a future-first admin bookings list with a persistent default-horizon setting (Future only / Last N days / All) plus in-session past/all filter overrides that never touch the saved default, with KPI counters kept accurate (Phase 65); a permanent, unguessable per-assignment driver trip link opening a `noindex` trip sheet presentable to police control, coexisting byte-for-byte with the existing accept/decline flow (Phase 66); and driver trip-progress marking (en route → arrived → on board → completed / no-show) plus an optional note, both written to dedicated `driver_assignments` columns that are structurally isolated from `booking.status` and GNet, surfaced live to admin (Phase 67). Milestone audit passed (12/12 requirements, cross-phase integration INTEGRATED). Live and deployed on production.
 
 v2.1 (prior) delivered full operator control of the booking lifecycle inside the admin panel: abandoned/unpaid checkout capture, admin booking editing with change-notification email + audit log, and admin-created bookings with an optional Stripe payment link.
 
 v2.0 (earlier) delivered Blacklane-style booking UX with full customer authentication and account management, all GA4 + Meta Pixel/CAPI analytics signals preserved.
 
-## Next Milestone: In Planning
+## Next Milestone: v3.0 Site Internationalization (planning)
 
-No active milestone. Run `/gsd-new-milestone` to define the next version.
+Active. See REQUIREMENTS.md (I18N-/STR-/CNT-/TR-/RTL-/FONT-/SEO-/UX-/VER- IDs) and ROADMAP.md (Phases 68–75). Next step: `/gsd-plan-phase 68`.
 
-Carried forward (candidate scope): CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth dashboard credential config (AUTH-02/03), corporate "book for a guest" step (BOOK-06), multilingual account UI, clearing the pre-existing red test baseline, and the v2.2 tech-debt items (driver trip-progress live-refresh, Phase 65 row-order + horizon-clamp regression tests).
+Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth dashboard credential config (AUTH-02/03), corporate "book for a guest" step (BOOK-06), clearing the pre-existing red test baseline, and the v2.2 tech-debt items (driver trip-progress live-refresh, Phase 65 row-order + horizon-clamp regression tests). Note: the old "multilingual account UI (Czech, Russian)" item is **superseded and expanded** by the v3.0 full-site i18n milestone.
 
 ## Requirements
 
@@ -71,7 +75,7 @@ Carried forward (candidate scope): CR-02 Stripe Payment Link deactivation harden
 - [ ] BOOK-06: Booking-method step — "Book for myself / Book as guest"; corporate also "Book for a guest" (deferred from v2.0)
 - [ ] Corporate invoicing, monthly billing, cost-centre fields — basic corporate profile only in v2.0
 - [ ] Email notifications — booking confirmation, reminder, driver assignment
-- [ ] Multilingual account UI (Czech, Russian)
+- [ ] **v3.0 (active): Full-site internationalization** — next-intl + `app/[locale]/`, EN at root, 6 locales (RU/ES/FR/AR/HI/ZH) under subpaths, AI-translated UI + booking + account + all SEO content, hreflang/sitemap/RTL. Tracked in REQUIREMENTS.md (Phases 68–75). Supersedes the earlier "multilingual account UI (Czech, Russian)" item and expands it to the whole public site.
 
 ### Out of Scope
 
@@ -125,6 +129,12 @@ Carried forward (candidate scope): CR-02 Stripe Payment Link deactivation harden
 | `isTripLinkValid()` single predicate shared by trip-sheet render and write route | DTRIP-08 — no drift between what renders and what a write accepts; validity re-checked live (TOCTOU-closed) | ✓ Shipped v2.2 (Phase 66/67) |
 | DTRIP-04 isolation-by-omission: write route imports no GNet/status module, touches only `driver_assignments` | Trip-progress must never mutate `booking.status` or push to GNet; grep gates enforce it structurally | ✓ Shipped v2.2 (Phase 67) |
 | Driver note rendered as React JSX text (no `dangerouslySetInnerHTML`) | XSS — untrusted driver free text auto-escaped in the admin DOM | ✓ Shipped v2.2 (Phase 67) |
+| v3.0: `next-intl` + `app/[locale]/` with `localePrefix: 'as-needed'` | EN stays at root with unchanged URLs → zero SEO-ranking risk; de-facto App Router i18n standard | — Pending (Phase 68) |
+| v3.0: EN default at root, other locales in subpaths (not `/en` prefix, not ccTLD) | Preserve existing ranked English URLs; single domain; avoids a site-wide 301 | — Pending (Phase 68) |
+| v3.0 locale set: RU, ES, FR, AR, HI, ZH (owner choice; no CS/DE this milestone) | World-language reach + premium Prague segments; CS/DE/JA/KO deferred, infra ready | — Pending |
+| v3.0: locale-middleware composed INTO existing middleware (not replacing it) | CSP nonce + Supabase session + CSRF must survive byte-for-byte | — Pending (Phase 68) |
+| v3.0: AI-only translation via a re-runnable pipeline with glossary + do-not-translate | Owner chose AI-only; prices/brand/vehicle-class/proper-nouns must never be translated | — Pending (Phase 72) |
+| v3.0: long-form content → per-locale content files, UI strings → message catalogs | Abstract prose does not belong in JSON catalogs; keeps SEO bodies maintainable | — Pending (Phase 71) |
 
 ## Evolution
 
@@ -144,4 +154,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-02 after v2.2 milestone — shipped Dispatch & Driver Trip Portal (future-first bookings list, permanent driver trip link + noindex trip sheet, isolated trip-progress marking + note, admin visibility). Audit passed 12/12. Next milestone in planning.*
+*Last updated: 2026-09-03 — opened milestone v3.0 Site Internationalization (i18n). 7 locales (EN root + RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation, next-intl + app/[locale]. Phases 68–75 defined in ROADMAP.md; requirements in REQUIREMENTS.md. Next: /gsd-plan-phase 68.*

@@ -1,20 +1,20 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Dispatch & Driver Trip Portal
-status: Awaiting next milestone
-stopped_at: Phase 67 complete — all phases complete
-last_updated: "2026-09-02T20:44:45.784Z"
-last_activity: 2026-09-02
-last_activity_desc: Milestone v2.2 completed and archived
+milestone: v3.0
+milestone_name: Site Internationalization (i18n)
+status: planning
+stopped_at: Milestone v3.0 defined — awaiting /gsd-plan-phase 68
+last_updated: "2026-09-03T00:00:00.000Z"
+last_activity: 2026-09-03
+last_activity_desc: Milestone v3.0 opened — requirements + roadmap written (Phases 68–75)
 state_head: 18019b036a2f7c943ee511c4d28bc05e61cb6188
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
-  percent: 100
-current_phase: 67
+  total_phases: 8
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
+current_phase: 68
 ---
 
 # Project State
@@ -24,14 +24,14 @@ current_phase: 67
 See: .planning/PROJECT.md (updated 2026-09-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Planning next milestone (v2.2 shipped & archived)
+**Current focus:** v3.0 Site Internationalization (i18n) — planning; next is /gsd-plan-phase 68
 
 ## Current Position
 
-Phase: Milestone v2.2 complete
+Phase: 68 — i18n Foundation & Routing (not yet planned)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-02 — Milestone v2.2 completed and archived
+Status: planning — milestone v3.0 defined (REQUIREMENTS.md + ROADMAP.md written)
+Last activity: 2026-09-03 — Milestone v3.0 opened (Phases 68–75)
 
 ## Accumulated Context
 
@@ -129,6 +129,28 @@ Recent decisions affecting current work:
 - Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility — DTRIP-03, DTRIP-04, DTRIP-05, DTRIP-06
 - Execution: (65 ∥ 66) → 67
 
+### v3.0 roadmap (Phases 68-75, planning)
+
+- Milestone: Site Internationalization — EN at root (unchanged URLs), 6 locales under subpaths (RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation. Stack: next-intl + app/[locale] (`localePrefix: 'as-needed'`).
+- Phase 68: i18n Foundation & Routing — I18N-01/02/03/04 (risk-first: middleware composition + route-tree move under [locale], EN unchanged)
+- Phase 69: String Externalization — UI Chrome — STR-01
+- Phase 70: String Externalization — Booking & Account — STR-02
+- Phase 71: Content Externalization — Marketing & SEO Pages — CNT-01/02/03 (may split 71a/71b)
+- Phase 72: AI Translation Pipeline & Catalogs — TR-01/02 (RU/ES/FR)
+- Phase 73: Non-Latin & RTL Infra (AR, HI, ZH) — RTL-01, FONT-01, TR-02
+- Phase 74: SEO — hreflang/metadata/sitemap/JSON-LD/switcher — SEO-01/02/03/04, UX-01/02
+- Phase 75: E2E Verification & Launch — VER-01
+- Proposed execution: 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69∥70 after 68; 71/72 pipeline can overlap)
+
+### Key i18n grounding (verify during /gsd-plan-phase 68)
+
+- `middleware.ts` is a single default export doing CSP nonce (`buildCsp`) + Supabase `updateSession` + CSRF Origin-guard; broad matcher. next-intl locale-middleware must be COMPOSED into this chain, not replace it — highest-risk item.
+- `lib/seo.ts::getAlternates()` already returns `{ canonical, languages }` and is designed to extend to N locales; `app/sitemap.ts` already emits `alternates.languages` (currently en/x-default only).
+- Content is hardcoded prose inline in each `app/routes/<slug>/page.tsx` (inclusions, dayTripConfigurations, FAQ, hero, per-page generateMetadata). `lib/routes.ts` is the hub data-layer only. Blog = `content/blog/*.mdx` (10) + 3 legacy JSX.
+- Fonts: next/font Fraunces + Inter (self-hosted); no `dir=` handling anywhere. RTL audit ≈ 42 files / ~50 physical-direction Tailwind class occurrences.
+- Do NOT localize: `app/admin/*`, `app/api/*`, `app/auth/*`, `app/driver/*` — stay at root, off the [locale] tree.
+- `next.config.ts` has a `/cs → /` redirect (CS not in v3.0 scope — leave it); ensure new locale prefixes are not caught by any catch-all.
+
 ### Pending Todos
 
 None yet.
@@ -220,4 +242,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Plan the first phase: /gsd-plan-phase 68 (i18n Foundation & Routing — risk-first)
