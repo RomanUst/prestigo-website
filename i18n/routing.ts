@@ -25,3 +25,24 @@ export const routing = defineRouting({
   localePrefix: 'as-needed',
   localeDetection: false,
 })
+
+/**
+ * Strips a configured locale segment from the front of a pathname, e.g.
+ * '/ru/account' -> '/account', '/ru' -> '/'. Returns the pathname unchanged
+ * if the first segment isn't an EXACT, lowercase, configured locale code —
+ * '/RU/account' and '/de/x' are both left untouched (RESEARCH.md Pattern 2).
+ *
+ * Lives here (not in middleware.ts) so it has no dependency on
+ * `next-intl/middleware`/`next/server` and can be imported by plain unit
+ * tests (tests/i18n-routing.test.ts) without pulling in the Edge-only
+ * `next/server` module. middleware.ts imports this single implementation
+ * rather than redeclaring it — I18N-04 single-source discipline.
+ */
+export function stripLocalePrefix(pathname: string, allowedLocales: readonly string[]): string {
+  const seg = pathname.split('/')[1]
+  if (allowedLocales.includes(seg)) {
+    const rest = pathname.slice(seg.length + 1)
+    return rest === '' ? '/' : rest
+  }
+  return pathname
+}

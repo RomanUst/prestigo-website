@@ -15,6 +15,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
+import { routing } from '@/i18n/routing'
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -209,4 +210,78 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
       expect(csp).not.toMatch(/nonce-/)
     })
   })
+
+  // -------------------------------------------------------------------------
+  // Edge/security probes — Phase 68 Plan 02, Task 1
+  // -------------------------------------------------------------------------
+  describe('edge: unconfigured locale prefix (/xx/) — no reflected redirect (T-68-06)', () => {
+    it('enters the public branch via handleI18nRouting and returns a non-3xx response with static CSP (no nonce, no reflected xx in Location)', async () => {
+      // The mock's default (makeIntlRewriteResponse) represents next-intl's
+      // behavior for a pathname that resolves to no matching locale — it is
+      // NOT a redirect; the App Router's hasLocale guard 404s downstream at
+      // the [locale] segment (see app/[locale]/layout.tsx / not-found.tsx).
+      const response = await middleware(makeRequest('/xx/'))
+
+      expect(mockHandleI18nRouting).toHaveBeenCalledTimes(1)
+      expect(response.status).toBeLessThan(300)
+
+      const location = response.headers.get('location')
+      if (location) {
+        expect(location).not.toMatch(/xx/)
+      }
+
+      const csp = response.headers.get('Content-Security-Policy')
+      expect(csp).toBeTruthy()
+      expect(csp).not.toMatch(/nonce-/)
+    })
+  })
+
+  describe('edge: case-variant locale prefix (/RU/) is not treated as the ru locale (T-68-06)', () => {
+    it('does not fire ru-locale-specific handling — stripLocalePrefix leaves /RU/ unchanged, static branch, no auth call', async () => {
+      const response = await middleware(makeRequest('/RU/'))
+
+      expect(mockHandleI18nRouting).toHaveBeenCalledTimes(1)
+      // '/RU/' does not match isDynamicPath after stripLocalePrefix (case
+      // mismatch means it isn't stripped at all), so the static branch runs
+      // and Supabase's getUser() is never invoked.
+      expect(mockGetUser).not.toHaveBeenCalled()
+
+      const csp = response.headers.get('Content-Security-Policy')
+      expect(csp).toBeTruthy()
+      expect(csp).not.toMatch(/nonce-/)
+    })
+  })
+
+  describe('edge: all-7 dynamic parity — locale-prefixed /book routes for every non-default locale (I18N-01/02/04)', () => {
+    // Parametrized over routing.locales (minus the default 'en', which
+    // resolves unprefixed and is covered by the public-branch tests above)
+    // so the 7-locale set stays single-source per I18N-04 — never
+    // hard-coded here.
+    const nonDefaultLocales = routing.locales.filter((l) => l !== routing.defaultLocale)
+
+    it.each(nonDefaultLocales)(
+      'routes /%s/book through handleI18nRouting then the dynamic branch (updateSession invoked) with static CSP',
+      async (locale) => {
+        const response = await middleware(makeRequest(`/${locale}/book`))
+
+        expect(mockHandleI18nRouting).toHaveBeenCalledTimes(1)
+        expect(mockGetUser).toHaveBeenCalledTimes(1)
+
+        const csp = response.headers.get('Content-Security-Policy')
+        expect(csp).toBeTruthy()
+        expect(csp).not.toMatch(/nonce-/)
+      }
+    )
+  })
+
+  // -------------------------------------------------------------------------
+  // Backstop edges — NOT asserted here by design (must_haves `edges` list,
+  // verification: backstop). Per-request nonce freshness under concurrency
+  // and trailing-slash/case normalization on the locale segment are not
+  // deterministically assertable against this mocked next-intl harness
+  // (the mock always returns a fixed response regardless of timing or
+  // trailing-slash variance). These are gated behind the Task 3
+  // checkpoint:human-verify (live CSP nonce reload check + /xx and
+  // /admin/xyz-nonexistent 404 confirmation against a real dev server).
+  // -------------------------------------------------------------------------
 })

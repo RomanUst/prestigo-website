@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import createMiddleware from 'next-intl/middleware'
 import { updateSession } from '@/lib/supabase/middleware'
-import { routing } from '@/i18n/routing'
+import { routing, stripLocalePrefix } from '@/i18n/routing'
 
 const MUTATION_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE'])
 
@@ -180,21 +180,11 @@ function isNonLocalizedRoute(pathname: string): boolean {
   return NON_LOCALIZED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
 }
 
-/**
- * Strips a configured locale segment from the front of a pathname, e.g.
- * '/ru/account' -> '/account', '/ru' -> '/'. Returns the pathname unchanged
- * if the first segment isn't a configured locale (RESEARCH.md Pattern 2).
- * Only ever applied on the public/localized branch below — never for
- * /admin, /api, /auth, /driver, whose pathnames are never locale-prefixed.
- */
-function stripLocalePrefix(pathname: string, locales: readonly string[]): string {
-  const seg = pathname.split('/')[1]
-  if (locales.includes(seg)) {
-    const rest = pathname.slice(seg.length + 1)
-    return rest === '' ? '/' : rest
-  }
-  return pathname
-}
+// stripLocalePrefix now lives in i18n/routing.ts (I18N-04 single-source —
+// see that file's doc comment) so it can be unit-tested without pulling in
+// next-intl/middleware's next/server dependency. Only ever applied on the
+// public/localized branch below — never for /admin, /api, /auth, /driver,
+// whose pathnames are never locale-prefixed.
 
 /**
  * The existing CSP + Supabase updateSession chain, unchanged in behavior
