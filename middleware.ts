@@ -231,8 +231,19 @@ async function runCspAndAuthChain(
     //   fire) and its payment UI runs inside a Stripe iframe, so unsafe-inline
     //   here matches the rest of the public site's posture. A strict CSP for
     //   /book would require splitting analytics into a route-group layout.
+    // Nonce CSP is reserved for /admin and /driver reached via the
+    // NON-localized branch (raw request pathname genuinely starts with
+    // those prefixes). Deciding on the RAW pathname — not decisionPathname
+    // — is deliberate: the public/localized branch is only ever entered
+    // when isNonLocalizedRoute(raw pathname) is false, so raw pathname can
+    // never actually start with /admin or /driver there, even though a
+    // crafted /ru/admin request strips down to '/admin' for the
+    // isDynamicPath decision above. Using decisionPathname here would let
+    // that stripped collision leak a nonce CSP onto a route next-intl is
+    // about to 404 anyway (T-68-04 — locale-prefix path confusion).
     const useNonceCsp =
-      decisionPathname.startsWith('/admin') || decisionPathname.startsWith('/driver')
+      request.nextUrl.pathname.startsWith('/admin') ||
+      request.nextUrl.pathname.startsWith('/driver')
     const nonce = useNonceCsp ? btoa(crypto.randomUUID()) : null
     const csp = nonce ? buildCsp(nonce) : buildCspStatic()
     const reqHeaders = new Headers(request.headers)
