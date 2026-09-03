@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
-import { safeReturnTo } from '@/app/login/auth-helpers'
+import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
 
 // Note: safeReturnTo and buildOAuthOptions are pure (synchronous) helpers and
 // live in ./auth-helpers — a 'use server' module may only export async

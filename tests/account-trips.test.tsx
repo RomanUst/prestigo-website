@@ -55,7 +55,7 @@ vi.mock('@/components/Nav', () => ({
 // ---------------------------------------------------------------------------
 // Import (does not exist yet — module resolution fails = RED)
 // ---------------------------------------------------------------------------
-import AccountTripsPage from '@/app/account/trips/page'
+import AccountTripsPage from '@/app/[locale]/account/trips/page'
 
 // ---------------------------------------------------------------------------
 // Test suite

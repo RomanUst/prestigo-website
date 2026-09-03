@@ -67,7 +67,7 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
 
   it('bookings/page.tsx fetches /api/admin/settings on mount and passes defaultHorizon/horizonDays to BookingsTable', async () => {
     const fetchMock = stubFetch()
-    const { default: BookingsPage } = await import('@/app/admin/(dashboard)/bookings/page')
+    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
     render(<BookingsPage />)
 
     await waitFor(() => {
@@ -81,7 +81,7 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
 
   it('the two KPI fetches never carry a horizon param', async () => {
     const fetchMock = stubFetch()
-    const { default: BookingsPage } = await import('@/app/admin/(dashboard)/bookings/page')
+    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
     render(<BookingsPage />)
 
     await waitFor(() => {
@@ -130,7 +130,7 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const { default: BookingsPage } = await import('@/app/admin/(dashboard)/bookings/page')
+    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
     render(<BookingsPage />)
 
     await waitFor(() => {
@@ -153,7 +153,7 @@ describe('BookingsPage — KPI decoupling guard (Phase 65 Plan 04, DISP-04/D-05)
 
   it('toggling the segmented control issues exactly one additional list fetch and ZERO additional KPI fetches; todayCount/weekRevenue stay unchanged', async () => {
     const fetchMock = stubFetch()
-    const { default: BookingsPage } = await import('@/app/admin/(dashboard)/bookings/page')
+    const { default: BookingsPage } = await import('@/app/(internal)/admin/(dashboard)/bookings/page')
     render(<BookingsPage />)
 
     // Wait for both KPI values to render

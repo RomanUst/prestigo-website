@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter } from 'next/font/google'
-import './globals.css'
+import '../app/globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
 import Clarity from '@/components/Clarity'
@@ -30,7 +30,7 @@ const inter = Inter({
   display: 'swap',
 })
 
-export const metadata: Metadata = {
+export const siteMetadata: Metadata = {
   metadataBase: new URL('https://rideprestigo.com'),
   title: {
     default: 'PRESTIGO — Premium Chauffeur Service Prague',
@@ -87,17 +87,22 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+// No headers()/cookies() read here on purpose: any dynamic API in the root
+// layout opts the ENTIRE route tree into dynamic rendering, defeating the
+// revalidate/force-static directives on the marketing pages below. The CSP
+// nonce for dynamic routes is propagated automatically by Next.js from the
+// Content-Security-Policy request header set in middleware — it reaches the
+// analytics <Script> components without any manual prop wiring.
+//
+// Shared chrome for BOTH root layouts (app/[locale]/layout.tsx and
+// app/(internal)/layout.tsx) so /admin and /driver chrome stays provably
+// byte-for-byte identical to the localized public chrome (RESEARCH.md
+// Pitfall 3 — extract once, don't hand-copy).
+export default function SiteChrome({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // No headers()/cookies() read here on purpose: any dynamic API in the root
-  // layout opts the ENTIRE route tree into dynamic rendering, defeating the
-  // revalidate/force-static directives on the marketing pages below. The CSP
-  // nonce for dynamic routes is propagated automatically by Next.js from the
-  // Content-Security-Policy request header set in middleware — it reaches the
-  // analytics <Script> components without any manual prop wiring.
   return (
-    <html lang="en">
+    <>
       <head>
         {/* Hero image LCP preload is handled by <Image priority fetchPriority="high">
             in Hero.tsx — Next.js auto-generates a preload with the correct
@@ -125,6 +130,6 @@ export default function RootLayout({
         <CookieBanner />
         <EngagementTracker />
       </body>
-    </html>
+    </>
   )
 }

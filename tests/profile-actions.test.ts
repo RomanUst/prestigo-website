@@ -53,7 +53,7 @@ vi.mock('next/cache', () => ({
 // ---------------------------------------------------------------------------
 // Import (does not exist yet → RED)
 // ---------------------------------------------------------------------------
-import { updateProfile } from '@/app/account/actions'
+import { updateProfile } from '@/app/[locale]/account/actions'
 
 // ---------------------------------------------------------------------------
 // Helpers

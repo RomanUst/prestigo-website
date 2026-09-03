@@ -68,7 +68,7 @@ vi.mock('next/cache', () => ({
 // ---------------------------------------------------------------------------
 // Import (does not exist yet → RED)
 // ---------------------------------------------------------------------------
-import { addPassenger, updatePassenger, deletePassenger } from '@/app/account/actions'
+import { addPassenger, updatePassenger, deletePassenger } from '@/app/[locale]/account/actions'
 
 // ---------------------------------------------------------------------------
 // Helpers

@@ -44,7 +44,7 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }))
 
-vi.mock('@/app/login/actions', () => ({
+vi.mock('@/app/[locale]/login/actions', () => ({
   customerSignOut: mockCustomerSignOut,
 }))
 

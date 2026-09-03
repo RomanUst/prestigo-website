@@ -6,7 +6,7 @@ import {
   addPassenger,
   updatePassenger,
   deletePassenger,
-} from '@/app/account/actions'
+} from '@/app/[locale]/account/actions'
 import type { Database } from '@/types/database.types'
 
 type SavedPassenger = Pick<

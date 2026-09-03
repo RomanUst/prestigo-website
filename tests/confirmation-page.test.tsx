@@ -97,7 +97,7 @@ beforeEach(() => {
 })
 
 async function loadPage() {
-  const mod = await import('@/app/book/confirmation/page')
+  const mod = await import('@/app/[locale]/book/confirmation/page')
   return mod.default
 }
 

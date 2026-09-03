@@ -1,5 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import createMiddleware from 'next-intl/middleware'
 import { updateSession } from '@/lib/supabase/middleware'
+import { routing } from '@/i18n/routing'
 
 const MUTATION_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE'])
 
@@ -98,6 +100,11 @@ function buildCspStatic(): string {
 /**
  * Routes that require per-request dynamic rendering (auth, booking, API).
  * Everything else is a static marketing page served from the edge cache.
+ *
+ * Called with the RAW pathname for the non-localized branch (/admin, /api,
+ * /auth, /driver — never locale-prefixed) and with the locale-STRIPPED
+ * pathname for the public branch (/book, /login, /account — the only
+ * dynamic paths reachable under app/[locale]/, per RESEARCH.md Pitfall 1).
  */
 function isDynamicPath(pathname: string): boolean {
   return (
@@ -158,13 +165,56 @@ function checkCsrf(request: NextRequest): NextResponse | null {
   return null
 }
 
-export async function middleware(request: NextRequest) {
-  const csrfError = checkCsrf(request)
-  if (csrfError) return csrfError
+// ---------------------------------------------------------------------------
+// i18n composition (Phase 68 — I18N-01/02/04)
+// ---------------------------------------------------------------------------
 
-  const { pathname } = request.nextUrl
+const handleI18nRouting = createMiddleware(routing)
 
-  if (isDynamicPath(pathname)) {
+// /admin, /api, /auth, /driver are never routed through next-intl at all —
+// their pathnames are never locale-prefixed and the existing CSP/Supabase
+// logic below must run byte-for-byte unchanged for them (RESEARCH.md Pattern 1).
+const NON_LOCALIZED_PREFIXES = ['/admin', '/api', '/auth', '/driver']
+
+function isNonLocalizedRoute(pathname: string): boolean {
+  return NON_LOCALIZED_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
+}
+
+/**
+ * Strips a configured locale segment from the front of a pathname, e.g.
+ * '/ru/account' -> '/account', '/ru' -> '/'. Returns the pathname unchanged
+ * if the first segment isn't a configured locale (RESEARCH.md Pattern 2).
+ * Only ever applied on the public/localized branch below — never for
+ * /admin, /api, /auth, /driver, whose pathnames are never locale-prefixed.
+ */
+function stripLocalePrefix(pathname: string, locales: readonly string[]): string {
+  const seg = pathname.split('/')[1]
+  if (locales.includes(seg)) {
+    const rest = pathname.slice(seg.length + 1)
+    return rest === '' ? '/' : rest
+  }
+  return pathname
+}
+
+/**
+ * The existing CSP + Supabase updateSession chain, unchanged in behavior
+ * from the pre-Phase-68 middleware.ts. Parameterized so the public branch
+ * can pass a locale-stripped pathname (for the isDynamicPath decision and
+ * the /account gate) and thread the next-intl response object through
+ * (baseResponse) so its x-middleware-rewrite header survives — see
+ * lib/supabase/middleware.ts's updateSession doc comment.
+ *
+ * Non-localized call sites (/admin, /api, /auth, /driver) never pass
+ * decisionOverrides, so this resolves byte-for-byte identically to today.
+ */
+async function runCspAndAuthChain(
+  request: NextRequest,
+  decisionOverrides?: { pathname: string; baseResponse: NextResponse }
+): Promise<NextResponse> {
+  const decisionPathname = decisionOverrides?.pathname ?? request.nextUrl.pathname
+  const baseResponse = decisionOverrides?.baseResponse
+
+  if (isDynamicPath(decisionPathname)) {
     // CSP strategy by area:
     //
     // - /admin and /driver are authed internal areas that serve NO third-party
@@ -182,7 +232,7 @@ export async function middleware(request: NextRequest) {
     //   here matches the rest of the public site's posture. A strict CSP for
     //   /book would require splitting analytics into a route-group layout.
     const useNonceCsp =
-      pathname.startsWith('/admin') || pathname.startsWith('/driver')
+      decisionPathname.startsWith('/admin') || decisionPathname.startsWith('/driver')
     const nonce = useNonceCsp ? btoa(crypto.randomUUID()) : null
     const csp = nonce ? buildCsp(nonce) : buildCspStatic()
     const reqHeaders = new Headers(request.headers)
@@ -192,12 +242,17 @@ export async function middleware(request: NextRequest) {
       reqHeaders.set('x-nonce', nonce)
     }
     try {
-      const response = await updateSession(request, reqHeaders)
+      const response = await updateSession(
+        request,
+        reqHeaders,
+        baseResponse,
+        decisionOverrides?.pathname
+      )
       response.headers.set('Content-Security-Policy', csp)
       return response
     } catch {
       // Supabase not configured (local dev without .env) — fall through without auth
-      const response = NextResponse.next({ request: { headers: reqHeaders } })
+      const response = baseResponse ?? NextResponse.next({ request: { headers: reqHeaders } })
       response.headers.set('Content-Security-Policy', csp)
       return response
     }
@@ -205,10 +260,36 @@ export async function middleware(request: NextRequest) {
     // Static/cacheable marketing routes: skip Supabase auth roundtrip entirely.
     // No page under this branch reads user session, so getUser() on every
     // request only adds ~500-1000ms of TTFB. Only set the CSP header.
-    const response = NextResponse.next({ request: { headers: request.headers } })
+    const response = baseResponse ?? NextResponse.next({ request: { headers: request.headers } })
     response.headers.set('Content-Security-Policy', buildCspStatic())
     return response
   }
+}
+
+export async function middleware(request: NextRequest) {
+  const csrfError = checkCsrf(request)
+  if (csrfError) return csrfError
+
+  const { pathname } = request.nextUrl
+
+  if (isNonLocalizedRoute(pathname)) {
+    // EXISTING LOGIC, BYTE-FOR-BYTE — next-intl never touches these paths.
+    return runCspAndAuthChain(request)
+  }
+
+  // Public route: resolve locale first.
+  const intlResponse = handleI18nRouting(request)
+  if (intlResponse.status >= 300 && intlResponse.status < 400) {
+    // next-intl redirect (e.g. the as-needed /en/about -> /about strip) —
+    // nothing else to add.
+    return intlResponse
+  }
+
+  const strippedPathname = stripLocalePrefix(pathname, routing.locales)
+  return runCspAndAuthChain(request, {
+    pathname: strippedPathname,
+    baseResponse: intlResponse,
+  })
 }
 
 export const config = {

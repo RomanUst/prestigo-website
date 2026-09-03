@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
-import { customerSignOut } from '@/app/login/actions'
+import { customerSignOut } from '@/app/[locale]/login/actions'
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)

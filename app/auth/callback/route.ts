@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import type { EmailOtpType } from '@supabase/supabase-js'
 import { createClient } from '@/lib/supabase/server'
-import { safeReturnTo } from '@/app/login/auth-helpers'
+import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
 
 // ---------------------------------------------------------------------------
 // Profile upsert helper

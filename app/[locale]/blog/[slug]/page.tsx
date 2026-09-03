@@ -83,7 +83,7 @@ export default async function BlogArticlePage({
   // dynamic import template strings. See RESEARCH.md Pitfall 3.
   let Post: React.ComponentType
   try {
-    const mod = await import(`../../../content/blog/${slug}.mdx`)
+    const mod = await import(`../../../../content/blog/${slug}.mdx`)
     Post = mod.default
   } catch {
     notFound()
