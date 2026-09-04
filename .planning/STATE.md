@@ -4,17 +4,17 @@ milestone: v3.0
 milestone_name: Site Internationalization (i18n)
 current_phase: 69
 current_phase_name: String Externalization — UI Chrome
-status: executing
-stopped_at: Completed 69-04-PLAN.md
-last_updated: "2026-09-04T14:12:05.677Z"
+status: verifying
+stopped_at: Completed 69-05-PLAN.md — STR-01 complete
+last_updated: "2026-09-04T14:22:20.055Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 69 execution started
-state_head: de0599fa5c6bf82e2ddca851a61cd044319622bd
+state_head: d4eb606e2d4b4846372c8392b76170b4d95dc009
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 Phase: 69 (String Externalization — UI Chrome) — EXECUTING
 Plan: 5 of 5
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-09-04 — Phase 69 execution started
 
 ## Accumulated Context
@@ -106,6 +106,7 @@ Recent decisions affecting current work:
 - [Phase 69]: 69-03: HeroBackground's HERO_ALT moved from module scope to a local const inside the component body (useTranslations only callable inside the component); all 3 usage sites (2x getImageProps alt, 1x img alt) unchanged
 - [Phase 69]: 69-03: t.rich('priceAnchor', { amount, price: (chunks) => <span>...</span> }) preserves Hero's inline copper price span; plain {amount} ICU arg coerces via String() (no locale number formatting), matching prior template-literal output byte-for-byte
 - [Phase 69]: [Phase 69] 69-04: Fleet altTemplate interpolated via per-index t(`vehicles.${i}.altTemplate`, {model}) — next-intl dot-path array resolution, not manual .replace() string surgery
+- [Phase 69]: 69-05: Testimonials + TestimonialsCarousel share the Testimonials namespace; nested components (StarBadge, Toggle) call useTranslations directly instead of threading a t prop
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -213,8 +214,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-04T14:12:05.545Z
-Stopped at: Completed 69-04-PLAN.md
+Last session: 2026-09-04T14:22:19.922Z
+Stopped at: Completed 69-05-PLAN.md — STR-01 complete
 Resume file: None
 
 ## Performance Metrics
@@ -257,6 +258,7 @@ Resume file: None
 | Phase 69 P02 | 11min | 2 tasks | 10 files |
 | Phase 69 P03 | 22min | 2 tasks | 12 files |
 | Phase 69 P04 | 25min | 2 tasks | 9 files |
+| Phase 69 P05 | 20min | 2 tasks | 11 files |
 
 ## Operator Next Steps
 
