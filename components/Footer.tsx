@@ -72,7 +72,7 @@ export default function Footer() {
                   <Link href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors inline-flex items-center gap-2 py-2.5 -my-2.5">
                     {services[i]}
                     {s.isNew && (
-                      <span className="font-body font-light text-[10px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                      <span className="font-body font-light text-[10px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">{t('new')}</span>
                     )}
                   </Link>
                 </li>

@@ -68,7 +68,8 @@
     "terms": "Terms",
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
-    "tagline": "Prestige in every mile."
+    "tagline": "Prestige in every mile.",
+    "new": "NEW"
   },
   "FeatureStrip": {
     "sectionAria": "Why PRESTIGO",
@@ -136,7 +137,8 @@
     "fromPrice": "From €{price}",
     "fromPriceHourly": "From €{price}/hr",
     "learnMore": "Learn more",
-    "bookTransfer": "Book a transfer"
+    "bookTransfer": "Book a transfer",
+    "new": "NEW"
   },
   "Fleet": {
     "label": "The fleet",

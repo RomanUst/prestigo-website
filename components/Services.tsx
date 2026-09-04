@@ -61,7 +61,7 @@ export default function Services({ airportPrice, hourlyFrom, cheapestIntercity }
                   <div className="flex items-center gap-2 mb-4">
                     <p className="label">{card.label}</p>
                     {s.isNew && (
-                      <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                      <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">{t('new')}</span>
                     )}
                   </div>
                   <h3 className="font-display font-light text-xl text-offwhite mb-3 group-hover:text-copper-pale transition-colors">
