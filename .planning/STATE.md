@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 69
 current_phase_name: String Externalization — UI Chrome
 status: executing
-stopped_at: Completed 69-01-PLAN.md
-last_updated: "2026-09-04T13:39:18.631Z"
+stopped_at: Completed 69-02-PLAN.md
+last_updated: "2026-09-04T13:51:20.299Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 69 execution started
-state_head: f616eac68c55fcf67fcdcb56efc92b028bb40051
+state_head: 123e976b7137a18cc62eccf091fbe8903d36e2af
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 7
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 ## Current Position
 
 Phase: 69 (String Externalization — UI Chrome) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-09-04 — Phase 69 execution started
 
@@ -101,6 +101,8 @@ Recent decisions affecting current work:
 - [Phase 68]: [Phase 68] 68-02: ACCEPTED DEVIATION T-68-06 — case-variant locale prefixes (/RU, /Ru) canonicalize via next-intl's own 307 redirect to the lowercase locale rather than hard-404ing; non-bypass and non-reflection invariants hold, human-approved at the Task 3 checkpoint
 - [Phase 69]: 69-01: Task 1 convention approved as Option A (PascalCase component namespaces, camelCase semantic sub-keys, JSON arrays for ordered lists, named ICU args, 6 EN-copy stub files) — locked verbatim for reuse across Phases 69-71
 - [Phase 69]: 69-01: Nav.tsx NAV_LINKS typed as ReadonlyArray<{href,isNew?}> rather than 'as const' to avoid a discriminated-union TS error when accessing .isNew
+- [Phase 69]: [Phase 69] 69-02: Footer services li key uses href+index (not href alone) — 3 of 8 service items share href '/services' — avoids React duplicate-key collision
+- [Phase 69]: [Phase 69] 69-02: FeatureStrip icons / HowItWorks step-number+photo-path stay in-code structural arrays zipped by index with translated catalog arrays — matches locked convention: structural config never moves into message JSON
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -208,8 +210,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-04T13:39:18.493Z
-Stopped at: Completed 69-01-PLAN.md
+Last session: 2026-09-04T13:51:20.168Z
+Stopped at: Completed 69-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -249,6 +251,7 @@ Resume file: None
 | Phase 68 P01 | 55min | 2 tasks | 118 files |
 | Phase 68 P02 | ~19min | 3 tasks | 6 files |
 | Phase 69 P01 | 15min | 3 tasks | 16 files |
+| Phase 69 P02 | 11min | 2 tasks | 10 files |
 
 ## Operator Next Steps
 
