@@ -403,7 +403,9 @@ Convention: top-level key = component name (matches the phase description's own 
 
 **If this table is empty:** N/A — see entries above; A3 is the one item genuinely worth a locked decision before planning proceeds.
 
-## Open Questions
+## Open Questions (RESOLVED)
+
+> Both resolved during planning (2026-09-04): Q1 → **Option (a)**, locked via 69-01 Task 1's blocking-human convention/stub checkpoint (6 EN-copy stubs, re-synced every plan). Q2 → `useTranslations('Hero')` sync, enforced as a hard acceptance criterion in 69-03 Task 1.
 
 1. **Does `/ru/`, `/es/`, `/fr/`, `/ar/`, `/hi/`, `/zh/` need placeholder message files this phase, or does the message-loading `import()` need a fallback?**
    - What we know: `i18n/request.ts`'s locale-resolution `hasLocale` check already falls back cleanly to `en` for *invalid/unconfigured* locale strings. But `ru` etc. ARE configured (in `routing.locales`) — they are valid locales that Phase 68 already serves at `/ru` (rendering English content today, since `messages: {}` means every `useTranslations` call would currently throw if one existed). Once real `useTranslations` calls land in this phase, a request to `/ru/` will resolve `locale = 'ru'` (a valid, configured locale) and then attempt `import('../messages/ru.json')`, which does not exist yet.

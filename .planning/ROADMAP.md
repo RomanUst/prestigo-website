@@ -56,10 +56,24 @@
   4. The rendered English site is byte-for-byte unchanged (visual + existing tests green); non-EN locales still render English chrome (no translations added yet), served correctly under their subpath.
 
 **Plans:** 5 plans (waves 1→5, sequential — every plan appends to the shared `messages/en.json` + 6 EN-copy stubs)
+**Wave 1**
+
 - [ ] 69-01-PLAN.md — Pipeline tracer: convention lock (checkpoint), catalog loader + provider + createNavigation + 6 stubs + test harness, Nav externalized end-to-end
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 69-02-PLAN.md — Footer (full raw-anchor→Link sweep) + FeatureStrip + HowItWorks
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 69-03-PLAN.md — Hero cluster (Hero, HeroTypewriter, HeroRating, HeroWhatsApp, HeroBackground) under one Hero namespace
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 69-04-PLAN.md — Services + Fleet (price interpolation, proper-noun model names, Link swaps)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 69-05-PLAN.md — Testimonials (+Carousel) + CookieBanner (t.rich Privacy/Legal links) — closes STR-01
 
 **UI hint**: yes
