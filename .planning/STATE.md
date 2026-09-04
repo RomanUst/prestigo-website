@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 69
 current_phase_name: String Externalization — UI Chrome
 status: executing
-stopped_at: Completed 69-02-PLAN.md
-last_updated: "2026-09-04T13:51:20.299Z"
+stopped_at: Completed 69-03-PLAN.md
+last_updated: "2026-09-04T14:03:51.815Z"
 last_activity: 2026-09-04
 last_activity_desc: Phase 69 execution started
-state_head: 123e976b7137a18cc62eccf091fbe8903d36e2af
+state_head: 50ee9dcb25909547a60a9d8147f31369805dd98d
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 7
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 ## Current Position
 
 Phase: 69 (String Externalization — UI Chrome) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-09-04 — Phase 69 execution started
 
@@ -103,6 +103,8 @@ Recent decisions affecting current work:
 - [Phase 69]: 69-01: Nav.tsx NAV_LINKS typed as ReadonlyArray<{href,isNew?}> rather than 'as const' to avoid a discriminated-union TS error when accessing .isNew
 - [Phase 69]: [Phase 69] 69-02: Footer services li key uses href+index (not href alone) — 3 of 8 service items share href '/services' — avoids React duplicate-key collision
 - [Phase 69]: [Phase 69] 69-02: FeatureStrip icons / HowItWorks step-number+photo-path stay in-code structural arrays zipped by index with translated catalog arrays — matches locked convention: structural config never moves into message JSON
+- [Phase 69]: 69-03: HeroBackground's HERO_ALT moved from module scope to a local const inside the component body (useTranslations only callable inside the component); all 3 usage sites (2x getImageProps alt, 1x img alt) unchanged
+- [Phase 69]: 69-03: t.rich('priceAnchor', { amount, price: (chunks) => <span>...</span> }) preserves Hero's inline copper price span; plain {amount} ICU arg coerces via String() (no locale number formatting), matching prior template-literal output byte-for-byte
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -210,8 +212,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-04T13:51:20.168Z
-Stopped at: Completed 69-02-PLAN.md
+Last session: 2026-09-04T14:03:42.020Z
+Stopped at: Completed 69-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -252,6 +254,7 @@ Resume file: None
 | Phase 68 P02 | ~19min | 3 tasks | 6 files |
 | Phase 69 P01 | 15min | 3 tasks | 16 files |
 | Phase 69 P02 | 11min | 2 tasks | 10 files |
+| Phase 69 P03 | 22min | 2 tasks | 12 files |
 
 ## Operator Next Steps
 
