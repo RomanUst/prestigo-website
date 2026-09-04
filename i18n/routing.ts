@@ -13,6 +13,7 @@
  * auto-detect) is explicitly Phase 74 scope. Do not flip this on early.
  */
 import { defineRouting } from 'next-intl/routing'
+import { createNavigation } from 'next-intl/navigation'
 
 export const locales = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
 export type AppLocale = (typeof locales)[number]
@@ -25,6 +26,14 @@ export const routing = defineRouting({
   localePrefix: 'as-needed',
   localeDetection: false,
 })
+
+/**
+ * The single-source locale-aware navigation bridge (I18N-04, closes Phase
+ * 68's IN-01 gap). Every internal link/pathname check in component code
+ * must go through these exports — never hand-roll `${locale}${href}`
+ * string concatenation (RESEARCH.md Pattern 1/2, Anti-Patterns).
+ */
+export const { Link, redirect, usePathname, useRouter, getPathname } = createNavigation(routing)
 
 /**
  * Strips a configured locale segment from the front of a pathname, e.g.

@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter } from 'next/font/google'
+import { NextIntlClientProvider } from 'next-intl'
+import { getLocale, getMessages } from 'next-intl/server'
 import '../app/globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
@@ -98,9 +100,12 @@ export const siteMetadata: Metadata = {
 // app/(internal)/layout.tsx) so /admin and /driver chrome stays provably
 // byte-for-byte identical to the localized public chrome (RESEARCH.md
 // Pitfall 3 — extract once, don't hand-copy).
-export default function SiteChrome({
+export default async function SiteChrome({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const locale = await getLocale()
+  const messages = await getMessages()
+
   return (
     <>
       <head>
@@ -119,16 +124,18 @@ export default function SiteChrome({
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
       <body className={`${fraunces.variable} ${inter.variable}`}>
-        <a href="#main-content" className="skip-link btn-primary">
-          Skip to content
-        </a>
-        {children}
-        <GoogleAnalytics />
-        <AnalyticsPageView />
-        <Clarity />
-        <MetaPixel />
-        <CookieBanner />
-        <EngagementTracker />
+        <NextIntlClientProvider locale={locale} messages={messages}>
+          <a href="#main-content" className="skip-link btn-primary">
+            Skip to content
+          </a>
+          {children}
+          <GoogleAnalytics />
+          <AnalyticsPageView />
+          <Clarity />
+          <MetaPixel />
+          <CookieBanner />
+          <EngagementTracker />
+        </NextIntlClientProvider>
       </body>
     </>
   )

@@ -6,7 +6,7 @@ import SiteChrome, { siteMetadata } from '@/components/SiteChrome'
 // byte-for-byte identical (RESEARCH.md Pitfall 3).
 export const metadata = siteMetadata
 
-export default function InternalLayout({
+export default async function InternalLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (

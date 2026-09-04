@@ -9,6 +9,11 @@ export default defineConfig({
     setupFiles: ['./tests/setup.ts'],
     globals: true,
     css: false,
+    server: {
+      deps: {
+        inline: ['next-intl'],
+      },
+    },
   },
   resolve: {
     alias: {

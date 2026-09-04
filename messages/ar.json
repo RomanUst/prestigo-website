@@ -1,0 +1,14 @@
+{
+  "Nav": {
+    "items": ["Services", "Fleet", "Routes", "Multi-day", "Corporate", "Contact"],
+    "new": "NEW",
+    "signIn": "Sign in",
+    "accountMenu": "Account menu",
+    "myTrips": "My trips",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "bookNow": "Book now",
+    "menu": "Menu",
+    "homeAriaLabel": "PRESTIGO — home"
+  }
+}
