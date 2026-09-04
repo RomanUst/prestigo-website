@@ -78,6 +78,21 @@
 
 **UI hint**: yes
 
+### Phase 70: String Externalization — Booking & Account
+
+**Goal**: All hardcoded user-facing strings across the booking flow (EntryBar, the booking wizard steps, time-slot picker, inline flight field, RouteMap labels, VehicleCard/VehicleSlideshow, and the passenger/contact/checkout forms), the customer account area (auth-aware sign-in UI, login/signup pages, "My trips" dashboard, profile editing including corporate fields), and all shared form validation / error / toast messages are moved into the `messages/en.json` source catalog under the namespace + key conventions established in Phase 69 and rendered via next-intl `useTranslations`/`getTranslations`. Client-side validation, error, and toast copy is externalized (including interpolated and pluralized values). English output stays byte-for-byte unchanged (English is the source catalog) and no translation of other locales happens yet; non-EN subpaths continue to render English booking/account copy correctly.
+
+**Depends on**: Phase 68 (next-intl runtime, `app/[locale]/` routing, typed locale source), Phase 69 (`messages/en.json` catalog, namespace/key convention, `useTranslations`/`getTranslations` pattern, `createNavigation`/`Link` locale-aware navigation)
+**Requirements**: STR-02
+**Success Criteria** (what must be TRUE):
+
+  1. The booking flow — EntryBar, every wizard step, time-slot picker, inline flight field, RouteMap labels, VehicleCard/VehicleSlideshow, and the passenger/contact/checkout forms — renders every visible string through `useTranslations`/`getTranslations`; no hardcoded user-facing copy remains in those components.
+  2. The account and auth surfaces — auth-aware sign-in UI, login/signup pages, the "My trips" dashboard, and profile editing (including corporate fields) — render all visible strings from the catalog; no hardcoded user-facing copy remains.
+  3. Form validation, error, and toast messages (including interpolated and pluralized values) are externalized under the established namespace convention, reusing shared keys where the same message appears in more than one place.
+  4. The rendered English site is byte-for-byte unchanged (visual + existing tests green), booking analytics (GA4/Meta/CAPI) and guest checkout are unaffected, and non-EN locales still render English booking/account copy (no translations added yet) served correctly under their subpath.
+
+**UI hint**: yes
+
 </details>
 
 <details>
