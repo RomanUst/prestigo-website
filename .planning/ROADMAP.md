@@ -70,7 +70,7 @@
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 69-04-PLAN.md — Services + Fleet (price interpolation, proper-noun model names, Link swaps)
+- [x] 69-04-PLAN.md — Services + Fleet (price interpolation, proper-noun model names, Link swaps)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -159,7 +159,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete | 2026-09-01 |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
-| 69. String Externalization — UI Chrome | v3.0 | 3/5 | In Progress|  |
+| 69. String Externalization — UI Chrome | v3.0 | 4/5 | In Progress|  |
 | 70. String Externalization — Booking & Account | v3.0 | 0/? | Pending | — |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
