@@ -54,5 +54,37 @@
     "instagramAria": "Instagram",
     "facebookAria": "Facebook",
     "tagline": "Prestige in every mile."
+  },
+  "FeatureStrip": {
+    "sectionAria": "Why PRESTIGO",
+    "pillars": [
+      { "title": "Professional chauffeurs", "sub": "English-speaking & discreet" },
+      { "title": "Premium Mercedes fleet", "sub": "E-, S- & V-Class, latest models" },
+      { "title": "Fixed prices", "sub": "No hidden fees, flight tracking" },
+      { "title": "24/7 support", "sub": "Always on time, every day" }
+    ]
+  },
+  "HowItWorks": {
+    "label": "How it works",
+    "headingLine1": "Three steps.",
+    "headingLine2": "Zero surprises.",
+    "stepPrefix": "Step",
+    "steps": [
+      {
+        "title": "Book online",
+        "body": "Enter your route and travel details. Receive instant confirmation with a fixed price — no hidden fees.",
+        "photoAlt": "Booking a Prague chauffeur online, the Mercedes already waiting outside"
+      },
+      {
+        "title": "We track your flight",
+        "body": "Your driver monitors your flight in real time. Delays, early arrivals — we adjust automatically.",
+        "photoAlt": "Chauffeur checking the live flight status beside the Mercedes at Prague Airport"
+      },
+      {
+        "title": "Simply arrive",
+        "body": "Your chauffeur is waiting at Arrivals with a name board. Direct transfer to your destination.",
+        "photoAlt": "PRESTIGO chauffeur waiting with a name board at Prague Airport Arrivals"
+      }
+    ]
   }
 }
