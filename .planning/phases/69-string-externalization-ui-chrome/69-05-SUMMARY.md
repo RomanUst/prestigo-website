@@ -171,6 +171,26 @@ None - no external service configuration required.
 
 All 11 key files verified present on disk (`[ -f ]`); both commits (`76332e8`, `d4eb606`) verified present in `git log --oneline --all`. Full `npx vitest run` (105 files / 1184 tests) and `npm run build` (exit 0, no MISSING_MESSAGE) both re-confirmed green at SUMMARY time.
 
+## Gap Closure (2026-09-04)
+
+**Gap:** A verifier pass over the phase found the "NEW" badge was still a hardcoded literal string `NEW` in two components — `components/Footer.tsx:75` and `components/Services.tsx:64` — even though `Nav.tsx` had already externalized the identical badge pattern to `t('new')` (key `Nav.new = "NEW"`) earlier in this same phase. This violated Success Criterion #2 (no hardcoded user-facing copy) for those two components.
+
+**Fix:**
+- Added `"new": "NEW"` to the `Footer` and `Services` namespaces in `messages/en.json` (byte-identical value to the existing `Nav.new`), then re-synced all 6 stub locales (`ru`, `es`, `fr`, `ar`, `hi`, `zh`) to remain byte-identical copies of `en.json`.
+- `components/Footer.tsx` (line 75) and `components/Services.tsx` (line 64) already called `useTranslations('Footer')` / `useTranslations('Services')` respectively — replaced the hardcoded `NEW` text node in each with `{t('new')}`, keeping all `className`/styling byte-identical.
+
+**Verification:**
+- `grep -n ">NEW<" components/Footer.tsx components/Services.tsx` — no matches.
+- `node -e` check confirmed `Footer.new === 'NEW'` and `Services.new === 'NEW'` in `messages/en.json`.
+- `npx vitest run` — 105 test files passed (5 skipped), 1184 tests passed (10 skipped, 139 todo), 0 failed.
+- `npm run build` — exit 0, no `MISSING_MESSAGE` across any of the 7 locale subpaths.
+
+**Files modified:** `components/Footer.tsx`, `components/Services.tsx`, `messages/en.json`, `messages/ru.json`, `messages/es.json`, `messages/fr.json`, `messages/ar.json`, `messages/hi.json`, `messages/zh.json`
+
+**Commit:** `4dd1094` — `fix(69): externalize hardcoded NEW badge in Footer + Services (gap closure)`
+
+STR-01 is now fully closed with no remaining hardcoded UI-chrome copy across the phase's 9 components.
+
 ---
 *Phase: 69-string-externalization-ui-chrome*
 *Completed: 2026-09-04*
