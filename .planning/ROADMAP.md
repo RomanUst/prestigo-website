@@ -18,7 +18,7 @@
 **Locales:** `en` (root, default) · `/ru/` · `/es/` · `/fr/` · `/ar/` (RTL) · `/hi/` · `/zh/`
 
 - [x] **Phase 68: i18n Foundation & Routing** — next-intl + `app/[locale]/` (`localePrefix: as-needed`, EN at root), 7-locale config, locale-middleware composed into existing CSP/Supabase/CSRF chain, dynamic `<html lang>`/`dir`, per-locale not-found. Public routes move under `[locale]` rendering EN only (no translation yet). Risk-first. — I18N-01/02/03/04 (completed 2026-09-03)
-- [ ] **Phase 69: String Externalization — UI Chrome** — Nav, Footer, Hero, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip → `messages/en.json` + `useTranslations`; namespace conventions established. — STR-01
+- [x] **Phase 69: String Externalization — UI Chrome** — Nav, Footer, Hero, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip → `messages/en.json` + `useTranslations`; namespace conventions established. — STR-01 (completed 2026-09-04)
 - [ ] **Phase 70: String Externalization — Booking & Account** — Booking wizard/EntryBar/vehicle cards, forms, validation/error/toast, account + auth pages. — STR-02
 - [ ] **Phase 71: Content Externalization — Marketing & SEO Pages** — Home long-form, 8 service pages, about/faq/contact/corporate/legal, 29–30 route-page bodies, blog → `content/blog/<locale>/`. Largest content restructure (may split 71a/71b). — CNT-01/02/03
 - [ ] **Phase 72: AI Translation Pipeline & Catalogs** — Build re-runnable `scripts/i18n-translate.mjs` (glossary + do-not-translate); generate RU/ES/FR catalogs + content; QA sampling. — TR-01/02
@@ -55,7 +55,7 @@
   3. Locale-aware navigation is wired via next-intl (`createNavigation`/`Link` from `i18n/routing.ts`), so internal links clicked from `/ru/...` (any configured locale) preserve the locale prefix instead of dropping to root EN.
   4. The rendered English site is byte-for-byte unchanged (visual + existing tests green); non-EN locales still render English chrome (no translations added yet), served correctly under their subpath.
 
-**Plans:** 5 plans (waves 1→5, sequential — every plan appends to the shared `messages/en.json` + 6 EN-copy stubs)
+**Plans:** 5/5 plans complete
 **Wave 1**
 
 - [x] 69-01-PLAN.md — Pipeline tracer: convention lock (checkpoint), catalog loader + provider + createNavigation + 6 stubs + test harness, Nav externalized end-to-end
@@ -159,7 +159,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete | 2026-09-01 |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
-| 69. String Externalization — UI Chrome | v3.0 | 5/5 | In Progress|  |
+| 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
 | 70. String Externalization — Booking & Account | v3.0 | 0/? | Pending | — |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
