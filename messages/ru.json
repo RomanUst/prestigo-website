@@ -10,5 +10,49 @@
     "bookNow": "Book now",
     "menu": "Menu",
     "homeAriaLabel": "PRESTIGO — home"
+  },
+  "Footer": {
+    "ctaLabel": "Ready to travel?",
+    "ctaHeadlineLine1": "Book your transfer.",
+    "ctaHeadlineLine2": "We handle the rest.",
+    "bookNow": "Book now",
+    "brandTagline1": "Premium chauffeur service.",
+    "brandTagline2": "Prague and Central Europe.",
+    "servicesHeading": "Services",
+    "services": [
+      "Airport Transfer",
+      "Intercity Routes",
+      "Multi-day Hire",
+      "Corporate Accounts",
+      "VIP & Events",
+      "Group Transfer",
+      "About PRESTIGO",
+      "FAQ"
+    ],
+    "routesHeading": "Popular routes",
+    "routes": [
+      "Prague → Vienna",
+      "Prague → Berlin",
+      "Prague → Munich",
+      "Prague → Budapest",
+      "Prague → Bratislava"
+    ],
+    "viewAllRoutes": "View all routes →",
+    "blogHeading": "Blog",
+    "blog": [
+      "Prague airport → city centre",
+      "Taxi vs chauffeur at PRG",
+      "Prague–Vienna: transfer vs train"
+    ],
+    "viewAllPosts": "View all posts →",
+    "contactHeading": "Contact",
+    "whatsapp": "WhatsApp",
+    "availability": "24 / 7 availability",
+    "copyright": "© {year} PRESTIGO. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "instagramAria": "Instagram",
+    "facebookAria": "Facebook",
+    "tagline": "Prestige in every mile."
   }
 }
