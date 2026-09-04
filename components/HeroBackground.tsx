@@ -2,6 +2,7 @@
 
 import { getImageProps } from 'next/image'
 import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
+import { useTranslations } from 'next-intl'
 
 /**
  * Parallax background for the Hero.
@@ -17,12 +18,13 @@ import { motion, useScroll, useTransform, useReducedMotion } from 'motion/react'
  * server-rendered. Respects prefers-reduced-motion: parallax is disabled.
  */
 
-const HERO_ALT = 'Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset'
 // Tailwind `sm` breakpoint — keep in sync with the class-based crop switch below.
 const DESKTOP_MEDIA = '(min-width: 640px)'
 const MOBILE_MEDIA = '(max-width: 639px)'
 
 export default function HeroBackground() {
+  const t = useTranslations('Hero')
+  const HERO_ALT = t('heroAlt')
   const reduced = useReducedMotion()
 
   // Pixel-based window scroll — the most reliable hero parallax driver.
