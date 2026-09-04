@@ -11,6 +11,18 @@
     "menu": "Menu",
     "homeAriaLabel": "PRESTIGO — home"
   },
+  "Hero": {
+    "label": "Prague · Premium Chauffeur",
+    "headlineSuffix": "in Prague,",
+    "headlineItalic": "as it should be.",
+    "subhead1": "Your chauffeur is already tracking your flight.",
+    "subhead2": "You simply arrive.",
+    "bookRide": "Book a ride",
+    "priceAnchor": "Airport transfers from <price>€{amount}</price> — fixed price, no surcharges",
+    "scroll": "Scroll",
+    "ratingAria": "Rated {rating} out of 5 from {count} Google reviews",
+    "googleReviews": "Google reviews"
+  },
   "Footer": {
     "ctaLabel": "Ready to travel?",
     "ctaHeadlineLine1": "Book your transfer.",
