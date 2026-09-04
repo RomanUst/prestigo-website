@@ -55,6 +55,13 @@
   3. Locale-aware navigation is wired via next-intl (`createNavigation`/`Link` from `i18n/routing.ts`), so internal links clicked from `/ru/...` (any configured locale) preserve the locale prefix instead of dropping to root EN.
   4. The rendered English site is byte-for-byte unchanged (visual + existing tests green); non-EN locales still render English chrome (no translations added yet), served correctly under their subpath.
 
+**Plans:** 5 plans (waves 1→5, sequential — every plan appends to the shared `messages/en.json` + 6 EN-copy stubs)
+- [ ] 69-01-PLAN.md — Pipeline tracer: convention lock (checkpoint), catalog loader + provider + createNavigation + 6 stubs + test harness, Nav externalized end-to-end
+- [ ] 69-02-PLAN.md — Footer (full raw-anchor→Link sweep) + FeatureStrip + HowItWorks
+- [ ] 69-03-PLAN.md — Hero cluster (Hero, HeroTypewriter, HeroRating, HeroWhatsApp, HeroBackground) under one Hero namespace
+- [ ] 69-04-PLAN.md — Services + Fleet (price interpolation, proper-noun model names, Link swaps)
+- [ ] 69-05-PLAN.md — Testimonials (+Carousel) + CookieBanner (t.rich Privacy/Legal links) — closes STR-01
+
 **UI hint**: yes
 
 </details>
@@ -138,7 +145,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 66. Driver Trip Portal — Permanent Link & Trip Sheet | v2.2 | 2/2 | Complete | 2026-09-01 |
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
-| 69. String Externalization — UI Chrome | v3.0 | 0/? | Pending | — |
+| 69. String Externalization — UI Chrome | v3.0 | 0/5 | Pending | — |
 | 70. String Externalization — Booking & Account | v3.0 | 0/? | Pending | — |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
