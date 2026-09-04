@@ -189,5 +189,16 @@
         "photoAlt": "PRESTIGO chauffeur waiting with a name board at Prague Airport Arrivals"
       }
     ]
+  },
+  "Testimonials": {
+    "label": "Testimonials",
+    "headingLine1": "Trusted by those",
+    "headingLine2": "who value their time.",
+    "body": "Published with permission. Names abbreviated to protect passenger privacy — part of our discretion policy.",
+    "starsAria": "{stars} out of 5 stars",
+    "googleReview": "Google Review",
+    "carouselAria": "Testimonials",
+    "paginationAria": "Testimonial pagination",
+    "goToSlide": "Go to slide {n}"
   }
 }
