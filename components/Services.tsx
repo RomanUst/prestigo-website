@@ -1,73 +1,25 @@
-import Link from 'next/link'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 import Reveal from '@/components/Reveal'
 
-interface Service {
-  label: string
-  title: string
-  body: string
-  detail: string
+// Structural config (id/href/isNew) stays in code — id is used as the React
+// key AND the priceCallouts lookup key (not rendered), zipped by index with
+// the translated `cards` catalog array (label/title/body/detail).
+interface ServiceConfig {
+  id: string
   href: string
   isNew?: boolean
 }
 
-const services: Service[] = [
-  {
-    label: 'Airport',
-    title: 'Airport Transfer',
-    body: 'Prague Václav Havel Airport. Flight tracking, meet & greet, fixed price.',
-    detail: 'PRG · VIE · BER · MUC',
-    href: '/services/airport-transfer',
-  },
-  {
-    label: 'Intercity',
-    title: 'Intercity Routes',
-    body: 'Prague to Vienna, Berlin, Munich, Budapest and beyond. Comfort across borders.',
-    detail: '4–6 hour routes',
-    href: '/services/intercity-routes',
-  },
-  {
-    label: 'Corporate',
-    title: 'Corporate Accounts',
-    body: 'Monthly invoicing, dedicated account manager, priority dispatch, reporting.',
-    detail: 'Volume pricing available',
-    href: '/services/corporate-accounts',
-  },
-  {
-    label: 'VIP',
-    title: 'VIP & Events',
-    body: 'Diplomatic visits, private events, luxury hotel transfers, multi-vehicle coordination.',
-    detail: 'On request',
-    href: '/services/vip-events',
-  },
-  {
-    label: 'City',
-    title: 'Car Rental with Chauffeur',
-    body: 'Rent a car with a private chauffeur in Prague by the hour. Business meetings, sightseeing, theatre — at your pace.',
-    detail: '1–8 hours',
-    href: '/services/city-rides',
-  },
-  {
-    label: 'Concierge',
-    title: 'Concierge Chauffeur',
-    body: 'Not just a driver — a concierge at the wheel. Reservations, local knowledge, errands and hotel liaison, handled around every ride.',
-    detail: 'Included on every journey',
-    href: '/services/concierge',
-  },
-  {
-    label: 'Group',
-    title: 'Group Transfers',
-    body: 'Minivan and multi-car coordination for groups, conferences, and incentive travel.',
-    detail: 'Up to 8 passengers',
-    href: '/services/group-transfers',
-  },
-  {
-    label: 'Multi-day',
-    title: 'Multi-day Hire',
-    body: 'One dedicated chauffeur for your entire trip. Mix transfers and hourly days across Central Europe.',
-    detail: 'Custom itinerary · Quote within 24 h',
-    href: '/book/multi-day',
-    isNew: true,
-  },
+const services: ServiceConfig[] = [
+  { id: 'Airport', href: '/services/airport-transfer' },
+  { id: 'Intercity', href: '/services/intercity-routes' },
+  { id: 'Corporate', href: '/services/corporate-accounts' },
+  { id: 'VIP', href: '/services/vip-events' },
+  { id: 'City', href: '/services/city-rides' },
+  { id: 'Concierge', href: '/services/concierge' },
+  { id: 'Group', href: '/services/group-transfers' },
+  { id: 'Multi-day', href: '/book/multi-day', isNew: true },
 ]
 
 type Props = {
@@ -77,11 +29,14 @@ type Props = {
 }
 
 export default function Services({ airportPrice, hourlyFrom, cheapestIntercity }: Props) {
+  const t = useTranslations('Services')
+  const cards = t.raw('cards') as { label: string; title: string; body: string; detail: string }[]
+
   // Price callouts per service type (DB-driven, no hardcoded € literals)
   const priceCallouts: Record<string, string> = {
-    Airport: `From €${airportPrice}`,
-    City: `From €${hourlyFrom}/hr`,
-    Intercity: `From €${cheapestIntercity}`,
+    Airport: t('fromPrice', { price: airportPrice }),
+    City: t('fromPriceHourly', { price: hourlyFrom }),
+    Intercity: t('fromPrice', { price: cheapestIntercity }),
   }
 
   return (
@@ -89,49 +44,52 @@ export default function Services({ airportPrice, hourlyFrom, cheapestIntercity }
       <div className="max-w-7xl mx-auto px-6 md:px-12">
 
         <Reveal variant="up" className="mb-14">
-          <p className="label mb-6">Our services</p>
+          <p className="label mb-6">{t('label')}</p>
           <span className="copper-line mb-8 block" />
           <h2 id="services-heading" className="display text-[36px] md:text-[44px]">
-            Every journey,<br />
-            <span className="display-italic">covered.</span>
+            {t('headingLine1')}<br />
+            <span className="display-italic">{t('headingLine2')}</span>
           </h2>
         </Reveal>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-anthracite-light">
-          {services.map((s, i) => (
-            <Reveal key={s.label} variant="up" delay={i * 80} className="bg-anthracite-mid">
-              <div className="p-8 hover:bg-anthracite transition-colors group flex flex-col h-full">
-                <div className="flex items-center gap-2 mb-4">
-                  <p className="label">{s.label}</p>
-                  {s.isNew && (
-                    <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
-                  )}
-                </div>
-                <h3 className="font-display font-light text-xl text-offwhite mb-3 group-hover:text-copper-pale transition-colors">
-                  {s.title}
-                </h3>
-                <p className="body-text mb-5">{s.body}</p>
-                <span
-                  className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-6"
-                  style={{ color: 'var(--warmgrey)' }}
-                >
-                  {priceCallouts[s.label] ?? s.detail}
-                </span>
-                <div className="mt-auto">
-                  <Link
-                    href={s.href}
-                    className="inline-flex items-center justify-center font-body font-light text-[10px] tracking-[0.18em] uppercase border border-copper-light/40 px-5 py-3 min-h-[44px] text-copper-light hover:bg-copper-light/10 hover:border-copper-light transition-colors"
+          {services.map((s, i) => {
+            const card = cards[i]
+            return (
+              <Reveal key={s.id} variant="up" delay={i * 80} className="bg-anthracite-mid">
+                <div className="p-8 hover:bg-anthracite transition-colors group flex flex-col h-full">
+                  <div className="flex items-center gap-2 mb-4">
+                    <p className="label">{card.label}</p>
+                    {s.isNew && (
+                      <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                    )}
+                  </div>
+                  <h3 className="font-display font-light text-xl text-offwhite mb-3 group-hover:text-copper-pale transition-colors">
+                    {card.title}
+                  </h3>
+                  <p className="body-text mb-5">{card.body}</p>
+                  <span
+                    className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-6"
+                    style={{ color: 'var(--warmgrey)' }}
                   >
-                    Learn more
-                  </Link>
+                    {priceCallouts[s.id] ?? card.detail}
+                  </span>
+                  <div className="mt-auto">
+                    <Link
+                      href={s.href}
+                      className="inline-flex items-center justify-center font-body font-light text-[10px] tracking-[0.18em] uppercase border border-copper-light/40 px-5 py-3 min-h-[44px] text-copper-light hover:bg-copper-light/10 hover:border-copper-light transition-colors"
+                    >
+                      {t('learnMore')}
+                    </Link>
+                  </div>
                 </div>
-              </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            )
+          })}
         </div>
 
         <Reveal variant="fade" delay={200} className="mt-10 flex justify-center">
-          <a href="#book" className="btn-primary">Book a transfer</a>
+          <a href="#book" className="btn-primary">{t('bookTransfer')}</a>
         </Reveal>
       </div>
     </section>

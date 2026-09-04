@@ -79,6 +79,65 @@
       { "title": "24/7 support", "sub": "Always on time, every day" }
     ]
   },
+  "Services": {
+    "label": "Our services",
+    "headingLine1": "Every journey,",
+    "headingLine2": "covered.",
+    "cards": [
+      {
+        "label": "Airport",
+        "title": "Airport Transfer",
+        "body": "Prague Václav Havel Airport. Flight tracking, meet & greet, fixed price.",
+        "detail": "PRG · VIE · BER · MUC"
+      },
+      {
+        "label": "Intercity",
+        "title": "Intercity Routes",
+        "body": "Prague to Vienna, Berlin, Munich, Budapest and beyond. Comfort across borders.",
+        "detail": "4–6 hour routes"
+      },
+      {
+        "label": "Corporate",
+        "title": "Corporate Accounts",
+        "body": "Monthly invoicing, dedicated account manager, priority dispatch, reporting.",
+        "detail": "Volume pricing available"
+      },
+      {
+        "label": "VIP",
+        "title": "VIP & Events",
+        "body": "Diplomatic visits, private events, luxury hotel transfers, multi-vehicle coordination.",
+        "detail": "On request"
+      },
+      {
+        "label": "City",
+        "title": "Car Rental with Chauffeur",
+        "body": "Rent a car with a private chauffeur in Prague by the hour. Business meetings, sightseeing, theatre — at your pace.",
+        "detail": "1–8 hours"
+      },
+      {
+        "label": "Concierge",
+        "title": "Concierge Chauffeur",
+        "body": "Not just a driver — a concierge at the wheel. Reservations, local knowledge, errands and hotel liaison, handled around every ride.",
+        "detail": "Included on every journey"
+      },
+      {
+        "label": "Group",
+        "title": "Group Transfers",
+        "body": "Minivan and multi-car coordination for groups, conferences, and incentive travel.",
+        "detail": "Up to 8 passengers"
+      },
+      {
+        "label": "Multi-day",
+        "title": "Multi-day Hire",
+        "body": "One dedicated chauffeur for your entire trip. Mix transfers and hourly days across Central Europe.",
+        "detail": "Custom itinerary · Quote within 24 h"
+      }
+    ],
+    "fromPrice": "From €{price}",
+    "fromPriceHourly": "From €{price}/hr",
+    "learnMore": "Learn more",
+    "bookTransfer": "Book a transfer"
+  },
   "HowItWorks": {
     "label": "How it works",
     "headingLine1": "Three steps.",
