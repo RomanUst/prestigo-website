@@ -138,6 +138,35 @@
     "learnMore": "Learn more",
     "bookTransfer": "Book a transfer"
   },
+  "Fleet": {
+    "label": "The fleet",
+    "headingLine1": "Mercedes only.",
+    "headingLine2": "Always.",
+    "vehicles": [
+      {
+        "category": "Business",
+        "passengers": "3 pax",
+        "bags": "2 bags",
+        "features": ["Leather interior", "Tinted windows", "Climate control", "Wi-Fi on request"],
+        "altTemplate": "{model} — Prague chauffeur service"
+      },
+      {
+        "category": "First Class",
+        "passengers": "3 pax",
+        "bags": "2 bags",
+        "features": ["Executive rear seats", "Ambient lighting", "Champagne service", "Privacy screen"],
+        "altTemplate": "{model} — Prague chauffeur service"
+      },
+      {
+        "category": "Group",
+        "passengers": "6 pax",
+        "bags": "6 bags",
+        "features": ["Facing seats", "Extra luggage space", "Conference seating", "USB charging"],
+        "altTemplate": "{model} — Prague chauffeur service"
+      }
+    ],
+    "seePricing": "See pricing →"
+  },
   "HowItWorks": {
     "label": "How it works",
     "headingLine1": "Three steps.",
