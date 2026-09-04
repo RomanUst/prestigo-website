@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 69
 current_phase_name: String Externalization — UI Chrome
 status: executing
-stopped_at: Phase 68 complete, ready to plan Phase 69
-last_updated: "2026-09-04T11:08:06.367Z"
-last_activity: 2026-09-03
-last_activity_desc: Phase 68 complete, transitioned to Phase 69
-state_head: e4fe3d9d82599d60cd0bd971e5db1fac0b690fc0
+stopped_at: Completed 69-01-PLAN.md
+last_updated: "2026-09-04T13:39:18.631Z"
+last_activity: 2026-09-04
+last_activity_desc: Phase 69 execution started
+state_head: f616eac68c55fcf67fcdcb56efc92b028bb40051
 progress:
   total_phases: 2
   completed_phases: 1
   total_plans: 7
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 68 — i18n Foundation & Routing
+**Current focus:** Phase 69 — String Externalization — UI Chrome
 
 ## Current Position
 
-Phase: 69 (String Externalization — UI Chrome) — READY TO EXECUTE
-Plan: Not started
+Phase: 69 (String Externalization — UI Chrome) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-09-03 — Phase 68 complete, transitioned to Phase 69
+Last activity: 2026-09-04 — Phase 69 execution started
 
 ## Accumulated Context
 
@@ -99,6 +99,8 @@ Recent decisions affecting current work:
 - [Phase 68]: 68-01: shared runCspAndAuthChain helper consolidates the CSP/Supabase branch logic for both non-localized and public middleware branches rather than duplicating the block
 - [Phase 68]: [Phase 68] 68-02: stripLocalePrefix moved from middleware.ts to i18n/routing.ts (single-source I18N-04, avoids next/server import in plain unit tests)
 - [Phase 68]: [Phase 68] 68-02: ACCEPTED DEVIATION T-68-06 — case-variant locale prefixes (/RU, /Ru) canonicalize via next-intl's own 307 redirect to the lowercase locale rather than hard-404ing; non-bypass and non-reflection invariants hold, human-approved at the Task 3 checkpoint
+- [Phase 69]: 69-01: Task 1 convention approved as Option A (PascalCase component namespaces, camelCase semantic sub-keys, JSON arrays for ordered lists, named ICU args, 6 EN-copy stub files) — locked verbatim for reuse across Phases 69-71
+- [Phase 69]: 69-01: Nav.tsx NAV_LINKS typed as ReadonlyArray<{href,isNew?}> rather than 'as const' to avoid a discriminated-union TS error when accessing .isNew
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -206,8 +208,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-03T19:44:45.755Z
-Stopped at: Phase 68 complete, ready to plan Phase 69
+Last session: 2026-09-04T13:39:18.493Z
+Stopped at: Completed 69-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -246,6 +248,7 @@ Resume file: None
 | Phase 66 P02 | 5min | 3 tasks | 6 files |
 | Phase 68 P01 | 55min | 2 tasks | 118 files |
 | Phase 68 P02 | ~19min | 3 tasks | 6 files |
+| Phase 69 P01 | 15min | 3 tasks | 16 files |
 
 ## Operator Next Steps
 
