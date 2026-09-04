@@ -200,5 +200,28 @@
     "carouselAria": "Testimonials",
     "paginationAria": "Testimonial pagination",
     "goToSlide": "Go to slide {n}"
+  },
+  "CookieBanner": {
+    "wordmarkAria": "PRESTIGO",
+    "heading": "Welcome aboard.",
+    "consentBody": "Before your journey begins, a quick word on privacy. We use third-party technologies to run the booking flow and refine the experience. You may revoke or change your choice at any time. <privacy>Privacy Policy</privacy> · <terms>Legal Notice</terms>",
+    "tabCategories": "Categories",
+    "tabServices": "Services",
+    "catEssential": "Essential",
+    "catAnalytics": "Analytics",
+    "catMarketing": "Marketing",
+    "catEssentialDesc": "Required for booking, payments, fraud prevention, and core site functionality. Always on.",
+    "catAnalyticsDesc": "Google Analytics 4 — helps us understand how visitors use the site so we can improve it. Data is aggregated and anonymous.",
+    "catMarketingDesc": "Meta Pixel and Google Ads conversion tracking — measures ad performance and lets us show relevant offers on Instagram, Facebook, and Google.",
+    "svcStripeDesc": "Payment processing and fraud prevention.",
+    "svcSupabaseDesc": "Booking database, authentication, and session management.",
+    "svcMapsDesc": "Address autocomplete and route distance calculation.",
+    "svcGa4Desc": "Traffic statistics and user behaviour analysis. Consent Mode v2 — runs anonymously if declined.",
+    "svcMetaDesc": "Ad conversion tracking on Instagram and Facebook.",
+    "acceptAll": "Accept all",
+    "saveSettings": "Save settings",
+    "moreInfo": "More information",
+    "toggleEnabled": "Enabled",
+    "toggleDisabled": "Disabled"
   }
 }
