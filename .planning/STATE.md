@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 70
 current_phase_name: String Externalization — Booking & Account
 status: executing
-stopped_at: Completed 70-07-PLAN.md
-last_updated: "2026-09-05T19:04:55.030Z"
+stopped_at: Completed 70-08-PLAN.md (final plan; Phase 70 gate green)
+last_updated: "2026-09-05T19:22:16.825Z"
 last_activity: 2026-09-05
 last_activity_desc: Phase 70 execution started
-state_head: 6df216fde8ba3c133a6fd20dc9ead9a3bdc8b374
+state_head: b8185e78afd5799b05ccce2fc1ffa52f5da96d4a
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 15
-  completed_plans: 14
+  completed_plans: 15
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 ## Current Position
 
 Phase: 70 (String Externalization — Booking & Account) — EXECUTING
-Plan: 6 of 8
+Plan: 7 of 8
 Status: Ready to execute
 Last activity: 2026-09-05 — Phase 70 execution started
 
@@ -115,6 +115,7 @@ Recent decisions affecting current work:
 - [Phase 70]: 70-05: vehicle-class labels in PriceSummary/BookingSummaryBlock/BookingWizard reuse Booking.vehicleClasses via VEHICLE_CLASS_KEY; GA4/Meta analytics identifiers unchanged
 - [Phase 70]: 70-07: DayCard interpolated day aria collapses to named-ICU (single dayLabel 'Day {day}' + per-variant t('key',{day}))
 - [Phase 70]: 70-07: Step3Auth (in-wizard auth, Auth.inWizard) reuses shared Auth.login + Errors keys via secondary hooks rather than duplicating byte-identical strings
+- [Phase 70]: 70-08: account/auth-account surface externalized (getTranslations Server Components + useTranslations clients + Pattern E locale-threaded actions); Phase 70 gate green — STR-02 complete
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -222,8 +223,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-05T19:04:44.876Z
-Stopped at: Completed 70-07-PLAN.md
+Last session: 2026-09-05T19:22:16.431Z
+Stopped at: Completed 70-08-PLAN.md (final plan; Phase 70 gate green)
 Resume file: None
 
 ## Performance Metrics
@@ -272,6 +273,7 @@ Resume file: None
 | Phase 70 P04 | 4min | 3 tasks | 15 files |
 | Phase 70 P05 | 6min | 3 tasks | 16 files |
 | Phase 70 P07 | 20min | 3 tasks | 12 files |
+| Phase 70 P08 | 15min | 3 tasks | 15 files |
 
 ## Operator Next Steps
 
