@@ -12,6 +12,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ---------------------------------------------------------------------------
+// next-intl/server: force the real react-server build (Phase 70, Pattern E).
+// Vitest has no concept of the RSC "react-server" export condition Next.js's
+// bundler sets, so the plain `next-intl/server` specifier resolves to a
+// react-client stub that throws "not supported in Client Components" for
+// every export. Server Actions in login/actions.ts now call
+// getTranslations({namespace:'Errors', locale}) — redirect both specifiers to
+// the real implementation + the real messages/en.json so the round-trip is
+// genuine, not a hand-rolled stub. See tests/login-actions.test.ts for the
+// canonical version of this mock pair.
+// ---------------------------------------------------------------------------
+vi.mock('next-intl/server', async () => {
+  return await vi.importActual(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+})
+
+vi.mock('next-intl/config', async () => {
+  const { getRequestConfig } = await vi.importActual<typeof import('next-intl/server')>(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+  const en = (await import('../messages/en.json')).default
+  return {
+    default: getRequestConfig(async () => ({ locale: 'en', messages: en })),
+  }
+})
+
+// ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
 // ---------------------------------------------------------------------------
 const {
@@ -111,7 +138,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       const formData = new FormData()
       formData.set('email', 'test@example.com')
 
-      const result = await sendMagicLink(null, formData)
+      const result = await sendMagicLink('en', null, formData)
 
       expect(mockSignInWithOtp).toHaveBeenCalledOnce()
       const call = mockSignInWithOtp.mock.calls[0][0]
@@ -129,7 +156,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       const formData = new FormData()
       formData.set('email', 'test@example.com')
 
-      const result = await sendMagicLink(null, formData)
+      const result = await sendMagicLink('en', null, formData)
 
       expect(result).toHaveProperty('error')
       expect(typeof (result as { error: string }).error).toBe('string')
@@ -151,7 +178,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       formData.set('email', 'user@example.com')
       formData.set('password', 'wrongpassword')
 
-      const result = await signInWithPassword(null, formData)
+      const result = await signInWithPassword('en', null, formData)
 
       expect(result).toEqual({ error: 'Invalid email or password.' })
     })
@@ -168,7 +195,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       const formData = new FormData()
       formData.set('email', 'rate@example.com')
 
-      const result = await sendMagicLink(null, formData)
+      const result = await sendMagicLink('en', null, formData)
 
       // When rate-limited, the action must NOT call signInWithOtp
       expect(mockSignInWithOtp).not.toHaveBeenCalled()
@@ -229,7 +256,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       formData.set('email', 'personal@example.com')
       formData.set('password', 'SecurePass1!')
 
-      await signUpWithPassword(null, formData)
+      await signUpWithPassword('en', null, formData)
 
       expect(mockFrom).toHaveBeenCalledWith('customer_profiles')
       expect(mockUpsert).toHaveBeenCalledWith(
@@ -255,7 +282,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       formData.set('account_type', 'corporate')
       formData.set('company_name', 'Acme s.r.o.')
 
-      await signUpWithPassword(null, formData)
+      await signUpWithPassword('en', null, formData)
 
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -304,7 +331,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
         booking_reference: 'PRG-TEST-001',
         amount_czk: 1500,
       }
-      const result = await saveBookingWithUserId(bookingRow)
+      const result = await saveBookingWithUserId('en', bookingRow)
 
       expect(result.error).toBeUndefined()
       expect(mockFrom).toHaveBeenCalledWith('bookings')
@@ -322,7 +349,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       mockInsert.mockResolvedValue({ data: [{ id: 'booking-uuid' }], error: null })
 
       // Attacker tries to attribute the booking to a victim.
-      await saveBookingWithUserId({
+      await saveBookingWithUserId('en', {
         booking_reference: 'PRG-TEST-002',
         user_id: 'victim-uuid',
       })
@@ -337,7 +364,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
 
       mockGetUser.mockResolvedValue({ data: { user: null } })
 
-      const result = await saveBookingWithUserId({
+      const result = await saveBookingWithUserId('en', {
         booking_reference: 'PRG-TEST-003',
       })
 
