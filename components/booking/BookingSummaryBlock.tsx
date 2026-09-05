@@ -1,21 +1,18 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { EXTRAS_CONFIG, computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
+import { VEHICLE_CLASS_KEY } from '@/types/booking'
 import type { Extras } from '@/types/booking'
-
-const vehicleLabels: Record<string, string> = {
-  business: 'Business',
-  first_class: 'First Class',
-  business_van: 'Business Van',
-}
 
 interface Props {
   selectedCurrency?: 'eur' | 'czk'
 }
 
 export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props) {
+  const t = useTranslations('Booking')
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -40,6 +37,8 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
   const totalEur = selectedPrice ? selectedPrice.base + extrasTotal : 0
   const totalCzk = eurToCzk(totalEur)
 
+  const classLabel = vehicleClass ? t(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`) : ''
+
   const isRoundTripMode = tripType === 'round_trip'
   const outboundWithExtras = selectedPrice ? selectedPrice.base + extrasTotal : 0
   const returnLegTotal = selectedReturnLegPrice ? selectedReturnLegPrice.total : 0
@@ -52,7 +51,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
 
   const routeText =
     tripType === 'hourly'
-      ? `${hours} hours`
+      ? t('summaryBlock.hours', { hours })
       : origin && destination
       ? `${origin.address} \u2192 ${destination.address}`
       : origin
@@ -98,7 +97,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
         <>
           {/* OUTBOUND block */}
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            OUTBOUND
+            {t('summaryBlock.outbound')}
           </span>
           <p
             style={{
@@ -122,7 +121,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
               lineHeight: 1.5,
             }}
           >
-            {pickupDate && pickupTime ? `${pickupDate} at ${pickupTime}` : '\u2014'}
+            {pickupDate && pickupTime ? t('summaryBlock.dateTimeAt', { date: pickupDate, time: pickupTime }) : '\u2014'}
           </p>
           <p
             style={{
@@ -135,7 +134,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
             }}
           >
             {vehicleClass
-              ? `${vehicleLabels[vehicleClass]} \u00B7 ${passengers} passenger${passengers !== 1 ? 's' : ''}`
+              ? t('summaryBlock.classPax', { className: classLabel, passengers })
               : '\u2014'}
           </p>
 
@@ -149,7 +148,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
 
           {/* RETURN block */}
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            RETURN
+            {t('summaryBlock.return')}
           </span>
           <p
             style={{
@@ -173,13 +172,13 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
               lineHeight: 1.5,
             }}
           >
-            {returnDate && returnTime ? `${returnDate} at ${returnTime}` : '\u2014'}
+            {returnDate && returnTime ? t('summaryBlock.dateTimeAt', { date: returnDate, time: returnTime }) : '\u2014'}
           </p>
 
           {/* Extras list (outbound only) */}
           {selectedExtras.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              {selectedExtras.map(({ key, label, price }) => (
+              {selectedExtras.map(({ key, price }) => (
                 <p
                   key={key}
                   style={{
@@ -190,7 +189,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                     lineHeight: 1.5,
                   }}
                 >
-                  {label} +{formatEUR(price)}
+                  {t(`extras.${key}.label`)} +{formatEUR(price)}
                 </p>
               ))}
             </div>
@@ -220,7 +219,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                 fontFamily: 'var(--font-montserrat)',
               }}
             >
-              Outbound
+              {t('summaryBlock.outboundLine')}
             </span>
             <span
               style={{
@@ -250,7 +249,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                 fontFamily: 'var(--font-montserrat)',
               }}
             >
-              Return leg{' '}
+              {t('summaryBlock.returnLeg')}{' '}
               <span
                 style={{
                   color: 'var(--copper)',
@@ -291,7 +290,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                 fontFamily: 'var(--font-montserrat)',
               }}
             >
-              Subtotal
+              {t('summaryBlock.subtotal')}
             </span>
             <span
               style={{
@@ -323,7 +322,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                     fontFamily: 'var(--font-montserrat)',
                   }}
                 >
-                  Promo {promoCode}
+                  {t('summaryBlock.promo', { code: promoCode })}
                 </span>
                 <span
                   style={{
@@ -350,7 +349,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                     fontFamily: 'var(--font-montserrat)',
                   }}
                 >
-                  Final
+                  {t('summaryBlock.final')}
                 </span>
                 <span
                   style={{
@@ -386,7 +385,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
         <>
           {/* YOUR JOURNEY label (one-way) */}
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            YOUR JOURNEY
+            {t('summaryBlock.yourJourney')}
           </span>
 
           {/* Route */}
@@ -414,7 +413,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
               lineHeight: 1.5,
             }}
           >
-            {pickupDate && pickupTime ? `${pickupDate} at ${pickupTime}` : '\u2014'}
+            {pickupDate && pickupTime ? t('summaryBlock.dateTimeAt', { date: pickupDate, time: pickupTime }) : '\u2014'}
           </p>
 
           {/* Vehicle class + passenger count */}
@@ -429,14 +428,14 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
             }}
           >
             {vehicleClass
-              ? `${vehicleLabels[vehicleClass]} \u00B7 ${passengers} passenger${passengers !== 1 ? 's' : ''}`
+              ? t('summaryBlock.classPax', { className: classLabel, passengers })
               : '\u2014'}
           </p>
 
           {/* Extras list */}
           {selectedExtras.length > 0 && (
             <div style={{ marginTop: 8 }}>
-              {selectedExtras.map(({ key, label, price }) => (
+              {selectedExtras.map(({ key, price }) => (
                 <p
                   key={key}
                   style={{
@@ -447,7 +446,7 @@ export default function BookingSummaryBlock({ selectedCurrency = 'eur' }: Props)
                     lineHeight: 1.5,
                   }}
                 >
-                  {label} +{formatEUR(price)}
+                  {t(`extras.${key}.label`)} +{formatEUR(price)}
                 </p>
               ))}
             </div>

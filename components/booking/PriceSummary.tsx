@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { EXTRAS_CONFIG, computeExtrasTotal } from '@/lib/extras'
 import { eurToCzk, formatCZK } from '@/lib/currency'
 import { trackMetaEvent } from '@/components/MetaPixel'
+import { VEHICLE_CLASS_KEY } from '@/types/booking'
 import type { Extras } from '@/types/booking'
 
 declare global { interface Window { gtag?: (...args: unknown[]) => void } }
@@ -15,6 +17,7 @@ function truncate(text: string, max: number): string {
 }
 
 export default function PriceSummary({ mobileOnly = false, desktopOnly = false }: { mobileOnly?: boolean; desktopOnly?: boolean }) {
+  const t = useTranslations('Booking')
   const [mounted, setMounted] = useState(false)
   useEffect(() => { setMounted(true) }, [])
 
@@ -37,15 +40,11 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
   const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
   const extrasTotal = computeExtrasTotal(extras)
 
-  const vehicleLabels: Record<string, string> = {
-    business: 'Business',
-    first_class: 'First Class',
-    business_van: 'Business Van',
-  }
+  const classLabel = vehicleClass ? t(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`) : ''
 
   const routeText =
     tripType === 'hourly'
-      ? `${hours} hours`
+      ? t('priceSummary.hours', { hours })
       : origin && destination
       ? `${truncate(origin.address, 28)} \u2192 ${truncate(destination.address, 28)}`
       : origin
@@ -62,9 +61,9 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
     : null
 
   const priceDisplay = () => {
-    if (!vehicleClass) return 'Select a vehicle'
-    if (quoteMode) return 'Request a quote'
-    if (!selectedPrice) return 'Select a vehicle'
+    if (!vehicleClass) return t('priceSummary.selectVehicle')
+    if (quoteMode) return t('priceSummary.requestQuote')
+    if (!selectedPrice) return t('priceSummary.selectVehicle')
     if (isRoundTripMode && combinedTotal !== null) return `\u20AC${combinedTotal}`
     return `\u20AC${totalEur}`
   }
@@ -92,7 +91,7 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
     >
       {/* YOUR JOURNEY label */}
       <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-        Your Journey
+        {t('priceSummary.yourJourney')}
       </span>
 
       {/* Route text */}
@@ -125,16 +124,16 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
           color: vehicleClass ? 'var(--offwhite)' : 'var(--warmgrey)',
         }}
       >
-        {vehicleClass ? vehicleLabels[vehicleClass] : '\u2014'}
+        {vehicleClass ? classLabel : '\u2014'}
       </span>
 
       {/* Extras breakdown */}
       {extrasTotal > 0 && (
         <div style={{ marginBottom: 12 }}>
-          {EXTRAS_CONFIG.map(({ key, label, price }) =>
+          {EXTRAS_CONFIG.map(({ key, price }) =>
             extras[key as keyof Extras] ? (
               <p key={key} style={{ fontSize: 14, fontWeight: 300, color: 'var(--warmgrey)', lineHeight: 1.8 }}>
-                {label} +&euro;{price}
+                {t(`extras.${key}.label`)} +&euro;{price}
               </p>
             ) : null
           )}
@@ -146,19 +145,19 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
           {/* Outbound line */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Outbound</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>{t('priceSummary.outbound')}</span>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 14, color: 'var(--offwhite)' }}>&euro;{outboundWithExtras}</span>
           </div>
           {/* Return leg line */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
-              Return leg <span style={{ color: 'var(--copper)', letterSpacing: '0.1em', marginLeft: 4 }}>&minus;{returnDiscountPercent}%</span>
+              {t('priceSummary.returnLeg')} <span style={{ color: 'var(--copper)', letterSpacing: '0.1em', marginLeft: 4 }}>&minus;{returnDiscountPercent}%</span>
             </span>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 14, color: 'var(--offwhite)' }}>&euro;{selectedReturnLegPrice!.total}</span>
           </div>
           {/* Combined total line */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: 4, paddingTop: 8, borderTop: '1px solid var(--anthracite-light)' }}>
-            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--copper)' }}>Combined</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.3em', textTransform: 'uppercase', color: 'var(--copper)' }}>{t('priceSummary.combined')}</span>
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
               <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 20, color: 'var(--offwhite)' }}>&euro;{combinedTotal}</span>
               <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, fontWeight: 300, color: 'var(--warmgrey)', marginTop: 2 }}>{formatCZK(eurToCzk(combinedTotal))}</span>
@@ -261,7 +260,7 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
             const currency = breakdown?.currency ?? 'EUR'
             window.gtag?.('event', 'begin_checkout', {
               currency, value: total,
-              items: [{ item_id: vehicleClass, item_name: vehicleLabels[vehicleClass] ?? vehicleClass, price: total, quantity: 1 }],
+              items: [{ item_id: vehicleClass, item_name: classLabel || vehicleClass, price: total, quantity: 1 }],
             })
             trackMetaEvent('InitiateCheckout', { value: total, currency, num_items: 1 })
             nextStep()
@@ -269,7 +268,7 @@ export default function PriceSummary({ mobileOnly = false, desktopOnly = false }
           disabled={!vehicleClass}
           style={!vehicleClass ? { opacity: 0.4, cursor: 'not-allowed', letterSpacing: '0.1em' } : { letterSpacing: '0.1em' }}
         >
-          {vehicleClass ? `SELECT ${vehicleLabels[vehicleClass]?.toUpperCase() ?? vehicleClass.toUpperCase()}` : 'SELECT A CLASS'}
+          {vehicleClass ? t('priceSummary.selectClass', { className: (classLabel || vehicleClass).toUpperCase() }) : t('priceSummary.selectAClass')}
         </button>
       )}
     </div>

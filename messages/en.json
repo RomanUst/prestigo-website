@@ -136,6 +136,51 @@
         "meetGreetLabel": "Meet & greet",
         "meetGreetSub": "Name board at arrivals"
       }
+    },
+    "extras": {
+      "meetAndGreet": {
+        "label": "Meet & Greet",
+        "description": "Driver with name board at arrivals — always included"
+      },
+      "infantSeat": {
+        "label": "Infant Seat (0–9 kg)",
+        "description": "Rear-facing infant carrier for newborns and young infants"
+      },
+      "childSeat": {
+        "label": "Child Seat (18–36 kg)",
+        "description": "Forward-facing safety seat for toddlers and older children"
+      },
+      "boosterSeat": {
+        "label": "Booster Seat",
+        "description": "Booster cushion for children who have outgrown a child seat"
+      }
+    },
+    "step4extras": {
+      "free": "Free"
+    },
+    "priceSummary": {
+      "yourJourney": "Your Journey",
+      "hours": "{hours} hours",
+      "selectVehicle": "Select a vehicle",
+      "requestQuote": "Request a quote",
+      "outbound": "Outbound",
+      "returnLeg": "Return leg",
+      "combined": "Combined",
+      "selectClass": "SELECT {className}",
+      "selectAClass": "SELECT A CLASS"
+    },
+    "summaryBlock": {
+      "outbound": "OUTBOUND",
+      "return": "RETURN",
+      "yourJourney": "YOUR JOURNEY",
+      "hours": "{hours} hours",
+      "dateTimeAt": "{date} at {time}",
+      "classPax": "{className} · {passengers, plural, one {# passenger} other {# passengers}}",
+      "outboundLine": "Outbound",
+      "returnLeg": "Return leg",
+      "subtotal": "Subtotal",
+      "promo": "Promo {code}",
+      "final": "Final"
     }
   },
   "Nav": {
