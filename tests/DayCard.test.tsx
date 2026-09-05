@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import DayCard, { createDay, type Day } from '@/components/booking/DayCard'
 import type { PlaceResult, Stop } from '@/types/booking'
 
