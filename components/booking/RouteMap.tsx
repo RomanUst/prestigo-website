@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import type { PlaceResult } from '@/types/booking'
 
@@ -150,6 +151,7 @@ export default function RouteMap({
   destination,
   pickupTime = null,
 }: RouteMapProps) {
+  const t = useTranslations('Booking.routeMap')
   const mapRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -309,7 +311,7 @@ export default function RouteMap({
             lineHeight: 1.5,
           }}
         >
-          Route unavailable — you can still select a vehicle class.
+          {t('empty')}
         </p>
       </div>
     )
@@ -319,7 +321,7 @@ export default function RouteMap({
     <div
       ref={mapRef}
       style={{ height: 300, background: 'var(--anthracite-mid)' }}
-      aria-label={`Route map from ${origin.address} to ${destination.address}`}
+      aria-label={t('aria', { origin: origin.address, destination: destination.address })}
       role="img"
     />
   )

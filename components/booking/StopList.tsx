@@ -1,6 +1,7 @@
 'use client'
 
 import { Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import StopItem from '@/components/booking/StopItem'
 import type { Stop, PlaceResult } from '@/types/booking'
 
@@ -19,6 +20,7 @@ export default function StopList({
   onUpdate,
   maxStops = 5,
 }: StopListProps) {
+  const t = useTranslations('Booking.stopList')
   const canAdd = stops.length < maxStops
 
   return (
@@ -37,7 +39,7 @@ export default function StopList({
         <button
           type="button"
           onClick={onAdd}
-          aria-label="Add stop"
+          aria-label={t('addStop')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -57,7 +59,7 @@ export default function StopList({
           }}
         >
           <Plus size={14} />
-          Add stop
+          {t('addStop')}
         </button>
       )}
     </div>
