@@ -1,4 +1,37 @@
 {
+  "Booking": {
+    "entryBar": {
+      "pickupLocationLabel": "PICKUP LOCATION",
+      "pickupPlaceholder": "Enter pickup address",
+      "pickupAriaLabel": "Pickup location",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Enter destination",
+      "destinationAriaLabel": "Destination",
+      "dateLabel": "DATE",
+      "timeLabel": "TIME",
+      "timeAriaLabel": "Time",
+      "chooseSlot": "Choose a slot",
+      "flightNumberLabel": "FLIGHT NUMBER (optional)",
+      "flightNumberPlaceholder": "e.g. BA 256",
+      "flightNumberAriaLabel": "Flight number",
+      "addReturnJourney": "Add return journey",
+      "returnDateLabel": "RETURN DATE",
+      "returnTimeLabel": "RETURN TIME",
+      "returnTimeAriaLabel": "Return time",
+      "selectReturnTime": "Select return time",
+      "validationSummary": "Please fill in all required fields before continuing.",
+      "viewVehicles": "View vehicles"
+    },
+    "validation": {
+      "originRequired": "Pickup location is required to continue.",
+      "destinationRequired": "Destination is required to continue.",
+      "dateRequired": "Date is required to continue.",
+      "timeRequired": "Time is required to continue.",
+      "returnDateRequired": "Return date is required for a round trip.",
+      "returnTimeRequired": "Return time is required for a round trip.",
+      "returnAfterPickup": "Return must be after pickup."
+    }
+  },
   "Nav": {
     "items": ["Services", "Fleet", "Routes", "Multi-day", "Corporate", "Contact"],
     "new": "NEW",
