@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
 import OAuthButtons from '@/components/auth/OAuthButtons'
@@ -97,6 +98,9 @@ const ghostButtonStyle: React.CSSProperties = {
 // ---------------------------------------------------------------------------
 
 export default function Step3Auth() {
+  const t = useTranslations('Auth.inWizard')
+  const tLogin = useTranslations('Auth.login')
+  const tErr = useTranslations('Errors')
   const { nextStep, prevStep, setGuestMode } = useBookingStore()
 
   const [topTab, setTopTab] = useState<TopTab>('signin')
@@ -170,7 +174,7 @@ export default function Step3Auth() {
 
     setSending(false)
     if (error) {
-      setOtpError('Something went wrong. Please try again.')
+      setOtpError(tErr('genericRetry'))
     } else {
       setOtpSent(true)
     }
@@ -189,7 +193,7 @@ export default function Step3Auth() {
 
     setSending(false)
     if (error) {
-      setOtpError('Invalid or expired code. Please try again.')
+      setOtpError(t('invalidCode'))
     } else {
       sessionStorage.removeItem('booking_deeplink')
       window.gtag?.('event', 'login', { method: 'email_otp' })
@@ -214,7 +218,7 @@ export default function Step3Auth() {
     setSending(false)
 
     if (error) {
-      setPwError('Invalid email or password.')
+      setPwError(tErr('invalidCredentials'))
     } else {
       sessionStorage.removeItem('booking_deeplink')
       window.gtag?.('event', 'login', { method: 'password' })
@@ -239,7 +243,7 @@ export default function Step3Auth() {
     setSending(false)
 
     if (error) {
-      setRegError('Could not create account. ' + error.message)
+      setRegError(t('registerError', { message: error.message }))
       return
     }
 
@@ -281,7 +285,7 @@ export default function Step3Auth() {
           fontFamily: 'var(--font-montserrat)',
         }}
       >
-        or
+        {tLogin('divider')}
       </span>
     </div>
   )
@@ -308,10 +312,10 @@ export default function Step3Auth() {
   const topTabs = (
     <div style={{ display: 'flex', marginBottom: 24 }}>
       <button type="button" style={topTabStyle(topTab === 'signin')} onClick={() => setTopTab('signin')}>
-        Sign in
+        {tLogin('signInButton')}
       </button>
       <button type="button" style={topTabStyle(topTab === 'register')} onClick={() => setTopTab('register')}>
-        Create account
+        {tLogin('createAccountButton')}
       </button>
     </div>
   )
@@ -325,11 +329,11 @@ export default function Step3Auth() {
       <div style={{ maxWidth: 400 }}>
         {topTabs}
         <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: '14px', color: 'var(--warmgrey)', lineHeight: 1.75 }}>
-          Account created. Check your email to confirm, then sign in.
+          {t('registerSuccess')}
         </p>
         <button type="button" style={{ ...ghostButtonStyle, marginTop: 20 }}
           onClick={() => { setTopTab('signin'); setRegDone(false) }}>
-          Sign in
+          {tLogin('signInButton')}
         </button>
       </div>
     )
@@ -344,11 +348,14 @@ export default function Step3Auth() {
       <div style={{ maxWidth: 400 }}>
         {topTabs}
         <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: '12px', color: 'var(--warmgrey)', lineHeight: 1.6, marginBottom: 20 }}>
-          We sent a 6-digit code to <strong style={{ color: 'var(--offwhite)' }}>{otpEmail}</strong>.
+          {t.rich('codeSentTo', {
+            email: otpEmail,
+            strong: (chunks) => <strong style={{ color: 'var(--offwhite)' }}>{chunks}</strong>,
+          })}
         </p>
         <form onSubmit={handleVerifyOtp}>
           <div style={fieldWrap}>
-            <label htmlFor="otp-code" style={labelStyle}>Enter code</label>
+            <label htmlFor="otp-code" style={labelStyle}>{t('enterCodeLabel')}</label>
             <input
               id="otp-code"
               type="text"
@@ -360,20 +367,20 @@ export default function Step3Auth() {
               value={otpCode}
               onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               style={{ ...inputStyle, letterSpacing: '0.3em', fontSize: '20px', textAlign: 'center' }}
-              placeholder="000000"
+              placeholder={t('codePlaceholder')}
             />
             {otpError && (
               <p style={{ color: '#e74c3c', fontSize: '12px', marginTop: 4 }} role="alert">{otpError}</p>
             )}
           </div>
-          {submitBtn('Verify code')}
+          {submitBtn(t('verifyCode'))}
         </form>
         <button
           type="button"
           style={{ ...ghostButtonStyle, marginTop: 10 }}
           onClick={() => { setOtpSent(false); setOtpCode(''); setOtpError('') }}
         >
-          Use a different email
+          {t('useDifferentEmail')}
         </button>
         <button
           type="button"
@@ -382,7 +389,7 @@ export default function Step3Auth() {
           onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--anthracite-light)'; e.currentTarget.style.color = 'var(--warmgrey)' }}
           onClick={prevStep}
         >
-          ← Back to vehicle selection
+          {t('backToVehicle')}
         </button>
       </div>
     )
@@ -401,17 +408,17 @@ export default function Step3Auth() {
         <>
           <div style={{ display: 'flex', gap: 0, marginBottom: 20 }}>
             <button type="button" style={subTabStyle(signInMethod === 'otp')} onClick={() => setSignInMethod('otp')}>
-              Send code
+              {t('sendCode')}
             </button>
             <button type="button" style={subTabStyle(signInMethod === 'password')} onClick={() => setSignInMethod('password')}>
-              Use password
+              {tLogin('tabUsePassword')}
             </button>
           </div>
 
           {signInMethod === 'otp' && (
             <form onSubmit={handleSendOtp}>
               <div style={fieldWrap}>
-                <label htmlFor="otp-email" style={labelStyle}>Email</label>
+                <label htmlFor="otp-email" style={labelStyle}>{tLogin('emailLabel')}</label>
                 <input
                   id="otp-email"
                   name="email"
@@ -424,24 +431,24 @@ export default function Step3Auth() {
                   <p style={{ color: '#e74c3c', fontSize: '12px', marginTop: 4 }} role="alert">{otpError}</p>
                 )}
               </div>
-              {submitBtn('Send code')}
+              {submitBtn(t('sendCode'))}
             </form>
           )}
 
           {signInMethod === 'password' && (
             <form onSubmit={handlePassword}>
               <div style={fieldWrap}>
-                <label htmlFor="pw-email" style={labelStyle}>Email</label>
+                <label htmlFor="pw-email" style={labelStyle}>{tLogin('emailLabel')}</label>
                 <input id="pw-email" name="email" type="email" required autoComplete="email" style={inputStyle} />
               </div>
               <div style={fieldWrap}>
-                <label htmlFor="pw-password" style={labelStyle}>Password</label>
+                <label htmlFor="pw-password" style={labelStyle}>{tLogin('passwordLabel')}</label>
                 <input id="pw-password" name="password" type="password" required autoComplete="current-password" style={inputStyle} />
                 {pwError && (
                   <p style={{ color: '#e74c3c', fontSize: '12px', marginTop: 4 }} role="alert">{pwError}</p>
                 )}
               </div>
-              {submitBtn('Sign in')}
+              {submitBtn(tLogin('signInButton'))}
             </form>
           )}
         </>
@@ -451,17 +458,17 @@ export default function Step3Auth() {
       {topTab === 'register' && (
         <form onSubmit={handleRegister}>
           <div style={fieldWrap}>
-            <label htmlFor="reg-email" style={labelStyle}>Email</label>
+            <label htmlFor="reg-email" style={labelStyle}>{tLogin('emailLabel')}</label>
             <input id="reg-email" name="email" type="email" required autoComplete="email" style={inputStyle} />
           </div>
           <div style={fieldWrap}>
-            <label htmlFor="reg-password" style={labelStyle}>Password</label>
+            <label htmlFor="reg-password" style={labelStyle}>{tLogin('passwordLabel')}</label>
             <input id="reg-password" name="password" type="password" required autoComplete="new-password" style={inputStyle} />
             {regError && (
               <p style={{ color: '#e74c3c', fontSize: '12px', marginTop: 4 }} role="alert">{regError}</p>
             )}
           </div>
-          {submitBtn('Create account')}
+          {submitBtn(tLogin('createAccountButton'))}
         </form>
       )}
 
@@ -482,7 +489,7 @@ export default function Step3Auth() {
           nextStep()
         }}
       >
-        Continue as guest
+        {t('continueAsGuest')}
       </button>
 
       {/* Back — same visual style as OAuth buttons */}
@@ -495,7 +502,7 @@ export default function Step3Auth() {
         onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
         onClick={prevStep}
       >
-        ← Back to vehicle selection
+        {t('backToVehicle')}
       </button>
     </div>
   )

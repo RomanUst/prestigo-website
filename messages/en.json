@@ -614,6 +614,19 @@
     "oauth": {
       "googleLabel": "Sign in with Google",
       "continueWithGoogle": "Continue with Google"
+    },
+    "inWizard": {
+      "sendCode": "Send code",
+      "verifyCode": "Verify code",
+      "enterCodeLabel": "Enter code",
+      "codePlaceholder": "000000",
+      "useDifferentEmail": "Use a different email",
+      "backToVehicle": "← Back to vehicle selection",
+      "continueAsGuest": "Continue as guest",
+      "registerSuccess": "Account created. Check your email to confirm, then sign in.",
+      "codeSentTo": "We sent a 6-digit code to <strong>{email}</strong>.",
+      "invalidCode": "Invalid or expired code. Please try again.",
+      "registerError": "Could not create account. {message}"
     }
   }
 }
