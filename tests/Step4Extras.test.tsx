@@ -1,4 +1,28 @@
-import { describe, it } from 'vitest'
+import { describe, it, expect } from 'vitest'
+import { screen } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
+import Step4Extras from '@/components/booking/steps/Step4Extras'
+import { EXTRAS_CONFIG } from '@/lib/extras'
+import enMessages from '@/messages/en.json'
+
+const extrasCatalog = (enMessages as { Booking: { extras: Record<string, { label: string; description: string }> } }).Booking.extras
+
+describe('Step4Extras i18n catalog', () => {
+  it('has a Booking.extras entry (label + description) for every EXTRAS_CONFIG key', () => {
+    for (const { key } of EXTRAS_CONFIG) {
+      expect(extrasCatalog[key], `missing Booking.extras.${key}`).toBeTruthy()
+      expect(extrasCatalog[key].label, `missing label for ${key}`).toBeTruthy()
+      expect(extrasCatalog[key].description, `missing description for ${key}`).toBeTruthy()
+    }
+  })
+
+  it('renders each extra label from the catalog under renderWithIntl', () => {
+    render(<Step4Extras />)
+    for (const { key } of EXTRAS_CONFIG) {
+      expect(screen.getByText(extrasCatalog[key].label)).toBeInTheDocument()
+    }
+  })
+})
 
 describe('Step4Extras', () => {
   describe('STEP4-01: User can add extras', () => {
