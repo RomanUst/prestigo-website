@@ -567,7 +567,7 @@ export default function Step6Payment() {
               fontFamily: 'var(--font-montserrat)',
             }}
           >
-            Loading payment...
+            {t('loadingPayment')}
           </p>
         )}
       </div>
