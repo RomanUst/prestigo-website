@@ -30,6 +30,15 @@
       "returnDateRequired": "Return date is required for a round trip.",
       "returnTimeRequired": "Return time is required for a round trip.",
       "returnAfterPickup": "Return must be after pickup."
+    },
+    "tripTypeTabs": {
+      "ariaLabel": "Trip type",
+      "items": ["TRANSFER", "HOURLY", "MULTI-DAY"]
+    },
+    "addressInput": {
+      "clearAddress": "Clear address",
+      "airportAutoSet": "Auto-set for airport transfers.",
+      "noResults": "No results. Try a different address."
     }
   },
   "Nav": {

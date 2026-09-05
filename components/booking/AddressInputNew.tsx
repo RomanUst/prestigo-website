@@ -20,6 +20,7 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useId } from 'react'
+import { useTranslations } from 'next-intl'
 import { Plane, X } from 'lucide-react'
 import { usePlacesAutocomplete } from 'places-autocomplete-hook'
 import type { PlaceResult } from '@/types/booking'
@@ -72,6 +73,7 @@ export default function AddressInputNew({
   onTextChange,
   required = false,
 }: AddressInputNewProps) {
+  const t = useTranslations('Booking.addressInput')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const [sessionToken, setSessionToken] = useState<string>(() => makeSessionToken())
@@ -255,7 +257,7 @@ export default function AddressInputNew({
             marginTop: '8px',
           }}
         >
-          Auto-set for airport transfers.
+          {t('airportAutoSet')}
         </p>
       </div>
     )
@@ -317,7 +319,7 @@ export default function AddressInputNew({
           <button
             type="button"
             onClick={handleClear}
-            aria-label="Clear address"
+            aria-label={t('clearAddress')}
             style={{
               position: 'absolute',
               right: '12px',
@@ -370,7 +372,7 @@ export default function AddressInputNew({
                 color: 'var(--warmgrey)',
               }}
             >
-              No results. Try a different address.
+              {t('noResults')}
             </li>
           ) : (
             data.map((suggestion, index) => {
