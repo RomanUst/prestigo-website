@@ -1,21 +1,21 @@
 import { createClient } from '@/lib/supabase/server'
+import { getTranslations } from 'next-intl/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import Nav from '@/components/Nav'
+import { VEHICLE_CLASS_KEY, type VehicleClass } from '@/types/booking'
 
 export const dynamic = 'force-dynamic'
 
-const CLASS_LABELS: Record<string, string> = {
-  business: 'Business',
-  first_class: 'First Class',
-  business_van: 'Business Van',
-}
-
-const STATUS_STYLES: Record<string, { label: string; color: string }> = {
-  confirmed: { label: 'CONFIRMED', color: 'var(--copper)' },
-  pending:   { label: 'PENDING',   color: '#E67E22' },
-  completed: { label: 'COMPLETED', color: '#27AE60' },
-  cancelled: { label: 'CANCELLED', color: '#f87171' },
+// Colour/style values only — the display label text now lives in the catalog
+// under Account.trips.statusLabels (single source). The 4-key map is preserved
+// intentionally: any status outside these four falls back to `pending`
+// (pre-existing behaviour, byte-for-byte unchanged — see plan prohibition).
+const STATUS_STYLES: Record<string, { color: string }> = {
+  confirmed: { color: 'var(--copper)' },
+  pending:   { color: '#E67E22' },
+  completed: { color: '#27AE60' },
+  cancelled: { color: '#f87171' },
 }
 
 function formatDate(iso: string | null): string {
@@ -28,6 +28,9 @@ export default async function AccountTripsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?next=/account/trips')
+
+  const t = await getTranslations('Account.trips')
+  const vt = await getTranslations('Booking.vehicleClasses')
 
   const { data: bookings } = await supabase
     .from('bookings')
@@ -62,7 +65,7 @@ export default async function AccountTripsPage() {
             marginBottom: '8px',
           }}
         >
-          My Trips
+          {t('heading')}
         </h1>
         <div className="copper-line" style={{ marginBottom: '32px' }} />
 
@@ -89,7 +92,7 @@ export default async function AccountTripsPage() {
                   marginBottom: '12px',
                 }}
               >
-                No trips yet
+                {t('emptyHeading')}
               </h2>
               <p
                 style={{
@@ -101,18 +104,25 @@ export default async function AccountTripsPage() {
                   marginBottom: '32px',
                 }}
               >
-                Your booked transfers will appear here. Ready to travel?
+                {t('emptyBody')}
               </p>
               <Link href="/book" className="btn-primary" style={{ padding: '12px 32px' }}>
-                Book a transfer
+                {t('emptyCta')}
               </Link>
             </div>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 760 }}>
             {trips.map((trip) => {
-              const statusEntry = STATUS_STYLES[trip.status] ?? STATUS_STYLES.pending
-              const classLabel = CLASS_LABELS[trip.vehicle_class] ?? trip.vehicle_class
+              // Preserve the pre-existing 4-key gap: any status outside the
+              // four defined keys resolves to `pending` for both colour + label.
+              const statusKey = STATUS_STYLES[trip.status] ? trip.status : 'pending'
+              const statusEntry = STATUS_STYLES[statusKey]
+              const statusLabel = t(`statusLabels.${statusKey}`)
+              // Class label resolves from the single-source Booking.vehicleClasses
+              // catalog (via VEHICLE_CLASS_KEY); unknown classes fall back to raw.
+              const classKey = VEHICLE_CLASS_KEY[trip.vehicle_class as VehicleClass]
+              const classLabel = classKey ? vt(`${classKey}.label`) : trip.vehicle_class
               return (
                 <div
                   key={trip.id}
@@ -147,7 +157,7 @@ export default async function AccountTripsPage() {
                         textTransform: 'uppercase',
                       }}
                     >
-                      {statusEntry.label}
+                      {statusLabel}
                     </span>
                   </div>
 

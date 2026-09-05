@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getTranslations } from 'next-intl/server'
 import Link from 'next/link'
 import Nav from '@/components/Nav'
 
@@ -10,6 +11,8 @@ export default async function AccountPage() {
     data: { user },
   } = await supabase.auth.getUser()
   // user is guaranteed non-null — /account/* middleware gate redirects unauthenticated requests
+
+  const t = await getTranslations('Account.dashboard')
 
   return (
     <div
@@ -40,7 +43,7 @@ export default async function AccountPage() {
             marginBottom: '8px',
           }}
         >
-          My Account
+          {t('heading')}
         </h1>
 
         {/* Copper-line decoration */}
@@ -56,7 +59,7 @@ export default async function AccountPage() {
             letterSpacing: '0.08em',
           }}
         >
-          Signed in as {user?.email}
+          {t('signedInAs', { email: user?.email ?? '' })}
         </p>
 
         {/* Navigation cards grid */}
@@ -71,7 +74,7 @@ export default async function AccountPage() {
               padding: '24px',
             }}
           >
-            <span className="label">My Trips</span>
+            <span className="label">{t('tripsLabel')}</span>
 
             <h2
               style={{
@@ -84,11 +87,11 @@ export default async function AccountPage() {
                 marginBottom: '12px',
               }}
             >
-              Your journey history
+              {t('tripsTitle')}
             </h2>
 
             <p className="body-text">
-              View all bookings associated with your account.
+              {t('tripsBody')}
             </p>
 
             <Link
@@ -96,7 +99,7 @@ export default async function AccountPage() {
               className="btn-ghost"
               style={{ display: 'inline-block', padding: '10px 24px', fontSize: '10px', marginTop: '20px' }}
             >
-              View trips
+              {t('tripsCta')}
             </Link>
           </div>
 
@@ -109,7 +112,7 @@ export default async function AccountPage() {
               padding: '24px',
             }}
           >
-            <span className="label">Profile</span>
+            <span className="label">{t('profileLabel')}</span>
 
             <h2
               style={{
@@ -122,11 +125,11 @@ export default async function AccountPage() {
                 marginBottom: '12px',
               }}
             >
-              Account details
+              {t('profileTitle')}
             </h2>
 
             <p className="body-text">
-              Update your contact information and manage saved passengers.
+              {t('profileBody')}
             </p>
 
             <Link
@@ -134,7 +137,7 @@ export default async function AccountPage() {
               className="btn-ghost"
               style={{ display: 'inline-block', padding: '10px 24px', fontSize: '10px', marginTop: '20px' }}
             >
-              Edit profile
+              {t('profileCta')}
             </Link>
           </div>
 

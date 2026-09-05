@@ -584,7 +584,11 @@
     "rateLimited": "Too many attempts. Please try again in a minute.",
     "notAuthenticated": "Not authenticated.",
     "invalidCredentials": "Invalid email or password.",
-    "couldNotSaveBooking": "Could not save booking."
+    "couldNotSaveBooking": "Could not save booking.",
+    "fullNameRequired": "Full name is required.",
+    "phoneRequired": "Phone number is required.",
+    "duplicateDefaultPassenger": "Another default passenger already exists. Please try again.",
+    "invalidAccountType": "Invalid account type."
   },
   "Auth": {
     "login": {
@@ -627,6 +631,71 @@
       "codeSentTo": "We sent a 6-digit code to <strong>{email}</strong>.",
       "invalidCode": "Invalid or expired code. Please try again.",
       "registerError": "Could not create account. {message}"
+    }
+  },
+  "Account": {
+    "dashboard": {
+      "heading": "My Account",
+      "signedInAs": "Signed in as {email}",
+      "tripsLabel": "My Trips",
+      "tripsTitle": "Your journey history",
+      "tripsBody": "View all bookings associated with your account.",
+      "tripsCta": "View trips",
+      "profileLabel": "Profile",
+      "profileTitle": "Account details",
+      "profileBody": "Update your contact information and manage saved passengers.",
+      "profileCta": "Edit profile"
+    },
+    "trips": {
+      "heading": "My Trips",
+      "emptyHeading": "No trips yet",
+      "emptyBody": "Your booked transfers will appear here. Ready to travel?",
+      "emptyCta": "Book a transfer",
+      "statusLabels": {
+        "confirmed": "CONFIRMED",
+        "pending": "PENDING",
+        "completed": "COMPLETED",
+        "cancelled": "CANCELLED"
+      }
+    },
+    "profile": {
+      "heading": "Profile",
+      "contactDetails": "Contact Details",
+      "fullName": "Full name",
+      "emailLabel": "Email",
+      "emailReadonlyNote": "Email cannot be changed here.",
+      "phone": "Phone",
+      "accountType": "Account type",
+      "personal": "Personal",
+      "corporate": "Corporate",
+      "companyDetails": "Company Details",
+      "companyName": "Company name",
+      "ico": "IČO (Company ID)",
+      "vatId": "DIČ / VAT ID",
+      "saving": "Saving…",
+      "saveChanges": "Save changes",
+      "changesSaved": "Changes saved.",
+      "savedPassengers": "Saved Passengers",
+      "noSavedPassengers": "No saved passengers yet.",
+      "defaultBadge": "Default",
+      "editPassengerAria": "Edit {name}",
+      "deletePassengerAria": "Delete {name}",
+      "removeConfirm": "Remove <highlight>{name}</highlight>? This cannot be undone.",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "addPassenger": "Add passenger",
+      "emailOptional": "Email (optional)",
+      "notesOptional": "Notes (optional)",
+      "setDefaultPassenger": "Set as default passenger",
+      "savePassenger": "Save passenger"
+    },
+    "resetPassword": {
+      "subtitle": "New password",
+      "successMessage": "Password updated. Redirecting to your account...",
+      "verifying": "Verifying your reset link...",
+      "newPasswordLabel": "New password",
+      "updating": "Updating...",
+      "updateButton": "Update password"
     }
   }
 }
