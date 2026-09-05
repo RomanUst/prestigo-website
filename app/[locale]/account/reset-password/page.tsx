@@ -3,11 +3,14 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import Nav from '@/components/Nav'
 
 export const dynamic = 'force-dynamic'
 
 export default function ResetPasswordPage() {
+  const t = useTranslations('Account.resetPassword')
+  const tErr = useTranslations('Errors')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -71,7 +74,7 @@ export default function ResetPasswordPage() {
 
     if (error) {
       setStatus('error')
-      setErrorMsg(error.message ?? 'Something went wrong. Please try again.')
+      setErrorMsg(error.message ?? tErr('genericRetry'))
       return
     }
 
@@ -155,7 +158,7 @@ export default function ResetPasswordPage() {
             marginBottom: '32px',
           }}
         >
-          New password
+          {t('subtitle')}
         </p>
 
         {status === 'success' ? (
@@ -167,7 +170,7 @@ export default function ResetPasswordPage() {
               lineHeight: 1.75,
             }}
           >
-            Password updated. Redirecting to your account...
+            {t('successMessage')}
           </p>
         ) : recovery === 'checking' ? (
           <p
@@ -178,13 +181,13 @@ export default function ResetPasswordPage() {
               lineHeight: 1.75,
             }}
           >
-            Verifying your reset link...
+            {t('verifying')}
           </p>
         ) : (
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: '24px' }}>
               <label htmlFor="new-password" style={labelStyle}>
-                New password
+                {t('newPasswordLabel')}
               </label>
               <input
                 id="new-password"
@@ -220,7 +223,7 @@ export default function ResetPasswordPage() {
                 pointerEvents: status === 'loading' ? 'none' : 'auto',
               }}
             >
-              {status === 'loading' ? 'Updating...' : 'Update password'}
+              {status === 'loading' ? t('updating') : t('updateButton')}
             </button>
           </form>
         )}

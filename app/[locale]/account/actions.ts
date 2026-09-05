@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 
 // Note: synchronous helpers MUST live in a separate non-'use server' file.
@@ -22,15 +23,17 @@ type AccountType = (typeof VALID_ACCOUNT_TYPES)[number]
  * T-58-14). Fields are named explicitly — no raw FormData spread.
  */
 export async function updateProfile(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Not authenticated.' }
+  if (!user) return { error: t('notAuthenticated') }
 
   // Explicit field extraction — never spread formData (T-58-14 mass-assignment guard)
   const full_name = formData.get('full_name') as string
@@ -42,7 +45,7 @@ export async function updateProfile(
 
   // CR-01: Validate account_type against allowlist before writing to DB
   if (!VALID_ACCOUNT_TYPES.includes(raw_account_type as AccountType)) {
-    return { error: 'Invalid account type.' }
+    return { error: t('invalidAccountType') }
   }
   const account_type: AccountType = raw_account_type as AccountType
 
@@ -55,7 +58,7 @@ export async function updateProfile(
       { onConflict: 'user_id' }
     )
 
-  if (error) return { error: 'Something went wrong. Please try again.' }
+  if (error) return { error: t('genericRetry') }
 
   try {
     revalidatePath('/account/profile')
@@ -77,22 +80,24 @@ export async function updateProfile(
  * user_id in FormData is silently discarded.
  */
 export async function addPassenger(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Not authenticated.' }
+  if (!user) return { error: t('notAuthenticated') }
 
   // WR-05: Trim and validate required fields server-side (HTML required attr
   // is not enforced on programmatic callers).
   const full_name = (formData.get('full_name') as string).trim()
   const phone = (formData.get('phone') as string).trim()
-  if (!full_name) return { error: 'Full name is required.' }
-  if (!phone) return { error: 'Phone number is required.' }
+  if (!full_name) return { error: t('fullNameRequired') }
+  if (!phone) return { error: t('phoneRequired') }
 
   const email = (formData.get('email') as string) || null
   const notes = (formData.get('notes') as string) || null
@@ -117,9 +122,9 @@ export async function addPassenger(
     // Unique-violation on partial index (race condition after the clear) →
     // user-facing message
     if (error.code === '23505') {
-      return { error: 'Another default passenger already exists. Please try again.' }
+      return { error: t('duplicateDefaultPassenger') }
     }
-    return { error: 'Something went wrong. Please try again.' }
+    return { error: t('genericRetry') }
   }
 
   try {
@@ -143,22 +148,24 @@ export async function addPassenger(
  * explicitly (T-58-14).
  */
 export async function updatePassenger(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Not authenticated.' }
+  if (!user) return { error: t('notAuthenticated') }
 
   const id = formData.get('id') as string
   // WR-05: Trim and validate required fields server-side
   const full_name = (formData.get('full_name') as string).trim()
   const phone = (formData.get('phone') as string).trim()
-  if (!full_name) return { error: 'Full name is required.' }
-  if (!phone) return { error: 'Phone number is required.' }
+  if (!full_name) return { error: t('fullNameRequired') }
+  if (!phone) return { error: t('phoneRequired') }
 
   const email = (formData.get('email') as string) || null
   const notes = (formData.get('notes') as string) || null
@@ -181,9 +188,9 @@ export async function updatePassenger(
 
   if (error) {
     if (error.code === '23505') {
-      return { error: 'Another default passenger already exists. Please try again.' }
+      return { error: t('duplicateDefaultPassenger') }
     }
-    return { error: 'Something went wrong. Please try again.' }
+    return { error: t('genericRetry') }
   }
 
   try {
@@ -206,15 +213,17 @@ export async function updatePassenger(
  * user's passenger (T-58-13). The user_id in FormData is never read.
  */
 export async function deletePassenger(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) return { error: 'Not authenticated.' }
+  if (!user) return { error: t('notAuthenticated') }
 
   const id = formData.get('id') as string
 
@@ -224,7 +233,7 @@ export async function deletePassenger(
     .eq('id', id)
     .eq('user_id', user.id) // own-row backstop: forged user_id cannot widen scope
 
-  if (error) return { error: 'Something went wrong. Please try again.' }
+  if (error) return { error: t('genericRetry') }
 
   try {
     revalidatePath('/account/profile')
