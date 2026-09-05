@@ -181,6 +181,33 @@
       "subtotal": "Subtotal",
       "promo": "Promo {code}",
       "final": "Final"
+    },
+    "bookingWidget": {
+      "pickupLocationLabel": "PICKUP LOCATION",
+      "pickupPlaceholder": "Pick-up address",
+      "pickupAria": "Pick-up address",
+      "destinationLabel": "DESTINATION",
+      "dropoffPlaceholder": "Drop-off address",
+      "dropoffAria": "Drop-off address",
+      "dateLabel": "DATE",
+      "pickupDateAria": "Pickup date",
+      "selectDate": "Select date",
+      "selectPickupDateAria": "Select pickup date",
+      "timeLabel": "TIME",
+      "pickupTimeAria": "Pickup time",
+      "chooseSlot": "Choose a slot",
+      "fillRequired": "Please fill in all required fields before continuing.",
+      "viewVehicles": "VIEW VEHICLES"
+    },
+    "bookingWizard": {
+      "back": "Back",
+      "continue": "Continue",
+      "stepOf": "STEP {step} OF 6",
+      "planJourney": "Plan your journey",
+      "signIn": "Sign in to continue",
+      "addExtras": "Add extras",
+      "passengerDetails": "Passenger details",
+      "payment": "Payment"
     }
   },
   "Nav": {

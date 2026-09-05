@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useId, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInputLegacy from '@/components/booking/AddressInput'
@@ -106,6 +107,7 @@ const AddressInput =
   process.env.NEXT_PUBLIC_USE_NEW_PLACES_API === '1' ? AddressInputNew : AddressInputLegacy
 
 export default function BookingWidget({ defaultTripType }: { defaultTripType?: TripType } = {}) {
+  const t = useTranslations('Booking.bookingWidget')
   const router = useRouter()
   const tripType = useBookingStore((s) => s.tripType)
   const setTripType = useBookingStore((s) => s.setTripType)
@@ -228,8 +230,8 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '24px' }}>
         {/* Origin */}
         <AddressInput
-          label="PICKUP LOCATION"
-          placeholder="Pick-up address"
+          label={t('pickupLocationLabel')}
+          placeholder={t('pickupPlaceholder')}
           value={origin}
           onSelect={(place) => {
             setOrigin(place)
@@ -237,7 +239,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
           }}
           onClear={() => setOrigin(null)}
           hasError={!!errors.origin}
-          ariaLabel="Pick-up address"
+          ariaLabel={t('pickupAria')}
           required
         />
 
@@ -246,8 +248,8 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
           <DurationSelector />
         ) : (
           <AddressInput
-            label="DESTINATION"
-            placeholder="Drop-off address"
+            label={t('destinationLabel')}
+            placeholder={t('dropoffPlaceholder')}
             value={destination}
             onSelect={(place) => {
               setDestination(place)
@@ -255,7 +257,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             }}
             onClear={() => setDestination(null)}
             hasError={!!errors.destination}
-            ariaLabel="Drop-off address"
+            ariaLabel={t('dropoffAria')}
             required
           />
         )}
@@ -269,14 +271,14 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
               className="label"
               style={{ display: 'block', marginBottom: '8px' }}
             >
-              DATE <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
+              {t('dateLabel')} <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
             </label>
             <button
               id={dateId}
               type="button"
               aria-haspopup="dialog"
               aria-expanded={datePickerOpen}
-              aria-label="Pickup date"
+              aria-label={t('pickupDateAria')}
               onClick={() => setDatePickerOpen((v) => !v)}
               style={{
                 ...inputStyle,
@@ -287,12 +289,12 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
                 border: errors.date ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
               }}
             >
-              {date ? formatDateDisplay(date) : 'Select date'}
+              {date ? formatDateDisplay(date) : t('selectDate')}
             </button>
             {datePickerOpen && (
               <div
                 role="dialog"
-                aria-label="Select pickup date"
+                aria-label={t('selectPickupDateAria')}
                 style={{
                   position: 'absolute',
                   top: 'calc(100% + 6px)',
@@ -323,11 +325,11 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
               className="label"
               style={{ display: 'block', marginBottom: '8px' }}
             >
-              TIME <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
+              {t('timeLabel')} <span aria-hidden="true" style={{ color: 'var(--copper-light)' }}>*</span>
             </label>
             <select
               id={timeId}
-              aria-label="Pickup time"
+              aria-label={t('pickupTimeAria')}
               value={time}
               onChange={(e) => {
                 const val = e.target.value
@@ -342,7 +344,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
                 border: errors.time ? '1px solid #C0392B' : '1px solid var(--anthracite-light)',
               }}
             >
-              <option value="">Choose a slot</option>
+              <option value="">{t('chooseSlot')}</option>
               {TIME_SLOTS_AMPM.map((slot) => {
                 const disabled = isSlotDisabled(slot.value24h, date)
                 return (
@@ -369,7 +371,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             overflow: 'hidden',
           }}
         >
-          {hasError ? 'Please fill in all required fields before continuing.' : ''}
+          {hasError ? t('fillRequired') : ''}
         </p>
 
         {/* CTA */}
@@ -386,7 +388,7 @@ export default function BookingWidget({ defaultTripType }: { defaultTripType?: T
             borderRadius: '10px',
           }}
         >
-          VIEW VEHICLES
+          {t('viewVehicles')}
         </button>
       </div>
     </div>
