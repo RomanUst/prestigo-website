@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import { X } from 'lucide-react'
 import AddressInputLegacy from '@/components/booking/AddressInput'
@@ -117,6 +118,8 @@ const triggerStyle: React.CSSProperties = {
 }
 
 export default function DayCard({ day, index, hourlyRange, canRemove, onChange, onRemove }: DayCardProps) {
+  const t = useTranslations('Booking.dayCard')
+  const dayNum = index + 1
   const [openPicker, setOpenPicker] = useState<'date' | 'time' | null>(null)
   const [todayStr, setTodayStr] = useState<string>('')
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -193,7 +196,7 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
 
   return (
     <section
-      aria-label={`Day ${index + 1}`}
+      aria-label={t('dayLabel', { day: dayNum })}
       style={{
         background: 'var(--anthracite-dark)',
         border: '1px solid var(--anthracite-light)',
@@ -206,12 +209,12 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
       {/* ── Header ── */}
       <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: '10px', letterSpacing: '0.32em', textTransform: 'uppercase', color: 'var(--copper-light)' }}>
-          Day {index + 1}
+          {t('dayLabel', { day: dayNum })}
         </span>
         {canRemove && (
           <button
             type="button"
-            aria-label={`Remove day ${index + 1}`}
+            aria-label={t('removeDayAria', { day: dayNum })}
             onClick={() => onRemove(day.id)}
             style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'transparent', border: '1px solid var(--anthracite-light)', color: 'var(--warmgrey)', cursor: 'pointer' }}
           >
@@ -225,28 +228,28 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
         {/* Date */}
         <div>
           <p style={fieldLabelStyle}>
-            Date <span style={{ color: 'var(--anthracite-light)', fontWeight: 300 }}>(optional)</span>
+            {t('dateLabel')} <span style={{ color: 'var(--anthracite-light)', fontWeight: 300 }}>{t('optionalSuffix')}</span>
           </p>
           <button
             type="button"
             aria-haspopup="dialog"
             aria-expanded={openPicker === 'date'}
-            aria-label={`Day ${index + 1} date`}
+            aria-label={t('dateAria', { day: dayNum })}
             onClick={() => setOpenPicker(openPicker === 'date' ? null : 'date')}
             style={{ ...triggerStyle, color: day.date ? 'var(--offwhite)' : 'var(--warmgrey)' }}
           >
-            {day.date ? formatDateDisplay(day.date) : 'Select date'}
+            {day.date ? formatDateDisplay(day.date) : t('selectDate')}
           </button>
         </div>
 
         {/* Time */}
         <div>
-          <p style={fieldLabelStyle}>Start time</p>
+          <p style={fieldLabelStyle}>{t('startTimeLabel')}</p>
           <button
             type="button"
             aria-haspopup="dialog"
             aria-expanded={openPicker === 'time'}
-            aria-label={`Day ${index + 1} time`}
+            aria-label={t('timeAria', { day: dayNum })}
             onClick={() => setOpenPicker(openPicker === 'time' ? null : 'time')}
             style={{ ...triggerStyle, color: 'var(--offwhite)' }}
           >
@@ -258,7 +261,7 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
         {openPicker === 'date' && (
           <div
             role="dialog"
-            aria-label={`Day ${index + 1} date picker`}
+            aria-label={t('datePickerAria', { day: dayNum })}
             style={{ position: 'absolute', top: 'calc(100% + 6px)', left: 0, zIndex: 50, background: 'var(--anthracite)', border: '1px solid var(--anthracite-light)', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)' }}
           >
             <DayPicker
@@ -276,12 +279,12 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
         {openPicker === 'time' && (
           <div
             role="dialog"
-            aria-label={`Day ${index + 1} time picker`}
+            aria-label={t('timePickerAria', { day: dayNum })}
             style={{ position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50, background: 'var(--anthracite)', border: '1px solid var(--anthracite-light)', padding: '16px', boxShadow: '0 20px 40px rgba(0,0,0,0.5)', display: 'flex', gap: '12px' }}
           >
             <div style={{ flex: 1 }}>
-              <span style={{ ...fieldLabelStyle, display: 'block', marginBottom: 8 }}>HOUR</span>
-              <ul role="listbox" aria-label={`Day ${index + 1} hour`} style={{ maxHeight: 200, overflowY: 'auto', margin: 0, padding: 0, border: '1px solid var(--anthracite-light)', listStyle: 'none' }}>
+              <span style={{ ...fieldLabelStyle, display: 'block', marginBottom: 8 }}>{t('hourLabel')}</span>
+              <ul role="listbox" aria-label={t('hourListAria', { day: dayNum })} style={{ maxHeight: 200, overflowY: 'auto', margin: 0, padding: 0, border: '1px solid var(--anthracite-light)', listStyle: 'none' }}>
                 {HOURS.map((h) => {
                   const isSel = selHour === h
                   return (
@@ -299,8 +302,8 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
               </ul>
             </div>
             <div style={{ flex: 1 }}>
-              <span style={{ ...fieldLabelStyle, display: 'block', marginBottom: 8 }}>MIN</span>
-              <ul role="listbox" aria-label={`Day ${index + 1} minute`} style={{ maxHeight: 200, overflowY: 'auto', margin: 0, padding: 0, border: '1px solid var(--anthracite-light)', listStyle: 'none' }}>
+              <span style={{ ...fieldLabelStyle, display: 'block', marginBottom: 8 }}>{t('minLabel')}</span>
+              <ul role="listbox" aria-label={t('minuteListAria', { day: dayNum })} style={{ maxHeight: 200, overflowY: 'auto', margin: 0, padding: 0, border: '1px solid var(--anthracite-light)', listStyle: 'none' }}>
                 {MINUTES.map((m) => {
                   const isSel = selMin === m
                   return (
@@ -322,7 +325,7 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
       </div>
 
       {/* ── Type tabs ── */}
-      <div role="tablist" aria-label={`Day ${index + 1} type`} style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--anthracite-light)' }}>
+      <div role="tablist" aria-label={t('typeTablistAria', { day: dayNum })} style={{ display: 'flex', gap: '4px', borderBottom: '1px solid var(--anthracite-light)' }}>
         {(['transfer', 'hourly'] as const).map((type) => {
           const active = day.type === type
           return (
@@ -334,7 +337,7 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
               onClick={() => handleSetType(type)}
               style={{ ...TAB_BUTTON_BASE, color: active ? 'var(--copper-light)' : 'var(--warmgrey)', borderBottom: active ? '2px solid var(--copper-light)' : '2px solid transparent' }}
             >
-              {type === 'transfer' ? 'TRANSFER' : 'HOURLY'}
+              {type === 'transfer' ? t('transferTab') : t('hourlyTab')}
             </button>
           )
         })}
@@ -343,24 +346,24 @@ export default function DayCard({ day, index, hourlyRange, canRemove, onChange, 
       {/* ── Fields ── */}
       {day.type === 'transfer' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <AddressInput label="From" placeholder="Pickup address" value={day.transfer.from} onSelect={handleFromSelect} onClear={handleFromClear} ariaLabel={`Day ${index + 1} from address`} required />
-          <AddressInput label="To" placeholder="Destination address" value={day.transfer.to} onSelect={handleToSelect} onClear={handleToClear} ariaLabel={`Day ${index + 1} to address`} required />
+          <AddressInput label={t('fromLabel')} placeholder={t('pickupAddressPlaceholder')} value={day.transfer.from} onSelect={handleFromSelect} onClear={handleFromClear} ariaLabel={t('fromAria', { day: dayNum })} required />
+          <AddressInput label={t('toLabel')} placeholder={t('destinationAddressPlaceholder')} value={day.transfer.to} onSelect={handleToSelect} onClear={handleToClear} ariaLabel={t('toAria', { day: dayNum })} required />
           <StopList stops={day.transfer.stops} onAdd={handleStopAdd} onRemove={handleStopRemove} onUpdate={handleStopUpdate} maxStops={5} />
         </div>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <AddressInput label="Pickup location" placeholder="Pickup address" value={day.hourly.city} onSelect={handleCitySelect} onClear={handleCityClear} ariaLabel={`Day ${index + 1} pickup location`} required />
+          <AddressInput label={t('pickupLocationLabel')} placeholder={t('pickupAddressPlaceholder')} value={day.hourly.city} onSelect={handleCitySelect} onClear={handleCityClear} ariaLabel={t('pickupLocationAria', { day: dayNum })} required />
           <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontFamily: 'var(--font-montserrat)', fontSize: '11px', letterSpacing: '0.16em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
-            Hours
+            {t('hoursLabel')}
             <select
               name="hours"
-              aria-label={`Day ${index + 1} hours`}
+              aria-label={t('hoursAria', { day: dayNum })}
               value={day.hourly.hours}
               onChange={handleHoursChange}
               style={{ appearance: 'none', WebkitAppearance: 'none', background: 'var(--anthracite)', color: 'var(--offwhite)', border: '1px solid var(--anthracite-light)', padding: '12px 16px', fontFamily: 'var(--font-montserrat)', fontSize: '14px' }}
             >
               {hourOptions.map((h) => (
-                <option key={h} value={h}>{h} {h === 1 ? 'hour' : 'hours'}</option>
+                <option key={h} value={h}>{t('hoursOption', { count: h })}</option>
               ))}
             </select>
           </label>

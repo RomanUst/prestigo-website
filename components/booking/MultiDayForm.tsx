@@ -1,8 +1,11 @@
 'use client'
 
 import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import DayCard, { createDay, type Day } from '@/components/booking/DayCard'
+
+type MultiDayTranslator = (key: string, values?: Record<string, string | number>) => string
 
 function formatDateDisplay(iso: string): string {
   if (!iso) return ''
@@ -56,27 +59,27 @@ type SubmitStatus =
   | { kind: 'error'; message: string }
   | { kind: 'success'; quoteReference: string }
 
-function validateDays(days: Day[]): string | null {
-  if (days.length === 0) return 'Add at least one day.'
+function validateDays(days: Day[], t: MultiDayTranslator): string | null {
+  if (days.length === 0) return t('addAtLeastOneDay')
   for (let i = 0; i < days.length; i++) {
     const day = days[i]
     if (day.type === 'transfer') {
-      if (!day.transfer.from) return `Day ${i + 1}: enter a departure address.`
-      if (!day.transfer.to) return `Day ${i + 1}: enter a destination address.`
+      if (!day.transfer.from) return t('dayDepartureRequired', { day: i + 1 })
+      if (!day.transfer.to) return t('dayDestinationRequired', { day: i + 1 })
       if (day.transfer.stops.some((s) => s.place === null))
-        return `Day ${i + 1}: complete or remove the empty stop.`
+        return t('dayEmptyStop', { day: i + 1 })
     } else {
-      if (!day.hourly.city) return `Day ${i + 1}: enter a base city.`
+      if (!day.hourly.city) return t('dayBaseCityRequired', { day: i + 1 })
     }
   }
   return null
 }
 
-function validatePassenger(p: PassengerState): string | null {
-  if (!p.firstName.trim()) return 'First name is required.'
-  if (!p.lastName.trim()) return 'Last name is required.'
-  if (!p.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) return 'Valid email is required.'
-  if (!p.phone.trim() || p.phone.trim().length < 5) return 'Valid phone number is required.'
+function validatePassenger(p: PassengerState, t: MultiDayTranslator): string | null {
+  if (!p.firstName.trim()) return t('firstNameRequired')
+  if (!p.lastName.trim()) return t('lastNameRequired')
+  if (!p.email.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(p.email)) return t('validEmailRequired')
+  if (!p.phone.trim() || p.phone.trim().length < 5) return t('validPhoneRequired')
   return null
 }
 
@@ -116,6 +119,7 @@ function buildPayload(days: Day[], passenger: PassengerState, startDate: string)
 }
 
 export default function MultiDayForm() {
+  const t = useTranslations('Booking.multiDayForm')
   const [hourlyRange, setHourlyRange] = useState<HourlyRange>({ min: 2, max: 8 })
   const [days, setDays] = useState<Day[]>(() => [createDay(2)])
   const [passenger, setPassenger] = useState<PassengerState>(INITIAL_PASSENGER)
@@ -192,12 +196,12 @@ export default function MultiDayForm() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    const daysError = validateDays(days)
+    const daysError = validateDays(days, t)
     if (daysError) {
       setStatus({ kind: 'error', message: daysError })
       return
     }
-    const passengerError = validatePassenger(passenger)
+    const passengerError = validatePassenger(passenger, t)
     if (passengerError) {
       setStatus({ kind: 'error', message: passengerError })
       return
@@ -211,13 +215,13 @@ export default function MultiDayForm() {
         body: JSON.stringify(buildPayload(days, passenger, startDate)),
       })
       if (res.status === 429) {
-        setStatus({ kind: 'error', message: 'Too many requests. Please wait a minute and try again.' })
+        setStatus({ kind: 'error', message: t('tooManyRequests') })
         return
       }
       if (!res.ok) {
         setStatus({
           kind: 'error',
-          message: 'We could not submit your request. Please check your entries and try again.',
+          message: t('submitError'),
         })
         return
       }
@@ -226,7 +230,7 @@ export default function MultiDayForm() {
     } catch {
       setStatus({
         kind: 'error',
-        message: 'Network error. Please check your connection and try again.',
+        message: t('networkError'),
       })
     }
   }
@@ -250,7 +254,7 @@ export default function MultiDayForm() {
             color: 'var(--offwhite)',
           }}
         >
-          Thank you — your request is in our hands.
+          {t('thankYou')}
         </h3>
         <p
           style={{
@@ -260,7 +264,7 @@ export default function MultiDayForm() {
             marginBottom: '24px',
           }}
         >
-          Quote reference:{' '}
+          {t('quoteReference')}{' '}
           <strong style={{ color: 'var(--copper-lighter)' }}>{status.quoteReference}</strong>
         </p>
         <p
@@ -270,7 +274,7 @@ export default function MultiDayForm() {
             color: 'var(--warmgrey)',
           }}
         >
-          We&rsquo;ll review your itinerary and respond within 24 hours.
+          {t('reviewNotice')}
         </p>
       </div>
     )
@@ -309,13 +313,13 @@ export default function MultiDayForm() {
             marginBottom: '8px',
           }}
         >
-          Start date <span style={{ color: 'var(--anthracite-light)' }}>(optional)</span>
+          {t('startDateLabel')} <span style={{ color: 'var(--anthracite-light)' }}>{t('optionalSuffix')}</span>
         </p>
         <button
           type="button"
           aria-haspopup="dialog"
           aria-expanded={openDatePicker}
-          aria-label="Start date"
+          aria-label={t('startDateAria')}
           onClick={() => setOpenDatePicker((v) => !v)}
           style={{
             ...inputStyle,
@@ -325,12 +329,12 @@ export default function MultiDayForm() {
             color: startDate ? 'var(--offwhite)' : 'var(--warmgrey)',
           }}
         >
-          {startDate ? formatDateDisplay(startDate) : 'Select date'}
+          {startDate ? formatDateDisplay(startDate) : t('selectDate')}
         </button>
         {openDatePicker && (
           <div
             role="dialog"
-            aria-label="Select start date"
+            aria-label={t('selectStartDateAria')}
             style={{
               position: 'absolute',
               top: 'calc(100% + 6px)',
@@ -383,7 +387,7 @@ export default function MultiDayForm() {
           cursor: 'pointer',
         }}
       >
-        + Add day
+        {t('addDay')}
       </button>
 
       <fieldset
@@ -405,10 +409,10 @@ export default function MultiDayForm() {
             color: 'var(--copper-light)',
           }}
         >
-          Your details
+          {t('yourDetails')}
         </legend>
         <label style={labelStyle}>
-          First name
+          {t('firstName')}
           <input
             name="firstName"
             value={passenger.firstName}
@@ -418,7 +422,7 @@ export default function MultiDayForm() {
           />
         </label>
         <label style={labelStyle}>
-          Last name
+          {t('lastName')}
           <input
             name="lastName"
             value={passenger.lastName}
@@ -428,7 +432,7 @@ export default function MultiDayForm() {
           />
         </label>
         <label style={labelStyle}>
-          Email
+          {t('email')}
           <input
             name="email"
             type="email"
@@ -439,7 +443,7 @@ export default function MultiDayForm() {
           />
         </label>
         <label style={labelStyle}>
-          Phone
+          {t('phone')}
           <input
             name="phone"
             type="tel"
@@ -450,7 +454,7 @@ export default function MultiDayForm() {
           />
         </label>
         <label style={{ ...labelStyle, gridColumn: '1 / -1' }}>
-          Special requests
+          {t('specialRequests')}
           <textarea
             name="specialRequests"
             value={passenger.specialRequests}
@@ -491,7 +495,7 @@ export default function MultiDayForm() {
           opacity: status.kind === 'submitting' ? 0.6 : 1,
         }}
       >
-        {status.kind === 'submitting' ? 'Sending\u2026' : 'Request quote'}
+        {status.kind === 'submitting' ? t('sending') : t('requestQuote')}
       </button>
     </form>
   )
