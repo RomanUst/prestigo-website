@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
 
@@ -159,6 +160,7 @@ function TimeCell({ value, isSelected, onSelect, scrollIntoView, disabled }: Tim
 }
 
 export default function Step2DateTime() {
+  const t = useTranslations('Booking.step2')
   const tripType = useBookingStore((s) => s.tripType)
   const pickupDate = useBookingStore((s) => s.pickupDate)
   const pickupTime = useBookingStore((s) => s.pickupTime)
@@ -272,7 +274,7 @@ export default function Step2DateTime() {
         <div className="md:w-[60%] w-full">
           {/* Pickup date label */}
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            PICKUP DATE
+            {t('pickupDateLabel')}
           </span>
 
           {/* Pickup date picker */}
@@ -299,24 +301,26 @@ export default function Step2DateTime() {
               lineHeight: 1.6,
             }}
           >
-            Online bookings require at least {MIN_LEAD_HOURS} hours advance notice.
-            For urgent or same-day transfers, message us on{' '}
-            <a
-              href="https://wa.me/420725986855?text=Hello%20PRESTIGO%2C%20I%20need%20an%20urgent%20transfer."
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: '#25D366', textDecoration: 'underline', textUnderlineOffset: 3 }}
-            >
-              WhatsApp
-            </a>
-            .
+            {t.rich('leadTimeNotice', {
+              hours: MIN_LEAD_HOURS,
+              wa: (chunks) => (
+                <a
+                  href="https://wa.me/420725986855?text=Hello%20PRESTIGO%2C%20I%20need%20an%20urgent%20transfer."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#25D366', textDecoration: 'underline', textUnderlineOffset: 3 }}
+                >
+                  {chunks}
+                </a>
+              ),
+            })}
           </p>
 
           {/* Return date — Daily Hire only */}
           {tripType === 'daily' && (
             <div style={{ marginTop: 32 }}>
               <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-                RETURN DATE
+                {t('returnDateLabel')}
               </span>
               <DayPicker
                 mode="single"
@@ -333,7 +337,7 @@ export default function Step2DateTime() {
         {/* Right: Time section (~40% on desktop) — hour + minute columns */}
         <div className="md:w-[40%] w-full">
           <span className="label" style={{ display: 'block', marginBottom: 12 }}>
-            PICKUP TIME
+            {t('pickupTimeLabel')}
           </span>
 
           {pickupDate ? (
@@ -349,11 +353,11 @@ export default function Step2DateTime() {
                     color: 'var(--warmgrey)',
                   }}
                 >
-                  HOUR
+                  {t('hourLabel')}
                 </span>
                 <ul
                   role="listbox"
-                  aria-label="Pickup hour"
+                  aria-label={t('hourAria')}
                   style={{
                     maxHeight: 240,
                     overflowY: 'auto',
@@ -386,11 +390,11 @@ export default function Step2DateTime() {
                     color: 'var(--warmgrey)',
                   }}
                 >
-                  MIN
+                  {t('minuteLabel')}
                 </span>
                 <ul
                   role="listbox"
-                  aria-label="Pickup minute"
+                  aria-label={t('minuteAria')}
                   style={{
                     maxHeight: 240,
                     overflowY: 'auto',
@@ -423,7 +427,7 @@ export default function Step2DateTime() {
                 letterSpacing: '0.03em',
               }}
             >
-              Select a pickup date to continue
+              {t('selectDatePrompt')}
             </p>
           )}
         </div>

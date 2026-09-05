@@ -31,6 +31,30 @@
       "returnTimeRequired": "Return time is required for a round trip.",
       "returnAfterPickup": "Return must be after pickup."
     },
+    "step1": {
+      "pickupLabel": "PICKUP LOCATION",
+      "pickupPlaceholder": "Enter pickup address",
+      "pickupAria": "Pickup location",
+      "swapAria": "Swap origin and destination",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Enter destination",
+      "destinationAria": "Destination",
+      "passengersLabel": "PASSENGERS",
+      "luggageLabel": "LUGGAGE",
+      "continue": "Continue",
+      "stopsIncomplete": "Please complete or remove all intermediate stops."
+    },
+    "step2": {
+      "pickupDateLabel": "PICKUP DATE",
+      "leadTimeNotice": "Online bookings require at least {hours} hours advance notice. For urgent or same-day transfers, message us on <wa>WhatsApp</wa>.",
+      "returnDateLabel": "RETURN DATE",
+      "pickupTimeLabel": "PICKUP TIME",
+      "hourLabel": "HOUR",
+      "minuteLabel": "MIN",
+      "hourAria": "Pickup hour",
+      "minuteAria": "Pickup minute",
+      "selectDatePrompt": "Select a pickup date to continue"
+    },
     "tripTypeTabs": {
       "ariaLabel": "Trip type",
       "items": ["TRANSFER", "HOURLY", "MULTI-DAY"]
