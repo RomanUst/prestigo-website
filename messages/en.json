@@ -63,7 +63,7 @@
       "aria": "Route map from {origin} to {destination}"
     },
     "progressBar": {
-      "aria": "Booking progress: Step {step} of {total}"
+      "aria": "Booking progress: Step {step} of 5"
     },
     "stepper": {
       "decreaseAria": "Decrease {label}",

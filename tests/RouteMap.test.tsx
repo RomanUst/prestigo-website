@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import type { PlaceResult } from '@/types/booking'
 import RouteMap from '@/components/booking/RouteMap'
 

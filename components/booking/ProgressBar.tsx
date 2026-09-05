@@ -15,7 +15,7 @@ export default function ProgressBar({ currentStep, completedSteps, totalSteps }:
     <div
       className="flex items-center"
       style={{ padding: '24px 0' }}
-      aria-label={t('aria', { step: currentStep, total: totalSteps })}
+      aria-label={t('aria', { step: currentStep })}
       role="navigation"
     >
       {Array.from({ length: totalSteps }, (_, i) => {

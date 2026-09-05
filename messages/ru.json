@@ -30,6 +30,44 @@
       "returnDateRequired": "Return date is required for a round trip.",
       "returnTimeRequired": "Return time is required for a round trip.",
       "returnAfterPickup": "Return must be after pickup."
+    },
+    "tripTypeTabs": {
+      "ariaLabel": "Trip type",
+      "items": ["TRANSFER", "HOURLY", "MULTI-DAY"]
+    },
+    "addressInput": {
+      "clearAddress": "Clear address",
+      "airportAutoSet": "Auto-set for airport transfers.",
+      "noResults": "No results. Try a different address."
+    },
+    "durationSelector": {
+      "label": "DURATION",
+      "ariaLabel": "Duration",
+      "hourOption": "{hours}h"
+    },
+    "stopList": {
+      "addStop": "Add stop"
+    },
+    "stopItem": {
+      "stopLabel": "STOP {number}",
+      "removeStop": "Remove stop",
+      "addressPlaceholder": "Enter stop address",
+      "addressAria": "Stop {number} address",
+      "waitTimeLabel": "WAIT TIME",
+      "waitTimeAria": "Wait time",
+      "noWait": "No wait",
+      "minutes": "{count} min"
+    },
+    "routeMap": {
+      "empty": "Route unavailable — you can still select a vehicle class.",
+      "aria": "Route map from {origin} to {destination}"
+    },
+    "progressBar": {
+      "aria": "Booking progress: Step {step} of 5"
+    },
+    "stepper": {
+      "decreaseAria": "Decrease {label}",
+      "increaseAria": "Increase {label}"
     }
   },
   "Nav": {

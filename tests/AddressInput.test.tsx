@@ -1,4 +1,10 @@
 import { describe, it } from 'vitest'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
+
+// Pattern F: this suite is still it.todo scaffolding — when these cases are
+// implemented they must mount AddressInput (a next-intl consumer) via
+// renderWithIntl, not the bare render, or useTranslations will throw.
+void render
 
 describe('AddressInput', () => {
   describe('STEP1-02: Google Places Autocomplete', () => {
