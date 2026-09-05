@@ -93,6 +93,49 @@
       "selectAClass": "SELECT A CLASS",
       "selectClassAria": "Select {className} class — €{price}",
       "srClassTrip": "{className} — {tripType} transfer"
+    },
+    "vehicleCard": {
+      "alt": "Prestigo {className}",
+      "oneWay": "{price} one way"
+    },
+    "step3vehicle": {
+      "heading": "Choose your vehicle",
+      "pricingUnavailable": "Pricing unavailable. Your selection has been saved — continue to request a quote.",
+      "whatsIncluded": "What’s included in every ride",
+      "from": "From",
+      "to": "To",
+      "date": "Date",
+      "time": "Time",
+      "pickupLocationLabel": "PICKUP LOCATION",
+      "pickupLocationPlaceholder": "Enter pickup address",
+      "pickupLocationAria": "Pickup location",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Enter destination",
+      "destinationAria": "Destination",
+      "dateLabel": "DATE",
+      "timeLabel": "TIME",
+      "returnDateLabel": "RETURN DATE",
+      "returnTimeLabel": "RETURN TIME",
+      "returnTimeAria": "Return time",
+      "selectReturnTime": "Select return time",
+      "addReturnJourney": "Add return journey",
+      "returnAfterPickup": "Return must be after pickup",
+      "updateSearch": "Update search",
+      "cancel": "Cancel",
+      "included": {
+        "fixedPriceLabel": "Fixed price",
+        "fixedPriceSub": "Guaranteed at booking",
+        "phoneChargingLabel": "Phone charging",
+        "phoneChargingSub": "USB-A & USB-C in every vehicle",
+        "freeWaitingLabel": "60 min free waiting",
+        "freeWaitingSub": "Airport transfers included",
+        "wifiLabel": "Wi-Fi",
+        "wifiSub": "Complimentary on board",
+        "waterLabel": "Water on board",
+        "waterSub": "Still & sparkling",
+        "meetGreetLabel": "Meet & greet",
+        "meetGreetSub": "Name board at arrivals"
+      }
     }
   },
   "Nav": {
