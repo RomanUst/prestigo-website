@@ -68,6 +68,31 @@
     "stepper": {
       "decreaseAria": "Decrease {label}",
       "increaseAria": "Increase {label}"
+    },
+    "vehicleClasses": {
+      "business": { "label": "Business" },
+      "firstClass": { "label": "First Class" },
+      "businessVan": { "label": "Business Van" }
+    },
+    "vehicleSlideshow": {
+      "slideshowAria": "{className} interior slideshow",
+      "prevSlide": "Previous slide",
+      "nextSlide": "Next slide",
+      "caption": "{className} interior"
+    },
+    "stickyPanel": {
+      "pickUp": "Pick up",
+      "estDropoff": "Est. drop-off",
+      "noClassSelected": "No class selected",
+      "outbound": "Outbound",
+      "return": "Return",
+      "combined": "Combined",
+      "bothLegsIncluded": "Both legs · all fees included",
+      "allFeesIncluded": "All fees included",
+      "selectClass": "SELECT {className}",
+      "selectAClass": "SELECT A CLASS",
+      "selectClassAria": "Select {className} class — €{price}",
+      "srClassTrip": "{className} — {tripType} transfer"
     }
   },
   "Nav": {

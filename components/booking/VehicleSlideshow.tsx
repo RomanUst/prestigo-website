@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import type { VehicleClass } from '@/types/booking'
+import { useTranslations } from 'next-intl'
+import { VEHICLE_CLASS_KEY, type VehicleClass } from '@/types/booking'
 
 // ---------------------------------------------------------------------------
 // Slide manifest — interior/luggage images per class (from plan 59-01)
@@ -22,12 +23,6 @@ const SLIDES_BY_CLASS: Record<string, { src: string; alt: string }[]> = {
   ],
 }
 
-const CLASS_LABELS: Record<string, string> = {
-  business: 'Business',
-  first_class: 'First Class',
-  business_van: 'Business Van',
-}
-
 // Check prefers-reduced-motion synchronously (safe: runs only client-side in useEffect)
 function checkReducedMotion(): boolean {
   if (typeof window === 'undefined' || !window.matchMedia) return false
@@ -39,6 +34,7 @@ interface VehicleSlideshowProps {
 }
 
 export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps = {}) {
+  const t = useTranslations('Booking')
   const resolvedClass = activeClass ?? 'business'
   const slides = SLIDES_BY_CLASS[resolvedClass] ?? SLIDES_BY_CLASS.business
 
@@ -81,7 +77,7 @@ export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps 
     setActiveIndex((prev) => (prev + 1) % slides.length)
   }
 
-  const classLabel = CLASS_LABELS[resolvedClass] ?? resolvedClass
+  const classLabel = t(`vehicleClasses.${VEHICLE_CLASS_KEY[resolvedClass]}.label`)
   // Derive for rendering transition (no state needed — check each render)
   const reducedMotionRender =
     typeof window !== 'undefined' && window.matchMedia
@@ -104,7 +100,7 @@ export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps 
           borderRadius: 4,
           background: 'var(--anthracite-mid)',
         }}
-        aria-label={`${classLabel} interior slideshow`}
+        aria-label={t('vehicleSlideshow.slideshowAria', { className: classLabel })}
         aria-live="polite"
       >
         {/* All slides rendered; only the active one is visible */}
@@ -136,7 +132,7 @@ export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps 
         {/* Prev button — 32px hit area, copper, aria-labelled */}
         <button
           type="button"
-          aria-label="Previous slide"
+          aria-label={t('vehicleSlideshow.prevSlide')}
           onClick={handlePrev}
           style={{
             position: 'absolute',
@@ -164,7 +160,7 @@ export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps 
         {/* Next button — 32px hit area, copper, aria-labelled */}
         <button
           type="button"
-          aria-label="Next slide"
+          aria-label={t('vehicleSlideshow.nextSlide')}
           onClick={handleNext}
           style={{
             position: 'absolute',
@@ -229,7 +225,7 @@ export default function VehicleSlideshow({ activeClass }: VehicleSlideshowProps 
           textAlign: 'center',
         }}
       >
-        {classLabel} interior
+        {t('vehicleSlideshow.caption', { className: classLabel })}
       </p>
     </div>
   )

@@ -1,19 +1,12 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { computeExtrasTotal } from '@/lib/extras'
 import RouteMap from '@/components/booking/RouteMap'
 import { estimateTravelMinutes } from '@/lib/travel-time'
-
-// ---------------------------------------------------------------------------
-// Vehicle class labels for CTA copy
-// ---------------------------------------------------------------------------
-const VEHICLE_LABELS: Record<string, string> = {
-  business: 'Business',
-  first_class: 'First Class',
-  business_van: 'Business Van',
-}
+import { VEHICLE_CLASS_KEY } from '@/types/booking'
 
 // ---------------------------------------------------------------------------
 // GA4 push helper — mirrors BookingWizard.tsx pattern
@@ -60,6 +53,7 @@ function fmtDate(iso: string): string {
 }
 
 export default function StickyBookingPanel() {
+  const t = useTranslations('Booking')
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const roundTripPriceBreakdown = useBookingStore((s) => s.roundTripPriceBreakdown)
@@ -92,14 +86,19 @@ export default function StickyBookingPanel() {
       ? outboundWithExtras + selectedReturnLegPrice.total
       : null
 
+  // Class display label — resolved from the single-source catalog (Booking.vehicleClasses)
+  const classLabel = vehicleClass
+    ? t(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`)
+    : ''
+
   // CTA label
   const ctaLabel = vehicleClass
-    ? `SELECT ${VEHICLE_LABELS[vehicleClass]?.toUpperCase() ?? vehicleClass.toUpperCase()}`
-    : 'SELECT A CLASS'
+    ? t('stickyPanel.selectClass', { className: classLabel.toUpperCase() })
+    : t('stickyPanel.selectAClass')
 
-  // Aria label for CTA including price
+  // Aria label for CTA including price (named-ICU)
   const ctaAriaLabel = vehicleClass && selectedPrice
-    ? `Select ${VEHICLE_LABELS[vehicleClass] ?? vehicleClass} class — €${selectedPrice.base}`
+    ? t('stickyPanel.selectClassAria', { className: classLabel, price: selectedPrice.base })
     : ctaLabel
 
   // ---------------------------------------------------------------------------
@@ -132,7 +131,7 @@ export default function StickyBookingPanel() {
     const items = [
       {
         item_id: currentVehicleClass,
-        item_name: VEHICLE_LABELS[currentVehicleClass] ?? currentVehicleClass,
+        item_name: t(`vehicleClasses.${VEHICLE_CLASS_KEY[currentVehicleClass]}.label`),
         item_category: s.tripType ?? 'transfer',
         item_variant: s.tripType ?? 'transfer',
         price: totalEur,
@@ -178,12 +177,12 @@ export default function StickyBookingPanel() {
           <div style={{ height: 1, background: 'var(--anthracite-light)', margin: '16px 0' }} />
           <div style={{ display: 'flex', gap: 0, flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Pick up</span>
+              <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>{t('stickyPanel.pickUp')}</span>
               <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{fmt24to12(pickupTime)}</span>
             </div>
             {estDropoff(pickupTime, distanceKm, durationMin) && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Est. drop-off</span>
+                <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>{t('stickyPanel.estDropoff')}</span>
                 <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 12, fontWeight: 500, color: 'var(--offwhite)' }}>{estDropoff(pickupTime, distanceKm, durationMin)}</span>
               </div>
             )}
@@ -215,28 +214,28 @@ export default function StickyBookingPanel() {
           marginBottom: 8,
         }}
       >
-        {vehicleClass ? VEHICLE_LABELS[vehicleClass] ?? vehicleClass : 'No class selected'}
+        {vehicleClass ? classLabel : t('stickyPanel.noClassSelected')}
       </p>
 
       {/* Price — round-trip two-leg breakdown or one-way single price */}
       {isRoundTripMode && combinedTotal !== null && selectedReturnLegPrice ? (
         <div style={{ marginBottom: 16 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
-            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>Outbound</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>{t('stickyPanel.outbound')}</span>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--offwhite)' }}>&euro;{outboundWithExtras}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--warmgrey)' }}>
-              Return <span style={{ color: 'var(--copper)', letterSpacing: '0.08em', marginLeft: 4 }}>&minus;{returnDiscountPercent}%</span>
+              {t('stickyPanel.return')} <span style={{ color: 'var(--copper)', letterSpacing: '0.08em', marginLeft: 4 }}>&minus;{returnDiscountPercent}%</span>
             </span>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 13, color: 'var(--offwhite)' }}>&euro;{selectedReturnLegPrice.total}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingTop: 8, borderTop: '1px solid var(--anthracite-light)' }}>
-            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--copper)' }}>Combined</span>
+            <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 9, letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--copper)' }}>{t('stickyPanel.combined')}</span>
             <span style={{ fontFamily: 'var(--font-montserrat)', fontSize: 20, fontWeight: 600, color: 'var(--copper)' }}>&euro;{combinedTotal}</span>
           </div>
           <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: 11, fontWeight: 400, color: 'var(--warmgrey)', marginTop: 8 }}>
-            Both legs · all fees included
+            {t('stickyPanel.bothLegsIncluded')}
           </p>
         </div>
       ) : (
@@ -266,7 +265,7 @@ export default function StickyBookingPanel() {
               marginBottom: 16,
             }}
           >
-            All fees included
+            {t('stickyPanel.allFeesIncluded')}
           </p>
         </>
       )}
@@ -292,7 +291,7 @@ export default function StickyBookingPanel() {
       {/* Hidden accessibility text for trip type context */}
       {vehicleClass && tripType && (
         <p className="sr-only">
-          {VEHICLE_LABELS[vehicleClass] ?? vehicleClass} — {tripType} transfer
+          {t('stickyPanel.srClassTrip', { className: classLabel, tripType })}
         </p>
       )}
     </div>
