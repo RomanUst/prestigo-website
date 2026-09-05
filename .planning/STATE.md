@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
-current_phase: 70
-current_phase_name: String Externalization — Booking & Account
-status: executing
-stopped_at: Completed 70-08-PLAN.md (final plan; Phase 70 gate green)
-last_updated: "2026-09-05T19:22:16.825Z"
+current_phase: 71
+current_phase_name: content externalization — marketing & seo pages
+status: planning
+stopped_at: Phase 70 complete, ready to plan Phase 71
+last_updated: "2026-09-05T19:47:03.063Z"
 last_activity: 2026-09-05
-last_activity_desc: Phase 70 execution started
-state_head: b8185e78afd5799b05ccce2fc1ffa52f5da96d4a
+last_activity_desc: Phase 70 complete, transitioned to Phase 71
+state_head: 0d64afc157d08bca45febc6608a6766611a3c57a
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 15
   completed_plans: 15
 ---
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 
 ## Current Position
 
-Phase: 70 (String Externalization — Booking & Account) — EXECUTING
-Plan: 7 of 8
-Status: Ready to execute
-Last activity: 2026-09-05 — Phase 70 execution started
+Phase: 71 — content externalization — marketing & seo pages
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-05 — Phase 70 complete, transitioned to Phase 71
 
 ## Accumulated Context
 
@@ -224,7 +224,7 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 ## Session Continuity
 
 Last session: 2026-09-05T19:22:16.431Z
-Stopped at: Completed 70-08-PLAN.md (final plan; Phase 70 gate green)
+Stopped at: Phase 70 complete, ready to plan Phase 71
 Resume file: None
 
 ## Performance Metrics

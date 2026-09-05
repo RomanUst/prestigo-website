@@ -19,7 +19,7 @@
 
 - [x] **Phase 68: i18n Foundation & Routing** — next-intl + `app/[locale]/` (`localePrefix: as-needed`, EN at root), 7-locale config, locale-middleware composed into existing CSP/Supabase/CSRF chain, dynamic `<html lang>`/`dir`, per-locale not-found. Public routes move under `[locale]` rendering EN only (no translation yet). Risk-first. — I18N-01/02/03/04 (completed 2026-09-03)
 - [x] **Phase 69: String Externalization — UI Chrome** — Nav, Footer, Hero, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip → `messages/en.json` + `useTranslations`; namespace conventions established. — STR-01 (completed 2026-09-04)
-- [ ] **Phase 70: String Externalization — Booking & Account** — Booking wizard/EntryBar/vehicle cards, forms, validation/error/toast, account + auth pages. — STR-02
+- [x] **Phase 70: String Externalization — Booking & Account** — Booking wizard/EntryBar/vehicle cards, forms, validation/error/toast, account + auth pages. — STR-02 (completed 2026-09-05)
 - [ ] **Phase 71: Content Externalization — Marketing & SEO Pages** — Home long-form, 8 service pages, about/faq/contact/corporate/legal, 29–30 route-page bodies, blog → `content/blog/<locale>/`. Largest content restructure (may split 71a/71b). — CNT-01/02/03
 - [ ] **Phase 72: AI Translation Pipeline & Catalogs** — Build re-runnable `scripts/i18n-translate.mjs` (glossary + do-not-translate); generate RU/ES/FR catalogs + content; QA sampling. — TR-01/02
 - [ ] **Phase 73: Non-Latin & RTL Infra (AR, HI, ZH)** — `dir="rtl"` for AR, logical-property audit + fixes (~42 files), Noto Arabic/Devanagari/SC via next/font, generate + render AR/HI/ZH, RTL visual QA. — RTL-01, FONT-01, TR-02
@@ -91,7 +91,7 @@
   3. Form validation, error, and toast messages (including interpolated and pluralized values) are externalized under the established namespace convention, reusing shared keys where the same message appears in more than one place.
   4. The rendered English site is byte-for-byte unchanged (visual + existing tests green), booking analytics (GA4/Meta/CAPI) and guest checkout are unaffected, and non-EN locales still render English booking/account copy (no translations added yet) served correctly under their subpath.
 
-**Plans:** 8 plans (fully serial — every plan appends to the shared `messages/en.json` + re-syncs 6 stub catalogs, so waves cannot overlap, matching Phase 69)
+**Plans:** 8/8 plans complete
 
 **Wave 1** — tracer
 
@@ -209,7 +209,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
-| 70. String Externalization — Booking & Account | v3.0 | 8/8 | In Progress|  |
+| 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
