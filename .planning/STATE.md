@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 70
 current_phase_name: String Externalization — Booking & Account
 status: executing
-stopped_at: Phase 69 complete, ready to plan Phase 70
-last_updated: "2026-09-05T07:44:48.748Z"
-last_activity: 2026-09-04
-last_activity_desc: Phase 69 complete, transitioned to Phase 70
-state_head: 2a608f4278b09df5bd16126e6e240c5c7ca629c6
+stopped_at: Completed 70-01-PLAN.md
+last_updated: "2026-09-05T09:27:50.155Z"
+last_activity: 2026-09-05
+last_activity_desc: Phase 70 execution started
+state_head: 32d636f33f2ab7c4805137af86d1b11fa865b92b
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 15
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-02)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 69 — String Externalization — UI Chrome
+**Current focus:** Phase 70 — String Externalization — Booking & Account
 
 ## Current Position
 
-Phase: 70 (String Externalization — Booking & Account) — READY TO EXECUTE
-Plan: Not started
+Phase: 70 (String Externalization — Booking & Account) — EXECUTING
+Plan: 2 of 8
 Status: Ready to execute
-Last activity: 2026-09-04 — Phase 69 complete, transitioned to Phase 70
+Last activity: 2026-09-05 — Phase 70 execution started
 
 ## Accumulated Context
 
@@ -107,6 +107,8 @@ Recent decisions affecting current work:
 - [Phase 69]: 69-03: t.rich('priceAnchor', { amount, price: (chunks) => <span>...</span> }) preserves Hero's inline copper price span; plain {amount} ICU arg coerces via String() (no locale number formatting), matching prior template-literal output byte-for-byte
 - [Phase 69]: [Phase 69] 69-04: Fleet altTemplate interpolated via per-index t(`vehicles.${i}.altTemplate`, {model}) — next-intl dot-path array resolution, not manual .replace() string surgery
 - [Phase 69]: 69-05: Testimonials + TestimonialsCarousel share the Testimonials namespace; nested components (StarBadge, Toggle) call useTranslations directly instead of threading a t prop
+- [Phase 70]: [Phase 70] 70-01: Booking.validation seeded with shared 'required to continue' keys (originRequired/destinationRequired/dateRequired/timeRequired/returnDateRequired/returnTimeRequired/returnAfterPickup) reused across later step plans, not duplicated per-field
+- [Phase 70]: [Phase 70] 70-01: Rule 1 auto-fix — any pre-existing test mounting an already-externalized component (not just its own test file) needs the renderWithIntl migration too; surfaced on BookingWizard.test.tsx mounting EntryBar
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -214,8 +216,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-04T14:22:19.922Z
-Stopped at: Phase 69 complete, ready to plan Phase 70
+Last session: 2026-09-05T09:27:49.872Z
+Stopped at: Completed 70-01-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -259,6 +261,7 @@ Resume file: None
 | Phase 69 P03 | 22min | 2 tasks | 12 files |
 | Phase 69 P04 | 25min | 2 tasks | 9 files |
 | Phase 69 P05 | 20min | 2 tasks | 11 files |
+| Phase 70 P01 | 5min | 3 tasks | 10 files |
 
 ## Operator Next Steps
 

@@ -95,7 +95,7 @@
 
 **Wave 1** — tracer
 
-- [ ] 70-01-PLAN.md — Tracer: EntryBar externalized end-to-end (Booking.entryBar + seed Booking.validation + test migration + stub re-sync)
+- [x] 70-01-PLAN.md — Tracer: EntryBar externalized end-to-end (Booking.entryBar + seed Booking.validation + test migration + stub re-sync)
 
 **Wave 2** *(blocked on Wave 1)*
 
@@ -209,7 +209,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
-| 70. String Externalization — Booking & Account | v3.0 | 0/8 | Planned | — |
+| 70. String Externalization — Booking & Account | v3.0 | 1/8 | In Progress|  |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |

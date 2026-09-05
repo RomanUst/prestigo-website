@@ -31,7 +31,7 @@ Make the entire public site multilingual. English stays the default at the site 
 ### String Externalization
 
 - [x] **STR-01**: All UI-chrome strings (Nav, Footer, Hero, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip, etc.) are moved into message catalogs (`messages/<locale>.json`) with namespaces and consumed via `useTranslations`/`getTranslations`.
-- [ ] **STR-02**: Booking flow (wizard/EntryBar/vehicle cards), account + auth pages, forms, validation/error/toast text are fully externalized.
+- [x] **STR-02**: Booking flow (wizard/EntryBar/vehicle cards), account + auth pages, forms, validation/error/toast text are fully externalized.
 
 ### Content Externalization
 
@@ -97,7 +97,7 @@ Populated during roadmap creation (Phases 68–75).
 | I18N-03 | 68 | Complete |
 | I18N-04 | 68 | Complete |
 | STR-01 | 69 | Complete |
-| STR-02 | 70 | Pending |
+| STR-02 | 70 | Complete |
 | CNT-01 | 71 | Pending |
 | CNT-02 | 71 | Pending |
 | CNT-03 | 71 | Pending |
