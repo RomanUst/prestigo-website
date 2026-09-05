@@ -107,7 +107,7 @@
 
 **Wave 4** *(blocked on Wave 3)*
 
-- [ ] 70-04-PLAN.md — Vehicle cluster: single-source `Booking.vehicleClasses` label map + VehicleCard, VehicleSlideshow, StickyBookingPanel, Step3Vehicle, types/booking.ts
+- [x] 70-04-PLAN.md — Vehicle cluster: single-source `Booking.vehicleClasses` label map + VehicleCard, VehicleSlideshow, StickyBookingPanel, Step3Vehicle, types/booking.ts
 
 **Wave 5** *(blocked on Wave 4)*
 
@@ -209,7 +209,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
-| 70. String Externalization — Booking & Account | v3.0 | 3/8 | In Progress|  |
+| 70. String Externalization — Booking & Account | v3.0 | 4/8 | In Progress|  |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
