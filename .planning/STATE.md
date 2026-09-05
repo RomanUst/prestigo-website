@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 70
 current_phase_name: String Externalization — Booking & Account
 status: executing
-stopped_at: Completed 70-05-PLAN.md
-last_updated: "2026-09-05T14:43:33.173Z"
+stopped_at: Completed 70-07-PLAN.md
+last_updated: "2026-09-05T19:04:55.030Z"
 last_activity: 2026-09-05
 last_activity_desc: Phase 70 execution started
-state_head: d8b0098b7e55200b42e502b1ea406976c063a8ba
+state_head: 6df216fde8ba3c133a6fd20dc9ead9a3bdc8b374
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 15
-  completed_plans: 12
+  completed_plans: 14
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 ## Current Position
 
 Phase: 70 (String Externalization — Booking & Account) — EXECUTING
-Plan: 5 of 8
+Plan: 6 of 8
 Status: Ready to execute
 Last activity: 2026-09-05 — Phase 70 execution started
 
@@ -113,6 +113,8 @@ Recent decisions affecting current work:
 - [Phase 70]: 70-04: Booking.vehicleClasses is the single source of vehicle-class labels; VEHICLE_CLASS_KEY normalizes the snake_case enum to camelCase catalog keys — downstream plans reuse it, never re-add a local label map
 - [Phase 70]: 70-05: Booking.extras is a read-only mirror of lib/extras.ts (email-coupled, untouched); UI reads label/description by key
 - [Phase 70]: 70-05: vehicle-class labels in PriceSummary/BookingSummaryBlock/BookingWizard reuse Booking.vehicleClasses via VEHICLE_CLASS_KEY; GA4/Meta analytics identifiers unchanged
+- [Phase 70]: 70-07: DayCard interpolated day aria collapses to named-ICU (single dayLabel 'Day {day}' + per-variant t('key',{day}))
+- [Phase 70]: 70-07: Step3Auth (in-wizard auth, Auth.inWizard) reuses shared Auth.login + Errors keys via secondary hooks rather than duplicating byte-identical strings
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -220,8 +222,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-05T14:43:07.933Z
-Stopped at: Completed 70-05-PLAN.md
+Last session: 2026-09-05T19:04:44.876Z
+Stopped at: Completed 70-07-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -269,6 +271,7 @@ Resume file: None
 | Phase 70 P03 | 22min | 3 tasks | 24 files |
 | Phase 70 P04 | 4min | 3 tasks | 15 files |
 | Phase 70 P05 | 6min | 3 tasks | 16 files |
+| Phase 70 P07 | 20min | 3 tasks | 12 files |
 
 ## Operator Next Steps
 
