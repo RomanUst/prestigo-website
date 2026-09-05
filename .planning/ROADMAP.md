@@ -91,6 +91,40 @@
   3. Form validation, error, and toast messages (including interpolated and pluralized values) are externalized under the established namespace convention, reusing shared keys where the same message appears in more than one place.
   4. The rendered English site is byte-for-byte unchanged (visual + existing tests green), booking analytics (GA4/Meta/CAPI) and guest checkout are unaffected, and non-EN locales still render English booking/account copy (no translations added yet) served correctly under their subpath.
 
+**Plans:** 8 plans (fully serial — every plan appends to the shared `messages/en.json` + re-syncs 6 stub catalogs, so waves cannot overlap, matching Phase 69)
+
+**Wave 1** — tracer
+
+- [ ] 70-01-PLAN.md — Tracer: EntryBar externalized end-to-end (Booking.entryBar + seed Booking.validation + test migration + stub re-sync)
+
+**Wave 2** *(blocked on Wave 1)*
+
+- [ ] 70-02-PLAN.md — Auth surface + Server-Action locale-threading (Pattern E de-risk): shared Errors namespace, Auth.login/oauth, login/actions.ts `.bind(null, locale)`, new tests/login-actions.test.ts
+
+**Wave 3** *(blocked on Wave 2)*
+
+- [ ] 70-03-PLAN.md — Booking input primitives: TripTypeTabs (array split), AddressInput(+New) shared namespace, DurationSelector, StopList, StopItem, RouteMap, ProgressBar, Stepper (named-ICU aria)
+
+**Wave 4** *(blocked on Wave 3)*
+
+- [ ] 70-04-PLAN.md — Vehicle cluster: single-source `Booking.vehicleClasses` label map + VehicleCard, VehicleSlideshow, StickyBookingPanel, Step3Vehicle, types/booking.ts
+
+**Wave 5** *(blocked on Wave 4)*
+
+- [ ] 70-05-PLAN.md — Pricing/extras single-source + widget/wizard shell: PriceSummary, BookingSummaryBlock, Step4Extras (Booking.extras, lib/extras.ts untouched), BookingWidget, BookingWizard
+
+**Wave 6** *(blocked on Wave 5)*
+
+- [ ] 70-06-PLAN.md — Wizard steps: Step1TripType, Step2DateTime (t.rich lead-time notice), Step5Passenger (zod messages), Step6Payment (Stripe locale untouched)
+
+**Wave 7** *(blocked on Wave 6)*
+
+- [ ] 70-07-PLAN.md — Multi-day flow + in-wizard auth: MultiDayForm, DayCard, Step3Auth (Auth.inWizard); teaser headlines deferred to Phase 71
+
+**Wave 8** *(blocked on Wave 7 — phase gate)*
+
+- [ ] 70-08-PLAN.md — Account surface: dashboard/trips/profile Server Components, ProfileForm + account/actions.ts (reuse Errors), reset-password; runs full suite + 7-locale build + single-source grep gate — closes STR-02
+
 **UI hint**: yes
 
 </details>
@@ -175,7 +209,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
-| 70. String Externalization — Booking & Account | v3.0 | 0/? | Pending | — |
+| 70. String Externalization — Booking & Account | v3.0 | 0/8 | Planned | — |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
