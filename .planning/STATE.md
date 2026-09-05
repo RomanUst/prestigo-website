@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 70
 current_phase_name: String Externalization — Booking & Account
 status: executing
-stopped_at: Completed 70-04-PLAN.md
-last_updated: "2026-09-05T14:26:23.057Z"
+stopped_at: Completed 70-05-PLAN.md
+last_updated: "2026-09-05T14:43:33.173Z"
 last_activity: 2026-09-05
 last_activity_desc: Phase 70 execution started
-state_head: 564f93854e75d179dcdeb44372463cd129df0dc5
+state_head: d8b0098b7e55200b42e502b1ea406976c063a8ba
 progress:
   total_phases: 3
   completed_phases: 2
   total_plans: 15
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-02)
 ## Current Position
 
 Phase: 70 (String Externalization — Booking & Account) — EXECUTING
-Plan: 4 of 8
+Plan: 5 of 8
 Status: Ready to execute
 Last activity: 2026-09-05 — Phase 70 execution started
 
@@ -111,6 +111,8 @@ Recent decisions affecting current work:
 - [Phase 70]: [Phase 70] 70-01: Rule 1 auto-fix — any pre-existing test mounting an already-externalized component (not just its own test file) needs the renderWithIntl migration too; surfaced on BookingWizard.test.tsx mounting EntryBar
 - [Phase 70]: 70-03: TripTypeTabs uses Nav-style array split (t.raw('items') index-paired); ProgressBar aria kept byte-identical 'of 5' to preserve BookingWizard WIZD-07
 - [Phase 70]: 70-04: Booking.vehicleClasses is the single source of vehicle-class labels; VEHICLE_CLASS_KEY normalizes the snake_case enum to camelCase catalog keys — downstream plans reuse it, never re-add a local label map
+- [Phase 70]: 70-05: Booking.extras is a read-only mirror of lib/extras.ts (email-coupled, untouched); UI reads label/description by key
+- [Phase 70]: 70-05: vehicle-class labels in PriceSummary/BookingSummaryBlock/BookingWizard reuse Booking.vehicleClasses via VEHICLE_CLASS_KEY; GA4/Meta analytics identifiers unchanged
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -218,8 +220,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-05T14:26:13.466Z
-Stopped at: Completed 70-04-PLAN.md
+Last session: 2026-09-05T14:43:07.933Z
+Stopped at: Completed 70-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -266,6 +268,7 @@ Resume file: None
 | Phase 70 P01 | 5min | 3 tasks | 10 files |
 | Phase 70 P03 | 22min | 3 tasks | 24 files |
 | Phase 70 P04 | 4min | 3 tasks | 15 files |
+| Phase 70 P05 | 6min | 3 tasks | 16 files |
 
 ## Operator Next Steps
 
