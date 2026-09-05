@@ -1,21 +1,16 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CheckCircle2 } from 'lucide-react'
 import { useBookingStore } from '@/lib/booking-store'
 import { computeExtrasTotal } from '@/lib/extras'
-import { isAirportPlace } from '@/types/booking'
+import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import BookingSummaryBlock from '../BookingSummaryBlock'
-
-const VEHICLE_LABELS_FOR_ANALYTICS: Record<string, string> = {
-  business: 'Business',
-  first_class: 'First Class',
-  business_van: 'Business Van',
-}
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -74,6 +69,7 @@ function PaymentForm({
   returnBookingRef,
   analyticsItems,
 }: PaymentFormProps) {
+  const t = useTranslations('Booking.step6')
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -81,9 +77,11 @@ function PaymentForm({
   const [elementError, setElementError] = useState<string | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const payLabel = selectedCurrency === 'czk'
-    ? `PAY ${formatCZK(eurToCzk(totalEur))}`
-    : `PAY ${formatEUR(totalEur)}`
+  const payLabel = t('payAmount', {
+    amount: selectedCurrency === 'czk'
+      ? formatCZK(eurToCzk(totalEur))
+      : formatEUR(totalEur),
+  })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -121,8 +119,8 @@ function PaymentForm({
     if (error) {
       setErrorMessage(
         error.message
-          ? `Payment unsuccessful. ${error.message}. Please check your details and try again.`
-          : 'Something went wrong. Your booking details are saved — please try again.'
+          ? t('paymentUnsuccessful', { message: error.message })
+          : t('paymentGenericError')
       )
       setIsProcessing(false)
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
@@ -137,7 +135,7 @@ function PaymentForm({
       <PaymentElement
         options={{ layout: 'tabs', paymentMethodOrder: ['apple_pay', 'google_pay', 'card'], wallets: { applePay: 'auto', googlePay: 'auto' } }}
         onReady={() => setElementReady(true)}
-        onLoadError={(e) => setElementError((e as { error?: { message?: string } })?.error?.message ?? 'Payment form failed to load. Please refresh and try again.')}
+        onLoadError={(e) => setElementError((e as { error?: { message?: string } })?.error?.message ?? t('paymentFormLoadError'))}
       />
 
       {elementError && (
@@ -181,13 +179,15 @@ function PaymentForm({
           ...(isDisabled ? { opacity: 0.4, cursor: 'not-allowed' } : {}),
         }}
       >
-        {!elementReady && !elementError ? 'Loading...' : payLabel}
+        {!elementReady && !elementError ? t('loading') : payLabel}
       </button>
     </form>
   )
 }
 
 export default function Step6Payment() {
+  const t = useTranslations('Booking.step6')
+  const tb = useTranslations('Booking')
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const extras = useBookingStore((s) => s.extras)
@@ -250,15 +250,15 @@ export default function Step6Payment() {
       {
         item_id: vehicleClass ?? 'transfer',
         item_name:
-          (vehicleClass && VEHICLE_LABELS_FOR_ANALYTICS[vehicleClass]) ||
-          'Chauffeur Transfer',
+          (vehicleClass && tb(`vehicleClasses.${VEHICLE_CLASS_KEY[vehicleClass]}.label`)) ||
+          t('chauffeurTransfer'),
         item_category: tripType ?? 'transfer',
         item_variant: tripType ?? 'transfer',
         price: discountedTotalEur,
         quantity: 1,
       },
     ],
-    [vehicleClass, tripType, discountedTotalEur]
+    [vehicleClass, tripType, discountedTotalEur, tb, t]
   )
 
   const handleApplyPromo = async () => {
@@ -274,12 +274,12 @@ export default function Step6Payment() {
         setPromoDiscount(data.discountPct)
         setPromoError(null)
       } else {
-        setPromoError(data.error || 'Invalid code.')
+        setPromoError(data.error || t('promoInvalid'))
         setPromoCode(null)
         setPromoDiscount(0)
       }
     } catch {
-      setPromoError('Something went wrong. Please try again.')
+      setPromoError(t('promoGenericError'))
     } finally {
       setPromoLoading(false)
     }
@@ -351,7 +351,7 @@ export default function Step6Payment() {
         const data = await res.json()
         if (!res.ok || data.error) {
           console.error('create-payment-intent error:', data.error)
-          setPaymentError(data.error || 'Failed to initialise payment')
+          setPaymentError(data.error || t('paymentInitFailed'))
           return
         }
         setClientSecret(data.clientSecret)
@@ -359,7 +359,7 @@ export default function Step6Payment() {
         setReturnBookingRef(data.returnBookingReference || '')
       } catch (err) {
         console.error('create-payment-intent fetch error:', err)
-        setPaymentError('Network error — please refresh and try again')
+        setPaymentError(t('networkError'))
       }
     }
 
@@ -425,7 +425,7 @@ export default function Step6Payment() {
                 textDecoration: 'underline',
                 letterSpacing: '0.08em',
               }}
-            >Remove</button>
+            >{t('remove')}</button>
           </div>
         ) : (
           /* Input state */
@@ -434,7 +434,7 @@ export default function Step6Payment() {
               type="text"
               value={promoInput}
               onChange={(e) => setPromoInput(e.target.value.toUpperCase())}
-              placeholder="Enter code"
+              placeholder={t('promoPlaceholder')}
               style={{
                 flex: 1,
                 backgroundColor: '#17293B',
@@ -470,7 +470,7 @@ export default function Step6Payment() {
                 whiteSpace: 'nowrap',
               }}
             >
-              {promoLoading ? '...' : 'Apply Code'}
+              {promoLoading ? '...' : t('applyCode')}
             </button>
           </div>
         )}
@@ -528,7 +528,7 @@ export default function Step6Payment() {
                 transition: 'border-color 0.2s ease, color 0.2s ease',
               }}
             >
-              {cur === 'eur' ? 'EUR — €' : 'CZK — Kč'}
+              {cur === 'eur' ? t('eurLabel') : t('czkLabel')}
             </button>
           ))}
         </div>
