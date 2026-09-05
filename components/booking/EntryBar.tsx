@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInput from '@/components/booking/AddressInput'
 import DurationSelector from '@/components/booking/DurationSelector'
@@ -31,6 +32,8 @@ function isSlotDisabled(slot24h: string, pickupDateStr: string | null): boolean 
 }
 
 export default function EntryBar() {
+  const t = useTranslations('Booking.entryBar')
+  const tv = useTranslations('Booking.validation')
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -84,14 +87,14 @@ export default function EntryBar() {
   // ─── Validation ───────────────────────────────────────────────────────────
   function validate(): Record<string, string> {
     const errs: Record<string, string> = {}
-    if (!origin) errs.origin = 'Pickup location is required to continue.'
-    if (tripType !== 'hourly' && !destination) errs.destination = 'Destination is required to continue.'
-    if (!pickupDate) errs.date = 'Date is required to continue.'
-    if (!pickupTime) errs.time = 'Time is required to continue.'
+    if (!origin) errs.origin = tv('originRequired')
+    if (tripType !== 'hourly' && !destination) errs.destination = tv('destinationRequired')
+    if (!pickupDate) errs.date = tv('dateRequired')
+    if (!pickupTime) errs.time = tv('timeRequired')
     // Round trip: a return leg must be fully specified and after the outbound.
     if (showReturn && tripType !== 'hourly') {
-      if (!returnDate) errs.returnDate = 'Return date is required for a round trip.'
-      if (!returnTime) errs.returnTime = 'Return time is required for a round trip.'
+      if (!returnDate) errs.returnDate = tv('returnDateRequired')
+      if (!returnTime) errs.returnTime = tv('returnTimeRequired')
       if (
         returnDate &&
         returnTime &&
@@ -99,7 +102,7 @@ export default function EntryBar() {
         pickupTime &&
         `${returnDate}T${returnTime}` <= `${pickupDate}T${pickupTime}`
       ) {
-        errs.returnTime = 'Return must be after pickup.'
+        errs.returnTime = tv('returnAfterPickup')
       }
     }
     return errs
@@ -180,7 +183,7 @@ export default function EntryBar() {
             fontFamily: 'var(--font-montserrat)',
           }}
         >
-          Please fill in all required fields before continuing.
+          {t('validationSummary')}
         </p>
       )}
 
@@ -207,17 +210,17 @@ export default function EntryBar() {
               textTransform: 'uppercase',
             }}
           >
-            PICKUP LOCATION
+            {t('pickupLocationLabel')}
           </label>
           <AddressInput
             label=""
-            placeholder="Enter pickup address"
+            placeholder={t('pickupPlaceholder')}
             value={origin}
             onSelect={handleOriginSelect}
             onClear={handleOriginClear}
             hasError={!!errors.origin}
             errorMessage={errors.origin}
-            ariaLabel="Pickup location"
+            ariaLabel={t('pickupAriaLabel')}
           />
         </div>
 
@@ -235,20 +238,20 @@ export default function EntryBar() {
               textTransform: 'uppercase',
             }}
           >
-            DESTINATION
+            {t('destinationLabel')}
           </label>
           {tripType === 'hourly' ? (
             <DurationSelector />
           ) : (
             <AddressInput
               label=""
-              placeholder="Enter destination"
+              placeholder={t('destinationPlaceholder')}
               value={destination}
               onSelect={handleDestinationSelect}
               onClear={handleDestinationClear}
               hasError={!!errors.destination}
               errorMessage={errors.destination}
-              ariaLabel="Destination"
+              ariaLabel={t('destinationAriaLabel')}
             />
           )}
         </div>
@@ -268,7 +271,7 @@ export default function EntryBar() {
               textTransform: 'uppercase',
             }}
           >
-            DATE
+            {t('dateLabel')}
           </label>
           <input
             id="entry-bar-date"
@@ -307,11 +310,11 @@ export default function EntryBar() {
               textTransform: 'uppercase',
             }}
           >
-            TIME
+            {t('timeLabel')}
           </label>
           <select
             id="entry-bar-time"
-            aria-label="Time"
+            aria-label={t('timeAriaLabel')}
             value={pickupTime ?? ''}
             onChange={(e) => {
               const val = e.target.value
@@ -337,7 +340,7 @@ export default function EntryBar() {
               boxSizing: 'border-box',
             }}
           >
-            <option value="">Choose a slot</option>
+            <option value="">{t('chooseSlot')}</option>
             {TIME_SLOTS_AMPM.map((slot) => {
               const disabled = isSlotDisabled(slot.value24h, pickupDate)
               return (
@@ -369,15 +372,15 @@ export default function EntryBar() {
                 textTransform: 'uppercase',
               }}
             >
-              FLIGHT NUMBER (optional)
+              {t('flightNumberLabel')}
             </label>
             <input
               id="entry-bar-flight"
               type="text"
-              placeholder="e.g. BA 256"
+              placeholder={t('flightNumberPlaceholder')}
               value={flightNumber}
               onChange={(e) => setFlightNumber(e.target.value)}
-              aria-label="Flight number"
+              aria-label={t('flightNumberAriaLabel')}
               style={{
                 width: '100%',
                 padding: '10px 12px',
@@ -425,7 +428,7 @@ export default function EntryBar() {
               cursor: 'pointer',
             }}
           >
-            Add return journey
+            {t('addReturnJourney')}
           </label>
         </div>
       )}
@@ -465,7 +468,7 @@ export default function EntryBar() {
                   textTransform: 'uppercase',
                 }}
               >
-                RETURN DATE
+                {t('returnDateLabel')}
               </label>
               <input
                 id="entry-bar-return-date"
@@ -505,11 +508,11 @@ export default function EntryBar() {
                   textTransform: 'uppercase',
                 }}
               >
-                RETURN TIME
+                {t('returnTimeLabel')}
               </label>
               <select
                 id="entry-bar-return-time"
-                aria-label="Return time"
+                aria-label={t('returnTimeAriaLabel')}
                 value={returnTime ?? ''}
                 onChange={(e) => {
                   setReturnTime(e.target.value || null)
@@ -530,7 +533,7 @@ export default function EntryBar() {
                   boxSizing: 'border-box',
                 }}
               >
-                <option value="">Select return time</option>
+                <option value="">{t('selectReturnTime')}</option>
                 {TIME_SLOTS_AMPM.map((slot) => (
                   <option key={slot.value24h} value={slot.value24h}>
                     {slot.display}
@@ -571,7 +574,7 @@ export default function EntryBar() {
             textTransform: 'uppercase',
           }}
         >
-          View vehicles
+          {t('viewVehicles')}
         </button>
       </div>
     </div>
