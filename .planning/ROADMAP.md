@@ -115,7 +115,7 @@
 
 **Wave 6** *(blocked on Wave 5)*
 
-- [ ] 70-06-PLAN.md — Wizard steps: Step1TripType, Step2DateTime (t.rich lead-time notice), Step5Passenger (zod messages), Step6Payment (Stripe locale untouched)
+- [x] 70-06-PLAN.md — Wizard steps: Step1TripType, Step2DateTime (t.rich lead-time notice), Step5Passenger (zod messages), Step6Payment (Stripe locale untouched)
 
 **Wave 7** *(blocked on Wave 6)*
 
@@ -209,7 +209,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 67. Driver Trip Portal — Status Marking, Notes & Admin Visibility | v2.2 | 2/2 | Complete | 2026-09-02 |
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
-| 70. String Externalization — Booking & Account | v3.0 | 5/8 | In Progress|  |
+| 70. String Externalization — Booking & Account | v3.0 | 6/8 | In Progress|  |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 0/? | Pending | — |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
