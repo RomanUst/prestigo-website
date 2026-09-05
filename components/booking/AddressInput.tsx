@@ -308,12 +308,12 @@ export default function AddressInput({
   }
 
   const PLACE_TYPE_LABELS: Record<string, string> = {
-    airport: 'AIRPORT',
-    international_airport: 'AIRPORT',
-    lodging: 'HOTEL',
-    hotel: 'HOTEL',
-    train_station: 'TRAIN',
-    transit_station: 'TRANSIT',
+    airport: 'typeAirport',
+    international_airport: 'typeAirport',
+    lodging: 'typeHotel',
+    hotel: 'typeHotel',
+    train_station: 'typeTrain',
+    transit_station: 'typeTransit',
   }
 
   return (
@@ -477,7 +477,7 @@ export default function AddressInput({
                       flexShrink: 0,
                     }}
                   >
-                    {placeType.replace(/_/g, ' ')}
+                    {t(placeType)}
                   </span>
                 )}
               </li>

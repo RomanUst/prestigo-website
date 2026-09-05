@@ -385,19 +385,19 @@ export default function AddressInputNew({
               // Show a badge only for meaningful place types (airport / hotel).
               // types[0] is often a generic "point_of_interest" — scan the full array.
               const PLACE_TYPE_LABELS: Record<string, string> = {
-                airport: 'AIRPORT',
-                international_airport: 'AIRPORT',
-                lodging: 'HOTEL',
-                hotel: 'HOTEL',
-                extended_stay_hotel: 'HOTEL',
-                inn: 'HOTEL',
-                train_station: 'TRAIN',
-                transit_station: 'TRANSIT',
-                tourist_attraction: 'ATTRACTION',
-                point_of_interest: 'ATTRACTION',
+                airport: 'typeAirport',
+                international_airport: 'typeAirport',
+                lodging: 'typeHotel',
+                hotel: 'typeHotel',
+                extended_stay_hotel: 'typeHotel',
+                inn: 'typeHotel',
+                train_station: 'typeTrain',
+                transit_station: 'typeTransit',
+                tourist_attraction: 'typeAttraction',
+                point_of_interest: 'typeAttraction',
               }
-              const placeType = types?.reduce<string | undefined>((found, t) => {
-                return found ?? PLACE_TYPE_LABELS[t]
+              const placeType = types?.reduce<string | undefined>((found, pt) => {
+                return found ?? PLACE_TYPE_LABELS[pt]
               }, undefined)
 
               // Highlight matched substrings in main_text with copper.
@@ -500,7 +500,7 @@ export default function AddressInputNew({
                         flexShrink: 0,
                       }}
                     >
-                      {placeType.replace(/_/g, ' ')}
+                      {t(placeType)}
                     </span>
                   )}
                 </li>

@@ -119,7 +119,12 @@
     "addressInput": {
       "clearAddress": "Clear address",
       "airportAutoSet": "Auto-set for airport transfers.",
-      "noResults": "No results. Try a different address."
+      "noResults": "No results. Try a different address.",
+      "typeAirport": "AIRPORT",
+      "typeHotel": "HOTEL",
+      "typeTrain": "TRAIN",
+      "typeTransit": "TRANSIT",
+      "typeAttraction": "ATTRACTION"
     },
     "durationSelector": {
       "label": "DURATION",
