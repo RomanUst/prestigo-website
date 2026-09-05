@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { screen, fireEvent, waitFor, act } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import type { FlightCheckResult } from '@/types/booking'
 
 // Step5Passenger builds a Supabase browser client at render (createBrowserClient
