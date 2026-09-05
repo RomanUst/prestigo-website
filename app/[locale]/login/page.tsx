@@ -2,6 +2,7 @@
 
 import { Suspense, useActionState, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useLocale } from 'next-intl'
 import OAuthButtons from '@/components/auth/OAuthButtons'
 import Nav from '@/components/Nav'
 import {
@@ -60,6 +61,7 @@ const errorStyle: React.CSSProperties = {
 function LoginPageInner() {
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('return-to')
+  const locale = useLocale()
 
   const [mode, setMode] = useState<Mode>('magic')
   const [accountType, setAccountType] = useState<'personal' | 'corporate'>('personal')
@@ -67,13 +69,13 @@ function LoginPageInner() {
   const emailRef = useRef<HTMLInputElement>(null)
 
   // Magic-link action state
-  const [magicState, magicAction, magicPending] = useActionState(sendMagicLink, null)
+  const [magicState, magicAction, magicPending] = useActionState(sendMagicLink.bind(null, locale), null)
   // Password sign-in action state
-  const [pwState, pwAction, pwPending] = useActionState(signInWithPassword, null)
+  const [pwState, pwAction, pwPending] = useActionState(signInWithPassword.bind(null, locale), null)
   // Register action state
-  const [regState, regAction, regPending] = useActionState(signUpWithPassword, null)
+  const [regState, regAction, regPending] = useActionState(signUpWithPassword.bind(null, locale), null)
   // Password reset action state
-  const [resetState, resetAction, resetPending] = useActionState(sendPasswordReset, null)
+  const [resetState, resetAction, resetPending] = useActionState(sendPasswordReset.bind(null, locale), null)
 
   // ---------------------------------------------------------------------------
   // Shared card layout

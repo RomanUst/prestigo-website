@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
@@ -35,13 +36,15 @@ async function getIp(): Promise<string> {
 // ---------------------------------------------------------------------------
 
 export async function sendMagicLink(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const ip = await getIp()
   const rl = await checkRateLimit('/login', ip, { failClosed: false })
   if (!rl.allowed) {
-    return { error: 'Too many attempts. Please try again in a minute.' }
+    return { error: t('rateLimited') }
   }
 
   const email = formData.get('email') as string
@@ -56,7 +59,7 @@ export async function sendMagicLink(
   })
 
   if (error) {
-    return { error: 'Something went wrong. Please try again.' }
+    return { error: t('genericRetry') }
   }
 
   return { success: true }
@@ -67,9 +70,11 @@ export async function sendMagicLink(
 // ---------------------------------------------------------------------------
 
 export async function signInWithPassword(
+  locale: string,
   prevState: { error?: string } | null,
   formData: FormData
 ): Promise<{ error?: string }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const ip = await getIp()
   // Auth-critical: password sign-in is the credential brute-force surface, so
   // it fails CLOSED on an Upstash outage (matching /admin/login). The
@@ -77,7 +82,7 @@ export async function signInWithPassword(
   // fail-open since they expose no guessable secret to brute force.
   const rl = await checkRateLimit('/login', ip, { failClosed: true })
   if (!rl.allowed) {
-    return { error: 'Too many attempts. Please try again in a minute.' }
+    return { error: t('rateLimited') }
   }
 
   const email = formData.get('email') as string
@@ -88,7 +93,7 @@ export async function signInWithPassword(
   const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
-    return { error: 'Invalid email or password.' }
+    return { error: t('invalidCredentials') }
   }
 
   redirect(returnTo)
@@ -99,13 +104,15 @@ export async function signInWithPassword(
 // ---------------------------------------------------------------------------
 
 export async function signUpWithPassword(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const ip = await getIp()
   const rl = await checkRateLimit('/login', ip, { failClosed: false })
   if (!rl.allowed) {
-    return { error: 'Too many attempts. Please try again in a minute.' }
+    return { error: t('rateLimited') }
   }
 
   const email = formData.get('email') as string
@@ -125,7 +132,7 @@ export async function signUpWithPassword(
   })
 
   if (error) {
-    return { error: 'Something went wrong. Please try again.' }
+    return { error: t('genericRetry') }
   }
 
   // Upsert profile whenever a user row was created. This signup path is the
@@ -152,9 +159,11 @@ export async function signUpWithPassword(
 // ---------------------------------------------------------------------------
 
 export async function sendPasswordReset(
+  locale: string,
   prevState: { error?: string; success?: boolean } | null,
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  void locale
   const ip = await getIp()
   const rl = await checkRateLimit('/login', ip, { failClosed: false })
   if (!rl.allowed) {
@@ -207,8 +216,10 @@ export async function customerSignOut(): Promise<void> {
  * react instead of silently dropping the write.
  */
 export async function saveBookingWithUserId(
+  locale: string,
   bookingRow: Record<string, unknown>
 ): Promise<{ error?: string }> {
+  const t = await getTranslations({ namespace: 'Errors', locale })
   const supabase = await createClient()
 
   const {
@@ -216,7 +227,7 @@ export async function saveBookingWithUserId(
   } = await supabase.auth.getUser()
 
   if (!user) {
-    return { error: 'Not authenticated.' }
+    return { error: t('notAuthenticated') }
   }
 
   // Strip any caller-supplied user_id; ownership comes from the session only.
@@ -228,7 +239,7 @@ export async function saveBookingWithUserId(
     .insert({ ...rest, user_id: user.id })
 
   if (error) {
-    return { error: 'Could not save booking.' }
+    return { error: t('couldNotSaveBooking') }
   }
 
   return {}

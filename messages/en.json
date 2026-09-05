@@ -258,5 +258,12 @@
     "moreInfo": "More information",
     "toggleEnabled": "Enabled",
     "toggleDisabled": "Disabled"
+  },
+  "Errors": {
+    "genericRetry": "Something went wrong. Please try again.",
+    "rateLimited": "Too many attempts. Please try again in a minute.",
+    "notAuthenticated": "Not authenticated.",
+    "invalidCredentials": "Invalid email or password.",
+    "couldNotSaveBooking": "Could not save booking."
   }
 }
