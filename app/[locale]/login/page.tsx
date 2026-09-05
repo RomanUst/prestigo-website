@@ -2,7 +2,7 @@
 
 import { Suspense, useActionState, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { useLocale } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import OAuthButtons from '@/components/auth/OAuthButtons'
 import Nav from '@/components/Nav'
 import {
@@ -59,6 +59,7 @@ const errorStyle: React.CSSProperties = {
 // ---------------------------------------------------------------------------
 
 function LoginPageInner() {
+  const t = useTranslations('Auth.login')
   const searchParams = useSearchParams()
   const returnTo = searchParams.get('return-to')
   const locale = useLocale()
@@ -127,7 +128,7 @@ function LoginPageInner() {
           fontFamily: 'var(--font-montserrat)',
         }}
       >
-        or
+        {t('divider')}
       </span>
     </div>
   )
@@ -199,14 +200,14 @@ function LoginPageInner() {
         style={tabStyle(mode === 'magic')}
         onClick={() => setMode('magic')}
       >
-        Send a link
+        {t('tabSendLink')}
       </button>
       <button
         type="button"
         style={tabStyle(mode === 'password')}
         onClick={() => setMode('password')}
       >
-        Use password
+        {t('tabUsePassword')}
       </button>
     </div>
   )
@@ -241,7 +242,7 @@ function LoginPageInner() {
       <main role="main" style={pageStyle} className="animate-fade-in">
         <Nav />
         <div style={cardStyle}>
-          {brandHeader('My Account')}
+          {brandHeader(t('subtitle'))}
           <h2
             style={{
               fontSize: '18px',
@@ -251,7 +252,7 @@ function LoginPageInner() {
               textAlign: 'center',
             }}
           >
-            Check your email
+            {t('checkEmailHeading')}
           </h2>
           <p
             style={{
@@ -261,7 +262,7 @@ function LoginPageInner() {
               lineHeight: 1.75,
             }}
           >
-            We sent a sign-in link to {emailForSuccess}. The link expires in 1 hour.
+            {t('checkEmailBody', { email: emailForSuccess })}
           </p>
         </div>
       </main>
@@ -273,7 +274,7 @@ function LoginPageInner() {
       <main role="main" style={pageStyle} className="animate-fade-in">
         <Nav />
         <div style={cardStyle}>
-          {brandHeader('My Account')}
+          {brandHeader(t('subtitle'))}
           {tabs}
           <form
             action={(fd: FormData) => {
@@ -283,7 +284,7 @@ function LoginPageInner() {
           >
             <div style={fieldWrapStyle}>
               <label htmlFor="magic-email" style={labelStyle}>
-                Email
+                {t('emailLabel')}
               </label>
               <input
                 id="magic-email"
@@ -302,7 +303,7 @@ function LoginPageInner() {
               )}
             </div>
 
-            {submitBtn('Send sign-in link', magicPending)}
+            {submitBtn(t('sendLinkButton'), magicPending)}
           </form>
 
           <p
@@ -313,7 +314,7 @@ function LoginPageInner() {
               color: 'var(--warmgrey)',
             }}
           >
-            Don&apos;t have an account?{' '}
+            {t('noAccountPrompt')}{' '}
             <button
               type="button"
               style={{
@@ -327,7 +328,7 @@ function LoginPageInner() {
               }}
               onClick={() => setMode('register')}
             >
-              Create one
+              {t('createAccountLink')}
             </button>
           </p>
 
@@ -347,7 +348,7 @@ function LoginPageInner() {
       <main role="main" style={pageStyle} className="animate-fade-in">
         <Nav />
         <div style={cardStyle}>
-          {brandHeader('My Account')}
+          {brandHeader(t('subtitle'))}
           {tabs}
           <form action={pwAction} className="animate-step-enter">
             {returnTo && (
@@ -356,7 +357,7 @@ function LoginPageInner() {
 
             <div style={fieldWrapStyle}>
               <label htmlFor="pw-email" style={labelStyle}>
-                Email
+                {t('emailLabel')}
               </label>
               <input
                 id="pw-email"
@@ -371,7 +372,7 @@ function LoginPageInner() {
 
             <div style={fieldWrapStyle}>
               <label htmlFor="pw-password" style={labelStyle}>
-                Password
+                {t('passwordLabel')}
               </label>
               <input
                 id="pw-password"
@@ -408,11 +409,11 @@ function LoginPageInner() {
                 }}
                 onClick={() => setMode('reset')}
               >
-                Forgot password?
+                {t('forgotPasswordLink')}
               </button>
             </p>
 
-            {submitBtn('Sign in', pwPending)}
+            {submitBtn(t('signInButton'), pwPending)}
           </form>
 
           <p
@@ -423,7 +424,7 @@ function LoginPageInner() {
               color: 'var(--warmgrey)',
             }}
           >
-            Don&apos;t have an account?{' '}
+            {t('noAccountPrompt')}{' '}
             <button
               type="button"
               style={{
@@ -437,7 +438,7 @@ function LoginPageInner() {
               }}
               onClick={() => setMode('register')}
             >
-              Create one
+              {t('createAccountLink')}
             </button>
           </p>
 
@@ -458,7 +459,7 @@ function LoginPageInner() {
         <main role="main" style={pageStyle} className="animate-fade-in">
         <Nav />
           <div style={cardStyle}>
-            {brandHeader('My Account')}
+            {brandHeader(t('subtitle'))}
             <h2
               style={{
                 fontSize: '18px',
@@ -468,7 +469,7 @@ function LoginPageInner() {
                 textAlign: 'center',
               }}
             >
-              Check your email
+              {t('checkEmailHeading')}
             </h2>
             <p
               style={{
@@ -478,7 +479,7 @@ function LoginPageInner() {
                 lineHeight: 1.75,
               }}
             >
-              We sent a sign-in link to {emailForSuccess}. The link expires in 1 hour.
+              {t('checkEmailBody', { email: emailForSuccess })}
             </p>
           </div>
         </main>
@@ -489,7 +490,7 @@ function LoginPageInner() {
       <main role="main" style={pageStyle} className="animate-fade-in">
         <Nav />
         <div style={cardStyle}>
-          {brandHeader('My Account')}
+          {brandHeader(t('subtitle'))}
           <form
             action={(fd: FormData) => {
               setEmailForSuccess(fd.get('email') as string)
@@ -499,7 +500,7 @@ function LoginPageInner() {
           >
             <div style={fieldWrapStyle}>
               <label htmlFor="reg-email" style={labelStyle}>
-                Email
+                {t('emailLabel')}
               </label>
               <input
                 id="reg-email"
@@ -514,7 +515,7 @@ function LoginPageInner() {
 
             <div style={fieldWrapStyle}>
               <label htmlFor="reg-password" style={labelStyle}>
-                Password
+                {t('passwordLabel')}
               </label>
               <input
                 id="reg-password"
@@ -533,7 +534,7 @@ function LoginPageInner() {
 
             {/* Account type toggle */}
             <div style={{ ...fieldWrapStyle }}>
-              <span style={labelStyle}>Account type</span>
+              <span style={labelStyle}>{t('accountTypeLabel')}</span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {(['personal', 'corporate'] as const).map(type => (
                   <button
@@ -556,7 +557,7 @@ function LoginPageInner() {
                       transition: 'border-color 0.15s ease, color 0.15s ease',
                     }}
                   >
-                    {type === 'personal' ? 'Personal' : 'Corporate'}
+                    {type === 'personal' ? t('personalOption') : t('corporateOption')}
                   </button>
                 ))}
               </div>
@@ -573,7 +574,7 @@ function LoginPageInner() {
                 }}
               >
                 <label htmlFor="reg-company" style={labelStyle}>
-                  Company name
+                  {t('companyNameLabel')}
                 </label>
                 <input
                   id="reg-company"
@@ -585,7 +586,7 @@ function LoginPageInner() {
               </div>
             )}
 
-            {submitBtn('Create account', regPending)}
+            {submitBtn(t('createAccountButton'), regPending)}
           </form>
 
           <p
@@ -596,7 +597,7 @@ function LoginPageInner() {
               color: 'var(--warmgrey)',
             }}
           >
-            Already have an account?{' '}
+            {t('alreadyHaveAccountPrompt')}{' '}
             <button
               type="button"
               style={{
@@ -610,7 +611,7 @@ function LoginPageInner() {
               }}
               onClick={() => setMode('magic')}
             >
-              Sign in
+              {t('signInButton')}
             </button>
           </p>
 
@@ -630,7 +631,7 @@ function LoginPageInner() {
       <main role="main" style={pageStyle} className="animate-fade-in">
         <Nav />
         <div style={cardStyle}>
-          {brandHeader('My Account')}
+          {brandHeader(t('subtitle'))}
           <p
             style={{
               fontSize: '14px',
@@ -639,7 +640,7 @@ function LoginPageInner() {
               lineHeight: 1.75,
             }}
           >
-            Reset link sent. Check your email.
+            {t('resetSentMessage')}
           </p>
         </div>
       </main>
@@ -650,11 +651,11 @@ function LoginPageInner() {
     <main role="main" style={pageStyle} className="animate-fade-in">
       <Nav />
       <div style={cardStyle}>
-        {brandHeader('My Account')}
+        {brandHeader(t('subtitle'))}
         <form action={resetAction} className="animate-step-enter">
           <div style={fieldWrapStyle}>
             <label htmlFor="reset-email" style={labelStyle}>
-              Email
+              {t('emailLabel')}
             </label>
             <input
               id="reset-email"
@@ -666,7 +667,7 @@ function LoginPageInner() {
             />
           </div>
 
-          {submitBtn('Send reset link', resetPending)}
+          {submitBtn(t('sendResetLinkButton'), resetPending)}
         </form>
 
         <p
@@ -690,7 +691,7 @@ function LoginPageInner() {
             }}
             onClick={() => setMode('magic')}
           >
-            Back to sign in
+            {t('backToSignIn')}
           </button>
         </p>
       </div>

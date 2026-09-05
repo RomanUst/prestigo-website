@@ -265,5 +265,35 @@
     "notAuthenticated": "Not authenticated.",
     "invalidCredentials": "Invalid email or password.",
     "couldNotSaveBooking": "Could not save booking."
+  },
+  "Auth": {
+    "login": {
+      "subtitle": "My Account",
+      "divider": "or",
+      "tabSendLink": "Send a link",
+      "tabUsePassword": "Use password",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "sendLinkButton": "Send sign-in link",
+      "checkEmailHeading": "Check your email",
+      "checkEmailBody": "We sent a sign-in link to {email}. The link expires in 1 hour.",
+      "noAccountPrompt": "Don't have an account?",
+      "createAccountLink": "Create one",
+      "forgotPasswordLink": "Forgot password?",
+      "signInButton": "Sign in",
+      "accountTypeLabel": "Account type",
+      "personalOption": "Personal",
+      "corporateOption": "Corporate",
+      "companyNameLabel": "Company name",
+      "createAccountButton": "Create account",
+      "alreadyHaveAccountPrompt": "Already have an account?",
+      "resetSentMessage": "Reset link sent. Check your email.",
+      "sendResetLinkButton": "Send reset link",
+      "backToSignIn": "Back to sign in"
+    },
+    "oauth": {
+      "googleLabel": "Sign in with Google",
+      "continueWithGoogle": "Continue with Google"
+    }
   }
 }
