@@ -7,16 +7,22 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
+import { getRouteContent } from '@/lib/route-content'
+import { interpolate } from '@/lib/content-interpolate'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getRouteContent('prague-vienna', locale)
   const route = await getRoutePrice('prague-vienna')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
-  const desc = `Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €${ePrice}, stops en route, flexible timing.`
+  const prices = { ePrice }
+  const desc = interpolate(content.metadata.description, prices)
   return {
-    title: `Prague to Vienna Chauffeur — From €${ePrice}`,
+    title: interpolate(content.metadata.title, prices),
     description: desc,
     alternates: {
       canonical: '/routes/prague-vienna',
@@ -27,91 +33,43 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-vienna',
-      title: `Prague to Vienna Private Chauffeur Transfer — From €${ePrice}`,
-      description: desc,
+      title: interpolate(content.metadata.ogTitle, prices),
+      description: interpolate(content.metadata.ogDescription, prices),
       images: [{ url: "https://rideprestigo.com/vienna.png", width: 1200, height: 630 }],
     },
   }
 }
 
-const inclusions = [
-  'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-  'A professional chauffeur — fluent English and Czech. German on request.',
-  'Fuel, all tolls, the Czech motorway vignette, and the Austrian motorway vignette. Nothing is charged on top.',
-  'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-  'Bottled water, phone charger, and WiFi in the rear cabin.',
-  'Waiting time at pickup — 15 minutes free at any address.',
-  'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-  'Same-day return — 10% off the return leg if booked together, or add hourly city rental (see pricing).',
-]
-
-const dayTripConfigurations = [
-  {
-    title: 'The Schönbrunn and Belvedere Day',
-    body: 'Pickup at 7:00, arrive Vienna 10:30. Three hours at Schloss Schönbrunn — the state apartments, the Gloriette, the gardens — then a transfer across the city for two hours at the Upper Belvedere with the Klimt collection. Return to Prague by 21:00.',
-    price: 'Round-trip day visit — contact us for a quote.',
-  },
-  {
-    title: 'The Innere Stadt and Opera Evening',
-    body: 'A late-morning pickup, lunch at a Stephansplatz Konditorei, an afternoon at the Albertina or Kunsthistorisches Museum, and a 19:00 curtain at the Wiener Staatsoper. Your chauffeur waits during the performance and drives you back overnight.',
-    price: 'Round-trip with evening — contact us for a quote.',
-  },
-  {
-    title: 'The Naschmarkt and MuseumsQuartier Afternoon',
-    body: 'Pickup at 8:00, arrive Vienna 11:30. A wander through the Naschmarkt food stalls, lunch at a Saturday flea-market terrace, and a slow afternoon at the Leopold Museum and mumok in the MuseumsQuartier before the return drive.',
-    price: 'Round-trip day visit — contact us for a quote.',
-  },
-]
-
-const whyBook = [
-  {
-    title: 'Fixed fare, no surprises',
-    body: 'The price you see is the price you pay. Fuel, tolls, the Czech and Austrian vignettes, driver time. Nothing added at drop-off in Vienna.',
-  },
-  {
-    title: 'Owned fleet, vetted chauffeurs',
-    body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel into Austria and Slovakia.',
-  },
-  {
-    title: 'Anticipatory service',
-    body: 'If the D1 has a closure near Brno, your chauffeur reroutes via Znojmo without asking. If your flight into Vienna Schwechat is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job.',
-  },
-]
-
-const relatedRoutes = [
-  { slug: 'prague-bratislava', city: 'Bratislava', distance: '330 km', duration: '3h 30min' },
-  { slug: 'prague-brno', city: 'Brno', distance: '210 km', duration: '2h 15min' },
-  { slug: 'prague-budapest', city: 'Budapest', distance: '530 km', duration: '5h 30min' },
-  { slug: 'prague-salzburg', city: 'Salzburg', distance: '385 km', duration: '4h' },
-]
-
 export default async function PragueViennaPage() {
+  const locale = await getLocale()
+  const content = getRouteContent('prague-vienna', locale)
+  const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-vienna')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
   const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+  const prices = { ePrice, sPrice, vPrice }
 
-  const faqs = [
-    { q: 'How long does a private transfer from Prague to Vienna take?', a: 'Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes.' },
-    { q: 'How much does a chauffeur from Prague to Vienna cost?', a: `A fixed fare from €${ePrice} in a Mercedes E-Class for up to 3 passengers, €${vPrice} in the V-Class for up to 6, or €${sPrice} in the S-Class. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges.` },
-    { q: 'Can I book a same-day round trip from Prague to Vienna?', a: 'Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße.' },
-    { q: 'Do you cross the Austrian border without problems?', a: 'Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria.' },
-    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-    { q: 'Can the chauffeur speak German?', a: 'A German-speaking chauffeur is available on request — useful for Vienna concierge handoffs or business meetings on arrival. Every Prestigo chauffeur speaks fluent English and Czech as standard.' },
-  ]
+  const openingParagraphs = content.openingParagraphs.map((p) => interpolate(p, prices))
+  const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolate(p, prices))
+  const inclusions = content.inclusions.map((s) => interpolate(s, prices))
+  const dayTripConfigurations = content.dayTrip.configurations.map((c) => ({
+    ...c,
+    body: interpolate(c.body, prices),
+    price: interpolate(c.price, prices),
+  }))
+  const chauffeurNarrative = content.chauffeurNarrative.map((p) => interpolate(p, prices))
+  const whyBook = content.whyBook.items
+  const relatedRoutes = content.relatedRoutes
 
-  const highlights = [
-    { label: 'Distance', value: '330 km' },
-    { label: 'Duration', value: '~3.5 hours' },
-    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-    { label: 'Price from', value: `€${ePrice}`, copper: true },
-  ]
+  const faqs = content.faqs.map((f) => ({ q: f.q, a: interpolate(f.a, prices) }))
 
-  const vehicles = [
-    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/vehicles/e-class.avif' },
-    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/vehicles/s-class.avif' },
-    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/vehicles/v-class.avif' },
-  ]
+  const highlights = content.highlights.map((h) => ({
+    ...h,
+    value: typeof h.value === 'string' ? interpolate(h.value, prices) : h.value,
+  }))
+
+  const vehicles = content.vehicles.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
 
   const pageSchema = {
     '@context': 'https://schema.org',
@@ -147,13 +105,13 @@ export default async function PragueViennaPage() {
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0"><Image src="/vienna.png" alt="Vienna — private chauffeur transfer from Prague to Vienna" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} /></div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Prague → Vienna</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">Prague to Vienna, <br /><span className="display-italic">door to door.</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>Prague to Vienna by private chauffeur is a 330 km door-to-door transfer via the D1 and A5, around 3h 30min drive time. Prestigo&rsquo;s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, all tolls and both Czech and Austrian vignettes included. Pickup from any Prague address, drop-off anywhere in Vienna.</p>
+          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{interpolate(content.hero.intro, prices)}</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <a href="/book" className="btn-primary">Book this Route</a>
-            <a href="/contact" className="btn-ghost">Ask a Question</a>
+            <a href="/book" className="btn-primary">{t('heroCtaPrimary')}</a>
+            <a href="/contact" className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
         </div>
       </section>
@@ -164,7 +122,7 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div></Reveal>))}
+            {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div></Reveal>))}
           </div>
         </div>
       </section>
@@ -175,10 +133,10 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Vienna covers 330 km via the D1 and D52 motorways, continuing on the A5 into Vienna, and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver&apos;s time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. Stops en route — Brno, Bratislava, or a vineyard in South Moravia — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            {openingParagraphs[0]}
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
-            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+            {openingParagraphs[1]}
           </p></Reveal>
         </div>
       </section>
@@ -189,18 +147,18 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">The Route</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Vienna <br /><span className="display-italic">in three and a half hours.</span></h2>
+            <p className="label mb-6">{t('sectionLabels.theRoute')}</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">{content.routeNarrative.headingLine1} <br /><span className="display-italic">{content.routeNarrative.headingItalic}</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway south-east through the Bohemian-Moravian Highlands toward Brno. Past Brno the route joins the D52 and runs straight down through the South Moravian wine country to the Czech–Austrian Schengen border at Mikulov–Drasenhofen — the only motorway crossing between the two countries, invisible inside Schengen, no stops, no document checks.
+              {routeNarrativeParagraphs[0]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              On the Austrian side the road becomes the A5 Nordautobahn and runs straight into the northern edge of Vienna, joining the S1 ring before dropping you at your hotel in the Innere Stadt or your terminal at Vienna Schwechat (VIE). Total distance is approximately 330 kilometres. Driving time is three and a half hours in normal conditions. Add 20–30 minutes during Friday afternoon rush hour out of Prague.
+              {routeNarrativeParagraphs[1]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Your chauffeur watches traffic on the D1 before every departure. If there is a construction delay near Brno — as there has been on and off through the recent widening works — they reroute via Znojmo and the older E59 corridor without asking. You are not paying for traffic; you are paying for time.
+              {routeNarrativeParagraphs[2]}
             </p>
           </div></Reveal>
         </div>
@@ -212,9 +170,9 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">What&apos;s Included</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included, <br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Vienna drop-off. The car, the chauffeur, the fuel, the Czech vignette, the Austrian vignette, every toll. Business meeting, opera evening, or a long weekend in the Habsburg capital — your driver handles the route while you focus on the destination.</p>
+            <p className="label mb-6">{content.includedLabel}</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">{t('includedHeading.line1')} <br /><span className="display-italic">{t('includedHeading.italic')}</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{content.includedIntro}</p>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">{inclusions.map((item) => (<div key={item} className="flex items-start gap-4"><span className="mt-[7px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} /><span className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>{item}</span></div>))}</div></Reveal>
         </div>
@@ -225,12 +183,12 @@ export default async function PragueViennaPage() {
       {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Fleet</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
+          <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.fleet')}</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14">{t('chooseYourVehicle')}</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a></div></div></Reveal>))}
+            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a></div></div></Reveal>))}
           </div>
-          <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
+          <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>{content.fleetNote}</p>
         </div>
       </section>
 
@@ -240,28 +198,17 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">The Journey</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Vienna, <br /><span className="display-italic">the route.</span></h2>
+            <p className="label mb-6">{t('sectionLabels.theJourney')}</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">{content.journeyHeading.line1} <br /><span className="display-italic">{content.journeyHeading.italic}</span></h2>
             <div className="flex flex-col gap-8 mt-10">
-              {[
-                { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Brno (optional)', note: 'Available as an en-route stop. Brno city centre or Brno–Tuřany Airport.', anchor: false, custom: false },
-                { city: 'Bratislava (optional)', note: "Slovakia's capital sits within an hour of the route. Stop for meetings, a hotel drop-off, or a connection.", anchor: false, custom: false },
-                { city: 'Anywhere you like', note: 'Prefer a different stop — a village, a viewpoint, a restaurant? Just tell your driver. The route is yours.', anchor: false, custom: true },
-                { city: 'Vienna', note: 'Drop-off at any Vienna address, Vienna International Airport (VIE), or Vienna Central Station (Wien Hauptbahnhof).', anchor: true, custom: false },
-              ].map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
+              {content.journeyStops.map((stop, i, arr) => (<div key={stop.city} className="flex gap-6"><div className="flex flex-col items-center"><div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />{i < arr.length - 1 && <div className="w-px flex-1 mt-2" style={{ background: stop.custom ? 'var(--copper)' : 'var(--anthracite-light)', minHeight: '40px', opacity: stop.custom ? 0.4 : 1 }} />}</div><div className="pb-6"><p className="font-body font-light text-[11px] tracking-[0.15em] uppercase mb-1" style={{ color: stop.custom ? 'var(--copper-pale)' : 'var(--offwhite)' }}>{stop.city}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{stop.note}</p></div></div>))}
             </div>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-6 justify-start pt-[60px]">
             <div className="border border-anthracite-light p-8">
-              <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
+              <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>{t('sectionLabels.goodToKnow')}</p>
               <div className="flex flex-col gap-5">
-                {[
-                  { label: 'Border crossing', value: 'Czech–Austrian Schengen border at Mikulov–Drasenhofen. No passport check for EU citizens — carry travel documents for non-EU passengers.' },
-                  { label: 'Tolls', value: 'Czech motorway vignette and Austrian motorway vignette included in the quoted price.' },
-                  { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Onward routing', value: 'Vienna connects directly to Bratislava, Budapest, and Salzburg. Prestigo can extend your transfer as a single booking.' },
-                ].map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
+                {content.goodToKnow.map((item) => (<div key={item.label}><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p><p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p></div>))}
               </div>
             </div>
           </div></Reveal>
@@ -273,10 +220,10 @@ export default async function PragueViennaPage() {
       {/* Popular day-trip configurations */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Day Trips from Prague</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-4">Popular day-trip <br /><span className="display-italic">configurations.</span></h2>
+          <Reveal variant="up"><p className="label mb-6">{content.dayTripLabel}</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-4">{content.dayTrip.headingLine1} <br /><span className="display-italic">{content.dayTrip.headingItalic}</span></h2>
           <p className="body-text text-[13px] mb-14 max-w-2xl" style={{ lineHeight: '1.9' }}>
-            Vienna is a longer day from Prague than Dresden, but the Prague–Vienna day trip is one of the most-requested Prestigo bookings. Three configurations cover most requests.
+            {content.dayTrip.intro}
           </p></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {dayTripConfigurations.map((c, i) => (
@@ -288,7 +235,7 @@ export default async function PragueViennaPage() {
             ))}
           </div>
           <p className="body-text text-[11px] mt-8 max-w-3xl" style={{ lineHeight: '1.8' }}>
-            Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental (see pricing) if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book.
+            {content.dayTrip.footnote}
           </p>
         </div>
       </section>
@@ -299,18 +246,18 @@ export default async function PragueViennaPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">The Chauffeur</p>
-            <h2 className="display text-[28px] md:text-[38px]">What to expect <br /><span className="display-italic">from your driver.</span></h2>
+            <p className="label mb-6">{t('sectionLabels.theChauffeur')}</p>
+            <h2 className="display text-[28px] md:text-[38px]">{t('chauffeurHeading.line1')} <br /><span className="display-italic">{t('chauffeurHeading.italic')}</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport in Prague, they are inside the arrivals hall with a Prestigo tablet displaying your name. On the return leg from Vienna Schwechat, they wait at the agreed terminal exit before your flight is wheels-down.
+              {chauffeurNarrative[0]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Conversation is a choice. If you want a quiet cabin for three hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Vienna — the Habsburg court that ran an empire from the Hofburg, the music culture that produced Mozart and Mahler, the post-war reconstruction that pulled the Staatsoper out of rubble — your chauffeur knows it.
+              {chauffeurNarrative[1]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at the Devět Křížů rest stop on the D1 between Velké Meziříčí and Brno, that is included.
+              {chauffeurNarrative[2]}
             </p>
           </div></Reveal>
         </div>
@@ -321,9 +268,9 @@ export default async function PragueViennaPage() {
       {/* Why book with Prestigo */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
+          <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.whyPrestigo')}</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
-            Why book with Prestigo <br /><span className="display-italic">for Prague to Vienna.</span>
+            {content.whyBook.headingLine1} <br /><span className="display-italic">{content.whyBook.headingItalic}</span>
           </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {whyBook.map((w, i) => (
@@ -341,7 +288,7 @@ export default async function PragueViennaPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">{content.faqsHeading}</h2></Reveal>
           <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<Reveal key={faq.q} variant="up" delay={i * 70}><div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div></Reveal>))}</div>
         </div>
       </section>
@@ -351,12 +298,12 @@ export default async function PragueViennaPage() {
       {/* Related routes */}
       <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Related Routes</p>
+          <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.relatedRoutes')}</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
-            Continue across <br /><span className="display-italic">Central Europe.</span>
+            {content.relatedHeading.line1} <br /><span className="display-italic">{content.relatedHeading.italic}</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
-            Vienna sits at the centre of the old Habsburg corridor — Bratislava is an hour east, Budapest two hours beyond, and Salzburg lies west toward the Alps. Many clients combine the Vienna run with another capital or extend into Slovakia. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+            {content.relatedRoutesIntro}
           </p></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {relatedRoutes.map((r, i) => (
@@ -380,8 +327,8 @@ export default async function PragueViennaPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">Prague to Vienna. <br /><span className="display-italic">From €{ePrice}, fixed.</span></h2><p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p></div></Reveal>
-          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">Book Now</a><a href="/routes" className="btn-ghost">All Routes</a></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolate(content.cta.headingItalic, prices)}</span></h2><p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p></div></Reveal>
+          <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">{t('bookNow')}</a><a href="/routes" className="btn-ghost">{t('allRoutes')}</a></div></Reveal>
         </div>
       </section>
 
