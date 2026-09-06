@@ -12,6 +12,9 @@ describe("Group A route content (71-02)", () => {
     "prague-bratislava",
     "prague-brno",
     "prague-budapest",
+    "prague-ceske-budejovice",
+    "prague-cesky-krumlov",
+    "prague-dresden",
   ])("%s", (slug) => {
     it("passes assertRouteContentShape", () => {
       const content = getRouteContent(slug, "en");
@@ -79,6 +82,50 @@ describe("Group A route content (71-02)", () => {
         "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all three motorway vignettes, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Budapest Chauffeur — From €485",
+    });
+  });
+
+  it("prague-ceske-budejovice: byte-parity spot-check", () => {
+    assertRouteParity("prague-ceske-budejovice", {
+      "hero.intro":
+        "155 km south to the capital of South Bohemia. The baroque main square, Budějovický Budvar, and a gateway to Šumava and Český Krumlov — two hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, Czech tolls, the vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to České Budějovice Chauffeur — From €485",
+    });
+  });
+
+  it("prague-ceske-budejovice: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-ceske-budejovice", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
+  });
+
+  it("prague-cesky-krumlov: byte-parity spot-check", () => {
+    assertRouteParity("prague-cesky-krumlov", {
+      "hero.intro":
+        "175 km south to one of Bohemia's most remarkable medieval towns. A castle above a Vltava horseshoe, baroque theatre, and winding cobbled streets — two and a half hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Český Krumlov Chauffeur — From €485",
+    });
+  });
+
+  it("prague-dresden: byte-parity spot-check", () => {
+    assertRouteParity("prague-dresden", {
+      "hero.intro": "Two hours door-to-door on the D8. Fixed fare from €485. Your chauffeur is already waiting.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Dresden Chauffeur — From €485",
     });
   });
 });
