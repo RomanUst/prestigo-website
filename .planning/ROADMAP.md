@@ -127,6 +127,21 @@
 
 **UI hint**: yes
 
+### Phase 71: Content Externalization — Marketing & SEO Pages
+
+**Goal**: All long-form marketing and SEO page content across the public site — the Home page long-form sections, the 8 service pages, the about/faq/contact/corporate pages, the legal pages, the 29–30 route-page bodies (inclusions, day-trip configs, FAQ, hero copy), and the blog — is moved out of hardcoded JSX/inline literals into a locale-aware content model. UI-chrome-style strings continue to use the `messages/en.json` catalog under the Phase 69/70 namespace + key conventions, while long-form and structured page bodies move to a locale-aware content source: the route-page data model is made locale-aware, and the blog is relocated to `content/blog/<locale>/` with the listing and `[slug]` route rendering the active locale (falling back to English where a localized post does not yet exist). English output stays byte-for-byte unchanged (English is the source), and no translation of other locales happens yet (that is Phase 72); non-EN subpaths continue to render English content correctly. This is the largest content restructure of the milestone and may split into 71a/71b.
+
+**Depends on**: Phase 68 (next-intl runtime, `app/[locale]/` routing, typed locale source), Phase 69 (`messages/en.json` catalog, namespace/key convention, `useTranslations`/`getTranslations` pattern, `createNavigation`/`Link` locale-aware navigation), Phase 70 (booking/account externalization patterns, Server-Action locale-threading, single-source label maps)
+**Requirements**: CNT-01, CNT-02, CNT-03
+**Success Criteria** (what must be TRUE):
+
+  1. The 29–30 route-page bodies (inclusions, day-trip configs, FAQ, hero copy) are served from a locale-aware content model; no route-body copy remains hardcoded in a single-locale structure, and every existing route page renders identical English output at its current URL (indexable/noindex split preserved).
+  2. Home long-form sections, the 8 service pages, about/faq/contact/corporate, and the legal pages render their content from the locale-aware source (catalog for chrome strings, content model for long-form structured bodies); no hardcoded user-facing body copy remains in those pages.
+  3. The blog moves to per-locale content (`content/blog/<locale>/`), and the `/blog` listing plus `/blog/[slug]` render the active locale — falling back to English where a localized post does not yet exist — with existing English posts still served at their canonical `/blog/*` paths.
+  4. The rendered English site is byte-for-byte unchanged (visual + existing tests green), and the sitemap, canonical URLs, FAQPage/AggregateRating structured data, and route SEO metadata are unaffected; non-EN locales still render English content (no translations added yet) served correctly under their subpath.
+
+**UI hint**: yes
+
 </details>
 
 <details>
