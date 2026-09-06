@@ -702,5 +702,37 @@
       "updating": "Updating...",
       "updateButton": "Update password"
     }
+  },
+  "RoutePage": {
+    "heroCtaPrimary": "Book this Route",
+    "heroCtaSecondary": "Ask a Question",
+    "sectionLabels": {
+      "theRoute": "The Route",
+      "fleet": "Fleet",
+      "theJourney": "The Journey",
+      "goodToKnow": "Good to know",
+      "theChauffeur": "The Chauffeur",
+      "whyPrestigo": "Why Prestigo",
+      "relatedRoutes": "Related Routes"
+    },
+    "includedHeading": {
+      "line1": "Everything included,",
+      "italic": "nothing to arrange."
+    },
+    "chauffeurHeading": {
+      "line1": "What to expect",
+      "italic": "from your driver."
+    },
+    "vehicleFields": {
+      "passengers": "Passengers",
+      "luggage": "Luggage",
+      "transferPrice": "Transfer price"
+    },
+    "chooseYourVehicle": "Choose your vehicle",
+    "availableOnThisRoute": "Available on this route",
+    "ctaFootnote": "No surprises. No meters. Your driver is waiting.",
+    "bookOnline": "Book Online",
+    "bookNow": "Book Now",
+    "allRoutes": "All Routes"
   }
 }
