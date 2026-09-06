@@ -154,4 +154,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-03 — opened milestone v3.0 Site Internationalization (i18n). 7 locales (EN root + RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation, next-intl + app/[locale]. Phases 68–75 defined in ROADMAP.md; requirements in REQUIREMENTS.md. Next: /gsd-plan-phase 68.*
+*Last updated: 2026-09-06 after Phase 70. Milestone v3.0 Site Internationalization (i18n): 7 locales (EN root + RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation, next-intl + app/[locale]. Phases 68–70 shipped (foundation/routing, UI-chrome externalization, booking & account externalization — STR-02); 7-locale build clean, 0 MISSING_MESSAGE. Next: /gsd-plan-phase 71 (Content Externalization — Marketing & SEO Pages).*
