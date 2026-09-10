@@ -11,6 +11,9 @@ describe("Group C route content (71-04)", () => {
     "prague-ostrava",
     "prague-pardubice",
     "prague-passau",
+    "prague-plzen",
+    "prague-regensburg",
+    "prague-salzburg",
   ])("%s", (slug) => {
     it("passes assertRouteContentShape", () => {
       const content = getRouteContent(slug, "en");
@@ -77,6 +80,61 @@ describe("Group C route content (71-04)", () => {
 
   it("prague-passau: keeps its own 'Day Trips from Prague' label (not shared chrome)", () => {
     const content = getRouteContent("prague-passau", "en");
+    expect(content.dayTripLabel).toBe("Day Trips from Prague");
+  });
+
+  it("prague-plzen: byte-parity spot-check", () => {
+    assertRouteParity("prague-plzen", {
+      "hero.intro":
+        "90 km west on the D5. Home of Pilsner Urquell, West Bohemia's industrial capital, and a Republic Square that demands a slow coffee. One hour, one vehicle, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all tolls, the Czech vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Plzeň Chauffeur — From €485",
+    });
+  });
+
+  it("prague-plzen: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-plzen", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
+  });
+
+  it("prague-regensburg: byte-parity spot-check", () => {
+    assertRouteParity("prague-regensburg", {
+      "hero.intro":
+        "285 km southwest into Bavaria's most perfectly preserved medieval city. A UNESCO old town, a 12th-century stone bridge, and the Danube flowing beneath — three hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, the German toll vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Regensburg Chauffeur — From €485",
+    });
+  });
+
+  it("prague-regensburg: keeps its own 'Day Trips from Prague' label (not shared chrome)", () => {
+    const content = getRouteContent("prague-regensburg", "en");
+    expect(content.dayTripLabel).toBe("Day Trips from Prague");
+  });
+
+  it("prague-salzburg: byte-parity spot-check", () => {
+    assertRouteParity("prague-salzburg", {
+      "hero.intro":
+        "305 km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. Three and a half hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "A fixed fare from €485 in a Mercedes E-Class for up to 3 passengers, €590 in the V-Class for up to 6, or €650 in the S-Class. The price covers fuel, both the Czech and Austrian vignettes, all tolls, and driver time. No hidden charges at drop-off.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Salzburg Chauffeur — From €485",
+    });
+  });
+
+  it("prague-salzburg: keeps its own 'Day Trips from Prague' label (not shared chrome)", () => {
+    const content = getRouteContent("prague-salzburg", "en");
     expect(content.dayTripLabel).toBe("Day Trips from Prague");
   });
 });
