@@ -2,6 +2,9 @@ import type { Metadata } from 'next'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
+import { getLocale, getTranslations } from 'next-intl/server'
+import { getRouteContent } from '@/lib/route-content'
+import { interpolate } from '@/lib/content-interpolate'
 
 export const revalidate = 120
 
@@ -13,11 +16,14 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getRouteContent('prague-liberec', locale)
   const route = await getRoutePrice('prague-liberec')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
+  const prices = { ePrice }
   return {
-    title: `Prague to Liberec Chauffeur — From €${ePrice}`,
-    description: `Book a private chauffeur from Prague to Liberec. 105 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Jizera Mountains gateway.`,
+    title: interpolate(content.metadata.title, prices),
+    description: interpolate(content.metadata.description, prices),
     alternates: {
       canonical: '/routes/prague-liberec',
       languages: {
@@ -27,8 +33,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-liberec',
-      title: `Prague to Liberec Private Chauffeur — From €${ePrice}`,
-      description: `Book a private chauffeur from Prague to Liberec. 105 km door-to-door in a Mercedes-Benz. Fixed price from €${ePrice}, Jizera Mountains gateway.`,
+      title: interpolate(content.metadata.ogTitle, prices),
+      description: interpolate(content.metadata.ogDescription, prices),
       images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],
     },
   }
@@ -36,65 +42,32 @@ export async function generateMetadata(): Promise<Metadata> {
 
 
 export default async function PragueLibeRecPage() {
+  const locale = await getLocale()
+  const content = getRouteContent('prague-liberec', locale)
+  const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-liberec')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const sPrice = route?.sClassEur ?? ROUTE_FALLBACK.sClassEur
   const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
+  const prices = { ePrice, sPrice, vPrice }
 
-  const highlights = [
-    { label: 'Distance', value: '~105 km' },
-    { label: 'Duration', value: '~1.5 hours' },
-    { label: 'Vehicles', value: ['Business Class', 'First Class', 'Business Van'] },
-    { label: 'Price from', value: `€${ePrice}`, copper: true },
-  ]
+  const openingParagraphs = content.openingParagraphs.map((p) => interpolate(p, prices))
+  const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolate(p, prices))
 
-  const vehicles = [
-    { name: 'Mercedes-Benz E-Class', category: 'Business Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${ePrice}`, photo: '/vehicles/e-class.avif' },
-    { name: 'Mercedes-Benz S-Class', category: 'Executive Class', capacity: '1–3 passengers', bags: '2 bags', price: `From €${sPrice}`, photo: '/vehicles/s-class.avif' },
-    { name: 'Mercedes-Benz V-Class', category: 'Business Van', capacity: '1–6 passengers', bags: '6 bags', price: `From €${vPrice}`, photo: '/vehicles/v-class.avif' },
-  ]
+  const highlights = content.highlights.map((h) => ({
+    ...h,
+    value: typeof h.value === 'string' ? interpolate(h.value, prices) : h.value,
+  }))
 
-  const inclusions = [
-    'A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.',
-    'A professional chauffeur — fluent English and Czech. German on request.',
-    'Fuel and the Czech motorway vignette. Nothing is charged on top.',
-    'Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.',
-    'Bottled water, phone charger, and WiFi in the rear cabin.',
-    'Waiting time at pickup — 15 minutes free at any address.',
-    'Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.',
-    'Same-day return — 10% off the return leg if booked together, or add hourly city rental.',
-  ]
+  const vehicles = content.vehicles.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
 
-  const faqs = [
-    { q: 'How long does a private transfer from Prague to Liberec take?', a: 'Approximately 1 hour 30 minutes door-to-door on the D10 motorway through Mladá Boleslav and Turnov, then the R35 into Liberec. Traffic is generally light outside Friday afternoon rush hour and winter ski-season weekends.' },
-    { q: 'How much does a chauffeur from Prague to Liberec cost?', a: `Fixed fare from €${ePrice} in Mercedes E-Class (up to 3 passengers), €${vPrice} in V-Class (up to 6 passengers), or €${sPrice} in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.` },
-    { q: 'Can I book a same-day round trip from Prague to Liberec?', a: 'Yes. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. A typical day trip runs six to eight hours and covers the Ještěd cable car, the Town Hall square, and lunch in the old centre.' },
-    { q: 'Is there a border crossing on this route?', a: 'No. Prague to Liberec is entirely within the Czech Republic. The German and Polish borders are close to Liberec, but the destination itself is Czech. If you need to continue into Germany or Poland from Liberec, Prestigo can extend the booking.' },
-    { q: 'Is a child seat available?', a: 'Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child\'s age at booking so the correct seat is installed before pickup.' },
-    { q: 'What language does the chauffeur speak?', a: 'Every Prestigo chauffeur speaks fluent English and Czech as standard. German is available on request.' },
-  ]
+  const inclusions = content.inclusions.map((s) => interpolate(s, prices))
 
-  const whyBook = [
-    {
-      title: 'Fixed fare, no surprises',
-      body: 'The price you see is the price you pay. Fuel, the Czech motorway vignette, driver time. Nothing added at drop-off.',
-    },
-    {
-      title: 'Owned fleet, vetted chauffeurs',
-      body: 'Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for long-distance work inside Czechia and across the nearby borders.',
-    },
-    {
-      title: 'Anticipatory service',
-      body: 'If the D10 has a closure near Mladá Boleslav, your chauffeur reroutes via Highway 16 without asking. For Ještěd cable car visits, the chauffeur knows the operating windows and can time the run so you are not left waiting on a cold platform.',
-    },
-  ]
+  const faqs = content.faqs.map((f) => ({ q: f.q, a: interpolate(f.a, prices) }))
 
-  const relatedRoutes = [
-    { slug: 'prague-hradec-kralove', city: 'Hradec Králové', distance: '115 km', duration: '1h 20min' },
-    { slug: 'prague-dresden', city: 'Dresden', distance: '150 km', duration: '2h' },
-    { slug: 'prague-wroclaw', city: 'Wrocław', distance: '340 km', duration: '3h 45min' },
-    { slug: 'prague-pardubice', city: 'Pardubice', distance: '125 km', duration: '1h 30min' },
-  ]
+  const whyBook = content.whyBook.items
+
+  const relatedRoutes = content.relatedRoutes
 
   const pageSchema = {
     '@context': 'https://schema.org' as const,
@@ -132,18 +105,18 @@ export default async function PragueLibeRecPage() {
           <Image src="/photohero.jpg" alt="Liberec — private chauffeur transfer from Prague to Liberec" fill priority sizes="100vw" className="object-cover" style={{ filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Prague → Liberec</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Prague to Liberec, <br />
-            <span className="display-italic">mountain gateway.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            105 km north to North Bohemia&apos;s capital at the foot of the Jizera Mountains. Cable car, neo-baroque town hall, and Czech glass tradition — one and a half hours, one fixed price.
+            {interpolate(content.hero.intro, prices)}
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
-            <a href="/book" className="btn-primary">Book this Route</a>
-            <a href="/contact" className="btn-ghost">Ask a Question</a>
+            <a href="/book" className="btn-primary">{t('heroCtaPrimary')}</a>
+            <a href="/contact" className="btn-ghost">{t('heroCtaSecondary')}</a>
           </div>
         </div>
       </section>
@@ -162,7 +135,7 @@ export default async function PragueLibeRecPage() {
                     <div className="flex flex-wrap gap-2 mt-1">
                       {h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}
                     </div>
-                    <p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>Available on this route</p>
+                    <p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p>
                   </div>
                 ) : (
                   <p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>
@@ -179,10 +152,10 @@ export default async function PragueLibeRecPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><p className="body-text text-[14px]" style={{ lineHeight: '1.9' }}>
-            A private transfer from Prague to Liberec covers 105 km and takes approximately 1.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Mladá Boleslav or Jablonec nad Nisou — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.
+            {openingParagraphs[0]}
           </p>
           <p className="body-text text-[14px] mt-6" style={{ lineHeight: '1.9' }}>
-            This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change.
+            {openingParagraphs[1]}
           </p></Reveal>
         </div>
       </section>
@@ -193,18 +166,18 @@ export default async function PragueLibeRecPage() {
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">The Route</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Liberec <br /><span className="display-italic">in ninety minutes.</span></h2>
+            <p className="label mb-6">{t('sectionLabels.theRoute')}</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">{content.routeNarrative.headingLine1} <br /><span className="display-italic">{content.routeNarrative.headingItalic}</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D10 motorway north — part of European route E65 — through Mladá Boleslav and on to Turnov, the gateway to the Bohemian Paradise. At Turnov the road shifts onto the R35, and a quieter final stretch through wooded hills drops you into Liberec at the foot of the Jizera Mountains. There is no border crossing on this route. The German and Polish frontiers sit just beyond Liberec, but the destination itself is entirely inside Czechia.
+              {routeNarrativeParagraphs[0]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Liberec rewards a visitor. The neo-Renaissance Town Hall on Dr. E. Beneše Square is one of the most photographed civic buildings in the country. The Ještěd cable car climbs from Horní Hanychov to the summit, where Karel Hubáček&apos;s hyperboloid hotel-tower has stood since 1973 and still functions as a working transmitter and restaurant. The Botanical Gardens are a short walk from the centre, and the hiking and ski trails of the Jizera Mountains begin twenty minutes beyond the city.
+              {routeNarrativeParagraphs[1]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Your chauffeur watches traffic on the D10 before every departure. Friday afternoons out of Prague can add fifteen minutes near Brandýs nad Labem, and winter ski-season weekends tighten the final stretch toward Liberec. If there is a closure, they reroute via Highway 16 without asking. You are not paying for traffic; you are paying for time.
+              {routeNarrativeParagraphs[2]}
             </p>
           </div></Reveal>
         </div>
@@ -216,9 +189,9 @@ export default async function PragueLibeRecPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">What&apos;s Included</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Everything included, <br /><span className="display-italic">nothing to arrange.</span></h2>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>The fixed price covers everything from Prague pickup to Liberec drop-off. The car, the chauffeur, the fuel, the motorway vignette. Business visit, ski weekend, or a day with the Jizera Mountains — your driver handles the route while you focus on the destination.</p>
+            <p className="label mb-6">{content.includedLabel}</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">{t('includedHeading.line1')} <br /><span className="display-italic">{t('includedHeading.italic')}</span></h2>
+            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{content.includedIntro}</p>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-4 justify-center">
             {inclusions.map((item) => (
@@ -236,8 +209,8 @@ export default async function PragueLibeRecPage() {
       {/* Fleet */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Fleet</p>
-          <h2 className="display text-[28px] md:text-[38px] mb-14">Choose your vehicle</h2></Reveal>
+          <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.fleet')}</p>
+          <h2 className="display text-[28px] md:text-[38px] mb-14">{t('chooseYourVehicle')}</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {vehicles.map((v) => (
               <div key={v.name} className="border border-anthracite-light flex flex-col">
@@ -248,16 +221,16 @@ export default async function PragueLibeRecPage() {
                     <h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Passengers</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div>
-                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Luggage</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div>
-                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">Transfer price</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div>
+                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div>
+                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div>
+                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div>
                   </div>
-                  <a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>Book Online</a>
+                  <a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
                 </div>
               </div>
             ))}
           </div>
-          <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.</p>
+          <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>{content.fleetNote}</p>
         </div>
       </section>
 
@@ -267,14 +240,10 @@ export default async function PragueLibeRecPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">The Journey</p>
-            <h2 className="display text-[28px] md:text-[38px] mb-6">Prague to Liberec, <br /><span className="display-italic">the route.</span></h2>
+            <p className="label mb-6">{t('sectionLabels.theJourney')}</p>
+            <h2 className="display text-[28px] md:text-[38px] mb-6">{content.journeyHeading.line1} <br /><span className="display-italic">{content.journeyHeading.italic}</span></h2>
             <div className="flex flex-col gap-8 mt-10">
-              {[
-                { city: 'Prague', note: 'Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.', anchor: true, custom: false },
-                { city: 'Anywhere you like', note: 'Mladá Boleslav, a mountain village, or any stop along the way. Your route, your schedule.', anchor: false, custom: true },
-                { city: 'Liberec', note: 'Drop-off at any Liberec address, your hotel, or the Jizera Mountains ski area on request.', anchor: true, custom: false },
-              ].map((stop, i, arr) => (
+              {content.journeyStops.map((stop, i, arr) => (
                 <div key={stop.city} className="flex gap-6">
                   <div className="flex flex-col items-center">
                     <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1" style={{ background: stop.anchor ? 'var(--copper)' : stop.custom ? 'transparent' : 'var(--anthracite-light)', border: stop.custom ? '1px solid var(--copper)' : 'none' }} />
@@ -290,14 +259,9 @@ export default async function PragueLibeRecPage() {
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-6 justify-start pt-[60px]">
             <div className="border border-anthracite-light p-8">
-              <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>Good to know</p>
+              <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-6" style={{ color: 'var(--copper)' }}>{t('sectionLabels.goodToKnow')}</p>
               <div className="flex flex-col gap-5">
-                {[
-                  { label: 'Border crossing', value: 'No border crossing — entirely within the Czech Republic.' },
-                  { label: 'Tolls', value: 'Czech motorway vignette included in the quoted price.' },
-                  { label: 'Return transfer', value: 'Book both directions together for a reduced rate.' },
-                  { label: 'Ski season', value: 'Jizera Mountains ski resorts are 20–30 minutes from Liberec. PRESTIGO can continue to specific resorts on request.' },
-                ].map((item) => (
+                {content.goodToKnow.map((item) => (
                   <div key={item.label}>
                     <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{item.label}</p>
                     <p className="body-text text-[12px]" style={{ lineHeight: '1.8' }}>{item.value}</p>
@@ -315,18 +279,18 @@ export default async function PragueLibeRecPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-16">
           <Reveal variant="up"><div>
-            <p className="label mb-6">The Chauffeur</p>
-            <h2 className="display text-[28px] md:text-[38px]">What to expect <br /><span className="display-italic">from your driver.</span></h2>
+            <p className="label mb-6">{t('sectionLabels.theChauffeur')}</p>
+            <h2 className="display text-[28px] md:text-[38px]">{t('chauffeurHeading.line1')} <br /><span className="display-italic">{t('chauffeurHeading.italic')}</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150}><div className="flex flex-col gap-5">
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Your chauffeur will meet you in front of your pickup address in central Prague, or inside the arrivals hall at Václav Havel Airport with a Prestigo tablet displaying your name. No parking lot walk. No meeting point in another terminal.
+              {content.chauffeurNarrative[0]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Conversation is a choice. If you want a quiet cabin for ninety minutes of work or rest, the chauffeur will read that signal and let you be. If you want context on Liberec, your driver knows it — the Bohemian textile industry that built the city, the Sudeten German history that shaped it before 1945, the Czech glass tradition still alive in the workshops around Jablonec, the winter life of Ještěd as a working ski resort, and the three-country corner where Czechia meets Germany and Poland within forty minutes of the town square.
+              {content.chauffeurNarrative[1]}
             </p>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at a real rest area on the D10 between Brandýs nad Labem and Mladá Boleslav, that is included.
+              {content.chauffeurNarrative[2]}
             </p>
           </div></Reveal>
         </div>
@@ -337,9 +301,9 @@ export default async function PragueLibeRecPage() {
       {/* Why book with Prestigo */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Why Prestigo</p>
+          <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.whyPrestigo')}</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14 max-w-2xl">
-            Why book with Prestigo <br /><span className="display-italic">for Prague to Liberec.</span>
+            {content.whyBook.headingLine1} <br /><span className="display-italic">{content.whyBook.headingItalic}</span>
           </h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {whyBook.map((w, i) => (
@@ -357,7 +321,7 @@ export default async function PragueLibeRecPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Frequently asked questions</h2></Reveal>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">{content.faqsHeading}</h2></Reveal>
           <div className="flex flex-col gap-0">
             {faqs.map((faq, i) => (
               <div key={faq.q} className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
@@ -374,12 +338,12 @@ export default async function PragueLibeRecPage() {
       {/* Related routes */}
       <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><p className="label mb-6">Related Routes</p>
+          <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.relatedRoutes')}</p>
           <h2 className="display text-[26px] md:text-[32px] mb-6">
-            Continue across <br /><span className="display-italic">Central Europe.</span>
+            {content.relatedHeading.line1} <br /><span className="display-italic">{content.relatedHeading.italic}</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
-            Liberec sits at a crossroads of Czech regional routes and cross-border runs toward Saxony and Lower Silesia. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.
+            {content.relatedRoutesIntro}
           </p></Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {relatedRoutes.map((r, i) => (
@@ -404,12 +368,12 @@ export default async function PragueLibeRecPage() {
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
-            <h2 className="display text-[28px] md:text-[36px]">Prague to Liberec. <br /><span className="display-italic">From €{ePrice}, fixed.</span></h2>
-            <p className="body-text text-[13px] mt-4">No surprises. No meters. Your driver is waiting.</p>
+            <h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolate(content.cta.headingItalic, prices)}</span></h2>
+            <p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p>
           </div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">
-            <a href="/book" className="btn-primary">Book Now</a>
-            <a href="/routes" className="btn-ghost">All Routes</a>
+            <a href="/book" className="btn-primary">{t('bookNow')}</a>
+            <a href="/routes" className="btn-ghost">{t('allRoutes')}</a>
           </div></Reveal>
         </div>
       </section>
