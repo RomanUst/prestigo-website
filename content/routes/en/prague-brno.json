@@ -1,0 +1,110 @@
+{
+  "hero": {
+    "label": "Prague → Brno",
+    "headlineLine1": "Prague to Brno,",
+    "headlineItalic": "Moravia's capital.",
+    "intro": "205 km east on the D1 to the Czech Republic's second city. Špilberk Castle, Villa Tugendhat, the Brno Exhibition Centre, and Moravian wine country — two and a half hours, one fixed price."
+  },
+  "openingParagraphs": [
+    "A private transfer from Prague to Brno covers 205 km via the D1 motorway and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Jihlava or a Moravian wine village — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Prague to Brno",
+    "headingItalic": "in two and a half hours.",
+    "paragraphs": [
+      "From a Prague pickup in the Old Town, Vinohrady, Karlín, or Václav Havel Airport, your chauffeur takes the D1 motorway east. The D1 is the busiest motorway in the Czech Republic and the central spine of the country, running from the capital through the Vysočina — the Bohemian-Moravian Highlands — and down into Brno. There is no border crossing; the route stays entirely within Czechia, which means no vignette changes, no document checks, and no stop at a frontier.",
+      "Total distance is approximately 205 kilometres. Much of the corridor has been progressively widened and rebuilt over the last several years, and the drive now moves at a steady rhythm through Humpolec, Jihlava, and Velké Meziříčí before descending into Brno. In the city, the route branches to where you actually need to go — the Old Town under Špilberk Castle and the Cathedral of St. Peter and Paul, the Brno Exhibition Centre (BVV) for trade fairs, Villa Tugendhat on the hill above Černá Pole, or south into the Moravian wine country around Mikulov.",
+      "Friday afternoon outbound from Prague is the one pattern worth planning around — it is reliably heavy and can add half an hour. Your chauffeur watches the D1 before every departure and shifts the pickup time if the map is red. You are not paying for traffic; you are paying for time."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from Prague pickup to Brno drop-off. The car, the chauffeur, the fuel, the vignette. Business meeting, trade fair at BVV, or a Moravian wine weekend — your driver handles the route while you focus on the destination.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech as standard.",
+    "Fuel and the Czech motorway vignette. Nothing is charged on top.",
+    "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
+    "Bottled water, phone charger, and WiFi in the rear cabin.",
+    "Waiting time at pickup — 15 minutes free at any address.",
+    "Child seats on request — rear-facing infant, forward-facing toddler, or booster. No additional charge.",
+    "Same-day return — 10% off the return leg if booked together, or add hourly city rental."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Prague to Brno,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Prague", "note": "Pickup from your hotel, office, or Prague Airport (PRG). Driver waits up to 60 minutes at the airport.", "anchor": true, "custom": false },
+    { "city": "Anywhere you like", "note": "A stop at Humpolec, Jihlava, or anywhere along the D1. Your route, your schedule.", "anchor": false, "custom": true },
+    { "city": "Brno", "note": "Drop-off at any Brno address, the Exhibition Centre, Brno main station, or your hotel.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "No border crossing — entirely within the Czech Republic." },
+    { "label": "Tolls", "value": "Czech motorway vignette included in the quoted price." },
+    { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
+    { "label": "Onward routing", "value": "Bratislava is 130 km, Vienna 150 km. PRESTIGO can extend your journey from Brno onward as a single booking." }
+  ],
+  "dayTripLabel": "Day Trips from Prague",
+  "dayTrip": {
+    "headingLine1": "Popular day-trip",
+    "headingItalic": "configurations.",
+    "intro": "Brno is 2.5 hours each way, which makes it an ideal day trip from Prague — a full working day on site with the chauffeur on standby, and home before dinner. Three configurations cover most requests.",
+    "configurations": [
+      { "title": "The Špilberk and Old Town Day", "body": "Pickup at 8:00, arrive Brno by 10:30. Three hours at Špilberk Castle on the hill above the city — fortress, casemates, and Brno City Museum — followed by lunch on Zelný trh and a walk to the Cathedral of St. Peter and Paul on Petrov. Back in Prague by 18:30.", "price": "Round-trip package — contact us for a quote" },
+      { "title": "The Villa Tugendhat and Moravian Wine Afternoon", "body": "Pre-booked timed entry for Villa Tugendhat, the Mies van der Rohe modernist house and UNESCO World Heritage site. After the tour, a drive south into the Pálava wine region for a late lunch and cellar visit in Mikulov or Valtice before the return.", "price": "Round-trip package — contact us for a quote" },
+      { "title": "The Brno Exhibition Centre Trade Fair Day", "body": "Early pickup in Prague, drop-off at the correct gate inside BVV — the chauffeur knows which entrance each hall uses during large fairs. Your driver stays on standby for the day, handles any mid-show runs to the hotel or city centre, and returns you to Prague after the closing session.", "price": "Round-trip package — contact us for a quote" }
+    ],
+    "footnote": "Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are arriving at Václav Havel Airport or staying in central Prague, they are at the door with a Prestigo tablet displaying your name.",
+    "Conversation is a choice. If you want a quiet cabin for two and a half hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Brno — Mendel's garden at the Augustinian abbey where the laws of genetics were first described, the Tugendhat house as a founding monument of European modernism, the BVV trade fair complex that put socialist Czechoslovakia on the industrial map, the startup and tech cluster that now makes Brno one of the fastest-growing Czech tech cities — your chauffeur knows it.",
+    "Phone charger, bottled water, and WiFi are already in the cabin. If you want to stop for a coffee at the Devět Křížů rest area halfway to Brno, that is included. If you need a specific temperature in the rear cabin, say so."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "for Prague to Brno.",
+    "items": [
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, no meter running while you take a meeting." },
+      { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and trained for long-distance executive travel." },
+      { "title": "Route knowledge, not a map app", "body": "If the D1 has a closure near Velké Meziříčí, your chauffeur knows the parallel R602 routing without touching the satnav. For BVV trade fair pickups, the chauffeur knows where to drop within the entry gates so you walk into the right hall, not the opposite end of the complex." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Prague to Brno take?", "a": "Approximately 2.5 hours door-to-door via the D1 motorway east through the Vysočina highlands. Friday afternoon outbound traffic from Prague can add 20–30 minutes." },
+    { "q": "How much does a chauffeur from Prague to Brno cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges." },
+    { "q": "Can I book a same-day round trip from Prague to Brno?", "a": "Yes — and it is the natural pattern for this route. Brno is 2.5 hours each way, which leaves a comfortable day on site without an overnight stay. A same-day return receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most clients book a 6–8 hour round trip to cover a meeting, a lunch, and the drive back to Prague by evening." },
+    { "q": "Is there a border crossing on the way to Brno?", "a": "No. The route is entirely within the Czech Republic on the D1 motorway. No border checks, no vignette changes, no document requirements beyond those for domestic travel." },
+    { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
+    { "q": "What languages does the chauffeur speak?", "a": "Every Prestigo chauffeur speaks fluent Czech and English as standard. Other languages can be arranged on request at the time of booking." }
+  ],
+  "relatedRoutesIntro": "Brno is the natural hub for Moravia and the gateway south to Bratislava and Vienna. Many clients combine a Brno run with onward travel or use it as a bridge into the Danube capitals. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.",
+  "relatedHeading": { "line1": "Continue across", "italic": "Moravia and beyond." },
+  "relatedRoutes": [
+    { "slug": "prague-bratislava", "city": "Bratislava", "distance": "330 km", "duration": "3h 45min" },
+    { "slug": "prague-vienna", "city": "Vienna", "distance": "330 km", "duration": "3h 45min" },
+    { "slug": "prague-olomouc", "city": "Olomouc", "distance": "280 km", "duration": "3h" },
+    { "slug": "prague-zlin", "city": "Zlín", "distance": "300 km", "duration": "3h 30min" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~205 km" },
+    { "label": "Duration", "value": "~2.5 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Prague to Brno.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Prague to Brno Chauffeur — From €{ePrice}",
+    "description": "Book a private chauffeur from Prague to Brno. 205 km on the D1 in a Mercedes-Benz. Fixed price from €{ePrice}, Moravia's capital. Tolls and vignette included.",
+    "ogTitle": "Prague to Brno Private Transfer — From €{ePrice}",
+    "ogDescription": "Book a private chauffeur from Prague to Brno. 205 km on the D1 in a Mercedes-Benz. Fixed price from €{ePrice}, Moravia's capital."
+  }
+}
