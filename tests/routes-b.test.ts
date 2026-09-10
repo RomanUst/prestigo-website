@@ -15,6 +15,9 @@ describe("Group B route content (71-03)", () => {
     "prague-liberec",
     "prague-linz",
     "prague-marianske-lazne",
+    "prague-munich",
+    "prague-nuremberg",
+    "prague-olomouc",
   ])("%s", (slug) => {
     it("passes assertRouteContentShape", () => {
       const content = getRouteContent(slug, "en");
@@ -127,6 +130,51 @@ describe("Group B route content (71-03)", () => {
 
   it("prague-marianske-lazne: has no day-trip section (page never rendered one)", () => {
     const content = getRouteContent("prague-marianske-lazne", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
+  });
+
+  it("prague-munich: byte-parity spot-check", () => {
+    assertRouteParity("prague-munich", {
+      "hero.intro":
+        "385 km southwest through Bohemia and Bavaria. Marienplatz, the English Garden, Oktoberfest, and Munich Airport — four hours, one fixed price, door to door.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Munich Chauffeur — From €485",
+    });
+  });
+
+  it("prague-nuremberg: byte-parity spot-check", () => {
+    assertRouteParity("prague-nuremberg", {
+      "hero.intro":
+        "360 km southwest on the D5 into Bavaria. Three and a half hours door-to-door. Fixed fare from €485. Your chauffeur is already waiting.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Nuremberg Chauffeur — From €485",
+    });
+  });
+
+  it("prague-olomouc: byte-parity spot-check", () => {
+    assertRouteParity("prague-olomouc", {
+      "hero.intro":
+        "280 km east to Moravia's grand historic capital. Six baroque fountains, a UNESCO Holy Trinity Column, and one of Central Europe's most intact old towns — three hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Olomouc Chauffeur — From €485",
+    });
+  });
+
+  it("prague-olomouc: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-olomouc", "en");
     expect(content.dayTripLabel).toBe("");
     expect(content.dayTrip.configurations).toEqual([]);
   });
