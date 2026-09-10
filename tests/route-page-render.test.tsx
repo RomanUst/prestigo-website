@@ -110,6 +110,16 @@ describe("PragueViennaPage — render byte-parity proof", () => {
     const PageElement = await PragueViennaPage();
     const { container } = render(PageElement);
 
-    expect(container.innerHTML).toMatchSnapshot();
+    // `priceValidUntil` is a dynamic today+365 value (lib/jsonld.ts
+    // futureIsoDate) emitted into the Service JSON-LD. It is identical in
+    // behavior before and after the content-externalization refactor, so it is
+    // NOT part of what "byte-for-byte EN unchanged" must prove. Normalize it to
+    // a placeholder so the golden snapshot stays date-stable across days.
+    const html = container.innerHTML.replace(
+      /("priceValidUntil":")\d{4}-\d{2}-\d{2}(")/g,
+      "$1<DYNAMIC>$2"
+    );
+
+    expect(html).toMatchSnapshot();
   });
 });
