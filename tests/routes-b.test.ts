@@ -12,6 +12,9 @@ describe("Group B route content (71-03)", () => {
     "prague-krakow",
     "prague-kutna-hora",
     "prague-leipzig",
+    "prague-liberec",
+    "prague-linz",
+    "prague-marianske-lazne",
   ])("%s", (slug) => {
     it("passes assertRouteContentShape", () => {
       const content = getRouteContent(slug, "en");
@@ -75,5 +78,56 @@ describe("Group B route content (71-03)", () => {
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Leipzig Chauffeur — From €485",
     });
+  });
+
+  it("prague-liberec: byte-parity spot-check", () => {
+    assertRouteParity("prague-liberec", {
+      "hero.intro":
+        "105 km north to North Bohemia's capital at the foot of the Jizera Mountains. Cable car, neo-baroque town hall, and Czech glass tradition — one and a half hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Liberec Chauffeur — From €485",
+    });
+  });
+
+  it("prague-liberec: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-liberec", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
+  });
+
+  it("prague-linz: byte-parity spot-check", () => {
+    assertRouteParity("prague-linz", {
+      "hero.intro":
+        "195 km south to Upper Austria's capital on the Danube. Ars Electronica, Lentos Museum, and a city that has reinvented itself as a creative hub — two and a half hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, Czech and Austrian motorway vignettes, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Linz Chauffeur — From €485",
+    });
+  });
+
+  it("prague-marianske-lazne: byte-parity spot-check", () => {
+    assertRouteParity("prague-marianske-lazne", {
+      "hero.intro":
+        "165 km west to the most elegant of the West Bohemian spa towns. Colonnaded promenades, mineral springs, the Singing Fountain, and forested hills — two hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Mariánské Lázně Chauffeur — From €485",
+    });
+  });
+
+  it("prague-marianske-lazne: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-marianske-lazne", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
   });
 });
