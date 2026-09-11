@@ -14,6 +14,12 @@ type CityRidesContent = {
   features: { title: string; body: string }[];
 };
 
+type ConciergeContent = {
+  hero: { intro: string };
+  editorial: string[];
+  faqs: { q: string; a: string }[];
+};
+
 describe("getPageContent('services') — hub page", () => {
   it("EN-fallback: getPageContent('services', 'ru') deep-equals the 'en' result", () => {
     const en = getPageContent("services", "en");
@@ -57,5 +63,26 @@ describe("getPageContent('services/city-rides') — city-rides page", () => {
 
   it("path-traversal: getPageContent('services/../x', 'en') throws (segment-wise guard on nested keys)", () => {
     expect(() => getPageContent("services/../x", "en")).toThrow();
+  });
+});
+
+describe("getPageContent('services/concierge') — concierge page", () => {
+  it("EN-fallback: getPageContent('services/concierge', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("services/concierge", "en");
+    const ru = getPageContent("services/concierge", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative body strings against verbatim originals", () => {
+    const content = getPageContent("services/concierge", "en") as ConciergeContent;
+    expect(content.hero.intro).toBe(
+      "A PRESTIGO chauffeur does more than move you across Prague. Reservations confirmed, local knowledge offered, errands absorbed, plans changed on the day without a second thought — the logistics of your time in the city, handled by one trusted person. English-speaking, discreet, operating since 2016."
+    );
+    expect(content.editorial[1]).toBe(
+      "A concierge chauffeur is not a more expensive way to get across town. It is a single person who removes the small, constant friction of moving through an unfamiliar city: the reservation that needs confirming, the route that needs local judgement, the bag that needs carrying, the plan that changes at four in the afternoon. Each of these is minor on its own. Together, over a day or a week, they are the difference between managing a visit and being looked after during one."
+    );
+    expect(content.faqs[0].a).toBe(
+      "A standard transfer moves you from point A to point B. A concierge chauffeur takes on the tasks around the journey as well — confirming a restaurant reservation, coordinating with your hotel concierge, carrying shopping, advising on where to go, and adapting the plan as your day changes. It is the same Mercedes fleet and the same fixed pricing; the difference is that one trusted person handles the logistics of your time in Prague, not just the driving."
+    );
   });
 });
