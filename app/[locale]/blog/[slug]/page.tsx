@@ -2,22 +2,28 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { getLocale } from 'next-intl/server'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
-import { getAllPosts, type BlogPost } from '@/lib/blog'
+import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '@/lib/blog'
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
 
 export const dynamic = 'force-static'
-export const dynamicParams = false
+// Untranslated {locale, slug} combinations (no localized MDX yet, all of
+// them until Phase 72/73 land) render on-demand via the EN fallback below
+// rather than 404 — RESEARCH.md Open Question 2.
+export const dynamicParams = true
 
 /**
- * MDX-only generateStaticParams. JSX article slugs MUST NOT appear here
- * (ART-02). Phase 54 invariant — preserved verbatim.
+ * MDX-only generateStaticParams, sourced from content/blog/en/ — the
+ * localized files that actually exist today (EN only, Phase 71 does no
+ * translation). JSX article slugs MUST NOT appear here (ART-02). Phase 54
+ * invariant — preserved.
  */
 export function generateStaticParams(): Array<{ slug: string }> {
-  const contentDir = path.join(process.cwd(), 'content', 'blog')
+  const contentDir = path.join(process.cwd(), 'content', 'blog', 'en')
   if (!fs.existsSync(contentDir)) return []
   return fs
     .readdirSync(contentDir)
@@ -25,8 +31,8 @@ export function generateStaticParams(): Array<{ slug: string }> {
     .map((f) => ({ slug: f.replace(/\.mdx$/, '') }))
 }
 
-function findMdxPost(slug: string): BlogPost | undefined {
-  return getAllPosts().find((p) => p.slug === slug && p.source === 'mdx')
+function findMdxPost(slug: string, dir: string): BlogPost | undefined {
+  return getAllPosts(dir).find((p) => p.slug === slug && p.source === 'mdx')
 }
 
 export async function generateMetadata({
@@ -35,10 +41,16 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const post = findMdxPost(slug)
+  const locale = await getLocale()
+  const resolved = resolveLocalizedMdx(slug, locale)
+  if (!resolved) return { title: 'Not Found — Prestigo' }
+  const post = findMdxPost(slug, resolved.dir)
   if (!post) return { title: 'Not Found — Prestigo' }
-  const canonical = `/blog/${slug}`
-  const absolute = `https://rideprestigo.com${canonical}`
+  // canonical → EN for an untranslated localized path (D-07); for en (or a
+  // future genuinely localized post) this is byte-identical to today's
+  // locale-relative /blog/<slug> canonical.
+  const canonical = blogCanonical(slug, resolved.isFallback)
+  const absolute = `https://rideprestigo.com/blog/${slug}`
   return {
     title: { absolute: `${post.title} — Prestigo` },
     description: post.description,
@@ -67,23 +79,31 @@ export default async function BlogArticlePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
+  const locale = await getLocale()
 
   // Allowlist preserved from Phase 54 scaffold — defence in depth even
-  // with dynamicParams=false. Path-traversal safe.
+  // with dynamicParams=true. Path-traversal safe.
   if (!/^[a-z0-9-]+$/.test(slug)) {
     notFound()
   }
 
-  const post = findMdxPost(slug)
+  const resolved = resolveLocalizedMdx(slug, locale)
+  if (!resolved) {
+    notFound()
+  }
+
+  const post = findMdxPost(slug, resolved.dir)
   if (!post) {
     notFound()
   }
 
   // Relative path is mandatory — webpack/Turbopack cannot resolve @/ in
-  // dynamic import template strings. See RESEARCH.md Pitfall 3.
+  // dynamic import template strings. See RESEARCH.md Pitfall 3. resolved.dir
+  // is constrained to a validated locale or the literal 'en' by
+  // resolveLocalizedMdx (T-71-BLOG-01) before it ever reaches this import.
   let Post: React.ComponentType
   try {
-    const mod = await import(`../../../../content/blog/${slug}.mdx`)
+    const mod = await import(`../../../../content/blog/${resolved.dir}/${slug}.mdx`)
     Post = mod.default
   } catch {
     notFound()

@@ -1,23 +1,36 @@
 import type { Metadata } from 'next'
+import { getLocale } from 'next-intl/server'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import Reveal from '@/components/Reveal'
 import BlogCard from '@/components/BlogCard'
 import { getAllPosts } from '@/lib/blog'
+import { getPageContent } from '@/lib/page-content'
 
 export const dynamic = 'force-static'
 
-const TITLE = 'Prague Chauffeur Blog — Airport, Routes & Transfer Guides'
-const DESCRIPTION =
-  'Practical guides on Prague airport transfers, intercity routes, and luxury chauffeur services — verified 2026 fares and local knowledge from Prestigo.'
+type BlogListingContent = {
+  metadata: { title: string; description: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  emptyState: { heading: string; body: string; ctaLabel: string }
+  cta: {
+    headingLine1: string
+    headingItalic: string
+    body: string
+    primaryLabel: string
+    secondaryLabel: string
+  }
+}
 
 export async function generateMetadata(): Promise<Metadata> {
-  const posts = getAllPosts()
+  const locale = await getLocale()
+  const content = getPageContent('blog', locale) as BlogListingContent
+  const posts = getAllPosts(locale)
   const ogImage = posts[0]?.coverImage ?? '/hero-airport-transfer.webp'
   return {
-    title: TITLE,
-    description: DESCRIPTION,
+    title: content.metadata.title,
+    description: content.metadata.description,
     alternates: {
       canonical: '/blog',
       languages: {
@@ -27,8 +40,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/blog',
-      title: TITLE,
-      description: DESCRIPTION,
+      title: content.metadata.title,
+      description: content.metadata.description,
       images: [
         {
           url: `https://rideprestigo.com${ogImage}`,
@@ -40,8 +53,10 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default function BlogPage() {
-  const posts = getAllPosts()
+export default async function BlogPage() {
+  const locale = await getLocale()
+  const content = getPageContent('blog', locale) as BlogListingContent
+  const posts = getAllPosts(locale)
   return (
     <>
       <Nav />
@@ -49,16 +64,16 @@ export default function BlogPage() {
         {/* Hero */}
         <section className="bg-anthracite pt-32 pb-16 md:pt-40 md:pb-20">
           <div className="max-w-5xl mx-auto px-6 md:px-12">
-            <p className="label" style={{ color: 'var(--copper-light)' }}>Blog</p>
+            <p className="label" style={{ color: 'var(--copper-light)' }}>{content.hero.label}</p>
             <div className="copper-line my-6" />
             <h1 className="font-display font-light text-[40px] md:text-[56px] text-offwhite leading-[1.1]">
-              Prague travel,{' '}
+              {content.hero.headlineLine1}{' '}
               <span className="italic" style={{ color: 'var(--copper-pale)' }}>
-                explained clearly.
+                {content.hero.headlineItalic}
               </span>
             </h1>
             <p className="body-text mt-6 max-w-2xl">
-              Practical guides written from real dispatch data. Every fare, route, and timing verified for 2026.
+              {content.hero.intro}
             </p>
           </div>
         </section>
@@ -71,12 +86,12 @@ export default function BlogPage() {
             {posts.length === 0 ? (
               <div className="text-center py-24">
                 <p className="font-display font-light text-[28px] text-offwhite mb-4">
-                  No articles yet.
+                  {content.emptyState.heading}
                 </p>
                 <p className="body-text mb-8">
-                  We&apos;re preparing detailed guides on Prague transfers and routes. Check back soon, or book your transfer now.
+                  {content.emptyState.body}
                 </p>
-                <a href="/book" className="btn-primary">Book a Transfer</a>
+                <a href="/book" className="btn-primary">{content.emptyState.ctaLabel}</a>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -96,17 +111,17 @@ export default function BlogPage() {
         <section className="bg-anthracite py-20">
           <div className="max-w-3xl mx-auto px-6 md:px-12 text-center">
             <h2 className="font-display font-light text-[28px] md:text-[36px] text-offwhite leading-[1.15]">
-              Ready to book?{' '}
+              {content.cta.headingLine1}{' '}
               <span className="italic" style={{ color: 'var(--copper-pale)' }}>
-                Fixed price, door-to-door.
+                {content.cta.headingItalic}
               </span>
             </h2>
             <p className="body-text mt-5 mb-8">
-              No meters. No surprises. Mercedes fleet, 24/7 Prague dispatch.
+              {content.cta.body}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/book" className="btn-primary">Book a Transfer</a>
-              <a href="/fleet" className="btn-ghost">View Fleet</a>
+              <a href="/book" className="btn-primary">{content.cta.primaryLabel}</a>
+              <a href="/fleet" className="btn-ghost">{content.cta.secondaryLabel}</a>
             </div>
           </div>
         </section>
