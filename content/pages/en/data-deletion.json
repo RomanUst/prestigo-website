@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "title": "Data Deletion — PRESTIGO Premium Chauffeur Prague",
+    "description": "How to request deletion of your personal data from PRESTIGO. GDPR data erasure request instructions."
+  },
+  "hero": {
+    "label": "Data Deletion",
+    "headlineLine1": "Request data deletion.",
+    "headlineItalic": "Simple and transparent."
+  },
+  "requestReceived": {
+    "label": "Request Received",
+    "paragraph1": "Your data deletion request has been received and will be processed within 30 days. Your confirmation code:",
+    "paragraph2Prefix": "Keep this code for your records. If you have questions, email ",
+    "paragraph2EmailLabel": "info@rideprestigo.com",
+    "paragraph2Suffix": " and quote this code."
+  },
+  "section1": {
+    "title": "What data PRESTIGO holds",
+    "text": "If you booked a transfer or submitted an enquiry, we hold your name, email address, phone number, and booking details. We also process anonymised website analytics data via Google Analytics and Meta Pixel. We do not store your Facebook user ID — the Meta Pixel only sends hashed behavioural data for ad measurement purposes."
+  },
+  "section2": {
+    "title": "How to request deletion",
+    "paragraph1Prefix": "Send an email to ",
+    "paragraph1EmailLabel": "info@rideprestigo.com",
+    "paragraph1Suffix": " with the subject line “Data Deletion Request”. Include the email address associated with your booking or enquiry.",
+    "paragraph2": "We will confirm receipt within 3 business days and complete the deletion within 30 days, unless we are required by law to retain certain records (e.g. invoices for tax purposes — retained for 5 years as required by Czech law)."
+  },
+  "section3": {
+    "title": "Deletion via Facebook",
+    "paragraph1Prefix": "If you used Facebook Login or interacted with PRESTIGO through Facebook and wish to remove access, you can do so via ",
+    "facebookLinkLabel": "Facebook Settings → Apps and Websites",
+    "paragraph1Suffix": ". This removes our app’s access to your Facebook account. For deletion of any booking data we may hold, please also email us as described above."
+  },
+  "cta": {
+    "headingLine1": "Questions about your data?",
+    "headingItalic": "We are here to help.",
+    "buttonPrimary": "Request Deletion",
+    "buttonSecondary": "Privacy Policy"
+  }
+}

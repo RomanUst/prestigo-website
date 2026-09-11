@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "title": "Terms of Service — PRESTIGO Premium Chauffeur Prague",
+    "description": "Terms and conditions for PRESTIGO chauffeur services. Booking policy, cancellation, payment terms, liability, and governing law.",
+    "ogTitle": "Terms of Service — PRESTIGO Premium Chauffeur Prague"
+  },
+  "hero": {
+    "label": "Terms of Service",
+    "headlineLine1": "Clear terms.",
+    "headlineItalic": "No fine print.",
+    "lastUpdated": "Last updated: 6 April 2026"
+  },
+  "section1": {
+    "title": "Scope of Services",
+    "text": "PRESTIGO is a trading name of chelautotrans s.r.o. (IČO: 05650801, registered at Spojovací 685, Vysoký Újezd, Czech Republic). We provide premium chauffeur and private transfer services in Prague and Central Europe, including airport transfers, intercity routes, corporate transportation, VIP and event transport, and group transfers. By placing a booking, you agree to these terms."
+  },
+  "section2": {
+    "title": "Booking & Confirmation",
+    "paragraph1Prefix": "Bookings can be made via ",
+    "bookingLinkLabel": "rideprestigo.com/book",
+    "paragraph1Suffix": ", by email, phone, or WhatsApp.",
+    "paragraph2": "A booking is confirmed upon receipt of a confirmation email containing your booking reference number. You are responsible for providing accurate passenger details, pickup location, and contact information.",
+    "paragraph3": "PRESTIGO reserves the right to decline a booking at its sole discretion."
+  },
+  "section3": {
+    "title": "Pricing & Payment",
+    "paragraph1": "All prices are fixed at the time of booking. There is no surge pricing and no hidden fees. The quoted price includes all route tolls and standard waiting time (60 minutes for airport pickups, 15 minutes for other pickups).",
+    "paragraph2": "Payment is processed securely via Stripe. We accept Visa and Mastercard. Prices are displayed in EUR; CZK is available on request. Corporate accounts may pay by monthly invoice or company card as agreed.",
+    "paragraph3": "Additional charges apply only for: waiting time beyond the included allowance, additional stops not in the original booking, or cleaning fees for damage caused by the passenger."
+  },
+  "section4": {
+    "title": "Cancellation & Refunds",
+    "items": [
+      {
+        "label": "Free cancellation",
+        "desc": "Up to 1 hour before the scheduled pickup time — full refund, no questions asked."
+      },
+      {
+        "label": "Late cancellation",
+        "desc": "Less than 1 hour before pickup — up to 100% of the booking amount may be charged."
+      },
+      {
+        "label": "No-show",
+        "desc": "If you do not cancel and do not appear at the pickup location, the full booking amount is charged."
+      },
+      {
+        "label": "Flight cancellation",
+        "desc": "If your flight is cancelled, we offer a full refund or free rebooking at your choice."
+      },
+      {
+        "label": "Refund processing",
+        "desc": "Refunds are returned to the original payment method within 5–10 business days."
+      }
+    ]
+  },
+  "section5": {
+    "title": "Passenger Obligations",
+    "items": [
+      "Be ready at the designated pickup location at the agreed time.",
+      "Treat the vehicle and driver with respect.",
+      "Wear seatbelts at all times as required by law.",
+      "No smoking in the vehicle.",
+      "Passengers are liable for any damage to the vehicle caused by their actions."
+    ],
+    "extraItem": "PRESTIGO reserves the right to refuse service to passengers who are intoxicated or disruptive."
+  },
+  "section6": {
+    "title": "Flight Tracking & Waiting Time",
+    "paragraph1": "For airport pickups, PRESTIGO monitors your flight status in real time. Your driver adjusts automatically to delays at no extra cost. 60 minutes of complimentary waiting is included from the time of landing.",
+    "paragraph2": "For non-airport pickups, 15 minutes of complimentary waiting is included from the scheduled pickup time."
+  },
+  "section7": {
+    "title": "Liability",
+    "paragraph1": "PRESTIGO maintains full commercial insurance for all vehicles and passengers during the transfer.",
+    "paragraph2": "Liability for loss of or damage to personal belongings left in the vehicle is limited to €500 per booking unless a higher value was declared in advance.",
+    "paragraph3": "PRESTIGO is not liable for delays caused by traffic conditions, road closures, or circumstances beyond reasonable control. In all cases, our maximum liability does not exceed the total value of the booking."
+  },
+  "section8": {
+    "title": "Force Majeure",
+    "text": "PRESTIGO is not liable for failure to perform due to natural disasters, severe weather, government actions, strikes, pandemics, or other events beyond reasonable control. In such cases, we will offer rebooking or a full refund."
+  },
+  "section9": {
+    "title": "Intellectual Property",
+    "text": "All content on rideprestigo.com — including text, images, logos, and design — is the property of Roman Ustyugov and may not be reproduced without prior written permission."
+  },
+  "section10": {
+    "title": "Privacy",
+    "prefix": "Your personal data is handled in accordance with our ",
+    "linkLabel": "Privacy Policy",
+    "suffix": "."
+  },
+  "section11": {
+    "title": "Governing Law & Disputes",
+    "paragraph1": "These terms are governed by the laws of the Czech Republic. Any disputes arising from these terms or from our services shall first be attempted to resolve amicably.",
+    "paragraph2": "If unresolved, disputes fall under the exclusive jurisdiction of the courts of Prague, Czech Republic."
+  },
+  "section12": {
+    "title": "Changes to These Terms",
+    "text": "PRESTIGO reserves the right to update these terms. The “last updated” date at the top of this page reflects the most recent revision. Continued use of our services after any changes constitutes your acceptance of the updated terms."
+  },
+  "cta": {
+    "headingLine1": "Have a question?",
+    "headingItalic": "We respond within the hour.",
+    "buttonPrimary": "Contact Us",
+    "buttonSecondary": "Book a Transfer"
+  }
+}
