@@ -20,6 +20,18 @@ type GroupTransfersContent = {
   features: { title: string; body: string }[];
 };
 
+type IntercityRoutesContent = {
+  hero: { intro: string };
+  editorial: string[];
+  features: { title: string; body: string }[];
+};
+
+type VipEventsContent = {
+  hero: { intro: string };
+  editorial: string[];
+  features: { title: string; body: string }[];
+};
+
 describe("getPageContent('services/airport-transfer') — airport-transfer page", () => {
   it("EN-fallback: getPageContent('services/airport-transfer', 'ru') deep-equals the 'en' result", () => {
     const en = getPageContent("services/airport-transfer", "en");
@@ -83,6 +95,52 @@ describe("getPageContent('services/group-transfers') — group-transfers page", 
     );
     expect(content.features[3].body).toBe(
       "We have operated groups as small as four passengers in a single V-Class and delegations as large as forty-eight passengers across eight vehicles coordinated simultaneously at two airport terminals. The operational approach does not change with scale: a movement brief, confirmed vehicle and chauffeur assignments, a lead coordinator available to your events team throughout, and direct contact for any real-time adjustment. We do not sub-contract to third-party operators for groups under fifty passengers."
+    );
+  });
+});
+
+describe("getPageContent('services/intercity-routes') — intercity-routes page", () => {
+  it("EN-fallback: getPageContent('services/intercity-routes', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("services/intercity-routes", "en");
+    const ru = getPageContent("services/intercity-routes", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative body strings against verbatim originals", () => {
+    const content = getPageContent("services/intercity-routes", "en") as IntercityRoutesContent;
+    expect(content.hero.intro).toBe(
+      "Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic. All tolls and vignettes included, Mercedes-Benz fleet, no connections."
+    );
+    expect(content.editorial[0]).toBe(
+      "Central Europe is compact by the standards of long-haul travel, but public transport connections are rarely convenient when time and comfort matter. Vienna is 3.5 hours from Prague by road, but the direct Railjet train takes 4 hours 20 minutes and arrives at Wien Hauptbahnhof — a further 30 minutes from most business hotels in the First or Fourth District by taxi or U-Bahn. Berlin by train from Praha hlavní nádraží is 4 hours 40 minutes on the direct EC service, which runs twice daily with limited luggage space and no guaranteed quiet zone."
+    );
+    expect(content.features[2].body).toBe(
+      "Each vehicle carries USB-A and USB-C charging, a phone holder, and onboard Wi-Fi. The S-Class and V-Class also carry chilled bottled water. The separation between driver and passenger compartment means calls, video meetings, and confidential conversations remain private throughout. Four hours Prague to Vienna is genuinely productive time — it is common for passengers on the corporate account to spend the first two hours on calls and the second two in documents, arriving at the destination with the morning's work done."
+    );
+  });
+
+  it("path-traversal: getPageContent('services/../y', 'en') throws (segment-wise guard on nested keys)", () => {
+    expect(() => getPageContent("services/../y", "en")).toThrow();
+  });
+});
+
+describe("getPageContent('services/vip-events') — vip-events page", () => {
+  it("EN-fallback: getPageContent('services/vip-events', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("services/vip-events", "en");
+    const ru = getPageContent("services/vip-events", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative body strings against verbatim originals", () => {
+    const content = getPageContent("services/vip-events", "en") as VipEventsContent;
+    expect(content.hero.intro).toBe(
+      "Prestigo VIP and event transport coordinates private chauffeur service for diplomatic visits, luxury hotel arrivals, private openings, galas, and film production across Prague. Discreet drivers, synchronised arrival windows, live dispatch contact, and a zero-error protocol for events where timing, confidentiality, and presentation matter. Single-vehicle or full-fleet convoys on request."
+    );
+    expect(content.editorial[1]).toBe(
+      "PRESTIGO has operated VIP-protocol transfers in Prague since 2016. In that time we have worked alongside concierge teams at the Four Seasons, the Mandarin Oriental, and the Augustine, and we have managed transfers for diplomatic missions requiring coordination with embassy security staff in the Hradčany district. Client names are not disclosed. The nature of past engagements is referenced because it is operationally relevant: our experience is practical, not theoretical."
+    );
+    expect(content.features[0].body).toBe(
+      "Senior PRESTIGO chauffeurs operate in protocol-sensitive environments as a matter of routine. This means presenting credentials on request, understanding the distinction between a security advance team and a close-protection detail, positioning the vehicle so the principal exits on the pavement side without crossing traffic, and maintaining radio silence when required. A written briefing covering the guest's profile, schedule, and specific instructions is standard for senior VIP engagements. We do not assume preferences; we are briefed on them."
     );
   });
 });

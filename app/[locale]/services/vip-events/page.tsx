@@ -6,34 +6,44 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
+import { getPageContent } from '@/lib/page-content'
 
-export const metadata: Metadata = {
-  title: 'VIP & Events Chauffeur Prague — Diplomatic & Private',
-  description: 'VIP chauffeur service in Prague for diplomatic visits, private events, luxury hotel transfers, and multi-vehicle coordination. Discretion guaranteed.',
-  alternates: {
-    canonical: '/services/vip-events',
-    languages: {
-      en: 'https://rideprestigo.com/services/vip-events',
-      'x-default': 'https://rideprestigo.com/services/vip-events',
-    },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/services/vip-events',
-    title: 'VIP & Events Chauffeur Prague — Diplomatic & Private | PRESTIGO',
-    description: 'VIP chauffeur service in Prague for diplomatic visits, private events, luxury hotel transfers, and multi-vehicle coordination.',
-    images: [{ url: 'https://rideprestigo.com/hero-vip-events.png', width: 1200, height: 630 }],
-  },
+type VipEventsContent = {
+  metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
+  serviceDescription: string
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  pricingCallout: { label: string; heading: string; note: string; items: string[] }
+  featuresHeading: string
+  features: { title: string; body: string }[]
+  editorialHeading: string
+  editorial: string[]
+  occasionsHeading: string
+  occasions: { title: string; body: string }[]
+  cta: { label: string; headingLine1: string; headingItalic: string; body: string; buttonText: string }
 }
 
-const serviceSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: 'VIP & Events Chauffeur Prague',
-  description: 'Premium VIP chauffeur service for diplomatic visits, private events, luxury hotel transfers, and multi-vehicle event coordination in Prague.',
-  provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
-  areaServed: 'Prague, Czech Republic',
-  url: 'https://rideprestigo.com/services/vip-events',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('services/vip-events', locale) as VipEventsContent
+  return {
+    title: content.metadata.title,
+    description: content.metadata.description,
+    alternates: {
+      canonical: '/services/vip-events',
+      languages: {
+        en: 'https://rideprestigo.com/services/vip-events',
+        'x-default': 'https://rideprestigo.com/services/vip-events',
+      },
+    },
+    openGraph: {
+      url: 'https://rideprestigo.com/services/vip-events',
+      title: content.metadata.ogTitle,
+      description: content.metadata.ogDescription,
+      images: [{ url: 'https://rideprestigo.com/hero-vip-events.png', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const breadcrumbSchema = {
@@ -46,52 +56,35 @@ const breadcrumbSchema = {
   ],
 }
 
-const features = [
-  {
-    title: 'How does PRESTIGO handle diplomatic and VIP transfers?',
-    body: 'Senior PRESTIGO chauffeurs operate in protocol-sensitive environments as a matter of routine. This means presenting credentials on request, understanding the distinction between a security advance team and a close-protection detail, positioning the vehicle so the principal exits on the pavement side without crossing traffic, and maintaining radio silence when required. A written briefing covering the guest\'s profile, schedule, and specific instructions is standard for senior VIP engagements. We do not assume preferences; we are briefed on them.',
-  },
-  {
-    title: 'Can you provide multiple cars for a large event?',
-    body: 'For events requiring multiple vehicles — a gala arrival across three cars, or an incentive group requiring six vehicles across two hotels — we coordinate the full fleet logistics from a single point of contact. The operational brief specifies vehicle order, chauffeur-to-guest assignment, timing intervals between arrivals, and the holding area for vehicles between runs. Your events team communicates with one coordinator. One invoice covers the entire operation. One escalation point handles any real-time adjustment on the day.',
-  },
-  {
-    title: 'How is passenger privacy protected?',
-    body: 'Chauffeurs assigned to VIP engagements do not discuss passengers, routes, timing, or any detail of the assignment — with anyone. NDAs are available on request and signed as standard for sensitive accounts. Fleet vehicles carry no PRESTIGO signage on assignments where anonymity is required. Photographs of passengers or vehicles are not permitted. The operational record of a journey is retained for billing purposes only and is never shared with third parties under any circumstances.',
-  },
-  {
-    title: 'How do you prepare the route for a VIP arrival?',
-    body: 'For any movement where disruption must be anticipated rather than reacted to, we conduct advance route reconnaissance. A PRESTIGO chauffeur drives the route at the same time of day as the engagement, notes the likely variables — road works, event-related closures in the Old Town, VIP motorcade restrictions near the Castle district or embassies — and prepares a primary and secondary route with confirmed timings for each. On the day, the primary route is taken unless conditions on the ground require the secondary. The principal or their team is informed of any deviation and given a revised ETA.',
-  },
-]
-
-const editorial = [
-  'A VIP transfer is not an airport transfer in a more expensive vehicle. It is a coordinated operational movement in which the ground transport element is one component of a larger schedule — one that may involve a hotel concierge team, a security detail, a corporate host, and an itinerary with zero tolerance for delay or improvisation.',
-  'PRESTIGO has operated VIP-protocol transfers in Prague since 2016. In that time we have worked alongside concierge teams at the Four Seasons, the Mandarin Oriental, and the Augustine, and we have managed transfers for diplomatic missions requiring coordination with embassy security staff in the Hradčany district. Client names are not disclosed. The nature of past engagements is referenced because it is operationally relevant: our experience is practical, not theoretical.',
-  'Enquiries for VIP and event bookings are handled directly by the senior team, not through the standard online booking flow. We request a brief covering the date, principal or group profile, movement schedule, and any specific requirements. From that brief we produce a logistics plan and a confirmed price. The process typically takes under four hours from first contact to confirmed quote.',
-]
-
-const occasions = [
-  { title: 'Diplomatic Visits', body: 'Embassy transfers, official delegations, government arrivals. Protocol-aware, discreet, on time.' },
-  { title: 'Private Events', body: 'Gallery openings, private dinners, premiere evenings. Your guests arrive as they should.' },
-  { title: 'Luxury Hotel Arrivals', body: 'Four Seasons, Mandarin Oriental, Augustine. We coordinate directly with concierge teams.' },
-  { title: 'Incentive Travel', body: 'Multi-vehicle fleet for corporate incentive groups. Every transfer choreographed to schedule.' },
-  { title: 'Weddings & Ceremonies', body: 'The most important day requires absolute reliability. We deliver that, without compromise.' },
-  { title: 'Security Transfers', body: 'Discreet, route-verified transfers for guests who require additional operational security.' },
-]
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: features.map((item) => ({
-    '@type': 'Question',
-    name: item.title,
-    acceptedAnswer: { '@type': 'Answer', text: item.body },
-  })),
-}
-
-export default function VipEventsPage() {
+export default async function VipEventsPage() {
+  const locale = await getLocale()
+  const content = getPageContent('services/vip-events', locale) as VipEventsContent
   const businessDoc = businessNodeDoc()
+
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'VIP & Events Chauffeur Prague',
+    description: content.serviceDescription,
+    provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+    areaServed: 'Prague, Czech Republic',
+    url: 'https://rideprestigo.com/services/vip-events',
+  }
+
+  const features = content.features
+  const editorial = content.editorial
+  const occasions = content.occasions
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: features.map((item) => ({
+      '@type': 'Question',
+      name: item.title,
+      acceptedAnswer: { '@type': 'Answer', text: item.body },
+    })),
+  }
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(serviceSchema) }} />
@@ -106,18 +99,18 @@ export default function VipEventsPage() {
           <Image src="/hero-vip-events.png" alt="VIP & Events Chauffeur Prague — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">VIP & Events · Prague</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            When nothing <br />
-            <span className="display-italic">can go wrong.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prestigo VIP and event transport coordinates private chauffeur service for diplomatic visits, luxury hotel arrivals, private openings, galas, and film production across Prague. Discreet drivers, synchronised arrival windows, live dispatch contact, and a zero-error protocol for events where timing, confidentiality, and presentation matter. Single-vehicle or full-fleet convoys on request.
+            {content.hero.intro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/contact" className="btn-primary">Enquire About VIP Service</a>
-            <a href="/services" className="btn-secondary">All Services</a>
+            <a href="/contact" className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href="/services" className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -128,12 +121,12 @@ export default function VipEventsPage() {
       <section className="bg-anthracite-mid py-10">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
-            <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>Pricing</p>
-            <p className="font-display font-light text-[28px] md:text-[36px] text-offwhite">On request</p>
-            <p className="body-text text-[11px] mt-1">Bespoke pricing based on requirements</p>
+            <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>{content.pricingCallout.label}</p>
+            <p className="font-display font-light text-[28px] md:text-[36px] text-offwhite">{content.pricingCallout.heading}</p>
+            <p className="body-text text-[11px] mt-1">{content.pricingCallout.note}</p>
           </div>
           <div className="flex flex-col gap-2">
-            {['Diplomatic protocol awareness', 'Multi-vehicle coordination', 'Discretion guaranteed', 'Advance route reconnaissance', 'NDA available on request'].map((f) => (
+            {content.pricingCallout.items.map((f) => (
               <div key={f} className="flex items-center gap-3">
                 <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                 <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
@@ -148,7 +141,7 @@ export default function VipEventsPage() {
       {/* Features */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Our commitment</p>
+          <p className="label mb-6">{content.featuresHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {features.map((f) => (
@@ -167,7 +160,7 @@ export default function VipEventsPage() {
       {/* Editorial — service depth */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">How VIP transfers work at PRESTIGO</p>
+          <p className="label mb-6">{content.editorialHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="max-w-3xl flex flex-col gap-6">
             {editorial.map((para, i) => (
@@ -182,7 +175,7 @@ export default function VipEventsPage() {
       {/* Occasions */}
       <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Occasions we serve</p>
+          <p className="label mb-6">{content.occasionsHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-anthracite-light">
             {occasions.map((o) => (
@@ -200,17 +193,17 @@ export default function VipEventsPage() {
       {/* CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
-          <p className="label mb-6">Discuss your requirements</p>
+          <p className="label mb-6">{content.cta.label}</p>
           <span className="copper-line mb-8 block mx-auto" />
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Every VIP engagement <br />
-            <span className="display-italic">handled personally.</span>
+            {content.cta.headingLine1} <br />
+            <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <p className="body-text text-[13px] mt-4 max-w-md mx-auto" style={{ lineHeight: '1.9' }}>
-            VIP and event bookings are handled directly by our senior team. Contact us to discuss your requirements.
+            {content.cta.body}
           </p>
           <div className="mt-10">
-            <a href="/contact" className="btn-primary">Enquire About VIP Service</a>
+            <a href="/contact" className="btn-primary">{content.cta.buttonText}</a>
           </div>
         </div>
       </section>
