@@ -7,19 +7,42 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import BookingSection from '@/components/BookingSection'
+import { getLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
+import { getPageContent } from '@/lib/page-content'
+import { interpolate } from '@/lib/content-interpolate'
+
+type AirportTransferContent = {
+  metadata: { title: string; description: string; ogTitle: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  featuresHeading: string
+  features: { title: string; body: string }[]
+  meetGreet: { label: string; heading: string; paragraph1: string; paragraph2: string; items: string[] }
+  howItWorksHeading: string
+  howItWorks: { step: string; title: string; body: string }[]
+  journeyTimesHeading: string
+  journeyTimes: { paragraph1: string; paragraph2: string; items: { place: string; time: string }[] }
+  vehicleClassesHeading: string
+  vehicleClasses: { name: string; tag: string; cap: string; price: string; body: string }[]
+  faqsHeading: string
+  faqs: { q: string; a: string }[]
+  cta: { label: string; headingLine1: string; headingItalic: string; buttonText: string }
+}
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('services/airport-transfer', locale) as AirportTransferContent
   const { globals } = await getPricingConfig()
   const businessPrice = globals.airportPromoActive
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur
+  const description = interpolate(content.metadata.description, { businessPrice })
   return {
-    title: 'Prague Airport Transfer & Meet & Greet — PRG',
-    description: `Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €${businessPrice}, 24/7.`,
+    title: content.metadata.title,
+    description,
     alternates: {
       canonical: '/services/airport-transfer',
       languages: {
@@ -29,73 +52,35 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     openGraph: {
       url: 'https://rideprestigo.com/services/airport-transfer',
-      title: 'Prague Airport Meet & Greet & Transfer — PRG | PRESTIGO',
-      description: `Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €${businessPrice}, 24/7.`,
+      title: content.metadata.ogTitle,
+      description,
       images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
     },
   }
 }
 
-const features = [
-  {
-    title: 'What happens if my flight is delayed?',
-    body: 'Your driver monitors your flight in real time. If your flight is delayed, your driver adjusts — no extra charge, no phone calls needed.',
-  },
-  {
-    title: 'How does my driver find me at Prague Airport?',
-    body: 'Your chauffeur holds a name board at the Arrivals hall. No searching, no stress. From the moment you land, everything is handled.',
-  },
-  {
-    title: 'What is the price of an airport transfer from Prague?',
-    body: 'The price you see at booking is the price you pay. No surge pricing, no hidden tolls, no surprises at the end of the journey.',
-  },
-  {
-    title: 'Which terminal does my driver meet me at?',
-    body: 'Terminal 2 handles Schengen arrivals — flights from Germany, Austria, France, the Netherlands, and most EU routes. Terminal 1 covers all non-Schengen arrivals: UK, US, Middle East, and long-haul. Both terminals are covered on every booking. Enter your flight number and your driver automatically meets you in the correct Arrivals hall with your name board — no parking lots, no ride-hail zones.',
-  },
-]
-
-const faqs = [
-  {
-    q: 'What if my flight is delayed?',
-    a: 'Your driver tracks your flight live. Delays are automatically accommodated — no extra charge for waiting up to 60 minutes after landing.',
-  },
-  {
-    q: 'Which airports do you serve?',
-    a: 'We primarily serve Prague Václav Havel Airport (PRG). We also arrange transfers to/from Vienna (VIE), Berlin (BER), and Munich (MUC) on request.',
-  },
-  {
-    q: 'How do I find my driver at the airport?',
-    a: 'Your driver will be waiting in the Arrivals hall with a name board. You will receive their name and phone number before the journey.',
-  },
-  {
-    q: 'What is the airport meet and greet service at Prague Airport?',
-    a: 'Meet and greet means your chauffeur waits inside the Arrivals hall at Prague Václav Havel (PRG) holding a name board with your name — not at a kerbside or a ride-hail zone. From the moment you clear customs, your driver takes your luggage and walks you straight to the car. It is included on every Prestigo airport transfer at no extra charge.',
-  },
-  {
-    q: 'Do you offer VIP or premium meet and greet at Prague Airport?',
-    a: 'Yes. For VIP, diplomatic, and executive arrivals we provide a Mercedes S-Class with a senior chauffeur, priority handling, and discretion throughout. Fast-track through passport control and porter assistance can be arranged in advance — useful for tight schedules, large parties, or first-time arrivals into Prague.',
-  },
-  {
-    q: 'Can you arrange fast-track through Prague Airport?',
-    a: 'Fast-track immigration and security can be added to any meet and greet booking on request. Combined with the name-board welcome at Arrivals, it turns a long-haul landing into a seamless handover — particularly valued by our arrivals from the United States, the United Kingdom, and the Gulf.',
-  },
-  {
-    q: 'Can I book for early morning or late night arrivals?',
-    a: 'Yes. PRESTIGO operates 24/7, 365 days a year. Early morning departures and late-night arrivals are standard.',
-  },
-  {
-    q: 'How does PRESTIGO compare to taking an Uber from the airport?',
-    a: 'Uber has held the exclusive official taxi rank at PRG since September 2023. A standard Uber to central Prague runs CZK 650–800 — lower than PRESTIGO\'s starting price. The difference is how you are collected: your PRESTIGO driver is inside the Arrivals hall with a name board before you reach the exit. Uber requires walking 120 metres to the designated P11 pickup zone and waiting for a vehicle to be assigned. For solo travellers with light luggage arriving off-peak, Uber is a practical option. For business arrivals, families, or anyone with luggage and a tight connection, the meet & greet and flight tracking more than justify the difference.',
-  },
-]
-
 export default async function AirportTransferPage() {
+  const locale = await getLocale()
+  const content = getPageContent('services/airport-transfer', locale) as AirportTransferContent
   const { globals } = await getPricingConfig()
   const sClassAirport = AIRPORT_FALLBACK.sClass
   const vClassAirport = AIRPORT_FALLBACK.vClass
   const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport)
   const rating = getStaticAggregateRating()
+
+  const businessPrice = globals.airportPromoActive
+    ? globals.airportPromoPriceEur
+    : globals.airportRegularPriceEur
+
+  const prices = { businessPrice, vClassAirport, sClassAirport }
+
+  const features = content.features
+  const faqs = content.faqs
+  const howItWorks = content.howItWorks
+  const journeyTimes = content.journeyTimes.items
+  const meetGreetItems = content.meetGreet.items
+  const vehicleClasses = content.vehicleClasses.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
+  const heroIntro = interpolate(content.hero.intro, prices)
 
   const pageSchema = {
     '@context': 'https://schema.org',
@@ -135,10 +120,6 @@ export default async function AirportTransferPage() {
     })),
   }
 
-  const businessPrice = globals.airportPromoActive
-    ? globals.airportPromoPriceEur
-    : globals.airportRegularPriceEur
-
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pageSchema) }} />
@@ -151,18 +132,18 @@ export default async function AirportTransferPage() {
           <Image src="/hero-airport-transfer.webp" alt="Prague Airport meet & greet chauffeur transfer — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Airport Transfer · Prague</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Prague Airport Transfer. <br />
-            <span className="display-italic">Met on arrival, every time.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prestigo Prague Airport Transfer is a fixed-price chauffeur service from Václav Havel Airport (PRG) to any Prague address, starting at €{businessPrice}. Your driver tracks your flight in real time, waits up to 60 minutes free at Arrivals with a name board, handles your luggage, and drives you in a Mercedes-Benz E-Class, S-Class, or V-Class.
+            {heroIntro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/book" className="btn-primary">Book Airport Transfer</a>
-            <a href="/services" className="btn-secondary">All Services</a>
+            <a href="/book" className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href="/services" className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -175,7 +156,7 @@ export default async function AirportTransferPage() {
       {/* Features */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">What&apos;s included</p>
+          <p className="label mb-6">{content.featuresHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {features.map((f) => (
@@ -194,29 +175,22 @@ export default async function AirportTransferPage() {
       {/* Meet & Greet */}
       <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Meet &amp; greet</p>
+          <p className="label mb-6">{content.meetGreet.label}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-14">
             <div>
               <h2 className="font-display font-light text-[26px] md:text-[30px] text-offwhite mb-5">
-                Prague Airport meet &amp; greet, included as standard
+                {content.meetGreet.heading}
               </h2>
               <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                Every Prestigo airport transfer is a full meet and greet. Your chauffeur is inside the Arrivals hall at Prague Václav Havel (PRG) holding a name board before you reach the exit — not waiting in a car park or a ride-hail queue. From the moment you clear customs, your driver takes your luggage and walks you to the car.
+                {content.meetGreet.paragraph1}
               </p>
               <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>
-                For VIP, diplomatic, and executive arrivals, a Mercedes S-Class with a senior chauffeur, fast-track through passport control, and porter assistance can be arranged in advance. It is the welcome we give arrivals from the United States, the United Kingdom, and the Gulf who land tired and want nothing left to manage.
+                {content.meetGreet.paragraph2}
               </p>
             </div>
             <div className="flex flex-col gap-0">
-              {[
-                'Name-board welcome inside Arrivals (Terminal 1 and Terminal 2)',
-                'Up to 60 minutes free waiting after landing',
-                'Live flight tracking — delays handled automatically',
-                'Luggage carried from hall to car',
-                'Fast-track immigration on request',
-                'VIP S-Class and multi-vehicle groups on request',
-              ].map((line) => (
+              {meetGreetItems.map((line) => (
                 <div key={line} className="border-b border-anthracite-light py-3">
                   <span className="font-body font-light text-[12px] text-offwhite tracking-wide" style={{ lineHeight: '1.7' }}>{line}</span>
                 </div>
@@ -231,14 +205,10 @@ export default async function AirportTransferPage() {
       {/* How it works */}
       <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">How it works</p>
+          <p className="label mb-6">{content.howItWorksHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              { step: '01', title: 'Book online', body: 'Enter your flight number, destination address, and passenger details. Select your vehicle class — E-Class, V-Class, or S-Class. Fixed price confirmed in seconds.' },
-              { step: '02', title: 'We track your flight', body: 'Your driver monitors your flight live. If it is delayed, your driver adjusts automatically.' },
-              { step: '03', title: 'Arrive, relax', body: 'Your chauffeur is waiting at Arrivals with your name board. From here, everything is handled.' },
-            ].map((s) => (
+            {howItWorks.map((s) => (
               <div key={s.step} className="border border-anthracite-light p-8">
                 <p className="font-body font-light text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: 'var(--copper)' }}>{s.step}</p>
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-3">{s.title}</h3>
@@ -254,26 +224,19 @@ export default async function AirportTransferPage() {
       {/* Journey times */}
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Journey times from PRG</p>
+          <p className="label mb-6">{content.journeyTimesHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-14">
             <div>
               <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                Prague Václav Havel Airport sits 20 km northwest of the city centre. Journey time from the terminal to your hotel or address depends on your destination and the time of day. The figures below reflect typical daytime conditions — allow 5–10 minutes extra during morning or evening rush hours.
+                {content.journeyTimes.paragraph1}
               </p>
               <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>
-                Your price is fixed at booking regardless of traffic. No meter running, no surge, no negotiation at the end.
+                {content.journeyTimes.paragraph2}
               </p>
             </div>
             <div className="flex flex-col gap-0">
-              {[
-                { place: 'Old Town (Staré Město) / Wenceslas Square', time: '~25 min' },
-                { place: 'Vinohrady / Žižkov', time: '~30 min' },
-                { place: 'Smíchov / Anděl', time: '~25 min' },
-                { place: 'Holešovice / Letná', time: '~30 min' },
-                { place: 'Karlín', time: '~32 min' },
-                { place: 'Nusle / Pankrác', time: '~28 min' },
-              ].map((r) => (
+              {journeyTimes.map((r) => (
                 <div key={r.place} className="flex items-center justify-between border-b border-anthracite-light py-3">
                   <span className="font-body font-light text-[12px] text-offwhite tracking-wide">{r.place}</span>
                   <span className="font-body font-light text-[12px] tracking-[0.1em]" style={{ color: 'var(--copper)' }}>{r.time}</span>
@@ -289,32 +252,10 @@ export default async function AirportTransferPage() {
       {/* Vehicle classes */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Choose your vehicle</p>
+          <p className="label mb-6">{content.vehicleClassesHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              {
-                name: 'E-Class',
-                tag: 'Standard premium',
-                cap: 'Up to 3 passengers · 3 bags',
-                price: `From €${businessPrice}`,
-                body: 'The Mercedes E-Class is the everyday vehicle for Prague airport arrivals — quiet, spacious, and immaculate. The right choice for solo travellers, couples, and business arrivals who want comfort without excess.',
-              },
-              {
-                name: 'V-Class',
-                tag: 'Group & family',
-                cap: 'Up to 6 passengers · 6 bags',
-                price: `From €${vClassAirport}`,
-                body: 'The Mercedes V-Class seats up to six with full luggage. Ideal for families, groups, and corporate arrivals where one vehicle and one fixed price covers everyone.',
-              },
-              {
-                name: 'S-Class',
-                tag: 'Executive flagship',
-                cap: 'Up to 3 passengers · 3 bags',
-                price: `From €${sClassAirport}`,
-                body: 'The Mercedes S-Class is reserved for VIP, diplomatic, and senior executive arrivals. Rear-seat comfort, ambient lighting, and the most refined cabin in the current Mercedes range.',
-              },
-            ].map((v) => (
+            {vehicleClasses.map((v) => (
               <div key={v.name} className="border border-anthracite-light p-8">
                 <span className="copper-line mb-6 block" />
                 <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--warmgrey)' }}>{v.tag}</p>
@@ -332,7 +273,7 @@ export default async function AirportTransferPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Questions</p>
+          <p className="label mb-6">{content.faqsHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {faqs.map((item) => (
@@ -350,14 +291,14 @@ export default async function AirportTransferPage() {
       {/* CTA */}
       <section className="bg-anthracite-mid py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
-          <p className="label mb-6">Ready to book?</p>
+          <p className="label mb-6">{content.cta.label}</p>
           <span className="copper-line mb-8 block mx-auto" />
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Book your airport transfer <br />
-            <span className="display-italic">in under 60 seconds.</span>
+            {content.cta.headingLine1} <br />
+            <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="mt-10">
-            <a href="/book" className="btn-primary">Book Airport Transfer</a>
+            <a href="/book" className="btn-primary">{content.cta.buttonText}</a>
           </div>
         </div>
       </section>
