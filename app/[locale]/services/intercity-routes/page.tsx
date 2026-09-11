@@ -6,37 +6,51 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
+import { getLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
 import { businessNodeDoc } from '@/lib/jsonld'
+import { getPageContent } from '@/lib/page-content'
 
-export const metadata: Metadata = {
-  title: 'Intercity Routes from Prague — Vienna, Berlin, Munich',
-  description: 'Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door, available 24/7.',
-  alternates: {
-    // Cross-canonical to /routes — this service page overlaps heavily with the
-    // routes hub; signals are consolidated there (SEO audit M11).
-    canonical: '/routes',
-    languages: {
-      en: 'https://rideprestigo.com/routes',
-      'x-default': 'https://rideprestigo.com/routes',
-    },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/services/intercity-routes',
-    title: 'Intercity Routes from Prague — Vienna, Berlin, Munich | PRESTIGO',
-    description: 'Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door.',
-    images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
-  },
+type IntercityRoutesContent = {
+  metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
+  serviceDescription: string
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  popularRoutesHeading: string
+  viewAllRoutesText: string
+  featuresHeading: string
+  features: { title: string; body: string }[]
+  editorialHeading: string
+  editorial: string[]
+  vsTrainHeading: string
+  vsTrain: {
+    prestigo: { heading: string; items: string[] }
+    trainBus: { heading: string; items: string[] }
+  }
+  cta: { label: string; headingLine1: string; headingItalic: string; ctaPrimary: string; ctaSecondary: string }
 }
 
-const serviceSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Service',
-  name: 'Intercity Chauffeur Routes from Prague',
-  description: 'Private door-to-door chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava, and other Central European cities.',
-  provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
-  areaServed: 'Central Europe',
-  url: 'https://rideprestigo.com/services/intercity-routes',
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('services/intercity-routes', locale) as IntercityRoutesContent
+  return {
+    title: content.metadata.title,
+    description: content.metadata.description,
+    alternates: {
+      // Cross-canonical to /routes — this service page overlaps heavily with the
+      // routes hub; signals are consolidated there (SEO audit M11).
+      canonical: '/routes',
+      languages: {
+        en: 'https://rideprestigo.com/routes',
+        'x-default': 'https://rideprestigo.com/routes',
+      },
+    },
+    openGraph: {
+      url: 'https://rideprestigo.com/services/intercity-routes',
+      title: content.metadata.ogTitle,
+      description: content.metadata.ogDescription,
+      images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const breadcrumbSchema = {
@@ -49,45 +63,35 @@ const breadcrumbSchema = {
   ],
 }
 
-const features = [
-  {
-    title: 'What does a private transfer from Prague cost?',
-    body: 'Every intercity route has a confirmed fixed price before you book. The figure includes fuel, driver time, all motorway tolls, and where applicable, Czech and Austrian or German motorway vignettes. Nothing is added at drop-off. Current prices are shown on each route page and are loaded from our live pricing database.',
-  },
-  {
-    title: 'What does door-to-door service mean in practice?',
-    body: 'Your driver arrives at your hotel lobby, office reception, or home address and handles your luggage from that moment. At the destination you are taken to your exact address — a specific hotel, a conference centre, or a private residence. There are no station transfers, no shared coaches, and no need to navigate an unfamiliar city after four hours on the road. The entire journey is a single, uninterrupted movement from your door to theirs.',
-  },
-  {
-    title: 'Can I work or take calls during a long transfer?',
-    body: 'Each vehicle carries USB-A and USB-C charging, a phone holder, and onboard Wi-Fi. The S-Class and V-Class also carry chilled bottled water. The separation between driver and passenger compartment means calls, video meetings, and confidential conversations remain private throughout. Four hours Prague to Vienna is genuinely productive time — it is common for passengers on the corporate account to spend the first two hours on calls and the second two in documents, arriving at the destination with the morning\'s work done.',
-  },
-  {
-    title: 'Can I book a transfer for early morning or late at night?',
-    body: 'Intercity departures run at any hour. A 04:30 departure from Prague for a 09:00 meeting in Vienna is one of the most common booking patterns on the corporate account — it allows passengers to arrive rested rather than disrupted by a first-flight-of-the-morning connection through a hub airport. Late returns after a dinner that runs until midnight in a destination city are equally routine. The driver confirms the booking the evening before and sends a departure reminder one hour ahead.',
-  },
-]
-
-const editorial = [
-  'Central Europe is compact by the standards of long-haul travel, but public transport connections are rarely convenient when time and comfort matter. Vienna is 3.5 hours from Prague by road, but the direct Railjet train takes 4 hours 20 minutes and arrives at Wien Hauptbahnhof — a further 30 minutes from most business hotels in the First or Fourth District by taxi or U-Bahn. Berlin by train from Praha hlavní nádraží is 4 hours 40 minutes on the direct EC service, which runs twice daily with limited luggage space and no guaranteed quiet zone.',
-  'A private transfer covers the same ground in fewer total hours, with the vehicle at your door at departure and your exact destination address at the other end. The difference in door-to-door journey time — accounting for the walk or taxi to the station, the waiting time, and the onward journey at the destination — is typically 45 minutes to two hours in favour of the private transfer, depending on the destination city and the time of day.',
-  'PRESTIGO operates 30 confirmed routes from Prague, each with a published fixed price. The fleet is exclusively Mercedes: E-Class for solo and paired travel, S-Class for those who want the additional space and specification of a full executive saloon, and V-Class for groups of up to seven passengers with full luggage. Every route can be extended into a return trip, with a return discount applied automatically at booking.',
-]
-
-const faqSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: features.map((item) => ({
-    '@type': 'Question',
-    name: item.title,
-    acceptedAnswer: { '@type': 'Answer', text: item.body },
-  })),
-}
-
 export default async function IntercityRoutesPage() {
+  const locale = await getLocale()
+  const content = getPageContent('services/intercity-routes', locale) as IntercityRoutesContent
   const allRoutes = await getAllRoutes('display_order')
   const popularRoutes = allRoutes.slice(0, 6)
   const businessDoc = businessNodeDoc()
+
+  const serviceSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'Service',
+    name: 'Intercity Chauffeur Routes from Prague',
+    description: content.serviceDescription,
+    provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
+    areaServed: 'Central Europe',
+    url: 'https://rideprestigo.com/services/intercity-routes',
+  }
+
+  const features = content.features
+  const editorial = content.editorial
+
+  const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: features.map((item) => ({
+      '@type': 'Question',
+      name: item.title,
+      acceptedAnswer: { '@type': 'Answer', text: item.body },
+    })),
+  }
 
   return (
     <main id="main-content">
@@ -103,18 +107,18 @@ export default async function IntercityRoutesPage() {
           <Image src="/hero-intercity-routes.png" alt="Intercity Routes from Prague — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Intercity Routes · Central Europe</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
-            Prague to anywhere. <br />
-            <span className="display-italic">In a Mercedes.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic. All tolls and vignettes included, Mercedes-Benz fleet, no connections.
+            {content.hero.intro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/routes" className="btn-primary">View All Routes</a>
-            <a href="/book" className="btn-secondary">Book a Transfer</a>
+            <a href="/routes" className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href="/book" className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -124,7 +128,7 @@ export default async function IntercityRoutesPage() {
       {/* Popular routes */}
       <section className="bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Popular routes</p>
+          <p className="label mb-6">{content.popularRoutesHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-anthracite-light">
             {popularRoutes.map((r) => (
@@ -142,7 +146,7 @@ export default async function IntercityRoutesPage() {
           </div>
           <div className="mt-8">
             <a href="/routes" className="font-body font-light text-[11px] tracking-[0.18em] uppercase hover:text-offwhite transition-colors" style={{ color: 'var(--copper)' }}>
-              View all 50+ routes →
+              {content.viewAllRoutesText}
             </a>
           </div>
         </div>
@@ -153,7 +157,7 @@ export default async function IntercityRoutesPage() {
       {/* Features */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Why choose a private transfer</p>
+          <p className="label mb-6">{content.featuresHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             {features.map((f) => (
@@ -172,7 +176,7 @@ export default async function IntercityRoutesPage() {
       {/* Editorial — service depth */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Private transfer vs. public transport</p>
+          <p className="label mb-6">{content.editorialHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="max-w-3xl flex flex-col gap-6">
             {editorial.map((para, i) => (
@@ -187,13 +191,13 @@ export default async function IntercityRoutesPage() {
       {/* vs train comparison */}
       <section className="bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Private transfer vs. train</p>
+          <p className="label mb-6">{content.vsTrainHeading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
             <div className="border border-anthracite-light p-8">
-              <h2 className="font-display font-light text-[24px] text-offwhite mb-6">PRESTIGO Private Transfer</h2>
+              <h2 className="font-display font-light text-[24px] text-offwhite mb-6">{content.vsTrain.prestigo.heading}</h2>
               <ul className="flex flex-col gap-3">
-                {['Door-to-door, no station transfers', 'Fixed price, no dynamic fares', 'Work or rest in your own space', 'Luggage handled, no overhead bins', 'No delays, no cancellations'].map((item) => (
+                {content.vsTrain.prestigo.items.map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <span className="mt-[6px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                     <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{item}</span>
@@ -202,9 +206,9 @@ export default async function IntercityRoutesPage() {
               </ul>
             </div>
             <div className="border border-anthracite-light p-8 opacity-60">
-              <h2 className="font-display font-light text-[24px] text-offwhite mb-6">Train / Bus</h2>
+              <h2 className="font-display font-light text-[24px] text-offwhite mb-6">{content.vsTrain.trainBus.heading}</h2>
               <ul className="flex flex-col gap-3">
-                {['Station to station only', 'Price varies by booking date', 'Shared carriage, limited privacy', 'Luggage restrictions apply', 'Subject to delays and timetable'].map((item) => (
+                {content.vsTrain.trainBus.items.map((item) => (
                   <li key={item} className="flex items-start gap-3">
                     <span className="mt-[6px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--warmgrey)' }} />
                     <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{item}</span>
@@ -221,15 +225,15 @@ export default async function IntercityRoutesPage() {
       {/* CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
-          <p className="label mb-6">Ready to go?</p>
+          <p className="label mb-6">{content.cta.label}</p>
           <span className="copper-line mb-8 block mx-auto" />
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Choose your route and book <br />
-            <span className="display-italic">in under 60 seconds.</span>
+            {content.cta.headingLine1} <br />
+            <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a href="/routes" className="btn-primary">View All Routes</a>
-            <a href="/book" className="btn-secondary">Book Now</a>
+            <a href="/routes" className="btn-primary">{content.cta.ctaPrimary}</a>
+            <a href="/book" className="btn-secondary">{content.cta.ctaSecondary}</a>
           </div>
         </div>
       </section>

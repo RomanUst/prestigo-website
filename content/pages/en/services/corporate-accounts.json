@@ -1,0 +1,75 @@
+{
+  "metadata": {
+    "title": "Corporate Chauffeur Accounts Prague",
+    "description": "Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch. Set up in 24 hours.",
+    "ogTitle": "Corporate Chauffeur Accounts Prague | PRESTIGO",
+    "ogDescription": "Corporate chauffeur accounts for Prague-based and international companies. Monthly invoicing, dedicated account manager, priority dispatch."
+  },
+  "serviceDescription": "Dedicated corporate chauffeur accounts with monthly invoicing, account manager, and priority dispatch for companies operating in Prague.",
+  "hero": {
+    "label": "Corporate Accounts · Prague",
+    "headlineLine1": "Your company travels.",
+    "headlineItalic": "We make it effortless.",
+    "intro": "PRESTIGO corporate accounts are designed for companies that move people regularly and expect every detail handled. Fixed rates, monthly invoicing, a named account manager, and a fleet that reflects the standard your organisation holds itself to.",
+    "ctaPrimary": "Set Up Corporate Account",
+    "ctaSecondary": "All Services"
+  },
+  "pricingCallout": {
+    "label": "Corporate pricing",
+    "heading": "Volume pricing available",
+    "note": "Rates negotiated based on monthly trip volume",
+    "items": [
+      "Monthly consolidated invoicing",
+      "Dedicated account manager",
+      "Priority dispatch",
+      "Corporate reporting dashboard",
+      "Account set up within 24 hours"
+    ]
+  },
+  "benefitsHeading": "What you get",
+  "benefits": [
+    {
+      "title": "Monthly Invoicing",
+      "body": "One invoice. All trips. All departments. Sent on the first of every month, formatted for your accounts team, with full trip breakdown."
+    },
+    {
+      "title": "Dedicated Account Manager",
+      "body": "A single contact who knows your company, your travellers, and your preferences. Available by phone, email, or WhatsApp."
+    },
+    {
+      "title": "Priority Dispatch",
+      "body": "Corporate accounts get priority allocation. Same-day bookings, last-minute changes, and early-morning airport runs — handled."
+    },
+    {
+      "title": "Reporting Dashboard",
+      "body": "View all bookings, travellers, costs, and routes in one place. Export for expense reporting at any time."
+    }
+  ],
+  "builtForHeading": "Built for",
+  "builtFor": [
+    {
+      "title": "Prague-based companies",
+      "body": "Transferring executives, clients, and VIP guests daily from Václav Havel Airport."
+    },
+    {
+      "title": "International companies",
+      "body": "With staff visiting Prague regularly who need a reliable, bookable ground transport partner."
+    },
+    {
+      "title": "Event & conference organisers",
+      "body": "Coordinating multi-vehicle group movements for delegations and incentive travel."
+    }
+  ],
+  "howItWorksHeading": "How it works",
+  "howItWorks": [
+    { "step": "01", "title": "Apply", "body": "Fill in the enquiry form. We review your requirements and set up your account within 24 hours." },
+    { "step": "02", "title": "Book", "body": "Your team books online or via the account manager. No per-trip approval process needed." },
+    { "step": "03", "title": "Invoice", "body": "One monthly invoice covering all trips. Pay by bank transfer or card. Full GDPR-compliant data handling." }
+  ],
+  "cta": {
+    "label": "Set up your account",
+    "headingLine1": "Account ready",
+    "headingItalic": "within 24 hours.",
+    "buttonText": "Set Up Corporate Account"
+  }
+}
