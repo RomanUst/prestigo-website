@@ -22,6 +22,18 @@ type AboutContent = {
   principles: { title: string; body: string }[];
 };
 
+type FaqContent = {
+  metadata: { title: string; description: string; ogTitle: string };
+  hero: { headlineLine1: string };
+  sections: { title: string; faqs: { q: string; a: string }[] }[];
+};
+
+type CorporateContent = {
+  hero: { intro: string };
+  whoUses: { paragraphs: string[] };
+  faqs: { q: string; a: string }[];
+};
+
 describe("getPageContent('home')", () => {
   it("EN-fallback: getPageContent('home', 'ru') deep-equals the 'en' result", () => {
     const en = getPageContent("home", "en");
@@ -84,5 +96,45 @@ describe("getPageContent('about')", () => {
       title: "Discretion",
       body: "Your journey is your own. We don't discuss clients, routes, or conversations.",
     });
+  });
+});
+
+describe("getPageContent('faq')", () => {
+  it("EN-fallback: getPageContent('faq', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("faq", "en");
+    const ru = getPageContent("faq", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative strings, including a JSON-LD-fed Q&A pair", () => {
+    const content = getPageContent("faq", "en") as FaqContent;
+    expect(content.hero.headlineLine1).toBe("Everything you need to know.");
+    expect(content.sections[0].title).toBe("Booking");
+    // JSON-LD-fed: faqSchema.mainEntity is derived from this exact sections array
+    expect(content.sections[1].faqs[0]).toEqual({
+      q: "Is the price fixed?",
+      a: "Yes. The price shown at booking is the price you pay. No surge pricing. No hidden tolls. No extras unless you request them.",
+    });
+  });
+});
+
+describe("getPageContent('corporate')", () => {
+  it("EN-fallback: getPageContent('corporate', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("corporate", "en");
+    const ru = getPageContent("corporate", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative strings against verbatim originals", () => {
+    const content = getPageContent("corporate", "en") as CorporateContent;
+    expect(content.hero.intro).toBe(
+      "PRESTIGO corporate accounts are designed for companies that move people regularly and expect every detail handled. Fixed rates, monthly invoicing, a named account manager, and a fleet that reflects the standard your organisation holds itself to."
+    );
+    expect(content.whoUses.paragraphs[2]).toBe(
+      "We keep account sizes deliberately modest so every client receives the same level of attention. PRESTIGO corporate isn’t a volume programme with tiered service — every account is handled as if it were our largest."
+    );
+    expect(content.faqs[0].a).toContain(
+      "A PRESTIGO corporate account is a dedicated billing and dispatch relationship"
+    );
   });
 });
