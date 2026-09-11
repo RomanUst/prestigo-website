@@ -1,0 +1,122 @@
+{
+  "hero": {
+    "label": "Corporate Accounts",
+    "headlineLine1": "Corporate chauffeur accounts.",
+    "headlineItalic": "We make it effortless.",
+    "intro": "PRESTIGO corporate accounts are designed for companies that move people regularly and expect every detail handled. Fixed rates, monthly invoicing, a named account manager, and a fleet that reflects the standard your organisation holds itself to."
+  },
+  "benefits": [
+    {
+      "title": "Monthly Invoicing",
+      "body": "One invoice. All trips. All departments. Sent on the first of every month, formatted for your accounts team, with full trip breakdown."
+    },
+    {
+      "title": "Account Manager",
+      "body": "A single contact who knows your company, your preferences, and your travellers. Available by phone, email, or WhatsApp."
+    },
+    {
+      "title": "Priority Dispatch",
+      "body": "Corporate accounts get priority allocation. Same-day bookings, last-minute changes, and early-morning airport runs — handled."
+    },
+    {
+      "title": "Reporting Dashboard",
+      "body": "View all bookings, travellers, costs, and routes in one place. Export for expense reporting at any time."
+    }
+  ],
+  "builtForHeading": "Built for…",
+  "builtFor": [
+    {
+      "title": "Prague-based companies",
+      "body": "Transferring executives, clients, and VIP guests daily from Václav Havel Airport."
+    },
+    {
+      "title": "International companies",
+      "body": "With staff visiting Prague regularly who need a reliable, bookable ground transport partner."
+    },
+    {
+      "title": "Event & conference organisers",
+      "body": "Coordinating multi-vehicle group movements for delegations and incentive travel."
+    }
+  ],
+  "howItWorksHeading": "How it works",
+  "howItWorks": [
+    { "step": "01", "title": "Apply", "body": "Fill in the form below. We'll set up your account within 24 hours." },
+    { "step": "02", "title": "Book", "body": "Your team books online or via the account manager. No per-trip approval needed." },
+    { "step": "03", "title": "Invoice", "body": "One monthly invoice. Pay by bank transfer or card. Full GDPR-compliant data handling." }
+  ],
+  "whoUses": {
+    "label": "Who uses a PRESTIGO corporate account",
+    "headingLine1": "Built for the firms",
+    "headingItalic": "Prague works with.",
+    "paragraphs": [
+      "Our corporate clients are the law firms, consulting practices, investment houses, embassies, global employers, and event agencies that move people through Prague on a weekly basis. A typical account might book two or three airport runs on a Monday morning, a half-day roadshow for a visiting executive mid-week, and an evening dinner transfer on Friday — all without a single phone call, approval chain, or per-trip invoice.",
+      "Corporate accounts also absorb the edge cases that eat most travel managers’ time: a last-minute swap when a meeting runs long, a second vehicle dispatched to collect late arrivals, a private pickup at a residence outside the city for a visiting board member. These calls go directly to the account manager, who makes the decision and sends the confirmation before the travel manager has finished the request email.",
+      "We keep account sizes deliberately modest so every client receives the same level of attention. PRESTIGO corporate isn’t a volume programme with tiered service — every account is handled as if it were our largest."
+    ]
+  },
+  "usagePatterns": {
+    "label": "Typical usage patterns",
+    "headingLine1": "What a week on a",
+    "headingItalic": "PRESTIGO account looks like.",
+    "items": [
+      {
+        "title": "The multi-leg roadshow",
+        "body": "A visiting managing director lands at 08:10, is collected from Arrivals with a name board, and is driven through four back-to-back meetings across Prague before a 17:00 departure. One chauffeur, one vehicle, one fixed half-day fee. The traveller never queues for a taxi and never checks a map."
+      },
+      {
+        "title": "The pre-dawn airport run",
+        "body": "A senior partner on the 06:15 flight to London needs collection at 04:20 from a Vinohrady address in a Tuesday snowstorm. Priority dispatch allocates the car the night before, the chauffeur clears snow from the vehicle before arrival, and the client is at the gate before most of Prague is awake."
+      },
+      {
+        "title": "The board-meeting V-Class",
+        "body": "Four directors arriving on separate flights within ninety minutes. Rather than four E-Class transfers, the account manager books a single V-Class to circulate through Terminal 1, collect each passenger at their gate, and deliver the group directly to the meeting venue in Old Town. One fixed fee, one arrival time, one invoice line."
+      }
+    ]
+  },
+  "onboarding": {
+    "label": "Onboarding in 48 hours",
+    "headingLine1": "From form to first trip,",
+    "headingItalic": "inside two working days.",
+    "paragraph": "The application form below takes roughly three minutes to complete. Within the same working day we assign your account manager, draft a service agreement, and send it over for countersignature. Once signed, we configure your account in our dispatch system, invite your travellers, and run a test booking free of charge so your first real trip is never the first trip. Most accounts are live and making bookings inside 48 hours of the initial enquiry."
+  },
+  "compliance": {
+    "label": "Compliance, insurance & invoicing",
+    "headingLine1": "Documentation ready",
+    "headingItalic": "for your finance team.",
+    "paragraph": "PRESTIGO is operated by chelautotrans s.r.o. (Czech company ID 05650801), a fully licensed and VAT-registered Czech operator. Every invoice is issued with VAT, trip-level breakdown, and a unique reference per booking. We carry commercial passenger-liability and fully comprehensive vehicle insurance, and can provide certificates on request for security or procurement teams. Traveller data is handled under GDPR with a clear retention policy and is never shared with third parties."
+  },
+  "faqHeading": {
+    "label": "Corporate account questions",
+    "heading": "Questions from finance, travel & procurement."
+  },
+  "faqs": [
+    {
+      "q": "What is a PRESTIGO corporate chauffeur account?",
+      "a": "A PRESTIGO corporate account is a dedicated billing and dispatch relationship for companies that use chauffeur transport in Prague on a regular basis. Instead of paying per trip with corporate cards and chasing receipts for expense reports, your travellers book against a central account by name, every trip is captured with a unique reference, and everything is invoiced once a month in a single consolidated statement with full trip-level breakdown. A named account manager handles your company&rsquo;s preferences, recurring routes, and exception requests — same-day changes, after-hours bookings, protocol requirements — without routing through public dispatch. Accounts are set up in roughly 48 hours: you fill in the application form, we countersign a short service agreement, configure your travellers in our dispatch system, run a free test booking, and you are live. There is no joining fee, no minimum spend, and no lock-in contract."
+    },
+    {
+      "q": "Who typically uses corporate accounts?",
+      "a": "Our corporate clients are the law firms, consulting practices, investment houses, embassies, global employers, event agencies, and privately owned Czech businesses that move people through Prague on a weekly basis. A typical account might book two or three airport runs on a Monday morning, a half-day roadshow for a visiting executive mid-week, and an evening dinner transfer on Friday. Account sizes range from boutique firms with four or five trips a month to multinational corporates with several hundred bookings. We deliberately keep the book of accounts compact so every client receives the same level of attention regardless of volume — there is no tiered service model where small accounts wait longer. If your company regularly books airport transfers or intercity trips for visiting executives, clients, or directors, an account almost always saves both money and administration time."
+    },
+    {
+      "q": "How does monthly invoicing and payment work?",
+      "a": "Every trip on a corporate account is captured at the moment of booking with a unique reference number, vehicle class, passenger name, route, and any optional notes your travel manager provides (cost centre, project code, client reference). On the first working day of each month, our finance team compiles all trips from the previous month into a single VAT-registered invoice, itemised by trip and optionally grouped by cost centre, department, or traveller. The invoice is sent as a PDF to your accounts payable address and is payable within 30 days by bank transfer in EUR or CZK, or by credit card. We can also support automatic monthly card billing for companies that prefer it. For international clients we issue invoices with reverse-charge VAT handling where applicable. Any dispute or adjustment is handled through your account manager without delay."
+    },
+    {
+      "q": "Can multiple travellers book under one account without individual logins?",
+      "a": "Yes. Corporate accounts operate on a named-traveller model, not a per-user login model. Your travel manager (or account manager for smaller accounts) adds authorised travellers to the account — typically the partners, directors, and assistants who travel regularly — and each traveller can be booked either by themselves, by an assistant, or by the central travel desk. Bookings can be made online against the account, by phone or WhatsApp direct to the account manager, or by email with a standing authorisation on file. There are no passwords to manage, no booking quotas per traveller, and no approval chains unless your internal policy requires them. For companies that need approval workflows (for example, requiring a line manager sign-off for trips above a certain value), we can implement the approval step as part of the booking flow — just tell us the policy at onboarding."
+    },
+    {
+      "q": "What about insurance, GDPR, and corporate compliance?",
+      "a": "PRESTIGO is operated by chelautotrans s.r.o. (Czech company ID 05650801, VAT registered), a fully licensed Czech passenger-transport operator holding the commercial koncese required for chauffeur work. Every vehicle carries commercial passenger-liability insurance and fully comprehensive vehicle cover underwritten by an EU insurer — we can provide certificates of insurance, driver licence numbers, and vehicle registration details in advance for any booking where your security or procurement team requires it. Traveller data is handled under GDPR with a clear retention policy: trip records are kept for seven years (Czech accounting law) and personal contact details only as long as the account is active, then deleted. We do not share data with third parties, do not use traveller data for marketing, and sign mutual NDAs at no charge for accounts that require them. Data is stored on EU-based infrastructure."
+    },
+    {
+      "q": "What is the typical onboarding timeline?",
+      "a": "Most corporate accounts are live and taking bookings within 48 hours of the initial enquiry. The sequence is: Day 0, you complete the three-minute application form at /corporate describing your company, expected monthly volume, and any specific requirements. Within the same working day we assign an account manager and send a short service agreement for countersignature (usually two pages — our standard terms plus your specific notes). Day 1, once signed, we configure your account in the dispatch system, invite your listed travellers, and run a test booking free of charge so your first real trip is never the first trip. Day 2, you make your first live booking. For companies with unusual requirements — bespoke invoicing formats, integration with an existing travel management platform, or multi-entity setups — onboarding can take up to a week, and we agree the timeline up front."
+    }
+  ],
+  "testimonial": {
+    "quote": "\"Three managing directors, two airports, one invoice. PRESTIGO made it simple.\"",
+    "attribution": "S. Novák · Senior Partner · Prague"
+  }
+}

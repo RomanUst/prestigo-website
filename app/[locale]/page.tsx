@@ -2,10 +2,12 @@ import type { Metadata } from 'next'
 
 export const revalidate = 120
 
+import { getLocale } from 'next-intl/server'
 import { getCachedAggregateRating } from '@/lib/google-reviews'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
+import { getPageContent } from '@/lib/page-content'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import FeatureStrip from '@/components/FeatureStrip'
@@ -22,31 +24,39 @@ import Divider from '@/components/Divider'
 // actually returns (no trailing slash, matching next.config behaviour) so
 // Search Console sees a single, consistent home URL.
 const HOME_URL = 'https://rideprestigo.com'
-const HOME_DESCRIPTION = 'Prague chauffeur service with fixed prices, flight tracking and meet & greet. Executive Mercedes, English-speaking drivers, 24/7. Book online in 60 seconds.'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Prague Chauffeur Service — Fixed-Price Transfers | PRESTIGO' },
-  description: HOME_DESCRIPTION,
-  alternates: {
-    canonical: HOME_URL,
-    languages: {
-      en: HOME_URL,
-      'x-default': HOME_URL,
-    },
-  },
-  openGraph: {
-    url: HOME_URL,
-    title: 'Prague Chauffeur Service | PRESTIGO — Premium Private Transfers',
-    description: HOME_DESCRIPTION,
-    images: [
-      {
-        url: `${HOME_URL}/og-image.jpg`,
-        width: 1200,
-        height: 630,
-        alt: 'PRESTIGO — premium chauffeur service in Prague',
+type HomeContent = {
+  metadata: { title: string; description: string; ogTitle: string }
+  schema: { name: string; description: string }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('home', locale) as HomeContent
+  return {
+    title: { absolute: content.metadata.title },
+    description: content.metadata.description,
+    alternates: {
+      canonical: HOME_URL,
+      languages: {
+        en: HOME_URL,
+        'x-default': HOME_URL,
       },
-    ],
-  },
+    },
+    openGraph: {
+      url: HOME_URL,
+      title: content.metadata.ogTitle,
+      description: content.metadata.description,
+      images: [
+        {
+          url: `${HOME_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: 'PRESTIGO — premium chauffeur service in Prague',
+        },
+      ],
+    },
+  }
 }
 
 // Canonical Google Maps place URL built from the public Place ID (a Place ID
@@ -57,18 +67,20 @@ const MAPS_URL = process.env.GOOGLE_PLACE_ID
   ? `https://www.google.com/maps/place/?q=place_id:${process.env.GOOGLE_PLACE_ID}`
   : 'https://share.google/dPIa4HI97jeLPidw9'
 
-const localBusinessSchema = {
+// Schema name/description are content-sourced (single source with
+// generateMetadata above) — see buildLocalBusinessSchema/buildWebsiteSchema.
+function buildLocalBusinessSchema(content: HomeContent) {
+  return {
   '@context': 'https://schema.org',
   '@type': ['LocalBusiness', 'TaxiService'],
   '@id': 'https://rideprestigo.com/#business',
-  name: 'PRESTIGO',
+  name: content.schema.name,
   legalName: 'chelautotrans s.r.o.',
   // IČO is the Czech company registration number, not a tax ID — expose it as
   // a typed identifier and give the actual VAT number (DIČ) via vatID.
   identifier: { '@type': 'PropertyValue', propertyID: 'IČO', value: '05650801' },
   vatID: 'CZ05650801',
-  description:
-    'Premium chauffeur and private transfer service in Prague, Czech Republic. Executive airport transfers, corporate travel, and luxury city rides.',
+  description: content.schema.description,
   url: 'https://rideprestigo.com',
   telephone: '+420725986855',
   email: 'info@rideprestigo.com',
@@ -153,19 +165,22 @@ const localBusinessSchema = {
       closes: '23:59',
     },
   ],
+  }
 }
 
-const websiteSchema = {
+function buildWebsiteSchema(content: HomeContent) {
+  return {
   '@context': 'https://schema.org',
   '@type': 'WebSite',
   '@id': 'https://rideprestigo.com/#website',
-  name: 'PRESTIGO',
+  name: content.schema.name,
   url: 'https://rideprestigo.com',
   inLanguage: 'en',
   publisher: {
     '@type': 'LocalBusiness',
     '@id': 'https://rideprestigo.com/#business',
   },
+  }
 }
 
 const DEV_PRICING_FALLBACK = {
@@ -185,6 +200,8 @@ const DEV_PRICING_FALLBACK = {
 }
 
 export default async function Home() {
+  const locale = await getLocale()
+  const content = getPageContent('home', locale) as HomeContent
   const [aggregateRating, config, allRoutes] = await Promise.all([
     getCachedAggregateRating().catch(() => null),
     getPricingConfig().catch(() => DEV_PRICING_FALLBACK),
@@ -200,6 +217,9 @@ export default async function Home() {
       ? allRoutes.reduce((m, r) => Math.min(m, r.eClassEur), Infinity)
       : AIRPORT_FALLBACK.regular
   const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
+
+  const localBusinessSchema = buildLocalBusinessSchema(content)
+  const websiteSchema = buildWebsiteSchema(content)
 
   const schema = aggregateRating
     ? {

@@ -7,23 +7,38 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import ContactForm from '@/components/ContactForm'
+import { getLocale } from 'next-intl/server'
+import { getPageContent } from '@/lib/page-content'
 
-export const metadata: Metadata = {
-  title: 'Contact — Premium Chauffeur Prague',
-  description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
-  alternates: {
-    canonical: '/contact',
-    languages: {
-      en: 'https://rideprestigo.com/contact',
-      'x-default': 'https://rideprestigo.com/contact',
+type ContactContent = {
+  metadata: { title: string; description: string; ogTitle: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  whatsapp: { messageUsInstantly: string }
+  whatHappensNext: { heading: string; steps: { step: string; title: string; body: string }[] }
+  commonEnquiries: { heading: string; faqs: { q: string; a: string }[] }
+  alsoUseful: { heading: string; links: { label: string; href: string; desc: string }[] }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('contact', locale) as ContactContent
+  return {
+    title: content.metadata.title,
+    description: content.metadata.description,
+    alternates: {
+      canonical: '/contact',
+      languages: {
+        en: 'https://rideprestigo.com/contact',
+        'x-default': 'https://rideprestigo.com/contact',
+      },
     },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/contact',
-    title: 'Contact — PRESTIGO Premium Chauffeur Prague',
-    description: 'Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.',
-    images: [{ url: 'https://rideprestigo.com/hero-contact.webp', width: 1200, height: 630 }],
-  },
+    openGraph: {
+      url: 'https://rideprestigo.com/contact',
+      title: content.metadata.ogTitle,
+      description: content.metadata.description,
+      images: [{ url: 'https://rideprestigo.com/hero-contact.webp', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const WHATSAPP_NUMBER = '420725986855'
@@ -38,7 +53,9 @@ const breadcrumbSchema = {
   ],
 }
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const locale = await getLocale()
+  const content = getPageContent('contact', locale) as ContactContent
   return (
     <main id="main-content">
       <Nav />
@@ -50,15 +67,14 @@ export default function ContactPage() {
           <Image src="/hero-contact.webp" alt="Contact PRESTIGO — Premium Chauffeur Prague" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)', objectPosition: '30% 15%' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Contact · Prague Chauffeur Service</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Contact PRESTIGO Prague. <br />
-            <span className="display-italic">We are here, always.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-md" style={{ lineHeight: '1.9' }}>
-            Available 24 hours a day, 7 days a week. Reach us via the form,
-            email, or instantly on WhatsApp.
+            {content.hero.intro}
           </p>
         </div>
       </section>
@@ -86,7 +102,7 @@ export default function ContactPage() {
                   WhatsApp
                 </p>
                 <p className="font-body font-light text-[12px] text-offwhite mt-0.5 group-hover:text-offwhite transition-colors">
-                  Message us instantly
+                  {content.whatsapp.messageUsInstantly}
                 </p>
               </div>
               <svg viewBox="0 0 16 16" className="w-3.5 h-3.5 ml-auto text-warmgrey group-hover:text-[#25D366] transition-colors" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -145,26 +161,10 @@ export default function ContactPage() {
       {/* What to expect */}
       <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">What happens next</p>
+          <p className="label mb-6">{content.whatHappensNext.heading}</p>
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              {
-                step: '01',
-                title: 'You reach out',
-                body: 'Send us a message via the form, WhatsApp, or email. Include your pickup location, destination, date, and time. No account required.',
-              },
-              {
-                step: '02',
-                title: 'We confirm within minutes',
-                body: 'During business hours, expect a response in under 15 minutes. Outside business hours, we aim to confirm within 2 hours. Your booking is not final until confirmed in writing.',
-              },
-              {
-                step: '03',
-                title: 'Your driver is there',
-                body: 'On the day, your assigned chauffeur arrives at the agreed location — on time, in uniform, name board held. For airport pickups, we track your flight automatically.',
-              },
-            ].map((s) => (
+            {content.whatHappensNext.steps.map((s) => (
               <div key={s.step} className="flex flex-col gap-4">
                 <p className="font-body font-light text-[10px] tracking-[0.25em] uppercase" style={{ color: 'var(--copper)' }}>{s.step}</p>
                 <h3 className="font-display font-light text-[20px] text-offwhite">{s.title}</h3>
@@ -181,27 +181,10 @@ export default function ContactPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
           <div>
-            <p className="label mb-6">Common enquiries</p>
+            <p className="label mb-6">{content.commonEnquiries.heading}</p>
             <span className="copper-line mb-10 block" />
             <div className="flex flex-col gap-8">
-              {[
-                {
-                  q: 'I need an airport transfer from Prague Václav Havel (PRG).',
-                  a: 'Use the booking form or WhatsApp. Provide your flight number, arrival terminal, and destination address. We track the flight and adjust pickup time if it lands early or late.',
-                },
-                {
-                  q: 'I need a transfer to Vienna, Berlin, or another European city.',
-                  a: 'View our full route list, or simply tell us your pickup and destination. We serve 50 intercity routes from Prague with fixed prices and door-to-door service.',
-                },
-                {
-                  q: 'My company needs a corporate account.',
-                  a: 'We set up corporate accounts with monthly invoicing and a dedicated manager. Visit the Corporate page or describe your requirements in the form and we will follow up.',
-                },
-                {
-                  q: 'I need to cancel or change a booking.',
-                  a: 'Contact us via WhatsApp or email with your booking reference. Cancellations made at least 1 hour before departure are free of charge.',
-                },
-              ].map((item) => (
+              {content.commonEnquiries.faqs.map((item) => (
                 <div key={item.q} className="border-b border-anthracite-light pb-8 last:border-0 last:pb-0">
                   <p className="font-body font-medium text-[12px] tracking-[0.03em] text-offwhite mb-2">{item.q}</p>
                   <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.a}</p>
@@ -211,15 +194,10 @@ export default function ContactPage() {
           </div>
           <div className="flex flex-col gap-8">
             <div>
-              <p className="label mb-6">Also useful</p>
+              <p className="label mb-6">{content.alsoUseful.heading}</p>
               <span className="copper-line mb-10 block" />
               <div className="flex flex-col gap-4">
-                {[
-                  { label: 'Book online instantly', href: '/book', desc: 'Select route, vehicle, and date — confirmed in seconds.' },
-                  { label: 'View all 50 routes', href: '/routes', desc: 'Prague to Vienna, Berlin, Munich, and 47 more destinations.' },
-                  { label: 'Corporate accounts', href: '/corporate', desc: 'Monthly invoicing and dedicated management for companies.' },
-                  { label: 'Full FAQ', href: '/faq', desc: 'Cancellation, child seats, waiting time, and more.' },
-                ].map((link) => (
+                {content.alsoUseful.links.map((link) => (
                   <a
                     key={link.href}
                     href={link.href}

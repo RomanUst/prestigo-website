@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "title": "Contact — Premium Chauffeur Prague",
+    "description": "Get in touch with PRESTIGO. Book a transfer, request a corporate account, or ask any question. Available 24/7 via WhatsApp or email.",
+    "ogTitle": "Contact — PRESTIGO Premium Chauffeur Prague"
+  },
+  "hero": {
+    "label": "Contact · Prague Chauffeur Service",
+    "headlineLine1": "Contact PRESTIGO Prague.",
+    "headlineItalic": "We are here, always.",
+    "intro": "Available 24 hours a day, 7 days a week. Reach us via the form, email, or instantly on WhatsApp."
+  },
+  "whatsapp": {
+    "messageUsInstantly": "Message us instantly"
+  },
+  "whatHappensNext": {
+    "heading": "What happens next",
+    "steps": [
+      {
+        "step": "01",
+        "title": "You reach out",
+        "body": "Send us a message via the form, WhatsApp, or email. Include your pickup location, destination, date, and time. No account required."
+      },
+      {
+        "step": "02",
+        "title": "We confirm within minutes",
+        "body": "During business hours, expect a response in under 15 minutes. Outside business hours, we aim to confirm within 2 hours. Your booking is not final until confirmed in writing."
+      },
+      {
+        "step": "03",
+        "title": "Your driver is there",
+        "body": "On the day, your assigned chauffeur arrives at the agreed location — on time, in uniform, name board held. For airport pickups, we track your flight automatically."
+      }
+    ]
+  },
+  "commonEnquiries": {
+    "heading": "Common enquiries",
+    "faqs": [
+      {
+        "q": "I need an airport transfer from Prague Václav Havel (PRG).",
+        "a": "Use the booking form or WhatsApp. Provide your flight number, arrival terminal, and destination address. We track the flight and adjust pickup time if it lands early or late."
+      },
+      {
+        "q": "I need a transfer to Vienna, Berlin, or another European city.",
+        "a": "View our full route list, or simply tell us your pickup and destination. We serve 50 intercity routes from Prague with fixed prices and door-to-door service."
+      },
+      {
+        "q": "My company needs a corporate account.",
+        "a": "We set up corporate accounts with monthly invoicing and a dedicated manager. Visit the Corporate page or describe your requirements in the form and we will follow up."
+      },
+      {
+        "q": "I need to cancel or change a booking.",
+        "a": "Contact us via WhatsApp or email with your booking reference. Cancellations made at least 1 hour before departure are free of charge."
+      }
+    ]
+  },
+  "alsoUseful": {
+    "heading": "Also useful",
+    "links": [
+      { "label": "Book online instantly", "href": "/book", "desc": "Select route, vehicle, and date — confirmed in seconds." },
+      { "label": "View all 50 routes", "href": "/routes", "desc": "Prague to Vienna, Berlin, Munich, and 47 more destinations." },
+      { "label": "Corporate accounts", "href": "/corporate", "desc": "Monthly invoicing and dedicated management for companies." },
+      { "label": "Full FAQ", "href": "/faq", "desc": "Cancellation, child seats, waiting time, and more." }
+    ]
+  }
+}

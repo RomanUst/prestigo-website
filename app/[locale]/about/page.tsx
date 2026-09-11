@@ -9,54 +9,52 @@ import { getAuthor, personSchemaFor } from '@/lib/authors'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getLocale } from 'next-intl/server'
+import { getPageContent } from '@/lib/page-content'
 
-const ABOUT_DESCRIPTION = "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO."
-
-export const metadata: Metadata = {
-  title: { absolute: 'About PRESTIGO — Prague Chauffeur Service' },
-  description: ABOUT_DESCRIPTION,
-  alternates: {
-    canonical: '/about',
-    languages: {
-      en: 'https://rideprestigo.com/about',
-      'x-default': 'https://rideprestigo.com/about',
-    },
-  },
-  openGraph: {
-    url: 'https://rideprestigo.com/about',
-    title: "About PRESTIGO — Prague's Premium Chauffeur Service",
-    description: ABOUT_DESCRIPTION,
-    images: [{ url: 'https://rideprestigo.com/hero-about.png', width: 1200, height: 630 }],
-  },
+type AboutContent = {
+  metadata: { title: string; description: string; ogTitle: string }
+  schema: { name: string; aboutPageName: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  brandStory: { heading: string; paragraphs: string[] }
+  quote: string
+  ourStory: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
+  founder: { label: string; headingLine1: string; headingItalic: string; extraParagraph: string; readFullProfile: string }
+  discretion: { label: string; headingLine1: string; headingItalic: string; intro: string; items: { t: string; b: string }[] }
+  localKnowledge: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
+  principlesHeading: string
+  principles: { title: string; body: string }[]
+  chauffeurs: { label: string; heading: string; paragraph: string }
+  requirements: string[]
+  cta: { headingLine1: string; headingItalic: string; buttonPrimary: string; buttonSecondary: string }
 }
 
-const principles = [
-  {
-    title: 'Discretion',
-    body: 'Your journey is your own. We don\'t discuss clients, routes, or conversations.',
-  },
-  {
-    title: 'Precision',
-    body: 'The right car at the right place at the right time. No excuses accepted.',
-  },
-  {
-    title: 'Local knowledge',
-    body: 'Our drivers know Prague: the traffic patterns, the hotels, the shortcuts, the stories.',
-  },
-]
-
-const requirements = [
-  'Background-checked · Professionally licensed',
-  'Executive hospitality training',
-  'English fluency minimum B2',
-  'Prague geography certified',
-  'Uniformed: dark suit, clean shoes, no cologne',
-]
-
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('about', locale) as AboutContent
+  return {
+    title: { absolute: content.metadata.title },
+    description: content.metadata.description,
+    alternates: {
+      canonical: '/about',
+      languages: {
+        en: 'https://rideprestigo.com/about',
+        'x-default': 'https://rideprestigo.com/about',
+      },
+    },
+    openGraph: {
+      url: 'https://rideprestigo.com/about',
+      title: content.metadata.ogTitle,
+      description: content.metadata.description,
+      images: [{ url: 'https://rideprestigo.com/hero-about.png', width: 1200, height: 630 }],
+    },
+  }
+}
 
 const founder = getAuthor('roman-ustyugov')
 
-const aboutPageSchemaGraph = {
+function buildAboutPageSchemaGraph(content: AboutContent) {
+  return {
   '@context': 'https://schema.org',
   '@graph': [
     {
@@ -71,15 +69,15 @@ const aboutPageSchemaGraph = {
       '@type': 'AboutPage',
       '@id': 'https://rideprestigo.com/about#aboutpage',
       url: 'https://rideprestigo.com/about',
-      name: "About PRESTIGO — Prague's Premium Chauffeur Service",
-      description: ABOUT_DESCRIPTION,
+      name: content.schema.aboutPageName,
+      description: content.metadata.description,
       mainEntity: { '@id': 'https://rideprestigo.com/#business' },
       about: personSchemaFor('roman-ustyugov'),
     },
     {
       '@type': 'Organization',
       '@id': 'https://rideprestigo.com/#org',
-      name: 'PRESTIGO',
+      name: content.schema.name,
       url: 'https://rideprestigo.com',
       foundingDate: '2016',
       founder: {
@@ -89,9 +87,15 @@ const aboutPageSchemaGraph = {
       },
     },
   ],
+  }
 }
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const locale = await getLocale()
+  const content = getPageContent('about', locale) as AboutContent
+  const principlesList = content.principles
+  const requirementsList = content.requirements
+  const aboutPageSchemaGraph = buildAboutPageSchemaGraph(content)
   const rating = getStaticAggregateRating()
   const schemaGraph = rating
     ? {
@@ -101,7 +105,7 @@ export default function AboutPage() {
           {
             '@type': ['LocalBusiness', 'TaxiService'],
             '@id': 'https://rideprestigo.com/#business',
-            name: 'PRESTIGO',
+            name: content.schema.name,
             url: 'https://rideprestigo.com',
             aggregateRating: {
               '@type': 'AggregateRating',
@@ -126,14 +130,14 @@ export default function AboutPage() {
           <Image src="/hero-about.png" alt="About PRESTIGO — Prague's Premium Chauffeur Service" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">About PRESTIGO</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-xl">
-            Prague's chauffeur service. <br />
-            <span className="display-italic">International standard.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            PRESTIGO was founded on a single observation: Prague deserved a chauffeur service that matched the city's ambition. Not a global aggregator without local knowledge. Not a local operator without a brand. Something in between — and better than both.
+            {content.hero.intro}
           </p>
         </div>
       </section>
@@ -145,17 +149,13 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
-            <h2 className="display text-[28px] md:text-[36px] mb-8">Why PRESTIGO exists</h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-8">{content.brandStory.heading}</h2>
             <div className="flex flex-col gap-6">
-              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                Every year, hundreds of thousands of executives, diplomats, and discerning travellers arrive in Prague expecting a certain standard. What they find, too often, is a gap — between the city they came for and the first impression it gives them.
-              </p>
-              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                PRESTIGO exists to close that gap. From the moment of landing to the moment of arrival at your destination, every detail is anticipated, every preference noted, every commitment kept.
-              </p>
-              <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                We are not a taxi. We are not an aggregator. We are the first person in Prague who is already on your side.
-              </p>
+              {content.brandStory.paragraphs.map((para, i) => (
+                <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                  {para}
+                </p>
+              ))}
             </div>
           </div>
           </Reveal>
@@ -164,7 +164,7 @@ export default function AboutPage() {
             <div className="w-full border border-anthracite-light p-10">
               <span className="copper-line mb-8 block" />
               <blockquote className="font-display font-light italic text-[24px] md:text-[28px] text-offwhite leading-[1.5]">
-                &ldquo;The first person in Prague who is already on your side.&rdquo;
+                {content.quote}
               </blockquote>
             </div>
           </div>
@@ -179,22 +179,18 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-12 md:gap-16">
           <Reveal variant="up" className="md:col-span-2">
           <div>
-            <p className="label mb-6">Our story</p>
+            <p className="label mb-6">{content.ourStory.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">From one car, <span className="display-italic">to a standard.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">{content.ourStory.headingLine1} <span className="display-italic">{content.ourStory.headingItalic}</span></h2>
           </div>
           </Reveal>
           <Reveal variant="up" delay={150} className="md:col-span-3">
           <div className="flex flex-col gap-5">
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              PRESTIGO began in 2016 the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they&rsquo;d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              The founding principle was that the standard has to be set at the edges, not the centre. Anyone can run a good airport transfer on a sunny Tuesday afternoon. The real test is the 04:00 pickup in a snowstorm, the last-minute rerouting when a meeting runs long, the visiting principal with a protocol team, the family of five with skis and a nervous dog. If the service holds at the edges, the centre takes care of itself.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Today, PRESTIGO operates a curated Mercedes-Benz fleet out of Prague with a small team of vetted chauffeurs who&rsquo;ve each been with us long enough to be trusted with any booking. We have deliberately kept the operation compact: we would rather refuse work than dilute the standard.
-            </p>
+            {content.ourStory.paragraphs.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                {para}
+              </p>
+            ))}
           </div>
           </Reveal>
         </div>
@@ -220,10 +216,10 @@ export default function AboutPage() {
           </Reveal>
           <Reveal variant="up" delay={150}>
           <div>
-            <p className="label mb-6">Meet the founder</p>
+            <p className="label mb-6">{content.founder.label}</p>
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px] mb-3">
-              Roman Ustyugov, <span className="display-italic">Founder.</span>
+              {content.founder.headingLine1} <span className="display-italic">{content.founder.headingItalic}</span>
             </h2>
             <p className="font-body text-[11px] tracking-[0.12em] uppercase text-copper mb-6">
               {founder.jobTitle}
@@ -239,14 +235,14 @@ export default function AboutPage() {
                 </p>
               ))}
               <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-                Ten years in the industry means every 04:00 pickup, every wrong-terminal arrival, every VIP protocol has been seen, solved, and written into PRESTIGO&rsquo;s playbook. That is what you are booking when you book us.
+                {content.founder.extraParagraph}
               </p>
               <div className="pt-2">
                 <a
                   href={`/authors/${founder.slug}`}
                   className="font-body text-[11px] tracking-[0.12em] uppercase text-copper hover:text-offwhite transition-colors"
                 >
-                  Read full profile →
+                  {content.founder.readFullProfile}
                 </a>
               </div>
             </div>
@@ -262,23 +258,17 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
-            <p className="label mb-6">On discretion</p>
+            <p className="label mb-6">{content.discretion.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px] mb-6">What discretion <span className="display-italic">actually means.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-6">{content.discretion.headingLine1} <span className="display-italic">{content.discretion.headingItalic}</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              &ldquo;Discretion&rdquo; is one of those words every premium operator puts on their website and very few define. At PRESTIGO, discretion is a set of concrete practices, not a marketing line. It is the reason we hesitate to photograph our own vehicles with clients inside them, the reason our chauffeurs don&rsquo;t carry company-branded clothing to dinner pickups, and the reason nothing that happens in the cabin is ever repeated — to colleagues, to family, or to a social feed.
+              {content.discretion.intro}
             </p>
           </div>
           </Reveal>
           <Reveal variant="up" delay={150}>
           <ul className="flex flex-col gap-4">
-            {[
-              { t: 'No social posting — ever', b: 'Our drivers do not photograph clients, vehicles with clients inside, or the addresses we collect from. There is no internal chat group sharing stories. We don&rsquo;t have one.' },
-              { t: 'NDAs on request, at no cost', b: 'For any booking that touches confidential business, we will sign a standard mutual NDA before the trip. Many of our corporate accounts run on a permanent NDA as a matter of routine.' },
-              { t: 'Private pickups without signage', b: 'For sensitive collections at residences, embassies, or private entrances, the chauffeur carries no company signage and uses a vehicle without external branding.' },
-              { t: 'Conversation only on invitation', b: 'Our chauffeurs will not speak first. If you want a conversation, start one. If you want to work or sleep, the cabin stays silent for the entire journey.' },
-              { t: 'What happens inside, stays inside', b: 'Phone calls, documents on your lap, conversations with colleagues in the back seat — none of it exists outside the vehicle. This is not a slogan. It is how we are trained.' },
-            ].map((item) => (
+            {content.discretion.items.map((item) => (
               <li key={item.t} className="flex items-start gap-4 py-3 border-b border-anthracite-light last:border-0">
                 <span className="mt-[8px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                 <div>
@@ -298,21 +288,17 @@ export default function AboutPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
-          <p className="label mb-6">Local knowledge, international standards</p>
+          <p className="label mb-6">{content.localKnowledge.label}</p>
           <span className="copper-line mb-8 block" />
-          <h2 className="display text-[28px] md:text-[36px] mb-10">Prague is our home. <span className="display-italic">That is the advantage.</span></h2>
+          <h2 className="display text-[28px] md:text-[36px] mb-10">{content.localKnowledge.headingLine1} <span className="display-italic">{content.localKnowledge.headingItalic}</span></h2>
           </Reveal>
           <Reveal variant="fade" delay={100}>
           <div className="flex flex-col gap-6">
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Most of the global chauffeur brands that operate in Prague are platforms — they list local drivers, collect a fee, and disappear the moment something goes wrong. PRESTIGO is the opposite. We are based in Prague, we employ our drivers directly, and we live with every decision about service the next day. That is what &ldquo;locally-rooted&rdquo; actually means.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Local knowledge is a practical advantage. Our chauffeurs know that the Prague 1 traffic pattern changes completely during the Christmas markets, that Charles Bridge is closed to vehicles, that Wenceslas Square becomes impassable whenever there&rsquo;s a protest or a football final, and that the fastest route from the airport to a hotel in Malá Strana depends entirely on the time of day. They know which hotels expect you to drop at the main entrance and which prefer the side porte-cochère. They know which embassies have security checks that add fifteen minutes to the pickup. They know the border-crossing habits of the E65 to Vienna at 06:00 on a summer Monday versus a winter Saturday.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              None of this is written in a policy document. It is learned by driving the city for years, and then choosing to stay with one operator who asks the right questions. It is the single biggest reason PRESTIGO is consistent at the edges — where other services begin to fray.
-            </p>
+            {content.localKnowledge.paragraphs.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                {para}
+              </p>
+            ))}
           </div>
           </Reveal>
         </div>
@@ -324,10 +310,10 @@ export default function AboutPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
-          <h2 className="display text-[28px] md:text-[36px] mb-14">What we stand for</h2>
+          <h2 className="display text-[28px] md:text-[36px] mb-14">{content.principlesHeading}</h2>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {principles.map((p, i) => (
+            {principlesList.map((p, i) => (
               <Reveal key={p.title} variant="up" delay={i * 120}>
               <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-6 block" />
@@ -347,17 +333,17 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
-            <p className="label mb-6">Our Chauffeurs</p>
+            <p className="label mb-6">{content.chauffeurs.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px] mb-6">Our chauffeurs</h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-6">{content.chauffeurs.heading}</h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Every PRESTIGO chauffeur is personally vetted, trained in executive transport protocols, and fluent in English. They carry a name board, arrive early, and say only what needs to be said.
+              {content.chauffeurs.paragraph}
             </p>
           </div>
           </Reveal>
           <Reveal variant="up" delay={150}>
           <div className="flex flex-col justify-center gap-4">
-            {requirements.map((r) => (
+            {requirementsList.map((r) => (
               <div key={r} className="flex items-start gap-4 py-4 border-b border-anthracite-light last:border-0">
                 <span className="mt-1 w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                 <span className="font-body font-light text-[13px] text-warmgrey">{r}</span>
@@ -375,14 +361,14 @@ export default function AboutPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up">
           <h2 className="display text-[28px] md:text-[36px]">
-            Travel with PRESTIGO. <br />
-            <span className="display-italic">Experience the difference.</span>
+            {content.cta.headingLine1} <br />
+            <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           </Reveal>
           <Reveal variant="fade" delay={150}>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="/book" className="btn-primary">Book a Transfer</a>
-            <a href="/corporate" className="btn-ghost">Corporate Accounts</a>
+            <a href="/book" className="btn-primary">{content.cta.buttonPrimary}</a>
+            <a href="/corporate" className="btn-ghost">{content.cta.buttonSecondary}</a>
           </div>
           </Reveal>
         </div>
