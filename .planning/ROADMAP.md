@@ -142,6 +142,21 @@
 
 **UI hint**: yes
 
+### Phase 72: AI Translation Pipeline & Catalogs
+
+**Goal**: A re-runnable, AI-only translation pipeline (`scripts/i18n-translate.mjs`) exists that translates the English source — the `messages/en.json` catalog plus the Phase 71 locale-aware content model (route-page bodies and `content/blog/<locale>/`) — into target locales, governed by a locked brand glossary and a do-not-translate list (prices/numbers, "Prestigo", E-Class/S-Class/V-Class names, proper nouns) with a premium tone tuned per locale. English stays the single source of truth and re-runs are idempotent: an unchanged English source produces no output diff, and only added or changed source strings are re-translated. Using that pipeline, complete `ru`, `es`, and `fr` catalogs and localized content are generated and rendered under their subpaths, followed by a QA sampling pass. AR/HI/ZH generation and non-Latin/RTL rendering are out of scope here (deferred to Phase 73).
+
+**Depends on**: Phase 68 (next-intl locale routing + typed locale config), Phase 69 (`messages/en.json` source catalog + namespace/key conventions), Phase 70 (booking/account catalog externalization), Phase 71 (locale-aware content model — route-page data model made locale-aware and `content/blog/<locale>/` relocation)
+**Requirements**: TR-01, TR-02
+**Success Criteria** (what must be TRUE):
+
+  1. `scripts/i18n-translate.mjs` is a re-runnable AI translation pipeline that reads `messages/en.json` and the locale-aware content sources and writes target-locale catalogs and content; re-running against an unchanged English source is idempotent (no spurious diffs), and only added/changed source keys are re-translated on subsequent runs.
+  2. The pipeline enforces a locked brand glossary and a do-not-translate list — prices/numbers, "Prestigo", E-Class/S-Class/V-Class names, and proper nouns are preserved verbatim in every locale — and applies a premium, locale-appropriate tone.
+  3. Complete `ru`, `es`, `fr` catalogs (`messages/ru.json`, `messages/es.json`, `messages/fr.json`) exist with every key present in `messages/en.json` (no missing keys, no untranslated English values left in translated surfaces), and the corresponding localized content (route-page bodies and `content/blog/<locale>/`) is generated.
+  4. `/ru/`, `/es/`, `/fr/` subpaths render fully translated chrome and content with no English leakage in translated surfaces, the English root output stays byte-for-byte unchanged, and a QA sampling pass across the three locales is recorded; `ar`, `hi`, `zh` continue to render English (their generation deferred to Phase 73).
+
+**UI hint**: no
+
 </details>
 
 <details>
