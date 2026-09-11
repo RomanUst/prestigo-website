@@ -225,7 +225,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 68. i18n Foundation & Routing | v3.0 | 2/2 | Complete    | 2026-09-03 |
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
-| 71. Content Externalization — Marketing & SEO Pages | v3.0 | 8/9 | In Progress|  |
+| 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | In Progress|  |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 0/? | Pending | — |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
