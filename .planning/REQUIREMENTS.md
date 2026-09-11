@@ -35,9 +35,9 @@ Make the entire public site multilingual. English stays the default at the site 
 
 ### Content Externalization
 
-- [ ] **CNT-01**: The 29–30 route-page bodies (inclusions, day-trip configs, FAQ, hero copy) move to a locale-aware content model.
-- [ ] **CNT-02**: Home long-form, the 8 service pages, about/faq/contact/corporate, and legal pages are localizable.
-- [ ] **CNT-03**: Blog moves to per-locale content (`content/blog/<locale>/`); listing and `[slug]` render the active locale.
+- [x] **CNT-01**: The 29–30 route-page bodies (inclusions, day-trip configs, FAQ, hero copy) move to a locale-aware content model.
+- [x] **CNT-02**: Home long-form, the 8 service pages, about/faq/contact/corporate, and legal pages are localizable.
+- [x] **CNT-03**: Blog moves to per-locale content (`content/blog/<locale>/`); listing and `[slug]` render the active locale.
 
 ### Translation Production
 
@@ -98,9 +98,9 @@ Populated during roadmap creation (Phases 68–75).
 | I18N-04 | 68 | Complete |
 | STR-01 | 69 | Complete |
 | STR-02 | 70 | Complete |
-| CNT-01 | 71 | Pending |
-| CNT-02 | 71 | Pending |
-| CNT-03 | 71 | Pending |
+| CNT-01 | 71 | Complete |
+| CNT-02 | 71 | Complete |
+| CNT-03 | 71 | Complete |
 | TR-01 | 72 | Pending |
 | TR-02 | 72, 73 | Pending |
 | RTL-01 | 73 | Pending |
