@@ -8,6 +8,18 @@ type AirportTransferContent = {
   faqs: { q: string; a: string }[];
 };
 
+type CorporateAccountsContent = {
+  hero: { intro: string };
+  benefits: { title: string; body: string }[];
+  builtFor: { title: string; body: string }[];
+};
+
+type GroupTransfersContent = {
+  hero: { intro: string };
+  editorial: string[];
+  features: { title: string; body: string }[];
+};
+
 describe("getPageContent('services/airport-transfer') — airport-transfer page", () => {
   it("EN-fallback: getPageContent('services/airport-transfer', 'ru') deep-equals the 'en' result", () => {
     const en = getPageContent("services/airport-transfer", "en");
@@ -30,5 +42,47 @@ describe("getPageContent('services/airport-transfer') — airport-transfer page"
 
   it("path-traversal: getPageContent('services/../x', 'en') throws (segment-wise guard on nested keys)", () => {
     expect(() => getPageContent("services/../x", "en")).toThrow();
+  });
+});
+
+describe("getPageContent('services/corporate-accounts') — corporate-accounts page", () => {
+  it("EN-fallback: getPageContent('services/corporate-accounts', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("services/corporate-accounts", "en");
+    const ru = getPageContent("services/corporate-accounts", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative body strings against verbatim originals", () => {
+    const content = getPageContent("services/corporate-accounts", "en") as CorporateAccountsContent;
+    expect(content.hero.intro).toBe(
+      "PRESTIGO corporate accounts are designed for companies that move people regularly and expect every detail handled. Fixed rates, monthly invoicing, a named account manager, and a fleet that reflects the standard your organisation holds itself to."
+    );
+    expect(content.benefits[0].body).toBe(
+      "One invoice. All trips. All departments. Sent on the first of every month, formatted for your accounts team, with full trip breakdown."
+    );
+    expect(content.builtFor[1].body).toBe(
+      "With staff visiting Prague regularly who need a reliable, bookable ground transport partner."
+    );
+  });
+});
+
+describe("getPageContent('services/group-transfers') — group-transfers page", () => {
+  it("EN-fallback: getPageContent('services/group-transfers', 'ru') deep-equals the 'en' result", () => {
+    const en = getPageContent("services/group-transfers", "en");
+    const ru = getPageContent("services/group-transfers", "ru");
+    expect(ru).toEqual(en);
+  });
+
+  it("spot-checks 3 representative body strings against verbatim originals", () => {
+    const content = getPageContent("services/group-transfers", "en") as GroupTransfersContent;
+    expect(content.hero.intro).toBe(
+      "Prestigo group transfers move up to 50 passengers in a coordinated Mercedes-Benz V-Class fleet across Prague and Central Europe — conference delegations, incentive programmes, corporate off-sites, wedding parties, sports teams. Single dispatch contact, synchronised arrivals, full movement schedule. Fixed pricing per vehicle, door-to-door from hotels, airports, or venues."
+    );
+    expect(content.editorial[2]).toBe(
+      "For Prague group transfers, one detail is worth noting in advance: Václav Havel Airport has two separate terminals. Terminal 2 handles Schengen arrivals and has its own building west of the main structure. Terminal 1 handles non-Schengen arrivals in the lower level of the central building. An international delegation arriving on mixed Schengen and non-Schengen flights will be split between terminals, with separate arrivals halls and a ten-minute walk between them. We build terminal-split logistics into every group brief as standard."
+    );
+    expect(content.features[3].body).toBe(
+      "We have operated groups as small as four passengers in a single V-Class and delegations as large as forty-eight passengers across eight vehicles coordinated simultaneously at two airport terminals. The operational approach does not change with scale: a movement brief, confirmed vehicle and chauffeur assignments, a lead coordinator available to your events team throughout, and direct contact for any real-time adjustment. We do not sub-contract to third-party operators for groups under fifty passengers."
+    );
   });
 });
