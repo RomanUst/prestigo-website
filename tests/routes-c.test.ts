@@ -14,6 +14,9 @@ describe("Group C route content (71-04)", () => {
     "prague-plzen",
     "prague-regensburg",
     "prague-salzburg",
+    "prague-warsaw",
+    "prague-wroclaw",
+    "prague-zlin",
   ])("%s", (slug) => {
     it("passes assertRouteContentShape", () => {
       const content = getRouteContent(slug, "en");
@@ -136,5 +139,62 @@ describe("Group C route content (71-04)", () => {
   it("prague-salzburg: keeps its own 'Day Trips from Prague' label (not shared chrome)", () => {
     const content = getRouteContent("prague-salzburg", "en");
     expect(content.dayTripLabel).toBe("Day Trips from Prague");
+  });
+
+  it("prague-warsaw: byte-parity spot-check", () => {
+    assertRouteParity("prague-warsaw", {
+      "hero.intro":
+        "660 km north through Moravia and across Poland to the Vistula. The rebuilt Old Town, the Palace of Culture, Łazienki Park, and Poland's economic heart — seven hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "A fixed fare from €485 in a Mercedes E-Class for up to 3 passengers, €590 in the V-Class for up to 6, or €650 in the S-Class. The price covers fuel, the Czech vignette, Polish motorway tolls, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Warsaw Chauffeur — From €485",
+    });
+  });
+
+  it("prague-warsaw: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-warsaw", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
+  });
+
+  it("prague-wroclaw: byte-parity spot-check", () => {
+    assertRouteParity("prague-wroclaw", {
+      "hero.intro":
+        "285 km northeast to Poland's city of dwarfs and one of Central Europe's most vibrant market squares. Three hours, one fixed price, door to door across the border.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "A fixed fare from €485 in a Mercedes E-Class for up to 3 passengers, €590 in the V-Class for up to 6, or €650 in the S-Class. The price covers fuel, the Czech vignette, Polish motorway tolls, and driver time. No hidden charges.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Wrocław Chauffeur — From €485",
+    });
+  });
+
+  it("prague-wroclaw: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-wroclaw", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
+  });
+
+  it("prague-zlin: byte-parity spot-check", () => {
+    assertRouteParity("prague-zlin", {
+      "hero.intro":
+        "310 km east to Moravia's functionalist city. Built by the Baťa shoe empire, Zlín is a rare monument to 20th-century industrial urbanism — three and a half hours, one fixed price.",
+      "inclusions.0":
+        "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
+      "faqs.1.a":
+        "A fixed fare from €485 in a Mercedes E-Class for up to 3 passengers, €590 in the V-Class for up to 6, or €650 in the S-Class. Fuel, the Czech motorway vignette, and driver time are all included — nothing is added at drop-off.",
+      "cta.headingItalic": "From €485, fixed.",
+      "metadata.title": "Prague to Zlín Chauffeur — From €485",
+    });
+  });
+
+  it("prague-zlin: has no day-trip section (page never rendered one)", () => {
+    const content = getRouteContent("prague-zlin", "en");
+    expect(content.dayTripLabel).toBe("");
+    expect(content.dayTrip.configurations).toEqual([]);
   });
 });
