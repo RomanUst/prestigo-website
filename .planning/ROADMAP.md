@@ -160,10 +160,24 @@
 **Plans:** 5 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 72-01-PLAN.md — Tracer: one key/one locale end-to-end + glossary/manifest foundations (@anthropic-ai/sdk, D-04/05/06/07)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 72-02-PLAN.md — Expand to all catalog + content-JSON surfaces (ru/es/fr) + DNT/ICU/RU-plural verifier (D-01/06)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
 - [ ] 72-03-PLAN.md — MDX-aware blog branch + QA-report generator + stray blog file relocation (D-09/10)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
 - [ ] 72-04-PLAN.md — CI workflow (path-filter + PR flow) + ANTHROPIC_API_KEY secret + request.ts comment (D-02/03/08)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
 - [ ] 72-05-PLAN.md — First full-catalog live run -> complete ru/es/fr + recorded QA sampling pass (D-05/08/09, TR-02)
 
 </details>
