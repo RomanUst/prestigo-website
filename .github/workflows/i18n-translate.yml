@@ -1,0 +1,89 @@
+name: i18n Translate
+
+# D-02: Runs in CI only, auto-triggered on changes to EN sources, plus a
+# manual dispatch for the first full-catalog run (Pitfall 4). Never a
+# locally-run script, never site runtime.
+#
+# D-08: Never commits translations directly to main. Runs the pipeline,
+# asserts EN sources are byte-for-byte unchanged, then opens/updates a PR
+# against main via peter-evans/create-pull-request@v8 for owner review.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'messages/en.json'
+      - 'content/routes/en/**'
+      - 'content/pages/en/**'
+      - 'content/blog/en/**'
+  workflow_dispatch: {}
+
+# Least privilege (T-72-03): only what create-pull-request needs to commit
+# a branch and open/update a PR. No other scopes are granted.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full history — manifest sidecar is read as committed, not derived from git history, D-04)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run translation pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: node scripts/i18n-translate.mjs
+
+      # T-72-08 / D-08: fail loudly if the pipeline mutated an EN source —
+      # EN must stay byte-for-byte unchanged (Phases 68-71 discipline).
+      - name: Assert EN sources are unchanged
+        run: |
+          git diff --exit-code -- messages/en.json content/routes/en content/pages/en content/blog/en
+
+      # T-72-08 / D-08: never push straight to main — always land the
+      # translated output in a PR for owner review (QA report + RU spot-check).
+      - name: Open pull request with translated output
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore(i18n): update RU/ES/FR translations'
+          branch: i18n/auto-translate
+          delete-branch: true
+          title: 'chore(i18n): update RU/ES/FR translations'
+          body: |
+            Automated translation update from `scripts/i18n-translate.mjs`.
+
+            Review before merging:
+            - `i18n/QA-REPORT.md` for completeness / no-leakage / DNT / MDX-structure / sampled-diff results
+            - A native-RU spot-check of a sample of changed strings (D-09)
+
+            This PR was opened by the `i18n Translate` workflow — it never commits directly to `main`.
+          add-paths: |
+            messages/ru.json
+            messages/es.json
+            messages/fr.json
+            content/routes/ru/**
+            content/routes/es/**
+            content/routes/fr/**
+            content/pages/ru/**
+            content/pages/es/**
+            content/pages/fr/**
+            content/blog/ru/**
+            content/blog/es/**
+            content/blog/fr/**
+            i18n/translation-manifest.json
+            i18n/QA-REPORT.md
