@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 72
 current_phase_name: AI Translation Pipeline & Catalogs
 status: executing
-stopped_at: Phase 72 context gathered
-last_updated: "2026-09-12T20:03:00.859Z"
-last_activity: 2026-09-11
-last_activity_desc: Phase 71 complete, transitioned to Phase 72
-state_head: b3055168dfde4843d015a9628dfa6dbe2a80b025
+stopped_at: Completed 72-01-PLAN.md
+last_updated: "2026-09-14T19:27:05.352Z"
+last_activity: 2026-09-14
+last_activity_desc: Phase 72 execution started
+state_head: 3885375aeedc3d5a46d0b0a5b09bd65373fc37c9
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 24
+  completed_plans: 25
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-06)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 71 — Content Externalization — Marketing & SEO Pages
+**Current focus:** Phase 72 — AI Translation Pipeline & Catalogs
 
 ## Current Position
 
-Phase: 72 (AI Translation Pipeline & Catalogs) — READY TO EXECUTE
-Plan: Not started
+Phase: 72 (AI Translation Pipeline & Catalogs) — EXECUTING
+Plan: 2 of 5
 Status: Ready to execute
-Last activity: 2026-09-11 — Phase 71 complete, transitioned to Phase 72
+Last activity: 2026-09-14 — Phase 72 execution started
 
 ## Accumulated Context
 
@@ -116,6 +116,8 @@ Recent decisions affecting current work:
 - [Phase 70]: 70-07: DayCard interpolated day aria collapses to named-ICU (single dayLabel 'Day {day}' + per-variant t('key',{day}))
 - [Phase 70]: 70-07: Step3Auth (in-wizard auth, Auth.inWizard) reuses shared Auth.login + Errors keys via secondary hooks rather than duplicating byte-identical strings
 - [Phase 70]: 70-08: account/auth-account surface externalized (getTranslations Server Components + useTranslations clients + Pattern E locale-threaded actions); Phase 70 gate green — STR-02 complete
+- [Phase 72]: [Phase 72] 72-01: i18n/locales.ts extracted (dependency-free) so plain-Node scripts can import the locale list — i18n/routing.ts re-exports it unchanged; createNavigation() from next-intl/navigation is unresolvable outside Next's bundler
+- [Phase 72]: [Phase 72] 72-01: hash-manifest (unitKey -> {enHash,lastTranslatedAt}) + injectable translator architecture proven end-to-end (one key, ru locale) via mocked-client TDD; empty/whitespace units excluded from translator calls but still recorded in the manifest to keep idempotency uniform
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -223,9 +225,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-11T20:59:36.198Z
-Stopped at: Phase 72 context gathered
-Resume file: .planning/phases/72-ai-translation-pipeline-catalogs/72-CONTEXT.md
+Last session: 2026-09-14T19:27:04.479Z
+Stopped at: Completed 72-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -274,6 +276,7 @@ Resume file: .planning/phases/72-ai-translation-pipeline-catalogs/72-CONTEXT.md
 | Phase 70 P05 | 6min | 3 tasks | 16 files |
 | Phase 70 P07 | 20min | 3 tasks | 12 files |
 | Phase 70 P08 | 15min | 3 tasks | 15 files |
+| Phase 72 P01 | 55min | 3 tasks | 12 files |
 
 ## Operator Next Steps
 
