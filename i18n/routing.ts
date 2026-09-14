@@ -11,14 +11,20 @@
  * with no /en prefix; every other locale is prefixed (/ru, /es, ...).
  * localeDetection stays false this phase — UX-02 (Accept-Language
  * auto-detect) is explicitly Phase 74 scope. Do not flip this on early.
+ *
+ * `locales`/`AppLocale`/`rtlLocales` live in ./locales.ts and are re-exported
+ * here unchanged (Phase 72, Plan 01) — that file has zero next-intl/next
+ * dependencies so plain `node scripts/*.mjs` invocations (the AI translation
+ * pipeline) can import the locale list without pulling in
+ * next-intl/navigation's Next.js-only resolution graph, which this file's
+ * createNavigation() call below requires.
  */
 import { defineRouting } from 'next-intl/routing'
 import { createNavigation } from 'next-intl/navigation'
+import { locales, rtlLocales, type AppLocale } from './locales'
 
-export const locales = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
-export type AppLocale = (typeof locales)[number]
-
-export const rtlLocales: readonly AppLocale[] = ['ar']
+export { locales, rtlLocales }
+export type { AppLocale }
 
 export const routing = defineRouting({
   locales,
