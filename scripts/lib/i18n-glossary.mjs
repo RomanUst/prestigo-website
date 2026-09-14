@@ -16,7 +16,7 @@
  * Plan 01 deviation — see 72-01-SUMMARY.md).
  */
 import { readFileSync } from 'node:fs'
-import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 import { z } from 'zod'
 import { locales as allLocales } from '../../i18n/locales.ts'
 
@@ -53,7 +53,11 @@ export const glossarySchema = z.object({
   locales: z.record(z.string(), localeEntrySchema),
 })
 
-const DEFAULT_GLOSSARY_PATH = fileURLToPath(new URL('../../i18n/glossary.json', import.meta.url))
+// Resolved against process.cwd() rather than import.meta.url — this project's convention
+// (see scripts/get-business-location.mjs's relative '.env.local' read) is that scripts/*.mjs
+// and the test runner both execute from the repo root; import.meta.url-relative resolution
+// also breaks under Vite/Vitest's module transform (non-file:// URL scheme).
+const DEFAULT_GLOSSARY_PATH = path.resolve(process.cwd(), 'i18n/glossary.json')
 
 /**
  * Load + validate i18n/glossary.json. Throws a descriptive error (fail-loud)
