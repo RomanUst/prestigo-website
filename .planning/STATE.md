@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 72
 current_phase_name: AI Translation Pipeline & Catalogs
 status: executing
-stopped_at: Completed 72-01-PLAN.md
-last_updated: "2026-09-14T19:27:05.352Z"
+stopped_at: Completed 72-02-PLAN.md
+last_updated: "2026-09-14T19:45:30.733Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 72 execution started
-state_head: 3885375aeedc3d5a46d0b0a5b09bd65373fc37c9
+state_head: 1e30917836fbb8a9f48b6b1724eead3dd2a7417f
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 25
+  completed_plans: 26
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 72 (AI Translation Pipeline & Catalogs) — EXECUTING
-Plan: 2 of 5
+Plan: 3 of 5
 Status: Ready to execute
 Last activity: 2026-09-14 — Phase 72 execution started
 
@@ -118,6 +118,9 @@ Recent decisions affecting current work:
 - [Phase 70]: 70-08: account/auth-account surface externalized (getTranslations Server Components + useTranslations clients + Pattern E locale-threaded actions); Phase 70 gate green — STR-02 complete
 - [Phase 72]: [Phase 72] 72-01: i18n/locales.ts extracted (dependency-free) so plain-Node scripts can import the locale list — i18n/routing.ts re-exports it unchanged; createNavigation() from next-intl/navigation is unresolvable outside Next's bundler
 - [Phase 72]: [Phase 72] 72-01: hash-manifest (unitKey -> {enHash,lastTranslatedAt}) + injectable translator architecture proven end-to-end (one key, ru locale) via mocked-client TDD; empty/whitespace units excluded from translator calls but still recorded in the manifest to keep idempotency uniform
+- [Phase 72]: 72-02: manifest advance deferred until every requested locale succeeds for a unit this run (not after the first locale) — the enHash entry carries no locale dimension, so per-locale-immediate writes would silently fall back to English for the second/third locale
+- [Phase 72]: 72-02: translateCatalog()/translateContentJson() are pure/read-only (no file writes, no manifest mutation) — runFullTranslation() alone owns persistence so a translator or verification failure never partially commits state
+- [Phase 72]: 72-02: a unit failing DNT/ICU/plural verification falls back to the EN value in the output and is excluded from the manifest — retried automatically next run, never silently shipped broken
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -225,8 +228,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-14T19:27:04.479Z
-Stopped at: Completed 72-01-PLAN.md
+Last session: 2026-09-14T19:45:29.826Z
+Stopped at: Completed 72-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -277,6 +280,7 @@ Resume file: None
 | Phase 70 P07 | 20min | 3 tasks | 12 files |
 | Phase 70 P08 | 15min | 3 tasks | 15 files |
 | Phase 72 P01 | 55min | 3 tasks | 12 files |
+| Phase 72 P02 | 20min | 2 tasks | 6 files |
 
 ## Operator Next Steps
 
