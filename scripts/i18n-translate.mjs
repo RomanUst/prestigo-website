@@ -1,31 +1,45 @@
 #!/usr/bin/env node
 /**
- * AI translation pipeline — TRACER slice (Phase 72, Plan 01).
+ * AI translation pipeline (Phase 72).
  *
  * Production trigger (from Plan 72-04 onward): CI, on a push to `main`
  * that touches `messages/en.json` or `content/{routes,pages,blog}/en/**`
- * (D-02). This plan wires exactly ONE catalog key end-to-end (Nav.signIn,
- * locale ru) to prove the manifest + glossary + write + idempotency
- * architecture before Plan 72-02 expands to the full catalog surface.
+ * (D-02).
  *
- * Reads EN source -> checks the hash manifest (D-04/D-05) -> calls the
- * injected translator (default: real @anthropic-ai/sdk client against
- * claude-opus-5, glossary-governed system prompt, D-01/D-06/D-07) only
- * for units that changed -> writes the target locale file, EN key order
- * preserved, UTF-8/NFC -> updates the manifest, entry written only after
- * a successful target write.
+ * Plan 72-01 proved the mechanism end-to-end on a single catalog key
+ * (Nav.signIn, ru) — the manifest + glossary + write + idempotency
+ * architecture (see `translateSource()` below, kept for that tracer's
+ * committed test coverage). Plan 72-02 (this revision) expands the CLI's
+ * `main()` to the FULL surface: every EN catalog + content-JSON source
+ * (`messages/en.json`, `content/routes/en/*.json`,
+ * `content/pages/en/**\/*.json` incl. the nested `services/` subdirectory),
+ * for every target locale (ru/es/fr), using scripts/lib/i18n-surfaces.mjs's
+ * per-surface batching (short-string batch for the catalog, whole-file for
+ * route/page prose) and scripts/lib/i18n-verify.mjs's fail-closed DNT/ICU/
+ * tag/plural check on every accepted translation.
+ *
+ * Cross-locale manifest correctness (Rule 1 fix, found while wiring this
+ * plan): a unit's manifest entry is advanced ONLY after it has been
+ * successfully translated (or was empty/verbatim-copied) in EVERY
+ * requested locale this run — never after just the first locale. The
+ * manifest's `enHash` doesn't carry a locale, so writing it after a single
+ * locale's success would make every other locale's pass see the unit as
+ * "already done" and silently fall back to the untranslated EN value.
  *
  * Usage (local dry-run, no ANTHROPIC_API_KEY required, deterministic mock
  * translator, runs the whole mechanism against a fixture corpus):
  *   node scripts/i18n-translate.mjs --dry-run --fixtures tests/fixtures/i18n
  *
- * Usage (real run, ANTHROPIC_API_KEY from .env.local or CI repo secret):
+ * Usage (real run, ANTHROPIC_API_KEY from .env.local or CI repo secret,
+ * walks the real repo's full catalog + content-JSON surface):
  *   node scripts/i18n-translate.mjs
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import path from 'node:path'
 import Anthropic from '@anthropic-ai/sdk'
+import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import { z } from 'zod'
 import { buildSystemPrompt, loadGlossary, PHASE_72_LOCALES } from './lib/i18n-glossary.mjs'
 import {
   buildOutputTree,
@@ -36,11 +50,14 @@ import {
   unitsNeedingTranslation,
   writeManifest,
 } from './lib/i18n-manifest.mjs'
+import { enumerateEnSources, readEnSource, translateCatalog, translateContentJson } from './lib/i18n-surfaces.mjs'
+import { verifyDntPreserved, verifyPluralCategories } from './lib/i18n-verify.mjs'
 
 /**
- * This plan's tracer scope: translate exactly this one unit in a real
- * (non-fixture) run. Plan 72-02 removes this restriction and processes
- * the full catalog.
+ * Plan 72-01's tracer scope: translate exactly this one unit when
+ * `translateSource()` is invoked without an `only` filter override. Kept
+ * for the Plan 01 tracer's committed test coverage — the full-catalog path
+ * (`runFullTranslation()` below) does not use `translateSource()`.
  */
 export const TRACER_UNIT_KEY = 'messages/en.json::Nav.signIn'
 
@@ -66,7 +83,8 @@ function loadEnvLocal() {
  * Default translator: a real @anthropic-ai/sdk client calling claude-opus-5
  * (D-01) with the glossary-governed, cached system prompt (D-06/D-07,
  * 72-COVERAGE.md). Never used by the committed test suite — tests inject
- * a deterministic mock instead.
+ * a deterministic mock instead. Kept for the Plan 01 tracer's single-unit
+ * path (translateSource()).
  */
 export function createAnthropicTranslator(glossary) {
   const client = new Anthropic()
@@ -100,10 +118,113 @@ export function createAnthropicTranslator(glossary) {
  * Deterministic mock translator used by the CLI's `--dry-run` mode — lets a
  * developer exercise the whole read/select/write/idempotency mechanism
  * against a fixture corpus with zero API cost and no ANTHROPIC_API_KEY.
+ * Kept for the Plan 01 tracer's single-unit path (translateSource()).
  */
 export function createDryRunTranslator() {
   return async function dryRunTranslate(unit, { locale }) {
     return `[${locale.toUpperCase()}] ${unit.value}`
+  }
+}
+
+/**
+ * Real translator for the short-string batch strategy (72-RESEARCH.md
+ * Pattern 3.1 / 72-COVERAGE.md structured outputs): one call per batch of
+ * units, returning a validated JSON array of translated strings, same
+ * length and order as the input — via `client.messages.parse()` +
+ * `output_config.format` (replaces assistant prefill, which returns a 400
+ * on Opus 5).
+ */
+export function createAnthropicBatchTranslator(glossary) {
+  const client = new Anthropic()
+  return async function anthropicBatchTranslate(units, { locale }) {
+    const schema = z.object({
+      translations: z.array(z.string()).length(units.length),
+    })
+    const response = await client.messages.parse({
+      model: 'claude-opus-5',
+      max_tokens: 8192,
+      system: [
+        { type: 'text', text: buildSystemPrompt(glossary, locale), cache_control: { type: 'ephemeral' } },
+      ],
+      messages: [
+        {
+          role: 'user',
+          content: `Translate each of the following ${units.length} numbered EN strings to ${locale}. Return one translation per input, in the same order. Preserve ICU variables, rich-text tags, and any do-not-translate terms EXACTLY as instructed in the system prompt.\n\n${units
+            .map((u, i) => `${i + 1}. ${typeof u.value === 'string' ? u.value : JSON.stringify(u.value)}`)
+            .join('\n')}`,
+        },
+      ],
+      output_config: { format: zodOutputFormat(schema) },
+    })
+    if (!response.parsed_output) {
+      throw new Error(`i18n-translate: batch translation for locale=${locale} returned no parsed_output`)
+    }
+    return response.parsed_output.translations
+  }
+}
+
+/**
+ * Real translator for the whole-file strategy (72-RESEARCH.md Pattern 3.2):
+ * one streamed call per file per locale so Claude sees the full page for
+ * cross-field tone/terminology consistency, and so a large route/page file
+ * doesn't hit non-streaming max_tokens HTTP timeouts (72-COVERAGE.md).
+ */
+export function createAnthropicWholeFileTranslator(glossary) {
+  const client = new Anthropic()
+  return async function anthropicWholeFileTranslate(enObj, { locale, sourceKey }) {
+    const stream = client.messages.stream({
+      model: 'claude-opus-5',
+      max_tokens: 64000,
+      system: [
+        { type: 'text', text: buildSystemPrompt(glossary, locale), cache_control: { type: 'ephemeral' } },
+      ],
+      messages: [
+        {
+          role: 'user',
+          content: `Translate every string value in the following JSON document to ${locale}. Keep every key, nesting, and array length byte-for-byte identical — translate ONLY the string values, never the keys or the document structure. Preserve ICU variables, rich-text tags, and any do-not-translate terms EXACTLY as instructed in the system prompt. Geographic place names use the locale's standard exonym per the system prompt's place-names policy. Return ONLY the translated JSON document — no markdown code fence, no commentary.\n\nSource file: ${sourceKey}\n\n${JSON.stringify(enObj, null, 2)}`,
+        },
+      ],
+    })
+    const finalMessage = await stream.finalMessage()
+    const textBlock = finalMessage.content.find((block) => block.type === 'text')
+    if (!textBlock) {
+      throw new Error(`i18n-translate: whole-file translation for "${sourceKey}" (locale=${locale}) returned no text block`)
+    }
+    let jsonText = textBlock.text.trim()
+    if (jsonText.startsWith('```')) {
+      jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/```\s*$/, '').trim()
+    }
+    return JSON.parse(jsonText)
+  }
+}
+
+/** Deterministic dry-run batch translator — mirrors createDryRunTranslator() but for the batch API shape. */
+export function createDryRunBatchTranslator() {
+  return async function dryRunBatchTranslate(units, { locale }) {
+    return units.map((u) => `[${locale.toUpperCase()}] ${typeof u.value === 'string' ? u.value : JSON.stringify(u.value)}`)
+  }
+}
+
+/** Deep-prefixes every string leaf (recursing through plain objects and arrays, never altering keys). */
+function prefixDeep(node, locale) {
+  if (typeof node === 'string') {
+    return node.trim() === '' ? node : `[${locale.toUpperCase()}] ${node}`
+  }
+  if (Array.isArray(node)) {
+    return node.map((item) => prefixDeep(item, locale))
+  }
+  if (node !== null && typeof node === 'object') {
+    const out = {}
+    for (const [key, value] of Object.entries(node)) out[key] = prefixDeep(value, locale)
+    return out
+  }
+  return node
+}
+
+/** Deterministic dry-run whole-file translator — mirrors createDryRunTranslator() but for the whole-file API shape. */
+export function createDryRunWholeFileTranslator() {
+  return async function dryRunWholeFileTranslate(enObj, { locale }) {
+    return prefixDeep(enObj, locale)
   }
 }
 
@@ -123,6 +244,12 @@ export function createDryRunTranslator() {
  * - Output is written with the EN source's key order preserved (rebuilt
  *   by walking the EN tree), UTF-8/NFC-normalized, so an unchanged
  *   re-run yields a byte-identical file (idempotency).
+ *
+ * Plan 72-01's tracer entry point — single-unit-at-a-time translator
+ * interface (`translator(unit, {locale, glossary})`). Kept for its
+ * committed test coverage (tests/i18n-translate-manifest.test.ts). The
+ * full-catalog path added in Plan 72-02 is `runFullTranslation()` below,
+ * which batches per surface type instead of calling a translator per unit.
  *
  * @param {object} options
  * @param {string} options.sourcePath - filesystem path to the EN JSON source
@@ -200,6 +327,170 @@ export async function translateSource({
   }
 }
 
+/**
+ * Verifies every non-empty translated unit for `translatedByUnitKey`
+ * against the EN source with scripts/lib/i18n-verify.mjs (DNT/ICU/tag/RU-
+ * plural, fail-closed). A unit that fails verification is EXCLUDED from
+ * the returned accepted map — it is never written to the output tree or
+ * advanced in the manifest (Task 2's contract: "a failing unit is NOT
+ * written as accepted"). Failing unitKeys are logged for the QA report
+ * (Plan 72-03 owns generating that report file; this plan only surfaces
+ * the failures at the console/return level).
+ */
+function verifyTranslatedUnits({ enUnits, translatedByUnitKey, locale, glossary }) {
+  const enByUnitKey = Object.fromEntries(enUnits.map((u) => [u.unitKey, u.value]))
+  const accepted = {}
+  const flagged = []
+
+  for (const [unitKey, trValue] of Object.entries(translatedByUnitKey)) {
+    const enValue = enByUnitKey[unitKey]
+    const dntResult = verifyDntPreserved(enValue, trValue, glossary)
+    const pluralResult = verifyPluralCategories(trValue, locale, glossary)
+    if (dntResult.ok && pluralResult.ok) {
+      accepted[unitKey] = trValue
+    } else {
+      flagged.push({
+        unitKey,
+        locale,
+        missing: dntResult.missing,
+        unbalanced: dntResult.unbalanced,
+        missingPluralCategories: pluralResult.missing,
+      })
+      console.error(
+        `✗ i18n-translate: DNT/ICU/plural verification failed for "${unitKey}" (locale=${locale}) — missing=${JSON.stringify(
+          dntResult.missing
+        )} unbalanced=${JSON.stringify(dntResult.unbalanced)} missingPluralCategories=${JSON.stringify(pluralResult.missing)}`
+      )
+    }
+  }
+
+  return { accepted, flagged }
+}
+
+/**
+ * Full-surface pipeline (Plan 72-02): walks every EN catalog + content-JSON
+ * source (scripts/lib/i18n-surfaces.mjs::enumerateEnSources) and translates
+ * each for every requested locale, batched per surface type (catalog =
+ * short-string batch, content = whole-file), verified fail-closed
+ * (scripts/lib/i18n-verify.mjs) before a unit is accepted.
+ *
+ * Cross-locale manifest correctness: for each source, `selected` (the set
+ * of units needing translation) is computed ONCE from the manifest state
+ * at the start of that source's locale loop, then reused unchanged across
+ * every locale in `locales` — reading the manifest again mid-loop would be
+ * safe too (it isn't mutated until the loop ends) but computing it once
+ * keeps the invariant explicit. The manifest itself is advanced only after
+ * ALL requested locales have been attempted for that source, and only for
+ * units that succeeded (translated + verified, or were empty) in EVERY
+ * locale — a unit that fails in just one locale is excluded from this
+ * run's manifest advance so every locale retries it next run, rather than
+ * marking it "done" while one locale still holds the English fallback.
+ */
+export async function runFullTranslation({
+  rootDir = process.cwd(),
+  locales,
+  glossary,
+  manifestPath,
+  translateBatch,
+  translateFile,
+}) {
+  const sources = enumerateEnSources(rootDir)
+  const manifest = loadManifest(manifestPath)
+  const now = new Date().toISOString()
+
+  const summary = { sourcesWalked: sources.length, sourcesSkipped: 0, translated: 0, flagged: [] }
+
+  for (const source of sources) {
+    const enObj = readEnSource(source.sourcePath)
+    const enUnits = flattenEnSource(enObj, source.sourceKey)
+
+    // succeededEverywhere starts as "every non-empty unit that might be
+    // selected" and is narrowed down as locales are processed; recomputed
+    // per-locale-call below via translateCatalog/translateContentJson
+    // (both re-derive `selected` from the same unmutated `manifest`).
+    let anySelected = false
+    let succeededEverywhere = null // Set<unitKey>, initialized on first locale pass
+    let emptyUnitsForManifest = []
+
+    for (const locale of locales) {
+      const targetPath = source.targetPathFor(locale)
+
+      const result =
+        source.surfaceType === 'catalog'
+          ? await translateCatalog({ enUnits, manifest, locale, glossary, translateBatch })
+          : await translateContentJson({ enObj, sourceKey: source.sourceKey, enUnits, manifest, locale, glossary, translateFile })
+
+      if (result.selected.length === 0) {
+        // Nothing needs translation for this source at all — no file
+        // touched, no locale loop continuation needed.
+        continue
+      }
+      anySelected = true
+      emptyUnitsForManifest = result.emptyUnits
+
+      for (const unitKey of result.failedUnitKeys) {
+        summary.flagged.push({ unitKey, locale, reason: 'translator_call_failed' })
+      }
+
+      const { accepted, flagged } = verifyTranslatedUnits({
+        enUnits,
+        translatedByUnitKey: result.translatedByUnitKey,
+        locale,
+        glossary,
+      })
+      summary.flagged.push(...flagged)
+      summary.translated += Object.keys(accepted).length
+
+      const succeededThisLocale = new Set([
+        ...Object.keys(accepted),
+        ...result.emptyUnits.map((u) => u.unitKey),
+      ])
+      succeededEverywhere = succeededEverywhere
+        ? new Set([...succeededEverywhere].filter((k) => succeededThisLocale.has(k)))
+        : succeededThisLocale
+
+      let existingTargetObj = {}
+      if (existsSync(targetPath)) {
+        existingTargetObj = JSON.parse(readFileSync(targetPath, 'utf8'))
+      }
+      const existingValuesByUnitKey = Object.fromEntries(
+        flattenEnSource(existingTargetObj, source.sourceKey).map((u) => [u.unitKey, u.value])
+      )
+
+      const newValuesByUnitKey = {}
+      for (const unit of result.emptyUnits) newValuesByUnitKey[unit.unitKey] = unit.value
+      for (const [unitKey, value] of Object.entries(accepted)) {
+        newValuesByUnitKey[unitKey] = typeof value === 'string' ? value.normalize('NFC') : value
+      }
+
+      const mergedValuesByUnitKey = { ...existingValuesByUnitKey, ...newValuesByUnitKey }
+      const outputTree = buildOutputTree(enObj, source.sourceKey, '', mergedValuesByUnitKey)
+      mkdirSync(dirname(targetPath), { recursive: true })
+      writeFileSync(targetPath, (JSON.stringify(outputTree, null, 2) + '\n').normalize('NFC'), 'utf8')
+    }
+
+    if (!anySelected) {
+      summary.sourcesSkipped += 1
+      continue
+    }
+
+    // Advance the manifest only for units that succeeded in every
+    // requested locale this run (Rule 1 fix — see function doc comment).
+    for (const unit of emptyUnitsForManifest) {
+      manifest.units[unit.unitKey] = { enHash: sha256(unit.value), lastTranslatedAt: now }
+    }
+    for (const unitKey of succeededEverywhere ?? []) {
+      const unit = enUnits.find((u) => u.unitKey === unitKey)
+      if (unit && !emptyUnitsForManifest.some((e) => e.unitKey === unitKey)) {
+        manifest.units[unitKey] = { enHash: sha256(unit.value), lastTranslatedAt: now }
+      }
+    }
+  }
+
+  writeManifest(manifestPath, manifest)
+  return summary
+}
+
 async function main(argv = process.argv.slice(2)) {
   const dryRun = argv.includes('--dry-run')
   const fixturesIdx = argv.indexOf('--fixtures')
@@ -216,32 +507,30 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const glossary = loadGlossary()
+  const rootDir = fixturesDir ? path.resolve(fixturesDir) : process.cwd()
+  const manifestPath = fixturesDir
+    ? path.join(rootDir, 'translation-manifest.json')
+    : path.join(rootDir, 'i18n/translation-manifest.json')
 
-  for (const locale of requestedLocales) {
-    const sourcePath = fixturesDir ? path.join(fixturesDir, 'messages/en.json') : 'messages/en.json'
-    const targetPath = fixturesDir ? path.join(fixturesDir, `messages/${locale}.json`) : `messages/${locale}.json`
-    const manifestPath = fixturesDir
-      ? path.join(fixturesDir, 'translation-manifest.json')
-      : 'i18n/translation-manifest.json'
-    const translator = dryRun ? createDryRunTranslator() : createAnthropicTranslator(glossary)
-    // Real (non-fixture) runs are scoped to the tracer's single unit this plan; --fixtures runs
-    // process the whole (small) fixture corpus to exercise select/skip/idempotency in aggregate.
-    const only = fixturesDir ? undefined : [TRACER_UNIT_KEY]
+  const translateBatch = dryRun ? createDryRunBatchTranslator() : createAnthropicBatchTranslator(glossary)
+  const translateFile = dryRun ? createDryRunWholeFileTranslator() : createAnthropicWholeFileTranslator(glossary)
 
-    console.log(`Translating ${sourcePath} -> ${targetPath} (locale=${locale}, dryRun=${dryRun})…`)
-    const result = await translateSource({
-      sourcePath,
-      targetPath,
-      manifestPath,
-      sourceKey: 'messages/en.json',
-      locale,
-      glossary,
-      translator,
-      only,
-    })
-    console.log(
-      `✓ ${locale}: ${result.translatorCalls} translated, ${result.skippedCount} skipped (unchanged), ${result.emptySkips} empty`
-    )
+  console.log(
+    `i18n-translate: walking ${rootDir} for locales [${requestedLocales.join(', ')}] (dryRun=${dryRun})…`
+  )
+  const summary = await runFullTranslation({
+    rootDir,
+    locales: requestedLocales,
+    glossary,
+    manifestPath,
+    translateBatch,
+    translateFile,
+  })
+  console.log(
+    `✓ i18n-translate: ${summary.sourcesWalked} source(s) walked, ${summary.sourcesSkipped} unchanged/skipped, ${summary.translated} unit-translations written, ${summary.flagged.length} flagged (DNT/ICU/plural verification failure)`
+  )
+  if (summary.flagged.length > 0) {
+    console.warn('⚠ i18n-translate: some units failed post-hoc verification and were NOT written — see log above for details.')
   }
 }
 

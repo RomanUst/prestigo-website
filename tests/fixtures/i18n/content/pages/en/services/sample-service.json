@@ -1,0 +1,6 @@
+{
+  "hero": {
+    "label": "Fixture Service",
+    "intro": "A fixture service page nested under services/, used only by the i18n pipeline test suite."
+  }
+}
