@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 72
 current_phase_name: AI Translation Pipeline & Catalogs
 status: executing
-stopped_at: Completed 72-02-PLAN.md
-last_updated: "2026-09-14T19:45:30.733Z"
+stopped_at: Completed 72-03-PLAN.md
+last_updated: "2026-09-14T20:03:17.719Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 72 execution started
-state_head: 1e30917836fbb8a9f48b6b1724eead3dd2a7417f
+state_head: 11d167f3184514b5941ca9b40d2a1307cb4933ae
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 72 (AI Translation Pipeline & Catalogs) — EXECUTING
-Plan: 3 of 5
+Plan: 4 of 5
 Status: Ready to execute
 Last activity: 2026-09-14 — Phase 72 execution started
 
@@ -121,6 +121,10 @@ Recent decisions affecting current work:
 - [Phase 72]: 72-02: manifest advance deferred until every requested locale succeeds for a unit this run (not after the first locale) — the enHash entry carries no locale dimension, so per-locale-immediate writes would silently fall back to English for the second/third locale
 - [Phase 72]: 72-02: translateCatalog()/translateContentJson() are pure/read-only (no file writes, no manifest mutation) — runFullTranslation() alone owns persistence so a translator or verification failure never partially commits state
 - [Phase 72]: 72-02: a unit failing DNT/ICU/plural verification falls back to the EN value in the output and is excluded from the manifest — retried automatically next run, never silently shipped broken
+- [Phase 72]: [Phase 72] 72-03: gray-matter's stringify(content, data) arg order is body-first, data-second - the inverse of 72-RESEARCH.md/72-PATTERNS.md's code snippets; buildTranslatedMdx() uses the confirmed-correct order
+- [Phase 72]: [Phase 72] 72-03: translateMdxFile() only populates translatedByUnitKey for a body unit that passes verifyMdxStructure - a structurally-failed body never enters the accepted set, no downstream filter needed
+- [Phase 72]: [Phase 72] 72-03: checkPipelineState() (--check mode) returns {ok, failures} instead of calling process.exit() itself, keeping the EN-mutation/completeness guard directly unit-testable
+- [Phase 72]: [Phase 72] 72-03: QA report's no-English-leakage check is scoped to units the run actually processed (summary.accepted) and excludes DNT-only values so brand terms identical across locales are never false-flagged
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -228,8 +232,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-14T19:45:29.826Z
-Stopped at: Completed 72-02-PLAN.md
+Last session: 2026-09-14T20:03:16.875Z
+Stopped at: Completed 72-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -281,6 +285,7 @@ Resume file: None
 | Phase 70 P08 | 15min | 3 tasks | 15 files |
 | Phase 72 P01 | 55min | 3 tasks | 12 files |
 | Phase 72 P02 | 20min | 2 tasks | 6 files |
+| Phase 72 P03 | 16min | 3 tasks | 7 files |
 
 ## Operator Next Steps
 

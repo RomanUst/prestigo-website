@@ -42,7 +42,7 @@ Make the entire public site multilingual. English stays the default at the site 
 ### Translation Production
 
 - [x] **TR-01**: A re-runnable AI translation pipeline (`scripts/i18n-translate.mjs`) with a locked brand glossary and a do-not-translate list (prices/numbers, "Prestigo", E/S/V-Class names, proper nouns), premium tone per locale. EN is the source of truth; re-runs are idempotent.
-- [ ] **TR-02**: Complete translations for `ru, es, fr, ar, hi, zh` across every catalog and content file.
+- [x] **TR-02**: Complete translations for `ru, es, fr, ar, hi, zh` across every catalog and content file.
 
 ### Non-Latin & RTL Infrastructure
 
@@ -102,7 +102,7 @@ Populated during roadmap creation (Phases 68–75).
 | CNT-02 | 71 | Complete |
 | CNT-03 | 71 | Complete |
 | TR-01 | 72 | Complete |
-| TR-02 | 72, 73 | Pending |
+| TR-02 | 72, 73 | Complete |
 | RTL-01 | 73 | Pending |
 | FONT-01 | 73 | Pending |
 | SEO-01 | 74 | Pending |
