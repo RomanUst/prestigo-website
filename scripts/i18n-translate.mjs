@@ -26,6 +26,14 @@
  * locale's success would make every other locale's pass see the unit as
  * "already done" and silently fall back to the untranslated EN value.
  *
+ * Plan 72-03 adds the third surface: `content/blog/en/*.mdx` (D-10),
+ * MDX-aware — frontmatter `title`/`description` translated as short
+ * strings, `date`/`dateModified`/`coverImage`/`category`/`author` copied
+ * byte-for-byte, and the markdown body translated whole-document with a
+ * post-hoc structural check (scripts/lib/i18n-mdx.mjs::verifyMdxStructure)
+ * that flags — rather than silently ships — a translation that drops a
+ * link URL or a code fence.
+ *
  * Usage (local dry-run, no ANTHROPIC_API_KEY required, deterministic mock
  * translator, runs the whole mechanism against a fixture corpus):
  *   node scripts/i18n-translate.mjs --dry-run --fixtures tests/fixtures/i18n
@@ -39,6 +47,7 @@ import { dirname } from 'node:path'
 import path from 'node:path'
 import Anthropic from '@anthropic-ai/sdk'
 import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod'
+import matter from 'gray-matter'
 import { z } from 'zod'
 import { buildSystemPrompt, loadGlossary, PHASE_72_LOCALES } from './lib/i18n-glossary.mjs'
 import {
@@ -50,6 +59,12 @@ import {
   unitsNeedingTranslation,
   writeManifest,
 } from './lib/i18n-manifest.mjs'
+import {
+  buildTranslatedMdx,
+  enumerateBlogEnSources,
+  flattenMdxSource,
+  translateMdxFile,
+} from './lib/i18n-mdx.mjs'
 import { enumerateEnSources, readEnSource, translateCatalog, translateContentJson } from './lib/i18n-surfaces.mjs'
 import { verifyDntPreserved, verifyPluralCategories } from './lib/i18n-verify.mjs'
 
@@ -195,6 +210,45 @@ export function createAnthropicWholeFileTranslator(glossary) {
       jsonText = jsonText.replace(/^```(?:json)?\n?/, '').replace(/```\s*$/, '').trim()
     }
     return JSON.parse(jsonText)
+  }
+}
+
+/**
+ * Real translator for the MDX blog-body strategy (Plan 72-03, D-10 /
+ * 72-RESEARCH.md Pattern 4): one streamed call per post per locale, whole-
+ * document, with explicit instructions to preserve fenced code blocks,
+ * markdown link URLs, heading/list markers, and any HTML/JSX tags —
+ * translating only the prose between them.
+ */
+export function createAnthropicMdxBodyTranslator(glossary) {
+  const client = new Anthropic()
+  return async function anthropicMdxBodyTranslate(body, { locale, sourceKey }) {
+    const stream = client.messages.stream({
+      model: 'claude-opus-5',
+      max_tokens: 64000,
+      system: [
+        { type: 'text', text: buildSystemPrompt(glossary, locale), cache_control: { type: 'ephemeral' } },
+      ],
+      messages: [
+        {
+          role: 'user',
+          content: `Translate the following Markdown/MDX blog post body to ${locale}. Preserve verbatim: every fenced code block, every markdown link's URL (translate the visible link text, never the URL), every heading marker (#, ##, ...), every list/bullet marker, and any HTML/JSX tags — translate only the prose between these structures. Preserve ICU variables, rich-text tags, and any do-not-translate terms EXACTLY as instructed in the system prompt. Return ONLY the translated Markdown body — no frontmatter, no code-fence wrapper, no commentary.\n\nSource file: ${sourceKey}\n\n${body}`,
+        },
+      ],
+    })
+    const finalMessage = await stream.finalMessage()
+    const textBlock = finalMessage.content.find((block) => block.type === 'text')
+    if (!textBlock) {
+      throw new Error(`i18n-translate: MDX body translation for "${sourceKey}" (locale=${locale}) returned no text block`)
+    }
+    return textBlock.text.trim()
+  }
+}
+
+/** Deterministic dry-run MDX-body translator — mirrors createDryRunTranslator() but for the whole-body MDX shape. */
+export function createDryRunMdxBodyTranslator() {
+  return async function dryRunMdxBodyTranslate(body, { locale }) {
+    return `[${locale.toUpperCase()}] ${body}`
   }
 }
 
@@ -368,11 +422,113 @@ function verifyTranslatedUnits({ enUnits, translatedByUnitKey, locale, glossary 
 }
 
 /**
- * Full-surface pipeline (Plan 72-02): walks every EN catalog + content-JSON
- * source (scripts/lib/i18n-surfaces.mjs::enumerateEnSources) and translates
+ * Blog-source branch of runFullTranslation() (Plan 72-03, D-10): mirrors
+ * the JSON per-source-per-locale loop's cross-locale manifest-advance and
+ * fail-closed-verification contract above, but operates on gray-matter MDX
+ * units (`frontmatter.title`, `frontmatter.description`, `body`) via
+ * scripts/lib/i18n-mdx.mjs instead of a JSON tree. Mutates `manifest` and
+ * `summary` in place — same caller-owns-persistence contract as the JSON
+ * loop (Plan 72-02 pattern).
+ */
+async function processBlogSource({ source, locales, glossary, manifest, translateBatch, translateMdxBody, summary, now }) {
+  const enRaw = readFileSync(source.sourcePath, 'utf8')
+  const { data: enData, content: enBody } = matter(enRaw)
+  const enUnits = flattenMdxSource(enRaw, source.sourceKey)
+
+  let anySelected = false
+  let succeededEverywhere = null
+  let emptyUnitsForManifest = []
+
+  for (const locale of locales) {
+    const targetPath = source.targetPathFor(locale)
+
+    const mdxResult = await translateMdxFile({
+      enRaw,
+      sourceKey: source.sourceKey,
+      manifest,
+      locale,
+      glossary,
+      translateBatch,
+      translateBody: translateMdxBody,
+    })
+
+    if (mdxResult.selected.length === 0) {
+      continue
+    }
+    anySelected = true
+    emptyUnitsForManifest = mdxResult.emptyUnits
+
+    for (const unitKey of mdxResult.failedUnitKeys) {
+      summary.flagged.push({
+        unitKey,
+        locale,
+        reason: unitKey.endsWith('::body') && mdxResult.structure && !mdxResult.structure.ok ? 'mdx_structure_failed' : 'translator_call_failed',
+      })
+    }
+
+    const { accepted, flagged } = verifyTranslatedUnits({
+      enUnits: mdxResult.enUnits,
+      translatedByUnitKey: mdxResult.translatedByUnitKey,
+      locale,
+      glossary,
+    })
+    summary.flagged.push(...flagged)
+    summary.translated += Object.keys(accepted).length
+    for (const [unitKey, trValue] of Object.entries(accepted)) {
+      const enUnit = mdxResult.enUnits.find((u) => u.unitKey === unitKey)
+      summary.accepted.push({ unitKey, locale, enValue: enUnit?.value, trValue })
+    }
+
+    const succeededThisLocale = new Set([...Object.keys(accepted), ...mdxResult.emptyUnits.map((u) => u.unitKey)])
+    succeededEverywhere = succeededEverywhere
+      ? new Set([...succeededEverywhere].filter((k) => succeededThisLocale.has(k)))
+      : succeededThisLocale
+
+    let existingValuesByUnitKey = {}
+    if (existsSync(targetPath)) {
+      const existingRaw = readFileSync(targetPath, 'utf8')
+      existingValuesByUnitKey = Object.fromEntries(
+        flattenMdxSource(existingRaw, source.sourceKey).map((u) => [u.unitKey, u.value])
+      )
+    }
+
+    const newValuesByUnitKey = {}
+    for (const unit of mdxResult.emptyUnits) newValuesByUnitKey[unit.unitKey] = unit.value
+    for (const [unitKey, value] of Object.entries(accepted)) {
+      newValuesByUnitKey[unitKey] = typeof value === 'string' ? value.normalize('NFC') : value
+    }
+
+    const mergedValuesByUnitKey = { ...existingValuesByUnitKey, ...newValuesByUnitKey }
+    const output = buildTranslatedMdx({ enData, enBody, sourceKey: source.sourceKey, valuesByUnitKey: mergedValuesByUnitKey })
+    mkdirSync(dirname(targetPath), { recursive: true })
+    writeFileSync(targetPath, output.normalize('NFC'), 'utf8')
+  }
+
+  if (!anySelected) {
+    summary.sourcesSkipped += 1
+    return
+  }
+
+  for (const unit of emptyUnitsForManifest) {
+    manifest.units[unit.unitKey] = { enHash: sha256(unit.value), lastTranslatedAt: now }
+  }
+  for (const unitKey of succeededEverywhere ?? []) {
+    const unit = enUnits.find((u) => u.unitKey === unitKey)
+    if (unit && !emptyUnitsForManifest.some((e) => e.unitKey === unitKey)) {
+      manifest.units[unitKey] = { enHash: sha256(unit.value), lastTranslatedAt: now }
+    }
+  }
+}
+
+/**
+ * Full-surface pipeline (Plan 72-02, extended by Plan 72-03 with the blog
+ * MDX branch): walks every EN catalog + content-JSON source
+ * (scripts/lib/i18n-surfaces.mjs::enumerateEnSources) plus every EN blog
+ * post (scripts/lib/i18n-mdx.mjs::enumerateBlogEnSources) and translates
  * each for every requested locale, batched per surface type (catalog =
- * short-string batch, content = whole-file), verified fail-closed
- * (scripts/lib/i18n-verify.mjs) before a unit is accepted.
+ * short-string batch, content = whole-file, blog = frontmatter batch +
+ * whole-body), verified fail-closed (scripts/lib/i18n-verify.mjs +
+ * scripts/lib/i18n-mdx.mjs::verifyMdxStructure) before a unit is accepted.
  *
  * Cross-locale manifest correctness: for each source, `selected` (the set
  * of units needing translation) is computed ONCE from the manifest state
@@ -393,14 +549,20 @@ export async function runFullTranslation({
   manifestPath,
   translateBatch,
   translateFile,
+  translateMdxBody,
 }) {
-  const sources = enumerateEnSources(rootDir)
+  const sources = [...enumerateEnSources(rootDir), ...enumerateBlogEnSources(rootDir)]
   const manifest = loadManifest(manifestPath)
   const now = new Date().toISOString()
 
-  const summary = { sourcesWalked: sources.length, sourcesSkipped: 0, translated: 0, flagged: [] }
+  const summary = { sourcesWalked: sources.length, sourcesSkipped: 0, translated: 0, flagged: [], accepted: [] }
 
   for (const source of sources) {
+    if (source.surfaceType === 'blog') {
+      await processBlogSource({ source, locales, glossary, manifest, translateBatch, translateMdxBody, summary, now })
+      continue
+    }
+
     const enObj = readEnSource(source.sourcePath)
     const enUnits = flattenEnSource(enObj, source.sourceKey)
 
@@ -440,6 +602,10 @@ export async function runFullTranslation({
       })
       summary.flagged.push(...flagged)
       summary.translated += Object.keys(accepted).length
+      for (const [unitKey, trValue] of Object.entries(accepted)) {
+        const enUnit = enUnits.find((u) => u.unitKey === unitKey)
+        summary.accepted.push({ unitKey, locale, enValue: enUnit?.value, trValue })
+      }
 
       const succeededThisLocale = new Set([
         ...Object.keys(accepted),
@@ -514,6 +680,7 @@ async function main(argv = process.argv.slice(2)) {
 
   const translateBatch = dryRun ? createDryRunBatchTranslator() : createAnthropicBatchTranslator(glossary)
   const translateFile = dryRun ? createDryRunWholeFileTranslator() : createAnthropicWholeFileTranslator(glossary)
+  const translateMdxBody = dryRun ? createDryRunMdxBodyTranslator() : createAnthropicMdxBodyTranslator(glossary)
 
   console.log(
     `i18n-translate: walking ${rootDir} for locales [${requestedLocales.join(', ')}] (dryRun=${dryRun})…`
@@ -525,6 +692,7 @@ async function main(argv = process.argv.slice(2)) {
     manifestPath,
     translateBatch,
     translateFile,
+    translateMdxBody,
   })
   console.log(
     `✓ i18n-translate: ${summary.sourcesWalked} source(s) walked, ${summary.sourcesSkipped} unchanged/skipped, ${summary.translated} unit-translations written, ${summary.flagged.length} flagged (DNT/ICU/plural verification failure)`
