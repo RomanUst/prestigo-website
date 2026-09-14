@@ -39,10 +39,17 @@
  *   node scripts/i18n-translate.mjs --dry-run --fixtures tests/fixtures/i18n
  *
  * Usage (real run, ANTHROPIC_API_KEY from .env.local or CI repo secret,
- * walks the real repo's full catalog + content-JSON surface):
+ * walks the real repo's full catalog + content-JSON + blog surface, then
+ * writes i18n/QA-REPORT.md — D-09):
  *   node scripts/i18n-translate.mjs
+ *
+ * Usage (--check mode, Plan 72-03 Task 3 — NO API calls, verifies
+ * ru/es/fr catalog completeness vs messages/en.json and that EN sources
+ * are unmutated per `git diff`; used by CI and local pre-merge checks):
+ *   node scripts/i18n-translate.mjs --check
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { execSync } from 'node:child_process'
 import { dirname } from 'node:path'
 import path from 'node:path'
 import Anthropic from '@anthropic-ai/sdk'
@@ -65,6 +72,7 @@ import {
   flattenMdxSource,
   translateMdxFile,
 } from './lib/i18n-mdx.mjs'
+import { checkCompleteness, generateQaReport } from './lib/i18n-qa-report.mjs'
 import { enumerateEnSources, readEnSource, translateCatalog, translateContentJson } from './lib/i18n-surfaces.mjs'
 import { verifyDntPreserved, verifyPluralCategories } from './lib/i18n-verify.mjs'
 
@@ -657,12 +665,69 @@ export async function runFullTranslation({
   return summary
 }
 
+/**
+ * `--check` mode (Task 3, D-09/TR-02): makes NO API calls. Verifies every
+ * requested locale's catalog (`messages/<locale>.json`) has zero keys
+ * missing vs `messages/en.json` (checkCompleteness) and — for a real repo
+ * run, never for a `--fixtures` run, since an arbitrary temp/fixture dir
+ * has no meaningful git history to assert against — that EN source files
+ * are clean per `git diff` (the pipeline must never mutate EN). Returns
+ * `{ok, failures}` rather than calling `process.exit()` itself so it stays
+ * directly unit-testable; the CLI entry point (`main()`) owns the exit
+ * code. Used by CI (Plan 72-04) and by a developer verifying a PR locally.
+ */
+export function checkPipelineState({ rootDir, skipGitCheck = false, locales = PHASE_72_LOCALES }) {
+  const failures = []
+
+  if (!skipGitCheck) {
+    try {
+      execSync('git diff --exit-code -- messages/en.json content/routes/en content/pages/en content/blog/en', {
+        cwd: rootDir,
+        stdio: 'pipe',
+      })
+    } catch {
+      failures.push('EN source files are not clean per `git diff` — the pipeline must never mutate EN sources.')
+    }
+  }
+
+  const enPath = path.join(rootDir, 'messages/en.json')
+  if (!existsSync(enPath)) {
+    failures.push(`messages/en.json not found at ${enPath}`)
+    return { ok: false, failures }
+  }
+  const enCatalog = JSON.parse(readFileSync(enPath, 'utf8'))
+
+  for (const locale of locales) {
+    const localePath = path.join(rootDir, `messages/${locale}.json`)
+    const localeCatalog = existsSync(localePath) ? JSON.parse(readFileSync(localePath, 'utf8')) : {}
+    const { missing } = checkCompleteness(enCatalog, localeCatalog)
+    if (missing.length > 0) {
+      failures.push(`messages/${locale}.json is missing ${missing.length} key(s): ${missing.slice(0, 10).join(', ')}${missing.length > 10 ? ', ...' : ''}`)
+    }
+  }
+
+  return { ok: failures.length === 0, failures }
+}
+
 async function main(argv = process.argv.slice(2)) {
   const dryRun = argv.includes('--dry-run')
+  const checkMode = argv.includes('--check')
   const fixturesIdx = argv.indexOf('--fixtures')
   const fixturesDir = fixturesIdx !== -1 ? argv[fixturesIdx + 1] : null
   const localesIdx = argv.indexOf('--locales')
   const requestedLocales = localesIdx !== -1 ? argv[localesIdx + 1].split(',') : PHASE_72_LOCALES
+  const rootDir = fixturesDir ? path.resolve(fixturesDir) : process.cwd()
+
+  if (checkMode) {
+    const result = checkPipelineState({ rootDir, skipGitCheck: Boolean(fixturesDir), locales: requestedLocales })
+    if (result.ok) {
+      console.log(`✓ i18n-translate --check: PASSED — [${requestedLocales.join(', ')}] complete vs messages/en.json, EN unchanged, no API calls made`)
+      return
+    }
+    for (const failure of result.failures) console.error(`✗ i18n-translate --check: ${failure}`)
+    console.error('✗ i18n-translate --check: FAILED')
+    process.exit(1)
+  }
 
   if (!dryRun) {
     loadEnvLocal()
@@ -673,7 +738,6 @@ async function main(argv = process.argv.slice(2)) {
   }
 
   const glossary = loadGlossary()
-  const rootDir = fixturesDir ? path.resolve(fixturesDir) : process.cwd()
   const manifestPath = fixturesDir
     ? path.join(rootDir, 'translation-manifest.json')
     : path.join(rootDir, 'i18n/translation-manifest.json')
@@ -695,11 +759,23 @@ async function main(argv = process.argv.slice(2)) {
     translateMdxBody,
   })
   console.log(
-    `✓ i18n-translate: ${summary.sourcesWalked} source(s) walked, ${summary.sourcesSkipped} unchanged/skipped, ${summary.translated} unit-translations written, ${summary.flagged.length} flagged (DNT/ICU/plural verification failure)`
+    `✓ i18n-translate: ${summary.sourcesWalked} source(s) walked, ${summary.sourcesSkipped} unchanged/skipped, ${summary.translated} unit-translations written, ${summary.flagged.length} flagged (DNT/ICU/plural/MDX-structural verification failure)`
   )
   if (summary.flagged.length > 0) {
     console.warn('⚠ i18n-translate: some units failed post-hoc verification and were NOT written — see log above for details.')
   }
+
+  const enCatalogPath = path.join(rootDir, 'messages/en.json')
+  const enCatalog = existsSync(enCatalogPath) ? JSON.parse(readFileSync(enCatalogPath, 'utf8')) : {}
+  const completenessByLocale = {}
+  for (const locale of requestedLocales) {
+    const localeCatalogPath = path.join(rootDir, `messages/${locale}.json`)
+    const localeCatalog = existsSync(localeCatalogPath) ? JSON.parse(readFileSync(localeCatalogPath, 'utf8')) : {}
+    completenessByLocale[locale] = checkCompleteness(enCatalog, localeCatalog)
+  }
+  const qaReportPath = fixturesDir ? path.join(rootDir, 'QA-REPORT.md') : path.join(rootDir, 'i18n/QA-REPORT.md')
+  generateQaReport({ locales: requestedLocales, results: summary, glossary, completenessByLocale, outputPath: qaReportPath })
+  console.log(`✓ i18n-translate: QA report (D-09) written to ${qaReportPath}`)
 }
 
 const isMainModule = process.argv[1] && import.meta.url === `file://${process.argv[1]}`
