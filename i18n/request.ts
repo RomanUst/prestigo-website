@@ -3,10 +3,10 @@
  *
  * Resolves the active locale for each request and loads its message
  * catalog from messages/${locale}.json. Phase 69 (STR-01) ships real
- * catalogs: messages/en.json is the source of truth, and the 6 other
- * configured locales (ru/es/fr/ar/hi/zh) ship as byte-identical EN-copy
- * stub files until Phase 72/73 translate them (RESEARCH.md Open Question
- * #1, Option a). Every resolved `locale` is guaranteed to be one of the 7
+ * catalogs: messages/en.json is the source of truth. ru/es/fr are
+ * translated by scripts/i18n-translate.mjs (run via CI -> PR review,
+ * Phase 72); ar/hi/zh remain EN placeholders until Phase 73 translates
+ * them. Every resolved `locale` is guaranteed to be one of the 7
  * configured codes (hasLocale falls back to defaultLocale otherwise), so
  * a matching messages/${locale}.json file always exists — no try/catch
  * fallback needed.
