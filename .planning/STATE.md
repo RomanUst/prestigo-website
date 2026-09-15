@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 72
 current_phase_name: AI Translation Pipeline & Catalogs
 status: executing
-stopped_at: Completed 72-03-PLAN.md
-last_updated: "2026-09-14T20:03:17.719Z"
+stopped_at: Completed 72-04-PLAN.md
+last_updated: "2026-09-15T07:24:36.053Z"
 last_activity: 2026-09-14
 last_activity_desc: Phase 72 execution started
-state_head: 11d167f3184514b5941ca9b40d2a1307cb4933ae
+state_head: 746b284c0e96103f1292cd36aecf21fdeb513ac9
 progress:
   total_phases: 5
   completed_phases: 4
   total_plans: 29
-  completed_plans: 27
+  completed_plans: 28
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 72 (AI Translation Pipeline & Catalogs) — EXECUTING
-Plan: 4 of 5
+Plan: 5 of 5
 Status: Ready to execute
 Last activity: 2026-09-14 — Phase 72 execution started
 
@@ -125,6 +125,8 @@ Recent decisions affecting current work:
 - [Phase 72]: [Phase 72] 72-03: translateMdxFile() only populates translatedByUnitKey for a body unit that passes verifyMdxStructure - a structurally-failed body never enters the accepted set, no downstream filter needed
 - [Phase 72]: [Phase 72] 72-03: checkPipelineState() (--check mode) returns {ok, failures} instead of calling process.exit() itself, keeping the EN-mutation/completeness guard directly unit-testable
 - [Phase 72]: [Phase 72] 72-03: QA report's no-English-leakage check is scoped to units the run actually processed (summary.accepted) and excludes DNT-only values so brand terms identical across locales are never false-flagged
+- [Phase 72]: 72-04: Owner confirmed provisioning ANTHROPIC_API_KEY GitHub Actions repository secret (human-only, no agent GitHub-secret access)
+- [Phase 72]: 72-04: i18n-translate.yml is the repo's first CI workflow — path-filtered push trigger + workflow_dispatch, least-privilege contents:write+pull-requests:write, EN-unchanged assertion before PR step, PR-only landing via peter-evans/create-pull-request@v8 (never a direct main commit, D-08)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -232,8 +234,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-14T20:03:16.875Z
-Stopped at: Completed 72-03-PLAN.md
+Last session: 2026-09-15T07:24:35.420Z
+Stopped at: Completed 72-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -286,6 +288,7 @@ Resume file: None
 | Phase 72 P01 | 55min | 3 tasks | 12 files |
 | Phase 72 P02 | 20min | 2 tasks | 6 files |
 | Phase 72 P03 | 16min | 3 tasks | 7 files |
+| Phase 72 P04 | ~60min (Task1 55min + Task3 5min continuation) | 3 tasks | 2 files |
 
 ## Operator Next Steps
 

@@ -174,7 +174,7 @@ Plans:
 
 **Wave 4** *(blocked on Wave 3 completion)*
 
-- [ ] 72-04-PLAN.md — CI workflow (path-filter + PR flow) + ANTHROPIC_API_KEY secret + request.ts comment (D-02/03/08)
+- [x] 72-04-PLAN.md — CI workflow (path-filter + PR flow) + ANTHROPIC_API_KEY secret + request.ts comment (D-02/03/08)
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
@@ -264,7 +264,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 69. String Externalization — UI Chrome | v3.0 | 5/5 | Complete    | 2026-09-04 |
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
-| 72. AI Translation Pipeline & Catalogs | v3.0 | 3/5 | In Progress|  |
+| 72. AI Translation Pipeline & Catalogs | v3.0 | 4/5 | In Progress|  |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
