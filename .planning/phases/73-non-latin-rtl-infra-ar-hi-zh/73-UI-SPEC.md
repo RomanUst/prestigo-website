@@ -1,7 +1,7 @@
 ---
 phase: 73
 slug: non-latin-rtl-infra-ar-hi-zh
-status: draft
+status: approved
 shadcn_initialized: false
 preset: none
 created: 2026-09-17
