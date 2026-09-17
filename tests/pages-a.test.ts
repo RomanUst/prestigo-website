@@ -35,10 +35,11 @@ type CorporateContent = {
 };
 
 describe("getPageContent('home')", () => {
-  it("EN-fallback: getPageContent('home', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('home', 'ru') exists and is translated", () => {
     const en = getPageContent("home", "en");
     const ru = getPageContent("home", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative strings against verbatim originals", () => {
@@ -56,10 +57,11 @@ describe("getPageContent('home')", () => {
 });
 
 describe("getPageContent('contact')", () => {
-  it("EN-fallback: getPageContent('contact', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('contact', 'ru') exists and is translated", () => {
     const en = getPageContent("contact", "en");
     const ru = getPageContent("contact", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative strings against verbatim originals", () => {
@@ -77,10 +79,11 @@ describe("getPageContent('contact')", () => {
 });
 
 describe("getPageContent('about')", () => {
-  it("EN-fallback: getPageContent('about', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('about', 'ru') exists and is translated", () => {
     const en = getPageContent("about", "en");
     const ru = getPageContent("about", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative strings against verbatim originals, including a JSON-LD-fed string", () => {
@@ -100,10 +103,11 @@ describe("getPageContent('about')", () => {
 });
 
 describe("getPageContent('faq')", () => {
-  it("EN-fallback: getPageContent('faq', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('faq', 'ru') exists and is translated", () => {
     const en = getPageContent("faq", "en");
     const ru = getPageContent("faq", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative strings, including a JSON-LD-fed Q&A pair", () => {
@@ -119,10 +123,11 @@ describe("getPageContent('faq')", () => {
 });
 
 describe("getPageContent('corporate')", () => {
-  it("EN-fallback: getPageContent('corporate', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('corporate', 'ru') exists and is translated", () => {
     const en = getPageContent("corporate", "en");
     const ru = getPageContent("corporate", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative strings against verbatim originals", () => {

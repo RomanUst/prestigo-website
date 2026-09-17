@@ -12,10 +12,16 @@ describe("getRouteContent()", () => {
     assertRouteContentShape(content);
   });
 
-  it("EN-fallback: getRouteContent('prague-vienna', 'ru') deep-equals the 'en' result (no ru file exists yet)", () => {
+  it("prague-vienna ru content exists, keeps the EN structure, and is translated (Phase 72)", () => {
     const en = getRouteContent("prague-vienna", "en");
     const ru = getRouteContent("prague-vienna", "ru");
-    expect(ru).toEqual(en);
+    assertRouteContentShape(ru);
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(ru).not.toEqual(en);
+  });
+
+  it("prague-vienna ar still falls back to EN (no ar file yet — Phase 73)", () => {
+    expect(getRouteContent("prague-vienna", "ar")).toEqual(getRouteContent("prague-vienna", "en"));
   });
 
   it("path-traversal: getRouteContent('../secrets', 'en') throws", () => {

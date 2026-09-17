@@ -21,10 +21,11 @@ type ConciergeContent = {
 };
 
 describe("getPageContent('services') — hub page", () => {
-  it("EN-fallback: getPageContent('services', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services', 'ru') exists and is translated", () => {
     const en = getPageContent("services", "en");
     const ru = getPageContent("services", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -42,10 +43,11 @@ describe("getPageContent('services') — hub page", () => {
 });
 
 describe("getPageContent('services/city-rides') — city-rides page", () => {
-  it("EN-fallback: getPageContent('services/city-rides', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/city-rides', 'ru') exists and is translated", () => {
     const en = getPageContent("services/city-rides", "en");
     const ru = getPageContent("services/city-rides", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -67,10 +69,11 @@ describe("getPageContent('services/city-rides') — city-rides page", () => {
 });
 
 describe("getPageContent('services/concierge') — concierge page", () => {
-  it("EN-fallback: getPageContent('services/concierge', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/concierge', 'ru') exists and is translated", () => {
     const en = getPageContent("services/concierge", "en");
     const ru = getPageContent("services/concierge", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {

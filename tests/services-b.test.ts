@@ -33,10 +33,11 @@ type VipEventsContent = {
 };
 
 describe("getPageContent('services/airport-transfer') — airport-transfer page", () => {
-  it("EN-fallback: getPageContent('services/airport-transfer', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/airport-transfer', 'ru') exists and is translated", () => {
     const en = getPageContent("services/airport-transfer", "en");
     const ru = getPageContent("services/airport-transfer", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -58,10 +59,11 @@ describe("getPageContent('services/airport-transfer') — airport-transfer page"
 });
 
 describe("getPageContent('services/corporate-accounts') — corporate-accounts page", () => {
-  it("EN-fallback: getPageContent('services/corporate-accounts', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/corporate-accounts', 'ru') exists and is translated", () => {
     const en = getPageContent("services/corporate-accounts", "en");
     const ru = getPageContent("services/corporate-accounts", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -79,10 +81,11 @@ describe("getPageContent('services/corporate-accounts') — corporate-accounts p
 });
 
 describe("getPageContent('services/group-transfers') — group-transfers page", () => {
-  it("EN-fallback: getPageContent('services/group-transfers', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/group-transfers', 'ru') exists and is translated", () => {
     const en = getPageContent("services/group-transfers", "en");
     const ru = getPageContent("services/group-transfers", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -100,10 +103,11 @@ describe("getPageContent('services/group-transfers') — group-transfers page", 
 });
 
 describe("getPageContent('services/intercity-routes') — intercity-routes page", () => {
-  it("EN-fallback: getPageContent('services/intercity-routes', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/intercity-routes', 'ru') exists and is translated", () => {
     const en = getPageContent("services/intercity-routes", "en");
     const ru = getPageContent("services/intercity-routes", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -125,10 +129,11 @@ describe("getPageContent('services/intercity-routes') — intercity-routes page"
 });
 
 describe("getPageContent('services/vip-events') — vip-events page", () => {
-  it("EN-fallback: getPageContent('services/vip-events', 'ru') deep-equals the 'en' result", () => {
+  it("translated (Phase 72): getPageContent('services/vip-events', 'ru') exists and is translated", () => {
     const en = getPageContent("services/vip-events", "en");
     const ru = getPageContent("services/vip-events", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {

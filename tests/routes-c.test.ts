@@ -23,10 +23,16 @@ describe("Group C route content (71-04)", () => {
       assertRouteContentShape(content);
     });
 
-    it("EN-fallback: getRouteContent(slug, 'ru') deep-equals the 'en' result (no ru file exists yet)", () => {
+    it("ru content exists, keeps the EN structure, and is translated (Phase 72)", () => {
       const en = getRouteContent(slug, "en");
       const ru = getRouteContent(slug, "ru");
-      expect(ru).toEqual(en);
+      assertRouteContentShape(ru);
+      expect(Object.keys(ru)).toEqual(Object.keys(en));
+      expect(ru).not.toEqual(en);
+    });
+
+    it("ar still falls back to EN (no ar file yet — Phase 73)", () => {
+      expect(getRouteContent(slug, "ar")).toEqual(getRouteContent(slug, "en"));
     });
   });
 

@@ -8,10 +8,11 @@ import {
 import { getPageContent } from "@/lib/page-content";
 
 describe("getAllPosts() locale fallback (D-07)", () => {
-  it("getAllPosts('ru') deep-equals getAllPosts('en') (no ru content yet)", () => {
+  it("getAllPosts('ru') is translated but keeps the EN slug set (Phase 72)", () => {
     const en = getAllPosts("en");
     const ru = getAllPosts("ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en);
+    expect(ru.map((p) => p.slug).sort()).toEqual(en.map((p) => p.slug).sort());
   });
 
   it("all 3 JSX_POSTS slugs are present in getAllPosts('fr') (D-08 — EN-only, merged regardless of locale)", () => {
@@ -25,10 +26,17 @@ describe("getAllPosts() locale fallback (D-07)", () => {
 describe("resolveLocalizedMdx()", () => {
   const EN_SLUG = "premium-airport-transfer-prague-shortcut";
 
-  it("returns { dir: 'en', isFallback: true } for a locale with no localized MDX", () => {
-    expect(resolveLocalizedMdx(EN_SLUG, "ru")).toEqual({
+  it("returns { dir: 'en', isFallback: true } for a locale with no localized MDX (ar — Phase 73)", () => {
+    expect(resolveLocalizedMdx(EN_SLUG, "ar")).toEqual({
       dir: "en",
       isFallback: true,
+    });
+  });
+
+  it("returns { dir: 'ru', isFallback: false } now that ru MDX exists (Phase 72)", () => {
+    expect(resolveLocalizedMdx(EN_SLUG, "ru")).toEqual({
+      dir: "ru",
+      isFallback: false,
     });
   });
 
@@ -80,10 +88,11 @@ describe("blog listing content (content/pages/en/blog.json)", () => {
     };
   };
 
-  it("getPageContent('blog', 'ru') deep-equals getPageContent('blog', 'en') (EN fallback, no ru content yet)", () => {
+  it("getPageContent('blog', 'ru') is translated, not an EN copy (Phase 72)", () => {
     const en = getPageContent("blog", "en");
     const ru = getPageContent("blog", "ru");
-    expect(ru).toEqual(en);
+    expect(ru).not.toEqual(en);
+    expect(Object.keys(ru)).toEqual(Object.keys(en));
   });
 
   it("spot-checks 2 known EN strings from the pre-refactor literals", () => {

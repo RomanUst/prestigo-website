@@ -9,6 +9,9 @@ import { getPageContent } from "@/lib/page-content";
 import { routing } from "@/i18n/routing";
 
 const NON_EN_LOCALES = routing.locales.filter((l) => l !== "en");
+// Phase 72 translated ru/es/fr; ar/hi/zh remain EN placeholders (Phase 73), so they still fall back to EN.
+const TRANSLATED_LOCALES = ["ru", "es", "fr"];
+const FALLBACK_LOCALES = NON_EN_LOCALES.filter((l) => !TRANSLATED_LOCALES.includes(l));
 
 type PrivacyContent = {
   metadata: { title: string; description: string; ogTitle: string };
@@ -29,9 +32,14 @@ type DataDeletionContent = {
 };
 
 describe("getPageContent('privacy')", () => {
-  it("EN-fallback: every non-EN locale (all 7 configured locales) deep-equals the 'en' result, no 404", () => {
+  it("ru/es/fr translated; ar/hi/zh still EN-fallback, no 404 (Phase 72)", () => {
     const en = getPageContent("privacy", "en");
-    for (const locale of NON_EN_LOCALES) {
+    for (const locale of TRANSLATED_LOCALES) {
+      const loc = getPageContent("privacy", locale);
+      expect(loc).not.toEqual(en);
+      expect(Object.keys(loc)).toEqual(Object.keys(en));
+    }
+    for (const locale of FALLBACK_LOCALES) {
       expect(getPageContent("privacy", locale)).toEqual(en);
     }
   });
@@ -54,9 +62,14 @@ describe("getPageContent('privacy')", () => {
 });
 
 describe("getPageContent('terms')", () => {
-  it("EN-fallback: every non-EN locale (all 7 configured locales) deep-equals the 'en' result, no 404", () => {
+  it("ru/es/fr translated; ar/hi/zh still EN-fallback, no 404 (Phase 72)", () => {
     const en = getPageContent("terms", "en");
-    for (const locale of NON_EN_LOCALES) {
+    for (const locale of TRANSLATED_LOCALES) {
+      const loc = getPageContent("terms", locale);
+      expect(loc).not.toEqual(en);
+      expect(Object.keys(loc)).toEqual(Object.keys(en));
+    }
+    for (const locale of FALLBACK_LOCALES) {
       expect(getPageContent("terms", locale)).toEqual(en);
     }
   });
@@ -80,9 +93,14 @@ describe("getPageContent('terms')", () => {
 });
 
 describe("getPageContent('data-deletion')", () => {
-  it("EN-fallback: every non-EN locale (all 7 configured locales) deep-equals the 'en' result, no 404", () => {
+  it("ru/es/fr translated; ar/hi/zh still EN-fallback, no 404 (Phase 72)", () => {
     const en = getPageContent("data-deletion", "en");
-    for (const locale of NON_EN_LOCALES) {
+    for (const locale of TRANSLATED_LOCALES) {
+      const loc = getPageContent("data-deletion", locale);
+      expect(loc).not.toEqual(en);
+      expect(Object.keys(loc)).toEqual(Object.keys(en));
+    }
+    for (const locale of FALLBACK_LOCALES) {
       expect(getPageContent("data-deletion", locale)).toEqual(en);
     }
   });
