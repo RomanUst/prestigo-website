@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
-current_phase: 72
-current_phase_name: AI Translation Pipeline & Catalogs
-status: executing
-stopped_at: Completed 72-04-PLAN.md
-last_updated: "2026-09-15T07:24:36.053Z"
-last_activity: 2026-09-14
-last_activity_desc: Phase 72 execution started
-state_head: 746b284c0e96103f1292cd36aecf21fdeb513ac9
+current_phase: 73
+current_phase_name: non latin & rtl infra (ar, hi, zh)
+status: planning
+stopped_at: Phase 72 complete, ready to plan Phase 73
+last_updated: "2026-09-17T07:56:45.896Z"
+last_activity: 2026-09-17
+last_activity_desc: Phase 72 complete, transitioned to Phase 73
+state_head: 99f8612173f944d2d206208e6f9b1cc45594bda4
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 29
-  completed_plans: 28
+  completed_plans: 29
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 
 ## Current Position
 
-Phase: 72 (AI Translation Pipeline & Catalogs) — EXECUTING
-Plan: 5 of 5
-Status: Ready to execute
-Last activity: 2026-09-14 — Phase 72 execution started
+Phase: 73 — non latin & rtl infra (ar, hi, zh)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-17 — Phase 72 complete, transitioned to Phase 73
 
 ## Accumulated Context
 
@@ -235,7 +235,7 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 ## Session Continuity
 
 Last session: 2026-09-15T07:24:35.420Z
-Stopped at: Completed 72-04-PLAN.md
+Stopped at: Phase 72 complete, ready to plan Phase 73
 Resume file: None
 
 ## Performance Metrics
