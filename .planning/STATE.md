@@ -5,11 +5,11 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: non latin & rtl infra (ar, hi, zh)
 status: planning
-stopped_at: Phase 73 context gathered
-last_updated: "2026-09-17T17:55:16.902Z"
+stopped_at: Phase 73 UI-SPEC approved
+last_updated: "2026-09-17T18:50:31.426Z"
 last_activity: 2026-09-17
 last_activity_desc: Phase 72 complete, transitioned to Phase 73
-state_head: 241de0d5e81ca6c46b828e519d2017aae468b81f
+state_head: 51848644cc585439a396c245435a028ea8f28ca1
 progress:
   total_phases: 6
   completed_phases: 5
@@ -234,9 +234,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-17T17:55:16.047Z
-Stopped at: Phase 73 context gathered
-Resume file: .planning/phases/73-non-latin-rtl-infra-ar-hi-zh/73-CONTEXT.md
+Last session: 2026-09-17T18:50:30.235Z
+Stopped at: Phase 73 UI-SPEC approved
+Resume file: .planning/phases/73-non-latin-rtl-infra-ar-hi-zh/73-UI-SPEC.md
 
 ## Performance Metrics
 
