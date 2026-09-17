@@ -114,7 +114,11 @@
     },
     "tripTypeTabs": {
       "ariaLabel": "Type de trajet",
-      "items": "[\"TRANSFERT\",\"À L'HEURE\",\"PLUSIEURS JOURS\"]"
+      "items": [
+        "TRANSFERT",
+        "À L'HEURE",
+        "PLUSIEURS JOURS"
+      ]
     },
     "addressInput": {
       "clearAddress": "Effacer l'adresse",
@@ -364,7 +368,14 @@
     }
   },
   "Nav": {
-    "items": "[\"Services\",\"Flotte\",\"Itinéraires\",\"Plusieurs jours\",\"Entreprises\",\"Contact\"]",
+    "items": [
+      "Services",
+      "Flotte",
+      "Itinéraires",
+      "Plusieurs jours",
+      "Entreprises",
+      "Contact"
+    ],
     "new": "NOUVEAU",
     "signIn": "Se connecter",
     "accountMenu": "Menu du compte",
@@ -386,7 +397,13 @@
     "scroll": "Faire défiler",
     "ratingAria": "Noté {rating} sur 5 d'après {count} avis Google",
     "googleReviews": "Avis Google",
-    "words": "[\"Service de chauffeur\",\"Transfert aéroport\",\"Chauffeur privé\",\"Transport de luxe\",\"Voyages d'affaires\"]",
+    "words": [
+      "Service de chauffeur",
+      "Transfert aéroport",
+      "Chauffeur privé",
+      "Transport de luxe",
+      "Voyages d'affaires"
+    ],
     "bookViaWhatsapp": "Réserver via WhatsApp",
     "heroAlt": "Chauffeur au volant d'une Mercedes-Benz S-Class se dirigeant vers les toits de Prague au coucher du soleil"
   },
@@ -398,12 +415,31 @@
     "brandTagline1": "Service de chauffeur haut de gamme.",
     "brandTagline2": "Prague et l'Europe centrale.",
     "servicesHeading": "Services",
-    "services": "[\"Transfert aéroport\",\"Trajets interurbains\",\"Location sur plusieurs jours\",\"Comptes entreprise\",\"VIP & événements\",\"Transfert de groupe\",\"À propos de PRESTIGO\",\"FAQ\"]",
+    "services": [
+      "Transfert aéroport",
+      "Trajets interurbains",
+      "Location sur plusieurs jours",
+      "Comptes entreprise",
+      "VIP & événements",
+      "Transfert de groupe",
+      "À propos de PRESTIGO",
+      "FAQ"
+    ],
     "routesHeading": "Trajets populaires",
-    "routes": "[\"Prague → Vienne\",\"Prague → Berlin\",\"Prague → Munich\",\"Prague → Budapest\",\"Prague → Bratislava\"]",
+    "routes": [
+      "Prague → Vienne",
+      "Prague → Berlin",
+      "Prague → Munich",
+      "Prague → Budapest",
+      "Prague → Bratislava"
+    ],
     "viewAllRoutes": "Voir tous les trajets →",
     "blogHeading": "Blog",
-    "blog": "[\"Aéroport de Prague → centre-ville\",\"Taxi ou chauffeur privé à PRG\",\"Prague–Vienne : transfert ou train\"]",
+    "blog": [
+      "Aéroport de Prague → centre-ville",
+      "Taxi ou chauffeur privé à PRG",
+      "Prague–Vienne : transfert ou train"
+    ],
     "viewAllPosts": "Voir tous les articles →",
     "contactHeading": "Contact",
     "whatsapp": "WhatsApp",
@@ -418,13 +454,79 @@
   },
   "FeatureStrip": {
     "sectionAria": "Pourquoi PRESTIGO",
-    "pillars": "[{\"title\":\"Chauffeurs professionnels\",\"sub\":\"Anglophones et discrets\"},{\"title\":\"Flotte Mercedes-Benz premium\",\"sub\":\"E-Class, S-Class et V-Class, derniers modèles\"},{\"title\":\"Prix fixes\",\"sub\":\"Aucuns frais cachés, suivi des vols\"},{\"title\":\"Assistance 24/7\",\"sub\":\"Toujours à l'heure, chaque jour\"}]"
+    "pillars": [
+      {
+        "title": "Chauffeurs professionnels",
+        "sub": "Anglophones et discrets"
+      },
+      {
+        "title": "Flotte Mercedes-Benz premium",
+        "sub": "E-Class, S-Class et V-Class, derniers modèles"
+      },
+      {
+        "title": "Prix fixes",
+        "sub": "Aucuns frais cachés, suivi des vols"
+      },
+      {
+        "title": "Assistance 24/7",
+        "sub": "Toujours à l'heure, chaque jour"
+      }
+    ]
   },
   "Services": {
     "label": "Nos services",
     "headingLine1": "Chaque trajet,",
     "headingLine2": "pris en charge.",
-    "cards": "[{\"label\":\"Aéroport\",\"title\":\"Transfert aéroport\",\"body\":\"Aéroport Václav Havel de Prague. Suivi des vols, accueil personnalisé, prix fixe.\",\"detail\":\"PRG · VIE · BER · MUC\"},{\"label\":\"Interurbain\",\"title\":\"Trajets interurbains\",\"body\":\"De Prague à Vienne, Berlin, Munich, Budapest et au-delà. Le confort par-delà les frontières.\",\"detail\":\"Trajets de 4 à 6 heures\"},{\"label\":\"Entreprise\",\"title\":\"Comptes entreprise\",\"body\":\"Facturation mensuelle, gestionnaire de compte dédié, prise en charge prioritaire, reporting.\",\"detail\":\"Tarifs dégressifs disponibles\"},{\"label\":\"VIP\",\"title\":\"VIP & événements\",\"body\":\"Visites diplomatiques, événements privés, transferts vers les hôtels de luxe, coordination de plusieurs véhicules.\",\"detail\":\"Sur demande\"},{\"label\":\"Ville\",\"title\":\"Location de voiture avec chauffeur\",\"body\":\"Louez une voiture avec chauffeur privé à Prague, à l'heure. Réunions d'affaires, visites, théâtre — à votre rythme.\",\"detail\":\"1 à 8 heures\"},{\"label\":\"Concierge\",\"title\":\"Chauffeur concierge\",\"body\":\"Plus qu'un chauffeur — un concierge au volant. Réservations, connaissance du terrain, courses et liaison avec votre hôtel, pris en charge autour de chaque trajet.\",\"detail\":\"Inclus à chaque trajet\"},{\"label\":\"Groupe\",\"title\":\"Transferts de groupe\",\"body\":\"Monospace et coordination de plusieurs véhicules pour les groupes, les conférences et les voyages de motivation.\",\"detail\":\"Jusqu'à 8 passagers\"},{\"label\":\"Plusieurs jours\",\"title\":\"Location sur plusieurs jours\",\"body\":\"Un chauffeur dédié pour l'ensemble de votre séjour. Combinez transferts et journées à l'heure à travers l'Europe centrale.\",\"detail\":\"Itinéraire personnalisé · Devis sous 24 h\"}]",
+    "cards": [
+      {
+        "label": "Aéroport",
+        "title": "Transfert aéroport",
+        "body": "Aéroport Václav Havel de Prague. Suivi des vols, accueil personnalisé, prix fixe.",
+        "detail": "PRG · VIE · BER · MUC"
+      },
+      {
+        "label": "Interurbain",
+        "title": "Trajets interurbains",
+        "body": "De Prague à Vienne, Berlin, Munich, Budapest et au-delà. Le confort par-delà les frontières.",
+        "detail": "Trajets de 4 à 6 heures"
+      },
+      {
+        "label": "Entreprise",
+        "title": "Comptes entreprise",
+        "body": "Facturation mensuelle, gestionnaire de compte dédié, prise en charge prioritaire, reporting.",
+        "detail": "Tarifs dégressifs disponibles"
+      },
+      {
+        "label": "VIP",
+        "title": "VIP & événements",
+        "body": "Visites diplomatiques, événements privés, transferts vers les hôtels de luxe, coordination de plusieurs véhicules.",
+        "detail": "Sur demande"
+      },
+      {
+        "label": "Ville",
+        "title": "Location de voiture avec chauffeur",
+        "body": "Louez une voiture avec chauffeur privé à Prague, à l'heure. Réunions d'affaires, visites, théâtre — à votre rythme.",
+        "detail": "1 à 8 heures"
+      },
+      {
+        "label": "Concierge",
+        "title": "Chauffeur concierge",
+        "body": "Plus qu'un chauffeur — un concierge au volant. Réservations, connaissance du terrain, courses et liaison avec votre hôtel, pris en charge autour de chaque trajet.",
+        "detail": "Inclus à chaque trajet"
+      },
+      {
+        "label": "Groupe",
+        "title": "Transferts de groupe",
+        "body": "Monospace et coordination de plusieurs véhicules pour les groupes, les conférences et les voyages de motivation.",
+        "detail": "Jusqu'à 8 passagers"
+      },
+      {
+        "label": "Plusieurs jours",
+        "title": "Location sur plusieurs jours",
+        "body": "Un chauffeur dédié pour l'ensemble de votre séjour. Combinez transferts et journées à l'heure à travers l'Europe centrale.",
+        "detail": "Itinéraire personnalisé · Devis sous 24 h"
+      }
+    ],
     "fromPrice": "À partir de {price} €",
     "fromPriceHourly": "À partir de {price} €/h",
     "learnMore": "En savoir plus",
@@ -435,7 +537,44 @@
     "label": "La flotte",
     "headingLine1": "Uniquement Mercedes-Benz.",
     "headingLine2": "Toujours.",
-    "vehicles": "[{\"category\":\"Business\",\"passengers\":\"3 pers.\",\"bags\":\"2 bagages\",\"features\":[\"Intérieur cuir\",\"Vitres teintées\",\"Climatisation\",\"Wi-Fi sur demande\"],\"altTemplate\":\"{model} — service de chauffeur à Prague\"},{\"category\":\"Première classe\",\"passengers\":\"3 pers.\",\"bags\":\"2 bagages\",\"features\":[\"Sièges arrière grand confort\",\"Éclairage d'ambiance\",\"Service champagne\",\"Cloison de séparation\"],\"altTemplate\":\"{model} — service de chauffeur à Prague\"},{\"category\":\"Groupe\",\"passengers\":\"6 pers.\",\"bags\":\"6 bagages\",\"features\":[\"Sièges face à face\",\"Espace bagages supplémentaire\",\"Configuration conférence\",\"Recharge USB\"],\"altTemplate\":\"{model} — service de chauffeur à Prague\"}]",
+    "vehicles": [
+      {
+        "category": "Business",
+        "passengers": "3 pers.",
+        "bags": "2 bagages",
+        "features": [
+          "Intérieur cuir",
+          "Vitres teintées",
+          "Climatisation",
+          "Wi-Fi sur demande"
+        ],
+        "altTemplate": "{model} — service de chauffeur à Prague"
+      },
+      {
+        "category": "Première classe",
+        "passengers": "3 pers.",
+        "bags": "2 bagages",
+        "features": [
+          "Sièges arrière grand confort",
+          "Éclairage d'ambiance",
+          "Service champagne",
+          "Cloison de séparation"
+        ],
+        "altTemplate": "{model} — service de chauffeur à Prague"
+      },
+      {
+        "category": "Groupe",
+        "passengers": "6 pers.",
+        "bags": "6 bagages",
+        "features": [
+          "Sièges face à face",
+          "Espace bagages supplémentaire",
+          "Configuration conférence",
+          "Recharge USB"
+        ],
+        "altTemplate": "{model} — service de chauffeur à Prague"
+      }
+    ],
     "seePricing": "Voir les tarifs →"
   },
   "HowItWorks": {
@@ -443,7 +582,23 @@
     "headingLine1": "Trois étapes.",
     "headingLine2": "Aucune surprise.",
     "stepPrefix": "Étape",
-    "steps": "[{\"title\":\"Réservez en ligne\",\"body\":\"Indiquez votre trajet et les détails de votre voyage. Recevez une confirmation immédiate avec un prix fixe — sans frais cachés.\",\"photoAlt\":\"Réservation en ligne d'un chauffeur à Prague, la Mercedes-Benz attend déjà à l'extérieur\"},{\"title\":\"Nous suivons votre vol\",\"body\":\"Votre chauffeur suit votre vol en temps réel. Retards, arrivées anticipées — nous nous adaptons automatiquement.\",\"photoAlt\":\"Chauffeur consultant le statut du vol en direct à côté de la Mercedes-Benz à l'aéroport de Prague\"},{\"title\":\"Il ne vous reste qu'à arriver\",\"body\":\"Votre chauffeur vous attend aux arrivées avec une pancarte à votre nom. Transfert direct vers votre destination.\",\"photoAlt\":\"Chauffeur PRESTIGO attendant avec une pancarte nominative aux arrivées de l'aéroport de Prague\"}]"
+    "steps": [
+      {
+        "title": "Réservez en ligne",
+        "body": "Indiquez votre trajet et les détails de votre voyage. Recevez une confirmation immédiate avec un prix fixe — sans frais cachés.",
+        "photoAlt": "Réservation en ligne d'un chauffeur à Prague, la Mercedes-Benz attend déjà à l'extérieur"
+      },
+      {
+        "title": "Nous suivons votre vol",
+        "body": "Votre chauffeur suit votre vol en temps réel. Retards, arrivées anticipées — nous nous adaptons automatiquement.",
+        "photoAlt": "Chauffeur consultant le statut du vol en direct à côté de la Mercedes-Benz à l'aéroport de Prague"
+      },
+      {
+        "title": "Il ne vous reste qu'à arriver",
+        "body": "Votre chauffeur vous attend aux arrivées avec une pancarte à votre nom. Transfert direct vers votre destination.",
+        "photoAlt": "Chauffeur PRESTIGO attendant avec une pancarte nominative aux arrivées de l'aéroport de Prague"
+      }
+    ]
   },
   "Testimonials": {
     "label": "Témoignages",

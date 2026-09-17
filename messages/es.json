@@ -114,7 +114,11 @@
     },
     "tripTypeTabs": {
       "ariaLabel": "Tipo de trayecto",
-      "items": "[\"TRASLADO\",\"POR HORAS\",\"VARIOS DÍAS\"]"
+      "items": [
+        "TRASLADO",
+        "POR HORAS",
+        "VARIOS DÍAS"
+      ]
     },
     "addressInput": {
       "clearAddress": "Borrar dirección",
@@ -364,7 +368,14 @@
     }
   },
   "Nav": {
-    "items": "[\"Servicios\",\"Flota\",\"Rutas\",\"Varios días\",\"Empresas\",\"Contacto\"]",
+    "items": [
+      "Servicios",
+      "Flota",
+      "Rutas",
+      "Varios días",
+      "Empresas",
+      "Contacto"
+    ],
     "new": "NUEVO",
     "signIn": "Iniciar sesión",
     "accountMenu": "Menú de la cuenta",
@@ -386,7 +397,13 @@
     "scroll": "Desplácese",
     "ratingAria": "Valoración de {rating} sobre 5 a partir de {count} reseñas de Google",
     "googleReviews": "Reseñas de Google",
-    "words": "[\"Servicio de chófer\",\"Traslado al aeropuerto\",\"Conductor privado\",\"Transporte de lujo\",\"Viajes de negocios\"]",
+    "words": [
+      "Servicio de chófer",
+      "Traslado al aeropuerto",
+      "Conductor privado",
+      "Transporte de lujo",
+      "Viajes de negocios"
+    ],
     "bookViaWhatsapp": "Reservar por WhatsApp",
     "heroAlt": "Chófer conduciendo un Mercedes-Benz S-Class hacia el perfil urbano de Praga al atardecer"
   },
@@ -398,12 +415,31 @@
     "brandTagline1": "Servicio de chófer premium.",
     "brandTagline2": "Praga y Europa Central.",
     "servicesHeading": "Servicios",
-    "services": "[\"Traslado al aeropuerto\",\"Rutas interurbanas\",\"Alquiler de varios días\",\"Cuentas corporativas\",\"VIP y eventos\",\"Traslado de grupos\",\"Sobre PRESTIGO\",\"Preguntas frecuentes\"]",
+    "services": [
+      "Traslado al aeropuerto",
+      "Rutas interurbanas",
+      "Alquiler de varios días",
+      "Cuentas corporativas",
+      "VIP y eventos",
+      "Traslado de grupos",
+      "Sobre PRESTIGO",
+      "Preguntas frecuentes"
+    ],
     "routesHeading": "Rutas populares",
-    "routes": "[\"Praga → Viena\",\"Praga → Berlín\",\"Praga → Múnich\",\"Praga → Budapest\",\"Praga → Bratislava\"]",
+    "routes": [
+      "Praga → Viena",
+      "Praga → Berlín",
+      "Praga → Múnich",
+      "Praga → Budapest",
+      "Praga → Bratislava"
+    ],
     "viewAllRoutes": "Ver todas las rutas →",
     "blogHeading": "Blog",
-    "blog": "[\"Aeropuerto de Praga → centro de la ciudad\",\"Taxi o chófer privado en PRG\",\"Praga–Viena: traslado o tren\"]",
+    "blog": [
+      "Aeropuerto de Praga → centro de la ciudad",
+      "Taxi o chófer privado en PRG",
+      "Praga–Viena: traslado o tren"
+    ],
     "viewAllPosts": "Ver todas las publicaciones →",
     "contactHeading": "Contacto",
     "whatsapp": "WhatsApp",
@@ -418,13 +454,79 @@
   },
   "FeatureStrip": {
     "sectionAria": "Por qué PRESTIGO",
-    "pillars": "[{\"title\":\"Chóferes profesionales\",\"sub\":\"Discretos y con dominio del inglés\"},{\"title\":\"Flota premium Mercedes\",\"sub\":\"E-Class, S-Class y V-Class, últimos modelos\"},{\"title\":\"Precios cerrados\",\"sub\":\"Sin cargos ocultos, seguimiento de vuelos\"},{\"title\":\"Asistencia 24/7\",\"sub\":\"Siempre puntuales, todos los días\"}]"
+    "pillars": [
+      {
+        "title": "Chóferes profesionales",
+        "sub": "Discretos y con dominio del inglés"
+      },
+      {
+        "title": "Flota premium Mercedes",
+        "sub": "E-Class, S-Class y V-Class, últimos modelos"
+      },
+      {
+        "title": "Precios cerrados",
+        "sub": "Sin cargos ocultos, seguimiento de vuelos"
+      },
+      {
+        "title": "Asistencia 24/7",
+        "sub": "Siempre puntuales, todos los días"
+      }
+    ]
   },
   "Services": {
     "label": "Nuestros servicios",
     "headingLine1": "Cada trayecto,",
     "headingLine2": "cubierto.",
-    "cards": "[{\"label\":\"Aeropuerto\",\"title\":\"Traslado al aeropuerto\",\"body\":\"Aeropuerto Václav Havel de Praga. Seguimiento de vuelos, recepción personalizada y precio cerrado.\",\"detail\":\"PRG · VIE · BER · MUC\"},{\"label\":\"Interurbano\",\"title\":\"Rutas interurbanas\",\"body\":\"De Praga a Viena, Berlín, Múnich, Budapest y más allá. Confort a través de las fronteras.\",\"detail\":\"Rutas de 4 a 6 horas\"},{\"label\":\"Corporativo\",\"title\":\"Cuentas corporativas\",\"body\":\"Facturación mensual, gestor de cuenta dedicado, asignación prioritaria e informes.\",\"detail\":\"Precios por volumen disponibles\"},{\"label\":\"VIP\",\"title\":\"VIP y eventos\",\"body\":\"Visitas diplomáticas, eventos privados, traslados a hoteles de lujo y coordinación de varios vehículos.\",\"detail\":\"Bajo petición\"},{\"label\":\"Ciudad\",\"title\":\"Alquiler de coche con chófer\",\"body\":\"Alquile un coche con chófer privado en Praga por horas. Reuniones de negocios, visitas turísticas, teatro: a su ritmo.\",\"detail\":\"De 1 a 8 horas\"},{\"label\":\"Conserjería\",\"title\":\"Chófer de conserjería\",\"body\":\"Más que un conductor: un conserje al volante. Reservas, conocimiento local, gestiones y coordinación con su hotel en cada trayecto.\",\"detail\":\"Incluido en todos los trayectos\"},{\"label\":\"Grupos\",\"title\":\"Traslados de grupos\",\"body\":\"Monovolúmenes y coordinación de varios vehículos para grupos, congresos y viajes de incentivo.\",\"detail\":\"Hasta 8 pasajeros\"},{\"label\":\"Varios días\",\"title\":\"Alquiler de varios días\",\"body\":\"Un chófer exclusivo para todo su viaje. Combine traslados y jornadas por horas por toda Europa Central.\",\"detail\":\"Itinerario a medida · Presupuesto en 24 h\"}]",
+    "cards": [
+      {
+        "label": "Aeropuerto",
+        "title": "Traslado al aeropuerto",
+        "body": "Aeropuerto Václav Havel de Praga. Seguimiento de vuelos, recepción personalizada y precio cerrado.",
+        "detail": "PRG · VIE · BER · MUC"
+      },
+      {
+        "label": "Interurbano",
+        "title": "Rutas interurbanas",
+        "body": "De Praga a Viena, Berlín, Múnich, Budapest y más allá. Confort a través de las fronteras.",
+        "detail": "Rutas de 4 a 6 horas"
+      },
+      {
+        "label": "Corporativo",
+        "title": "Cuentas corporativas",
+        "body": "Facturación mensual, gestor de cuenta dedicado, asignación prioritaria e informes.",
+        "detail": "Precios por volumen disponibles"
+      },
+      {
+        "label": "VIP",
+        "title": "VIP y eventos",
+        "body": "Visitas diplomáticas, eventos privados, traslados a hoteles de lujo y coordinación de varios vehículos.",
+        "detail": "Bajo petición"
+      },
+      {
+        "label": "Ciudad",
+        "title": "Alquiler de coche con chófer",
+        "body": "Alquile un coche con chófer privado en Praga por horas. Reuniones de negocios, visitas turísticas, teatro: a su ritmo.",
+        "detail": "De 1 a 8 horas"
+      },
+      {
+        "label": "Conserjería",
+        "title": "Chófer de conserjería",
+        "body": "Más que un conductor: un conserje al volante. Reservas, conocimiento local, gestiones y coordinación con su hotel en cada trayecto.",
+        "detail": "Incluido en todos los trayectos"
+      },
+      {
+        "label": "Grupos",
+        "title": "Traslados de grupos",
+        "body": "Monovolúmenes y coordinación de varios vehículos para grupos, congresos y viajes de incentivo.",
+        "detail": "Hasta 8 pasajeros"
+      },
+      {
+        "label": "Varios días",
+        "title": "Alquiler de varios días",
+        "body": "Un chófer exclusivo para todo su viaje. Combine traslados y jornadas por horas por toda Europa Central.",
+        "detail": "Itinerario a medida · Presupuesto en 24 h"
+      }
+    ],
     "fromPrice": "Desde {price} €",
     "fromPriceHourly": "Desde {price} €/h",
     "learnMore": "Más información",
@@ -435,7 +537,44 @@
     "label": "La flota",
     "headingLine1": "Solo Mercedes-Benz.",
     "headingLine2": "Siempre.",
-    "vehicles": "[{\"category\":\"Business\",\"passengers\":\"3 pasajeros\",\"bags\":\"2 maletas\",\"features\":[\"Tapicería de piel\",\"Lunas tintadas\",\"Climatizador\",\"Wi-Fi bajo petición\"],\"altTemplate\":\"{model} — servicio de chófer en Praga\"},{\"category\":\"First Class\",\"passengers\":\"3 pasajeros\",\"bags\":\"2 maletas\",\"features\":[\"Asientos traseros executive\",\"Iluminación ambiental\",\"Servicio de champán\",\"Mampara de privacidad\"],\"altTemplate\":\"{model} — servicio de chófer en Praga\"},{\"category\":\"Grupos\",\"passengers\":\"6 pasajeros\",\"bags\":\"6 maletas\",\"features\":[\"Asientos enfrentados\",\"Espacio adicional para equipaje\",\"Configuración de reunión\",\"Carga USB\"],\"altTemplate\":\"{model} — servicio de chófer en Praga\"}]",
+    "vehicles": [
+      {
+        "category": "Business",
+        "passengers": "3 pasajeros",
+        "bags": "2 maletas",
+        "features": [
+          "Tapicería de piel",
+          "Lunas tintadas",
+          "Climatizador",
+          "Wi-Fi bajo petición"
+        ],
+        "altTemplate": "{model} — servicio de chófer en Praga"
+      },
+      {
+        "category": "First Class",
+        "passengers": "3 pasajeros",
+        "bags": "2 maletas",
+        "features": [
+          "Asientos traseros executive",
+          "Iluminación ambiental",
+          "Servicio de champán",
+          "Mampara de privacidad"
+        ],
+        "altTemplate": "{model} — servicio de chófer en Praga"
+      },
+      {
+        "category": "Grupos",
+        "passengers": "6 pasajeros",
+        "bags": "6 maletas",
+        "features": [
+          "Asientos enfrentados",
+          "Espacio adicional para equipaje",
+          "Configuración de reunión",
+          "Carga USB"
+        ],
+        "altTemplate": "{model} — servicio de chófer en Praga"
+      }
+    ],
     "seePricing": "Ver tarifas →"
   },
   "HowItWorks": {
@@ -443,7 +582,23 @@
     "headingLine1": "Tres pasos.",
     "headingLine2": "Cero sorpresas.",
     "stepPrefix": "Paso",
-    "steps": "[{\"title\":\"Reserve en línea\",\"body\":\"Indique su ruta y los datos del viaje. Reciba la confirmación al instante con un precio cerrado, sin cargos ocultos.\",\"photoAlt\":\"Reserva en línea de un chófer en Praga, con el Mercedes-Benz ya esperando fuera\"},{\"title\":\"Seguimos su vuelo\",\"body\":\"Su chófer supervisa su vuelo en tiempo real. Retrasos o llegadas anticipadas: nos adaptamos automáticamente.\",\"photoAlt\":\"Chófer consultando el estado del vuelo en tiempo real junto al Mercedes-Benz en el aeropuerto de Praga\"},{\"title\":\"Solo tiene que llegar\",\"body\":\"Su chófer le espera en la zona de llegadas con un cartel con su nombre. Traslado directo a su destino.\",\"photoAlt\":\"Chófer de PRESTIGO esperando con un cartel con el nombre en las llegadas del aeropuerto de Praga\"}]"
+    "steps": [
+      {
+        "title": "Reserve en línea",
+        "body": "Indique su ruta y los datos del viaje. Reciba la confirmación al instante con un precio cerrado, sin cargos ocultos.",
+        "photoAlt": "Reserva en línea de un chófer en Praga, con el Mercedes-Benz ya esperando fuera"
+      },
+      {
+        "title": "Seguimos su vuelo",
+        "body": "Su chófer supervisa su vuelo en tiempo real. Retrasos o llegadas anticipadas: nos adaptamos automáticamente.",
+        "photoAlt": "Chófer consultando el estado del vuelo en tiempo real junto al Mercedes-Benz en el aeropuerto de Praga"
+      },
+      {
+        "title": "Solo tiene que llegar",
+        "body": "Su chófer le espera en la zona de llegadas con un cartel con su nombre. Traslado directo a su destino.",
+        "photoAlt": "Chófer de PRESTIGO esperando con un cartel con el nombre en las llegadas del aeropuerto de Praga"
+      }
+    ]
   },
   "Testimonials": {
     "label": "Testimonios",

@@ -72,7 +72,7 @@ import {
   flattenMdxSource,
   translateMdxFile,
 } from './lib/i18n-mdx.mjs'
-import { checkCompleteness, generateQaReport } from './lib/i18n-qa-report.mjs'
+import { checkCompleteness, checkValueTypeParity, generateQaReport } from './lib/i18n-qa-report.mjs'
 import { enumerateEnSources, readEnSource, translateCatalog, translateContentJson } from './lib/i18n-surfaces.mjs'
 import { verifyDntPreserved, verifyPluralCategories } from './lib/i18n-verify.mjs'
 
@@ -703,6 +703,10 @@ export function checkPipelineState({ rootDir, skipGitCheck = false, locales = PH
     const { missing } = checkCompleteness(enCatalog, localeCatalog)
     if (missing.length > 0) {
       failures.push(`messages/${locale}.json is missing ${missing.length} key(s): ${missing.slice(0, 10).join(', ')}${missing.length > 10 ? ', ...' : ''}`)
+    }
+    const typeMismatches = checkValueTypeParity(enCatalog, localeCatalog)
+    if (typeMismatches.length > 0) {
+      failures.push(`messages/${locale}.json has ${typeMismatches.length} value-type mismatch(es) vs en.json: ${typeMismatches.slice(0, 10).join('; ')}${typeMismatches.length > 10 ? '; ...' : ''}`)
     }
   }
 

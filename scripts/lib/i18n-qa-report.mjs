@@ -46,6 +46,40 @@ export function checkCompleteness(enFlat, localeFlat) {
   }
 }
 
+/** Structural type of a leaf value for parity checking: 'array' | 'object' | 'string' | 'number' | 'boolean' | 'null'. */
+function leafType(v) {
+  if (v === null) return 'null'
+  if (Array.isArray(v)) return 'array'
+  return typeof v
+}
+
+/**
+ * Leaf value-TYPE parity between an EN source object and a locale output.
+ * A completeness check alone misses a class of corruption where a key exists
+ * in both but its value type differs — e.g. an `array` leaf (`Nav.items`,
+ * `FeatureStrip.pillars`) stored as a JSON `string` in the locale catalog,
+ * which crashes components that `.map()`/index it. Returns the list of
+ * dot-path keys whose locale value type does not match the EN value type
+ * (keys missing from the locale are the completeness check's job, not this one).
+ */
+export function checkValueTypeParity(enObj, localeObj) {
+  const mismatches = []
+  function walk(en, loc, keyPath) {
+    if (en !== null && typeof en === 'object' && !Array.isArray(en)) {
+      const isLocObj = loc !== null && typeof loc === 'object' && !Array.isArray(loc)
+      for (const [k, ev] of Object.entries(en)) {
+        const p = keyPath ? `${keyPath}.${k}` : k
+        if (!isLocObj || !(k in loc)) continue // missing → completeness check owns it
+        walk(ev, loc[k], p)
+      }
+      return
+    }
+    if (leafType(en) !== leafType(loc)) mismatches.push(`${keyPath} (en=${leafType(en)} locale=${leafType(loc)})`)
+  }
+  walk(enObj, localeObj, '')
+  return mismatches
+}
+
 /** True when `value` is exactly one of the glossary's brand/vehicle-class DNT terms (legitimately identical across every locale). */
 function isDntOnlyValue(value, glossary) {
   if (typeof value !== 'string') return false

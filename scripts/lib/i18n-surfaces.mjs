@@ -107,6 +107,15 @@ export function enumerateEnSources(rootDir = process.cwd()) {
  * `translateBatch(chunk, {locale, glossary})` once per chunk and expecting
  * back an array of translated strings, same length and order as the chunk.
  * Returns a flat `{unitKey: translatedValue}` map across all chunks.
+ *
+ * Type round-trip: the batch translator serializes a non-string leaf (array or
+ * object — e.g. `Nav.items`, `FeatureStrip.pillars`) to JSON before putting it
+ * in the prompt, so the model returns its translation as a JSON *string*. For
+ * those units the returned string is parsed back to the original container type,
+ * so a locale catalog's value type always matches its EN source (a string stays
+ * a string; an array stays an array). Without this, `messages/<locale>.json`
+ * stores a stringified array and components that `.map()`/index it break at
+ * render.
  */
 export async function batchShortStrings({ units, locale, glossary, translateBatch, batchSize = SHORT_STRING_BATCH_SIZE }) {
   const results = {}
@@ -121,10 +130,29 @@ export async function batchShortStrings({ units, locale, glossary, translateBatc
       )
     }
     chunk.forEach((unit, idx) => {
-      results[unit.unitKey] = translated[idx]
+      results[unit.unitKey] = coerceToSourceType(unit.value, translated[idx])
     })
   }
   return results
+}
+
+/**
+ * Restore a translated leaf to the type of its EN source. A string EN value
+ * keeps the translated string as-is. A non-string EN value (array/object) was
+ * JSON-serialized into the prompt, so the model returned a JSON string — parse
+ * it back to the container type. If the parse fails or yields the wrong shape,
+ * return the raw string unchanged so the downstream structural verifier flags
+ * it (fail-closed) rather than silently shipping malformed data.
+ */
+export function coerceToSourceType(enValue, translatedValue) {
+  if (typeof enValue === 'string' || typeof translatedValue !== 'string') return translatedValue
+  try {
+    const parsed = JSON.parse(translatedValue)
+    if (Array.isArray(enValue) === Array.isArray(parsed) && typeof parsed === typeof enValue) return parsed
+    return translatedValue
+  } catch {
+    return translatedValue
+  }
 }
 
 /**
