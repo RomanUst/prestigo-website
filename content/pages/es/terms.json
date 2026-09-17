@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "title": "Condiciones del servicio — PRESTIGO chófer premium en Praga",
+    "description": "Términos y condiciones de los servicios de chófer de PRESTIGO. Política de reservas, cancelación, condiciones de pago, responsabilidad y legislación aplicable.",
+    "ogTitle": "Condiciones del servicio — PRESTIGO chófer premium en Praga"
+  },
+  "hero": {
+    "label": "Condiciones del servicio",
+    "headlineLine1": "Condiciones claras.",
+    "headlineItalic": "Sin letra pequeña.",
+    "lastUpdated": "Última actualización: 6 de abril de 2026"
+  },
+  "section1": {
+    "title": "Ámbito de los servicios",
+    "text": "PRESTIGO es un nombre comercial de chelautotrans s.r.o. (IČO: 05650801, con domicilio social en Spojovací 685, Vysoký Újezd, República Checa). Prestamos servicios premium de chófer y traslados privados en Praga y Europa Central, incluidos traslados al aeropuerto, rutas interurbanas, transporte corporativo, transporte VIP y para eventos, y traslados de grupos. Al realizar una reserva, usted acepta estas condiciones."
+  },
+  "section2": {
+    "title": "Reserva y confirmación",
+    "paragraph1Prefix": "Las reservas pueden realizarse a través de ",
+    "bookingLinkLabel": "rideprestigo.com/book",
+    "paragraph1Suffix": ", por correo electrónico, teléfono o WhatsApp.",
+    "paragraph2": "Una reserva queda confirmada tras la recepción de un correo electrónico de confirmación que incluye su número de referencia de reserva. Usted es responsable de facilitar datos exactos de los pasajeros, el lugar de recogida y la información de contacto.",
+    "paragraph3": "PRESTIGO se reserva el derecho de rechazar una reserva a su entera discreción."
+  },
+  "section3": {
+    "title": "Precios y pago",
+    "paragraph1": "Todos los precios son fijos en el momento de la reserva. No aplicamos tarifas dinámicas ni cargos ocultos. El precio indicado incluye todos los peajes de la ruta y el tiempo de espera estándar (60 minutos en recogidas en el aeropuerto, 15 minutos en el resto de recogidas).",
+    "paragraph2": "El pago se procesa de forma segura a través de Stripe. Aceptamos Visa y Mastercard. Los precios se muestran en EUR; el pago en CZK está disponible bajo petición. Las cuentas corporativas pueden pagar mediante factura mensual o tarjeta de empresa, según lo acordado.",
+    "paragraph3": "Solo se aplican cargos adicionales por: tiempo de espera superior al incluido, paradas adicionales no previstas en la reserva original o gastos de limpieza por daños causados por el pasajero."
+  },
+  "section4": {
+    "title": "Cancelación y reembolsos",
+    "items": [
+      {
+        "label": "Cancelación gratuita",
+        "desc": "Hasta 1 hora antes de la hora de recogida prevista: reembolso íntegro, sin preguntas."
+      },
+      {
+        "label": "Cancelación tardía",
+        "desc": "Menos de 1 hora antes de la recogida: podrá cobrarse hasta el 100 % del importe de la reserva."
+      },
+      {
+        "label": "No presentación",
+        "desc": "Si no cancela y no se presenta en el lugar de recogida, se cobrará el importe íntegro de la reserva."
+      },
+      {
+        "label": "Cancelación del vuelo",
+        "desc": "Si su vuelo se cancela, le ofrecemos un reembolso íntegro o una nueva reserva gratuita, a su elección."
+      },
+      {
+        "label": "Tramitación del reembolso",
+        "desc": "Los reembolsos se abonan en el método de pago original en un plazo de 5 a 10 días hábiles."
+      }
+    ]
+  },
+  "section5": {
+    "title": "Obligaciones del pasajero",
+    "items": [
+      "Estar listo en el lugar de recogida designado a la hora acordada.",
+      "Tratar con respeto el vehículo y al conductor.",
+      "Llevar el cinturón de seguridad abrochado en todo momento, según exige la ley.",
+      "Prohibido fumar en el vehículo.",
+      "Los pasajeros son responsables de cualquier daño al vehículo causado por sus actos."
+    ],
+    "extraItem": "PRESTIGO se reserva el derecho de denegar el servicio a pasajeros que se encuentren en estado de embriaguez o que muestren un comportamiento perturbador."
+  },
+  "section6": {
+    "title": "Seguimiento de vuelos y tiempo de espera",
+    "paragraph1": "En las recogidas en el aeropuerto, PRESTIGO supervisa el estado de su vuelo en tiempo real. Su conductor se adapta automáticamente a los retrasos sin coste adicional. Se incluyen 60 minutos de espera gratuita desde el momento del aterrizaje.",
+    "paragraph2": "En las recogidas fuera del aeropuerto, se incluyen 15 minutos de espera gratuita desde la hora de recogida prevista."
+  },
+  "section7": {
+    "title": "Responsabilidad",
+    "paragraph1": "PRESTIGO mantiene un seguro comercial completo para todos los vehículos y pasajeros durante el traslado.",
+    "paragraph2": "La responsabilidad por la pérdida o el deterioro de objetos personales olvidados en el vehículo se limita a 500 € por reserva, salvo que se haya declarado previamente un valor superior.",
+    "paragraph3": "PRESTIGO no se hace responsable de los retrasos ocasionados por las condiciones del tráfico, cortes de carretera o circunstancias ajenas a su control razonable. En cualquier caso, nuestra responsabilidad máxima no excederá el valor total de la reserva."
+  },
+  "section8": {
+    "title": "Fuerza mayor",
+    "text": "PRESTIGO no se hace responsable del incumplimiento derivado de catástrofes naturales, condiciones meteorológicas adversas, medidas gubernamentales, huelgas, pandemias u otros acontecimientos ajenos a su control razonable. En tales casos, le ofreceremos una nueva reserva o un reembolso íntegro."
+  },
+  "section9": {
+    "title": "Propiedad intelectual",
+    "text": "Todo el contenido de rideprestigo.com —incluidos textos, imágenes, logotipos y diseño— es propiedad de Roman Ustyugov y no podrá reproducirse sin autorización previa por escrito."
+  },
+  "section10": {
+    "title": "Privacidad",
+    "prefix": "Sus datos personales se tratan de conformidad con nuestra ",
+    "linkLabel": "Política de Privacidad",
+    "suffix": "."
+  },
+  "section11": {
+    "title": "Legislación aplicable y controversias",
+    "paragraph1": "Estas condiciones se rigen por la legislación de la República Checa. Cualquier controversia derivada de estas condiciones o de nuestros servicios se intentará resolver, en primer lugar, de forma amistosa.",
+    "paragraph2": "De no alcanzarse una solución, las controversias quedarán sometidas a la jurisdicción exclusiva de los tribunales de Praga, República Checa."
+  },
+  "section12": {
+    "title": "Modificaciones de estas condiciones",
+    "text": "PRESTIGO se reserva el derecho de actualizar estas condiciones. La fecha de «última actualización» que figura en la parte superior de esta página refleja la revisión más reciente. El uso continuado de nuestros servicios tras cualquier modificación implica su aceptación de las condiciones actualizadas."
+  },
+  "cta": {
+    "headingLine1": "¿Tiene alguna pregunta?",
+    "headingItalic": "Respondemos en menos de una hora.",
+    "buttonPrimary": "Contáctenos",
+    "buttonSecondary": "Reservar un traslado"
+  }
+}

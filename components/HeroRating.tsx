@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl'
+
 type Props = {
   ratingValue: number
   reviewCount: number
@@ -9,6 +11,7 @@ type Props = {
  * Uses copper unicode stars to match TestimonialsCarousel.
  */
 export default function HeroRating({ ratingValue, reviewCount }: Props) {
+  const t = useTranslations('Hero')
   const full = Math.floor(ratingValue)
   const hasHalf = ratingValue - full >= 0.25 && ratingValue - full < 0.75
   const filled = hasHalf ? full : Math.round(ratingValue)
@@ -16,7 +19,7 @@ export default function HeroRating({ ratingValue, reviewCount }: Props) {
   return (
     <div
       className="animate-on-load delay-700 mt-6 inline-flex items-center gap-3"
-      aria-label={`Rated ${ratingValue} out of 5 from ${reviewCount} Google reviews`}
+      aria-label={t('ratingAria', { rating: ratingValue, count: reviewCount })}
     >
       <span className="inline-flex items-center gap-0.5" aria-hidden="true">
         {Array.from({ length: 5 }).map((_, i) => (
@@ -46,7 +49,7 @@ export default function HeroRating({ ratingValue, reviewCount }: Props) {
           color: 'var(--warmgrey)',
         }}
       >
-        Google reviews
+        {t('googleReviews')}
       </span>
     </div>
   )

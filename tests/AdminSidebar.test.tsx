@@ -12,7 +12,7 @@ vi.mock('next/link', () => ({
 }))
 
 // Mock signOut server action
-vi.mock('@/app/admin/login/actions', () => ({
+vi.mock('@/app/(internal)/admin/login/actions', () => ({
   signOut: vi.fn(),
 }))
 

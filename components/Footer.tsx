@@ -1,4 +1,34 @@
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
+
 export default function Footer() {
+  const t = useTranslations('Footer')
+  const serviceHrefs = [
+    { href: '/services' },
+    { href: '/routes' },
+    { href: '/book/multi-day', isNew: true },
+    { href: '/corporate' },
+    { href: '/services' },
+    { href: '/services' },
+    { href: '/about' },
+    { href: '/faq' },
+  ]
+  const routeHrefs = [
+    { href: '/routes/prague-vienna' },
+    { href: '/routes/prague-berlin' },
+    { href: '/routes/prague-munich' },
+    { href: '/routes/prague-budapest' },
+    { href: '/routes/prague-bratislava' },
+  ]
+  const blogHrefs = [
+    { href: '/blog/prague-airport-to-city-center' },
+    { href: '/blog/prague-airport-taxi-vs-chauffeur' },
+    { href: '/blog/prague-vienna-transfer-vs-train' },
+  ]
+  const services = t.raw('services') as string[]
+  const routes = t.raw('routes') as string[]
+  const blog = t.raw('blog') as string[]
+
   return (
     <footer className="bg-anthracite-mid border-t border-anthracite-light">
 
@@ -6,15 +36,15 @@ export default function Footer() {
       <div className="border-b border-anthracite-light py-14">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <div>
-            <p className="label mb-3">Ready to travel?</p>
+            <p className="label mb-3">{t('ctaLabel')}</p>
             <h2 className="display text-[28px] md:text-[36px]">
-              Book your transfer.<br />
-              <span className="display-italic">We handle the rest.</span>
+              {t('ctaHeadlineLine1')}<br />
+              <span className="display-italic">{t('ctaHeadlineLine2')}</span>
             </h2>
           </div>
-          <a href="/book" className="btn-primary flex-shrink-0">
-            Book now
-          </a>
+          <Link href="/book" className="btn-primary flex-shrink-0">
+            {t('bookNow')}
+          </Link>
         </div>
       </div>
 
@@ -29,31 +59,22 @@ export default function Footer() {
               <span className="wordmark-go">GO</span>
             </p>
             <p className="body-text text-[11px]">
-              Premium chauffeur service.<br />Prague and Central Europe.
+              {t('brandTagline1')}<br />{t('brandTagline2')}
             </p>
           </div>
 
           {/* Services */}
           <div>
-            <p className="label mb-5">Services</p>
+            <p className="label mb-5">{t('servicesHeading')}</p>
             <ul className="flex flex-col gap-3">
-              {[
-                { label: 'Airport Transfer', href: '/services' },
-                { label: 'Intercity Routes', href: '/routes' },
-                { label: 'Multi-day Hire', href: '/book/multi-day', isNew: true },
-                { label: 'Corporate Accounts', href: '/corporate' },
-                { label: 'VIP & Events', href: '/services' },
-                { label: 'Group Transfer', href: '/services' },
-                { label: 'About PRESTIGO', href: '/about' },
-                { label: 'FAQ', href: '/faq' },
-              ].map((s) => (
-                <li key={s.label}>
-                  <a href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors inline-flex items-center gap-2 py-2.5 -my-2.5">
-                    {s.label}
+              {serviceHrefs.map((s, i) => (
+                <li key={s.href + i}>
+                  <Link href={s.href} className="body-text text-[11px] hover:text-offwhite transition-colors inline-flex items-center gap-2 py-2.5 -my-2.5">
+                    {services[i]}
                     {s.isNew && (
-                      <span className="font-body font-light text-[10px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                      <span className="font-body font-light text-[10px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">{t('new')}</span>
                     )}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -61,55 +82,45 @@ export default function Footer() {
 
           {/* Routes */}
           <div>
-            <p className="label mb-5">Popular routes</p>
+            <p className="label mb-5">{t('routesHeading')}</p>
             <ul className="flex flex-col gap-3">
-              {[
-                { label: 'Prague → Vienna', href: '/routes/prague-vienna' },
-                { label: 'Prague → Berlin', href: '/routes/prague-berlin' },
-                { label: 'Prague → Munich', href: '/routes/prague-munich' },
-                { label: 'Prague → Budapest', href: '/routes/prague-budapest' },
-                { label: 'Prague → Bratislava', href: '/routes/prague-bratislava' },
-              ].map((r) => (
-                <li key={r.label}>
-                  <a href={r.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
-                    {r.label}
-                  </a>
+              {routeHrefs.map((r, i) => (
+                <li key={r.href}>
+                  <Link href={r.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
+                    {routes[i]}
+                  </Link>
                 </li>
               ))}
               <li>
-                <a href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5" style={{ color: 'var(--copper-light)' }}>
-                  View all routes →
-                </a>
+                <Link href="/routes" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5" style={{ color: 'var(--copper-light)' }}>
+                  {t('viewAllRoutes')}
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Blog */}
           <div>
-            <p className="label mb-5">Blog</p>
+            <p className="label mb-5">{t('blogHeading')}</p>
             <ul className="flex flex-col gap-3">
-              {[
-                { label: 'Prague airport → city centre', href: '/blog/prague-airport-to-city-center' },
-                { label: 'Taxi vs chauffeur at PRG', href: '/blog/prague-airport-taxi-vs-chauffeur' },
-                { label: 'Prague–Vienna: transfer vs train', href: '/blog/prague-vienna-transfer-vs-train' },
-              ].map((g) => (
-                <li key={g.label}>
-                  <a href={g.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
-                    {g.label}
-                  </a>
+              {blogHrefs.map((g, i) => (
+                <li key={g.href}>
+                  <Link href={g.href} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
+                    {blog[i]}
+                  </Link>
                 </li>
               ))}
               <li>
-                <a href="/blog" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5" style={{ color: 'var(--copper-light)' }}>
-                  View all posts →
-                </a>
+                <Link href="/blog" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5" style={{ color: 'var(--copper-light)' }}>
+                  {t('viewAllPosts')}
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <p className="label mb-5">Contact</p>
+            <p className="label mb-5">{t('contactHeading')}</p>
             <ul className="flex flex-col gap-3">
               <li>
                 <a href="tel:+420725986855" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
@@ -127,7 +138,7 @@ export default function Footer() {
                     <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
                     <path d="M12 0C5.373 0 0 5.373 0 12c0 2.117.554 4.102 1.523 5.83L.057 23.885a.5.5 0 0 0 .606.61l6.198-1.438A11.955 11.955 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 0 1-5.006-1.37l-.359-.213-3.72.863.943-3.617-.234-.372A9.818 9.818 0 0 1 2.182 12C2.182 6.57 6.57 2.182 12 2.182S21.818 6.57 21.818 12 17.43 21.818 12 21.818z"/>
                   </svg>
-                  WhatsApp
+                  {t('whatsapp')}
                 </a>
               </li>
               <li>
@@ -144,7 +155,7 @@ export default function Footer() {
                 </address>
               </li>
               <li>
-                <p className="body-text text-[11px]">24 / 7 availability</p>
+                <p className="body-text text-[11px]">{t('availability')}</p>
               </li>
             </ul>
           </div>
@@ -153,31 +164,31 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-anthracite-light flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="font-body font-light text-[10px] tracking-[0.15em] uppercase" style={{ color: 'var(--warmgrey)' }}>
-            © {new Date().getFullYear()} PRESTIGO. All rights reserved.
+            {t('copyright', { year: new Date().getFullYear() })}
           </p>
           <div className="flex items-center gap-2">
-            <a
+            <Link
               href="/privacy"
               className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors inline-flex items-center min-h-[44px] px-2"
               style={{ color: 'var(--warmgrey)' }}
             >
-              Privacy Policy
-            </a>
+              {t('privacy')}
+            </Link>
             <span className="text-anthracite-light" aria-hidden="true">|</span>
-            <a
+            <Link
               href="/terms"
               className="font-body font-light text-[10px] tracking-[0.15em] uppercase hover:text-offwhite transition-colors inline-flex items-center min-h-[44px] px-2"
               style={{ color: 'var(--warmgrey)' }}
             >
-              Terms
-            </a>
+              {t('terms')}
+            </Link>
           </div>
           <div className="flex items-center gap-2">
             <a
               href="https://www.instagram.com/rideprestigo/"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram"
+              aria-label={t('instagramAria')}
               className="text-[var(--warmgrey)] hover:text-offwhite transition-colors inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -190,7 +201,7 @@ export default function Footer() {
               href="https://www.facebook.com/profile.php?id=61574283117859&locale=cs_CZ"
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Facebook"
+              aria-label={t('facebookAria')}
               className="text-[var(--warmgrey)] hover:text-offwhite transition-colors inline-flex items-center justify-center min-w-[44px] min-h-[44px]"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -199,7 +210,7 @@ export default function Footer() {
             </a>
           </div>
           <p className="font-body font-light italic text-[11px]" style={{ color: 'var(--warmgrey)' }}>
-            Prestige in every mile.
+            {t('tagline')}
           </p>
         </div>
       </div>

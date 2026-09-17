@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import userEvent from '@testing-library/user-event'
 import VehicleCard from '@/components/booking/VehicleCard'
 import { VEHICLE_CONFIG } from '@/types/booking'

@@ -1,0 +1,224 @@
+{
+  "hero": {
+    "label": "Praga → České Budějovice",
+    "headlineLine1": "De Praga a České Budějovice,",
+    "headlineItalic": "Bohemia del Sur, directo.",
+    "intro": "155 km hacia el sur, hasta la capital de Bohemia del Sur. La plaza mayor barroca, Budějovický Budvar y la puerta de entrada a Šumava y Český Krumlov: dos horas, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a České Budějovice cubre 155 km y dura aproximadamente 2 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada a la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Tábor o una visita a la fábrica de cerveza Budvar— están disponibles dentro de la tarifa fija si se solicitan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
+    "No es un servicio compartido. Tampoco una aplicación de transporte con conductor. Un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a České Budějovice",
+    "headingItalic": "en dos horas.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D3 / E55 en dirección sur, atravesando Bohemia Central y pasando por Tábor. El tramo central de la D3 está en servicio desde hace años; la última pieza —la circunvalación de České Budějovice, desde Úsilné pasando por Hodějovice hasta Kaplice-nádraží— se abrió por fases hasta diciembre de 2024, lo que hizo que por primera vez la autopista desde Praga hasta la ciudad fuera prácticamente continua. La carretera llega directamente al extremo norte de České Budějovice sin ningún paso de frontera, porque no hay ninguno que cruzar.",
+      "Su destino es la capital de Bohemia del Sur: la plaza mayor porticada Náměstí Přemysla Otakara II, una de las mayores de Europa Central, con el campanario de la Torre Negra alzándose junto a la catedral de San Nicolás. Unas calles más al oeste se encuentra la fábrica de cerveza Budějovický Budvar, origen de la auténtica Budweiser desde 1895. El Museo de Bohemia del Sur, el castillo de Hluboká, diez kilómetros al norte, y la puerta de entrada al Parque Nacional de Šumava son accesibles desde el mismo punto de llegada.",
+      "La distancia total es de unos 155 kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Las tardes de viernes a la salida de Praga pueden añadir 15–20 minutos cerca del enlace con la D1. Su chófer comprueba la D3 antes de cada salida y modifica la ruta sin necesidad de preguntar si hay un tramo lento. Usted no paga el tráfico; usted paga el tiempo."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a České Budějovice. El coche, el chófer, el combustible, los peajes y la viñeta. Visita de negocios, jornada cervecera o un fin de semana en Bohemia del Sur: su chófer se encarga de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años de antigüedad.",
+    "Un chófer profesional, con inglés y checo fluidos. Otros idiomas bajo petición.",
+    "Combustible, todos los peajes de autopista checos y la viñeta. No se cobra nada aparte.",
+    "Servicio de puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y WiFi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Descuento por regreso en el mismo día: tarifa reducida en el trayecto de vuelta cuando se reservan ambos sentidos a la vez."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Executive",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a České Budějovice,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, su oficina o el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Donde usted quiera",
+      "note": "El castillo de Hluboká, los estanques de Třeboň o cualquier parada por el camino. Su Bohemia del Sur, a su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "České Budějovice",
+      "note": "Llegada a cualquier dirección de České Budějovice, a la fábrica de cerveza Budvar o a la plaza mayor. Český Krumlov es la continuación natural: 20 km más al sur.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Sin paso de frontera: el trayecto discurre íntegramente por la República Checa."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa incluida en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos sentidos a la vez y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Český Krumlov",
+      "value": "La continuación natural: 20 km más al sur. Prestigo puede ampliar el traslado como una única reserva."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibirá en la dirección de recogida en el centro de Praga, o dentro de la sala de llegadas del aeropuerto Václav Havel con una tablet Prestigo mostrando su nombre. No en un aparcamiento al otro lado de la calle, ni en un punto de encuentro a diez minutos andando.",
+    "La conversación es una elección. Si desea una cabina en silencio para dos horas de trabajo o de descanso a lo largo del valle del Moldava, su chófer capta la señal y le deja tranquilo. Si desea conocer el contexto de České Budějovice —la herencia cervecera de Budvar, que se remonta a 1895, la larga historia de la marca detrás del nombre Budweiser, el papel de la ciudad como capital de Bohemia del Sur y puerta de entrada a Šumava y al alto Moldava—, su chófer lo conoce y le contará únicamente lo que usted desee.",
+    "El cargador de móvil, el agua embotellada y el WiFi ya están en la cabina. Si necesita una temperatura concreta en la parte trasera, no tiene más que decirlo. Y si quiere parar a tomar un café en una auténtica área de descanso de la D3 / E55 —no en la explanada de una gasolinera—, su chófer ya tiene una en mente."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a České Budějovice.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, tiempo del chófer, espera a las puertas de la fábrica de cerveza. No se añade nada a la llegada."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos con menos de tres años de antigüedad. Todos los chóferes con antecedentes verificados, bilingües y conocedores de todo el circuito de Bohemia del Sur."
+      },
+      {
+        "title": "Servicio que anticipa",
+        "body": "Si desea combinar České Budějovice con Český Krumlov o el castillo de Hluboká en el mismo día, está incluido. Para las visitas a la fábrica Budvar, el chófer conoce las franjas de reserva y ajusta la llegada a su horario."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a České Budějovice?",
+      "a": "Aproximadamente 2 horas de puerta a puerta por la autopista D3 / E55 pasando por Tábor. Con la circunvalación de České Budějovice abierta en diciembre de 2024, el trayecto es más rápido y tranquilo que antes. Las salidas de Praga en tarde de viernes pueden añadir 15–20 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a České Budějovice?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, peajes checos, la viñeta y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar ida y vuelta en el mismo día con una parada en la fábrica de cerveza Budvar?",
+      "a": "Sí. La ida y vuelta en el mismo día es la reserva más habitual en esta ruta. Su chófer puede esperar durante una visita a Budějovický Budvar, una comida en Náměstí Přemysla Otakara II o un trayecto adicional hasta Český Krumlov. Si necesita que el chófer se desplace por la ciudad con usted, añada el alquiler por horas dentro de la ciudad."
+    },
+    {
+      "q": "¿Hay algún paso de frontera en esta ruta?",
+      "a": "No. Todo el trayecto se realiza dentro de la República Checa, desde Praga hacia el sur a través de Bohemia Central y Tábor hasta Bohemia del Sur. Sin pasaporte, sin cambio de viñeta, sin paradas."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Hay capazos a contramarcha, sillas a favor de la marcha y alzadores disponibles sin coste adicional. Indique la edad de su hijo al reservar para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿Qué idiomas habla el chófer?",
+      "a": "Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie. Hay chóferes de habla alemana, francesa, italiana o rusa disponibles bajo petición si se reservan con antelación."
+    }
+  ],
+  "relatedRoutesIntro": "České Budějovice es la capital de Bohemia del Sur y el punto de partida natural hacia Český Krumlov, Linz, Passau y la frontera de Šumava. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Bohemia del Sur."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-cesky-krumlov",
+      "city": "Český Krumlov",
+      "distance": "170 km",
+      "duration": "2 h 15 min"
+    },
+    {
+      "slug": "prague-linz",
+      "city": "Linz",
+      "distance": "235 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "prague-passau",
+      "city": "Passau",
+      "distance": "240 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "prague-plzen",
+      "city": "Pilsen",
+      "distance": "95 km",
+      "duration": "1 h 15 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~155 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~2 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a České Budějovice.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a České Budějovice — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a České Budějovice. 155 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, capital de Bohemia del Sur.",
+    "ogTitle": "Traslado privado de Praga a České Budějovice — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a České Budějovice. 155 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, capital de Bohemia del Sur."
+  }
+}

@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
-import { isAirportPlace } from '@/types/booking'
+import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'
 import type { TripType, VehicleClass } from '@/types/booking'
 import { computeExtrasTotal } from '@/lib/extras'
 import { trackMetaEvent } from '@/components/MetaPixel'
@@ -22,6 +23,8 @@ import Step5Passenger from './steps/Step5Passenger'
 import Step6Payment from './steps/Step6Payment'
 
 export default function BookingWizard() {
+  const t = useTranslations('Booking.bookingWizard')
+  const tClass = useTranslations('Booking.vehicleClasses')
   const { currentStep, completedSteps, nextStep, prevStep } = useBookingStore()
   const router = useRouter()
   const quoteMode = useBookingStore((s) => s.quoteMode)
@@ -119,11 +122,10 @@ export default function BookingWizard() {
       }
     }
 
-    const VEHICLE_LABELS: Record<string, string> = {
-      business: 'Business',
-      first_class: 'First Class',
-      business_van: 'Business Van',
-    }
+    const classLabelOf = (vc: string) =>
+      VEHICLE_CLASS_KEY[vc as VehicleClass]
+        ? tClass(`${VEHICLE_CLASS_KEY[vc as VehicleClass]}.label`)
+        : vc
     const selectedPrice = vehicleClass && priceBreakdown ? priceBreakdown[vehicleClass] : null
     const extrasTotal = computeExtrasTotal(extras)
     const baseTotal = selectedPrice ? selectedPrice.base + extrasTotal : 0
@@ -134,7 +136,7 @@ export default function BookingWizard() {
       ? [
           {
             item_id: vehicleClass,
-            item_name: VEHICLE_LABELS[vehicleClass] ?? vehicleClass,
+            item_name: classLabelOf(vehicleClass),
             item_category: tripType ?? 'transfer',
             item_variant: tripType ?? 'transfer',
             price: totalEur,
@@ -176,7 +178,7 @@ export default function BookingWizard() {
         items: priceBreakdown
           ? (Object.entries(priceBreakdown) as Array<[string, { base: number; currency: string }]>).map(([k, v]) => ({
               item_id: k,
-              item_name: VEHICLE_LABELS[k] ?? k,
+              item_name: classLabelOf(k),
               item_category: tripType ?? 'transfer',
               item_variant: tripType ?? 'transfer',
               price: v.base,
@@ -198,7 +200,7 @@ export default function BookingWizard() {
       push('add_payment_info', { currency, value: totalEur, items, payment_type: 'stripe' })
       trackMetaEvent('AddPaymentInfo', { value: totalEur, currency })
     }
-  }, [currentStep, vehicleClass, priceBreakdown, extras, promoDiscount, tripType])
+  }, [currentStep, vehicleClass, priceBreakdown, extras, promoDiscount, tripType, tClass])
 
   const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)
 
@@ -283,7 +285,7 @@ export default function BookingWizard() {
           className="btn-ghost"
           onClick={prevStep}
         >
-          Back
+          {t('back')}
         </button>
       )}
       <button
@@ -293,7 +295,7 @@ export default function BookingWizard() {
         disabled={!canProceed}
         style={!canProceed ? { opacity: 0.4, cursor: 'not-allowed' } : undefined}
       >
-        Continue
+        {t('continue')}
       </button>
     </>
   )
@@ -314,7 +316,7 @@ export default function BookingWizard() {
         {/* Step heading — skipped at step 2 (heading lives inside Step3Vehicle, after the route bar) */}
         {currentStep !== 2 ? (
           <div className="mb-8">
-            <p className="label mb-6">STEP {currentStep} OF 6</p>
+            <p className="label mb-6">{t('stepOf', { step: currentStep })}</p>
             <span className="copper-line mb-6 block" />
             <h2
               style={{
@@ -326,19 +328,19 @@ export default function BookingWizard() {
               }}
             >
               {currentStep === 1
-                ? 'Plan your journey'
+                ? t('planJourney')
                 : currentStep === 3
-                ? 'Sign in to continue'
+                ? t('signIn')
                 : currentStep === 4
-                ? 'Add extras'
+                ? t('addExtras')
                 : currentStep === 5
-                ? 'Passenger details'
-                : 'Payment'}
+                ? t('passengerDetails')
+                : t('payment')}
             </h2>
           </div>
         ) : (
           <div className="mb-6">
-            <p className="label mb-6">STEP {currentStep} OF 6</p>
+            <p className="label mb-6">{t('stepOf', { step: currentStep })}</p>
             <span className="copper-line mb-0 block" />
           </div>
         )}

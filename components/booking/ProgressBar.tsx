@@ -1,6 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ProgressBarProps {
   currentStep: number
@@ -9,11 +10,12 @@ interface ProgressBarProps {
 }
 
 export default function ProgressBar({ currentStep, completedSteps, totalSteps }: ProgressBarProps) {
+  const t = useTranslations('Booking.progressBar')
   return (
     <div
       className="flex items-center"
       style={{ padding: '24px 0' }}
-      aria-label={`Booking progress: Step ${currentStep} of 5`}
+      aria-label={t('aria', { step: currentStep })}
       role="navigation"
     >
       {Array.from({ length: totalSteps }, (_, i) => {

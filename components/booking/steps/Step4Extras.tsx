@@ -1,17 +1,19 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 import type { Extras } from '@/types/booking'
 
 export default function Step4Extras() {
+  const t = useTranslations('Booking')
   const extras = useBookingStore((s) => s.extras)
   const toggleExtra = useBookingStore((s) => s.toggleExtra)
 
   return (
     <div className="max-w-xl">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {EXTRAS_CONFIG.map(({ key, label, description, alwaysSelected }) => {
+        {EXTRAS_CONFIG.map(({ key, alwaysSelected }) => {
           const isSelected = alwaysSelected || extras[key as keyof Extras]
           return (
             <button
@@ -44,7 +46,7 @@ export default function Step4Extras() {
                     lineHeight: 1.8,
                   }}
                 >
-                  {label}
+                  {t(`extras.${key}.label`)}
                 </span>
                 <span
                   style={{
@@ -55,7 +57,7 @@ export default function Step4Extras() {
                     lineHeight: 1.8,
                   }}
                 >
-                  Free
+                  {t('step4extras.free')}
                 </span>
               </div>
               <span
@@ -66,7 +68,7 @@ export default function Step4Extras() {
                   fontFamily: 'var(--font-montserrat)',
                 }}
               >
-                {description}
+                {t(`extras.${key}.description`)}
               </span>
             </button>
           )

@@ -10,7 +10,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -44,7 +45,7 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }))
 
-vi.mock('@/app/login/actions', () => ({
+vi.mock('@/app/[locale]/login/actions', () => ({
   customerSignOut: mockCustomerSignOut,
 }))
 

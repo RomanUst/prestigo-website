@@ -1,0 +1,265 @@
+import type { Metadata } from 'next'
+
+export const revalidate = 120
+
+import { getLocale } from 'next-intl/server'
+import { getCachedAggregateRating } from '@/lib/google-reviews'
+import { getPricingConfig } from '@/lib/pricing-config'
+import { getAllRoutes } from '@/lib/route-prices'
+import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
+import { getPageContent } from '@/lib/page-content'
+import Nav from '@/components/Nav'
+import Hero from '@/components/Hero'
+import FeatureStrip from '@/components/FeatureStrip'
+import BookingSection from '@/components/BookingSection'
+import HowItWorks from '@/components/HowItWorks'
+import Services from '@/components/Services'
+import Fleet from '@/components/Fleet'
+import Routes from '@/components/Routes'
+import Testimonials from '@/components/Testimonials'
+import Footer from '@/components/Footer'
+import Divider from '@/components/Divider'
+
+// Canonical and openGraph URL are both set to the exact form the server
+// actually returns (no trailing slash, matching next.config behaviour) so
+// Search Console sees a single, consistent home URL.
+const HOME_URL = 'https://rideprestigo.com'
+
+type HomeContent = {
+  metadata: { title: string; description: string; ogTitle: string }
+  schema: { name: string; description: string }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
+  const content = getPageContent('home', locale) as HomeContent
+  return {
+    title: { absolute: content.metadata.title },
+    description: content.metadata.description,
+    alternates: {
+      canonical: HOME_URL,
+      languages: {
+        en: HOME_URL,
+        'x-default': HOME_URL,
+      },
+    },
+    openGraph: {
+      url: HOME_URL,
+      title: content.metadata.ogTitle,
+      description: content.metadata.description,
+      images: [
+        {
+          url: `${HOME_URL}/og-image.jpg`,
+          width: 1200,
+          height: 630,
+          alt: 'PRESTIGO — premium chauffeur service in Prague',
+        },
+      ],
+    },
+  }
+}
+
+// Canonical Google Maps place URL built from the public Place ID (a Place ID
+// is public data — every Maps link exposes it — so it is safe to embed in
+// JSON-LD). Falls back to the share link only when GOOGLE_PLACE_ID is unset
+// (local dev); on Vercel the env var is always present at build.
+const MAPS_URL = process.env.GOOGLE_PLACE_ID
+  ? `https://www.google.com/maps/place/?q=place_id:${process.env.GOOGLE_PLACE_ID}`
+  : 'https://share.google/dPIa4HI97jeLPidw9'
+
+// Schema name/description are content-sourced (single source with
+// generateMetadata above) — see buildLocalBusinessSchema/buildWebsiteSchema.
+function buildLocalBusinessSchema(content: HomeContent) {
+  return {
+  '@context': 'https://schema.org',
+  '@type': ['LocalBusiness', 'TaxiService'],
+  '@id': 'https://rideprestigo.com/#business',
+  name: content.schema.name,
+  legalName: 'chelautotrans s.r.o.',
+  // IČO is the Czech company registration number, not a tax ID — expose it as
+  // a typed identifier and give the actual VAT number (DIČ) via vatID.
+  identifier: { '@type': 'PropertyValue', propertyID: 'IČO', value: '05650801' },
+  vatID: 'CZ05650801',
+  description: content.schema.description,
+  url: 'https://rideprestigo.com',
+  telephone: '+420725986855',
+  email: 'info@rideprestigo.com',
+  priceRange: '€€€',
+  currenciesAccepted: 'CZK, EUR',
+  paymentAccepted: 'Cash, Credit Card',
+  areaServed: [
+    { '@type': 'City', name: 'Prague', sameAs: 'https://www.wikidata.org/wiki/Q1085' },
+    { '@type': 'Country', name: 'Czech Republic', sameAs: 'https://www.wikidata.org/wiki/Q213' },
+  ],
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: 'Spojovací 685',
+    addressLocality: 'Vysoký Újezd',
+    postalCode: '252 16',
+    addressRegion: 'Central Bohemian Region',
+    addressCountry: 'CZ',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 50.1008,
+    longitude: 14.2600,
+  },
+  image: 'https://rideprestigo.com/og-image.jpg',
+  logo: {
+    '@type': 'ImageObject',
+    url: 'https://rideprestigo.com/logo.png',
+    width: 512,
+    height: 512,
+  },
+  founder: {
+    '@type': 'Person',
+    '@id': 'https://rideprestigo.com/authors/roman-ustyugov#person',
+    name: 'Roman Ustyugov',
+    jobTitle: 'Founder & Chief Experience Officer',
+    url: 'https://rideprestigo.com/authors/roman-ustyugov',
+    image: 'https://rideprestigo.com/roman-ustyugov-founder.jpg',
+    worksFor: { '@id': 'https://rideprestigo.com/#business' },
+  },
+  knowsAbout: [
+    'Luxury chauffeur service',
+    'Airport transfer Prague',
+    'Corporate ground transportation',
+    '5-star hotel partner transport',
+    'Executive Mercedes-Benz fleet',
+  ],
+  foundingDate: '2016',
+  slogan: 'The first person in Prague who is already on your side.',
+  hasMap: MAPS_URL,
+  serviceArea: {
+    '@type': 'GeoCircle',
+    geoMidpoint: {
+      '@type': 'GeoCoordinates',
+      latitude: 50.1008,
+      longitude: 14.2600,
+    },
+    geoRadius: '1000000',
+  },
+  sameAs: [
+    MAPS_URL,
+    'https://www.instagram.com/rideprestigo/',
+    'https://www.facebook.com/profile.php?id=61574283117859',
+  ],
+  contactPoint: {
+    '@type': 'ContactPoint',
+    telephone: '+420-725-986-855',
+    contactType: 'customer service',
+    availableLanguage: ['English', 'Czech'],
+    hoursAvailable: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '00:00',
+      closes: '23:59',
+    },
+  },
+  openingHours: 'Mo-Su 00:00-23:59',
+  openingHoursSpecification: [
+    {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '00:00',
+      closes: '23:59',
+    },
+  ],
+  }
+}
+
+function buildWebsiteSchema(content: HomeContent) {
+  return {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  '@id': 'https://rideprestigo.com/#website',
+  name: content.schema.name,
+  url: 'https://rideprestigo.com',
+  inLanguage: 'en',
+  publisher: {
+    '@type': 'LocalBusiness',
+    '@id': 'https://rideprestigo.com/#business',
+  },
+  }
+}
+
+const DEV_PRICING_FALLBACK = {
+  globals: {
+    airportPromoActive: false,
+    airportRegularPriceEur: AIRPORT_FALLBACK.regular,
+    airportPromoPriceEur: AIRPORT_FALLBACK.promo,
+    airportFee: 0, nightCoefficient: 1, holidayCoefficient: 1,
+    extraChildSeat: 0, extraLuggage: 0, holidayDates: [] as string[],
+    returnDiscountPercent: 0, hourlyMinHours: 1, hourlyMaxHours: 12,
+    notificationFlags: null,
+  },
+  hourlyRate: HOURLY_FALLBACK as Record<string, number>,
+  ratePerKm: {} as Record<string, number>,
+  dailyRate: {} as Record<string, number>,
+  minFare: {} as Record<string, number>,
+}
+
+export default async function Home() {
+  const locale = await getLocale()
+  const content = getPageContent('home', locale) as HomeContent
+  const [aggregateRating, config, allRoutes] = await Promise.all([
+    getCachedAggregateRating().catch(() => null),
+    getPricingConfig().catch(() => DEV_PRICING_FALLBACK),
+    getAllRoutes('display_order').catch(() => [] as Awaited<ReturnType<typeof getAllRoutes>>),
+  ])
+
+  const { globals, hourlyRate } = config
+  const heroPrice = globals.airportPromoActive
+    ? globals.airportPromoPriceEur
+    : globals.airportRegularPriceEur
+  const cheapestIntercity =
+    allRoutes.length > 0
+      ? allRoutes.reduce((m, r) => Math.min(m, r.eClassEur), Infinity)
+      : AIRPORT_FALLBACK.regular
+  const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
+
+  const localBusinessSchema = buildLocalBusinessSchema(content)
+  const websiteSchema = buildWebsiteSchema(content)
+
+  const schema = aggregateRating
+    ? {
+        ...localBusinessSchema,
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: aggregateRating.ratingValue.toFixed(1),
+          reviewCount: aggregateRating.reviewCount,
+          bestRating: '5',
+          worstRating: '1',
+        },
+      }
+    : localBusinessSchema
+
+  return (
+    <main id="main-content">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}
+      />
+      <Nav />
+      <Hero airportPrice={heroPrice} rating={aggregateRating} />
+      <FeatureStrip />
+      <Divider />
+      <HowItWorks />
+      <Divider />
+      <BookingSection />
+      <Divider />
+      <Services airportPrice={heroPrice} hourlyFrom={hourlyFrom} cheapestIntercity={cheapestIntercity} />
+      <Divider />
+      <Fleet />
+      <Divider />
+      <Routes routes={allRoutes} />
+      <Divider />
+      <Testimonials />
+      <Footer />
+    </main>
+  )
+}

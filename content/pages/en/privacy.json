@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "title": "Privacy Policy — PRESTIGO Premium Chauffeur Prague",
+    "description": "How PRESTIGO collects, uses, and protects your personal data. GDPR-compliant privacy policy for our premium chauffeur service in Prague and Central Europe.",
+    "ogTitle": "Privacy Policy — PRESTIGO Premium Chauffeur Prague"
+  },
+  "hero": {
+    "label": "Privacy Policy",
+    "headlineLine1": "Your data, protected.",
+    "headlineItalic": "By design.",
+    "lastUpdated": "Last updated: 6 April 2026"
+  },
+  "section1": {
+    "title": "Data Controller",
+    "controllerPrefix": "The controller of your personal data is ",
+    "controllerName": "chelautotrans s.r.o.",
+    "controllerSuffix": ", trading as PRESTIGO, with registered office at Spojovací 685, Vysoký Újezd, Czech Republic, IČO: 05650801.",
+    "contactPrefix": "For any questions regarding the processing of your personal data, contact us at ",
+    "contactEmailLabel": "info@rideprestigo.com",
+    "contactMiddle": " or call ",
+    "contactPhoneLabel": "+420 725 986 855",
+    "contactSuffix": "."
+  },
+  "section2": {
+    "title": "What Data We Collect",
+    "intro": "We collect only what is necessary to provide our services.",
+    "bookingForm": {
+      "heading": "Booking form",
+      "text": "First name, last name, email, phone number, flight number, pickup and drop-off addresses, date and time, vehicle preference, child seat request, special requests."
+    },
+    "contactForm": {
+      "heading": "Contact form",
+      "text": "Name, email, phone number, service type, message."
+    },
+    "corporateEnquiry": {
+      "heading": "Corporate enquiry",
+      "text": "Company name, contact name and role, email, estimated monthly trips, notes."
+    },
+    "automaticallyCollected": {
+      "heading": "Automatically collected",
+      "text": "IP address, browser type and version, device type, pages visited, referring URL, and interaction data — collected via Google Analytics."
+    },
+    "locationData": {
+      "heading": "Location data",
+      "text": "Pickup and destination addresses you enter are processed via the Google Maps API for route calculation and autocomplete. We do not track your real-time location."
+    }
+  },
+  "section3": {
+    "title": "Legal Basis for Processing",
+    "intro": "We process your personal data under the following legal bases defined in Article 6 of the GDPR:",
+    "performanceOfContract": {
+      "heading": "Performance of a contract — Art. 6(1)(b)",
+      "text": "Processing your booking data to arrange and fulfil your transfer, processing payment, sending booking confirmations, and providing driver contact details."
+    },
+    "legitimateInterest": {
+      "heading": "Legitimate interest — Art. 6(1)(f)",
+      "text": "Website analytics to improve our service, fraud prevention, and responding to your enquiries via the contact form."
+    },
+    "legalObligation": {
+      "heading": "Legal obligation — Art. 6(1)(c)",
+      "text": "Retaining booking and payment records as required by Czech tax and accounting regulations."
+    }
+  },
+  "section4": {
+    "title": "Third-Party Service Providers",
+    "intro": "We share personal data only with trusted service providers who process it on our behalf and under our instructions.",
+    "privacyPolicyLabel": "Privacy policy →",
+    "providers": [
+      {
+        "name": "Stripe",
+        "purpose": "Payment processing. Card data is sent directly to Stripe — PRESTIGO never stores your card number.",
+        "url": "https://stripe.com/privacy"
+      },
+      {
+        "name": "Google Analytics",
+        "purpose": "Anonymised website usage statistics to help us improve our service.",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Google Maps Platform",
+        "purpose": "Address autocomplete and route calculation.",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Supabase",
+        "purpose": "Secure database hosting for booking records (EU region).",
+        "url": "https://supabase.com/privacy"
+      },
+      {
+        "name": "Resend",
+        "purpose": "Transactional email delivery — booking confirmations and driver details.",
+        "url": "https://resend.com/legal/privacy-policy"
+      },
+      {
+        "name": "Vercel",
+        "purpose": "Website hosting and content delivery.",
+        "url": "https://vercel.com/legal/privacy-policy"
+      }
+    ]
+  },
+  "section5": {
+    "title": "International Data Transfers",
+    "text": "Your booking data is stored within the European Union (Supabase EU region). Some of our service providers — including Google, Stripe, Resend, and Vercel — may process data in the United States. These transfers are protected by the EU–US Data Privacy Framework and, where applicable, Standard Contractual Clauses approved by the European Commission."
+  },
+  "section6": {
+    "title": "Data Retention",
+    "items": [
+      {
+        "type": "Booking records",
+        "period": "5 years from the date of the transfer, as required by Czech tax and accounting regulations."
+      },
+      {
+        "type": "Contact form submissions",
+        "period": "12 months after your enquiry has been resolved."
+      },
+      {
+        "type": "Analytics data",
+        "period": "26 months (Google Analytics default retention period)."
+      },
+      {
+        "type": "Payment records",
+        "period": "PRESTIGO stores only the transaction reference ID. Full payment data is retained by Stripe in accordance with their retention policy."
+      }
+    ]
+  },
+  "section7": {
+    "title": "Cookies",
+    "intro": "Our website uses a limited number of cookies:",
+    "cookies": [
+      {
+        "name": "_ga / _gid",
+        "purpose": "Google Analytics — anonymised usage statistics. Expire after 2 years / 24 hours respectively."
+      },
+      {
+        "name": "Essential cookies",
+        "purpose": "Session management only. Required for the website to function correctly."
+      }
+    ],
+    "outro": "We do not use advertising, remarketing, or social media tracking cookies."
+  },
+  "section8": {
+    "title": "Your Rights Under GDPR",
+    "intro": "Under the General Data Protection Regulation, you have the following rights:",
+    "rights": [
+      {
+        "right": "Right of access",
+        "article": "Art. 15",
+        "desc": "Obtain a copy of the personal data we hold about you."
+      },
+      {
+        "right": "Right to rectification",
+        "article": "Art. 16",
+        "desc": "Request correction of inaccurate or incomplete data."
+      },
+      {
+        "right": "Right to erasure",
+        "article": "Art. 17",
+        "desc": "Request deletion of your personal data (\"right to be forgotten\")."
+      },
+      {
+        "right": "Right to restriction",
+        "article": "Art. 18",
+        "desc": "Request that we limit the processing of your data."
+      },
+      {
+        "right": "Right to data portability",
+        "article": "Art. 20",
+        "desc": "Receive your data in a structured, machine-readable format."
+      },
+      {
+        "right": "Right to object",
+        "article": "Art. 21",
+        "desc": "Object to processing based on legitimate interest."
+      },
+      {
+        "right": "Right to withdraw consent",
+        "article": "Art. 7(3)",
+        "desc": "Withdraw consent at any time, without affecting prior processing."
+      }
+    ],
+    "outroPrefix": "To exercise any of these rights, email ",
+    "outroEmailLabel": "info@rideprestigo.com",
+    "outroSuffix": ". We will respond within 30 days."
+  },
+  "section9": {
+    "title": "Supervisory Authority",
+    "intro": "If you believe your data protection rights have been violated, you have the right to lodge a complaint with the Czech supervisory authority:",
+    "authorityName": "Úřad pro ochranu osobních údajű",
+    "authorityAddress": "Pplk. Sochora 27, 170 00 Prague 7, Czech Republic",
+    "authorityUrlLabel": "www.uoou.cz"
+  },
+  "section10": {
+    "title": "Changes to This Policy",
+    "text": "We may update this privacy policy from time to time. The “last updated” date at the top of this page reflects the most recent revision. Continued use of our services after any changes constitutes your acknowledgement of the updated policy."
+  },
+  "cta": {
+    "headingLine1": "Questions about your data?",
+    "headingItalic": "We are here to help.",
+    "buttonPrimary": "Email Us",
+    "buttonSecondary": "Contact Page"
+  }
+}

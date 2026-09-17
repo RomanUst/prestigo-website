@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import createMDX from '@next/mdx';
+import createNextIntlPlugin from 'next-intl/plugin';
 
 // Turbopack requires serializable MDX options — remark plugins must be
 // referenced by package name string, not by imported function.
@@ -8,6 +9,10 @@ const withMDX = createMDX({
     remarkPlugins: [['remark-frontmatter', ['yaml']]],
   },
 });
+
+// Composes next-intl's request-config resolution into the Next.js build.
+// See i18n/request.ts (Phase 68 stub — messages: {} until Phase 69).
+const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 
 const nextConfig: NextConfig = {
   pageExtensions: ['js', 'jsx', 'ts', 'tsx', 'md', 'mdx'],
@@ -148,4 +153,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withMDX(nextConfig);
+export default withNextIntl(withMDX(nextConfig));

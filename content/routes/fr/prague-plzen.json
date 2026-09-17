@@ -1,0 +1,224 @@
+{
+  "hero": {
+    "label": "Prague → Pilsen",
+    "headlineLine1": "De Prague à Pilsen,",
+    "headlineItalic": "la capitale de la brasserie.",
+    "intro": "90 km vers l'ouest par la D5. Berceau de la Pilsner Urquell, capitale industrielle de la Bohême occidentale, et une place de la République qui invite à savourer un café sans hâte. Une heure, un véhicule, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Pilsen couvre 90 km par l'autoroute D5 et demande environ 1 heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient le trafic ou le temps d'attente à destination. Les arrêts en route — Beroun, Rokycany ou une visite de la brasserie Pilsner Urquell — sont possibles au tarif fixe lorsqu'ils sont organisés à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à vous solliciter en cas de retard.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne varie pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Pilsen",
+    "headingItalic": "en une heure.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers l'ouest. La route passe devant Beroun, traverse le tunnel de Valík sur le périphérique au sud de Pilsen, puis vous dépose en ville par la sortie la plus proche de votre destination. L'itinéraire se déroule entièrement en République tchèque : ce transfert ne comporte aucun passage de frontière. La même D5 se prolonge au-delà de Pilsen jusqu'à la frontière allemande à Rozvadov/Waidhaus, mais uniquement si vous prolongez la réservation vers l'ouest, en Bavière.",
+      "La distance totale est d'environ 90 kilomètres. Le temps de conduite est d'une heure en conditions normales. Comptez 10 à 15 minutes de plus le vendredi en fin d'après-midi, à la sortie de Prague, lorsque la D5 en direction de l'ouest se remplit de voyageurs du week-end partant vers le triangle thermal et la Bavière.",
+      "La D5 est entièrement achevée entre Prague et la frontière allemande depuis 2006, et elle demeure l'un des parcours autoroutiers les plus fluides de Tchéquie. Votre chauffeur vérifie néanmoins le trafic avant chaque départ. En cas de fermeture près de Beroun ou de travaux sur le périphérique de Pilsen, il modifie l'itinéraire sans avoir à demander. Vous ne payez pas le trafic ; vous payez le temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Pilsen. La voiture, le chauffeur, le carburant, la vignette tchèque. Visite de brasserie, réunion d'affaires chez Škoda ou après-midi tranquille sur la place de la République — votre chauffeur s'occupe de la route pendant que vous vous consacrez à votre journée.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, et non sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé conjointement, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Business",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Executive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Business",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Pilsen,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt à Beroun, une pause en bord de route ou n'importe où sur la D5. Votre programme, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Pilsen",
+      "note": "Dépose à toute adresse de Pilsen, à l'entrée de la brasserie Pilsner Urquell ou sur la place de la République.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun passage de frontière — entièrement en République tchèque."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque incluse dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Prolongation d'itinéraire",
+      "value": "Pilsen se trouve sur la D5 vers Nuremberg et Munich. Prestigo peut prolonger votre trajet au-delà de Pilsen dans une seule réservation."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueille devant votre adresse de prise en charge — centre de Prague, Vieille Ville, Vinohrady ou hall des arrivées de l'aéroport Václav Havel. À l'aéroport, il se tient à l'intérieur du terminal avec une tablette Prestigo affichant votre nom. Pas sur un parking éloigné, pas en attente d'un appel téléphonique.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour une heure d'appels ou de repos, le chauffeur le comprendra et vous laissera tranquille. Si vous voulez des repères sur Pilsen — la fondation en 1842 de la brasserie qui a donné son nom à la bière blonde, les usines Škoda Transportation qui expédient encore tramways et locomotives dans toute l'Europe, le passage de la ville comme Capitale européenne de la culture en 2015, son rôle de porte d'entrée occidentale vers la Bavière —, votre chauffeur les connaît.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une température particulière à l'arrière, dites-le. Si vous voulez vous arrêter à l'aire de repos de Rozvadov, plus loin sur la D5, dans le cadre d'une extension vers la Bavière, ou simplement faire une pause café avant Pilsen, cela fait partie du tarif."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Pilsen.",
+    "items": [
+      {
+        "title": "Tarif fixe, sans surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, vignette tchèque, temps du chauffeur, attente devant la brasserie. Rien n'est ajouté à l'arrivée."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé pour l'ensemble du réseau de Bohême."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si vous souhaitez associer la visite de la brasserie à un arrêt à Karlovy Vary le même jour, c'est inclus. Si le concierge de votre hôtel modifie l'heure de prise en charge, le chauffeur s'adapte sans un appel téléphonique."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Pilsen ?",
+      "a": "Environ 1 heure de porte à porte par l'autoroute D5. La D5 est un axe direct et entièrement achevé vers l'ouest depuis Prague. Le trafic à la sortie de Prague aux heures de pointe en semaine peut ajouter 10 à 15 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Pilsen ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, tous les péages, la vignette tchèque et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour le jour même avec un arrêt à la brasserie Pilsner Urquell ?",
+      "a": "Oui. La plupart des réservations vers Pilsen sont des allers-retours dans la journée organisés autour de la visite Pilsner Urquell. Votre chauffeur attend sur place pendant que vous visitez la brasserie et les caves. Réservez les deux trajets ensemble pour bénéficier de 10 % de remise sur le retour. Si vous souhaitez que le chauffeur vous accompagne dans vos déplacements en ville, ajoutez une mise à disposition horaire."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière sur cet itinéraire ?",
+      "a": "Non. Pilsen se trouve en République tchèque — tout le trajet de Prague à Pilsen reste en Tchéquie. Aucun passeport, aucune vignette hormis la tchèque, aucun contrôle. La D5 se prolonge bien vers l'ouest jusqu'à la frontière allemande à Rozvadov/Waidhaus, mais uniquement si vous prolongez l'itinéraire vers Nuremberg ou Munich."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et réhausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Quelles langues parle le chauffeur ?",
+      "a": "Chaque chauffeur Prestigo parle couramment le tchèque et l'anglais, en standard. L'allemand est disponible sur demande, sans supplément — utile si vous associez Pilsen à une prolongation vers la Bavière."
+    }
+  ],
+  "relatedRoutesIntro": "Pilsen se situe au cœur du corridor occidental au départ de Prague. De nombreux clients associent la visite de la brasserie à une étape thermale à Karlovy Vary, à un après-midi baroque à Český Krumlov ou à une prolongation vers la Bavière. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "la Bohême occidentale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-karlovy-vary",
+      "city": "Karlovy Vary",
+      "distance": "130 km",
+      "duration": "1h30"
+    },
+    {
+      "slug": "prague-marianske-lazne",
+      "city": "Mariánské Lázně",
+      "distance": "160 km",
+      "duration": "1h45"
+    },
+    {
+      "slug": "prague-nuremberg",
+      "city": "Nuremberg",
+      "distance": "360 km",
+      "duration": "4h"
+    },
+    {
+      "slug": "prague-cesky-krumlov",
+      "city": "Český Krumlov",
+      "distance": "170 km",
+      "duration": "2h15"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~90 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~1 heure"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Business",
+        "Première Classe",
+        "Van Business"
+      ]
+    },
+    {
+      "label": "À partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "Prague – Pilsen.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Pilsen — À partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Pilsen. 90 km sur la D5 en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la brasserie Pilsner Urquell.",
+    "ogTitle": "Transfert privé Prague – Pilsen — À partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Pilsen. 90 km sur la D5 en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la brasserie Pilsner Urquell."
+  }
+}

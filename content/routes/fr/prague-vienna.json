@@ -1,0 +1,252 @@
+{
+  "hero": {
+    "label": "Prague → Vienne",
+    "headlineLine1": "De Prague à Vienne,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Prague à Vienne avec chauffeur privé, c'est un transfert de porte à porte de 330 km par la D1 et l'A5, soit environ 3 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, tous péages et vignettes tchèque et autrichienne inclus. Prise en charge à n'importe quelle adresse de Prague, dépose partout dans Vienne."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Vienne couvre 330 km par les autoroutes D1 et D52, puis l'A5 jusqu'à Vienne, et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Les arrêts en route — Brno, Bratislava ou un domaine viticole de Moravie du Sud — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de ralentissement.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Vienne",
+    "headingItalic": "en trois heures et demie.",
+    "paragraphs": [
+      "Après une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers le sud-est, à travers les Hautes-Terres de Bohême-Moravie en direction de Brno. Passé Brno, l'itinéraire rejoint la D52 et descend tout droit à travers le vignoble de Moravie du Sud jusqu'à la frontière Schengen tchéco-autrichienne de Mikulov–Drasenhofen — le seul passage autoroutier entre les deux pays, invisible au sein de l'espace Schengen : aucun arrêt, aucun contrôle de documents.",
+      "Côté autrichien, la route devient l'A5 Nordautobahn et mène directement à la limite nord de Vienne, où elle rejoint le périphérique S1 avant de vous déposer à votre hôtel dans l'Innere Stadt ou à votre terminal de Vienne-Schwechat (VIE). La distance totale est d'environ 330 kilomètres. Le temps de conduite est de trois heures et demie en conditions normales. Comptez 20 à 30 minutes de plus aux heures de pointe du vendredi après-midi à la sortie de Prague.",
+      "Votre chauffeur surveille le trafic sur la D1 avant chaque départ. En cas de ralentissement lié à des travaux près de Brno — comme il en survient par intermittence depuis les récents élargissements —, il modifie l'itinéraire par Znojmo et l'ancien corridor E59 sans avoir à demander. Vous ne payez pas pour les embouteillages ; vous payez pour votre temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Vienne. La voiture, le chauffeur, le carburant, la vignette tchèque, la vignette autrichienne, chaque péage. Rendez-vous d'affaires, soirée à l'opéra ou long week-end dans la capitale des Habsbourg — votre chauffeur s'occupe de la route pendant que vous vous consacrez à la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages, la vignette autoroutière tchèque et la vignette autoroutière autrichienne. Rien n'est facturé en supplément.",
+    "Un service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et WiFi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet de retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville (voir les tarifs)."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Direction",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Vienne,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Brno (en option)",
+      "note": "Possible comme arrêt en route. Centre-ville de Brno ou aéroport de Brno–Tuřany.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Bratislava (en option)",
+      "note": "La capitale slovaque se situe à moins d'une heure de l'itinéraire. Arrêt pour des rendez-vous, une dépose à l'hôtel ou une correspondance.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Vous préférez un autre arrêt — un village, un point de vue, un restaurant ? Dites-le simplement à votre chauffeur. L'itinéraire est le vôtre.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Vienne",
+      "note": "Dépose à n'importe quelle adresse de Vienne, à l'aéroport international de Vienne (VIE) ou à la gare centrale de Vienne (Wien Hauptbahnhof).",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen tchéco-autrichienne à Mikulov–Drasenhofen. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent se munir de leurs documents de voyage."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque et vignette autoroutière autrichienne incluses dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Prolongation d'itinéraire",
+      "value": "Vienne est directement reliée à Bratislava, Budapest et Salzbourg. Prestigo peut prolonger votre transfert en une seule réservation."
+    }
+  ],
+  "dayTripLabel": "Excursions à la journée depuis Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Vienne représente une journée plus longue depuis Prague que Dresde, mais l'excursion Prague–Vienne est l'une des réservations Prestigo les plus demandées. Trois formules couvrent la plupart des demandes.",
+    "configurations": [
+      {
+        "title": "La journée Schönbrunn et Belvédère",
+        "body": "Prise en charge à 7h00, arrivée à Vienne à 10h30. Trois heures au château de Schönbrunn — les appartements d'apparat, la Gloriette, les jardins — puis un transfert à travers la ville pour deux heures au Belvédère supérieur et sa collection Klimt. Retour à Prague pour 21h00.",
+        "price": "Aller-retour à la journée — contactez-nous pour un devis."
+      },
+      {
+        "title": "L'Innere Stadt et la soirée à l'opéra",
+        "body": "Une prise en charge en fin de matinée, un déjeuner dans une Konditorei de la Stephansplatz, un après-midi à l'Albertina ou au Kunsthistorisches Museum, et un lever de rideau à 19h00 au Wiener Staatsoper. Votre chauffeur patiente pendant la représentation et vous ramène dans la nuit.",
+        "price": "Aller-retour avec soirée — contactez-nous pour un devis."
+      },
+      {
+        "title": "L'après-midi Naschmarkt et MuseumsQuartier",
+        "body": "Prise en charge à 8h00, arrivée à Vienne à 11h30. Une flânerie parmi les étals du Naschmarkt, un déjeuner en terrasse au marché aux puces du samedi, puis un après-midi tranquille au musée Leopold et au mumok, dans le MuseumsQuartier, avant le trajet de retour.",
+        "price": "Aller-retour à la journée — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Prix indicatifs fondés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec une remise de 10 % pour un retour le jour même, ou ajouter une mise à disposition horaire en ville (voir les tarifs) si vous souhaitez que le chauffeur vous accompagne dans vos déplacements urbains. Indiquez-nous votre programme et nous vous confirmons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueille devant votre adresse de prise en charge — pas sur un parking de l'autre côté de la rue, ni à un point de rendez-vous aéroportuaire situé à dix minutes de marche. Si vous êtes à l'aéroport Václav Havel de Prague, il se tient dans le hall des arrivées avec une tablette Prestigo affichant votre nom. Au retour depuis Vienne-Schwechat, il attend à la sortie du terminal convenue avant même que votre avion ne se pose.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour trois heures de travail ou de repos, le chauffeur comprendra le signal et vous laissera tranquille. Si vous souhaitez des repères sur Vienne — la cour des Habsbourg qui dirigeait un empire depuis la Hofburg, la culture musicale qui a donné Mozart et Mahler, la reconstruction d'après-guerre qui a sorti le Staatsoper des ruines —, votre chauffeur saura vous en parler.",
+    "Chargeur de téléphone, eau en bouteille et WiFi sont déjà à bord. Si vous avez oublié un adaptateur européen, demandez. Si vous souhaitez une température précise à l'arrière, dites-le. Et si vous voulez vous arrêter pour un café à l'aire de Devět Křížů, sur la D1 entre Velké Meziříčí et Brno, c'est inclus."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Prague à Vienne.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix que vous voyez est le prix que vous payez. Carburant, péages, vignettes tchèque et autrichienne, temps du chauffeur. Rien n'est ajouté à la dépose à Vienne."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est contrôlé, bilingue et formé aux déplacements internationaux vers l'Autriche et la Slovaquie."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si la D1 est fermée près de Brno, votre chauffeur passe par Znojmo sans avoir à demander. Si votre vol vers Vienne-Schwechat est retardé, la prise en charge est décalée sans le moindre appel. Vous n'avez pas à gérer le trajet — c'est notre métier."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Vienne ?",
+      "a": "Environ 3 heures 30 de porte à porte par l'autoroute D1 via Brno, puis la D52 jusqu'à la frontière de Mikulov–Drasenhofen, avant de rejoindre l'A5 autrichienne jusqu'à Vienne. Le trafic du vendredi après-midi à la sortie de Prague peut ajouter 20 à 30 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Vienne ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, tous les péages, les vignettes tchèque et autrichienne, ainsi que le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée de Prague à Vienne ?",
+      "a": "Oui. Vous pouvez réserver l'aller et le retour avec une remise de 10 % pour un retour le jour même. Si vous souhaitez que le chauffeur vous accompagne dans Vienne pendant la visite, ajoutez une mise à disposition horaire en ville à votre réservation. La plupart de nos clients réservent un aller-retour de 9 à 10 heures pour couvrir Schönbrunn, l'Innere Stadt et un déjeuner sur la Ringstraße."
+    },
+    {
+      "q": "Le passage de la frontière autrichienne se fait-il sans difficulté ?",
+      "a": "Les deux pays font partie de l'espace Schengen. Il n'y a aucun contrôle frontalier systématique à Mikulov–Drasenhofen. Tous les véhicules Prestigo disposent de la vignette autoroutière autrichienne et le chauffeur détient une licence de chauffeur internationale valable en Autriche."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et réhausseurs sont disponibles sans supplément. Merci d'indiquer l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il allemand ?",
+      "a": "Un chauffeur germanophone est disponible sur demande — utile pour les transmissions avec une conciergerie viennoise ou des rendez-vous d'affaires à l'arrivée. Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque en standard."
+    }
+  ],
+  "relatedRoutesIntro": "Vienne se trouve au cœur de l'ancien corridor des Habsbourg — Bratislava est à une heure à l'est, Budapest à deux heures au-delà, et Salzbourg s'étend vers l'ouest, en direction des Alpes. Beaucoup de clients associent le trajet vers Vienne à une autre capitale ou le prolongent en Slovaquie. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-bratislava",
+      "city": "Bratislava",
+      "distance": "330 km",
+      "duration": "3 h 30"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2 h 15"
+    },
+    {
+      "slug": "prague-budapest",
+      "city": "Budapest",
+      "distance": "530 km",
+      "duration": "5 h 30"
+    },
+    {
+      "slug": "prague-salzburg",
+      "city": "Salzbourg",
+      "distance": "385 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "330 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~3 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Vienne.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Vienne — à partir de {ePrice} €",
+    "description": "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de {ePrice} €, arrêts en route, horaires flexibles.",
+    "ogTitle": "Transfert privé avec chauffeur de Prague à Vienne — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de {ePrice} €, arrêts en route, horaires flexibles."
+  }
+}

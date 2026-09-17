@@ -1,0 +1,788 @@
+{
+  "Booking": {
+    "entryBar": {
+      "pickupLocationLabel": "LIEU DE PRISE EN CHARGE",
+      "pickupPlaceholder": "Saisissez l'adresse de prise en charge",
+      "pickupAriaLabel": "Lieu de prise en charge",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Saisissez la destination",
+      "destinationAriaLabel": "Destination",
+      "dateLabel": "DATE",
+      "timeLabel": "HEURE",
+      "timeAriaLabel": "Heure",
+      "chooseSlot": "Choisissez un créneau",
+      "flightNumberLabel": "NUMÉRO DE VOL (facultatif)",
+      "flightNumberPlaceholder": "ex. BA 256",
+      "flightNumberAriaLabel": "Numéro de vol",
+      "addReturnJourney": "Ajouter un trajet de retour",
+      "returnDateLabel": "DATE DE RETOUR",
+      "returnTimeLabel": "HEURE DE RETOUR",
+      "returnTimeAriaLabel": "Heure de retour",
+      "selectReturnTime": "Sélectionnez l'heure de retour",
+      "validationSummary": "Veuillez remplir tous les champs obligatoires avant de continuer.",
+      "viewVehicles": "Voir les véhicules"
+    },
+    "validation": {
+      "originRequired": "Le lieu de prise en charge est requis pour continuer.",
+      "destinationRequired": "La destination est requise pour continuer.",
+      "dateRequired": "La date est requise pour continuer.",
+      "timeRequired": "L'heure est requise pour continuer.",
+      "returnDateRequired": "La date de retour est requise pour un aller-retour.",
+      "returnTimeRequired": "L'heure de retour est requise pour un aller-retour.",
+      "returnAfterPickup": "Le retour doit être postérieur à la prise en charge.",
+      "firstNameRequired": "Le prénom est requis",
+      "lastNameRequired": "Le nom est requis",
+      "invalidEmail": "Saisissez une adresse e-mail valide",
+      "invalidPhone": "Saisissez un numéro de téléphone valide",
+      "invalidFlightFormat": "Format IATA invalide — ex. BA256 ou OK123",
+      "maxCharacters": "500 caractères maximum"
+    },
+    "step1": {
+      "pickupLabel": "LIEU DE PRISE EN CHARGE",
+      "pickupPlaceholder": "Saisissez l'adresse de prise en charge",
+      "pickupAria": "Lieu de prise en charge",
+      "swapAria": "Inverser le départ et la destination",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Saisissez la destination",
+      "destinationAria": "Destination",
+      "passengersLabel": "PASSAGERS",
+      "luggageLabel": "BAGAGES",
+      "continue": "Continuer",
+      "stopsIncomplete": "Veuillez compléter ou supprimer tous les arrêts intermédiaires."
+    },
+    "step2": {
+      "pickupDateLabel": "DATE DE PRISE EN CHARGE",
+      "leadTimeNotice": "Les réservations en ligne requièrent un préavis d'au moins {hours} heures. Pour les transferts urgents ou le jour même, écrivez-nous sur <wa>WhatsApp</wa>.",
+      "returnDateLabel": "DATE DE RETOUR",
+      "pickupTimeLabel": "HEURE DE PRISE EN CHARGE",
+      "hourLabel": "HEURE",
+      "minuteLabel": "MIN",
+      "hourAria": "Heure de prise en charge",
+      "minuteAria": "Minute de prise en charge",
+      "selectDatePrompt": "Sélectionnez une date de prise en charge pour continuer"
+    },
+    "step5": {
+      "firstNameLabel": "PRÉNOM",
+      "lastNameLabel": "NOM",
+      "emailLabel": "E-MAIL",
+      "phoneLabel": "TÉLÉPHONE",
+      "flightNumberLabel": "NUMÉRO DE VOL (FACULTATIF)",
+      "flightNumberPlaceholder": "ex. BA256",
+      "terminalLabel": "TERMINAL (FACULTATIF)",
+      "specialRequestsLabel": "DEMANDES PARTICULIÈRES",
+      "specialRequestsPlaceholder": "Toute exigence particulière concernant votre trajet",
+      "charCount": "{count}/500",
+      "statusScheduled": "PRÉVU",
+      "statusActive": "EN COURS",
+      "statusLanded": "ATTERRI",
+      "statusCancelled": "ANNULÉ",
+      "statusDiverted": "DÉTOURNÉ",
+      "statusUnknown": "INCONNU",
+      "checkFlight": "VÉRIFIER LE VOL",
+      "recheckFlight": "VÉRIFIER LE VOL À NOUVEAU",
+      "checking": "VÉRIFICATION…",
+      "checkFlightAria": "Vérifier le statut du vol",
+      "recheckFlightAria": "Vérifier à nouveau le statut du vol",
+      "checkingAria": "Vérification du statut du vol",
+      "arrival": "Arrivée : {time}",
+      "delayMinutes": "+{minutes} min de retard",
+      "noDelay": "Aucun retard",
+      "airportMismatch": "⚠ Aéroport non concordant : le vol arrive à {airport}, et non à PRG",
+      "flightNotFound": "⚠ Vol introuvable ou vérification indisponible — vous pouvez néanmoins poursuivre"
+    },
+    "step6": {
+      "promoCodeLabel": "CODE PROMO",
+      "promoPlaceholder": "Saisir le code",
+      "applyCode": "Appliquer le code",
+      "remove": "Supprimer",
+      "promoInvalid": "Code invalide.",
+      "promoGenericError": "Une erreur est survenue. Veuillez réessayer.",
+      "promoDiscount": "PROMO : −{percent} %",
+      "payInLabel": "PAYER EN",
+      "eurLabel": "EUR — €",
+      "czkLabel": "CZK — Kč",
+      "securePaymentLabel": "PAIEMENT SÉCURISÉ",
+      "loadingPayment": "Chargement du paiement…",
+      "loading": "Chargement…",
+      "payAmount": "PAYER {amount}",
+      "chauffeurTransfer": "Transfert avec chauffeur",
+      "paymentUnsuccessful": "Paiement refusé. {message}. Veuillez vérifier vos informations et réessayer.",
+      "paymentGenericError": "Une erreur est survenue. Les détails de votre réservation sont enregistrés — veuillez réessayer.",
+      "paymentFormLoadError": "Le formulaire de paiement n'a pas pu se charger. Veuillez actualiser la page et réessayer.",
+      "paymentInitFailed": "Échec de l'initialisation du paiement",
+      "networkError": "Erreur réseau — veuillez actualiser la page et réessayer"
+    },
+    "tripTypeTabs": {
+      "ariaLabel": "Type de trajet",
+      "items": [
+        "TRANSFERT",
+        "À L'HEURE",
+        "PLUSIEURS JOURS"
+      ]
+    },
+    "addressInput": {
+      "clearAddress": "Effacer l'adresse",
+      "airportAutoSet": "Défini automatiquement pour les transferts aéroport.",
+      "noResults": "Aucun résultat. Essayez une autre adresse.",
+      "typeAirport": "AÉROPORT",
+      "typeHotel": "HÔTEL",
+      "typeTrain": "TRAIN",
+      "typeTransit": "TRANSPORTS",
+      "typeAttraction": "SITE TOURISTIQUE"
+    },
+    "durationSelector": {
+      "label": "DURÉE",
+      "ariaLabel": "Durée",
+      "hourOption": "{hours} h"
+    },
+    "stopList": {
+      "addStop": "Ajouter un arrêt"
+    },
+    "stopItem": {
+      "stopLabel": "ARRÊT {number}",
+      "removeStop": "Supprimer l'arrêt",
+      "addressPlaceholder": "Saisir l'adresse de l'arrêt",
+      "addressAria": "Adresse de l'arrêt {number}",
+      "waitTimeLabel": "TEMPS D'ATTENTE",
+      "waitTimeAria": "Temps d'attente",
+      "noWait": "Sans attente",
+      "minutes": "{count} min"
+    },
+    "routeMap": {
+      "empty": "Itinéraire indisponible — vous pouvez néanmoins sélectionner une classe de véhicule.",
+      "aria": "Carte de l’itinéraire de {origin} à {destination}"
+    },
+    "progressBar": {
+      "aria": "Progression de la réservation : étape {step} sur 5"
+    },
+    "stepper": {
+      "decreaseAria": "Diminuer {label}",
+      "increaseAria": "Augmenter {label}"
+    },
+    "vehicleClasses": {
+      "business": {
+        "label": "Business"
+      },
+      "firstClass": {
+        "label": "First Class"
+      },
+      "businessVan": {
+        "label": "Business Van"
+      }
+    },
+    "vehicleSlideshow": {
+      "slideshowAria": "Diaporama de l’intérieur {className}",
+      "prevSlide": "Diapositive précédente",
+      "nextSlide": "Diapositive suivante",
+      "caption": "Intérieur {className}"
+    },
+    "stickyPanel": {
+      "pickUp": "Prise en charge",
+      "estDropoff": "Dépose est.",
+      "noClassSelected": "Aucune classe sélectionnée",
+      "outbound": "Aller",
+      "return": "Retour",
+      "combined": "Combiné",
+      "bothLegsIncluded": "Aller et retour · tous frais inclus",
+      "allFeesIncluded": "Tous frais inclus",
+      "selectClass": "SÉLECTIONNER {className}",
+      "selectAClass": "SÉLECTIONNER UNE CLASSE",
+      "selectClassAria": "Sélectionner la classe {className} — {price} €",
+      "srClassTrip": "{className} — transfert {tripType}"
+    },
+    "vehicleCard": {
+      "alt": "Prestigo {className}",
+      "oneWay": "{price} aller simple"
+    },
+    "step3vehicle": {
+      "heading": "Choisissez votre véhicule",
+      "pricingUnavailable": "Tarifs indisponibles. Votre sélection a été enregistrée — poursuivez pour demander un devis.",
+      "whatsIncluded": "Ce qui est inclus dans chaque trajet",
+      "from": "De",
+      "to": "À",
+      "date": "Date",
+      "time": "Heure",
+      "pickupLocationLabel": "LIEU DE PRISE EN CHARGE",
+      "pickupLocationPlaceholder": "Saisissez l’adresse de prise en charge",
+      "pickupLocationAria": "Lieu de prise en charge",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Saisissez la destination",
+      "destinationAria": "Destination",
+      "dateLabel": "DATE",
+      "timeLabel": "HEURE",
+      "returnDateLabel": "DATE DE RETOUR",
+      "returnTimeLabel": "HEURE DE RETOUR",
+      "returnTimeAria": "Heure de retour",
+      "selectReturnTime": "Sélectionnez l'heure de retour",
+      "addReturnJourney": "Ajouter un trajet de retour",
+      "returnAfterPickup": "Le retour doit être postérieur à la prise en charge",
+      "updateSearch": "Mettre à jour la recherche",
+      "cancel": "Annuler",
+      "included": {
+        "fixedPriceLabel": "Prix fixe",
+        "fixedPriceSub": "Garanti dès la réservation",
+        "phoneChargingLabel": "Recharge de téléphone",
+        "phoneChargingSub": "USB-A et USB-C dans chaque véhicule",
+        "freeWaitingLabel": "60 min d'attente offertes",
+        "freeWaitingSub": "Transferts aéroport inclus",
+        "wifiLabel": "Wi-Fi",
+        "wifiSub": "Offert à bord",
+        "waterLabel": "Eau à bord",
+        "waterSub": "Plate et pétillante",
+        "meetGreetLabel": "Accueil personnalisé",
+        "meetGreetSub": "Pancarte nominative à l'arrivée"
+      }
+    },
+    "extras": {
+      "meetAndGreet": {
+        "label": "Accueil personnalisé",
+        "description": "Chauffeur avec pancarte nominative à l'arrivée — toujours inclus"
+      },
+      "infantSeat": {
+        "label": "Siège bébé (0–9 kg)",
+        "description": "Coque dos à la route pour nouveau-nés et nourrissons"
+      },
+      "childSeat": {
+        "label": "Siège enfant (18–36 kg)",
+        "description": "Siège de sécurité face à la route pour tout-petits et enfants plus grands"
+      },
+      "boosterSeat": {
+        "label": "Rehausseur",
+        "description": "Coussin rehausseur pour les enfants ayant dépassé l'âge du siège enfant"
+      }
+    },
+    "step4extras": {
+      "free": "Offert"
+    },
+    "priceSummary": {
+      "yourJourney": "Votre trajet",
+      "hours": "{hours} heures",
+      "selectVehicle": "Sélectionnez un véhicule",
+      "requestQuote": "Demander un devis",
+      "outbound": "Aller",
+      "returnLeg": "Trajet de retour",
+      "combined": "Total combiné",
+      "selectClass": "SÉLECTIONNER {className}",
+      "selectAClass": "CHOISIR UNE CLASSE"
+    },
+    "summaryBlock": {
+      "outbound": "ALLER",
+      "return": "RETOUR",
+      "yourJourney": "VOTRE TRAJET",
+      "hours": "{hours} heures",
+      "dateTimeAt": "{date} à {time}",
+      "classPax": "{className} · {passengers, plural, one {# passager} other {# passagers}}",
+      "outboundLine": "Aller",
+      "returnLeg": "Trajet retour",
+      "subtotal": "Sous-total",
+      "promo": "Code promo {code}",
+      "final": "Total final"
+    },
+    "bookingWidget": {
+      "pickupLocationLabel": "LIEU DE PRISE EN CHARGE",
+      "pickupPlaceholder": "Adresse de prise en charge",
+      "pickupAria": "Adresse de prise en charge",
+      "destinationLabel": "DESTINATION",
+      "dropoffPlaceholder": "Adresse de dépose",
+      "dropoffAria": "Adresse de dépose",
+      "dateLabel": "DATE",
+      "pickupDateAria": "Date de prise en charge",
+      "selectDate": "Sélectionner une date",
+      "selectPickupDateAria": "Sélectionner la date de prise en charge",
+      "timeLabel": "HEURE",
+      "pickupTimeAria": "Heure de prise en charge",
+      "chooseSlot": "Choisir un créneau",
+      "fillRequired": "Veuillez renseigner tous les champs obligatoires avant de continuer.",
+      "viewVehicles": "VOIR LES VÉHICULES"
+    },
+    "bookingWizard": {
+      "back": "Retour",
+      "continue": "Continuer",
+      "stepOf": "ÉTAPE {step} SUR 6",
+      "planJourney": "Planifiez votre trajet",
+      "signIn": "Connectez-vous pour continuer",
+      "addExtras": "Ajouter des options",
+      "passengerDetails": "Coordonnées du passager",
+      "payment": "Paiement"
+    },
+    "multiDayForm": {
+      "startDateLabel": "Date de début",
+      "optionalSuffix": "(facultatif)",
+      "startDateAria": "Date de début",
+      "selectStartDateAria": "Sélectionner la date de début",
+      "selectDate": "Sélectionner une date",
+      "yourDetails": "Vos coordonnées",
+      "firstName": "Prénom",
+      "lastName": "Nom",
+      "email": "E-mail",
+      "phone": "Téléphone",
+      "specialRequests": "Demandes particulières",
+      "addDay": "+ Ajouter un jour",
+      "sending": "Envoi en cours…",
+      "requestQuote": "Demander un devis",
+      "thankYou": "Merci — votre demande nous est parvenue.",
+      "quoteReference": "Référence du devis :",
+      "reviewNotice": "Nous étudierons votre itinéraire et vous répondrons sous 24 heures.",
+      "addAtLeastOneDay": "Veuillez ajouter au moins un jour.",
+      "dayDepartureRequired": "Jour {day} : veuillez indiquer une adresse de départ.",
+      "dayDestinationRequired": "Jour {day} : veuillez indiquer une adresse de destination.",
+      "dayEmptyStop": "Jour {day} : veuillez compléter ou supprimer l’arrêt vide.",
+      "dayBaseCityRequired": "Jour {day} : veuillez indiquer une ville de référence.",
+      "firstNameRequired": "Le prénom est requis.",
+      "lastNameRequired": "Le nom est requis.",
+      "validEmailRequired": "Une adresse e-mail valide est requise.",
+      "validPhoneRequired": "Un numéro de téléphone valide est requis.",
+      "tooManyRequests": "Trop de demandes. Veuillez patienter une minute, puis réessayer.",
+      "submitError": "Nous n’avons pas pu transmettre votre demande. Veuillez vérifier vos informations et réessayer.",
+      "networkError": "Erreur de réseau. Veuillez vérifier votre connexion et réessayer."
+    },
+    "dayCard": {
+      "dayLabel": "Jour {day}",
+      "removeDayAria": "Supprimer le jour {day}",
+      "dateLabel": "Date",
+      "optionalSuffix": "(facultatif)",
+      "dateAria": "Date du jour {day}",
+      "selectDate": "Sélectionner une date",
+      "startTimeLabel": "Heure de départ",
+      "timeAria": "Heure du jour {day}",
+      "datePickerAria": "Sélecteur de date du jour {day}",
+      "timePickerAria": "Sélecteur d’heure du jour {day}",
+      "hourLabel": "HEURE",
+      "hourListAria": "Heures — jour {day}",
+      "minLabel": "MIN",
+      "minuteListAria": "Minutes — jour {day}",
+      "typeTablistAria": "Type du jour {day}",
+      "transferTab": "TRANSFERT",
+      "hourlyTab": "À L'HEURE",
+      "fromLabel": "Départ",
+      "pickupAddressPlaceholder": "Adresse de prise en charge",
+      "fromAria": "Adresse de départ du jour {day}",
+      "toLabel": "Arrivée",
+      "destinationAddressPlaceholder": "Adresse de destination",
+      "toAria": "Adresse de destination du jour {day}",
+      "pickupLocationLabel": "Lieu de prise en charge",
+      "pickupLocationAria": "Lieu de prise en charge du jour {day}",
+      "hoursLabel": "Heures",
+      "hoursAria": "Heures du jour {day}",
+      "hoursOption": "{count, plural, one {# heure} other {# heures}}"
+    }
+  },
+  "Nav": {
+    "items": [
+      "Services",
+      "Flotte",
+      "Itinéraires",
+      "Plusieurs jours",
+      "Entreprises",
+      "Contact"
+    ],
+    "new": "NOUVEAU",
+    "signIn": "Se connecter",
+    "accountMenu": "Menu du compte",
+    "myTrips": "Mes trajets",
+    "profile": "Profil",
+    "signOut": "Se déconnecter",
+    "bookNow": "Réserver",
+    "menu": "Menu",
+    "homeAriaLabel": "PRESTIGO — accueil"
+  },
+  "Hero": {
+    "label": "Prague · Chauffeur de prestige",
+    "headlineSuffix": "à Prague,",
+    "headlineItalic": "comme il se doit.",
+    "subhead1": "Votre chauffeur suit déjà votre vol.",
+    "subhead2": "Vous n'avez qu'à arriver.",
+    "bookRide": "Réserver un trajet",
+    "priceAnchor": "Transferts aéroport à partir de <price>{amount} €</price> — prix fixe, sans supplément",
+    "scroll": "Faire défiler",
+    "ratingAria": "Noté {rating} sur 5 d'après {count} avis Google",
+    "googleReviews": "Avis Google",
+    "words": [
+      "Service de chauffeur",
+      "Transfert aéroport",
+      "Chauffeur privé",
+      "Transport de luxe",
+      "Voyages d'affaires"
+    ],
+    "bookViaWhatsapp": "Réserver via WhatsApp",
+    "heroAlt": "Chauffeur au volant d'une Mercedes-Benz S-Class se dirigeant vers les toits de Prague au coucher du soleil"
+  },
+  "Footer": {
+    "ctaLabel": "Prêt à partir ?",
+    "ctaHeadlineLine1": "Réservez votre transfert.",
+    "ctaHeadlineLine2": "Nous nous occupons du reste.",
+    "bookNow": "Réserver",
+    "brandTagline1": "Service de chauffeur haut de gamme.",
+    "brandTagline2": "Prague et l'Europe centrale.",
+    "servicesHeading": "Services",
+    "services": [
+      "Transfert aéroport",
+      "Trajets interurbains",
+      "Location sur plusieurs jours",
+      "Comptes entreprise",
+      "VIP & événements",
+      "Transfert de groupe",
+      "À propos de PRESTIGO",
+      "FAQ"
+    ],
+    "routesHeading": "Trajets populaires",
+    "routes": [
+      "Prague → Vienne",
+      "Prague → Berlin",
+      "Prague → Munich",
+      "Prague → Budapest",
+      "Prague → Bratislava"
+    ],
+    "viewAllRoutes": "Voir tous les trajets →",
+    "blogHeading": "Blog",
+    "blog": [
+      "Aéroport de Prague → centre-ville",
+      "Taxi ou chauffeur privé à PRG",
+      "Prague–Vienne : transfert ou train"
+    ],
+    "viewAllPosts": "Voir tous les articles →",
+    "contactHeading": "Contact",
+    "whatsapp": "WhatsApp",
+    "availability": "Disponibilité 24 h/24, 7 j/7",
+    "copyright": "© {year} PRESTIGO. Tous droits réservés.",
+    "privacy": "Politique de confidentialité",
+    "terms": "Conditions",
+    "instagramAria": "Instagram",
+    "facebookAria": "Facebook",
+    "tagline": "Le prestige à chaque kilomètre.",
+    "new": "NOUVEAU"
+  },
+  "FeatureStrip": {
+    "sectionAria": "Pourquoi PRESTIGO",
+    "pillars": [
+      {
+        "title": "Chauffeurs professionnels",
+        "sub": "Anglophones et discrets"
+      },
+      {
+        "title": "Flotte Mercedes-Benz premium",
+        "sub": "E-Class, S-Class et V-Class, derniers modèles"
+      },
+      {
+        "title": "Prix fixes",
+        "sub": "Aucuns frais cachés, suivi des vols"
+      },
+      {
+        "title": "Assistance 24/7",
+        "sub": "Toujours à l'heure, chaque jour"
+      }
+    ]
+  },
+  "Services": {
+    "label": "Nos services",
+    "headingLine1": "Chaque trajet,",
+    "headingLine2": "pris en charge.",
+    "cards": [
+      {
+        "label": "Aéroport",
+        "title": "Transfert aéroport",
+        "body": "Aéroport Václav Havel de Prague. Suivi des vols, accueil personnalisé, prix fixe.",
+        "detail": "PRG · VIE · BER · MUC"
+      },
+      {
+        "label": "Interurbain",
+        "title": "Trajets interurbains",
+        "body": "De Prague à Vienne, Berlin, Munich, Budapest et au-delà. Le confort par-delà les frontières.",
+        "detail": "Trajets de 4 à 6 heures"
+      },
+      {
+        "label": "Entreprise",
+        "title": "Comptes entreprise",
+        "body": "Facturation mensuelle, gestionnaire de compte dédié, prise en charge prioritaire, reporting.",
+        "detail": "Tarifs dégressifs disponibles"
+      },
+      {
+        "label": "VIP",
+        "title": "VIP & événements",
+        "body": "Visites diplomatiques, événements privés, transferts vers les hôtels de luxe, coordination de plusieurs véhicules.",
+        "detail": "Sur demande"
+      },
+      {
+        "label": "Ville",
+        "title": "Location de voiture avec chauffeur",
+        "body": "Louez une voiture avec chauffeur privé à Prague, à l'heure. Réunions d'affaires, visites, théâtre — à votre rythme.",
+        "detail": "1 à 8 heures"
+      },
+      {
+        "label": "Concierge",
+        "title": "Chauffeur concierge",
+        "body": "Plus qu'un chauffeur — un concierge au volant. Réservations, connaissance du terrain, courses et liaison avec votre hôtel, pris en charge autour de chaque trajet.",
+        "detail": "Inclus à chaque trajet"
+      },
+      {
+        "label": "Groupe",
+        "title": "Transferts de groupe",
+        "body": "Monospace et coordination de plusieurs véhicules pour les groupes, les conférences et les voyages de motivation.",
+        "detail": "Jusqu'à 8 passagers"
+      },
+      {
+        "label": "Plusieurs jours",
+        "title": "Location sur plusieurs jours",
+        "body": "Un chauffeur dédié pour l'ensemble de votre séjour. Combinez transferts et journées à l'heure à travers l'Europe centrale.",
+        "detail": "Itinéraire personnalisé · Devis sous 24 h"
+      }
+    ],
+    "fromPrice": "À partir de {price} €",
+    "fromPriceHourly": "À partir de {price} €/h",
+    "learnMore": "En savoir plus",
+    "bookTransfer": "Réserver un transfert",
+    "new": "NOUVEAU"
+  },
+  "Fleet": {
+    "label": "La flotte",
+    "headingLine1": "Uniquement Mercedes-Benz.",
+    "headingLine2": "Toujours.",
+    "vehicles": [
+      {
+        "category": "Business",
+        "passengers": "3 pers.",
+        "bags": "2 bagages",
+        "features": [
+          "Intérieur cuir",
+          "Vitres teintées",
+          "Climatisation",
+          "Wi-Fi sur demande"
+        ],
+        "altTemplate": "{model} — service de chauffeur à Prague"
+      },
+      {
+        "category": "Première classe",
+        "passengers": "3 pers.",
+        "bags": "2 bagages",
+        "features": [
+          "Sièges arrière grand confort",
+          "Éclairage d'ambiance",
+          "Service champagne",
+          "Cloison de séparation"
+        ],
+        "altTemplate": "{model} — service de chauffeur à Prague"
+      },
+      {
+        "category": "Groupe",
+        "passengers": "6 pers.",
+        "bags": "6 bagages",
+        "features": [
+          "Sièges face à face",
+          "Espace bagages supplémentaire",
+          "Configuration conférence",
+          "Recharge USB"
+        ],
+        "altTemplate": "{model} — service de chauffeur à Prague"
+      }
+    ],
+    "seePricing": "Voir les tarifs →"
+  },
+  "HowItWorks": {
+    "label": "Comment cela fonctionne",
+    "headingLine1": "Trois étapes.",
+    "headingLine2": "Aucune surprise.",
+    "stepPrefix": "Étape",
+    "steps": [
+      {
+        "title": "Réservez en ligne",
+        "body": "Indiquez votre trajet et les détails de votre voyage. Recevez une confirmation immédiate avec un prix fixe — sans frais cachés.",
+        "photoAlt": "Réservation en ligne d'un chauffeur à Prague, la Mercedes-Benz attend déjà à l'extérieur"
+      },
+      {
+        "title": "Nous suivons votre vol",
+        "body": "Votre chauffeur suit votre vol en temps réel. Retards, arrivées anticipées — nous nous adaptons automatiquement.",
+        "photoAlt": "Chauffeur consultant le statut du vol en direct à côté de la Mercedes-Benz à l'aéroport de Prague"
+      },
+      {
+        "title": "Il ne vous reste qu'à arriver",
+        "body": "Votre chauffeur vous attend aux arrivées avec une pancarte à votre nom. Transfert direct vers votre destination.",
+        "photoAlt": "Chauffeur PRESTIGO attendant avec une pancarte nominative aux arrivées de l'aéroport de Prague"
+      }
+    ]
+  },
+  "Testimonials": {
+    "label": "Témoignages",
+    "headingLine1": "La confiance de ceux",
+    "headingLine2": "qui accordent de la valeur à leur temps.",
+    "body": "Publié avec autorisation. Les noms sont abrégés afin de préserver la confidentialité des passagers — un volet de notre politique de discrétion.",
+    "starsAria": "{stars} étoiles sur 5",
+    "googleReview": "Avis Google",
+    "carouselAria": "Témoignages",
+    "paginationAria": "Pagination des témoignages",
+    "goToSlide": "Aller à la diapositive {n}"
+  },
+  "CookieBanner": {
+    "wordmarkAria": "PRESTIGO",
+    "heading": "Bienvenue à bord.",
+    "consentBody": "Avant que votre trajet ne commence, un mot sur la confidentialité. Nous recourons à des technologies tierces pour assurer le parcours de réservation et affiner l'expérience. Vous pouvez révoquer ou modifier votre choix à tout moment. <privacy>Politique de confidentialité</privacy> · <terms>Mentions légales</terms>",
+    "tabCategories": "Catégories",
+    "tabServices": "Services",
+    "catEssential": "Essentiels",
+    "catAnalytics": "Analyse",
+    "catMarketing": "Marketing",
+    "catEssentialDesc": "Nécessaires à la réservation, aux paiements, à la prévention de la fraude et aux fonctionnalités fondamentales du site. Toujours actifs.",
+    "catAnalyticsDesc": "Google Analytics 4 — nous aide à comprendre comment les visiteurs utilisent le site afin de l'améliorer. Les données sont agrégées et anonymes.",
+    "catMarketingDesc": "Meta Pixel et le suivi des conversions Google Ads — mesurent la performance des annonces et nous permettent de vous présenter des offres pertinentes sur Instagram, Facebook et Google.",
+    "svcStripeDesc": "Traitement des paiements et prévention de la fraude.",
+    "svcSupabaseDesc": "Base de données des réservations, authentification et gestion des sessions.",
+    "svcMapsDesc": "Saisie semi-automatique des adresses et calcul de la distance de l'itinéraire.",
+    "svcGa4Desc": "Statistiques de fréquentation et analyse du comportement des utilisateurs. Consent Mode v2 — fonctionne de manière anonyme en cas de refus.",
+    "svcMetaDesc": "Suivi des conversions publicitaires sur Instagram et Facebook.",
+    "acceptAll": "Tout accepter",
+    "saveSettings": "Enregistrer les paramètres",
+    "moreInfo": "Plus d'informations",
+    "toggleEnabled": "Activé",
+    "toggleDisabled": "Désactivé"
+  },
+  "Errors": {
+    "genericRetry": "Une erreur est survenue. Veuillez réessayer.",
+    "rateLimited": "Trop de tentatives. Veuillez réessayer dans une minute.",
+    "notAuthenticated": "Non authentifié.",
+    "invalidCredentials": "Adresse e-mail ou mot de passe invalide.",
+    "couldNotSaveBooking": "Impossible d'enregistrer la réservation.",
+    "fullNameRequired": "Le nom complet est requis.",
+    "phoneRequired": "Le numéro de téléphone est requis.",
+    "duplicateDefaultPassenger": "Un autre passager par défaut existe déjà. Veuillez réessayer.",
+    "invalidAccountType": "Type de compte invalide."
+  },
+  "Auth": {
+    "login": {
+      "subtitle": "Mon compte",
+      "divider": "ou",
+      "tabSendLink": "Envoyer un lien",
+      "tabUsePassword": "Utiliser un mot de passe",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Mot de passe",
+      "sendLinkButton": "Envoyer le lien de connexion",
+      "checkEmailHeading": "Consultez votre messagerie",
+      "checkEmailBody": "Nous avons envoyé un lien de connexion à {email}. Ce lien expire dans 1 heure.",
+      "noAccountPrompt": "Vous n'avez pas de compte ?",
+      "createAccountLink": "Créer un compte",
+      "forgotPasswordLink": "Mot de passe oublié ?",
+      "signInButton": "Se connecter",
+      "accountTypeLabel": "Type de compte",
+      "personalOption": "Particulier",
+      "corporateOption": "Entreprise",
+      "companyNameLabel": "Nom de la société",
+      "createAccountButton": "Créer un compte",
+      "alreadyHaveAccountPrompt": "Vous avez déjà un compte ?",
+      "resetSentMessage": "Lien de réinitialisation envoyé. Consultez votre messagerie.",
+      "sendResetLinkButton": "Envoyer le lien de réinitialisation",
+      "backToSignIn": "Retour à la connexion"
+    },
+    "oauth": {
+      "googleLabel": "Se connecter avec Google",
+      "continueWithGoogle": "Continuer avec Google"
+    },
+    "inWizard": {
+      "sendCode": "Envoyer le code",
+      "verifyCode": "Vérifier le code",
+      "enterCodeLabel": "Saisir le code",
+      "codePlaceholder": "000000",
+      "useDifferentEmail": "Utiliser une autre adresse e-mail",
+      "backToVehicle": "← Retour à la sélection du véhicule",
+      "continueAsGuest": "Continuer en tant qu'invité",
+      "registerSuccess": "Compte créé. Consultez votre messagerie pour confirmer, puis connectez-vous.",
+      "codeSentTo": "Nous avons envoyé un code à 6 chiffres à <strong>{email}</strong>.",
+      "invalidCode": "Code invalide ou expiré. Veuillez réessayer.",
+      "registerError": "Impossible de créer le compte. {message}"
+    }
+  },
+  "Account": {
+    "dashboard": {
+      "heading": "Mon compte",
+      "signedInAs": "Connecté en tant que {email}",
+      "tripsLabel": "Mes trajets",
+      "tripsTitle": "L'historique de vos trajets",
+      "tripsBody": "Consultez toutes les réservations associées à votre compte.",
+      "tripsCta": "Voir les trajets",
+      "profileLabel": "Profil",
+      "profileTitle": "Informations du compte",
+      "profileBody": "Mettez à jour vos coordonnées et gérez vos passagers enregistrés.",
+      "profileCta": "Modifier le profil"
+    },
+    "trips": {
+      "heading": "Mes trajets",
+      "emptyHeading": "Aucun trajet pour le moment",
+      "emptyBody": "Vos transferts réservés apparaîtront ici. Prêt à voyager ?",
+      "emptyCta": "Réserver un transfert",
+      "statusLabels": {
+        "confirmed": "CONFIRMÉ",
+        "pending": "EN ATTENTE",
+        "completed": "TERMINÉ",
+        "cancelled": "ANNULÉ"
+      }
+    },
+    "profile": {
+      "heading": "Profil",
+      "contactDetails": "Coordonnées",
+      "fullName": "Nom complet",
+      "emailLabel": "E-mail",
+      "emailReadonlyNote": "L'adresse e-mail ne peut pas être modifiée ici.",
+      "phone": "Téléphone",
+      "accountType": "Type de compte",
+      "personal": "Particulier",
+      "corporate": "Entreprise",
+      "companyDetails": "Informations de la société",
+      "companyName": "Nom de la société",
+      "ico": "IČO (identifiant de la société)",
+      "vatId": "DIČ / numéro de TVA",
+      "saving": "Enregistrement…",
+      "saveChanges": "Enregistrer les modifications",
+      "changesSaved": "Modifications enregistrées.",
+      "savedPassengers": "Passagers enregistrés",
+      "noSavedPassengers": "Aucun passager enregistré pour le moment.",
+      "defaultBadge": "Par défaut",
+      "editPassengerAria": "Modifier {name}",
+      "deletePassengerAria": "Supprimer {name}",
+      "removeConfirm": "Supprimer <highlight>{name}</highlight> ? Cette action est irréversible.",
+      "delete": "Supprimer",
+      "cancel": "Annuler",
+      "addPassenger": "Ajouter un passager",
+      "emailOptional": "E-mail (facultatif)",
+      "notesOptional": "Remarques (facultatif)",
+      "setDefaultPassenger": "Définir comme passager par défaut",
+      "savePassenger": "Enregistrer le passager"
+    },
+    "resetPassword": {
+      "subtitle": "Nouveau mot de passe",
+      "successMessage": "Mot de passe mis à jour. Redirection vers votre compte...",
+      "verifying": "Vérification de votre lien de réinitialisation...",
+      "newPasswordLabel": "Nouveau mot de passe",
+      "updating": "Mise à jour...",
+      "updateButton": "Mettre à jour le mot de passe"
+    }
+  },
+  "RoutePage": {
+    "heroCtaPrimary": "Réserver cet itinéraire",
+    "heroCtaSecondary": "Poser une question",
+    "sectionLabels": {
+      "theRoute": "L'itinéraire",
+      "fleet": "Flotte",
+      "theJourney": "Le trajet",
+      "goodToKnow": "Bon à savoir",
+      "theChauffeur": "Le chauffeur",
+      "whyPrestigo": "Pourquoi Prestigo",
+      "relatedRoutes": "Itinéraires similaires"
+    },
+    "includedHeading": {
+      "line1": "Tout est inclus,",
+      "italic": "rien à organiser."
+    },
+    "chauffeurHeading": {
+      "line1": "Ce que vous pouvez attendre",
+      "italic": "de votre chauffeur."
+    },
+    "vehicleFields": {
+      "passengers": "Passagers",
+      "luggage": "Bagages",
+      "transferPrice": "Prix du transfert"
+    },
+    "chooseYourVehicle": "Choisissez votre véhicule",
+    "availableOnThisRoute": "Disponible sur cet itinéraire",
+    "ctaFootnote": "Aucune surprise. Aucun compteur. Votre chauffeur vous attend.",
+    "bookOnline": "Réserver en ligne",
+    "bookNow": "Réserver maintenant",
+    "allRoutes": "Tous les itinéraires"
+  }
+}

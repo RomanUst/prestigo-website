@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "title": "FAQ : tarifs et réservation d'un chauffeur à Prague",
+    "description": "Questions fréquentes sur PRESTIGO : réservation, tarifs, annulation, retards de vol, choix du véhicule, comptes entreprise et plus encore.",
+    "ogTitle": "FAQ — Service de chauffeur PRESTIGO à Prague | Tarifs, réservation et plus"
+  },
+  "hero": {
+    "label": "Questions fréquentes",
+    "headlineLine1": "Tout ce qu'il faut savoir.",
+    "headlineItalic": "Avant même de demander."
+  },
+  "sections": [
+    {
+      "title": "Réservation",
+      "faqs": [
+        {
+          "q": "Comment réserver un transfert PRESTIGO ?",
+          "a": "Réservez en ligne sur rideprestigo.com/book. Choisissez votre trajet, votre véhicule et votre date. La confirmation est immédiate — sans attendre d'être rappelé."
+        },
+        {
+          "q": "Combien de temps à l'avance dois-je réserver ?",
+          "a": "Les réservations doivent être effectuées au moins 12 heures à l'avance. Pour un transfert de dernière minute, appelez directement le +420 725 986 855."
+        },
+        {
+          "q": "Puis-je réserver pour une autre personne ?",
+          "a": "Oui. Indiquez le nom du passager lors de la commande. Votre chauffeur inscrira ce nom sur son panonceau à l'arrivée."
+        }
+      ]
+    },
+    {
+      "title": "Tarifs",
+      "faqs": [
+        {
+          "q": "Le tarif est-il fixe ?",
+          "a": "Oui. Le prix affiché à la réservation est celui que vous payez. Aucune majoration. Aucun péage caché. Aucun supplément, sauf à votre demande."
+        },
+        {
+          "q": "Les péages sont-ils inclus dans le tarif ?",
+          "a": "Oui. Tous les péages du trajet sont inclus. Aucun frais supplémentaire n'est appliqué à l'arrivée."
+        },
+        {
+          "q": "Facturez-vous un supplément pour l'attente à l'aéroport ?",
+          "a": "Non. 60 minutes d'attente gratuite sont incluses pour toute prise en charge à l'aéroport. Nous suivons votre vol en temps réel."
+        }
+      ]
+    },
+    {
+      "title": "Suivi des vols et retards",
+      "faqs": [
+        {
+          "q": "Que se passe-t-il si mon vol est retardé ?",
+          "a": "Votre chauffeur suit votre vol en temps réel. Un retard ne vous coûte rien de plus — votre chauffeur s'adapte automatiquement."
+        },
+        {
+          "q": "Et si mon vol est annulé ?",
+          "a": "Contactez-nous : nous reprogrammons votre transfert sans frais ou vous remboursons intégralement."
+        },
+        {
+          "q": "Comment vais-je trouver mon chauffeur à l'aéroport ?",
+          "a": "Votre chauffeur vous attendra à l'arrivée avec un panonceau à votre nom. Vous recevrez également son numéro de téléphone avant l'atterrissage."
+        }
+      ]
+    },
+    {
+      "title": "Annulation",
+      "faqs": [
+        {
+          "q": "Puis-je annuler ma réservation ?",
+          "a": "Oui. Annulation gratuite jusqu'à 1 heure avant l'heure de prise en charge prévue. Toute annulation ultérieure peut faire l'objet de frais."
+        },
+        {
+          "q": "Puis-je modifier l'heure de prise en charge ?",
+          "a": "Oui, à tout moment avant le trajet. Contactez directement votre chauffeur ou utilisez le portail de réservation."
+        }
+      ]
+    },
+    {
+      "title": "Véhicules",
+      "faqs": [
+        {
+          "q": "Quels véhicules utilisez-vous ?",
+          "a": "Tous les véhicules PRESTIGO sont des Mercedes-Benz de dernière génération : E-Class (berline), S-Class (berline de direction) et V-Class (van de direction). Tous sont intégralement assurés et entretenus selon les standards les plus exigeants."
+        },
+        {
+          "q": "Puis-je demander un véhicule en particulier ?",
+          "a": "Oui. Sélectionnez la catégorie de votre choix au moment de la réservation."
+        },
+        {
+          "q": "Y a-t-il du Wi-Fi à bord ?",
+          "a": "Oui, dans tous les véhicules. Votre chauffeur peut également vous fournir un chargeur de téléphone sur demande."
+        }
+      ]
+    },
+    {
+      "title": "Entreprises",
+      "faqs": [
+        {
+          "q": "Proposez-vous des comptes entreprise ?",
+          "a": "Oui. Les comptes entreprise comprennent une facturation mensuelle, un gestionnaire de compte dédié et une prise en charge prioritaire. Ouverture en 24 heures. Rendez-vous sur /corporate pour en savoir plus."
+        },
+        {
+          "q": "Puis-je payer avec une carte d'entreprise ?",
+          "a": "Oui. Nous acceptons Visa, Mastercard et le virement bancaire. Une facture est émise pour toute réservation entreprise."
+        }
+      ]
+    },
+    {
+      "title": "Enfants et demandes particulières",
+      "faqs": [
+        {
+          "q": "Disposez-vous de sièges enfant ?",
+          "a": "Oui. Les sièges enfant sont disponibles sur demande au moment de la réservation, sans frais supplémentaires."
+        },
+        {
+          "q": "Puis-je demander un chauffeur multilingue ?",
+          "a": "Tous nos chauffeurs parlent anglais. Des chauffeurs russophones, germanophones et tchécophones sont disponibles sur demande."
+        }
+      ]
+    }
+  ],
+  "cta": {
+    "headingLine1": "Une question sans réponse ?",
+    "headingItalic": "Nous vous répondons dans l'heure.",
+    "contactButton": "Nous contacter",
+    "bookButton": "Réserver un transfert",
+    "emailPrefix": "Ou écrivez-nous à"
+  }
+}

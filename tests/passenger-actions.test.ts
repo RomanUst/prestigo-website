@@ -10,6 +10,32 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import enMessages from '../messages/en.json'
+
+// ---------------------------------------------------------------------------
+// next-intl/server: force the real react-server build (Phase 70, Pattern E).
+//
+// The passenger actions now resolve error strings via
+// getTranslations({ namespace: 'Errors', locale }). Vitest has no RSC
+// "react-server" export condition, so redirect both `next-intl/server` and
+// `next-intl/config` (aliased to i18n/request.ts by createNextIntlPlugin in the
+// real build) to the real react-server impl + messages/en.json, exercising the
+// live Errors catalog end-to-end.
+// ---------------------------------------------------------------------------
+vi.mock('next-intl/server', async () => {
+  return await vi.importActual(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+})
+
+vi.mock('next-intl/config', async () => {
+  const { getRequestConfig } = await vi.importActual<typeof import('next-intl/server')>(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+  return {
+    default: getRequestConfig(async () => ({ locale: 'en', messages: enMessages })),
+  }
+})
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -68,7 +94,7 @@ vi.mock('next/cache', () => ({
 // ---------------------------------------------------------------------------
 // Import (does not exist yet → RED)
 // ---------------------------------------------------------------------------
-import { addPassenger, updatePassenger, deletePassenger } from '@/app/account/actions'
+import { addPassenger, updatePassenger, deletePassenger } from '@/app/[locale]/account/actions'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -140,7 +166,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
         phone: '+420 777 888 999',
       })
 
-      const result = await addPassenger(null, formData)
+      const result = await addPassenger('en', null, formData)
 
       expect(result).toEqual({ success: true })
       expect(mockFrom).toHaveBeenCalledWith('saved_passengers')
@@ -158,9 +184,24 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
 
       const formData = makeFormData({ full_name: 'Ghost', phone: '+1 000 000 000' })
 
-      const result = await addPassenger(null, formData)
+      const result = await addPassenger('en', null, formData)
 
+      // Errors round-trip: byte-identical to the prior literal AND sourced from
+      // the live Errors catalog (a future EN copy edit fails here, not silently).
       expect(result).toEqual({ error: 'Not authenticated.' })
+      expect(result.error).toBe(enMessages.Errors.notAuthenticated)
+      expect(mockInsert).not.toHaveBeenCalled()
+    })
+
+    it('returns the exact "Full name is required." string from the Errors catalog', async () => {
+      mockGetUser.mockResolvedValue(makeAuthenticatedUser('session-user-uuid'))
+
+      const formData = makeFormData({ full_name: '   ', phone: '+420 777 888 999' })
+
+      const result = await addPassenger('en', null, formData)
+
+      expect(result).toEqual({ error: 'Full name is required.' })
+      expect(result.error).toBe(enMessages.Errors.fullNameRequired)
       expect(mockInsert).not.toHaveBeenCalled()
     })
 
@@ -173,7 +214,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
         phone: '+1 555 000 000',
       })
 
-      await addPassenger(null, formData)
+      await addPassenger('en', null, formData)
 
       // Insert must use the session user_id, never the forged value
       const insertArg = mockInsert.mock.calls[0]?.[0] ?? {}
@@ -191,7 +232,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
 
       const formData = makeFormData({ id: 'passenger-row-uuid' })
 
-      await deletePassenger(null, formData)
+      await deletePassenger('en', null, formData)
 
       expect(mockFrom).toHaveBeenCalledWith('saved_passengers')
       expect(mockDelete).toHaveBeenCalled()
@@ -213,7 +254,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
 
       const formData = makeFormData({ id: 'passenger-row-uuid' })
 
-      const result = await deletePassenger(null, formData)
+      const result = await deletePassenger('en', null, formData)
 
       expect(result).toEqual({ error: 'Not authenticated.' })
       expect(mockDelete).not.toHaveBeenCalled()
@@ -228,7 +269,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
         user_id: 'victim-uuid',       // forged — must be ignored
       })
 
-      await deletePassenger(null, formData)
+      await deletePassenger('en', null, formData)
 
       // All user_id scopes in eq calls must be the session user id
       const eqCalls = mockEqDelete.mock.calls
@@ -255,7 +296,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
         evil_field: 'injected',
       })
 
-      await updatePassenger(null, formData)
+      await updatePassenger('en', null, formData)
 
       expect(mockFrom).toHaveBeenCalledWith('saved_passengers')
       const updateArg = mockUpdate.mock.calls[0]?.[0] ?? {}
@@ -278,7 +319,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
         phone: '+420 000 000 000',
       })
 
-      await updatePassenger(null, formData)
+      await updatePassenger('en', null, formData)
 
       const eqCalls = mockEqUpdate.mock.calls
       const hasIdScope = eqCalls.some(
@@ -296,7 +337,7 @@ describe('Passenger server actions — addPassenger, updatePassenger, deletePass
 
       const formData = makeFormData({ id: 'p-uuid', full_name: 'Ghost' })
 
-      const result = await updatePassenger(null, formData)
+      const result = await updatePassenger('en', null, formData)
 
       expect(result).toEqual({ error: 'Not authenticated.' })
       expect(mockUpdate).not.toHaveBeenCalled()

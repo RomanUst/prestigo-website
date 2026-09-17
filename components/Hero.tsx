@@ -1,3 +1,4 @@
+import { useTranslations } from 'next-intl'
 import HeroTypewriter from './HeroTypewriter'
 import HeroWhatsApp from './HeroWhatsApp'
 import HeroRating from './HeroRating'
@@ -9,6 +10,7 @@ type Props = {
 }
 
 export default function Hero({ airportPrice, rating }: Props) {
+  const t = useTranslations('Hero')
   return (
     <section className="relative min-h-dvh flex flex-col justify-start overflow-hidden">
 
@@ -46,7 +48,7 @@ export default function Hero({ airportPrice, rating }: Props) {
           <div>
             {/* Label */}
             <p className="label animate-on-load delay-100 mb-6">
-              Prague · Premium Chauffeur
+              {t('label')}
             </p>
 
             {/* Copper line */}
@@ -54,29 +56,32 @@ export default function Hero({ airportPrice, rating }: Props) {
 
             {/* Headline — H1 stays in server component so crawlers always see keyword text */}
             <h1 className="display text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-300 mb-2">
-              <HeroTypewriter /> in Prague,
+              <HeroTypewriter /> {t('headlineSuffix')}
             </h1>
             <p className="display display-italic text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-400 mb-10">
-              as it should be.
+              {t('headlineItalic')}
             </p>
 
             {/* Subhead */}
             <p className="body-text max-w-sm animate-on-load delay-500 mb-12">
-              Your chauffeur is already tracking your flight.<br />
-              You simply arrive.
+              {t('subhead1')}<br />
+              {t('subhead2')}
             </p>
 
             {/* CTAs — stacked underlined text links */}
             <div className="flex flex-col items-start gap-5 animate-on-load delay-600">
               <a href="#book" className="cta-text cta-text-primary">
-                Book a ride
+                {t('bookRide')}
               </a>
               <HeroWhatsApp />
             </div>
 
             {/* Price anchor */}
             <p className="animate-on-load delay-600 mt-5 font-body font-light text-[11px] tracking-[0.12em] uppercase" style={{ color: 'var(--warmgrey)' }}>
-              Airport transfers from <span style={{ color: 'var(--copper)' }}>€{airportPrice}</span> — fixed price, no surcharges
+              {t.rich('priceAnchor', {
+                amount: airportPrice,
+                price: (chunks) => <span style={{ color: 'var(--copper)' }}>{chunks}</span>,
+              })}
             </p>
 
             {/* Google rating — live trust signal next to the CTA */}
@@ -90,7 +95,7 @@ export default function Hero({ airportPrice, rating }: Props) {
         {/* Scroll hint — desktop/tablet only; hidden on mobile where it collides with stacked CTAs */}
         <div className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 flex-col items-center gap-2 animate-on-load delay-800">
           <span className="label" style={{ fontSize: '9px', color: 'var(--warmgrey)' }}>
-            Scroll
+            {t('scroll')}
           </span>
           <div className="w-px h-8 bg-gradient-to-b from-anthracite-light to-transparent" />
         </div>

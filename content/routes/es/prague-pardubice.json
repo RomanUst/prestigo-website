@@ -1,0 +1,224 @@
+{
+  "hero": {
+    "label": "Praga → Pardubice",
+    "headlineLine1": "De Praga a Pardubice,",
+    "headlineItalic": "directo a Bohemia Oriental.",
+    "intro": "110 km hacia el este por la D11 hasta la ciudad ecuestre de Bohemia Oriental. El Gran Steeplechase, la industria química y un casco antiguo bien conservado. Hora y media, un precio cerrado."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Pardubice recorre 110 km por la autopista D11 y dura aproximadamente 1,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Poděbrady o Kolín— están disponibles con la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "No es un servicio compartido. No es una aplicación de transporte. Un Mercedes privado, un chófer y una tarifa que no cambia entre Praga y Bohemia Oriental."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Pardubice",
+    "headingItalic": "en noventa minutos.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D11 en dirección este hacia Hradec Králové y después gira al sur por la carretera 37 para el último tramo hasta Pardubice. Según el tráfico y el punto exacto de destino, el chófer puede optar por la carretera 17 o la 36 — las tres opciones discurren por vías checas rápidas y bien señalizadas. No hay paso fronterizo. Ni viñeta extranjera. Ni control de pasaportes. Todo el trayecto transcurre dentro de la República Checa.",
+      "Pardubice es una ciudad que recompensa unas horas de paseo. El castillo renacentista de Pardubice (Zámek Pardubice), en pleno corazón de la ciudad, fue reconstruido en el siglo XVI por la familia noble de los Pernštejn y sigue siendo una de las residencias renacentistas más bellas de Bohemia. La plaza Pernštýnské, en la Ciudad Vieja, conserva sus casas porticadas y la esbelta torre de la Puerta Verde. El steeplechase Velká Pardubická —disputado por primera vez el 5 de noviembre de 1874 y considerado aún hoy una de las carreras de caballos a campo través más antiguas y exigentes de Europa— atrae la atención internacional sobre el hipódromo cada mes de octubre. La ciudad también es famosa por su pan de especias (perník), una tradición de siglos, y por el legado de la industria química Semtex, situada en el extremo oriental de la ciudad.",
+      "Su chófer vigila el tráfico de la D11 antes de cada salida. Los viernes por la tarde la salida de Praga puede sumar entre 10 y 15 minutos, y el tráfico de la semana de carreras en torno al hipódromo de Pardubice se prevé con antelación. Usted no paga el tráfico; paga el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Pardubice. El coche, el chófer, el combustible, la viñeta. Ya sea una reunión de negocios, una jornada en el hipódromo o un paseo por la Ciudad Vieja, su chófer se ocupa de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro — E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional — con dominio del inglés y del checo, formado para viajes de negocios y eventos por toda Bohemia.",
+    "Combustible, viñeta de autopista checa y todos los peajes. No se cobra nada por encima de la tarifa indicada.",
+    "Servicio puerta a puerta — recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida — 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición — capazo a contramarcha, silla infantil a favor de la marcha o elevador. Sin coste adicional.",
+    "Regreso el mismo día — 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler urbano por horas."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Pardubice,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "Una parada en la ciudad balneario de Poděbrady o en cualquier punto de la D11. Su ruta, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Pardubice",
+      "note": "Llegada a cualquier dirección de Pardubice, al hipódromo o al centro de la Ciudad Vieja.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso fronterizo",
+      "value": "Sin paso fronterizo — íntegramente dentro de la República Checa."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa incluida en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos juntos y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Ciudades hermanas",
+      "value": "Hradec Králové es la ciudad hermana natural de Pardubice, a 25 minutos al norte. Prestigo puede cubrir ambas ciudades en una sola reserva."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará frente a la dirección de recogida — no en un aparcamiento al otro lado de la calle, ni en un punto de encuentro a diez minutos a pie. Si se encuentra en el aeropuerto Václav Havel o en el centro de Praga, ya estará allí con una tablet Prestigo mostrando su nombre antes de que usted salga.",
+    "La conversación es opcional. Si prefiere una cabina silenciosa para noventa minutos de trabajo o descanso, el chófer captará la señal y le dejará tranquilo. Y si desea contexto sobre Pardubice — la familia noble renacentista de los Pernštejn que reconstruyó el castillo, el steeplechase Velká Pardubická desde 1874 y por qué su obstáculo del Foso Taxis inspira tanto respeto, la tradición del pan de especias (perník) que dio a la ciudad su fama dulce, o por qué a Pardubice se la llama a menudo la gemela industrial de Bohemia Oriental de la vecina Hradec Králové —, su chófer lo sabe.",
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si necesita una temperatura concreta en la parte trasera, dígalo. Y si desea parar en alguna de las auténticas áreas de descanso de la D11 — las de Sadská o Chýšť son la pausa habitual a mitad de camino — para tomar un café o estirar las piernas, está incluido en la tarifa."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Pardubice.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, tiempo del chófer. Nada añadido a la llegada, ningún taxímetro en marcha por la D11."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes cuentan con antecedentes verificados, son bilingües y están formados para viajes de negocios y eventos por Bohemia."
+      },
+      {
+        "title": "Servicio anticipatorio",
+        "body": "Para las recogidas del día de carreras de la Velká Pardubická en octubre, el chófer conoce las limitaciones de aparcamiento en torno al hipódromo. Y si desea combinar Pardubice con Hradec Králové (a 25 minutos) el mismo día, está incluido."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Pardubice?",
+      "a": "Aproximadamente 1,5 horas puerta a puerta por la autopista D11 en dirección este desde Praga. La D11 es una de las autopistas checas más recientes, bien conservada y rápida fuera de las horas punta. Añada entre 10 y 15 minutos durante la hora punta del viernes por la tarde a la salida de Praga."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Pardubice?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, viñeta de autopista checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Pardubice?",
+      "a": "Sí. El regreso el mismo día tiene un 10 % de descuento. Si necesita que el chófer le acompañe durante la visita, añada el alquiler urbano por horas. Muchos clientes reservan una ida y vuelta de 5 o 6 horas para cubrir una reunión, una visita al hipódromo o un paseo por la Ciudad Vieja."
+    },
+    {
+      "q": "¿Hay algún paso fronterizo entre Praga y Pardubice?",
+      "a": "No. Ambas ciudades están en la República Checa. El trayecto discurre íntegramente por autopistas checas —la D11 hacia el este y después la carretera 37 hacia el sur— sin controles fronterizos ni necesidad de viñeta extranjera."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas infantiles a favor de la marcha y elevadores sin coste adicional. Indique la edad de su hijo en el momento de la reserva para instalar la silla adecuada antes de la recogida."
+    },
+    {
+      "q": "¿Qué idiomas habla el chófer?",
+      "a": "Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie. También puede solicitar alemán, francés o italiano sin cargo adicional — indique el idioma preferido al reservar."
+    }
+  ],
+  "relatedRoutesIntro": "Pardubice es la puerta de entrada a Bohemia Oriental. Muchos clientes la combinan con Hradec Králové, continúan hacia Olomouc y Brno, o suman un desvío a Kutná Hora. Todas las rutas de Prestigo tienen el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Bohemia y Moravia."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-hradec-kralove",
+      "city": "Hradec Králové",
+      "distance": "120 km",
+      "duration": "1 h 30 min"
+    },
+    {
+      "slug": "prague-kutna-hora",
+      "city": "Kutná Hora",
+      "distance": "80 km",
+      "duration": "1 h 10 min"
+    },
+    {
+      "slug": "prague-olomouc",
+      "city": "Olomouc",
+      "distance": "280 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2 h 15 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~110 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~1,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Pardubice.",
+    "headingItalic": "Desde {ePrice} €, precio cerrado."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Pardubice — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Pardubice. 110 km por la D11 en un Mercedes-Benz. Precio fijo desde {ePrice} €, Bohemia Oriental puerta a puerta.",
+    "ogTitle": "Traslado privado de Praga a Pardubice — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Pardubice. 110 km por la D11 en un Mercedes-Benz. Precio fijo desde {ePrice} €, Bohemia Oriental puerta a puerta."
+  }
+}

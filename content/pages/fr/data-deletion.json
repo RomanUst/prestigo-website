@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "title": "Suppression des données — PRESTIGO Chauffeur Privé Premium Prague",
+    "description": "Comment demander la suppression de vos données personnelles auprès de PRESTIGO. Instructions pour une demande d'effacement au titre du RGPD."
+  },
+  "hero": {
+    "label": "Suppression des données",
+    "headlineLine1": "Demandez la suppression de vos données.",
+    "headlineItalic": "Simple et transparent."
+  },
+  "requestReceived": {
+    "label": "Demande reçue",
+    "paragraph1": "Votre demande de suppression de données a été reçue et sera traitée dans un délai de 30 jours. Votre code de confirmation :",
+    "paragraph2Prefix": "Veuillez conserver ce code pour vos archives. Pour toute question, écrivez à ",
+    "paragraph2EmailLabel": "info@rideprestigo.com",
+    "paragraph2Suffix": " en mentionnant ce code."
+  },
+  "section1": {
+    "title": "Les données détenues par PRESTIGO",
+    "text": "Si vous avez réservé un transfert ou soumis une demande, nous conservons votre nom, votre adresse e-mail, votre numéro de téléphone et les détails de votre réservation. Nous traitons également des données analytiques anonymisées relatives au site web via Google Analytics et le Meta Pixel. Nous ne conservons pas votre identifiant d'utilisateur Facebook — le Meta Pixel transmet uniquement des données comportementales hachées à des fins de mesure publicitaire."
+  },
+  "section2": {
+    "title": "Comment demander la suppression",
+    "paragraph1Prefix": "Envoyez un e-mail à ",
+    "paragraph1EmailLabel": "info@rideprestigo.com",
+    "paragraph1Suffix": " avec pour objet « Demande de suppression de données ». Veuillez indiquer l'adresse e-mail associée à votre réservation ou à votre demande.",
+    "paragraph2": "Nous confirmerons la réception dans un délai de 3 jours ouvrés et procéderons à la suppression dans un délai de 30 jours, sauf si la loi nous oblige à conserver certains documents (par exemple les factures à des fins fiscales — conservées pendant 5 ans conformément au droit tchèque)."
+  },
+  "section3": {
+    "title": "Suppression via Facebook",
+    "paragraph1Prefix": "Si vous avez utilisé la connexion Facebook ou interagi avec PRESTIGO via Facebook et souhaitez retirer cet accès, vous pouvez le faire dans ",
+    "facebookLinkLabel": "Paramètres Facebook → Applications et sites web",
+    "paragraph1Suffix": ". Cette opération supprime l'accès de notre application à votre compte Facebook. Pour la suppression des données de réservation que nous pourrions détenir, veuillez également nous écrire comme indiqué ci-dessus."
+  },
+  "cta": {
+    "headingLine1": "Des questions sur vos données ?",
+    "headingItalic": "Nous sommes à votre disposition.",
+    "buttonPrimary": "Demander la suppression",
+    "buttonSecondary": "Politique de confidentialité"
+  }
+}

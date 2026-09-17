@@ -1,6 +1,7 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface StepperProps {
   label: string
@@ -11,6 +12,7 @@ interface StepperProps {
 }
 
 export default function Stepper({ label, value, min, max, onChange }: StepperProps) {
+  const t = useTranslations('Booking.stepper')
   const atMin = value <= min
   const atMax = value >= max
 
@@ -28,7 +30,7 @@ export default function Stepper({ label, value, min, max, onChange }: StepperPro
         <button
           type="button"
           onClick={() => onChange(Math.max(min, value - 1))}
-          aria-label={`Decrease ${label.toLowerCase()}`}
+          aria-label={t('decreaseAria', { label: label.toLowerCase() })}
           aria-disabled={atMin}
           style={{
             width: '44px',
@@ -63,7 +65,7 @@ export default function Stepper({ label, value, min, max, onChange }: StepperPro
         <button
           type="button"
           onClick={() => onChange(Math.min(max, value + 1))}
-          aria-label={`Increase ${label.toLowerCase()}`}
+          aria-label={t('increaseAria', { label: label.toLowerCase() })}
           aria-disabled={atMax}
           style={{
             width: '44px',

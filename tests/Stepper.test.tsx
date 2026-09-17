@@ -1,4 +1,10 @@
 import { describe, it } from 'vitest'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
+
+// Pattern F: this suite is still it.todo scaffolding — when these cases are
+// implemented they must mount Stepper (a next-intl consumer) via
+// renderWithIntl, not the bare render, or useTranslations will throw.
+void render
 
 describe('Stepper', () => {
   describe('STEP1-05: passengers stepper', () => {

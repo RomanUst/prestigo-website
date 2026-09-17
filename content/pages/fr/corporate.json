@@ -1,0 +1,134 @@
+{
+  "hero": {
+    "label": "Comptes entreprises",
+    "headlineLine1": "Comptes chauffeur pour entreprises.",
+    "headlineItalic": "Nous rendons tout limpide.",
+    "intro": "Les comptes entreprises PRESTIGO sont conçus pour les sociétés qui déplacent régulièrement des personnes et attendent que chaque détail soit pris en charge. Tarifs fixes, facturation mensuelle, gestionnaire de compte dédié et une flotte à la hauteur des exigences que votre organisation s'impose."
+  },
+  "benefits": [
+    {
+      "title": "Facturation mensuelle",
+      "body": "Une seule facture. Tous les trajets. Tous les services. Envoyée le premier de chaque mois, mise en forme pour votre service comptable, avec le détail complet des trajets."
+    },
+    {
+      "title": "Gestionnaire de compte",
+      "body": "Un interlocuteur unique qui connaît votre société, vos préférences et vos voyageurs. Joignable par téléphone, e-mail ou WhatsApp."
+    },
+    {
+      "title": "Attribution prioritaire",
+      "body": "Les comptes entreprises bénéficient d'une attribution prioritaire. Réservations le jour même, changements de dernière minute et transferts aéroport au petit matin — tout est pris en charge."
+    },
+    {
+      "title": "Tableau de bord de suivi",
+      "body": "Consultez l'ensemble des réservations, voyageurs, coûts et itinéraires en un seul endroit. Exportation possible à tout moment pour vos notes de frais."
+    }
+  ],
+  "builtForHeading": "Conçu pour…",
+  "builtFor": [
+    {
+      "title": "Les sociétés établies à Prague",
+      "body": "Qui transfèrent chaque jour dirigeants, clients et invités VIP depuis l'aéroport Václav Havel."
+    },
+    {
+      "title": "Les sociétés internationales",
+      "body": "Dont les collaborateurs se rendent régulièrement à Prague et qui ont besoin d'un partenaire de transport terrestre fiable et facilement réservable."
+    },
+    {
+      "title": "Les organisateurs d'événements et de congrès",
+      "body": "Qui coordonnent des déplacements de groupe à plusieurs véhicules pour des délégations et des voyages de motivation."
+    }
+  ],
+  "howItWorksHeading": "Comment cela fonctionne",
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Candidature",
+      "body": "Remplissez le formulaire ci-dessous. Nous ouvrons votre compte sous 24 heures."
+    },
+    {
+      "step": "02",
+      "title": "Réservation",
+      "body": "Vos équipes réservent en ligne ou auprès du gestionnaire de compte. Aucune validation trajet par trajet n'est nécessaire."
+    },
+    {
+      "step": "03",
+      "title": "Facturation",
+      "body": "Une facture mensuelle unique. Règlement par virement bancaire ou carte. Traitement des données pleinement conforme au RGPD."
+    }
+  ],
+  "whoUses": {
+    "label": "Qui utilise un compte entreprise PRESTIGO",
+    "headingLine1": "Conçu pour les maisons",
+    "headingItalic": "avec lesquelles Prague travaille.",
+    "paragraphs": [
+      "Nos clients entreprises sont les cabinets d'avocats, les sociétés de conseil, les maisons d'investissement, les ambassades, les employeurs internationaux et les agences événementielles qui font circuler des personnes à Prague chaque semaine. Un compte type peut réserver deux ou trois transferts aéroport le lundi matin, une demi-journée de roadshow pour un dirigeant de passage en milieu de semaine et un transfert vers un dîner le vendredi soir — le tout sans un seul appel téléphonique, sans chaîne de validation ni facture par trajet.",
+      "Les comptes entreprises absorbent également les imprévus qui consomment l'essentiel du temps des travel managers : un changement de dernière minute lorsqu'une réunion se prolonge, un second véhicule dépêché pour récupérer des arrivées tardives, une prise en charge privée à une résidence hors de la ville pour un membre du conseil d'administration de passage. Ces demandes sont adressées directement au gestionnaire de compte, qui tranche et envoie la confirmation avant même que le travel manager n'ait terminé de rédiger son e-mail.",
+      "Nous limitons volontairement le nombre de comptes afin que chaque client bénéficie du même niveau d'attention. PRESTIGO corporate n'est pas un programme de volume à niveaux de service différenciés — chaque compte est traité comme s'il était le plus important."
+    ]
+  },
+  "usagePatterns": {
+    "label": "Usages types",
+    "headingLine1": "À quoi ressemble une semaine",
+    "headingItalic": "sur un compte PRESTIGO.",
+    "items": [
+      {
+        "title": "Le roadshow à étapes multiples",
+        "body": "Un directeur général de passage atterrit à 08h10, est accueilli aux arrivées avec une pancarte à son nom, puis conduit à quatre réunions consécutives à travers Prague avant un départ à 17h00. Un chauffeur, un véhicule, un forfait demi-journée fixe. Le voyageur ne fait jamais la queue pour un taxi et ne consulte jamais une carte."
+      },
+      {
+        "title": "Le transfert aéroport avant l'aube",
+        "body": "Un associé senior sur le vol de 06h15 pour Londres doit être pris en charge à 04h20 à une adresse de Vinohrady, un mardi sous la neige. L'attribution prioritaire réserve la voiture la veille au soir, le chauffeur déneige le véhicule avant son arrivée, et le client est à la porte d'embarquement avant que la majeure partie de Prague ne soit réveillée."
+      },
+      {
+        "title": "Le V-Class du conseil d'administration",
+        "body": "Quatre administrateurs arrivant sur des vols différents en l'espace de quatre-vingt-dix minutes. Plutôt que quatre transferts en E-Class, le gestionnaire de compte réserve un seul V-Class qui circule dans le Terminal 1, récupère chaque passager à sa porte et conduit le groupe directement au lieu de la réunion, en Vieille Ville. Un forfait unique, une heure d'arrivée, une ligne de facture."
+      }
+    ]
+  },
+  "onboarding": {
+    "label": "Mise en place en 48 heures",
+    "headingLine1": "Du formulaire au premier trajet,",
+    "headingItalic": "en deux jours ouvrés.",
+    "paragraph": "Le formulaire de candidature ci-dessous prend environ trois minutes à compléter. Dans la même journée ouvrée, nous désignons votre gestionnaire de compte, rédigeons un contrat de service et vous l'adressons pour contresignature. Une fois signé, nous configurons votre compte dans notre système de dispatch, invitons vos voyageurs et effectuons une réservation test à titre gracieux, afin que votre premier trajet réel ne soit jamais le premier trajet. La plupart des comptes sont opérationnels et enregistrent des réservations dans les 48 heures suivant la première prise de contact."
+  },
+  "compliance": {
+    "label": "Conformité, assurance et facturation",
+    "headingLine1": "Une documentation prête",
+    "headingItalic": "pour votre service financier.",
+    "paragraph": "PRESTIGO est exploité par chelautotrans s.r.o. (numéro d'identification tchèque 05650801), opérateur tchèque pleinement licencié et assujetti à la TVA. Chaque facture est émise avec la TVA, le détail par trajet et une référence unique par réservation. Nous disposons d'une assurance responsabilité civile passagers professionnelle et d'une assurance tous risques pour l'ensemble des véhicules, et pouvons fournir les attestations sur demande à vos équipes sécurité ou achats. Les données des voyageurs sont traitées conformément au RGPD, avec une politique de conservation claire, et ne sont jamais communiquées à des tiers."
+  },
+  "faqHeading": {
+    "label": "Questions sur les comptes entreprises",
+    "heading": "Questions des services financiers, voyages et achats."
+  },
+  "faqs": [
+    {
+      "q": "Qu'est-ce qu'un compte chauffeur entreprise PRESTIGO ?",
+      "a": "Un compte entreprise PRESTIGO est une relation dédiée de facturation et de mise à disposition destinée aux sociétés qui recourent régulièrement au transport avec chauffeur à Prague. Plutôt que de régler chaque trajet par carte d'entreprise et de courir après les justificatifs pour les notes de frais, vos voyageurs réservent nominativement sur un compte central, chaque trajet est enregistré avec une référence unique, et l'ensemble est facturé une fois par mois sur un relevé consolidé unique détaillant chaque trajet. Un gestionnaire de compte dédié prend en charge les préférences de votre société, ses itinéraires récurrents et ses demandes exceptionnelles — modifications le jour même, réservations en dehors des heures ouvrées, exigences protocolaires — sans passer par le dispatch public. Les comptes sont créés en 48 heures environ : vous remplissez le formulaire de candidature, nous contresignons un bref contrat de service, configurons vos voyageurs dans notre système de dispatch, effectuons une réservation test gratuite, et vous êtes opérationnel. Aucuns frais d'ouverture, aucun montant minimum, aucun engagement de durée."
+    },
+    {
+      "q": "Qui utilise habituellement les comptes entreprises ?",
+      "a": "Nos clients entreprises sont les cabinets d'avocats, les sociétés de conseil, les maisons d'investissement, les ambassades, les employeurs internationaux, les agences événementielles et les entreprises tchèques familiales qui font circuler des personnes à Prague chaque semaine. Un compte type peut réserver deux ou trois transferts aéroport le lundi matin, une demi-journée de roadshow pour un dirigeant de passage en milieu de semaine et un transfert vers un dîner le vendredi soir. La taille des comptes va des cabinets de niche avec quatre ou cinq trajets par mois aux multinationales comptant plusieurs centaines de réservations. Nous maintenons volontairement un portefeuille restreint afin que chaque client bénéficie du même niveau d'attention, quel que soit son volume — il n'existe pas de modèle à paliers où les petits comptes attendraient plus longtemps. Si votre société réserve régulièrement des transferts aéroport ou des trajets interurbains pour des dirigeants, clients ou administrateurs de passage, un compte permet presque toujours d'économiser à la fois de l'argent et du temps administratif."
+    },
+    {
+      "q": "Comment fonctionnent la facturation mensuelle et le règlement ?",
+      "a": "Chaque trajet effectué sur un compte entreprise est enregistré au moment de la réservation avec un numéro de référence unique, la classe de véhicule, le nom du passager, l'itinéraire et toute mention facultative fournie par votre travel manager (centre de coûts, code projet, référence client). Le premier jour ouvré de chaque mois, notre service financier regroupe tous les trajets du mois écoulé sur une facture unique assujettie à la TVA, détaillée par trajet et, si vous le souhaitez, regroupée par centre de coûts, service ou voyageur. La facture est envoyée au format PDF à votre adresse comptabilité fournisseurs et est payable sous 30 jours par virement bancaire en EUR ou en CZK, ou par carte de crédit. Nous pouvons également mettre en place un prélèvement mensuel automatique par carte pour les sociétés qui le préfèrent. Pour les clients internationaux, nous émettons des factures avec autoliquidation de la TVA lorsque cela s'applique. Toute contestation ou tout ajustement est traité sans délai par votre gestionnaire de compte."
+    },
+    {
+      "q": "Plusieurs voyageurs peuvent-ils réserver sur un même compte sans identifiants individuels ?",
+      "a": "Oui. Les comptes entreprises reposent sur un modèle de voyageurs nominatifs et non sur un système d'identifiants par utilisateur. Votre travel manager (ou le gestionnaire de compte pour les structures plus modestes) ajoute au compte les voyageurs autorisés — généralement les associés, directeurs et assistants qui voyagent régulièrement — et chaque voyageur peut être réservé par lui-même, par un assistant ou par la cellule voyages centrale. Les réservations peuvent être effectuées en ligne sur le compte, par téléphone ou WhatsApp directement auprès du gestionnaire de compte, ou par e-mail avec une autorisation permanente enregistrée. Aucun mot de passe à gérer, aucun quota de réservation par voyageur et aucune chaîne de validation, sauf si votre politique interne l'exige. Pour les sociétés nécessitant des circuits de validation (par exemple l'accord d'un supérieur hiérarchique au-delà d'un certain montant), nous pouvons intégrer cette étape au processus de réservation — il suffit de nous communiquer la règle lors de la mise en place."
+    },
+    {
+      "q": "Qu'en est-il de l'assurance, du RGPD et de la conformité d'entreprise ?",
+      "a": "PRESTIGO est exploité par chelautotrans s.r.o. (numéro d'identification tchèque 05650801, assujetti à la TVA), opérateur tchèque de transport de personnes pleinement licencié, titulaire de la koncese commerciale requise pour l'activité de chauffeur. Chaque véhicule est couvert par une assurance responsabilité civile passagers professionnelle et une assurance tous risques souscrite auprès d'un assureur de l'Union européenne — nous pouvons fournir à l'avance attestations d'assurance, numéros de permis de conduire et immatriculations des véhicules pour toute réservation où vos équipes sécurité ou achats l'exigent. Les données des voyageurs sont traitées conformément au RGPD, avec une politique de conservation claire : les enregistrements de trajets sont conservés sept ans (droit comptable tchèque) et les coordonnées personnelles uniquement tant que le compte est actif, puis supprimées. Nous ne partageons aucune donnée avec des tiers, n'utilisons pas les données des voyageurs à des fins marketing et signons sans frais des accords de confidentialité réciproques pour les comptes qui le demandent. Les données sont hébergées sur une infrastructure située dans l'Union européenne."
+    },
+    {
+      "q": "Quel est le délai de mise en place habituel ?",
+      "a": "La plupart des comptes entreprises sont opérationnels et enregistrent des réservations dans les 48 heures suivant la première prise de contact. Le déroulement est le suivant : jour 0, vous complétez en trois minutes le formulaire de candidature sur /corporate en décrivant votre société, le volume mensuel attendu et vos éventuelles exigences particulières. Dans la même journée ouvrée, nous désignons un gestionnaire de compte et vous adressons un bref contrat de service pour contresignature (généralement deux pages — nos conditions standard accompagnées de vos mentions spécifiques). Jour 1, une fois le contrat signé, nous configurons votre compte dans le système de dispatch, invitons les voyageurs que vous avez indiqués et effectuons une réservation test à titre gracieux, afin que votre premier trajet réel ne soit jamais le premier trajet. Jour 2, vous effectuez votre première réservation réelle. Pour les sociétés aux exigences particulières — formats de facturation sur mesure, intégration à une plateforme de gestion des voyages existante ou configurations multi-entités — la mise en place peut prendre jusqu'à une semaine, et nous convenons du calendrier en amont."
+    }
+  ],
+  "testimonial": {
+    "quote": "« Trois directeurs généraux, deux aéroports, une seule facture. PRESTIGO a tout simplifié. »",
+    "attribution": "S. Novák · Associé senior · Prague"
+  }
+}

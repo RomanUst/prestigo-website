@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Praga → Dresde",
+    "headlineLine1": "De Praga a Dresde,",
+    "headlineItalic": "el barroco a orillas del Elba.",
+    "intro": "Dos horas puerta a puerta por la D8. Tarifa fija desde {ePrice} €. Su chófer ya le está esperando."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Dresde cubre 150 km por las autopistas D8 y A17 y dura aproximadamente 1,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, las viñetas de autopista checa y alemana, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Ústí nad Labem o el mirador del valle del Elba— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
+    "No es un servicio compartido. No es una aplicación de transporte. Un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Dresde",
+    "headingItalic": "en dos horas.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la autopista D8 hacia el norte pasando por Ústí nad Labem. El paso de la frontera checo-alemana en Schönwald resulta imperceptible dentro del espacio Schengen: sin paradas ni controles de documentos. Ya en Alemania, la vía se convierte en la A17 y desciende hacia Dresde a través de las colinas de Weißer Hirsch, hasta llegar a su hotel o punto de encuentro en el centro de Dresde.",
+      "La distancia total es de aproximadamente 150 kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Añada entre 15 y 20 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
+      "Su chófer consulta el tráfico de la D8 antes de cada salida. Si hay retenciones por obras cerca de Lovosice —como ha ocurrido de forma intermitente desde 2024—, modifica la ruta por la R63 sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Dresde. El coche, el chófer, el combustible, los peajes y la viñeta. Sea una visita de negocios, un día de museos o un fin de semana en Sajonia, su conductor se encarga de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán bajo petición.",
+    "Combustible, todos los peajes y la viñeta alemana. No se cobra nada aparte.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla para niños pequeños o alzador. Sin coste adicional.",
+    "Regreso en el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada el alquiler urbano por horas."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de último modelo, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Dresde,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, su oficina o el aeropuerto de Praga (PRG). El conductor espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Suiza Sajona (opcional)",
+      "note": "El mirador de Bastei o la fortaleza de Königstein junto al cañón del Elba, uno de los tramos más panorámicos de Europa Central.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "Una parada en un mirador, un pueblo o cualquier punto a lo largo de la D8. Su ruta, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Dresde",
+      "note": "Llegada a cualquier dirección de Dresde: su hotel, la Frauenkirche o el palacio Zwinger.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen checo-alemana en Hřensko/Bad Schandau. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar sus documentos de viaje."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa y peaje de autopista alemán incluidos en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos sentidos a la vez y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Continuación del viaje",
+      "value": "Dresde conecta directamente con Leipzig, Berlín y otras ciudades alemanas. Prestigo puede prolongar su traslado en una única reserva."
+    }
+  ],
+  "dayTripLabel": "Excursiones de un día desde Praga",
+  "dayTrip": {
+    "headingLine1": "Configuraciones habituales",
+    "headingItalic": "para excursiones de un día.",
+    "intro": "La mayoría de los clientes de Prestigo reservan la ruta Praga-Dresde como excursión de un día. Tres configuraciones cubren el noventa por ciento de las peticiones.",
+    "configurations": [
+      {
+        "title": "El día de galerías",
+        "body": "Recogida a las 8:30, llegada a Dresde a las 10:30. Cuatro horas en el Zwinger —Galería de los Maestros Antiguos, Colección de Porcelana, Mathematisch-Physikalischer Salon— con una parada para comer cerca de Neumarkt. Regreso a Praga hacia las 17:00.",
+        "price": "Paquete de ida y vuelta: contáctenos para un presupuesto"
+      },
+      {
+        "title": "El enlace con el crucero por el Elba",
+        "body": "Recogida a las 7:00 en Praga. Su chófer le lleva directamente al embarcadero de Terrassenufer para un crucero fluvial de Sächsische Dampfschiffahrt y después se reúne con usted en el muelle de regreso, en Pirna o Bad Schandau, para el viaje de vuelta.",
+        "price": "Paquete de ida y vuelta: contáctenos para un presupuesto"
+      },
+      {
+        "title": "La Frauenkirche y la Bóveda Verde",
+        "body": "Las entradas con hora asignada para la Bóveda Verde son limitadas: su chófer verifica con antelación la franja de llegada para que entre puntualmente. Después de la Bóveda, media hora en la Frauenkirche y cena en una terraza de Neumarkt antes del regreso.",
+        "price": "Paquete de ida y vuelta: contáctenos para un presupuesto"
+      }
+    ],
+    "footnote": "Precios indicativos basados en los escenarios anteriores. La tarifa final depende del tiempo realmente pasado en el destino. Puede reservar el viaje de ida y vuelta con un 10 % de descuento por regreso en el mismo día, o añadir el alquiler urbano por horas si necesita que el chófer se desplace con usted por la ciudad. Cuéntenos su plan y le confirmaremos un presupuesto en firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibirá delante de la dirección de recogida, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si se encuentra en el aeropuerto Václav Havel, estará dentro de la sala de llegadas con una tableta Prestigo que muestra su nombre.",
+    "La conversación es una elección. Si prefiere una cabina silenciosa para dos horas de trabajo o descanso, el chófer captará la señal y le dejará tranquilo. Si desea conocer el contexto de Dresde —la reconstrucción de la Frauenkirche a partir de los escombros de la guerra, la historia de la restitución de la Bóveda Verde—, su chófer la conoce.",
+    "El cargador de teléfono, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si desea una temperatura concreta en la cabina trasera, indíquelo. Si quiere parar a tomar un café en el área de descanso Kelti, a mitad de camino de la frontera, está incluido."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Dresde.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, peajes, la viñeta alemana y el tiempo del conductor. Nada añadido al llegar."
+      },
+      {
+        "title": "Flota propia, chóferes verificados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes han pasado una comprobación de antecedentes, son bilingües y están formados para viajes internacionales."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si la D8 está cortada, su chófer modifica la ruta sin preguntar. Si su vuelo a Praga se retrasa, la recogida se ajusta sin necesidad de una llamada. Usted no debería tener que gestionar el viaje: ese es nuestro trabajo."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Dresde?",
+      "a": "Aproximadamente 2 horas puerta a puerta por la autopista D8 pasando por Ústí nad Labem y por la A17 tras la frontera alemana. El tráfico en los alrededores de Praga en hora punta puede añadir entre 15 y 20 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Dresde?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, todos los peajes y el tiempo del conductor. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar un viaje de ida y vuelta en el mismo día de Praga a Dresde?",
+      "a": "Sí. Puede reservar el viaje de ida y vuelta con un 10 % de descuento por regreso en el mismo día. Si necesita que el chófer se desplace con usted por Dresde durante la visita, añada el alquiler urbano por horas a la reserva. La mayoría de los clientes reservan un viaje de ida y vuelta de 6 a 8 horas para cubrir la Galería de los Maestros Antiguos, la Frauenkirche y una comida junto al Elba."
+    },
+    {
+      "q": "¿Cruzan la frontera alemana sin problemas?",
+      "a": "Ambos países se encuentran dentro del espacio Schengen. No hay controles fronterizos rutinarios. Todos los vehículos de Prestigo llevan la viñeta de peaje alemana y el chófer dispone de una licencia internacional de chófer válida y reconocida en Alemania."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas para niños pequeños orientadas hacia delante y alzadores sin coste adicional. Indique la edad de su hijo en el momento de la reserva para que se instale la silla correcta antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla alemán?",
+      "a": "Hay chóferes de habla alemana disponibles bajo petición. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de forma estándar."
+    }
+  ],
+  "relatedRoutesIntro": "Dresde es la gran ciudad alemana más cercana a Praga. Muchos clientes combinan el trayecto a Dresde con otras rutas o prolongan el viaje por Sajonia. Todas las rutas de Prestigo tienen el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-leipzig",
+      "city": "Leipzig",
+      "distance": "165 km",
+      "duration": "2 h 15 min"
+    },
+    {
+      "slug": "prague-berlin",
+      "city": "Berlín",
+      "distance": "350 km",
+      "duration": "3 h 45 min"
+    },
+    {
+      "slug": "prague-karlovy-vary",
+      "city": "Karlovy Vary",
+      "distance": "130 km",
+      "duration": "1 h 30 min"
+    },
+    {
+      "slug": "prague-nuremberg",
+      "city": "Núremberg",
+      "distance": "360 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~150 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~2 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Dresde.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Dresde: desde {ePrice} €",
+    "description": "Traslado privado con chófer de Praga a Dresde en Mercedes E/S/V-Class. Precio fijo desde {ePrice} €. 2 horas puerta a puerta por la D8. Regreso en el mismo día.",
+    "ogTitle": "Traslado privado con chófer de Praga a Dresde: desde {ePrice} €",
+    "ogDescription": "Mercedes privado con chófer de Praga a Dresde. Precio fijo desde {ePrice} €. 2 horas puerta a puerta por la D8."
+  }
+}

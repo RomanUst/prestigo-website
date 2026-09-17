@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import fs from 'node:fs'
 import path from 'node:path'
 import StopList from '@/components/booking/StopList'

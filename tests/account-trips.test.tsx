@@ -10,6 +10,33 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import enMessages from '../messages/en.json'
+
+// ---------------------------------------------------------------------------
+// next-intl/server: force the real react-server build (Phase 70, Pattern C).
+//
+// The trips page is a Server Component that now calls
+// `await getTranslations('Account.trips')` + `getTranslations('Booking.vehicleClasses')`.
+// Vitest has no RSC "react-server" export condition, so the plain
+// `next-intl/server` specifier resolves to a client stub that throws. Redirect
+// both `next-intl/server` and `next-intl/config` (aliased to i18n/request.ts by
+// createNextIntlPlugin in the real build) to the real react-server impl + the
+// real messages/en.json so getTranslations resolves against the live catalog.
+// ---------------------------------------------------------------------------
+vi.mock('next-intl/server', async () => {
+  return await vi.importActual(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+})
+
+vi.mock('next-intl/config', async () => {
+  const { getRequestConfig } = await vi.importActual<typeof import('next-intl/server')>(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+  return {
+    default: getRequestConfig(async () => ({ locale: 'en', messages: enMessages })),
+  }
+})
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -55,7 +82,7 @@ vi.mock('@/components/Nav', () => ({
 // ---------------------------------------------------------------------------
 // Import (does not exist yet — module resolution fails = RED)
 // ---------------------------------------------------------------------------
-import AccountTripsPage from '@/app/account/trips/page'
+import AccountTripsPage from '@/app/[locale]/account/trips/page'
 
 // ---------------------------------------------------------------------------
 // Test suite
@@ -90,7 +117,7 @@ describe('AccountTripsPage — empty state (ACCT-01)', () => {
   // -------------------------------------------------------------------------
   it('renders the empty state heading "No trips yet"', async () => {
     // Render the async server component by awaiting the JSX tree
-    const PageElement = await AccountTripsPage({})
+    const PageElement = await AccountTripsPage()
     const { render, screen } = await import('@testing-library/react')
     render(PageElement)
 
@@ -102,7 +129,7 @@ describe('AccountTripsPage — empty state (ACCT-01)', () => {
   // ACCT-01: Empty state body text
   // -------------------------------------------------------------------------
   it('renders the empty state body text about booked transfers', async () => {
-    const PageElement = await AccountTripsPage({})
+    const PageElement = await AccountTripsPage()
     const { render, screen } = await import('@testing-library/react')
     render(PageElement)
 
@@ -116,7 +143,7 @@ describe('AccountTripsPage — empty state (ACCT-01)', () => {
   // ACCT-01: "Book a transfer" CTA linking to /book
   // -------------------------------------------------------------------------
   it('renders a "Book a transfer" link with href="/book"', async () => {
-    const PageElement = await AccountTripsPage({})
+    const PageElement = await AccountTripsPage()
     const { render, screen } = await import('@testing-library/react')
     render(PageElement)
 

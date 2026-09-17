@@ -18,7 +18,7 @@ vi.mock('@/components/booking/RouteMap', () => ({
   default: () => null,
 }))
 
-import TripSheetPage, { metadata } from '@/app/driver/trip/[token]/page'
+import TripSheetPage, { metadata } from '@/app/(internal)/driver/trip/[token]/page'
 
 const validToken = 'a0000004-0000-4000-8000-000000000004'
 const driverId = 'a0000002-0000-4000-8000-000000000002'

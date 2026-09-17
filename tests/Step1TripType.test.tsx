@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import { useBookingStore } from '@/lib/booking-store'
 
 // Mock heavy dependencies to keep tests fast

@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "title": "Blog de chófer en Praga — Guías de aeropuerto, rutas y traslados",
+    "description": "Guías prácticas sobre traslados al aeropuerto de Praga, rutas interurbanas y servicios de chófer de lujo: tarifas verificadas para 2026 y conocimiento local de Prestigo."
+  },
+  "hero": {
+    "label": "Blog",
+    "headlineLine1": "Viajar por Praga,",
+    "headlineItalic": "explicado con claridad.",
+    "intro": "Guías prácticas redactadas a partir de datos reales de nuestra central. Cada tarifa, ruta y horario verificado para 2026."
+  },
+  "emptyState": {
+    "heading": "Aún no hay artículos.",
+    "body": "Estamos preparando guías detalladas sobre traslados y rutas en Praga. Vuelva pronto o reserve ya su traslado.",
+    "ctaLabel": "Reservar un traslado"
+  },
+  "cta": {
+    "headingLine1": "¿Listo para reservar?",
+    "headingItalic": "Precio fijo, puerta a puerta.",
+    "body": "Sin taxímetros. Sin sorpresas. Flota Mercedes y central operativa en Praga 24/7.",
+    "primaryLabel": "Reservar un traslado",
+    "secondaryLabel": "Ver la flota"
+  }
+}

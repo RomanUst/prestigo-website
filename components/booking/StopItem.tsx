@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { X } from 'lucide-react'
 import AddressInput from '@/components/booking/AddressInput'
 import type { Stop, PlaceResult } from '@/types/booking'
@@ -15,10 +16,11 @@ export interface StopItemProps {
 const WAIT_TIME_OPTIONS = [0, 15, 30, 45, 60, 75, 90, 105, 120] as const
 
 export default function StopItem({ stop, index, onRemove, onUpdate }: StopItemProps) {
+  const t = useTranslations('Booking.stopItem')
   // Wait time is display-only per STOP-01 — local state, NEVER sent to API or store.
   const [waitMinutes, setWaitMinutes] = useState<number>(0)
 
-  const label = `STOP ${index + 1}`
+  const label = t('stopLabel', { number: index + 1 })
 
   return (
     <div
@@ -50,7 +52,7 @@ export default function StopItem({ stop, index, onRemove, onUpdate }: StopItemPr
         <button
           type="button"
           onClick={() => onRemove(stop.id)}
-          aria-label="Remove stop"
+          aria-label={t('removeStop')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -71,11 +73,11 @@ export default function StopItem({ stop, index, onRemove, onUpdate }: StopItemPr
       {/* Address input — reuses Places Autocomplete */}
       <AddressInput
         label=""
-        placeholder="Enter stop address"
+        placeholder={t('addressPlaceholder')}
         value={stop.place}
         onSelect={(place) => onUpdate(stop.id, place)}
         onClear={() => onUpdate(stop.id, null)}
-        ariaLabel={`Stop ${index + 1} address`}
+        ariaLabel={t('addressAria', { number: index + 1 })}
       />
 
       {/* Wait time selector — LOCAL state only, does not affect price */}
@@ -94,11 +96,11 @@ export default function StopItem({ stop, index, onRemove, onUpdate }: StopItemPr
             textTransform: 'uppercase',
           }}
         >
-          WAIT TIME
+          {t('waitTimeLabel')}
         </label>
         <select
           id={`wait-time-${stop.id}`}
-          aria-label="Wait time"
+          aria-label={t('waitTimeAria')}
           value={waitMinutes}
           onChange={(e) => setWaitMinutes(Number(e.target.value))}
           style={{
@@ -121,7 +123,7 @@ export default function StopItem({ stop, index, onRemove, onUpdate }: StopItemPr
         >
           {WAIT_TIME_OPTIONS.map((m) => (
             <option key={m} value={m}>
-              {m === 0 ? 'No wait' : `${m} min`}
+              {m === 0 ? t('noWait') : t('minutes', { count: m })}
             </option>
           ))}
         </select>

@@ -28,8 +28,11 @@ const entry = (urlPath: string, sourceFile: string): SitemapEntry => {
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {
+  // sourceFile paths below point at app/[locale]/... (Phase 68 route-tree
+  // move) — lastModFor() resolves git history/mtime from these paths, so
+  // they must track the physical file location, not the public URL.
   const routeEntries: MetadataRoute.Sitemap = ROUTES.map((r) =>
-    entry(`/routes/${r.slug}`, `app/routes/${r.slug}/page.tsx`),
+    entry(`/routes/${r.slug}`, `app/[locale]/routes/${r.slug}/page.tsx`),
   )
 
   const mdxBlogEntries: MetadataRoute.Sitemap = getAllPosts()
@@ -37,31 +40,31 @@ export default function sitemap(): MetadataRoute.Sitemap {
     .map((p) => entry(`/blog/${p.slug}`, `content/blog/${p.slug}.mdx`))
 
   return [
-    entry('', 'app/page.tsx'),
-    entry('/book', 'app/book/page.tsx'),
-    entry('/book/multi-day', 'app/book/multi-day/page.tsx'),
-    entry('/services', 'app/services/page.tsx'),
-    entry('/services/airport-transfer', 'app/services/airport-transfer/page.tsx'),
+    entry('', 'app/[locale]/page.tsx'),
+    entry('/book', 'app/[locale]/book/page.tsx'),
+    entry('/book/multi-day', 'app/[locale]/book/multi-day/page.tsx'),
+    entry('/services', 'app/[locale]/services/page.tsx'),
+    entry('/services/airport-transfer', 'app/[locale]/services/airport-transfer/page.tsx'),
     // /services/intercity-routes intentionally excluded: it canonicalises to
     // /routes (see its metadata) to consolidate signals on the routes hub.
-    entry('/services/vip-events', 'app/services/vip-events/page.tsx'),
-    entry('/services/city-rides', 'app/services/city-rides/page.tsx'),
-    entry('/services/concierge', 'app/services/concierge/page.tsx'),
-    entry('/services/group-transfers', 'app/services/group-transfers/page.tsx'),
-    entry('/fleet', 'app/fleet/page.tsx'),
-    entry('/routes', 'app/routes/page.tsx'),
+    entry('/services/vip-events', 'app/[locale]/services/vip-events/page.tsx'),
+    entry('/services/city-rides', 'app/[locale]/services/city-rides/page.tsx'),
+    entry('/services/concierge', 'app/[locale]/services/concierge/page.tsx'),
+    entry('/services/group-transfers', 'app/[locale]/services/group-transfers/page.tsx'),
+    entry('/fleet', 'app/[locale]/fleet/page.tsx'),
+    entry('/routes', 'app/[locale]/routes/page.tsx'),
     ...routeEntries,
     // Blog hub + migrated JSX articles (Phase 56 MIG-04)
     // JSX_POSTS is the single source of truth — slugs are derived, not hardcoded.
-    entry('/blog', 'app/blog/page.tsx'),
-    ...JSX_POSTS.map((p) => entry(`/blog/${p.slug}`, `app/blog/${p.slug}/page.tsx`)),
+    entry('/blog', 'app/[locale]/blog/page.tsx'),
+    ...JSX_POSTS.map((p) => entry(`/blog/${p.slug}`, `app/[locale]/blog/${p.slug}/page.tsx`)),
     ...mdxBlogEntries,
-    entry('/corporate', 'app/corporate/page.tsx'),
-    entry('/about', 'app/about/page.tsx'),
-    entry('/faq', 'app/faq/page.tsx'),
-    entry('/contact', 'app/contact/page.tsx'),
-    entry('/privacy', 'app/privacy/page.tsx'),
-    entry('/terms', 'app/terms/page.tsx'),
-    entry('/authors/roman-ustyugov', 'app/authors/roman-ustyugov/page.tsx'),
+    entry('/corporate', 'app/[locale]/corporate/page.tsx'),
+    entry('/about', 'app/[locale]/about/page.tsx'),
+    entry('/faq', 'app/[locale]/faq/page.tsx'),
+    entry('/contact', 'app/[locale]/contact/page.tsx'),
+    entry('/privacy', 'app/[locale]/privacy/page.tsx'),
+    entry('/terms', 'app/[locale]/terms/page.tsx'),
+    entry('/authors/roman-ustyugov', 'app/[locale]/authors/roman-ustyugov/page.tsx'),
   ]
 }

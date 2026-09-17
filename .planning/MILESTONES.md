@@ -1,5 +1,22 @@
 # Milestones
 
+## v2.2 Dispatch & Driver Trip Portal (Shipped: 2026-09-02)
+
+**Phases completed:** 3 phases, 8 plans, 23 tasks
+
+**Key accomplishments:**
+
+- Server-only Europe/Prague "today" helper plus two live-applied migrations — pricing_globals dispatch-horizon columns and an admin_search_bookings adaptive-sort RPC signature, with a live-only PUBLIC-grant leak caught and revoked at apply time.
+- GET /api/admin/bookings gains a horizon-resolution layer (future/past/all/last_n_days -> p_start_date/p_end_date/p_sort) with D-07 manual-date precedence, wired end-to-end through a typed admin_search_bookings RPC call and BookingsTable's default 'future' fetch.
+- Extended /api/admin/settings to persist dispatch_default_horizon + dispatch_horizon_days on pricing_globals, and added a Dispatch Default widget (Future only / Last N days / All) to the admin Settings page reusing the NotificationToggles optimistic-PATCH pattern.
+- Added the Future/Past/All segmented control to BookingsTable (two state slots: persisted default via props + ephemeral in-session override), horizon-aware empty/error/precedence states, wired bookings/page.tsx to read the persisted default from /api/admin/settings, and locked the D-05 KPI-decoupling guard-rail with a dedicated test.
+- Additive `trip_token` column + live-checked `isTripLinkValid` predicate + a noindex `/driver/trip/[token]` server-component trip sheet, with one uniform neutral placeholder for every invalid state
+- Permanent trip link delivered to both humans who need it — a VIEW TRIP SHEET email CTA for the driver and a Copy Trip Link control for the dispatcher — with trip_token routed through the assign insert (email-only) and the assignment GET (admin-only), while the existing accept/decline flow stays byte-for-byte unchanged
+- Token-gated driver trip-progress write endpoint (5-value self-report, structurally isolated from bookings.status/GNet) with a trip-sheet island and an admin-visible read-side badge.
+- Optional driver note textarea on the trip sheet (independent submit path against the existing token-gated route) plus admin-visible note text and last-updated timestamp beside the trip-progress badge — no route, migration, or schema change.
+
+---
+
 ## v2.1 Admin Booking Management & Payment Recovery (Shipped: 2026-08-26)
 
 **Phases completed:** 3 phases, 13 plans, 28 tasks

@@ -1,7 +1,8 @@
 'use client'
 
 import Image from 'next/image'
-import type { VehicleConfig } from '@/types/booking'
+import { useTranslations } from 'next-intl'
+import { VEHICLE_CLASS_KEY, type VehicleConfig } from '@/types/booking'
 
 interface VehicleCardProps {
   config: VehicleConfig
@@ -14,6 +15,9 @@ interface VehicleCardProps {
 }
 
 export default function VehicleCard({ config, isSelected, onSelect, price, combinedPrice }: VehicleCardProps) {
+  const t = useTranslations('Booking')
+  // Class display label — single-source catalog (Booking.vehicleClasses)
+  const classLabel = t(`vehicleClasses.${VEHICLE_CLASS_KEY[config.key]}.label`)
   return (
     <button
       type="button"
@@ -66,7 +70,7 @@ export default function VehicleCard({ config, isSelected, onSelect, price, combi
             color: isSelected ? 'var(--copper)' : 'var(--offwhite)',
             marginBottom: 6,
           }}>
-            {config.label}
+            {classLabel}
           </span>
           <span style={{
             display: 'block',
@@ -118,7 +122,7 @@ export default function VehicleCard({ config, isSelected, onSelect, price, combi
                   letterSpacing: '0.02em',
                   marginTop: 2,
                 }}>
-                  {price} one way
+                  {t('vehicleCard.oneWay', { price })}
                 </span>
               )}
             </div>
@@ -148,7 +152,7 @@ export default function VehicleCard({ config, isSelected, onSelect, price, combi
       }}>
         <Image
           src={config.image}
-          alt={`Prestigo ${config.label}`}
+          alt={t('vehicleCard.alt', { className: classLabel })}
           fill
           style={{ objectFit: 'contain', objectPosition: 'center' }}
           onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}

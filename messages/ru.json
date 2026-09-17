@@ -1,0 +1,788 @@
+{
+  "Booking": {
+    "entryBar": {
+      "pickupLocationLabel": "МЕСТО ПОДАЧИ",
+      "pickupPlaceholder": "Введите адрес подачи",
+      "pickupAriaLabel": "Место подачи",
+      "destinationLabel": "ПУНКТ НАЗНАЧЕНИЯ",
+      "destinationPlaceholder": "Введите пункт назначения",
+      "destinationAriaLabel": "Пункт назначения",
+      "dateLabel": "ДАТА",
+      "timeLabel": "ВРЕМЯ",
+      "timeAriaLabel": "Время",
+      "chooseSlot": "Выберите интервал",
+      "flightNumberLabel": "НОМЕР РЕЙСА (необязательно)",
+      "flightNumberPlaceholder": "например, BA 256",
+      "flightNumberAriaLabel": "Номер рейса",
+      "addReturnJourney": "Добавить обратную поездку",
+      "returnDateLabel": "ДАТА ВОЗВРАЩЕНИЯ",
+      "returnTimeLabel": "ВРЕМЯ ВОЗВРАЩЕНИЯ",
+      "returnTimeAriaLabel": "Время возвращения",
+      "selectReturnTime": "Выберите время возвращения",
+      "validationSummary": "Пожалуйста, заполните все обязательные поля, прежде чем продолжить.",
+      "viewVehicles": "Посмотреть автомобили"
+    },
+    "validation": {
+      "originRequired": "Для продолжения укажите место подачи.",
+      "destinationRequired": "Для продолжения укажите пункт назначения.",
+      "dateRequired": "Для продолжения укажите дату.",
+      "timeRequired": "Для продолжения укажите время.",
+      "returnDateRequired": "Для поездки туда и обратно необходимо указать дату возвращения.",
+      "returnTimeRequired": "Для поездки туда и обратно необходимо указать время возвращения.",
+      "returnAfterPickup": "Время возвращения должно быть позже времени подачи.",
+      "firstNameRequired": "Укажите имя",
+      "lastNameRequired": "Укажите фамилию",
+      "invalidEmail": "Введите корректный адрес электронной почты",
+      "invalidPhone": "Введите корректный номер телефона",
+      "invalidFlightFormat": "Неверный формат IATA — например, BA256 или OK123",
+      "maxCharacters": "Не более 500 символов"
+    },
+    "step1": {
+      "pickupLabel": "МЕСТО ПОДАЧИ",
+      "pickupPlaceholder": "Введите адрес подачи",
+      "pickupAria": "Место подачи",
+      "swapAria": "Поменять местами место подачи и пункт назначения",
+      "destinationLabel": "ПУНКТ НАЗНАЧЕНИЯ",
+      "destinationPlaceholder": "Введите пункт назначения",
+      "destinationAria": "Пункт назначения",
+      "passengersLabel": "ПАССАЖИРЫ",
+      "luggageLabel": "БАГАЖ",
+      "continue": "Продолжить",
+      "stopsIncomplete": "Пожалуйста, заполните или удалите все промежуточные остановки."
+    },
+    "step2": {
+      "pickupDateLabel": "ДАТА ПОДАЧИ",
+      "leadTimeNotice": "Онлайн-бронирование возможно не менее чем за {hours} часов до поездки. Для срочных трансферов или поездок в тот же день напишите нам в <wa>WhatsApp</wa>.",
+      "returnDateLabel": "ДАТА ВОЗВРАЩЕНИЯ",
+      "pickupTimeLabel": "ВРЕМЯ ПОДАЧИ",
+      "hourLabel": "ЧАС",
+      "minuteLabel": "МИН",
+      "hourAria": "Час подачи",
+      "minuteAria": "Минута подачи",
+      "selectDatePrompt": "Выберите дату подачи, чтобы продолжить"
+    },
+    "step5": {
+      "firstNameLabel": "ИМЯ",
+      "lastNameLabel": "ФАМИЛИЯ",
+      "emailLabel": "ЭЛЕКТРОННАЯ ПОЧТА",
+      "phoneLabel": "ТЕЛЕФОН",
+      "flightNumberLabel": "НОМЕР РЕЙСА (НЕОБЯЗАТЕЛЬНО)",
+      "flightNumberPlaceholder": "например, BA256",
+      "terminalLabel": "ТЕРМИНАЛ (НЕОБЯЗАТЕЛЬНО)",
+      "specialRequestsLabel": "ОСОБЫЕ ПОЖЕЛАНИЯ",
+      "specialRequestsPlaceholder": "Любые особые пожелания к Вашей поездке",
+      "charCount": "{count}/500",
+      "statusScheduled": "ПО РАСПИСАНИЮ",
+      "statusActive": "В ПУТИ",
+      "statusLanded": "ПРИЗЕМЛИЛСЯ",
+      "statusCancelled": "ОТМЕНЁН",
+      "statusDiverted": "ПЕРЕНАПРАВЛЕН",
+      "statusUnknown": "НЕИЗВЕСТНО",
+      "checkFlight": "ПРОВЕРИТЬ РЕЙС",
+      "recheckFlight": "ПРОВЕРИТЬ РЕЙС ПОВТОРНО",
+      "checking": "ПРОВЕРКА…",
+      "checkFlightAria": "Проверить статус рейса",
+      "recheckFlightAria": "Повторно проверить статус рейса",
+      "checkingAria": "Проверка статуса рейса",
+      "arrival": "Прибытие: {time}",
+      "delayMinutes": "задержка +{minutes} мин",
+      "noDelay": "Без задержки",
+      "airportMismatch": "⚠ Несовпадение аэропорта: рейс прибывает в {airport}, а не в PRG",
+      "flightNotFound": "⚠ Рейс не найден или проверка недоступна — Вы можете продолжить в любом случае"
+    },
+    "step6": {
+      "promoCodeLabel": "ПРОМОКОД",
+      "promoPlaceholder": "Введите код",
+      "applyCode": "Применить код",
+      "remove": "Удалить",
+      "promoInvalid": "Недействительный код.",
+      "promoGenericError": "Произошла ошибка. Пожалуйста, попробуйте снова.",
+      "promoDiscount": "ПРОМОКОД: −{percent}%",
+      "payInLabel": "ОПЛАТА В",
+      "eurLabel": "EUR — €",
+      "czkLabel": "CZK — Kč",
+      "securePaymentLabel": "БЕЗОПАСНАЯ ОПЛАТА",
+      "loadingPayment": "Загрузка платёжной формы…",
+      "loading": "Загрузка…",
+      "payAmount": "ОПЛАТИТЬ {amount}",
+      "chauffeurTransfer": "Трансфер с водителем",
+      "paymentUnsuccessful": "Оплата не прошла. {message}. Пожалуйста, проверьте данные и попробуйте снова.",
+      "paymentGenericError": "Произошла ошибка. Данные Вашего бронирования сохранены — пожалуйста, попробуйте снова.",
+      "paymentFormLoadError": "Не удалось загрузить платёжную форму. Пожалуйста, обновите страницу и попробуйте снова.",
+      "paymentInitFailed": "Не удалось инициализировать оплату",
+      "networkError": "Ошибка сети — пожалуйста, обновите страницу и попробуйте снова."
+    },
+    "tripTypeTabs": {
+      "ariaLabel": "Тип поездки",
+      "items": [
+        "ТРАНСФЕР",
+        "ПОЧАСОВАЯ АРЕНДА",
+        "НА НЕСКОЛЬКО ДНЕЙ"
+      ]
+    },
+    "addressInput": {
+      "clearAddress": "Очистить адрес",
+      "airportAutoSet": "Устанавливается автоматически для трансферов в аэропорт.",
+      "noResults": "Ничего не найдено. Попробуйте другой адрес.",
+      "typeAirport": "АЭРОПОРТ",
+      "typeHotel": "ОТЕЛЬ",
+      "typeTrain": "ВОКЗАЛ",
+      "typeTransit": "ТРАНСПОРТ",
+      "typeAttraction": "ДОСТОПРИМЕЧАТЕЛЬНОСТЬ"
+    },
+    "durationSelector": {
+      "label": "ПРОДОЛЖИТЕЛЬНОСТЬ",
+      "ariaLabel": "Продолжительность",
+      "hourOption": "{hours} ч"
+    },
+    "stopList": {
+      "addStop": "Добавить остановку"
+    },
+    "stopItem": {
+      "stopLabel": "ОСТАНОВКА {number}",
+      "removeStop": "Удалить остановку",
+      "addressPlaceholder": "Введите адрес остановки",
+      "addressAria": "Адрес остановки {number}",
+      "waitTimeLabel": "ВРЕМЯ ОЖИДАНИЯ",
+      "waitTimeAria": "Время ожидания",
+      "noWait": "Без ожидания",
+      "minutes": "{count} мин"
+    },
+    "routeMap": {
+      "empty": "Маршрут недоступен — Вы можете выбрать класс автомобиля.",
+      "aria": "Карта маршрута из {origin} в {destination}"
+    },
+    "progressBar": {
+      "aria": "Ход бронирования: шаг {step} из 5"
+    },
+    "stepper": {
+      "decreaseAria": "Уменьшить {label}",
+      "increaseAria": "Увеличить {label}"
+    },
+    "vehicleClasses": {
+      "business": {
+        "label": "Бизнес"
+      },
+      "firstClass": {
+        "label": "Первый класс"
+      },
+      "businessVan": {
+        "label": "Бизнес-минивэн"
+      }
+    },
+    "vehicleSlideshow": {
+      "slideshowAria": "Слайд-шоу салона {className}",
+      "prevSlide": "Предыдущий слайд",
+      "nextSlide": "Следующий слайд",
+      "caption": "Салон {className}"
+    },
+    "stickyPanel": {
+      "pickUp": "Посадка",
+      "estDropoff": "Прибытие (ориент.)",
+      "noClassSelected": "Класс не выбран",
+      "outbound": "Поездка туда",
+      "return": "Обратная поездка",
+      "combined": "Суммарно",
+      "bothLegsIncluded": "Оба направления · все сборы включены",
+      "allFeesIncluded": "Все сборы включены",
+      "selectClass": "ВЫБРАТЬ {className}",
+      "selectAClass": "ВЫБРАТЬ КЛАСС",
+      "selectClassAria": "Выбрать класс {className} — {price} €",
+      "srClassTrip": "{className} — трансфер {tripType}"
+    },
+    "vehicleCard": {
+      "alt": "Prestigo {className}",
+      "oneWay": "{price} в одну сторону"
+    },
+    "step3vehicle": {
+      "heading": "Выберите автомобиль",
+      "pricingUnavailable": "Расчёт стоимости недоступен. Ваш выбор сохранён — продолжите, чтобы запросить предложение.",
+      "whatsIncluded": "Что входит в каждую поездку",
+      "from": "Откуда",
+      "to": "Куда",
+      "date": "Дата",
+      "time": "Время",
+      "pickupLocationLabel": "МЕСТО ПОСАДКИ",
+      "pickupLocationPlaceholder": "Укажите адрес посадки",
+      "pickupLocationAria": "Место посадки",
+      "destinationLabel": "ПУНКТ НАЗНАЧЕНИЯ",
+      "destinationPlaceholder": "Укажите пункт назначения",
+      "destinationAria": "Пункт назначения",
+      "dateLabel": "ДАТА",
+      "timeLabel": "ВРЕМЯ",
+      "returnDateLabel": "ДАТА ОБРАТНОЙ ПОЕЗДКИ",
+      "returnTimeLabel": "ВРЕМЯ ОБРАТНОЙ ПОЕЗДКИ",
+      "returnTimeAria": "Время обратной поездки",
+      "selectReturnTime": "Выберите время обратной поездки",
+      "addReturnJourney": "Добавить обратную поездку",
+      "returnAfterPickup": "Обратная поездка должна быть позже времени посадки",
+      "updateSearch": "Обновить поиск",
+      "cancel": "Отмена",
+      "included": {
+        "fixedPriceLabel": "Фиксированная цена",
+        "fixedPriceSub": "Гарантируется при бронировании",
+        "phoneChargingLabel": "Зарядка телефона",
+        "phoneChargingSub": "USB-A и USB-C в каждом автомобиле",
+        "freeWaitingLabel": "60 минут бесплатного ожидания",
+        "freeWaitingSub": "Трансферы в аэропорт включены",
+        "wifiLabel": "Wi-Fi",
+        "wifiSub": "Предоставляется бесплатно в салоне",
+        "waterLabel": "Вода в автомобиле",
+        "waterSub": "Негазированная и газированная",
+        "meetGreetLabel": "Встреча с табличкой",
+        "meetGreetSub": "Табличка с именем в зоне прилёта"
+      }
+    },
+    "extras": {
+      "meetAndGreet": {
+        "label": "Встреча с табличкой",
+        "description": "Водитель с табличкой с именем в зоне прилёта — всегда включено"
+      },
+      "infantSeat": {
+        "label": "Автолюлька (0–9 кг)",
+        "description": "Автолюлька против хода движения для новорождённых и младенцев"
+      },
+      "childSeat": {
+        "label": "Детское кресло (18–36 кг)",
+        "description": "Кресло по ходу движения для малышей и детей старшего возраста"
+      },
+      "boosterSeat": {
+        "label": "Бустер",
+        "description": "Бустер-подушка для детей, выросших из детского кресла"
+      }
+    },
+    "step4extras": {
+      "free": "Бесплатно"
+    },
+    "priceSummary": {
+      "yourJourney": "Ваша поездка",
+      "hours": "{hours} ч.",
+      "selectVehicle": "Выберите автомобиль",
+      "requestQuote": "Запросить расчёт стоимости",
+      "outbound": "Поездка туда",
+      "returnLeg": "Обратная поездка",
+      "combined": "Итого",
+      "selectClass": "ВЫБРАТЬ {className}",
+      "selectAClass": "ВЫБЕРИТЕ КЛАСС"
+    },
+    "summaryBlock": {
+      "outbound": "ПОЕЗДКА ТУДА",
+      "return": "ОБРАТНАЯ ПОЕЗДКА",
+      "yourJourney": "ВАША ПОЕЗДКА",
+      "hours": "{hours} ч.",
+      "dateTimeAt": "{date} в {time}",
+      "classPax": "{className} · {passengers, plural, one {# пассажир} few {# пассажира} many {# пассажиров} other {# пассажира}}",
+      "outboundLine": "Поездка туда",
+      "returnLeg": "Обратная поездка",
+      "subtotal": "Промежуточный итог",
+      "promo": "Промокод {code}",
+      "final": "Итого"
+    },
+    "bookingWidget": {
+      "pickupLocationLabel": "МЕСТО ПОСАДКИ",
+      "pickupPlaceholder": "Адрес посадки",
+      "pickupAria": "Адрес посадки",
+      "destinationLabel": "ПУНКТ НАЗНАЧЕНИЯ",
+      "dropoffPlaceholder": "Адрес высадки",
+      "dropoffAria": "Адрес высадки",
+      "dateLabel": "ДАТА",
+      "pickupDateAria": "Дата посадки",
+      "selectDate": "Выберите дату",
+      "selectPickupDateAria": "Выберите дату посадки",
+      "timeLabel": "ВРЕМЯ",
+      "pickupTimeAria": "Время посадки",
+      "chooseSlot": "Выберите время",
+      "fillRequired": "Пожалуйста, заполните все обязательные поля, прежде чем продолжить.",
+      "viewVehicles": "ПОСМОТРЕТЬ АВТОМОБИЛИ"
+    },
+    "bookingWizard": {
+      "back": "Назад",
+      "continue": "Продолжить",
+      "stepOf": "ШАГ {step} ИЗ 6",
+      "planJourney": "Планирование поездки",
+      "signIn": "Войдите, чтобы продолжить",
+      "addExtras": "Дополнительные услуги",
+      "passengerDetails": "Данные пассажира",
+      "payment": "Оплата"
+    },
+    "multiDayForm": {
+      "startDateLabel": "Дата начала",
+      "optionalSuffix": "(необязательно)",
+      "startDateAria": "Дата начала",
+      "selectStartDateAria": "Выберите дату начала",
+      "selectDate": "Выберите дату",
+      "yourDetails": "Ваши данные",
+      "firstName": "Имя",
+      "lastName": "Фамилия",
+      "email": "Электронная почта",
+      "phone": "Телефон",
+      "specialRequests": "Особые пожелания",
+      "addDay": "+ Добавить день",
+      "sending": "Отправка…",
+      "requestQuote": "Запросить расчёт стоимости",
+      "thankYou": "Благодарим — Ваш запрос принят.",
+      "quoteReference": "Номер запроса:",
+      "reviewNotice": "Мы изучим Ваш маршрут и ответим в течение 24 часов.",
+      "addAtLeastOneDay": "Добавьте хотя бы один день.",
+      "dayDepartureRequired": "День {day}: укажите адрес отправления.",
+      "dayDestinationRequired": "День {day}: укажите адрес назначения.",
+      "dayEmptyStop": "День {day}: заполните или удалите пустую остановку.",
+      "dayBaseCityRequired": "День {day}: укажите основной город.",
+      "firstNameRequired": "Укажите имя.",
+      "lastNameRequired": "Укажите фамилию.",
+      "validEmailRequired": "Укажите действительный адрес электронной почты.",
+      "validPhoneRequired": "Укажите действительный номер телефона.",
+      "tooManyRequests": "Слишком много запросов. Пожалуйста, подождите минуту и повторите попытку.",
+      "submitError": "Не удалось отправить Ваш запрос. Пожалуйста, проверьте введённые данные и повторите попытку.",
+      "networkError": "Ошибка сети. Пожалуйста, проверьте подключение и повторите попытку."
+    },
+    "dayCard": {
+      "dayLabel": "День {day}",
+      "removeDayAria": "Удалить день {day}",
+      "dateLabel": "Дата",
+      "optionalSuffix": "(необязательно)",
+      "dateAria": "Дата дня {day}",
+      "selectDate": "Выберите дату",
+      "startTimeLabel": "Время начала",
+      "timeAria": "Время дня {day}",
+      "datePickerAria": "Выбор даты для дня {day}",
+      "timePickerAria": "Выбор времени для дня {day}",
+      "hourLabel": "ЧАС",
+      "hourListAria": "Час дня {day}",
+      "minLabel": "МИН",
+      "minuteListAria": "Минута дня {day}",
+      "typeTablistAria": "Тип дня {day}",
+      "transferTab": "ТРАНСФЕР",
+      "hourlyTab": "ПОЧАСОВО",
+      "fromLabel": "Откуда",
+      "pickupAddressPlaceholder": "Адрес посадки",
+      "fromAria": "День {day}: адрес отправления",
+      "toLabel": "Куда",
+      "destinationAddressPlaceholder": "Адрес назначения",
+      "toAria": "День {day}: адрес назначения",
+      "pickupLocationLabel": "Место посадки",
+      "pickupLocationAria": "День {day}: место посадки",
+      "hoursLabel": "Часы",
+      "hoursAria": "День {day}: часы",
+      "hoursOption": "{count, plural, one {# час} few {# часа} many {# часов} other {# часа}}"
+    }
+  },
+  "Nav": {
+    "items": [
+      "Услуги",
+      "Автопарк",
+      "Маршруты",
+      "Многодневные поездки",
+      "Для компаний",
+      "Контакты"
+    ],
+    "new": "НОВОЕ",
+    "signIn": "Войти",
+    "accountMenu": "Меню учётной записи",
+    "myTrips": "Мои поездки",
+    "profile": "Профиль",
+    "signOut": "Выйти",
+    "bookNow": "Забронировать",
+    "menu": "Меню",
+    "homeAriaLabel": "PRESTIGO — главная"
+  },
+  "Hero": {
+    "label": "Прага · Премиальный сервис с водителем",
+    "headlineSuffix": "в Праге,",
+    "headlineItalic": "так, как и должно быть.",
+    "subhead1": "Ваш водитель уже отслеживает Ваш рейс.",
+    "subhead2": "Вам остаётся лишь прибыть.",
+    "bookRide": "Заказать поездку",
+    "priceAnchor": "Трансферы из аэропорта от <price>€{amount}</price> — фиксированная цена, без доплат",
+    "scroll": "Прокрутите",
+    "ratingAria": "Оценка {rating} из 5 на основе {count} отзывов в Google",
+    "googleReviews": "Отзывы в Google",
+    "words": [
+      "Сервис с водителем",
+      "Трансфер в аэропорт",
+      "Личный водитель",
+      "Премиальные перевозки",
+      "Деловые поездки"
+    ],
+    "bookViaWhatsapp": "Забронировать через WhatsApp",
+    "heroAlt": "Водитель за рулём Mercedes-Benz S-Class на фоне панорамы Праги на закате"
+  },
+  "Footer": {
+    "ctaLabel": "Готовы к поездке?",
+    "ctaHeadlineLine1": "Забронируйте трансфер.",
+    "ctaHeadlineLine2": "Остальное мы берём на себя.",
+    "bookNow": "Забронировать",
+    "brandTagline1": "Премиальный сервис с личным водителем.",
+    "brandTagline2": "Прага и Центральная Европа.",
+    "servicesHeading": "Услуги",
+    "services": [
+      "Трансфер из аэропорта",
+      "Междугородные маршруты",
+      "Многодневная аренда",
+      "Корпоративные договоры",
+      "VIP и мероприятия",
+      "Групповой трансфер",
+      "О PRESTIGO",
+      "Вопросы и ответы"
+    ],
+    "routesHeading": "Популярные маршруты",
+    "routes": [
+      "Прага → Вена",
+      "Прага → Берлин",
+      "Прага → Мюнхен",
+      "Прага → Будапешт",
+      "Прага → Братислава"
+    ],
+    "viewAllRoutes": "Все маршруты →",
+    "blogHeading": "Блог",
+    "blog": [
+      "Аэропорт Праги → центр города",
+      "Такси или личный водитель в PRG",
+      "Прага–Вена: трансфер или поезд"
+    ],
+    "viewAllPosts": "Все публикации →",
+    "contactHeading": "Контакты",
+    "whatsapp": "WhatsApp",
+    "availability": "Доступны 24 / 7",
+    "copyright": "© {year} PRESTIGO. Все права защищены.",
+    "privacy": "Политика конфиденциальности",
+    "terms": "Условия",
+    "instagramAria": "Instagram",
+    "facebookAria": "Facebook",
+    "tagline": "Престиж на каждой миле.",
+    "new": "НОВОЕ"
+  },
+  "FeatureStrip": {
+    "sectionAria": "Почему PRESTIGO",
+    "pillars": [
+      {
+        "title": "Профессиональные водители",
+        "sub": "Владеют английским, соблюдают деликатность"
+      },
+      {
+        "title": "Премиальный автопарк Mercedes",
+        "sub": "E-Class, S-Class и V-Class, новейшие модели"
+      },
+      {
+        "title": "Фиксированные цены",
+        "sub": "Без скрытых платежей, отслеживание рейсов"
+      },
+      {
+        "title": "Поддержка 24/7",
+        "sub": "Всегда вовремя, каждый день"
+      }
+    ]
+  },
+  "Services": {
+    "label": "Наши услуги",
+    "headingLine1": "Каждая поездка —",
+    "headingLine2": "под контролем.",
+    "cards": [
+      {
+        "label": "Аэропорт",
+        "title": "Трансфер из аэропорта",
+        "body": "Пражский аэропорт имени Вацлава Гавела. Отслеживание рейса, встреча с табличкой, фиксированная цена.",
+        "detail": "PRG · VIE · BER · MUC"
+      },
+      {
+        "label": "Междугородные",
+        "title": "Междугородные маршруты",
+        "body": "Из Праги в Вену, Берлин, Мюнхен, Будапешт и далее. Комфорт без границ.",
+        "detail": "Маршруты 4–6 часов"
+      },
+      {
+        "label": "Корпоративным клиентам",
+        "title": "Корпоративные договоры",
+        "body": "Ежемесячное выставление счетов, персональный менеджер, приоритетная подача, отчётность.",
+        "detail": "Возможны тарифы за объём"
+      },
+      {
+        "label": "VIP",
+        "title": "VIP и мероприятия",
+        "body": "Дипломатические визиты, частные мероприятия, трансферы в отели класса люкс, координация нескольких автомобилей.",
+        "detail": "По запросу"
+      },
+      {
+        "label": "Город",
+        "title": "Аренда автомобиля с водителем",
+        "body": "Аренда автомобиля с личным водителем в Праге с почасовой оплатой. Деловые встречи, осмотр города, театр — в Вашем ритме.",
+        "detail": "1–8 часов"
+      },
+      {
+        "label": "Консьерж",
+        "title": "Водитель-консьерж",
+        "body": "Не просто водитель — консьерж за рулём. Бронирования, знание города, поручения и связь с отелем при каждой поездке.",
+        "detail": "Входит в каждую поездку"
+      },
+      {
+        "label": "Группы",
+        "title": "Групповые трансферы",
+        "body": "Минивэн и координация нескольких автомобилей для групп, конференций и поощрительных поездок.",
+        "detail": "До 8 пассажиров"
+      },
+      {
+        "label": "Многодневная",
+        "title": "Многодневная аренда",
+        "body": "Один закреплённый водитель на всю поездку. Сочетайте трансферы и почасовые дни по Центральной Европе.",
+        "detail": "Индивидуальный маршрут · Расчёт в течение 24 ч"
+      }
+    ],
+    "fromPrice": "От €{price}",
+    "fromPriceHourly": "От €{price}/час",
+    "learnMore": "Подробнее",
+    "bookTransfer": "Заказать трансфер",
+    "new": "НОВОЕ"
+  },
+  "Fleet": {
+    "label": "Автопарк",
+    "headingLine1": "Только Mercedes.",
+    "headingLine2": "Всегда.",
+    "vehicles": [
+      {
+        "category": "Бизнес",
+        "passengers": "3 пассажира",
+        "bags": "2 места багажа",
+        "features": [
+          "Кожаный салон",
+          "Тонированные стёкла",
+          "Климат-контроль",
+          "Wi-Fi по запросу"
+        ],
+        "altTemplate": "{model} — услуги личного водителя в Праге"
+      },
+      {
+        "category": "Первый класс",
+        "passengers": "3 пассажира",
+        "bags": "2 места багажа",
+        "features": [
+          "Представительские задние кресла",
+          "Фоновая подсветка",
+          "Подача шампанского",
+          "Перегородка для приватности"
+        ],
+        "altTemplate": "{model} — услуги личного водителя в Праге"
+      },
+      {
+        "category": "Групповой",
+        "passengers": "6 пассажиров",
+        "bags": "6 мест багажа",
+        "features": [
+          "Кресла друг напротив друга",
+          "Дополнительное место для багажа",
+          "Конференц-компоновка салона",
+          "Зарядка USB"
+        ],
+        "altTemplate": "{model} — услуги личного водителя в Праге"
+      }
+    ],
+    "seePricing": "Смотреть цены →"
+  },
+  "HowItWorks": {
+    "label": "Как это работает",
+    "headingLine1": "Три шага.",
+    "headingLine2": "Никаких неожиданностей.",
+    "stepPrefix": "Шаг",
+    "steps": [
+      {
+        "title": "Бронирование онлайн",
+        "body": "Укажите маршрут и детали поездки. Получите мгновенное подтверждение с фиксированной ценой — без скрытых платежей.",
+        "photoAlt": "Онлайн-бронирование личного водителя в Праге, Mercedes уже ожидает у входа"
+      },
+      {
+        "title": "Мы отслеживаем Ваш рейс",
+        "body": "Ваш водитель следит за рейсом в реальном времени. Задержки, ранний прилёт — мы подстраиваемся автоматически.",
+        "photoAlt": "Водитель проверяет текущий статус рейса рядом с Mercedes в аэропорту Праги"
+      },
+      {
+        "title": "Просто прилетайте",
+        "body": "Ваш водитель ожидает в зоне прилёта с табличкой. Прямой трансфер до места назначения.",
+        "photoAlt": "Водитель PRESTIGO ожидает с табличкой в зоне прилёта аэропорта Праги"
+      }
+    ]
+  },
+  "Testimonials": {
+    "label": "Отзывы",
+    "headingLine1": "Нам доверяют те,",
+    "headingLine2": "кто ценит своё время.",
+    "body": "Публикуется с разрешения. Имена сокращены для защиты конфиденциальности пассажиров — это часть нашей политики неразглашения.",
+    "starsAria": "{stars} из 5 звёзд",
+    "googleReview": "Отзыв в Google",
+    "carouselAria": "Отзывы",
+    "paginationAria": "Навигация по отзывам",
+    "goToSlide": "Перейти к слайду {n}"
+  },
+  "CookieBanner": {
+    "wordmarkAria": "PRESTIGO",
+    "heading": "Добро пожаловать на борт.",
+    "consentBody": "Прежде чем начнётся Ваша поездка, несколько слов о конфиденциальности. Мы используем технологии сторонних поставщиков для работы системы бронирования и улучшения обслуживания. Вы можете отозвать или изменить свой выбор в любое время. <privacy>Политика конфиденциальности</privacy> · <terms>Правовая информация</terms>",
+    "tabCategories": "Категории",
+    "tabServices": "Сервисы",
+    "catEssential": "Необходимые",
+    "catAnalytics": "Аналитика",
+    "catMarketing": "Маркетинг",
+    "catEssentialDesc": "Требуются для бронирования, платежей, предотвращения мошенничества и работы основных функций сайта. Всегда включены.",
+    "catAnalyticsDesc": "Google Analytics 4 — помогает нам понять, как посетители пользуются сайтом, чтобы мы могли его улучшать. Данные обобщены и анонимны.",
+    "catMarketingDesc": "Meta Pixel и отслеживание конверсий Google Ads — измеряют эффективность рекламы и позволяют показывать Вам релевантные предложения в Instagram, Facebook и Google.",
+    "svcStripeDesc": "Обработка платежей и предотвращение мошенничества.",
+    "svcSupabaseDesc": "База данных бронирований, аутентификация и управление сессиями.",
+    "svcMapsDesc": "Автозаполнение адресов и расчёт протяжённости маршрута.",
+    "svcGa4Desc": "Статистика посещений и анализ поведения пользователей. Consent Mode v2 — при отказе работает анонимно.",
+    "svcMetaDesc": "Отслеживание конверсий рекламы в Instagram и Facebook.",
+    "acceptAll": "Принять все",
+    "saveSettings": "Сохранить настройки",
+    "moreInfo": "Подробнее",
+    "toggleEnabled": "Включено",
+    "toggleDisabled": "Отключено"
+  },
+  "Errors": {
+    "genericRetry": "Произошла ошибка. Пожалуйста, попробуйте снова.",
+    "rateLimited": "Слишком много попыток. Пожалуйста, попробуйте снова через минуту.",
+    "notAuthenticated": "Вы не авторизованы.",
+    "invalidCredentials": "Неверный адрес электронной почты или пароль.",
+    "couldNotSaveBooking": "Не удалось сохранить бронирование.",
+    "fullNameRequired": "Необходимо указать полное имя.",
+    "phoneRequired": "Необходимо указать номер телефона.",
+    "duplicateDefaultPassenger": "Основной пассажир уже задан. Пожалуйста, попробуйте снова.",
+    "invalidAccountType": "Недопустимый тип учётной записи."
+  },
+  "Auth": {
+    "login": {
+      "subtitle": "Моя учётная запись",
+      "divider": "или",
+      "tabSendLink": "Отправить ссылку",
+      "tabUsePassword": "Использовать пароль",
+      "emailLabel": "Электронная почта",
+      "passwordLabel": "Пароль",
+      "sendLinkButton": "Отправить ссылку для входа",
+      "checkEmailHeading": "Проверьте Вашу электронную почту",
+      "checkEmailBody": "Мы отправили ссылку для входа на адрес {email}. Срок действия ссылки — 1 час.",
+      "noAccountPrompt": "Нет учётной записи?",
+      "createAccountLink": "Создать",
+      "forgotPasswordLink": "Забыли пароль?",
+      "signInButton": "Войти",
+      "accountTypeLabel": "Тип учётной записи",
+      "personalOption": "Личная",
+      "corporateOption": "Корпоративная",
+      "companyNameLabel": "Название компании",
+      "createAccountButton": "Создать учётную запись",
+      "alreadyHaveAccountPrompt": "Уже есть учётная запись?",
+      "resetSentMessage": "Ссылка для сброса пароля отправлена. Проверьте Вашу электронную почту.",
+      "sendResetLinkButton": "Отправить ссылку для сброса",
+      "backToSignIn": "Вернуться к входу"
+    },
+    "oauth": {
+      "googleLabel": "Войти через Google",
+      "continueWithGoogle": "Продолжить через Google"
+    },
+    "inWizard": {
+      "sendCode": "Отправить код",
+      "verifyCode": "Подтвердить код",
+      "enterCodeLabel": "Введите код",
+      "codePlaceholder": "000000",
+      "useDifferentEmail": "Использовать другой адрес электронной почты",
+      "backToVehicle": "← Вернуться к выбору автомобиля",
+      "continueAsGuest": "Продолжить как гость",
+      "registerSuccess": "Учётная запись создана. Подтвердите её по ссылке в письме, затем войдите.",
+      "codeSentTo": "Мы отправили 6-значный код на адрес <strong>{email}</strong>.",
+      "invalidCode": "Код неверен или срок его действия истёк. Пожалуйста, попробуйте снова.",
+      "registerError": "Не удалось создать учётную запись. {message}"
+    }
+  },
+  "Account": {
+    "dashboard": {
+      "heading": "Моя учётная запись",
+      "signedInAs": "Вы вошли как {email}",
+      "tripsLabel": "Мои поездки",
+      "tripsTitle": "История Ваших поездок",
+      "tripsBody": "Просмотр всех заказов, связанных с Вашей учётной записью.",
+      "tripsCta": "Просмотреть поездки",
+      "profileLabel": "Профиль",
+      "profileTitle": "Данные учётной записи",
+      "profileBody": "Обновите контактные данные и управляйте сохранёнными пассажирами.",
+      "profileCta": "Редактировать профиль"
+    },
+    "trips": {
+      "heading": "Мои поездки",
+      "emptyHeading": "Поездок пока нет",
+      "emptyBody": "Здесь появятся забронированные Вами трансферы. Готовы отправиться в путь?",
+      "emptyCta": "Забронировать трансфер",
+      "statusLabels": {
+        "confirmed": "ПОДТВЕРЖДЕНО",
+        "pending": "В ОБРАБОТКЕ",
+        "completed": "ЗАВЕРШЕНО",
+        "cancelled": "ОТМЕНЕНО"
+      }
+    },
+    "profile": {
+      "heading": "Профиль",
+      "contactDetails": "Контактные данные",
+      "fullName": "Полное имя",
+      "emailLabel": "Электронная почта",
+      "emailReadonlyNote": "Адрес электронной почты здесь изменить нельзя.",
+      "phone": "Телефон",
+      "accountType": "Тип учётной записи",
+      "personal": "Личная",
+      "corporate": "Корпоративная",
+      "companyDetails": "Данные компании",
+      "companyName": "Название компании",
+      "ico": "IČO (регистрационный номер компании)",
+      "vatId": "DIČ / номер плательщика НДС",
+      "saving": "Сохранение…",
+      "saveChanges": "Сохранить изменения",
+      "changesSaved": "Изменения сохранены.",
+      "savedPassengers": "Сохранённые пассажиры",
+      "noSavedPassengers": "Сохранённых пассажиров пока нет.",
+      "defaultBadge": "По умолчанию",
+      "editPassengerAria": "Редактировать: {name}",
+      "deletePassengerAria": "Удалить: {name}",
+      "removeConfirm": "Удалить <highlight>{name}</highlight>? Это действие нельзя отменить.",
+      "delete": "Удалить",
+      "cancel": "Отмена",
+      "addPassenger": "Добавить пассажира",
+      "emailOptional": "Электронная почта (необязательно)",
+      "notesOptional": "Примечания (необязательно)",
+      "setDefaultPassenger": "Назначить пассажиром по умолчанию",
+      "savePassenger": "Сохранить пассажира"
+    },
+    "resetPassword": {
+      "subtitle": "Новый пароль",
+      "successMessage": "Пароль обновлён. Переходим в ваш личный кабинет...",
+      "verifying": "Проверяем вашу ссылку для сброса пароля...",
+      "newPasswordLabel": "Новый пароль",
+      "updating": "Обновление...",
+      "updateButton": "Обновить пароль"
+    }
+  },
+  "RoutePage": {
+    "heroCtaPrimary": "Забронировать этот маршрут",
+    "heroCtaSecondary": "Задать вопрос",
+    "sectionLabels": {
+      "theRoute": "Маршрут",
+      "fleet": "Автопарк",
+      "theJourney": "Поездка",
+      "goodToKnow": "Полезно знать",
+      "theChauffeur": "Водитель",
+      "whyPrestigo": "Почему Prestigo",
+      "relatedRoutes": "Похожие маршруты"
+    },
+    "includedHeading": {
+      "line1": "Всё включено,",
+      "italic": "ничего не нужно организовывать."
+    },
+    "chauffeurHeading": {
+      "line1": "Что вас ожидает",
+      "italic": "от вашего водителя."
+    },
+    "vehicleFields": {
+      "passengers": "Пассажиры",
+      "luggage": "Багаж",
+      "transferPrice": "Стоимость трансфера"
+    },
+    "chooseYourVehicle": "Выберите автомобиль",
+    "availableOnThisRoute": "Доступно на этом маршруте",
+    "ctaFootnote": "Никаких сюрпризов. Никаких счётчиков. Ваш водитель уже ожидает.",
+    "bookOnline": "Забронировать онлайн",
+    "bookNow": "Забронировать",
+    "allRoutes": "Все маршруты"
+  }
+}

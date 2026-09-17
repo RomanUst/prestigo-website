@@ -1,20 +1,17 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
 
-// words[0] must stay the visually widest phrase: the rotator renders as its
-// own block line, so every later swap paints a line no wider than the first.
-// A wider later paint would register as a new, later LCP candidate and
-// inflate the reported LCP by many seconds (observed 11.9 s in lab runs).
-const words = [
-  'Chauffeur Service',
-  'Airport Transfer',
-  'Private Driver',
-  'Luxury Transport',
-  'Business Travel',
-]
+// words[0] (Hero.words[0] in the message catalog) must stay the visually
+// widest phrase: the rotator renders as its own block line, so every later
+// swap paints a line no wider than the first. A wider later paint would
+// register as a new, later LCP candidate and inflate the reported LCP by
+// many seconds (observed 11.9 s in lab runs).
 
 export default function HeroTypewriter() {
+  const t = useTranslations('Hero')
+  const words = t.raw('words') as string[]
   const [index, setIndex] = useState(0)
   const [visible, setVisible] = useState(true)
   const [reducedMotion, setReducedMotion] = useState(false)

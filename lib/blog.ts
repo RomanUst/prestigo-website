@@ -1,7 +1,8 @@
 /**
  * Blog post aggregator. Merges MDX articles (read at build time via
- * gray-matter from content/blog/) with the JSX_POSTS registry (3 legacy
- * articles that remain as colocated app/ JSX pages). Sorted newest-first.
+ * gray-matter from content/blog/<locale>/, English fallback) with the
+ * JSX_POSTS registry (3 legacy articles that remain as colocated app/ JSX
+ * pages, EN-only per D-08). Sorted newest-first.
  *
  * Build-time only — uses node:fs. Never import in a client component.
  */
@@ -10,6 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import type { AuthorSlug } from "@/lib/authors";
+import { routing } from "@/i18n/routing";
 
 export type BlogPost = {
   slug: string;
@@ -23,16 +25,30 @@ export type BlogPost = {
   source: "mdx" | "jsx";
 };
 
-const CONTENT_DIR = path.join(process.cwd(), "content", "blog");
+const BLOG_ROOT = path.join(process.cwd(), "content", "blog");
 
-function getMDXPosts(): BlogPost[] {
-  if (!fs.existsSync(CONTENT_DIR)) return [];
+const SLUG_PATTERN = /^[a-z0-9-]+$/;
+
+/**
+ * Resolves the content directory for a locale, falling back to English
+ * when no localized directory exists yet (D-07). Phase 71 populates only
+ * content/blog/en/ — ru/es/fr/ar/hi/zh land in Phase 72/73.
+ */
+function contentDirFor(locale: string): string {
+  const localized = path.join(BLOG_ROOT, locale);
+  const fallback = path.join(BLOG_ROOT, "en");
+  return fs.existsSync(localized) ? localized : fallback;
+}
+
+function getMDXPosts(locale: string = "en"): BlogPost[] {
+  const contentDir = contentDirFor(locale);
+  if (!fs.existsSync(contentDir)) return [];
   return fs
-    .readdirSync(CONTENT_DIR)
+    .readdirSync(contentDir)
     .filter((f) => f.endsWith(".mdx"))
     .map((filename) => {
       const slug = filename.replace(/\.mdx$/, "");
-      const raw = fs.readFileSync(path.join(CONTENT_DIR, filename), "utf-8");
+      const raw = fs.readFileSync(path.join(contentDir, filename), "utf-8");
       const { data } = matter(raw);
       const required = ["title", "description", "date", "coverImage", "category", "author"];
       for (const key of required) {
@@ -106,8 +122,8 @@ export const JSX_POSTS: BlogPost[] = [
   },
 ];
 
-export function getAllPosts(): BlogPost[] {
-  return [...getMDXPosts(), ...JSX_POSTS].sort((a, b) => {
+export function getAllPosts(locale: string = "en"): BlogPost[] {
+  return [...getMDXPosts(locale), ...JSX_POSTS].sort((a, b) => {
     const ta = new Date(a.date).getTime();
     const tb = new Date(b.date).getTime();
     if (isNaN(ta) || isNaN(tb)) {
@@ -117,4 +133,44 @@ export function getAllPosts(): BlogPost[] {
     }
     return tb - ta;
   });
+}
+
+/**
+ * Resolves which MDX directory serves a given (slug, locale) pair for the
+ * /blog/[slug] route: the localized post when it exists, else the English
+ * fallback (D-07). Returns null when neither exists, or when slug/locale
+ * fail validation (path-traversal guard, T-71-BLOG-01) — validated BEFORE
+ * any path.join/fs call.
+ */
+export function resolveLocalizedMdx(
+  slug: string,
+  locale: string
+): { dir: string; isFallback: boolean } | null {
+  if (!SLUG_PATTERN.test(slug)) return null;
+  if (!(routing.locales as readonly string[]).includes(locale)) return null;
+
+  const localizedFile = path.join(BLOG_ROOT, locale, `${slug}.mdx`);
+  if (fs.existsSync(localizedFile)) {
+    return { dir: locale, isFallback: false };
+  }
+
+  const enFile = path.join(BLOG_ROOT, "en", `${slug}.mdx`);
+  if (fs.existsSync(enFile)) {
+    return { dir: "en", isFallback: true };
+  }
+
+  return null;
+}
+
+/**
+ * Canonical URL for a blog post: the current locale-relative /blog/<slug>
+ * form when the post is genuinely localized (or EN, since EN IS the
+ * canonical locale), else the absolute English URL when serving an
+ * EN-fallback body under a non-EN locale path (canonical → EN, D-07 — no
+ * duplicate indexation of untranslated content).
+ */
+export function blogCanonical(slug: string, isFallback: boolean): string {
+  return isFallback
+    ? `https://rideprestigo.com/blog/${slug}`
+    : `/blog/${slug}`;
 }

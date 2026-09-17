@@ -1,41 +1,37 @@
 ---
 gsd_state_version: 1.0
-milestone: v2.2
-milestone_name: Dispatch & Driver Trip Portal
-current_phase: 67
-current_phase_name: Driver Trip Portal — Status Marking, Notes & Admin Visibility
-status: executing
-stopped_at: Phase 66 complete, ready to plan Phase 67
-last_updated: "2026-09-02T19:27:37.492Z"
-last_activity: 2026-09-02
-last_activity_desc: Phase 67 execution started
-state_head: ec57d205aa2d250e0777ddd01355310f840f25b0
+milestone: v3.0
+milestone_name: Site Internationalization (i18n)
+current_phase: 73
+current_phase_name: non latin & rtl infra (ar, hi, zh)
+status: planning
+stopped_at: Phase 72 complete, ready to plan Phase 73
+last_updated: "2026-09-17T07:56:45.896Z"
+last_activity: 2026-09-17
+last_activity_desc: Phase 72 complete, transitioned to Phase 73
+state_head: 99f8612173f944d2d206208e6f9b1cc45594bda4
 progress:
-  total_phases: 3
-  completed_phases: 2
-  total_plans: 8
-  completed_plans: 6
-  percent: 67
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 29
+  completed_plans: 29
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-08-27)
+See: .planning/PROJECT.md (updated 2026-09-06)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 67 — Driver Trip Portal — Status Marking, Notes & Admin Visibility
+**Current focus:** Phase 72 — AI Translation Pipeline & Catalogs
 
 ## Current Position
 
-Phase: 67 (Driver Trip Portal — Status Marking, Notes & Admin Visibility) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 67
-Total Plans in Phase: 2
-Last activity: 2026-09-02 — Phase 67 execution started
-
-Progress: [███░░░░░░░] 33%
+Phase: 73 — non latin & rtl infra (ar, hi, zh)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-17 — Phase 72 complete, transitioned to Phase 73
 
 ## Accumulated Context
 
@@ -98,6 +94,39 @@ Recent decisions affecting current work:
 - [Phase 66]: 66-01: TripSheetAssignmentRow/Booking/Driver interfaces cast around the untyped Supabase select-string join (bookings!inner(*) infers as array without a Database generic)
 - [Phase 66]: trip_token kept required on Assignment interface; POST-fallback path sets it to '' and hides Copy Trip Link rather than making the field optional (SEC-18 discipline preserved)
 - [Phase 66]: VIEW TRIP SHEET CTA placed as its own div below the ACCEPT/DECLINE button row, not inside it, keeping DTRIP-07's unchanged-DOM guarantee literal
+- [Phase 68]: 68-01: next-intl@4.14.2 exact pin approved via blocking-human package-legitimacy checkpoint (amannn/next-intl, 5+ yr package, [SUS] too-new signal dispositioned as false positive on latest patch date)
+- [Phase 68]: 68-01: useNonceCsp decided from the raw request pathname (not the locale-stripped decisionPathname) so /ru/admin can never acquire a nonce CSP (T-68-04 fix found during Task 2 TDD)
+- [Phase 68]: 68-01: shared runCspAndAuthChain helper consolidates the CSP/Supabase branch logic for both non-localized and public middleware branches rather than duplicating the block
+- [Phase 68]: [Phase 68] 68-02: stripLocalePrefix moved from middleware.ts to i18n/routing.ts (single-source I18N-04, avoids next/server import in plain unit tests)
+- [Phase 68]: [Phase 68] 68-02: ACCEPTED DEVIATION T-68-06 — case-variant locale prefixes (/RU, /Ru) canonicalize via next-intl's own 307 redirect to the lowercase locale rather than hard-404ing; non-bypass and non-reflection invariants hold, human-approved at the Task 3 checkpoint
+- [Phase 69]: 69-01: Task 1 convention approved as Option A (PascalCase component namespaces, camelCase semantic sub-keys, JSON arrays for ordered lists, named ICU args, 6 EN-copy stub files) — locked verbatim for reuse across Phases 69-71
+- [Phase 69]: 69-01: Nav.tsx NAV_LINKS typed as ReadonlyArray<{href,isNew?}> rather than 'as const' to avoid a discriminated-union TS error when accessing .isNew
+- [Phase 69]: [Phase 69] 69-02: Footer services li key uses href+index (not href alone) — 3 of 8 service items share href '/services' — avoids React duplicate-key collision
+- [Phase 69]: [Phase 69] 69-02: FeatureStrip icons / HowItWorks step-number+photo-path stay in-code structural arrays zipped by index with translated catalog arrays — matches locked convention: structural config never moves into message JSON
+- [Phase 69]: 69-03: HeroBackground's HERO_ALT moved from module scope to a local const inside the component body (useTranslations only callable inside the component); all 3 usage sites (2x getImageProps alt, 1x img alt) unchanged
+- [Phase 69]: 69-03: t.rich('priceAnchor', { amount, price: (chunks) => <span>...</span> }) preserves Hero's inline copper price span; plain {amount} ICU arg coerces via String() (no locale number formatting), matching prior template-literal output byte-for-byte
+- [Phase 69]: [Phase 69] 69-04: Fleet altTemplate interpolated via per-index t(`vehicles.${i}.altTemplate`, {model}) — next-intl dot-path array resolution, not manual .replace() string surgery
+- [Phase 69]: 69-05: Testimonials + TestimonialsCarousel share the Testimonials namespace; nested components (StarBadge, Toggle) call useTranslations directly instead of threading a t prop
+- [Phase 70]: [Phase 70] 70-01: Booking.validation seeded with shared 'required to continue' keys (originRequired/destinationRequired/dateRequired/timeRequired/returnDateRequired/returnTimeRequired/returnAfterPickup) reused across later step plans, not duplicated per-field
+- [Phase 70]: [Phase 70] 70-01: Rule 1 auto-fix — any pre-existing test mounting an already-externalized component (not just its own test file) needs the renderWithIntl migration too; surfaced on BookingWizard.test.tsx mounting EntryBar
+- [Phase 70]: 70-03: TripTypeTabs uses Nav-style array split (t.raw('items') index-paired); ProgressBar aria kept byte-identical 'of 5' to preserve BookingWizard WIZD-07
+- [Phase 70]: 70-04: Booking.vehicleClasses is the single source of vehicle-class labels; VEHICLE_CLASS_KEY normalizes the snake_case enum to camelCase catalog keys — downstream plans reuse it, never re-add a local label map
+- [Phase 70]: 70-05: Booking.extras is a read-only mirror of lib/extras.ts (email-coupled, untouched); UI reads label/description by key
+- [Phase 70]: 70-05: vehicle-class labels in PriceSummary/BookingSummaryBlock/BookingWizard reuse Booking.vehicleClasses via VEHICLE_CLASS_KEY; GA4/Meta analytics identifiers unchanged
+- [Phase 70]: 70-07: DayCard interpolated day aria collapses to named-ICU (single dayLabel 'Day {day}' + per-variant t('key',{day}))
+- [Phase 70]: 70-07: Step3Auth (in-wizard auth, Auth.inWizard) reuses shared Auth.login + Errors keys via secondary hooks rather than duplicating byte-identical strings
+- [Phase 70]: 70-08: account/auth-account surface externalized (getTranslations Server Components + useTranslations clients + Pattern E locale-threaded actions); Phase 70 gate green — STR-02 complete
+- [Phase 72]: [Phase 72] 72-01: i18n/locales.ts extracted (dependency-free) so plain-Node scripts can import the locale list — i18n/routing.ts re-exports it unchanged; createNavigation() from next-intl/navigation is unresolvable outside Next's bundler
+- [Phase 72]: [Phase 72] 72-01: hash-manifest (unitKey -> {enHash,lastTranslatedAt}) + injectable translator architecture proven end-to-end (one key, ru locale) via mocked-client TDD; empty/whitespace units excluded from translator calls but still recorded in the manifest to keep idempotency uniform
+- [Phase 72]: 72-02: manifest advance deferred until every requested locale succeeds for a unit this run (not after the first locale) — the enHash entry carries no locale dimension, so per-locale-immediate writes would silently fall back to English for the second/third locale
+- [Phase 72]: 72-02: translateCatalog()/translateContentJson() are pure/read-only (no file writes, no manifest mutation) — runFullTranslation() alone owns persistence so a translator or verification failure never partially commits state
+- [Phase 72]: 72-02: a unit failing DNT/ICU/plural verification falls back to the EN value in the output and is excluded from the manifest — retried automatically next run, never silently shipped broken
+- [Phase 72]: [Phase 72] 72-03: gray-matter's stringify(content, data) arg order is body-first, data-second - the inverse of 72-RESEARCH.md/72-PATTERNS.md's code snippets; buildTranslatedMdx() uses the confirmed-correct order
+- [Phase 72]: [Phase 72] 72-03: translateMdxFile() only populates translatedByUnitKey for a body unit that passes verifyMdxStructure - a structurally-failed body never enters the accepted set, no downstream filter needed
+- [Phase 72]: [Phase 72] 72-03: checkPipelineState() (--check mode) returns {ok, failures} instead of calling process.exit() itself, keeping the EN-mutation/completeness guard directly unit-testable
+- [Phase 72]: [Phase 72] 72-03: QA report's no-English-leakage check is scoped to units the run actually processed (summary.accepted) and excludes DNT-only values so brand terms identical across locales are never false-flagged
+- [Phase 72]: 72-04: Owner confirmed provisioning ANTHROPIC_API_KEY GitHub Actions repository secret (human-only, no agent GitHub-secret access)
+- [Phase 72]: 72-04: i18n-translate.yml is the repo's first CI workflow — path-filtered push trigger + workflow_dispatch, least-privilege contents:write+pull-requests:write, EN-unchanged assertion before PR step, PR-only landing via peter-evans/create-pull-request@v8 (never a direct main commit, D-08)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -132,6 +161,28 @@ Recent decisions affecting current work:
 - Phase 66: Driver Trip Portal — Permanent Link & Trip Sheet — DTRIP-01, DTRIP-02, DTRIP-07, DTRIP-08
 - Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility — DTRIP-03, DTRIP-04, DTRIP-05, DTRIP-06
 - Execution: (65 ∥ 66) → 67
+
+### v3.0 roadmap (Phases 68-75, planning)
+
+- Milestone: Site Internationalization — EN at root (unchanged URLs), 6 locales under subpaths (RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation. Stack: next-intl + app/[locale] (`localePrefix: 'as-needed'`).
+- Phase 68: i18n Foundation & Routing — I18N-01/02/03/04 (risk-first: middleware composition + route-tree move under [locale], EN unchanged)
+- Phase 69: String Externalization — UI Chrome — STR-01
+- Phase 70: String Externalization — Booking & Account — STR-02
+- Phase 71: Content Externalization — Marketing & SEO Pages — CNT-01/02/03 (may split 71a/71b)
+- Phase 72: AI Translation Pipeline & Catalogs — TR-01/02 (RU/ES/FR)
+- Phase 73: Non-Latin & RTL Infra (AR, HI, ZH) — RTL-01, FONT-01, TR-02
+- Phase 74: SEO — hreflang/metadata/sitemap/JSON-LD/switcher — SEO-01/02/03/04, UX-01/02
+- Phase 75: E2E Verification & Launch — VER-01
+- Proposed execution: 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69∥70 after 68; 71/72 pipeline can overlap)
+
+### Key i18n grounding (verify during /gsd-plan-phase 68)
+
+- `middleware.ts` is a single default export doing CSP nonce (`buildCsp`) + Supabase `updateSession` + CSRF Origin-guard; broad matcher. next-intl locale-middleware must be COMPOSED into this chain, not replace it — highest-risk item.
+- `lib/seo.ts::getAlternates()` already returns `{ canonical, languages }` and is designed to extend to N locales; `app/sitemap.ts` already emits `alternates.languages` (currently en/x-default only).
+- Content is hardcoded prose inline in each `app/routes/<slug>/page.tsx` (inclusions, dayTripConfigurations, FAQ, hero, per-page generateMetadata). `lib/routes.ts` is the hub data-layer only. Blog = `content/blog/*.mdx` (10) + 3 legacy JSX.
+- Fonts: next/font Fraunces + Inter (self-hosted); no `dir=` handling anywhere. RTL audit ≈ 42 files / ~50 physical-direction Tailwind class occurrences.
+- Do NOT localize: `app/admin/*`, `app/api/*`, `app/auth/*`, `app/driver/*` — stay at root, off the [locale] tree.
+- `next.config.ts` has a `/cs → /` redirect (CS not in v3.0 scope — leave it); ensure new locale prefixes are not caught by any catch-all.
 
 ### Pending Todos
 
@@ -183,8 +234,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-08-31T21:36:01.828Z
-Stopped at: Phase 66 complete, ready to plan Phase 67
+Last session: 2026-09-15T07:24:35.420Z
+Stopped at: Phase 72 complete, ready to plan Phase 73
 Resume file: None
 
 ## Performance Metrics
@@ -221,7 +272,24 @@ Resume file: None
 | Phase 65 P04 | 15min | 2 tasks | 4 files |
 | Phase 66 P01 | ~7min | 4 tasks | 6 files |
 | Phase 66 P02 | 5min | 3 tasks | 6 files |
+| Phase 68 P01 | 55min | 2 tasks | 118 files |
+| Phase 68 P02 | ~19min | 3 tasks | 6 files |
+| Phase 69 P01 | 15min | 3 tasks | 16 files |
+| Phase 69 P02 | 11min | 2 tasks | 10 files |
+| Phase 69 P03 | 22min | 2 tasks | 12 files |
+| Phase 69 P04 | 25min | 2 tasks | 9 files |
+| Phase 69 P05 | 20min | 2 tasks | 11 files |
+| Phase 70 P01 | 5min | 3 tasks | 10 files |
+| Phase 70 P03 | 22min | 3 tasks | 24 files |
+| Phase 70 P04 | 4min | 3 tasks | 15 files |
+| Phase 70 P05 | 6min | 3 tasks | 16 files |
+| Phase 70 P07 | 20min | 3 tasks | 12 files |
+| Phase 70 P08 | 15min | 3 tasks | 15 files |
+| Phase 72 P01 | 55min | 3 tasks | 12 files |
+| Phase 72 P02 | 20min | 2 tasks | 6 files |
+| Phase 72 P03 | 16min | 3 tasks | 7 files |
+| Phase 72 P04 | ~60min (Task1 55min + Task3 5min continuation) | 3 tasks | 2 files |
 
 ## Operator Next Steps
 
-- Run /gsd-plan-phase 65 to begin Phase 65 (Dispatch — Future-First Bookings List)
+- Plan the next phase: /gsd-plan-phase 71 (Content Externalization — Marketing & SEO Pages; may split 71a/71b)

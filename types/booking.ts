@@ -15,6 +15,16 @@ export interface Stop {
 
 export type VehicleClass = 'business' | 'first_class' | 'business_van'
 
+// Maps the snake_case VehicleClass enum value to its camelCase catalog key under
+// Booking.vehicleClasses (the single source of truth for class display labels).
+// Structural only — carries no translatable copy.
+export type VehicleClassKey = 'business' | 'firstClass' | 'businessVan'
+export const VEHICLE_CLASS_KEY: Record<VehicleClass, VehicleClassKey> = {
+  business: 'business',
+  first_class: 'firstClass',
+  business_van: 'businessVan',
+}
+
 export type BookingSource = 'online' | 'manual' | 'gnet'
 
 export interface PassengerDetails {
@@ -44,17 +54,18 @@ export interface Extras {
 
 export interface VehicleConfig {
   key: VehicleClass
-  label: string
-  model: string  // e.g. "Mercedes-Benz E-Class or similar"
+  model: string  // e.g. "Mercedes-Benz E-Class or similar" — proper noun, stays literal
   maxPassengers: number
   maxLuggage: number
   image: string  // path relative to /public
 }
 
+// Display labels live in the catalog (Booking.vehicleClasses.<key>.label), resolved
+// at each render site via VEHICLE_CLASS_KEY. Structural fields only here.
 export const VEHICLE_CONFIG: VehicleConfig[] = [
-  { key: 'business', label: 'Business', model: 'Mercedes-Benz E-Class or similar', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/e-class.avif' },
-  { key: 'first_class', label: 'First Class', model: 'Mercedes-Benz S-Class or similar', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/s-class.avif' },
-  { key: 'business_van', label: 'Business Van', model: 'Mercedes-Benz V-Class or similar', maxPassengers: 6, maxLuggage: 6, image: '/vehicles/v-class.avif' },
+  { key: 'business', model: 'Mercedes-Benz E-Class or similar', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/e-class.avif' },
+  { key: 'first_class', model: 'Mercedes-Benz S-Class or similar', maxPassengers: 3, maxLuggage: 3, image: '/vehicles/s-class.avif' },
+  { key: 'business_van', model: 'Mercedes-Benz V-Class or similar', maxPassengers: 6, maxLuggage: 6, image: '/vehicles/v-class.avif' },
 ]
 
 // Mirrors FlightStatus from lib/flight-status.ts (server-only module).

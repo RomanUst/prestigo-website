@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "title": "Prague Chauffeur Blog — Airport, Routes & Transfer Guides",
+    "description": "Practical guides on Prague airport transfers, intercity routes, and luxury chauffeur services — verified 2026 fares and local knowledge from Prestigo."
+  },
+  "hero": {
+    "label": "Blog",
+    "headlineLine1": "Prague travel,",
+    "headlineItalic": "explained clearly.",
+    "intro": "Practical guides written from real dispatch data. Every fare, route, and timing verified for 2026."
+  },
+  "emptyState": {
+    "heading": "No articles yet.",
+    "body": "We're preparing detailed guides on Prague transfers and routes. Check back soon, or book your transfer now.",
+    "ctaLabel": "Book a Transfer"
+  },
+  "cta": {
+    "headingLine1": "Ready to book?",
+    "headingItalic": "Fixed price, door-to-door.",
+    "body": "No meters. No surprises. Mercedes fleet, 24/7 Prague dispatch.",
+    "primaryLabel": "Book a Transfer",
+    "secondaryLabel": "View Fleet"
+  }
+}

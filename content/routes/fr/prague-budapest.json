@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Prague → Budapest",
+    "headlineLine1": "De Prague à Budapest,",
+    "headlineItalic": "la perle du Danube.",
+    "intro": "535 km vers le sud, à travers la Moravie, la Slovaquie, jusqu'en Hongrie. Le château de Buda, le pont des Chaînes, les bains thermaux et les bars en ruine de Pest — cinq heures et demie, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Budapest couvre 535 km et demande environ 5 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque, slovaque et hongroise, de l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Brno ou Bratislava — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Ce n'est pas une navette partagée. Ce n'est pas une application de VTC. Une Mercedes privée, un chauffeur, trois frontières et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Budapest",
+    "headingItalic": "en cinq heures et demie.",
+    "paragraphs": [
+      "Après une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers l'est à travers le plateau de Bohême-Moravie jusqu'à Brno, puis continue sur la D2 en direction du sud vers la frontière Schengen tchéco-slovaque à Břeclav et Brodské. En Slovaquie, la route contourne Bratislava par le sud via le périphérique D4, franchit la frontière Schengen slovaco-hongroise à Rajka et Čunovo, et devient l'autoroute hongroise M15. De là, la M1 vous conduit vers l'est, au-delà de Győr et Tatabánya, jusqu'à la capitale.",
+      "La distance totale est d'environ 535 kilomètres. Le temps de conduite est de cinq heures et demie en conditions normales. À l'arrivée à Budapest, la dépose peut se faire côté Pest — le centre-ville de Belváros, les hôtels le long du fleuve ou l'avenue Andrássy — ou côté Buda, près de la colline du Château et du bastion des Pêcheurs. Votre chauffeur connaît les deux rives et l'ordre des ponts qui les relient.",
+      "Votre chauffeur surveille la circulation sur la D1 avant chaque départ. S'il y a une zone de travaux entre Jihlava et Brno — comme c'est le cas avec les travaux d'élargissement en cours —, il modifie l'itinéraire par le réseau secondaire sans avoir à demander. Vous ne payez pas pour les embouteillages ; vous payez pour votre temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague jusqu'à la dépose à Budapest. La voiture, le chauffeur, le carburant, les péages, trois vignettes. Déplacement professionnel, week-end aux bains thermaux ou voyage culturel sur le Danube — votre chauffeur s'occupe de la route pendant que vous vous concentrez sur la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Hongrois sur demande.",
+    "Carburant, tous les péages et les vignettes autoroutières tchèque, slovaque et hongroise. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de réduction sur le trajet de retour s'il est réservé en même temps, ou mise à disposition horaire en ville en complément."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Budapest,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Bratislava (en option)",
+      "note": "La capitale slovaque se trouve directement sur l'itinéraire — possible comme arrêt en route avant la dernière portion vers la Hongrie.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt au coude du Danube ou en tout autre point du trajet. Votre programme, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Budapest",
+      "note": "Dépose à n'importe quelle adresse à Budapest, à l'aéroport de Budapest (BUD), au château de Buda ou à votre hôtel à Pest.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passages de frontière",
+      "value": "Frontière Schengen tchéco-slovaque à Břeclav/Brodské et frontière Schengen slovaco-hongroise à Rajka/Čunovo. Aucun contrôle de passeport pour les citoyens de l'UE."
+    },
+    {
+      "label": "Péages",
+      "value": "Les vignettes autoroutières tchèque, slovaque et hongroise sont toutes comprises dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Liaison avec Vienne",
+      "value": "Vienne se situe à environ 60 km au nord-ouest de Budapest, sur le même corridor. Prestigo peut intégrer un arrêt à Vienne ou prolonger votre trajet au sein d'une seule réservation."
+    }
+  ],
+  "dayTripLabel": "Excursions à la journée depuis Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Avec onze heures de route aller-retour, l'excursion Prague–Budapest à la journée est exigeante — la plupart des clients préfèrent passer la nuit à Budapest. Pour ceux qui tiennent à dormir dans leur propre lit, un départ matinal rend la chose possible. Trois formules couvrent les options concrètes.",
+    "configurations": [
+      {
+        "title": "L'express château de Buda et bastion des Pêcheurs",
+        "body": "Prise en charge à 5 h 00, arrivée dans le centre de Budapest vers 10 h 30. Trois heures sur la colline du Château — église Matthias, bastion des Pêcheurs, les vues sur le Danube jusqu'au Parlement — avec un déjeuner en terrasse dans le Várnegyed. Retour à Prague pour 21 h 00.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "La demi-journée aux bains Széchenyi",
+        "body": "Départ matinal pour une arrivée à 10 h 30 aux bains thermaux Széchenyi, dans le parc municipal. Quatre heures dans les bassins extérieurs et l'établissement néo-baroque, avec un déjeuner tardif sur l'avenue Andrássy avant le retour. Peignoirs, maillots et créneau d'entrée organisés à l'avance sur demande.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "La journée des grands boulevards de Pest",
+        "body": "Prise en charge à 5 h 00. Cinq heures à Pest — extérieur du Parlement et place Kossuth, basilique Saint-Étienne, grand marché couvert, puis la rue Váci pour l'après-midi. Votre chauffeur attend près de la place Vörösmarty entre les arrêts. De retour à Prague avant minuit.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      }
+    ],
+    "footnote": "Prix indicatifs fondés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec 10 % de réduction sur le retour le jour même, ou ajouter une mise à disposition horaire en ville si vous souhaitez que le chauffeur vous accompagne dans vos déplacements. Décrivez-nous votre programme et nous confirmons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueillera devant l'adresse de prise en charge — pas sur un parking de l'autre côté de la rue, ni à un point de rendez-vous situé à dix minutes de marche dans l'aéroport. Si vous arrivez à l'aéroport Václav Havel, il se trouve dans le hall des arrivées avec une tablette Prestigo affichant votre nom. Au retour, un chauffeur accueille votre groupe à l'aéroport international Ferenc Liszt de Budapest (BUD), dans la zone des arrivées du Terminal 2, selon le même protocole.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour cinq heures de travail ou de repos, le chauffeur comprendra ce signal et vous laissera tranquille. Si vous souhaitez du contexte sur Budapest — l'Empire austro-hongrois qui réunissait Vienne et Budapest en un seul État, l'unification en 1873 de Buda et de Pest en une seule ville, la culture des bains thermaux antérieure aux Romains, ou la transformation, après 1989, d'une capitale socialiste en l'une des villes les plus visitées d'Europe —, votre chauffeur la connaît.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous avez oublié un adaptateur européen, demandez. Si vous souhaitez une température précise à l'arrière, dites-le. Si vous voulez vous arrêter pour un café à l'aire de Rohlenka sur la D1 avant Brno, ou à l'aire de Čilizská Radvaň sur la portion slovaque, c'est compris."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague–Budapest.",
+    "items": [
+      {
+        "title": "Tarif fixe, sans surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, péages, trois vignettes autoroutières, temps du chauffeur. Rien n'est ajouté à l'arrivée."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux longs trajets internationaux."
+      },
+      {
+        "title": "Un service anticipé",
+        "body": "Si la M1 est fermée aux abords de Győr, votre chauffeur passe par Tatabánya sans avoir à demander. Si votre vol vers BUD est retardé, la prise en charge est décalée sans un seul appel. Vous n'avez pas à gérer le trajet — c'est notre métier."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Budapest ?",
+      "a": "Environ 5 heures 30 de porte à porte via l'autoroute D1 vers l'est par Brno, une courte portion vers le sud à travers la Slovaquie sur la D2 et le périphérique D4 de Bratislava, puis le passage de la frontière hongroise sur la M15 et la M1 jusqu'au centre de Budapest. Les départs de Prague le vendredi après-midi peuvent ajouter 20 à 30 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Budapest ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, les trois vignettes autoroutières et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée entre Prague et Budapest ?",
+      "a": "C'est possible, mais éprouvant — onze heures de route, plus le temps passé à Budapest. La plupart des clients Prestigo passent la nuit à Budapest et rentrent le lendemain, ce qui coûte aussi moins cher que de payer l'attente du chauffeur tout l'après-midi. Si un retour le jour même est la bonne solution pour vous, indiquez-nous votre programme et nous établissons un tarif aller-retour ferme."
+    },
+    {
+      "q": "Combien de frontières compte cet itinéraire ?",
+      "a": "Deux. La frontière Schengen tchéco-slovaque à Břeclav/Brodské après Brno, et la frontière Schengen slovaco-hongroise à Rajka/Čunovo, à l'ouest de Budapest. Les deux sont invisibles au sein de l'espace Schengen — aucun arrêt, aucun contrôle de passeport pour les citoyens de l'UE. Les passagers hors UE doivent être munis de documents de voyage valides."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et réhausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il hongrois ?",
+      "a": "Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque en standard, ce qui couvre toutes les situations concrètes sur la route et à l'arrivée à Budapest. Un chauffeur parlant hongrois est disponible sur demande, avec un préavis suffisant."
+    }
+  ],
+  "relatedRoutesIntro": "Budapest se situe à l'extrémité orientale du corridor pragois, et beaucoup des villes qui jalonnent le trajet sont des destinations à part entière. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-vienna",
+      "city": "Vienne",
+      "distance": "330 km",
+      "duration": "3 h 30"
+    },
+    {
+      "slug": "prague-bratislava",
+      "city": "Bratislava",
+      "distance": "330 km",
+      "duration": "3 h 30"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "205 km",
+      "duration": "2 h 15"
+    },
+    {
+      "slug": "prague-krakow",
+      "city": "Cracovie",
+      "distance": "540 km",
+      "duration": "5 h 30"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~535 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~5 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Budapest.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague–Budapest — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Budapest. 535 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la perle du Danube.",
+    "ogTitle": "Transfert privé Prague–Budapest — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Budapest. 535 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la perle du Danube."
+  }
+}

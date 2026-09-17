@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Praga → Cracovia",
+    "headlineLine1": "De Praga a Cracovia,",
+    "headlineItalic": "la ciudad real de Polonia.",
+    "intro": "385 km hacia el noreste, hasta la capital cultural de Polonia. El castillo de Wawel, la plaza del mercado Rynek, el barrio judío de Kazimierz y las minas de sal de Wieliczka: cuatro horas, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Cracovia cubre 385 km y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Ostrava o Katowice— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
+    "No es un servicio compartido. No es una aplicación de transporte. Es un Mercedes privado, un chófer, un cruce de frontera gestionado por nosotros y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Cracovia",
+    "headingItalic": "en cuatro horas.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección este pasando Brno y continúa hacia el noreste por la D1 y la D48 en dirección a Ostrava. La frontera Schengen checo-polaca se cruza en Český Těšín, del lado checo, y Cieszyn, del lado polaco: invisible, sin paradas ni controles de documentación. Desde allí, la A1 polaca enlaza con la A4 hacia el este, atravesando Katowice y siguiendo hasta Cracovia, para llegar a su hotel o punto de encuentro en el centro de Małopolska.",
+      "La distancia total es de aproximadamente 385 kilómetros. El tiempo de conducción es de cuatro horas en condiciones normales y de cuatro horas y media con el tráfico de salida de Praga los viernes por la tarde. Si el chófer prefiere un trazado algo distinto un día determinado —por Olomouc a través de la D35 y después por la D48—, esa opción también está sobre la mesa. Ambas rutas llegan a Cracovia en prácticamente el mismo tiempo, y la elección se toma la mañana del trayecto en función del tráfico en tiempo real.",
+      "En Cracovia, el punto de llegada puede ser cualquiera: Stare Miasto y la plaza del Mercado Principal, el castillo de Wawel sobre el Vístula, Kazimierz —el antiguo barrio judío— o el trazado realista socialista de Nowa Huta, en el extremo oriental de la ciudad. Su chófer revisa el tráfico en la D1 y en la A4 polaca antes de cada salida. La A4 es una autopista de peaje y ese coste ya está incluido en su tarifa; si hay algún incidente cerca de Katowice, modifica la ruta sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Cracovia. El coche, el chófer, el combustible, la viñeta checa y la autopista de peaje polaca. Ya sea una visita de negocios, un fin de semana cultural o una jornada de memoria en Auschwitz-Birkenau, su chófer se ocupa de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Polaco bajo petición.",
+    "Combustible, viñeta de autopista checa y todos los peajes de las autopistas polacas, incluida la A4. No se cobra nada adicional.",
+    "Servicio de puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y WiFi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla infantil a favor de la marcha o alzador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler por horas en la ciudad."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Furgoneta Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Cracovia,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, su oficina o el aeropuerto de Praga (PRG). El conductor espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Brno u Ostrava (opcional)",
+      "note": "Una parada natural a mitad de camino para un café o un almuerzo rápido. Brno tras dos horas por la D1, u Ostrava, más cerca de la frontera, si prefiere una pausa más tardía.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "Una parada en las minas de sal de Wieliczka, en Auschwitz-Birkenau o en cualquier punto de la ruta. Su horario, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Cracovia",
+      "note": "Llegada a cualquier dirección de Cracovia, al castillo de Wawel, al Rynek Główny o al aeropuerto de Cracovia (KRK).",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Cruce de frontera",
+      "value": "Frontera Schengen checo-polaca en Český Těšín/Cieszyn. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar su documentación de viaje."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y los tramos de peaje polacos, incluida la A4, están todos incluidos en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida. La mayoría de los clientes pernocta en Cracovia y regresa al día siguiente."
+    },
+    {
+      "label": "Auschwitz-Birkenau",
+      "value": "A 70 km al oeste de Cracovia. Prestigo puede incorporar al itinerario del traslado una visita respetuosa al memorial bajo petición."
+    }
+  ],
+  "dayTripLabel": "Excursiones de un día desde Praga",
+  "dayTrip": {
+    "headingLine1": "Configuraciones habituales",
+    "headingItalic": "de excursión de un día.",
+    "intro": "Cracovia, a cuatro horas o cuatro horas y media por trayecto, es una excursión de un día ajustada. La mayoría de los clientes prefiere pernoctar. Para quienes deseen ver la ciudad y estar de vuelta en Praga antes de acostarse, estas tres configuraciones cubren las peticiones más frecuentes.",
+    "configurations": [
+      {
+        "title": "La jornada del castillo de Wawel y la Ciudad Vieja",
+        "body": "Recogida a las 6:30 y llegada a Cracovia sobre las 11:00. Cinco horas a pie: el castillo y la catedral de Wawel, el Rynek Główny y la Lonja de los Paños, almuerzo en un restaurante cercano a la plaza principal y el barrio de la Universidad Jaguelónica. Regreso a Praga a última hora de la tarde.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "La jornada del memorial de Auschwitz-Birkenau",
+        "body": "Recogida a las 6:00. Su chófer conduce directamente al Museo Estatal de Auschwitz-Birkenau, en Oświęcim, a 70 km al oeste de Cracovia. Cuatro horas en el memorial con visita guiada reservada y entrada con hora asignada. Un tranquilo regreso a Praga. Gestionado con discreción.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "Mina de sal de Wieliczka y Ciudad Vieja",
+        "body": "Recogida a las 6:30 y llegada a Wieliczka sobre las 11:00 para una visita subterránea de dos horas a la mina de sal declarada Patrimonio de la Humanidad por la UNESCO. Después, hacia el centro de Cracovia para pasar cuatro horas en el Rynek Główny y en Kazimierz, el antiguo barrio judío, antes del trayecto de vuelta a Praga.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      }
+    ],
+    "footnote": "Precios indicativos basados en los escenarios anteriores. La tarifa final depende del tiempo realmente pasado en destino. Puede reservar la ida y la vuelta con un 10 % de descuento por regreso el mismo día, o añadir alquiler por horas en la ciudad si necesita que el chófer se desplace con usted. Cuéntenos su plan y le confirmaremos un presupuesto en firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará delante de su dirección de recogida en el centro de Praga —Ciudad Vieja, Malá Strana, Vinohrady— o dentro de la sala de llegadas del aeropuerto Václav Havel, con una tableta Prestigo con su nombre. No al otro lado de un aparcamiento. No en un punto de encuentro a diez minutos. Donde usted esté, a la hora que haya reservado.",
+    "La conversación es opcional. Si desea una cabina en silencio para cuatro horas de trabajo o de descanso, el chófer captará la señal y le dejará tranquilo. Si desea contexto sobre Cracovia —sus siglos como sede de la corte real polaca, la Ciudad Vieja declarada Patrimonio de la Humanidad por la UNESCO, la Universidad Jaguelónica fundada en 1364, el peso de la memoria del Holocausto en Kazimierz y en el memorial de Auschwitz-Birkenau, la transformación de la ciudad después de 1989—, su chófer lo tiene.",
+    "El cargador de móvil, el agua embotellada y el WiFi ya están en la cabina. Si necesita una temperatura concreta, no dude en indicarlo. Si desea parar en el área de servicio OMV de la D1, cerca de Brno, para un café y un almuerzo en condiciones, está incluido: la mayoría de los trayectos Praga-Cracovia hacen allí una pausa de veinte minutos."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Cracovia.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, peajes de las autopistas polacas, tiempo del conductor y cruce de frontera. No se añade nada a la llegada."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes pasan una verificación de antecedentes, son bilingües y están formados para los desplazamientos internacionales."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si la A4 presenta un corte cerca de Katowice, su chófer desvía la ruta por Bielsko-Biała sin necesidad de preguntar. Para las visitas a Auschwitz-Birkenau, el chófer conoce las franjas de entrada con hora asignada y organiza la llegada en torno a ellas, no en torno al trayecto."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Cracovia?",
+      "a": "Aproximadamente de 4 a 4,5 horas de puerta a puerta. La ruta va hacia el este por la D1 pasando por Brno, después hacia el noreste en dirección a Ostrava por la D1/D48, cruza la frontera Schengen en Český Těšín/Cieszyn y continúa al este por la A1 y la A4 polacas hasta Cracovia. Las salidas de Praga los viernes por la tarde pueden añadir 20 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Cracovia?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen el combustible, la viñeta checa y todos los tramos de peaje polacos, incluida la A4. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Es posible hacer la ida y la vuelta de Praga a Cracovia en el mismo día?",
+      "a": "Técnicamente sí, pero solo la conducción supone entre 8 y 9 horas de ida y vuelta. La mayoría de los clientes de Prestigo pernocta en Cracovia y reserva el regreso para el día siguiente. Si necesita que el chófer se desplace con usted por la ciudad, añada alquiler por horas en la ciudad."
+    },
+    {
+      "q": "¿Cruzan la frontera polaca sin problemas?",
+      "a": "Ambos países pertenecen al espacio Schengen. La frontera checo-polaca se cruza en Český Těšín, del lado checo, y Cieszyn, del lado polaco, sin controles rutinarios. Todos los vehículos de Prestigo están registrados para desplazamientos internacionales y el chófer dispone de una licencia internacional de conducción profesional válida y reconocida en Polonia."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas infantiles a favor de la marcha y alzadores, sin coste adicional. Indique la edad de su hijo al reservar para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla polaco?",
+      "a": "El polaco está disponible bajo petición: indíquelo al reservar y Prestigo le asignará un chófer con polaco funcional. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie, lo que resulta más que suficiente para el trayecto en sí y para la mayoría de las interacciones en Cracovia."
+    }
+  ],
+  "relatedRoutesIntro": "Cracovia es el punto de referencia de Małopolska, pero Prestigo cubre todo el corredor al este de Praga. Muchos clientes combinan el trayecto a Cracovia con Ostrava o Brno en el lado checo, o con Breslavia y Varsovia ya adentrados en Polonia. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-ostrava",
+      "city": "Ostrava",
+      "distance": "370 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-wroclaw",
+      "city": "Breslavia",
+      "distance": "280 km",
+      "duration": "3 h 15 min"
+    },
+    {
+      "slug": "prague-warsaw",
+      "city": "Varsovia",
+      "distance": "680 km",
+      "duration": "7 h"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "200 km",
+      "duration": "2 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~385 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Furgoneta Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Cracovia.",
+    "headingItalic": "Desde {ePrice} €, fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Cracovia — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Cracovia. 385 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la capital real de Polonia.",
+    "ogTitle": "Traslado privado de Praga a Cracovia — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Cracovia. 385 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la capital real de Polonia."
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Prague → Ostrava",
+    "headlineLine1": "De Prague à Ostrava,",
+    "headlineItalic": "la Silésie industrielle.",
+    "intro": "370 km vers l'est jusqu'à la cité de l'acier tchèque, aux portes de la Pologne. Colours of Ostrava, les hauts fourneaux de Dolní Vítkovice et une ville en pleine mutation créative — quatre heures, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Ostrava couvre 370 km par l'autoroute D1 et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfant sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Brno ou Olomouc — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans vous solliciter en cas de retard.",
+    "Il ne s'agit pas d'une navette partagée. Ni d'une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Ostrava",
+    "headingItalic": "en quatre heures.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel — votre chauffeur emprunte la D1 vers l'est, à travers les hauteurs de la Vysočina en direction de Brno. Le trajet est long mais régulier, sur l'autoroute tchèque la plus fréquentée, achevée récemment sur toute sa longueur et reliant Prague à la frontière polonaise sans un seul feu de circulation. À Brno, l'itinéraire s'incline vers le nord-est, entre en Moravie, longe les campagnes vallonnées autour de Prostějov et d'Olomouc, puis descend à travers la périphérie industrielle d'Ostrava jusqu'au centre.",
+      "Aucun passage de frontière sur cet itinéraire — tout se déroule sur l'autoroute tchèque. Mais Ostrava se trouve elle-même à l'angle où se rejoignent les territoires tchèque, polonais et slovaque, et le caractère de la ville s'en ressent. Parmi les lieux que vous longez ou rejoignez : Dolní Vítkovice, le centre culturel post-industriel et ses hauts fourneaux emblématiques surmontés de la Bolt Tower ; la rue Stodolní, colonne vertébrale de la vie nocturne ; la terrasse panoramique du nouvel hôtel de ville, la plus haute du pays ; et les sites en bord de rivière où Colours of Ostrava anime l'été.",
+      "Votre chauffeur observe le trafic sur la D1 avant chaque départ. Si les chantiers de longue haleine de Velké Meziříčí sont actifs, il passe par Žďár nad Sázavou sans vous solliciter. Vous ne payez pas la circulation ; vous payez le temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Ostrava. La voiture, le chauffeur, le carburant, les péages, la vignette. Rendez-vous d'affaires, journée consacrée au patrimoine industriel ou week-end de festival en Moravie-Silésie — votre chauffeur s'occupe de la route pendant que vous vous consacrez à la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Polonais sur demande.",
+    "Le carburant, la vignette autoroutière tchèque et tous les péages du parcours. Rien n'est facturé en supplément.",
+    "Un service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes, puis facturation transparente par tranches de 15 minutes.",
+    "Sièges enfant sur demande — coque dos à la route, siège enfant face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van d'affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Ostrava,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur patiente jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Olomouc (en option)",
+      "note": "La capitale historique de la Moravie — l'arrêt naturel en cours de route. Possible pour une visite, un rendez-vous ou une pause déjeuner.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt n'importe où le long du corridor morave. Votre programme, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Ostrava",
+      "note": "Dépose à n'importe quelle adresse d'Ostrava, au complexe de Dolní Vítkovice ou à l'aéroport Leoš Janáček (OSR).",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun passage de frontière — trajet entièrement en République tchèque."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque incluse dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Liaison avec la Pologne et la Slovaquie",
+      "value": "Ostrava se situe à 10 km de la frontière polonaise et à moins d'une heure de la Slovaquie. Prestigo peut prolonger le trajet jusqu'à Katowice, Cracovie ou Žilina dans le cadre d'une seule réservation."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueille devant votre adresse de prise en charge — hôtel du centre de Prague, appartement privé, bureau ou hall des arrivées de l'aéroport Václav Havel, où il se tient à l'intérieur du terminal avec une tablette Prestigo affichant votre nom. Pas de parking de l'autre côté de la rue, pas de point de rencontre à dix minutes de marche.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour quatre heures de travail ou de repos, le chauffeur le comprend et vous laisse tranquille. Si vous voulez comprendre Ostrava — comment les aciéries de Vítkovice ont fermé dans les années 1990 avant de renaître à partir de 2002 en centre culturel ; comment Colours of Ostrava a transformé un festival dans une usine sidérurgique en l'un des week-ends musicaux les plus singuliers d'Europe ; comment la ville se tient à l'angle des territoires tchèque, polonais et slovaque — votre chauffeur saura vous l'expliquer.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Température selon vos préférences. Sur un trajet de quatre heures, une véritable pause à mi-parcours fait partie du programme — non pas un arrêt carburant expédié, mais une halte digne de ce nom sur la D1, pour un café et quelques pas avant la seconde partie du voyage vers la Moravie-Silésie."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Ostrava.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, vignette tchèque, tous les péages, temps du chauffeur, attente à l'arrivée. Rien n'est ajouté à la dépose."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux longues distances à travers le pays."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si la D1 présente les habituels chantiers de Velké Meziříčí, votre chauffeur passe par Žďár nad Sázavou sans vous solliciter. Pour les prises en charge pendant le festival Colours of Ostrava, il connaît déjà les protocoles d'accès au site de Dolní Vítkovice."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Ostrava ?",
+      "a": "Environ 4 heures de porte à porte par l'autoroute D1 vers l'est, via Brno, jusqu'en Moravie-Silésie. Les encombrements aux heures de pointe à la sortie de Prague ou autour de Brno peuvent ajouter 20 à 30 minutes. L'itinéraire couvre environ 370 kilomètres sur la D1 désormais achevée."
+    },
+    {
+      "q": "Combien coûte un chauffeur privé de Prague à Ostrava ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette autoroutière tchèque, le temps du chauffeur et tous les péages. Pas de compteur, pas de majoration, pas de frais cachés."
+    },
+    {
+      "q": "Puis-je réserver un retour à Prague le jour même ?",
+      "a": "Oui, mais l'aller-retour dans la journée est exigeant : environ huit heures de route, plus le temps passé à Ostrava. La plupart des clients passent la nuit à Ostrava et repartent le lendemain, ce que le chauffeur peut organiser à tarif réduit. Si le rendez-vous ou l'événement est bref, le chauffeur peut attendre sur place et repartir le soir même."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière sur cet itinéraire ?",
+      "a": "Non. Le trajet Prague – Ostrava se déroule entièrement en République tchèque. Ostrava se trouve toutefois à l'angle où se rejoignent les territoires tchèque, polonais et slovaque — la frontière polonaise est à environ 10 km du centre-ville, et la frontière slovaque à moins d'une heure vers le sud. Prestigo peut prolonger la réservation au-delà de l'une ou l'autre frontière pour un tarif unique."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges enfant face à la route et réhausseurs sont disponibles sans supplément. Merci d'indiquer l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Quelles langues parle le chauffeur ?",
+      "a": "Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque. Un chauffeur parlant polonais ou russe est disponible sur demande, ce que de nombreux clients apprécient compte tenu de la proximité d'Ostrava avec la frontière polonaise."
+    }
+  ],
+  "relatedRoutesIntro": "Ostrava est la porte d'entrée entre la République tchèque, la Pologne et la Slovaquie. De nombreux clients associent le trajet vers Ostrava à un arrêt à Olomouc, à une continuation vers Cracovie ou à une tournée d'affaires dans la ceinture industrielle morave. Chaque itinéraire Prestigo suit le même principe de tarif fixe, avec la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "la Moravie et au-delà."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-olomouc",
+      "city": "Olomouc",
+      "distance": "280 km",
+      "duration": "2 h 50"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2 h 15"
+    },
+    {
+      "slug": "prague-zlin",
+      "city": "Zlín",
+      "distance": "300 km",
+      "duration": "3 h 15"
+    },
+    {
+      "slug": "prague-krakow",
+      "city": "Cracovie",
+      "distance": "530 km",
+      "duration": "5 h 30"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~370 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~4 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Van d'affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Ostrava.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur privé Prague – Ostrava — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Ostrava. 370 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Moravie-Silésie.",
+    "ogTitle": "Transfert privé Prague – Ostrava — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Ostrava. 370 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Moravie-Silésie."
+  }
+}

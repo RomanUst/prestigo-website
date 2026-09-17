@@ -1,0 +1,70 @@
+{
+  "metadata": {
+    "title": "Group Transfers Prague — Minivan & Multi-Car",
+    "description": "Group chauffeur transfers in Prague. Minivans and multi-car coordination for conferences, incentive travel, and corporate events. Up to 50 passengers.",
+    "ogTitle": "Group Transfers Prague — Minivan & Multi-Car | PRESTIGO",
+    "ogDescription": "Group chauffeur transfers in Prague. Minivans and multi-car coordination for conferences, incentive travel, and corporate events."
+  },
+  "serviceDescription": "Minivan and multi-car group transfers in Prague for conferences, corporate events, and incentive travel. Up to 50 passengers.",
+  "hero": {
+    "label": "Group Transfers · Prague",
+    "headlineLine1": "Everyone arrives.",
+    "headlineItalic": "On schedule.",
+    "intro": "Prestigo group transfers move up to 50 passengers in a coordinated Mercedes-Benz V-Class fleet across Prague and Central Europe — conference delegations, incentive programmes, corporate off-sites, wedding parties, sports teams. Single dispatch contact, synchronised arrivals, full movement schedule. Fixed pricing per vehicle, door-to-door from hotels, airports, or venues.",
+    "ctaPrimary": "Request Group Quote",
+    "ctaSecondary": "All Services"
+  },
+  "capacityCallout": {
+    "label": "Capacity",
+    "heading": "Up to 50",
+    "note": "Passengers · Scalable fleet",
+    "items": [
+      "Minivan & multi-car coordination",
+      "Custom itineraries",
+      "Airport group arrivals handled",
+      "Conference & events specialists",
+      "Pricing on request"
+    ]
+  },
+  "featuresHeading": "How we manage groups",
+  "features": [
+    {
+      "title": "What vehicles are available for group transfers?",
+      "body": "For groups of up to seven passengers, the Mercedes V-Class is the standard vehicle — eight seats, 1,410 litres of cargo capacity with the rear seat configuration adjusted, and the same interior specification as the executive saloons. For groups between eight and twenty passengers, we deploy multiple V-Class vehicles in coordinated convoy. For larger conference delegations up to fifty passengers, we operate a mixed fleet of saloons and minivans, with vehicle-to-guest assignment managed by seniority and luggage volume."
+    },
+    {
+      "title": "How do you manage group pickup timing?",
+      "body": "Conference groups produce complex arrival patterns: a dozen flights across two days, a mix of Schengen and non-Schengen arrivals at Terminal 1 and Terminal 2, and hotel allocations spread across three properties. We receive the full arrival schedule, assign a chauffeur to each flight with a fifteen-minute customs and baggage buffer built in, and dispatch vehicles to the correct terminal at the correct time. Passengers who miss a connection receive an updated vehicle assignment within minutes of the rebooking being confirmed."
+    },
+    {
+      "title": "Can you handle multiple stops for a group?",
+      "body": "A typical conference movement schedule includes airport arrivals on day one, a hotel-to-venue shuttle on the morning of the main event, a venue-to-dinner transfer in the evening, and a return airport run on departure day. PRESTIGO manages the full schedule under a single logistics brief. Each movement has a confirmed vehicle, a confirmed chauffeur, a confirmed pickup time, and a confirmed drop-off point. Your events team receives a written movement schedule for their records on the morning of day one."
+    },
+    {
+      "title": "How large a group can PRESTIGO transport?",
+      "body": "We have operated groups as small as four passengers in a single V-Class and delegations as large as forty-eight passengers across eight vehicles coordinated simultaneously at two airport terminals. The operational approach does not change with scale: a movement brief, confirmed vehicle and chauffeur assignments, a lead coordinator available to your events team throughout, and direct contact for any real-time adjustment. We do not sub-contract to third-party operators for groups under fifty passengers."
+    }
+  ],
+  "editorialHeading": "How we plan your group movement",
+  "editorial": [
+    "Group transfers fail for predictable reasons. The vehicle is late because no one monitored the flight arrival in real time. The driver cannot locate the group because the airport pickup point was never confirmed in writing. The hotel is twenty minutes from the conference venue but the movement schedule allocated fifteen. A guest held at the back of the baggage claim takes longer than expected, and the vehicle departs without them.",
+    "PRESTIGO group operations are built around the failure modes rather than the ideal scenario. Every flight on a group arrival schedule is monitored from the moment it departs the origin airport. Pickup confirmation is sent to each arriving passenger's mobile number in advance. Movement schedules include a five-minute buffer at every stage. A lead coordinator is reachable by your events team from two hours before the first pickup to two hours after the last drop-off.",
+    "For Prague group transfers, one detail is worth noting in advance: Václav Havel Airport has two separate terminals. Terminal 2 handles Schengen arrivals and has its own building west of the main structure. Terminal 1 handles non-Schengen arrivals in the lower level of the central building. An international delegation arriving on mixed Schengen and non-Schengen flights will be split between terminals, with separate arrivals halls and a ten-minute walk between them. We build terminal-split logistics into every group brief as standard."
+  ],
+  "groupTypesHeading": "Who we work with",
+  "groupTypes": [
+    { "title": "Conference Delegations", "body": "Coordinated arrivals and departures for multi-day conferences. Hotel allocation, airport runs, gala transfers." },
+    { "title": "Incentive Travel Groups", "body": "Premium ground transport for incentive programmes. Every vehicle represents the quality of the experience." },
+    { "title": "Corporate Off-Sites", "body": "Transfer your team from Prague city centre to your off-site venue and back. Reliable, punctual, professional." },
+    { "title": "Familiarisation Trips", "body": "Hosted press trips and client FAM tours where ground transport sets the tone for the entire experience." },
+    { "title": "Airport Group Arrivals", "body": "Coordinating multiple flights arriving across a day? We manage the schedule and keep everyone moving." },
+    { "title": "Event Shuttle Services", "body": "Continuous shuttle loops between hotels and event venues for the duration of your event." }
+  ],
+  "cta": {
+    "label": "Tell us about your group",
+    "headingLine1": "We quote within",
+    "headingItalic": "a few hours.",
+    "body": "Share your group size, dates, and movement schedule. We will provide a detailed quote and logistics plan.",
+    "buttonText": "Request Group Quote"
+  }
+}

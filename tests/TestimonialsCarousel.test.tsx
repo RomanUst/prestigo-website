@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { renderWithIntl as render, screen, fireEvent } from '@/tests/helpers/renderWithIntl'
 import TestimonialsCarousel from '@/components/TestimonialsCarousel'
 import type { Review } from '@/lib/google-reviews'
 

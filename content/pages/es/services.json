@@ -1,0 +1,203 @@
+{
+  "metadata": {
+    "title": "Servicios de chófer en Praga — Aeropuerto, interurbanos y empresas",
+    "description": "Servicios de chófer en Praga: traslados al aeropuerto, rutas interurbanas, cuentas de empresa, eventos VIP y trayectos urbanos. Precio fijo, seguimiento de vuelos, reserva inmediata.",
+    "ogTitle": "Servicios de chófer en Praga — Aeropuerto, interurbanos y empresas"
+  },
+  "hero": {
+    "label": "Servicios de chófer · Praga",
+    "headlineLine1": "Servicios de chófer en Praga.",
+    "headlineItalic": "Cada detalle.",
+    "intro": "Desde el Aeropuerto Václav Havel de Praga hasta cualquier punto de Europa Central: los chóferes de PRESTIGO realizan cada trayecto con precio fijo, seguimiento de vuelos y la discreta seguridad de un servicio concebido para directivos."
+  },
+  "services": [
+    {
+      "label": "AEROPUERTO",
+      "title": "Traslado al aeropuerto",
+      "description": "Aeropuerto Václav Havel de Praga: le esperamos a su llegada, siempre. Su chófer sigue su vuelo en tiempo real, le aguarda en Llegadas con un cartel con su nombre y se encarga de su equipaje. Precio fijo desde el momento de la reserva.",
+      "features": [
+        "Seguimiento de vuelos incluido",
+        "Recepción personalizada en Llegadas",
+        "Cartel con su nombre incluido",
+        "Todas las terminales cubiertas"
+      ],
+      "price": "Desde {airportFrom} €",
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/airport-transfer",
+      "bookHref": "/book",
+      "bookCta": "RESERVAR AHORA",
+      "image": "/hero-airport-transfer.webp"
+    },
+    {
+      "label": "POR HORAS",
+      "title": "Alquiler de coche con chófer por horas",
+      "description": "Alquile un coche con chófer privado por horas en Praga. Mínimo 2 horas, sin límite máximo. Reuniones de negocios, teatro, una cena privada en un restaurante con estrella Michelin. Su chófer espera y el vehículo queda a su disposición en todo momento: múltiples paradas incluidas, sin taxímetro en marcha.",
+      "features": [
+        "Alquiler por horas desde 2 horas",
+        "Chófer privado y Mercedes",
+        "Múltiples paradas incluidas",
+        "Calidad de servicio de aeropuerto, tarifas urbanas"
+      ],
+      "price": "Desde {hourlyFrom} €/h",
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/city-rides",
+      "bookHref": "/book",
+      "bookCta": "RESERVAR AHORA",
+      "image": "/hero-city-rides.png"
+    },
+    {
+      "label": "CIUDAD A CIUDAD",
+      "title": "Rutas interurbanas",
+      "description": "De Praga a Viena en 3,5 horas. De Praga a Berlín en 4. Puerta a puerta, en un Mercedes y con un chófer que conoce la carretera. Trabaje durante todo el trayecto o simplemente contemple Europa a su paso.",
+      "features": [
+        "Precio fijo por ruta",
+        "Praga → Viena, Berlín, Múnich, Budapest, Bratislava, Salzburgo, Dresde",
+        "Disponible 24/7",
+        "Negocios u ocio"
+      ],
+      "price": "Desde {cheapestIntercity} €",
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/intercity-routes",
+      "bookHref": "/routes",
+      "bookCta": "VER RUTAS",
+      "image": "/hero-intercity-routes.png"
+    },
+    {
+      "label": "CONCIERGE",
+      "title": "Chófer y conserje",
+      "description": "No solo un chófer: un conserje al volante. Reservas confirmadas, conocimiento local a su disposición, gestiones resueltas y planes modificados el mismo día sin pensarlo dos veces. Una única persona de confianza, angloparlante, se encarga de la logística de su estancia en Praga.",
+      "features": [
+        "Reservas y contacto con el hotel",
+        "Conocimiento local, no un GPS",
+        "Gestiones y compras resueltas",
+        "El mismo chófer durante toda su estancia"
+      ],
+      "price": null,
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/concierge",
+      "bookHref": "/book",
+      "bookCta": "RESERVAR AHORA",
+      "image": "/hero-contact.webp"
+    },
+    {
+      "label": "EMPRESAS",
+      "title": "Cuentas de empresa",
+      "description": "Una cuenta dedicada para su empresa. Facturación mensual, informes consolidados y un gestor de cuenta asignado. Su responsable de viajes reserva una vez; PRESTIGO se encarga de todo lo demás.",
+      "features": [
+        "Facturación mensual consolidada",
+        "Gestor de cuenta dedicado",
+        "Asignación prioritaria de vehículos",
+        "Panel de informes corporativos"
+      ],
+      "price": null,
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/corporate-accounts",
+      "bookHref": "/corporate",
+      "bookCta": "ABRIR CUENTA",
+      "image": "/hero-corporate-accounts.png"
+    },
+    {
+      "label": "VIP",
+      "title": "VIP y eventos",
+      "description": "Visitas diplomáticas. Inauguraciones privadas. Llegadas a hoteles de lujo. Coordinación de varios vehículos para eventos en los que cada detalle importa y nada puede fallar.",
+      "features": [
+        "Conocimiento del protocolo diplomático",
+        "Coordinación de varios vehículos",
+        "Discreción garantizada",
+        "Reconocimiento previo de la ruta disponible"
+      ],
+      "price": null,
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/vip-events",
+      "bookHref": "/contact",
+      "bookCta": "CONSULTAR",
+      "image": "/hero-vip-events.png"
+    },
+    {
+      "label": "GRUPOS",
+      "title": "Traslados de grupos",
+      "description": "Delegaciones de congresos. Viajes de incentivo. Jornadas corporativas fuera de la oficina. Monovolúmenes, varios vehículos, precisión horaria. Todos llegan juntos y a la hora prevista.",
+      "features": [
+        "Coordinación de monovolúmenes y varios coches",
+        "Hasta 50 pasajeros",
+        "Especialistas en congresos y eventos",
+        "Itinerarios personalizados"
+      ],
+      "price": null,
+      "cta": "MÁS INFORMACIÓN",
+      "href": "/services/group-transfers",
+      "bookHref": "/contact",
+      "bookCta": "SOLICITAR PRESUPUESTO",
+      "image": "/hero-group-transfers.png"
+    },
+    {
+      "label": "VARIOS DÍAS",
+      "title": "Alquiler de varios días",
+      "description": "Un chófer dedicado para todo su viaje por Europa Central. Combine libremente días de traslado y días por horas: de Praga a Viena, un recorrido de cinco días, un roadshow corporativo. Presupuesto fijo en 24 horas.",
+      "features": [
+        "Chófer dedicado durante toda la duración",
+        "Combine traslados y días por horas",
+        "Alojamiento del chófer y peajes incluidos",
+        "Itinerario personalizado, precio fijo todo incluido"
+      ],
+      "price": null,
+      "cta": "CREAR ITINERARIO",
+      "href": "/book/multi-day",
+      "bookHref": "/book/multi-day",
+      "bookCta": "SOLICITAR PRESUPUESTO",
+      "isNew": true,
+      "image": "/multi-day-hero.png"
+    }
+  ],
+  "trustHeading": "Por qué PRESTIGO",
+  "trust": [
+    {
+      "title": "Precio fijo",
+      "body": "Sin tarifas dinámicas. Sin peajes ocultos. El precio que ve al reservar es el precio que paga."
+    },
+    {
+      "title": "Seguimiento de vuelos",
+      "body": "Su chófer sigue su vuelo en tiempo real. Los retrasos no le cuestan más."
+    },
+    {
+      "title": "Confirmación inmediata",
+      "body": "Reserve en línea y reciba la confirmación en segundos. Sin formularios ni esperas a que le devuelvan la llamada."
+    }
+  ],
+  "faqHeading": {
+    "label": "Preguntas sobre el servicio",
+    "title": "Cómo funcionan los servicios de PRESTIGO."
+  },
+  "faqs": [
+    {
+      "q": "¿Qué servicios ofrece PRESTIGO en Praga?",
+      "a": "PRESTIGO opera seis servicios de chófer diferenciados desde Praga. Los traslados al aeropuerto cubren todas las terminales del Aeropuerto Václav Havel (PRG) con recepción personalizada, seguimiento de vuelos y una tarifa fija desde {airportFrom} €. Las rutas interurbanas cubren 30 destinos de Europa Central con precio fijo por vehículo, desde {kutnaHora} € (Kutná Hora) hasta {budapest} € (Varsovia). Las cuentas de empresa ofrecen facturación mensual, un gestor de cuenta dedicado y asignación prioritaria para las empresas que desplazan personas con regularidad. Los servicios VIP y de eventos se encargan de visitas diplomáticas, inauguraciones privadas y coordinación de varios vehículos. Los trayectos urbanos son alquileres por horas dentro de Praga desde {hourlyFrom} €/hora. Los traslados de grupos coordinan hasta 50 pasajeros en varios vehículos con itinerarios personalizados. Todos los servicios se prestan con la misma flota Mercedes de modelos recientes, los mismos chóferes verificados y la misma garantía de precio fijo."
+    },
+    {
+      "q": "¿Cuánto cuesta un servicio de chófer en Praga?",
+      "a": "Los precios son fijos por vehículo, no por pasajero, y se confirman antes de reservar. Un traslado al aeropuerto en un Mercedes E-Class cuesta desde {airportFrom} €; un S-Class cuesta {sClassFallback} € y un V-Class para hasta seis pasajeros, {vClassFallback} €. Las rutas interurbanas van desde {kutnaHora} € (Praga–Kutná Hora, 70 km) hasta {vienna} € (Praga–Viena, 295 km), {berlin} € (Praga–Berlín, 350 km), {munich} € (Praga–Múnich, 385 km) y {budapest} € (Praga–Budapest, 535 km), todas en un E-Class; el S-Class y el V-Class tienen tarifas superiores. El alquiler por horas dentro de Praga cuesta {hourlyFrom} €/hora con un mínimo de dos horas. Todos los precios indicados incluyen ya el combustible, todos los peajes y viñetas de autopista, el tiempo del chófer, el margen de espera, agua embotellada, wifi y sillas infantiles a petición. No hay tarifas ocultas, ni precios dinámicos, ni cargos de gestión por trayecto."
+    },
+    {
+      "q": "¿Hacen seguimiento de los vuelos y esperan si un vuelo se retrasa?",
+      "a": "Sí: el seguimiento de vuelos está incluido en toda reserva de traslado al aeropuerto sin coste adicional. Su chófer sigue su vuelo con datos en directo del control aéreo desde el momento en que confirma la reserva. Si su vuelo aterriza antes de lo previsto, el chófer ya estará en la sala de llegadas con un cartel con su nombre. Si el vuelo se retrasa minutos u horas, la recogida se ajusta automáticamente a la nueva hora de llegada y usted no paga nada más: la espera por retraso de vuelo es siempre gratuita, sin límite de horas. Si el vuelo se cancela por completo, anulamos la reserva sin cargo y la reprogramamos automáticamente para su siguiente llegada prevista. En las recogidas en el aeropuerto incluimos 60 minutos de espera gratuita desde la hora real de aterrizaje (suficiente para pasar la aduana, recoger el equipaje y llegar al punto de encuentro); en los traslados programados incluimos 15 minutos de espera gratuita en la dirección de recogida."
+    },
+    {
+      "q": "¿Qué ciudades y rutas cubren desde Praga?",
+      "a": "PRESTIGO opera 30 rutas interurbanas indexadas desde Praga en siete países. En la República Checa cubrimos Kutná Hora, Pilsen, Karlovy Vary, Brno, Olomouc, Ostrava, Zlín, Český Krumlov, České Budějovice, Hradec Králové, Pardubice, Liberec, Mariánské Lázně y Františkovy Lázně. A escala internacional viajamos a Viena, Salzburgo, Linz y Graz (Austria); Berlín, Dresde, Leipzig, Múnich, Núremberg, Ratisbona y Passau (Alemania); Bratislava (Eslovaquia); Budapest (Hungría); Cracovia, Breslavia y Varsovia (Polonia). Cada ruta tiene su precio y sus detalles en una página propia en /routes/prague-[city]. Los destinos que no figuran entre estos 30 están disponibles a petición contactando con nuestra central: le facilitaremos una tarifa fija en un día laborable para cualquier punto del espacio Schengen."
+    },
+    {
+      "q": "¿Puedo reservar un trayecto de ida, un viaje de ida y vuelta o un alquiler de varios días?",
+      "a": "Las tres opciones están disponibles. El trayecto de ida es la opción predeterminada tanto en las rutas de aeropuerto como en las interurbanas: resérvelo para una fecha y hora concretas y pague la tarifa fija. Los viajes de ida y vuelta pueden reservarse en una sola confirmación y reciben un 10 % de descuento en el trayecto de regreso cuando ambos se programan por adelantado. El alquiler de varios días y los itinerarios con varias paradas funcionan como paquetes por horas o por días: su chófer y su vehículo quedan dedicados durante todo el periodo, disponibles para traslados programados, trayectos urbanos espontáneos y tiempos de espera entre paradas. Los casos habituales son visitas diplomáticas, roadshows por Europa Central, equipos de rodaje o de fotografía que necesitan una base móvil, o una familia que pasa tres días en Praga con excursiones a Kutná Hora y Karlovy Vary. Para el alquiler de varios días, escriba a nuestra central con su itinerario y le facilitaremos una tarifa única con todo incluido."
+    },
+    {
+      "q": "¿Cómo reservo y con qué rapidez recibiré la confirmación?",
+      "a": "Puede reservar de tres maneras. La más rápida es el formulario de reserva en línea en /book: elija su ruta, la clase de vehículo y la hora, pague con tarjeta y reciba la confirmación por correo electrónico y SMS en diez segundos. La segunda es por WhatsApp o teléfono en el +420 725 986 855: nuestra central atiende 24/7 y puede confirmar una reserva mientras usted sigue al teléfono. La tercera es por correo electrónico a info@rideprestigo.com para itinerarios complejos, cuentas de empresa o presupuestos que requieran una tarifa personalizada. Las reservas para el mismo día se aceptan hasta dos horas antes de la recogida (según disponibilidad de chóferes); las reservas de última hora dentro de ese margen son posibles por teléfono. Las cuentas de empresa disfrutan de asignación prioritaria y pueden confirmarse con una autorización permanente, sin aprobaciones repetidas. Toda reserva recibe un correo de confirmación con el nombre y la foto del chófer, la matrícula del vehículo y un enlace de seguimiento en directo."
+    }
+  ],
+  "cta": {
+    "label": "¿Listo para reservar?",
+    "headingLine1": "Elija su servicio y reserve",
+    "headingItalic": "en menos de 60 segundos.",
+    "buttonText": "Reservar un traslado"
+  }
+}

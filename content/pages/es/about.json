@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "title": "Sobre PRESTIGO — Servicio de chófer en Praga",
+    "description": "El servicio de chófer de Praga con raíces locales, construido según estándares internacionales de lujo. Nuestra historia, nuestros chóferes y por qué los viajeros exigentes eligen PRESTIGO.",
+    "ogTitle": "Sobre PRESTIGO — El servicio de chófer premium de Praga"
+  },
+  "schema": {
+    "name": "PRESTIGO",
+    "aboutPageName": "Sobre PRESTIGO — El servicio de chófer premium de Praga"
+  },
+  "hero": {
+    "label": "Sobre PRESTIGO",
+    "headlineLine1": "El servicio de chófer de Praga.",
+    "headlineItalic": "Estándar internacional.",
+    "intro": "PRESTIGO nació de una única constatación: Praga merecía un servicio de chófer a la altura de la ambición de la ciudad. No un agregador global sin conocimiento local. No un operador local sin marca. Algo intermedio — y mejor que ambos."
+  },
+  "brandStory": {
+    "heading": "Por qué existe PRESTIGO",
+    "paragraphs": [
+      "Cada año, cientos de miles de directivos, diplomáticos y viajeros exigentes llegan a Praga esperando un determinado nivel. Lo que encuentran, con demasiada frecuencia, es una brecha — entre la ciudad a la que vinieron y la primera impresión que esta les ofrece.",
+      "PRESTIGO existe para cerrar esa brecha. Desde el momento del aterrizaje hasta el momento de la llegada a su destino, cada detalle se anticipa, cada preferencia se anota, cada compromiso se cumple.",
+      "No somos un taxi. No somos un agregador. Somos la primera persona en Praga que ya está de su lado."
+    ]
+  },
+  "quote": "«La primera persona en Praga que ya está de su lado.»",
+  "ourStory": {
+    "label": "Nuestra historia",
+    "headingLine1": "De un solo coche,",
+    "headingItalic": "a un estándar.",
+    "paragraphs": [
+      "PRESTIGO comenzó en 2016 como empiezan la mayoría de los pequeños operadores en Europa Central — con un único Mercedes de última generación y un fundador cansado de ver a directivos de visita bajarse de los taxis del aeropuerto con cara de haber preferido ir andando. La ambición desde el primer día fue concreta y específica: crear en Praga un servicio de chófer que un viajero internacional reconociera como equivalente a los mejores que hubiera utilizado en Londres, Zúrich o Tokio.",
+      "El principio fundacional era que el estándar se fija en los extremos, no en el centro. Cualquiera puede realizar un buen traslado al aeropuerto un martes soleado por la tarde. La verdadera prueba es la recogida a las 04:00 en plena nevada, el cambio de ruta de última hora cuando una reunión se alarga, el dignatario de visita con su equipo de protocolo, la familia de cinco con esquís y un perro nervioso. Si el servicio aguanta en los extremos, el centro se resuelve solo.",
+      "Hoy, PRESTIGO opera desde Praga una flota Mercedes-Benz seleccionada con un pequeño equipo de chóferes verificados, cada uno de ellos con la antigüedad suficiente para confiarle cualquier reserva. Hemos mantenido deliberadamente una operación compacta: preferimos rechazar un encargo antes que diluir el estándar."
+    ]
+  },
+  "founder": {
+    "label": "Conozca al fundador",
+    "headingLine1": "Roman Ustyugov,",
+    "headingItalic": "Fundador.",
+    "extraParagraph": "Diez años en el sector significan que cada recogida a las 04:00, cada llegada a la terminal equivocada y cada protocolo VIP se ha visto, resuelto e incorporado al manual de PRESTIGO. Eso es lo que reserva usted cuando nos reserva a nosotros.",
+    "readFullProfile": "Leer el perfil completo →"
+  },
+  "discretion": {
+    "label": "Sobre la discreción",
+    "headingLine1": "Lo que la discreción",
+    "headingItalic": "significa en realidad.",
+    "intro": "«Discreción» es una de esas palabras que todo operador premium pone en su web y que muy pocos definen. En PRESTIGO, la discreción es un conjunto de prácticas concretas, no un eslogan. Es la razón por la que dudamos antes de fotografiar nuestros propios vehículos con clientes dentro, la razón por la que nuestros chóferes no llevan ropa con el logotipo de la empresa en las recogidas para cenas, y la razón por la que nada de lo que ocurre en el habitáculo se repite jamás — ni a compañeros, ni a la familia, ni en una red social.",
+    "items": [
+      {
+        "t": "Nada en redes sociales — nunca",
+        "b": "Nuestros conductores no fotografían a los clientes, ni los vehículos con clientes dentro, ni las direcciones en las que recogemos. No hay un grupo de chat interno compartiendo anécdotas. No lo tenemos."
+      },
+      {
+        "t": "Acuerdos de confidencialidad a petición, sin coste",
+        "b": "Para cualquier reserva que implique asuntos empresariales confidenciales, firmaremos un acuerdo de confidencialidad mutuo estándar antes del trayecto. Muchas de nuestras cuentas corporativas funcionan de forma rutinaria con un acuerdo de confidencialidad permanente."
+      },
+      {
+        "t": "Recogidas privadas sin distintivos",
+        "b": "Para recogidas sensibles en residencias, embajadas o accesos privados, el chófer no porta ningún distintivo de la empresa y utiliza un vehículo sin identificación exterior."
+      },
+      {
+        "t": "Conversación solo por invitación",
+        "b": "Nuestros chóferes no hablarán primero. Si desea conversar, inicie usted la conversación. Si prefiere trabajar o dormir, el habitáculo permanece en silencio durante todo el trayecto."
+      },
+      {
+        "t": "Lo que ocurre dentro, se queda dentro",
+        "b": "Llamadas telefónicas, documentos sobre su regazo, conversaciones con compañeros en el asiento trasero — nada de ello existe fuera del vehículo. No es un lema. Es nuestra formación."
+      }
+    ]
+  },
+  "localKnowledge": {
+    "label": "Conocimiento local, estándares internacionales",
+    "headingLine1": "Praga es nuestra casa.",
+    "headingItalic": "Esa es la ventaja.",
+    "paragraphs": [
+      "La mayoría de las marcas globales de chófer que operan en Praga son plataformas — listan conductores locales, cobran una comisión y desaparecen en cuanto algo sale mal. PRESTIGO es lo contrario. Tenemos nuestra sede en Praga, contratamos directamente a nuestros conductores y convivimos al día siguiente con cada decisión sobre el servicio. Eso es lo que significa realmente tener «raíces locales».",
+      "El conocimiento local es una ventaja práctica. Nuestros chóferes saben que el patrón de tráfico de Praga 1 cambia por completo durante los mercados navideños, que el Puente de Carlos está cerrado al tráfico, que la Plaza de Wenceslao se vuelve intransitable cada vez que hay una manifestación o una final de fútbol, y que la ruta más rápida del aeropuerto a un hotel de Malá Strana depende enteramente de la hora del día. Saben qué hoteles esperan que se deje al cliente en la entrada principal y cuáles prefieren el acceso lateral cubierto. Saben qué embajadas tienen controles de seguridad que añaden quince minutos a la recogida. Conocen los hábitos del paso fronterizo de la E65 hacia Viena a las 06:00 de un lunes de verano frente a un sábado de invierno.",
+      "Nada de esto está escrito en un documento de procedimientos. Se aprende conduciendo por la ciudad durante años y eligiendo después quedarse con un operador que hace las preguntas correctas. Es la razón principal por la que PRESTIGO es consistente en los extremos — allí donde otros servicios empiezan a deshilacharse."
+    ]
+  },
+  "principlesHeading": "Lo que defendemos",
+  "principles": [
+    {
+      "title": "Discreción",
+      "body": "Su trayecto es solo suyo. No hablamos de clientes, rutas ni conversaciones."
+    },
+    {
+      "title": "Precisión",
+      "body": "El coche adecuado, en el lugar adecuado, a la hora adecuada. No se aceptan excusas."
+    },
+    {
+      "title": "Conocimiento local",
+      "body": "Nuestros conductores conocen Praga: el tráfico, los hoteles, los atajos, las historias."
+    }
+  ],
+  "chauffeurs": {
+    "label": "Nuestros chóferes",
+    "heading": "Nuestros chóferes",
+    "paragraph": "Cada chófer de PRESTIGO es seleccionado personalmente, formado en protocolos de transporte ejecutivo y habla inglés con fluidez. Portan un cartel con su nombre, llegan con antelación y dicen únicamente lo necesario."
+  },
+  "requirements": [
+    "Antecedentes verificados · Licencia profesional",
+    "Formación en hospitalidad ejecutiva",
+    "Dominio del inglés: mínimo B2",
+    "Certificados en geografía de Praga",
+    "Uniformados: traje oscuro, zapatos limpios, sin colonia"
+  ],
+  "cta": {
+    "headingLine1": "Viaje con PRESTIGO.",
+    "headingItalic": "Descubra la diferencia.",
+    "buttonPrimary": "Reservar un traslado",
+    "buttonSecondary": "Cuentas corporativas"
+  }
+}

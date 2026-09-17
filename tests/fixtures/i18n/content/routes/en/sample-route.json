@@ -1,0 +1,10 @@
+{
+  "hero": {
+    "label": "Prague → Testville",
+    "intro": "A fixture route used only by the i18n pipeline test suite. Fixed price from €{ePrice} in a Mercedes E-Class."
+  },
+  "openingParagraphs": [
+    "This is a short fixture paragraph used only by the i18n pipeline test suite — not real site content.",
+    "A second fixture paragraph, kept deliberately short."
+  ]
+}

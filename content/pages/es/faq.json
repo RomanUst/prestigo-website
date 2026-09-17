@@ -1,0 +1,128 @@
+{
+  "metadata": {
+    "title": "Preguntas frecuentes: precios y reservas de chófer en Praga",
+    "description": "Preguntas frecuentes sobre PRESTIGO: cómo reservar, precios, cancelaciones, retrasos de vuelos, opciones de vehículos, cuentas de empresa y mucho más.",
+    "ogTitle": "Preguntas frecuentes — Servicio de chófer PRESTIGO en Praga | Precios, reservas y más"
+  },
+  "hero": {
+    "label": "Preguntas frecuentes",
+    "headlineLine1": "Todo lo que necesita saber.",
+    "headlineItalic": "Antes de preguntar."
+  },
+  "sections": [
+    {
+      "title": "Reservas",
+      "faqs": [
+        {
+          "q": "¿Cómo reservo un traslado con PRESTIGO?",
+          "a": "Reserve en línea en rideprestigo.com/book. Seleccione su ruta, vehículo y fecha. La confirmación es inmediata: no tendrá que esperar ninguna llamada."
+        },
+        {
+          "q": "¿Con cuánta antelación debo reservar?",
+          "a": "Las reservas deben realizarse con un mínimo de 12 horas de antelación. Para traslados de última hora, llame directamente al +420 725 986 855."
+        },
+        {
+          "q": "¿Puedo reservar para otra persona?",
+          "a": "Sí. Indique el nombre del pasajero al finalizar la reserva. Su chófer mostrará ese nombre en el cartel en la zona de Llegadas."
+        }
+      ]
+    },
+    {
+      "title": "Precios",
+      "faqs": [
+        {
+          "q": "¿El precio es fijo?",
+          "a": "Sí. El precio que se muestra al reservar es el precio que paga. Sin tarifas dinámicas. Sin peajes ocultos. Sin extras, salvo que los solicite."
+        },
+        {
+          "q": "¿Los peajes están incluidos en el precio?",
+          "a": "Sí. Todos los peajes de la ruta están incluidos. No hay cargos adicionales al finalizar el servicio."
+        },
+        {
+          "q": "¿Cobran un suplemento por el tiempo de espera en el aeropuerto?",
+          "a": "No. Todas las recogidas en el aeropuerto incluyen 60 minutos de espera gratuita. Seguimos su vuelo en tiempo real."
+        }
+      ]
+    },
+    {
+      "title": "Seguimiento de vuelos y retrasos",
+      "faqs": [
+        {
+          "q": "¿Qué ocurre si mi vuelo se retrasa?",
+          "a": "Su chófer sigue su vuelo en tiempo real. Un retraso no le supone ningún coste adicional: su chófer se adapta automáticamente."
+        },
+        {
+          "q": "¿Y si mi vuelo se cancela?",
+          "a": "Póngase en contacto con nosotros y reprogramaremos el servicio sin coste alguno o le reembolsaremos el importe íntegro."
+        },
+        {
+          "q": "¿Cómo encontraré a mi chófer en el aeropuerto?",
+          "a": "Su chófer le esperará en la zona de Llegadas con un cartel con su nombre. Además, recibirá su número de contacto antes del aterrizaje."
+        }
+      ]
+    },
+    {
+      "title": "Cancelaciones",
+      "faqs": [
+        {
+          "q": "¿Puedo cancelar mi reserva?",
+          "a": "Sí. Cancelación gratuita hasta 1 hora antes de la hora de recogida prevista. Las cancelaciones posteriores pueden estar sujetas a una tarifa."
+        },
+        {
+          "q": "¿Puedo cambiar la hora de recogida?",
+          "a": "Sí, en cualquier momento antes del trayecto. Póngase en contacto directamente con su chófer o utilice el portal de reservas."
+        }
+      ]
+    },
+    {
+      "title": "Vehículos",
+      "faqs": [
+        {
+          "q": "¿Qué coches utilizan?",
+          "a": "Todos los vehículos de PRESTIGO son Mercedes-Benz de última generación: E-Class (berlina), S-Class (berlina ejecutiva) y V-Class (monovolumen ejecutivo). Todos están totalmente asegurados y mantenidos según los estándares más exigentes."
+        },
+        {
+          "q": "¿Puedo solicitar un vehículo concreto?",
+          "a": "Sí. Seleccione la clase que prefiera en el momento de la reserva."
+        },
+        {
+          "q": "¿Hay wifi en el coche?",
+          "a": "Sí, en todos los vehículos. Su chófer también puede facilitarle un cargador de móvil si lo solicita."
+        }
+      ]
+    },
+    {
+      "title": "Empresas",
+      "faqs": [
+        {
+          "q": "¿Ofrecen cuentas de empresa?",
+          "a": "Sí. Las cuentas de empresa incluyen facturación mensual, un gestor de cuenta dedicado y despacho prioritario. Alta en 24 horas. Consulte /corporate para más información."
+        },
+        {
+          "q": "¿Puedo pagar con una tarjeta de empresa?",
+          "a": "Sí. Aceptamos Visa, Mastercard y transferencia bancaria. Emitimos factura para todas las reservas de empresa."
+        }
+      ]
+    },
+    {
+      "title": "Niños y peticiones especiales",
+      "faqs": [
+        {
+          "q": "¿Disponen de sillas infantiles?",
+          "a": "Sí. Las sillas infantiles están disponibles previa solicitud en el momento de la reserva, sin coste adicional."
+        },
+        {
+          "q": "¿Puedo solicitar un chófer que hable varios idiomas?",
+          "a": "Todos nuestros chóferes hablan inglés. Previa solicitud, disponemos de chóferes que hablan ruso, alemán y checo."
+        }
+      ]
+    }
+  ],
+  "cta": {
+    "headingLine1": "¿Todavía tiene alguna duda?",
+    "headingItalic": "Respondemos en menos de una hora.",
+    "contactButton": "Contacte con nosotros",
+    "bookButton": "Reservar un traslado",
+    "emailPrefix": "O escríbanos a"
+  }
+}

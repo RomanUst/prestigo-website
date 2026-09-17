@@ -10,6 +10,32 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import enMessages from '../messages/en.json'
+
+// ---------------------------------------------------------------------------
+// next-intl/server: force the real react-server build (Phase 70, Pattern E).
+//
+// updateProfile now resolves error strings via
+// getTranslations({ namespace: 'Errors', locale }). Vitest has no RSC
+// "react-server" export condition, so redirect both `next-intl/server` and
+// `next-intl/config` (aliased to i18n/request.ts by createNextIntlPlugin in the
+// real build) to the real react-server impl + messages/en.json, so the action
+// exercises the live Errors catalog end-to-end.
+// ---------------------------------------------------------------------------
+vi.mock('next-intl/server', async () => {
+  return await vi.importActual(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+})
+
+vi.mock('next-intl/config', async () => {
+  const { getRequestConfig } = await vi.importActual<typeof import('next-intl/server')>(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+  return {
+    default: getRequestConfig(async () => ({ locale: 'en', messages: enMessages })),
+  }
+})
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -53,7 +79,7 @@ vi.mock('next/cache', () => ({
 // ---------------------------------------------------------------------------
 // Import (does not exist yet → RED)
 // ---------------------------------------------------------------------------
-import { updateProfile } from '@/app/account/actions'
+import { updateProfile } from '@/app/[locale]/account/actions'
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -107,7 +133,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      const result = await updateProfile(null, formData)
+      const result = await updateProfile('en', null, formData)
 
       expect(result).toEqual({ success: true })
     })
@@ -121,7 +147,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      await updateProfile(null, formData)
+      await updateProfile('en', null, formData)
 
       expect(mockFrom).toHaveBeenCalledWith('customer_profiles')
       expect(mockUpsert).toHaveBeenCalledWith(
@@ -142,7 +168,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      await updateProfile(null, formData)
+      await updateProfile('en', null, formData)
 
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({ user_id: 'session-user-uuid' }),
@@ -164,16 +190,37 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      const result = await updateProfile(null, formData)
+      const result = await updateProfile('en', null, formData)
 
+      // Errors round-trip: the returned string is byte-identical to the prior
+      // hardcoded literal AND is sourced from the live Errors catalog, so a
+      // future catalog edit that changes the English copy fails here rather
+      // than passing vacuously.
       expect(result).toEqual({ error: 'Not authenticated.' })
+      expect(result.error).toBe(enMessages.Errors.notAuthenticated)
+    })
+
+    it('returns the exact "Invalid account type." string from the Errors catalog', async () => {
+      mockGetUser.mockResolvedValue(makeAuthenticatedUser())
+
+      const formData = makeFormData({
+        full_name: 'John Doe',
+        phone: '+420 123 456 789',
+        account_type: 'hacker', // not in the allowlist
+      })
+
+      const result = await updateProfile('en', null, formData)
+
+      expect(result).toEqual({ error: 'Invalid account type.' })
+      expect(result.error).toBe(enMessages.Errors.invalidAccountType)
+      expect(mockUpsert).not.toHaveBeenCalled()
     })
 
     it('does NOT call from() when unauthenticated', async () => {
       mockGetUser.mockResolvedValue({ data: { user: null } })
 
       const formData = makeFormData({ full_name: 'Attacker', account_type: 'personal' })
-      await updateProfile(null, formData)
+      await updateProfile('en', null, formData)
 
       expect(mockFrom).not.toHaveBeenCalled()
     })
@@ -194,7 +241,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      await updateProfile(null, formData)
+      await updateProfile('en', null, formData)
 
       // The upsert payload's user_id must be the SESSION user id, not the forged value
       const upsertArg = mockUpsert.mock.calls[0]?.[0] ?? {}
@@ -211,7 +258,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      await updateProfile(null, formData)
+      await updateProfile('en', null, formData)
 
       // user_id in the upsert payload must come from the session, never from FormData
       const upsertArg = mockUpsert.mock.calls[0]?.[0] ?? {}
@@ -235,7 +282,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         vat_id: 'CZ12345678',
       })
 
-      await updateProfile(null, formData)
+      await updateProfile('en', null, formData)
 
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -257,7 +304,7 @@ describe('updateProfile — server action (ACCT-02, ACCT-03)', () => {
         account_type: 'personal',
       })
 
-      const result = await updateProfile(null, formData)
+      const result = await updateProfile('en', null, formData)
 
       expect(result).toEqual({ success: true })
       expect(mockUpsert).toHaveBeenCalledWith(

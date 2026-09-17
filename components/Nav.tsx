@@ -1,13 +1,28 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useTranslations } from 'next-intl'
+import { Link, usePathname } from '@/i18n/routing'
 import { createBrowserClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
-import { customerSignOut } from '@/app/login/actions'
+import { customerSignOut } from '@/app/[locale]/login/actions'
+
+// Static href map for the 6 nav items — hrefs are routes, not translatable
+// copy, and stay in code. Labels come from messages/en.json Nav.items
+// (Task 1 convention: ordered UI lists are JSON arrays, index-paired here
+// with this static href list).
+const NAV_LINKS: ReadonlyArray<{ href: string; isNew?: boolean }> = [
+  { href: '/services' },
+  { href: '/fleet' },
+  { href: '/routes' },
+  { href: '/book/multi-day', isNew: true },
+  { href: '/corporate' },
+  { href: '/contact' },
+]
 
 export default function Nav() {
+  const t = useTranslations('Nav')
+  const navItems = t.raw('items') as string[]
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const [user, setUser] = useState<User | null>(null)
@@ -111,31 +126,24 @@ export default function Nav() {
       <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
 
         {/* Wordmark */}
-        <Link href="/" className="wordmark tracking-[0.6em] inline-flex items-center h-16" aria-label="PRESTIGO — home">
+        <Link href="/" className="wordmark tracking-[0.6em] inline-flex items-center h-16" aria-label={t('homeAriaLabel')}>
           <span className="wordmark-presti">PRESTI</span>
           <span className="wordmark-go">GO</span>
         </Link>
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-8">
-          {[
-            { label: 'Services', href: '/services' },
-            { label: 'Fleet', href: '/fleet' },
-            { label: 'Routes', href: '/routes' },
-            { label: 'Multi-day', href: '/book/multi-day', isNew: true },
-            { label: 'Corporate', href: '/corporate' },
-            { label: 'Contact', href: '/contact' },
-          ].map((link) => (
+          {NAV_LINKS.map((link, i) => (
             <Link
-              key={link.label}
+              key={link.href}
               href={link.href}
               className={`font-body font-light text-[10px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
                 pathname === link.href ? 'text-offwhite' : 'text-warmgrey hover:text-offwhite'
               }`}
             >
-              {link.label}
+              {navItems[i]}
               {link.isNew && (
-                <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+                <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">{t('new')}</span>
               )}
             </Link>
           ))}
@@ -149,7 +157,7 @@ export default function Nav() {
                 className="btn-ghost"
                 style={{ padding: '10px 20px', fontSize: '10px' }}
               >
-                Sign in
+                {t('signIn')}
               </Link>
             ) : (
               /* NAV-02: Signed-in account trigger + dropdown */
@@ -157,7 +165,7 @@ export default function Nav() {
                 <button
                   id="account-menu-trigger"
                   type="button"
-                  aria-label="Account menu"
+                  aria-label={t('accountMenu')}
                   aria-expanded={menuOpen}
                   aria-haspopup="true"
                   aria-controls="account-menu"
@@ -251,7 +259,7 @@ export default function Nav() {
                       e.currentTarget.style.color = 'var(--warmgrey)'
                     }}
                   >
-                    My trips
+                    {t('myTrips')}
                   </Link>
                   <Link
                     href="/account/profile"
@@ -280,7 +288,7 @@ export default function Nav() {
                       e.currentTarget.style.color = 'var(--warmgrey)'
                     }}
                   >
-                    Profile
+                    {t('profile')}
                   </Link>
                   {/* Divider */}
                   <div style={{ height: '1px', background: 'var(--anthracite-light)', margin: '4px 8px' }} />
@@ -315,7 +323,7 @@ export default function Nav() {
                         e.currentTarget.style.color = 'var(--warmgrey)'
                       }}
                     >
-                      Sign out
+                      {t('signOut')}
                     </button>
                   </form>
                 </div>
@@ -323,7 +331,7 @@ export default function Nav() {
             )}
 
             <Link href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '10px' }}>
-              Book now
+              {t('bookNow')}
             </Link>
           </div>
         </div>
@@ -332,7 +340,7 @@ export default function Nav() {
         <button
           className="md:hidden flex flex-col justify-center gap-[5px] p-3 -mr-1 min-h-[44px] min-w-[44px]"
           onClick={() => setOpen(!open)}
-          aria-label="Menu"
+          aria-label={t('menu')}
           aria-expanded={open}
         >
           <span className={`w-5 h-px bg-offwhite transition-all ${open ? 'rotate-45 translate-y-[6px]' : ''}`} />
@@ -349,25 +357,18 @@ export default function Nav() {
           open ? 'max-h-[600px] py-4 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
         }`}
       >
-        {[
-          { label: 'Services', href: '/services' },
-          { label: 'Fleet', href: '/fleet' },
-          { label: 'Routes', href: '/routes' },
-          { label: 'Multi-day', href: '/book/multi-day', isNew: true },
-          { label: 'Corporate', href: '/corporate' },
-          { label: 'Contact', href: '/contact' },
-        ].map((link) => (
+        {NAV_LINKS.map((link, i) => (
           <Link
-            key={link.label}
+            key={link.href}
             href={link.href}
             onClick={() => setOpen(false)}
             className={`font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors flex items-center gap-2 min-h-[44px] ${
               pathname === link.href ? 'text-offwhite' : 'text-warmgrey hover:text-offwhite'
             }`}
           >
-            {link.label}
+            {navItems[i]}
             {link.isNew && (
-              <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">NEW</span>
+              <span className="font-body font-light text-[9px] tracking-[0.14em] uppercase px-1.5 py-0.5 border border-copper/60 text-copper-light leading-none">{t('new')}</span>
             )}
           </Link>
         ))}
@@ -380,7 +381,7 @@ export default function Nav() {
             className="btn-ghost text-center mt-2 mb-1"
             onClick={() => setOpen(false)}
           >
-            Sign in
+            {t('signIn')}
           </Link>
         ) : open ? (
           /* NAV-02 mobile: My trips, Profile, Sign out rows — only rendered when menu is open */
@@ -390,28 +391,28 @@ export default function Nav() {
               onClick={() => setOpen(false)}
               className="font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors text-warmgrey hover:text-offwhite min-h-[44px] flex items-center"
             >
-              My trips
+              {t('myTrips')}
             </Link>
             <Link
               href="/account/profile"
               onClick={() => setOpen(false)}
               className="font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors text-warmgrey hover:text-offwhite min-h-[44px] flex items-center"
             >
-              Profile
+              {t('profile')}
             </Link>
             <form action={customerSignOut}>
               <button
                 type="submit"
                 className="font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors text-warmgrey hover:text-offwhite min-h-[44px] flex items-center w-full text-left bg-transparent border-none cursor-pointer"
               >
-                Sign out
+                {t('signOut')}
               </button>
             </form>
           </>
         ) : null}
 
         <Link href="/book" onClick={() => setOpen(false)} className="btn-primary text-center mt-3">
-          Book now
+          {t('bookNow')}
         </Link>
       </div>
     </nav>

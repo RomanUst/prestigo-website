@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 
 /**
  * Granular consent modal — two-step design inspired by Blacklane's
@@ -58,6 +60,7 @@ export function getConsent(): ConsentState | null {
 }
 
 export default function CookieBanner() {
+  const t = useTranslations('CookieBanner')
   const [visible, setVisible] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const [tab, setTab] = useState<'categories' | 'services'>('categories')
@@ -152,7 +155,7 @@ export default function CookieBanner() {
         <div className="px-6 pt-7 pb-5 border-b border-anthracite-light flex-shrink-0 text-center">
           <div
             className="wordmark text-[14px] tracking-[0.6em] inline-flex items-center justify-center mb-4"
-            aria-label="PRESTIGO"
+            aria-label={t('wordmarkAria')}
           >
             <span className="wordmark-presti">PRESTI</span>
             <span className="wordmark-go">GO</span>
@@ -162,25 +165,27 @@ export default function CookieBanner() {
             id="consent-title"
             className="font-display font-light italic text-[28px] sm:text-[32px] text-offwhite leading-tight"
           >
-            Welcome aboard.
+            {t('heading')}
           </h2>
           <p className="mt-3 font-body font-light text-[12px] text-warmgrey leading-relaxed">
-            Before your journey begins, a quick word on privacy. We use
-            third-party technologies to run the booking flow and refine the
-            experience. You may revoke or change your choice at any time.{' '}
-            <a
-              href="/privacy"
-              className="text-copper-light hover:text-copper underline underline-offset-2"
-            >
-              Privacy Policy
-            </a>
-            {' · '}
-            <a
-              href="/terms"
-              className="text-copper-light hover:text-copper underline underline-offset-2"
-            >
-              Legal Notice
-            </a>
+            {t.rich('consentBody', {
+              privacy: (chunks) => (
+                <Link
+                  href="/privacy"
+                  className="text-copper-light hover:text-copper underline underline-offset-2"
+                >
+                  {chunks}
+                </Link>
+              ),
+              terms: (chunks) => (
+                <Link
+                  href="/terms"
+                  className="text-copper-light hover:text-copper underline underline-offset-2"
+                >
+                  {chunks}
+                </Link>
+              ),
+            })}
           </p>
         </div>
 
@@ -197,7 +202,7 @@ export default function CookieBanner() {
                     : 'text-warmgrey hover:text-offwhite'
                 }`}
               >
-                Categories
+                {t('tabCategories')}
               </button>
               <button
                 type="button"
@@ -208,7 +213,7 @@ export default function CookieBanner() {
                     : 'text-warmgrey hover:text-offwhite'
                 }`}
               >
-                Services
+                {t('tabServices')}
               </button>
             </div>
 
@@ -216,20 +221,20 @@ export default function CookieBanner() {
               {tab === 'categories' ? (
                 <div className="space-y-5">
                   <CategoryRow
-                    title="Essential"
-                    description="Required for booking, payments, fraud prevention, and core site functionality. Always on."
+                    title={t('catEssential')}
+                    description={t('catEssentialDesc')}
                     checked
                     disabled
                   />
                   <CategoryRow
-                    title="Analytics"
-                    description="Google Analytics 4 — helps us understand how visitors use the site so we can improve it. Data is aggregated and anonymous."
+                    title={t('catAnalytics')}
+                    description={t('catAnalyticsDesc')}
                     checked={analytics}
                     onChange={setAnalytics}
                   />
                   <CategoryRow
-                    title="Marketing"
-                    description="Meta Pixel and Google Ads conversion tracking — measures ad performance and lets us show relevant offers on Instagram, Facebook, and Google."
+                    title={t('catMarketing')}
+                    description={t('catMarketingDesc')}
                     checked={marketing}
                     onChange={setMarketing}
                   />
@@ -238,28 +243,28 @@ export default function CookieBanner() {
                 <div className="space-y-5">
                   <ServiceRow
                     title="Stripe"
-                    category="Essential"
-                    description="Payment processing and fraud prevention."
+                    category={t('catEssential')}
+                    description={t('svcStripeDesc')}
                   />
                   <ServiceRow
                     title="Supabase"
-                    category="Essential"
-                    description="Booking database, authentication, and session management."
+                    category={t('catEssential')}
+                    description={t('svcSupabaseDesc')}
                   />
                   <ServiceRow
                     title="Google Maps"
-                    category="Essential"
-                    description="Address autocomplete and route distance calculation."
+                    category={t('catEssential')}
+                    description={t('svcMapsDesc')}
                   />
                   <ServiceRow
                     title="Google Analytics 4"
-                    category="Analytics"
-                    description="Traffic statistics and user behaviour analysis. Consent Mode v2 — runs anonymously if declined."
+                    category={t('catAnalytics')}
+                    description={t('svcGa4Desc')}
                   />
                   <ServiceRow
                     title="Meta Pixel"
-                    category="Marketing"
-                    description="Ad conversion tracking on Instagram and Facebook."
+                    category={t('catMarketing')}
+                    description={t('svcMetaDesc')}
                   />
                 </div>
               )}
@@ -274,7 +279,7 @@ export default function CookieBanner() {
             onClick={handleAcceptAll}
             className="btn-primary w-full text-[10px] py-3"
           >
-            Accept all
+            {t('acceptAll')}
           </button>
           {expanded ? (
             <button
@@ -282,7 +287,7 @@ export default function CookieBanner() {
               onClick={handleSave}
               className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 border border-anthracite-light text-offwhite hover:border-copper hover:text-copper transition-colors"
             >
-              Save settings
+              {t('saveSettings')}
             </button>
           ) : (
             <button
@@ -290,7 +295,7 @@ export default function CookieBanner() {
               onClick={() => setExpanded(true)}
               className="font-body font-light text-[10px] tracking-[0.15em] uppercase px-4 py-2.5 border border-anthracite-light text-warmgrey hover:text-offwhite hover:border-offwhite/40 transition-colors"
             >
-              More information
+              {t('moreInfo')}
             </button>
           )}
         </div>
@@ -362,6 +367,7 @@ function Toggle({
   disabled?: boolean
   onChange?: (v: boolean) => void
 }) {
+  const t = useTranslations('CookieBanner')
   return (
     <button
       type="button"
@@ -382,7 +388,7 @@ function Toggle({
           checked ? 'translate-x-5' : 'translate-x-0'
         }`}
       />
-      <span className="sr-only">{checked ? 'Enabled' : 'Disabled'}</span>
+      <span className="sr-only">{checked ? t('toggleEnabled') : t('toggleDisabled')}</span>
     </button>
   )
 }

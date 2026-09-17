@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 import type { DayCardProps } from '@/components/booking/DayCard'
 

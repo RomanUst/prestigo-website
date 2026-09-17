@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Praga → Berlín",
+    "headlineLine1": "De Praga a Berlín,",
+    "headlineItalic": "capitales conectadas.",
+    "intro": "350 km hacia el norte atravesando Bohemia y Sajonia hasta la capital alemana. La Puerta de Brandeburgo, la Isla de los Museos y una de las ciudades más dinámicas de Europa: cuatro horas, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Berlín recorre 350 km por las autopistas D8 y A17 y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en la V-Class desde {vPrice} €; la S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y alemana, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar a destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Cottbus— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna incidencia.",
+    "Esto no es una lanzadera compartida. Ni una aplicación de transporte. Es un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Berlín",
+    "headingItalic": "en cuatro horas.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el Aeropuerto Václav Havel—, su chófer toma la autopista D8 en dirección norte, pasando por Ústí nad Labem y hacia la frontera checo-alemana. El paso por Hřensko y Schönwald resulta imperceptible dentro del Espacio Schengen: sin paradas, sin controles de documentación, solo una transición silenciosa del bosque bohemio a las estribaciones sajonas. La carretera se convierte en la A17, rodea Dresde y enlaza con la A13 para el largo tramo hacia el norte a través de Brandeburgo hasta Berlín.",
+      "La distancia total es de aproximadamente 350 kilómetros. El tiempo de conducción es de cuatro horas en condiciones normales, con una única parada para un café incluida si así lo desea. La llegada puede ser en cualquier punto de la ciudad: Mitte para el núcleo cultural, Charlottenburg para el elegante oeste, o directamente en el Aeropuerto de Berlín-Brandeburgo (BER) para un vuelo de conexión. Tegel está cerrado desde 2020; lo mencionamos porque los clientes siguen preguntándolo.",
+      "Su chófer revisa el tráfico en la D8 y en la A13 antes de cada salida. En los dos últimos años ha habido obras recurrentes en la A13 entre Dresde y Cottbus; si se señaliza un corte, la ruta se desvía por la A4 y la A15 sin necesidad de consultarlo. Usted no paga por el tráfico; paga por el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Berlín. El coche, el chófer, el combustible, los peajes y la viñeta alemana. Reunión de negocios, fin de semana de museos o un vuelo desde BER: su chófer se ocupa de la ruta mientras usted se concentra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con dominio del inglés y del checo. Alemán bajo petición.",
+    "Combustible, todos los peajes y la viñeta alemana. No se cobra nada aparte.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada el alquiler por horas en la ciudad."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Berlín,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el Aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Dresde (opcional)",
+      "note": "Capital barroca sajona a orillas del Elba, disponible como parada en ruta antes de continuar hacia Berlín.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "Una parada a lo largo del corredor de autopistas entre Sajonia y Brandeburgo. Su ruta, su horario.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Berlín",
+      "note": "Llegada a cualquier dirección de Berlín, a su hotel, al Aeropuerto de Berlín-Brandeburgo (BER) o a la Puerta de Brandeburgo.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso fronterizo",
+      "value": "Frontera Schengen checo-alemana en Hřensko/Bad Schandau. Sin control de pasaportes para los ciudadanos de la UE."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y el peaje de autopista alemán están incluidos en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Servicio de aeropuerto",
+      "value": "Prestigo opera en el Aeropuerto de Berlín-Brandeburgo (BER). El chófer le recibe en llegadas con un cartel con su nombre."
+    }
+  ],
+  "dayTripLabel": "Configuraciones de viaje",
+  "dayTrip": {
+    "headingLine1": "Configuraciones populares",
+    "headingItalic": "para Berlín.",
+    "intro": "Berlín supone cuatro horas de trayecto en cada sentido, lo que significa que la ida y vuelta en el mismo día es posible, pero exigente. La mayoría de los clientes de Prestigo reservan esta ruta con pernoctación. Tres configuraciones cubren la mayor parte de las solicitudes.",
+    "configurations": [
+      {
+        "title": "La Puerta de Brandeburgo y el Reichstag",
+        "body": "Para visitas con pernoctación. Recogida en Praga a las 7:00 y llegada a Berlín-Mitte a las 11:00. La Puerta de Brandeburgo, la cúpula del Reichstag (reserve la franja horaria con antelación), Unter den Linden y cena cerca de Gendarmenmarkt. Regreso a la mañana siguiente.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "La mañana en la Isla de los Museos",
+        "body": "Para visitas con pernoctación. Recogida a las 6:30 y llegada a la Isla de los Museos a las 10:30. El Pergamon, el Neues Museum y la Catedral de Berlín a lo largo de la mañana. Almuerzo en Mitte antes de que el chófer le lleve a su hotel para pasar la noche.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "El exprés de Charlottenburg",
+        "body": "Para agendas ajustadas de un solo día. Recogida a las 5:30, llegada al Palacio de Charlottenburg a las 9:30, tres horas en el lugar, almuerzo en las inmediaciones y regreso a Praga a las 21:00. Largo, pero posible si la jornada gira firmemente en torno a un único enclave.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      }
+    ],
+    "footnote": "Precios orientativos basados en los escenarios anteriores. La tarifa final depende del tiempo real que se pase en destino. Puede reservar el trayecto de ida y vuelta con un 10 % de descuento en el regreso el mismo día, o añadir el alquiler por horas en la ciudad si necesita que el chófer se desplace con usted. Cuéntenos su plan y le confirmaremos un presupuesto en firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibirá delante de la dirección de recogida: no en un aparcamiento al otro lado de la calle, ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si se encuentra en el Aeropuerto Václav Havel, estará dentro de la sala de llegadas con una tableta Prestigo mostrando su nombre. En el trayecto de vuelta desde el Aeropuerto de Berlín-Brandeburgo se aplica lo mismo: sala de llegadas, cartel con su nombre, sin búsquedas del tesoro por la Terminal 1.",
+    "La conversación es una elección. Si prefiere una cabina silenciosa durante cuatro horas para trabajar, dormir o leer, el chófer captará la señal y le dejará tranquilo. Si desea contexto sobre la ciudad a la que se dirige —el largo arco del Muro y la reunificación, el peso que la capitalidad devolvió a Berlín en los años noventa, por qué Charlottenburg y Mitte parecen ciudades distintas—, su chófer lo conoce.",
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si necesita una temperatura concreta en la parte trasera, dígalo. Si desea parar a tomar un café en el área de servicio de Wertherbruch, en la A13, ya dentro de Brandeburgo, está incluido. Las cuatro horas deberían dejarle en Berlín descansado, no recompuesto en el bordillo."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Berlín.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, peajes, viñeta alemana y tiempo del chófer. No se añade nada a la llegada a Berlín."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes cuentan con verificación de antecedentes, son bilingües y están formados para el largo trayecto internacional a Berlín y de vuelta."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si hay un corte en la A13 a las afueras de Dresde, su chófer desvía la ruta por Cottbus sin necesidad de preguntar. Si su vuelo a BER se retrasa una hora, la recogida de regreso se ajusta sin una sola llamada. Usted no debería tener que gestionar el viaje: ese es nuestro trabajo."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Berlín?",
+      "a": "Aproximadamente 4 horas de puerta a puerta por la autopista D8 hacia el norte, pasando por Ústí nad Labem, la A17 rodeando Dresde y la A13 en dirección norte hasta Berlín. La hora punta del viernes por la tarde a la salida de Praga o las obras cerca de Lovosice pueden añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Berlín?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen el combustible, todos los peajes, la viñeta alemana y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta a Berlín en el mismo día?",
+      "a": "Sí, aunque la mayoría de los clientes prefieren pernoctar. Una ida y vuelta en el mismo día supone unas ocho horas de carretera, además del tiempo que pase en Berlín: es posible, pero exigente. Si opta por ello, el trayecto de vuelta tiene un 10 % de descuento. Si necesita que el chófer se desplace con usted, añada el alquiler por horas en la ciudad. Estaremos encantados de asesorarle en función de su agenda de reuniones."
+    },
+    {
+      "q": "¿Se cruza la frontera alemana sin problemas?",
+      "a": "Ambos países pertenecen al Espacio Schengen. No hay controles fronterizos rutinarios en Hřensko/Schönwald. Todos los vehículos de Prestigo llevan la viñeta de peaje alemana y el chófer dispone de un permiso internacional de chófer reconocido en Alemania."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas a favor de la marcha y alzadores sin coste adicional. Indique la edad de su hijo en el momento de la reserva para que se instale la silla adecuada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla alemán?",
+      "a": "Hay chóferes germanoparlantes disponibles bajo petición, recomendables para la ruta a Berlín. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie."
+    }
+  ],
+  "relatedRoutesIntro": "Berlín es el más largo de nuestros trayectos alemanes, y muchos clientes lo combinan con una parada en Dresde o Leipzig por el camino. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-dresden",
+      "city": "Dresde",
+      "distance": "150 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "prague-leipzig",
+      "city": "Leipzig",
+      "distance": "165 km",
+      "duration": "2 h 15 min"
+    },
+    {
+      "slug": "prague-nuremberg",
+      "city": "Núremberg",
+      "distance": "360 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "prague-munich",
+      "city": "Múnich",
+      "distance": "385 km",
+      "duration": "4 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~350 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Berlín.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Berlín — Desde {ePrice} €",
+    "description": "Traslado privado con chófer de Praga a Berlín en Mercedes E/S/V-Class. Precio fijo desde {ePrice} €. 4 horas de puerta a puerta por la D8, la A17 y la A13.",
+    "ogTitle": "Traslado privado con chófer de Praga a Berlín — Desde {ePrice} €",
+    "ogDescription": "Mercedes privado con chófer de Praga a Berlín. Precio fijo desde {ePrice} €. 4 horas de puerta a puerta por la D8, la A17 y la A13."
+  }
+}

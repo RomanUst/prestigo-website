@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTranslations } from 'next-intl'
 import { createBrowserClient } from '@supabase/ssr'
 
 interface OAuthButtonsProps {
@@ -8,6 +9,7 @@ interface OAuthButtonsProps {
 }
 
 export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
+  const t = useTranslations('Auth.oauth')
   // Memoize so the browser client isn't re-instantiated on every render.
   const supabase = useMemo(
     () =>
@@ -58,7 +60,7 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
       <button
         type="button"
-        aria-label="Sign in with Google"
+        aria-label={t('googleLabel')}
         style={buttonStyle}
         onClick={() => handleOAuth('google')}
         onMouseEnter={e => {
@@ -104,7 +106,7 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
             fill="#EA4335"
           />
         </svg>
-        Continue with Google
+        {t('continueWithGoogle')}
       </button>
 
     </div>

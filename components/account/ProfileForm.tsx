@@ -1,13 +1,16 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import {
   updateProfile,
   addPassenger,
   updatePassenger,
   deletePassenger,
-} from '@/app/account/actions'
+} from '@/app/[locale]/account/actions'
 import type { Database } from '@/types/database.types'
+
+type ProfileTranslator = ReturnType<typeof useTranslations<'Account.profile'>>
 
 type SavedPassenger = Pick<
   Database['public']['Tables']['saved_passengers']['Row'],
@@ -81,6 +84,7 @@ interface PassengerEditorProps {
   addState: ActionState
   updateState: ActionState
   onCancel: () => void
+  t: ProfileTranslator
 }
 
 function PassengerEditor({
@@ -93,6 +97,7 @@ function PassengerEditor({
   addState,
   updateState,
   onCancel,
+  t,
 }: PassengerEditorProps) {
   return (
     <div
@@ -113,7 +118,7 @@ function PassengerEditor({
 
         <div style={fieldWrapStyle}>
           <label htmlFor="pax-full-name" style={labelStyle}>
-            Full name
+            {t('fullName')}
           </label>
           <input
             id="pax-full-name"
@@ -127,7 +132,7 @@ function PassengerEditor({
 
         <div style={fieldWrapStyle}>
           <label htmlFor="pax-phone" style={labelStyle}>
-            Phone
+            {t('phone')}
           </label>
           <input
             id="pax-phone"
@@ -142,7 +147,7 @@ function PassengerEditor({
 
         <div style={fieldWrapStyle}>
           <label htmlFor="pax-email" style={labelStyle}>
-            Email (optional)
+            {t('emailOptional')}
           </label>
           <input
             id="pax-email"
@@ -156,7 +161,7 @@ function PassengerEditor({
 
         <div style={fieldWrapStyle}>
           <label htmlFor="pax-notes" style={labelStyle}>
-            Notes (optional)
+            {t('notesOptional')}
           </label>
           <textarea
             id="pax-notes"
@@ -182,7 +187,7 @@ function PassengerEditor({
             htmlFor="pax-default"
             style={{ ...labelStyle, marginBottom: 0, cursor: 'pointer' }}
           >
-            Set as default passenger
+            {t('setDefaultPassenger')}
           </label>
         </div>
 
@@ -205,7 +210,7 @@ function PassengerEditor({
               pointerEvents: (editingId ? updatePending : addPending) ? 'none' : 'auto',
             }}
           >
-            {(editingId ? updatePending : addPending) ? 'Saving…' : 'Save passenger'}
+            {(editingId ? updatePending : addPending) ? t('saving') : t('savePassenger')}
           </button>
           <button
             type="button"
@@ -213,7 +218,7 @@ function PassengerEditor({
             onClick={onCancel}
             style={{ padding: '10px 24px' }}
           >
-            Cancel
+            {t('cancel')}
           </button>
         </div>
       </form>
@@ -226,22 +231,34 @@ function PassengerEditor({
 // ---------------------------------------------------------------------------
 
 export default function ProfileForm({ email, profile, passengers }: ProfileFormProps) {
+  const locale = useLocale()
+  const t = useTranslations('Account.profile')
+
   const [accountType, setAccountType] = useState<'personal' | 'corporate'>(
     (profile?.account_type as 'personal' | 'corporate') ?? 'personal'
   )
 
-  // Profile save action state
-  const [profileState, profileAction, profilePending] = useActionState(updateProfile, null)
+  // Profile save action state — locale bound so the action localizes its errors
+  const [profileState, profileAction, profilePending] = useActionState(
+    updateProfile.bind(null, locale),
+    null
+  )
 
   // Passenger editor state
   const [editingId, setEditingId] = useState<string | null>(null) // null = adding new
   const [editorOpen, setEditorOpen] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
 
-  // Passenger action states
-  const [addState, addAction, addPending] = useActionState(addPassenger, null)
-  const [updateState, updateAction, updatePending] = useActionState(updatePassenger, null)
-  const [deleteState, deleteAction, deletePending] = useActionState(deletePassenger, null)
+  // Passenger action states — locale bound (Pattern E)
+  const [addState, addAction, addPending] = useActionState(addPassenger.bind(null, locale), null)
+  const [updateState, updateAction, updatePending] = useActionState(
+    updatePassenger.bind(null, locale),
+    null
+  )
+  const [deleteState, deleteAction, deletePending] = useActionState(
+    deletePassenger.bind(null, locale),
+    null
+  )
 
   const cardStyle: React.CSSProperties = {
     backgroundColor: 'var(--anthracite-mid)',
@@ -292,7 +309,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
             marginBottom: '8px',
           }}
         >
-          Profile
+          {t('heading')}
         </h1>
         <div className="copper-line" style={{ marginBottom: '32px' }} />
 
@@ -300,13 +317,13 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
             Section 1 — Contact Details
             ================================================================ */}
         <div style={cardStyle}>
-          <span className="label">Contact Details</span>
+          <span className="label">{t('contactDetails')}</span>
 
           <form action={profileAction} style={{ marginTop: '24px' }}>
             {/* Full name */}
             <div style={fieldWrapStyle}>
               <label htmlFor="full-name" style={labelStyle}>
-                Full name
+                {t('fullName')}
               </label>
               <input
                 id="full-name"
@@ -320,7 +337,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
 
             {/* Email — read-only */}
             <div style={fieldWrapStyle}>
-              <span style={labelStyle}>Email</span>
+              <span style={labelStyle}>{t('emailLabel')}</span>
               <p
                 style={{
                   ...inputStyle,
@@ -338,14 +355,14 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                   marginTop: '4px',
                 }}
               >
-                Email cannot be changed here.
+                {t('emailReadonlyNote')}
               </p>
             </div>
 
             {/* Phone */}
             <div style={fieldWrapStyle}>
               <label htmlFor="phone" style={labelStyle}>
-                Phone
+                {t('phone')}
               </label>
               <input
                 id="phone"
@@ -359,7 +376,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
 
             {/* Account type toggle */}
             <div style={fieldWrapStyle}>
-              <span style={labelStyle}>Account type</span>
+              <span style={labelStyle}>{t('accountType')}</span>
               <div style={{ display: 'flex', gap: '8px' }}>
                 {(['personal', 'corporate'] as const).map(type => (
                   <button
@@ -382,7 +399,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                       transition: 'border-color 0.15s ease, color 0.15s ease',
                     }}
                   >
-                    {type === 'personal' ? 'Personal' : 'Corporate'}
+                    {type === 'personal' ? t('personal') : t('corporate')}
                   </button>
                 ))}
               </div>
@@ -396,12 +413,12 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                 style={{ marginTop: '8px', marginBottom: '8px' }}
               >
                 <span className="label" style={{ marginBottom: '16px', display: 'block' }}>
-                  Company Details
+                  {t('companyDetails')}
                 </span>
 
                 <div style={fieldWrapStyle}>
                   <label htmlFor="company-name" style={labelStyle}>
-                    Company name
+                    {t('companyName')}
                   </label>
                   <input
                     id="company-name"
@@ -415,7 +432,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
 
                 <div style={fieldWrapStyle}>
                   <label htmlFor="ico" style={labelStyle}>
-                    IČO (Company ID)
+                    {t('ico')}
                   </label>
                   <input
                     id="ico"
@@ -429,7 +446,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
 
                 <div style={fieldWrapStyle}>
                   <label htmlFor="vat-id" style={labelStyle}>
-                    DIČ / VAT ID
+                    {t('vatId')}
                   </label>
                   <input
                     id="vat-id"
@@ -455,7 +472,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                 pointerEvents: profilePending ? 'none' : 'auto',
               }}
             >
-              {profilePending ? 'Saving…' : 'Save changes'}
+              {profilePending ? t('saving') : t('saveChanges')}
             </button>
 
             {/* Success / error feedback */}
@@ -468,7 +485,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                   marginTop: '8px',
                 }}
               >
-                Changes saved.
+                {t('changesSaved')}
               </p>
             )}
             {profileState?.error && (
@@ -483,11 +500,11 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
             Section 2 — Saved Passengers
             ================================================================ */}
         <div style={cardStyle}>
-          <span className="label">Saved Passengers</span>
+          <span className="label">{t('savedPassengers')}</span>
 
           <div style={{ marginTop: '24px' }}>
             {passengers.length === 0 && !editorOpen ? (
-              <p className="body-text">No saved passengers yet.</p>
+              <p className="body-text">{t('noSavedPassengers')}</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {passengers.map(passenger => (
@@ -532,7 +549,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                                 padding: '2px 6px',
                               }}
                             >
-                              Default
+                              {t('defaultBadge')}
                             </span>
                           )}
                         </div>
@@ -562,7 +579,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                         {/* Edit button */}
                         <button
                           type="button"
-                          aria-label={`Edit ${passenger.full_name}`}
+                          aria-label={t('editPassengerAria', { name: passenger.full_name })}
                           onClick={() => {
                             setEditingId(passenger.id)
                             setEditorOpen(true)
@@ -609,7 +626,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                         {/* Delete button */}
                         <button
                           type="button"
-                          aria-label={`Delete ${passenger.full_name}`}
+                          aria-label={t('deletePassengerAria', { name: passenger.full_name })}
                           onClick={() => {
                             setDeletingId(passenger.id)
                             setEditorOpen(false)
@@ -669,6 +686,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                         addState={addState}
                         updateState={updateState}
                         onCancel={handleCancelEditor}
+                        t={t}
                       />
                     )}
 
@@ -697,11 +715,12 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                             margin: 0,
                           }}
                         >
-                          Remove{' '}
-                          <span style={{ color: 'var(--offwhite)' }}>
-                            {passenger.full_name}
-                          </span>
-                          ? This cannot be undone.
+                          {t.rich('removeConfirm', {
+                            name: passenger.full_name,
+                            highlight: (chunks) => (
+                              <span style={{ color: 'var(--offwhite)' }}>{chunks}</span>
+                            ),
+                          })}
                         </p>
                         <div style={{ display: 'flex', gap: '8px' }}>
                           <form action={deleteAction}>
@@ -724,7 +743,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                                 borderRadius: '4px',
                               }}
                             >
-                              Delete
+                              {t('delete')}
                             </button>
                           </form>
                           <button
@@ -733,7 +752,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                             onClick={() => setDeletingId(null)}
                             style={{ padding: '8px 20px' }}
                           >
-                            Cancel
+                            {t('cancel')}
                           </button>
                         </div>
                         {deleteState?.error && (
@@ -760,6 +779,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                 addState={addState}
                 updateState={updateState}
                 onCancel={handleCancelEditor}
+                t={t}
               />
             )}
 
@@ -775,7 +795,7 @@ export default function ProfileForm({ email, profile, passengers }: ProfileFormP
                 }}
                 style={{ marginTop: '16px' }}
               >
-                Add passenger
+                {t('addPassenger')}
               </button>
             )}
           </div>

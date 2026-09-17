@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { ArrowUpDown } from 'lucide-react'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import AddressInput from '@/components/booking/AddressInput'
@@ -10,6 +11,8 @@ import StopList from '@/components/booking/StopList'
 import { useBookingStore } from '@/lib/booking-store'
 
 export default function Step1TripType() {
+  const t = useTranslations('Booking.step1')
+  const tv = useTranslations('Booking.validation')
   const tripType = useBookingStore((s) => s.tripType)
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
@@ -37,9 +40,9 @@ export default function Step1TripType() {
   // returned on invalid state, which looked like a broken button.
   function validateStep1(): Record<string, string> {
     const errs: Record<string, string> = {}
-    if (!origin) errs.origin = 'Pickup location is required to continue.'
-    if (tripType !== 'hourly' && !destination) errs.destination = 'Destination is required to continue.'
-    if (hasIncompleteStop) errs.stops = 'Please complete or remove all intermediate stops.'
+    if (!origin) errs.origin = tv('originRequired')
+    if (tripType !== 'hourly' && !destination) errs.destination = tv('destinationRequired')
+    if (hasIncompleteStop) errs.stops = t('stopsIncomplete')
     return errs
   }
 
@@ -102,7 +105,7 @@ export default function Step1TripType() {
         cursor: isValid ? 'pointer' : 'not-allowed',
       }}
     >
-      Continue
+      {t('continue')}
     </button>
   )
 
@@ -115,14 +118,14 @@ export default function Step1TripType() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '24px' }}>
         {/* Origin / Pickup */}
         <AddressInput
-          label="PICKUP LOCATION"
-          placeholder="Enter pickup address"
+          label={t('pickupLabel')}
+          placeholder={t('pickupPlaceholder')}
           value={origin}
           onSelect={handleOriginSelect}
           onClear={handleOriginClear}
           hasError={!!errors.origin}
           errorMessage={errors.origin}
-          ariaLabel="Pickup location"
+          ariaLabel={t('pickupAria')}
         />
 
         {/* Swap icon — visible for transfer/daily, hidden (but space reserved) for hourly
@@ -131,7 +134,7 @@ export default function Step1TripType() {
           <button
             type="button"
             onClick={swapOriginDestination}
-            aria-label="Swap origin and destination"
+            aria-label={t('swapAria')}
             tabIndex={showSwapIcon ? 0 : -1}
             onMouseEnter={() => setSwapHovered(true)}
             onMouseLeave={() => setSwapHovered(false)}
@@ -159,14 +162,14 @@ export default function Step1TripType() {
           <DurationSelector />
         ) : (
           <AddressInput
-            label="DESTINATION"
-            placeholder="Enter destination"
+            label={t('destinationLabel')}
+            placeholder={t('destinationPlaceholder')}
             value={destination}
             onSelect={handleDestinationSelect}
             onClear={handleDestinationClear}
             hasError={!!errors.destination}
             errorMessage={errors.destination}
-            ariaLabel="Destination"
+            ariaLabel={t('destinationAria')}
           />
         )}
 
@@ -207,7 +210,7 @@ export default function Step1TripType() {
         >
           <div style={{ flex: 1 }}>
             <Stepper
-              label="PASSENGERS"
+              label={t('passengersLabel')}
               value={passengers}
               min={1}
               max={8}
@@ -216,7 +219,7 @@ export default function Step1TripType() {
           </div>
           <div style={{ flex: 1 }}>
             <Stepper
-              label="LUGGAGE"
+              label={t('luggageLabel')}
               value={luggage}
               min={0}
               max={8}
@@ -247,7 +250,7 @@ export default function Step1TripType() {
             cursor: isValid ? 'pointer' : 'not-allowed',
           }}
         >
-          Continue
+          {t('continue')}
         </button>
       </div>
     </div>

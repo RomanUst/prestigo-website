@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import type { Review } from '@/lib/google-reviews'
 
 interface Props {
@@ -9,14 +10,15 @@ interface Props {
 }
 
 function StarBadge({ rating }: { rating: number }) {
+  const t = useTranslations('Testimonials')
   const stars = Math.max(0, Math.min(5, Math.round(rating)))
   return (
-    <span className="inline-flex items-center gap-1" aria-label={`${stars} out of 5 stars`}>
+    <span className="inline-flex items-center gap-1" aria-label={t('starsAria', { stars })}>
       {Array.from({ length: stars }).map((_, i) => (
         <span key={i} data-testid="star-filled" aria-hidden="true" style={{ color: 'var(--copper)' }}>★</span>
       ))}
       <span className="font-body font-light text-[10px] tracking-[0.08em] ml-2" style={{ color: 'var(--copper)' }}>
-        Google Review
+        {t('googleReview')}
       </span>
     </span>
   )
@@ -50,6 +52,7 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Props) {
+  const t = useTranslations('Testimonials')
   const [activeIndex, setActiveIndex] = useState(0)
   const [tick, setTick] = useState(0) // bump to reset timer on manual nav
   const len = reviews.length
@@ -86,7 +89,7 @@ export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Pro
     <div
       role="region"
       aria-roledescription="carousel"
-      aria-label="Testimonials"
+      aria-label={t('carouselAria')}
       tabIndex={0}
       onKeyDown={onKeyDown}
       className="outline-none"
@@ -96,14 +99,14 @@ export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Pro
       </div>
 
       {len > 1 && (
-        <div className="flex justify-center mt-8" aria-label="Testimonial pagination">
+        <div className="flex justify-center mt-8" aria-label={t('paginationAria')}>
           {reviews.map((_, i) => {
             const isActive = i === activeIndex
             return (
               <button
                 key={i}
                 type="button"
-                aria-label={`Go to slide ${i + 1}`}
+                aria-label={t('goToSlide', { n: i + 1 })}
                 aria-current={isActive ? 'true' : 'false'}
                 onClick={() => goTo(i)}
                 className="w-2 h-2 rounded-full mx-1 transition-colors"

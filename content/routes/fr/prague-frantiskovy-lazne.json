@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Prague → Františkovy Lázně",
+    "headlineLine1": "De Prague à Františkovy Lázně,",
+    "headlineItalic": "la ville d'eaux paisible.",
+    "intro": "175 km vers l'ouest, jusqu'à la plus intime du triangle thermal de Bohême de l'Ouest. Vingt-quatre sources minérales, des colonnades de style Empire et la quiétude des forêts — deux heures et demie, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Františkovy Lázně couvre 175 km par l'autoroute D6 et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en chemin — Karlovy Vary ou Mariánské Lázně — sont inclus dans le tarif fixe lorsqu'ils sont prévus lors de la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans vous solliciter en cas de ralentissement.",
+    "Il ne s'agit ni d'une navette partagée, ni d'une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas entre la place Venceslas et le pavillon des sources Glauber."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Františkovy Lázně",
+    "headingItalic": "en deux heures et demie.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers l'ouest en traversant Pilsen, dont la silhouette familière défile sur la gauche, avant de bifurquer sur la route 21 puis la route 6 en direction de Cheb. De Cheb, quelques minutes suffisent pour rejoindre Františkovy Lázně, la plus petite des trois villes d'eaux de Bohême, à la frontière allemande. Aucun passage de frontière n'est prévu sur ce trajet : la destination se situe pleinement en République tchèque, même si la frontière bavaroise est assez proche pour se deviner dans l'architecture.",
+      "La distance totale avoisine 175 kilomètres. Le temps de trajet est de deux heures et demie en conditions normales. La ville a été inscrite au patrimoine mondial de l'UNESCO en 2021 au titre des Grandes villes d'eaux d'Europe, aux côtés de Karlovy Vary, de Mariánské Lázně et de huit autres villes thermales du continent — et le paysage urbain en témoigne. Votre arrivée longe les colonnades de style Empire, le pavillon Františkův Pramen qui a donné son nom à la ville, le pavillon des sources Glauber et les façades jaunes de monuments tels que le Lázeňský Dům Imperial.",
+      "Votre chauffeur surveille la circulation sur la D5 avant chaque départ. En cas de fermeture près de Beroun, il modifie l'itinéraire sans vous solliciter. Vous ne payez pas pour la circulation ; vous payez pour votre temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague jusqu'à la dépose à Františkovy Lázně. La voiture, le chauffeur, le carburant, la vignette. Séjour thermal, retraite bien-être ou week-end tranquille en Bohême : votre chauffeur s'occupe de l'itinéraire pendant que vous vous consacrez au reste.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Le carburant et la vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Un service porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, et non sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Františkovy Lázně,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur patiente jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Karlovy Vary ou Mariánské Lázně",
+      "note": "Une halte naturelle en chemin dans l'une ou l'autre des villes d'eaux voisines, pour compléter le triangle thermal de Bohême en une journée.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "La vieille ville de Cheb, une aire forestière ou toute autre halte le long de la D5 — votre programme, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Františkovy Lázně",
+      "note": "Dépose à votre hôtel thermal, à la colonnade de style Empire ou à toute adresse en ville.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun passage de frontière — Františkovy Lázně se trouve entièrement en République tchèque, même si la frontière allemande n'est qu'à quelques minutes de route au-delà de la ville."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque comprise dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Triangle thermal",
+      "value": "Mariánské Lázně se trouve à 40 km, Karlovy Vary à 50 km. Un circuit complet du triangle thermal de Bohême est possible dans le cadre d'une seule réservation Prestigo."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueillera devant votre adresse de prise en charge — un hôtel du centre de Prague, un appartement à Malá Strana ou le hall des arrivées de l'aéroport Václav Havel, avec une tablette Prestigo affichant votre nom. Pas sur un parking de l'autre côté de la rue. Pas à un point de rencontre situé à dix minutes de marche.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour deux heures et demie de travail ou de repos avant un soin, le chauffeur comprendra ce signal et vous laissera tranquille. Si vous souhaitez en savoir plus sur Františkovy Lázně — la ville fondée en 1793 et nommée en l'honneur de l'empereur François Ier, la cure que Beethoven y suivit en août 1812, sa réputation discrète de plus raffinée du triangle thermal de Bohême, l'inscription à l'UNESCO obtenue en 2021 —, votre chauffeur la connaît et ne la partage que si vous le lui demandez.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une température particulière à l'arrière, dites-le. Si vous voulez vous arrêter pour un café dans une véritable aire de repos sur la D5, à mi-chemin de Pilsen, c'est inclus."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Františkovy Lázně.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, vignette tchèque, temps du chauffeur. Rien n'est ajouté à la dépose à Františkovy Lázně."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux longs trajets vers les villes d'eaux."
+      },
+      {
+        "title": "Une réservation, trois villes d'eaux",
+        "body": "Si vous souhaitez associer Františkovy Lázně à Karlovy Vary ou Mariánské Lázně pour boucler le triangle thermal en une journée, c'est inclus. Votre chauffeur gère l'itinéraire, les arrêts et les horaires."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Františkovy Lázně ?",
+      "a": "Environ 2 h 30 de porte à porte par l'autoroute D5 vers l'ouest à travers Pilsen, puis la route 21 en direction de Cheb et de Františkovy Lázně. La circulation du vendredi après-midi à la sortie de Prague peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Františkovy Lázně ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette autoroutière tchèque et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée avec du temps sur place à la station thermale ?",
+      "a": "Oui. Un retour le jour même bénéficie d'une remise de 10 %. Si vous souhaitez que le chauffeur reste à votre disposition pendant la visite, ajoutez une mise à disposition horaire en ville. De nombreux clients réservent un aller-retour de 7 à 9 heures pour une cure de boisson aux colonnades, un déjeuner dans le quartier Empire et une promenade dans les allées du parc."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière sur la route de Františkovy Lázně ?",
+      "a": "Non. Františkovy Lázně se trouve entièrement en République tchèque, bien que la frontière allemande ne soit qu'à quelques minutes. La ville fait partie de l'inscription au patrimoine mondial de l'UNESCO « Grandes villes d'eaux d'Europe », obtenue en 2021 aux côtés de Karlovy Vary et de Mariánské Lázně — aucun contrôle de documents n'est requis pour le transfert."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et rehausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant lors de la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il allemand ?",
+      "a": "Un chauffeur germanophone est disponible sur demande — un avantage discret, tant Franzensbad, nom allemand de la ville, est proche de la frontière bavaroise. Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque, par principe."
+    }
+  ],
+  "relatedRoutesIntro": "Františkovy Lázně est le coin paisible du triangle thermal de Bohême. De nombreux clients l'associent à une ville d'eaux voisine, à une halte à Pilsen ou à une continuation au-delà de la frontière bavaroise. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "la Bohême de l'Ouest."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-karlovy-vary",
+      "city": "Karlovy Vary",
+      "distance": "130 km",
+      "duration": "1 h 30"
+    },
+    {
+      "slug": "prague-marianske-lazne",
+      "city": "Mariánské Lázně",
+      "distance": "170 km",
+      "duration": "2 h 15"
+    },
+    {
+      "slug": "prague-plzen",
+      "city": "Pilsen",
+      "distance": "95 km",
+      "duration": "1 h 10"
+    },
+    {
+      "slug": "prague-regensburg",
+      "city": "Ratisbonne",
+      "distance": "290 km",
+      "duration": "3 h 15"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~175 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Františkovy Lázně.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Františkovy Lázně — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Františkovy Lázně. 175 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, triangle thermal de Bohême de l'Ouest.",
+    "ogTitle": "Transfert privé Prague – Františkovy Lázně — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Františkovy Lázně. 175 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, triangle thermal de Bohême de l'Ouest."
+  }
+}

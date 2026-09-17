@@ -1,84 +1,124 @@
-# Requirements: Prestigo — v2.2 Dispatch & Driver Trip Portal
+# Requirements: Prestigo v3.0 — Site Internationalization (i18n)
 
-**Defined:** 2026-08-27
-**Core Value:** Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction. (v2.2 extends operational tooling: faster dispatch + a driver-facing trip portal.)
+**Defined:** 2026-09-03
+**Core Value:** Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction. v3.0 extends that reach to non-English speakers **without sacrificing the existing English SEO positions.**
+
+## Milestone Scope
+
+Make the entire public site multilingual. English stays the default at the site root (existing URLs unchanged → zero ranking risk); six additional locales are served under URL subpaths with full SEO wiring (hreflang, localized metadata, per-locale sitemap entries). All user-facing content — UI chrome, booking flow, account, and the full SEO content set (route pages, service pages, blog, legal) — is translated by an AI-only, re-runnable pipeline.
+
+**Locales (7 total):**
+
+| Locale | Code | URL | Script / Notes |
+|--------|------|-----|----------------|
+| English | `en` | root (no prefix, default) | existing URLs, source of truth |
+| Russian | `ru` | `/ru/` | Cyrillic |
+| Spanish | `es` | `/es/` | Latin |
+| French | `fr` | `/fr/` | Latin |
+| Arabic | `ar` | `/ar/` | **RTL** + Noto Sans Arabic |
+| Hindi | `hi` | `/hi/` | Devanagari + Noto Sans Devanagari |
+| Chinese (Simplified) | `zh` | `/zh/` | **CJK** + Noto Sans SC (infra sized for future JA/KO) |
 
 ## v1 Requirements (this milestone)
 
-Requirements for milestone v2.2. Each maps to a roadmap phase (numbering continues from Phase 64 → starts at Phase 65).
+### Internationalization Foundation
 
-### Dispatch — Admin Bookings List
+- [x] **I18N-01**: Adopt `next-intl` with `app/[locale]/` routing and `localePrefix: 'as-needed'` — EN resolves at root with no `/en` prefix and existing English URLs are unchanged.
+- [x] **I18N-02**: Compose the next-intl locale middleware into the existing `middleware.ts` chain so per-request CSP nonce, Supabase `updateSession`, and CSRF Origin-guard all continue to work byte-for-byte, with locale detection added.
+- [x] **I18N-03**: `<html lang>` and `dir` are set dynamically per locale (`dir="rtl"` for `ar`).
+- [x] **I18N-04**: Typed, single-source locale config (`en, ru, es, fr, ar, hi, zh`); admin/api/auth/driver routes stay non-localized at root.
 
-- [x] **DISP-01**: Admin bookings list defaults to showing only future trips (pickup ≥ now) on load.
-- [x] **DISP-02**: Admin can set a persistent default horizon in admin settings (Future only / Last N days / All) that applies on every visit.
-- [x] **DISP-03**: In-session UI filters override the saved default (reveal past/all) without changing the persisted setting.
-- [x] **DISP-04**: KPI counters (today's bookings, week revenue) remain accurate regardless of the active default/filter.
+### String Externalization
 
-### Driver Trip Portal
+- [x] **STR-01**: All UI-chrome strings (Nav, Footer, Hero, Services, Fleet, HowItWorks, Testimonials, CookieBanner, FeatureStrip, etc.) are moved into message catalogs (`messages/<locale>.json`) with namespaces and consumed via `useTranslations`/`getTranslations`.
+- [x] **STR-02**: Booking flow (wizard/EntryBar/vehicle cards), account + auth pages, forms, validation/error/toast text are fully externalized.
 
-- [x] **DTRIP-01**: On assignment, a permanent per-assignment driver link is generated with a token valid until the order reaches a terminal status (no immediate expiry).
-- [x] **DTRIP-02**: The driver link opens a `noindex` trip sheet with full trip details (pickup/dropoff, date/time, passenger, phone, flight, special requests, booking reference) — presentable to police control.
-- [ ] **DTRIP-03**: Driver can mark trip-progress statuses from the link: en route → arrived → on board → completed, plus no-show.
-- [ ] **DTRIP-04**: Trip-progress is stored in a separate field and does NOT modify `booking.status` (and is not pushed to GNet by default).
-- [ ] **DTRIP-05**: Admin sees the driver's live trip-progress in the bookings admin.
-- [ ] **DTRIP-06**: Driver can leave an optional trip note/feedback from the link.
-- [x] **DTRIP-07**: The existing accept/decline assignment flow remains available; the permanent trip link coexists with it.
-- [x] **DTRIP-08**: The trip link token is unguessable and only exposes the assigned booking's data; it becomes invalid on terminal status or reassignment.
+### Content Externalization
 
-## Future Requirements
+- [x] **CNT-01**: The 29–30 route-page bodies (inclusions, day-trip configs, FAQ, hero copy) move to a locale-aware content model.
+- [x] **CNT-02**: Home long-form, the 8 service pages, about/faq/contact/corporate, and legal pages are localizable.
+- [x] **CNT-03**: Blog moves to per-locale content (`content/blog/<locale>/`); listing and `[slug]` render the active locale.
 
-Deferred; tracked but not in this milestone's roadmap.
+### Translation Production
 
-### Driver Portal
+- [x] **TR-01**: A re-runnable AI translation pipeline (`scripts/i18n-translate.mjs`) with a locked brand glossary and a do-not-translate list (prices/numbers, "Prestigo", E/S/V-Class names, proper nouns), premium tone per locale. EN is the source of truth; re-runs are idempotent.
+- [x] **TR-02**: Complete translations for `ru, es, fr, ar, hi, zh` across every catalog and content file.
 
-- **DTRIP-FUT-01**: Driver GPS / real-time location on the trip sheet
-- **DTRIP-FUT-02**: Push / SMS notifications to the driver on assignment and updates
-- **DTRIP-FUT-03**: Optional push of driver trip-progress into GNet status
+### Non-Latin & RTL Infrastructure
 
-### Carried Forward (from v2.1 / v2.0)
+- [ ] **RTL-01**: Arabic renders correctly right-to-left — physical-direction Tailwind classes (~42 files) audited and converted to logical properties; no mirrored-layout breakage.
+- [ ] **FONT-01**: Noto Sans Arabic / Devanagari / SC loaded per locale via `next/font`.
 
-- **FOLLOW-01**: Automatic reminder email after N hours unpaid
-- **CR-02**: Actual Stripe Payment Link deactivation after price edit / manual confirm
-- **AUTH-02 / AUTH-03**: Google / Apple OAuth dashboard credential config
-- **BOOK-06**: Booking-method step ("Book for myself / guest"; corporate "Book for a guest")
+### SEO
+
+- [ ] **SEO-01**: `getAlternates()` emits all 6 hreflang alternates + `x-default` on every page.
+- [ ] **SEO-02**: `generateMetadata` produces localized title/description/OG per locale.
+- [ ] **SEO-03**: The sitemap emits every locale URL with a full alternates cluster.
+- [ ] **SEO-04**: JSON-LD carries `inLanguage` and localized text fields.
+
+### UX & Verification
+
+- [ ] **UX-01**: Language switcher UI with `NEXT_LOCALE` cookie persistence.
+- [ ] **UX-02**: First-visit language auto-detection via `Accept-Language` (no crawler cloaking; localized URLs remain directly indexable).
+- [ ] **VER-01**: Cross-locale E2E green — every locale renders, switcher works, booking completes per-locale (incl. RTL), guest checkout intact, GA4/Meta analytics carry a locale dimension, no CSP regression, no EN leakage.
+
+## v2 Requirements (deferred)
+
+### Additional Locales
+
+- **LOC-CS**: Czech (`/cs/`) — remove the current `/cs → /` redirect; infra already supports it.
+- **LOC-DE**: German (`/de/`) — highest practical intercity-route audience; deferred by owner's world-language choice.
+- **LOC-JA / LOC-KO**: Japanese / Korean — reuse CJK font infra from `zh`.
+
+### Localization Depth
+
+- **L10N-PRICE**: Locale-aware price/number/currency formatting (v3.0 keeps numeric prices in €).
+- **L10N-HUMAN**: Human proofreading pass over AI translations (premium copy QA).
+- **L10N-ADMIN**: Localized admin/driver operational UI.
 
 ## Out of Scope
 
-Explicitly excluded for v2.2. Documented to prevent scope creep.
-
 | Feature | Reason |
 |---------|--------|
-| GPS / real-time driver geolocation | Substantial new subsystem; not needed for status marking or the trip sheet |
-| Push / SMS to driver | Email link is sufficient for v2.2; notifications are a separate concern |
-| Auto-push trip-progress to GNet | Trip-progress is deliberately separate from `booking.status`; keeps GNet coupling risk out |
-| Changing admin or guest auth model | Untouched — session isolation must be preserved |
-| Replacing accept/decline flow | Coexists; permanent trip link is additive (DTRIP-07) |
+| Localizing admin / driver / api routes | Operational surface; English-only is fine, keeps them off the `[locale]` tree |
+| Per-locale currency conversion | Prices stay numeric €; only display strings translate |
+| CS / DE / JA / KO content | Infra is built to support them; content deferred to a later milestone |
+| Human translation / proofreading | Owner chose AI-only production for this milestone |
+| Per-locale ccTLD or subdomains | Subpath strategy chosen (single domain, preserves EN ranking) |
 
 ## Traceability
 
-Which phases cover which requirements. Filled during roadmap creation.
+Populated during roadmap creation (Phases 68–75).
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISP-01 | Phase 65 | Complete |
-| DISP-02 | Phase 65 | Complete |
-| DISP-03 | Phase 65 | Complete |
-| DISP-04 | Phase 65 | Complete |
-| DTRIP-01 | Phase 66 | Complete |
-| DTRIP-02 | Phase 66 | Complete |
-| DTRIP-03 | Phase 67 | Pending |
-| DTRIP-04 | Phase 67 | Pending |
-| DTRIP-05 | Phase 67 | Pending |
-| DTRIP-06 | Phase 67 | Pending |
-| DTRIP-07 | Phase 66 | Complete |
-| DTRIP-08 | Phase 66 | Complete |
+| I18N-01 | 68 | Complete |
+| I18N-02 | 68 | Complete |
+| I18N-03 | 68 | Complete |
+| I18N-04 | 68 | Complete |
+| STR-01 | 69 | Complete |
+| STR-02 | 70 | Complete |
+| CNT-01 | 71 | Complete |
+| CNT-02 | 71 | Complete |
+| CNT-03 | 71 | Complete |
+| TR-01 | 72 | Complete |
+| TR-02 | 72, 73 | Complete |
+| RTL-01 | 73 | Pending |
+| FONT-01 | 73 | Pending |
+| SEO-01 | 74 | Pending |
+| SEO-02 | 74 | Pending |
+| SEO-03 | 74 | Pending |
+| SEO-04 | 74 | Pending |
+| UX-01 | 74 | Pending |
+| UX-02 | 74 | Pending |
+| VER-01 | 75 | Pending |
 
 **Coverage:**
 
-- v2.2 requirements: 12 total
-- Mapped to phases: 12 (Phase 65: 4, Phase 66: 4, Phase 67: 4)
+- v1 requirements: 20 total
+- Mapped to phases: 20
 - Unmapped: 0 ✓
 
 ---
-*Requirements defined: 2026-08-27*
-*Last updated: 2026-08-27 after v2.2 ROADMAP.md creation (Phases 65-67)*
+*Requirements defined: 2026-09-03*
+*Last updated: 2026-09-03 after milestone definition*

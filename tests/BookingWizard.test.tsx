@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import { useBookingStore } from '@/lib/booking-store'
 import BookingWizard from '@/components/booking/BookingWizard'
 

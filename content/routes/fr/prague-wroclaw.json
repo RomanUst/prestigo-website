@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Prague → Wrocław",
+    "headlineLine1": "De Prague à Wrocław,",
+    "headlineItalic": "la Basse-Silésie en direct.",
+    "intro": "285 km vers le nord-est, jusqu'à la ville des nains et l'une des places de marché les plus vivantes d'Europe centrale. Trois heures, un tarif fixe, de porte à porte au-delà de la frontière."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Wrocław couvre 285 km et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en chemin — Liberec ou Jelenia Góra — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
+    "Ce n'est ni une navette partagée, ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Wrocław",
+    "headingItalic": "en trois heures.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou l'aéroport —, votre chauffeur emprunte l'autoroute D11 vers le nord en direction de Hradec Králové, puis la route 33 vers le nord-est à travers les contreforts tchèques jusqu'à la frontière de Náchod et Kudowa-Zdrój. Le passage Schengen tchéco-polonais est invisible : aucun arrêt, aucun contrôle de documents. Une fois en Pologne, la route devient la DK8 puis la voie express S8, qui descend vers Wrocław par le sud-ouest.",
+      "La distance totale est d'environ 285 kilomètres. Le temps de conduite est de trois heures en conditions normales. Comptez 15 à 20 minutes de plus le vendredi après-midi au départ de Prague. Les week-ends de forte affluence à la frontière polonaise, votre chauffeur peut passer par Liberec et le poste de Bogatynia — un trajet légèrement plus long à travers les monts Jizera, mais une arrivée plus fluide en Basse-Silésie.",
+      "Wrocław mérite à elle seule le déplacement. Le Rynek est l'une des plus vastes places de marché médiévales d'Europe. Les nains de bronze de Wrocław — près de six cents — sont nés d'une unique figurine de protestation dans les années 1980 et transforment aujourd'hui chaque promenade en chasse au trésor. L'Île de la Cathédrale (Ostrów Tumski), la Halle du Centenaire et sa coupole pionnière en béton armé inscrite à l'UNESCO, ainsi que l'immense Panorama de Racławice dans sa rotonde construite pour lui, complètent la liste. Votre chauffeur surveille la circulation sur la D11 avant chaque départ. Vous ne payez pas les embouteillages ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le tarif fixe couvre tout, de la prise en charge à Prague à la dépose à Wrocław. La voiture, le chauffeur, le carburant, la vignette tchèque, les péages polonais. Réunion d'affaires en Basse-Silésie, week-end culturel sur le Rynek ou visite familiale en Silésie : votre chauffeur s'occupe de l'itinéraire pendant que vous vous consacrez à la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Polonais sur demande.",
+    "Carburant, vignette autoroutière tchèque et péages des voies express polonaises. Aucun supplément.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège enfant face à la route ou rehausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville (voir tarifs)."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van d'affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Wrocław,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Frontière tchéco-polonaise",
+      "note": "Passage Schengen à Náchod/Kudowa-Zdrój — aucun délai pour les citoyens de l'UE. Votre chauffeur coordonne le passage.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt dans la ville thermale de Kudowa-Zdrój ou n'importe où en chemin. Votre itinéraire, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Wrocław",
+      "note": "Dépose à n'importe quelle adresse de Wrocław, sur la place du Rynek ou à votre hôtel.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen tchéco-polonaise à Náchod/Kudowa-Zdrój. Aucun contrôle de passeport pour les citoyens de l'UE."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque incluse. Péages des voies express polonaises inclus dans le prix annoncé."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Prolongation d'itinéraire",
+      "value": "Wrocław est reliée à Cracovie et à Varsovie. PRESTIGO peut prolonger votre voyage au départ de Wrocław."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueille devant votre adresse de prise en charge, au centre de Prague — pas sur un parking de l'autre côté de la rue, ni à un point de rendez-vous à dix minutes de marche dans l'aéroport. Si vous atterrissez à l'aéroport Václav Havel, il se trouve dans le hall des arrivées avec une tablette Prestigo affichant votre nom, et les bagages sont dans le coffre avant même que vous n'atteigniez la voiture.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour trois heures de travail ou de repos, le chauffeur le comprendra et vous laissera tranquille. Si vous souhaitez en savoir plus sur Wrocław — la capitale de la Basse-Silésie, qui fut l'allemande Breslau jusqu'en 1945, l'échange de populations qui a repeuplé la ville de familles polonaises venues de Lwów, la tradition universitaire, le mouvement Alternative orange qui a donné naissance dans les années 1980 à la tradition des nains krasnale devenue emblème culturel, ou encore l'année 2016 où la ville fut Capitale européenne de la culture —, votre chauffeur saura vous répondre.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous avez oublié un adaptateur européen, demandez. Si vous souhaitez une température précise à l'arrière, dites-le. Une véritable pause près de Hradec Králové sur la D11, ou sur la S8 polonaise après la frontière, est incluse dès que vous le souhaitez."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Wrocław.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix que vous voyez est le prix que vous payez. Carburant, vignette tchèque, péages polonais, temps du chauffeur. Rien n'est ajouté à l'arrivée."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux trajets internationaux."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si le passage frontalier de Náchod est encombré le week-end, votre chauffeur emprunte l'alternative de Bogatynia ou de Cieszyn. Pour des réunions en polonais, un chauffeur polonophone est disponible sur demande."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Wrocław ?",
+      "a": "Environ 3 heures de porte à porte via l'autoroute D11 vers le nord jusqu'à Hradec Králové, puis la route 33 vers le nord-est jusqu'à la frontière tchéco-polonaise de Náchod/Kudowa-Zdrój, puis les voies express polonaises DK8 et S8 jusqu'à Wrocław. La circulation autour de Prague aux heures de pointe peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Wrocław ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, la vignette tchèque, les péages autoroutiers polonais et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée entre Prague et Wrocław ?",
+      "a": "Oui, et c'est la formule habituelle sur cet itinéraire. Un retour le jour même bénéficie d'une remise de 10 %. Si vous souhaitez que le chauffeur reste à votre disposition pendant la visite, ajoutez une mise à disposition horaire en ville (voir tarifs). La plupart des clients réservent un aller-retour de 10 à 12 heures pour couvrir le Rynek, le Panorama de Racławice et un déjeuner près d'Ostrów Tumski."
+    },
+    {
+      "q": "Le passage de la frontière tchéco-polonaise se fait-il sans difficulté ?",
+      "a": "Les deux pays font partie de l'espace Schengen. Le passage à Náchod/Kudowa-Zdrój est invisible : pas de contrôles de routine, pas de contrôle des passeports. Tous les véhicules Prestigo disposent de la vignette tchèque et des péages polonais prépayés, et le chauffeur détient une licence internationale de chauffeur reconnue dans toute l'UE."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges enfant face à la route et rehausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il polonais ?",
+      "a": "Un chauffeur polonophone est disponible sur demande — utile pour des réunions d'affaires à Wrocław ou pour les clients qui préfèrent être accueillis en polonais. Chaque chauffeur Prestigo parle couramment anglais et tchèque en standard."
+    }
+  ],
+  "relatedRoutesIntro": "Wrocław est la porte d'entrée entre Prague et le reste de la Pologne. De nombreux clients associent le trajet vers Wrocław à Cracovie, Varsovie ou une étape tchèque en chemin. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-hradec-kralove",
+      "city": "Hradec Králové",
+      "distance": "115 km",
+      "duration": "1 h 15"
+    },
+    {
+      "slug": "prague-liberec",
+      "city": "Liberec",
+      "distance": "110 km",
+      "duration": "1 h 20"
+    },
+    {
+      "slug": "prague-krakow",
+      "city": "Cracovie",
+      "distance": "535 km",
+      "duration": "5 h 30"
+    },
+    {
+      "slug": "prague-warsaw",
+      "city": "Varsovie",
+      "distance": "680 km",
+      "duration": "6 h 45"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~285 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~3 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Van d'affaires"
+      ]
+    },
+    {
+      "label": "À partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Wrocław.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Wrocław — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Wrocław. 285 km de porte à porte en Mercedes-Benz. Tarif fixe à partir de {ePrice} €, vers la ville des nains en Pologne.",
+    "ogTitle": "Transfert privé Prague – Wrocław — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Wrocław. 285 km de porte à porte en Mercedes-Benz. Tarif fixe à partir de {ePrice} €, vers la ville des nains en Pologne."
+  }
+}

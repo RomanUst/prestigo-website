@@ -1,0 +1,90 @@
+{
+  "metadata": {
+    "title": "About PRESTIGO — Prague Chauffeur Service",
+    "description": "Prague's locally-rooted chauffeur service built to international luxury standards. Our story, our chauffeurs, and why discerning travellers choose PRESTIGO.",
+    "ogTitle": "About PRESTIGO — Prague's Premium Chauffeur Service"
+  },
+  "schema": {
+    "name": "PRESTIGO",
+    "aboutPageName": "About PRESTIGO — Prague's Premium Chauffeur Service"
+  },
+  "hero": {
+    "label": "About PRESTIGO",
+    "headlineLine1": "Prague's chauffeur service.",
+    "headlineItalic": "International standard.",
+    "intro": "PRESTIGO was founded on a single observation: Prague deserved a chauffeur service that matched the city's ambition. Not a global aggregator without local knowledge. Not a local operator without a brand. Something in between — and better than both."
+  },
+  "brandStory": {
+    "heading": "Why PRESTIGO exists",
+    "paragraphs": [
+      "Every year, hundreds of thousands of executives, diplomats, and discerning travellers arrive in Prague expecting a certain standard. What they find, too often, is a gap — between the city they came for and the first impression it gives them.",
+      "PRESTIGO exists to close that gap. From the moment of landing to the moment of arrival at your destination, every detail is anticipated, every preference noted, every commitment kept.",
+      "We are not a taxi. We are not an aggregator. We are the first person in Prague who is already on your side."
+    ]
+  },
+  "quote": "“The first person in Prague who is already on your side.”",
+  "ourStory": {
+    "label": "Our story",
+    "headingLine1": "From one car,",
+    "headingItalic": "to a standard.",
+    "paragraphs": [
+      "PRESTIGO began in 2016 the way most small operators begin in Central Europe — with a single late-model Mercedes and a founder who was tired of watching visiting executives step out of airport taxis looking like they’d rather have walked. The ambition from the first day was narrow and specific: build one chauffeur service in Prague that an international traveller would recognise as equivalent to the best they had used in London, Zurich, or Tokyo.",
+      "The founding principle was that the standard has to be set at the edges, not the centre. Anyone can run a good airport transfer on a sunny Tuesday afternoon. The real test is the 04:00 pickup in a snowstorm, the last-minute rerouting when a meeting runs long, the visiting principal with a protocol team, the family of five with skis and a nervous dog. If the service holds at the edges, the centre takes care of itself.",
+      "Today, PRESTIGO operates a curated Mercedes-Benz fleet out of Prague with a small team of vetted chauffeurs who’ve each been with us long enough to be trusted with any booking. We have deliberately kept the operation compact: we would rather refuse work than dilute the standard."
+    ]
+  },
+  "founder": {
+    "label": "Meet the founder",
+    "headingLine1": "Roman Ustyugov,",
+    "headingItalic": "Founder.",
+    "extraParagraph": "Ten years in the industry means every 04:00 pickup, every wrong-terminal arrival, every VIP protocol has been seen, solved, and written into PRESTIGO’s playbook. That is what you are booking when you book us.",
+    "readFullProfile": "Read full profile →"
+  },
+  "discretion": {
+    "label": "On discretion",
+    "headingLine1": "What discretion",
+    "headingItalic": "actually means.",
+    "intro": "“Discretion” is one of those words every premium operator puts on their website and very few define. At PRESTIGO, discretion is a set of concrete practices, not a marketing line. It is the reason we hesitate to photograph our own vehicles with clients inside them, the reason our chauffeurs don’t carry company-branded clothing to dinner pickups, and the reason nothing that happens in the cabin is ever repeated — to colleagues, to family, or to a social feed.",
+    "items": [
+      { "t": "No social posting — ever", "b": "Our drivers do not photograph clients, vehicles with clients inside, or the addresses we collect from. There is no internal chat group sharing stories. We don&rsquo;t have one." },
+      { "t": "NDAs on request, at no cost", "b": "For any booking that touches confidential business, we will sign a standard mutual NDA before the trip. Many of our corporate accounts run on a permanent NDA as a matter of routine." },
+      { "t": "Private pickups without signage", "b": "For sensitive collections at residences, embassies, or private entrances, the chauffeur carries no company signage and uses a vehicle without external branding." },
+      { "t": "Conversation only on invitation", "b": "Our chauffeurs will not speak first. If you want a conversation, start one. If you want to work or sleep, the cabin stays silent for the entire journey." },
+      { "t": "What happens inside, stays inside", "b": "Phone calls, documents on your lap, conversations with colleagues in the back seat — none of it exists outside the vehicle. This is not a slogan. It is how we are trained." }
+    ]
+  },
+  "localKnowledge": {
+    "label": "Local knowledge, international standards",
+    "headingLine1": "Prague is our home.",
+    "headingItalic": "That is the advantage.",
+    "paragraphs": [
+      "Most of the global chauffeur brands that operate in Prague are platforms — they list local drivers, collect a fee, and disappear the moment something goes wrong. PRESTIGO is the opposite. We are based in Prague, we employ our drivers directly, and we live with every decision about service the next day. That is what “locally-rooted” actually means.",
+      "Local knowledge is a practical advantage. Our chauffeurs know that the Prague 1 traffic pattern changes completely during the Christmas markets, that Charles Bridge is closed to vehicles, that Wenceslas Square becomes impassable whenever there’s a protest or a football final, and that the fastest route from the airport to a hotel in Malá Strana depends entirely on the time of day. They know which hotels expect you to drop at the main entrance and which prefer the side porte-cochère. They know which embassies have security checks that add fifteen minutes to the pickup. They know the border-crossing habits of the E65 to Vienna at 06:00 on a summer Monday versus a winter Saturday.",
+      "None of this is written in a policy document. It is learned by driving the city for years, and then choosing to stay with one operator who asks the right questions. It is the single biggest reason PRESTIGO is consistent at the edges — where other services begin to fray."
+    ]
+  },
+  "principlesHeading": "What we stand for",
+  "principles": [
+    { "title": "Discretion", "body": "Your journey is your own. We don't discuss clients, routes, or conversations." },
+    { "title": "Precision", "body": "The right car at the right place at the right time. No excuses accepted." },
+    { "title": "Local knowledge", "body": "Our drivers know Prague: the traffic patterns, the hotels, the shortcuts, the stories." }
+  ],
+  "chauffeurs": {
+    "label": "Our Chauffeurs",
+    "heading": "Our chauffeurs",
+    "paragraph": "Every PRESTIGO chauffeur is personally vetted, trained in executive transport protocols, and fluent in English. They carry a name board, arrive early, and say only what needs to be said."
+  },
+  "requirements": [
+    "Background-checked · Professionally licensed",
+    "Executive hospitality training",
+    "English fluency minimum B2",
+    "Prague geography certified",
+    "Uniformed: dark suit, clean shoes, no cologne"
+  ],
+  "cta": {
+    "headingLine1": "Travel with PRESTIGO.",
+    "headingItalic": "Experience the difference.",
+    "buttonPrimary": "Book a Transfer",
+    "buttonSecondary": "Corporate Accounts"
+  }
+}

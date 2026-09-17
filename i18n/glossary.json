@@ -1,0 +1,39 @@
+{
+  "doNotTranslate": {
+    "brand": ["Prestigo", "PRESTIGO", "chelautotrans s.r.o."],
+    "vehicleClasses": ["Mercedes-Benz", "E-Class", "S-Class", "V-Class"],
+    "structural": {
+      "note": "These are syntax the pipeline must never alter, not vocabulary. Preserve exact spelling, casing, and surrounding punctuation.",
+      "icuVariablePattern": "\\{[a-zA-Z][a-zA-Z0-9]*(,\\s*(plural|select)[^}]*)?\\}",
+      "richTextTags": ["highlight", "price", "privacy", "strong", "terms", "wa"],
+      "pricePlaceholderPattern": "\\{[a-zA-Z]+Price\\}",
+      "phoneNumbers": ["+420 725 986 855"],
+      "domains": ["rideprestigo.com"]
+    }
+  },
+  "placeNames": {
+    "note": "Geographic place names ARE translated to the target language's standard exonym (e.g. Prague -> Прага in ru, Prague -> Praga in es), NOT added to doNotTranslate. See 72-RESEARCH.md Open Question 1 / Assumption A1.",
+    "policy": "use-standard-exonym"
+  },
+  "locales": {
+    "ru": {
+      "formality": "formal",
+      "toneGuide": "Formal «Вы» address throughout — standard register for a premium chauffeur brand. Avoid unnecessary Latin-script loanwords where an established Russian term exists. No exclamation-heavy marketing tone.",
+      "pluralCategories": ["one", "few", "many", "other"],
+      "termMap": {}
+    },
+    "es": {
+      "formality": "formal",
+      "dialect": "es-ES",
+      "toneGuide": "European Spanish (Spain). Use 'usted' throughout for a premium register. European orthography and lexis only — e.g. 'coche'/'aparcamiento', never LatAm equivalents like 'carro'/'parqueo'.",
+      "pluralCategories": ["one", "other"],
+      "termMap": {}
+    },
+    "fr": {
+      "formality": "formal",
+      "toneGuide": "'Vous' throughout, premium/understated register.",
+      "pluralCategories": ["one", "other"],
+      "termMap": {}
+    }
+  }
+}

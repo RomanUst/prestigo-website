@@ -1,0 +1,82 @@
+{
+  "metadata": {
+    "title": "Contact — Chauffeur de prestige à Prague",
+    "description": "Contactez PRESTIGO. Réservez un transfert, demandez un compte entreprise ou posez-nous toute question. Disponibles 24h/24 et 7j/7 par WhatsApp ou e-mail.",
+    "ogTitle": "Contact — PRESTIGO, chauffeur de prestige à Prague"
+  },
+  "hero": {
+    "label": "Contact · Service de chauffeur à Prague",
+    "headlineLine1": "Contactez PRESTIGO Prague.",
+    "headlineItalic": "Nous sommes là, à tout moment.",
+    "intro": "Disponibles 24 heures sur 24, 7 jours sur 7. Joignez-nous via le formulaire, par e-mail ou instantanément sur WhatsApp."
+  },
+  "whatsapp": {
+    "messageUsInstantly": "Écrivez-nous instantanément"
+  },
+  "whatHappensNext": {
+    "heading": "Les étapes suivantes",
+    "steps": [
+      {
+        "step": "01",
+        "title": "Vous nous contactez",
+        "body": "Envoyez-nous un message via le formulaire, WhatsApp ou par e-mail. Indiquez votre lieu de prise en charge, votre destination, la date et l'heure. Aucun compte n'est nécessaire."
+      },
+      {
+        "step": "02",
+        "title": "Nous confirmons en quelques minutes",
+        "body": "Aux heures de bureau, comptez une réponse en moins de 15 minutes. En dehors de ces horaires, nous nous efforçons de confirmer sous 2 heures. Votre réservation n'est définitive qu'une fois confirmée par écrit."
+      },
+      {
+        "step": "03",
+        "title": "Votre chauffeur est là",
+        "body": "Le jour même, le chauffeur qui vous est assigné se présente au lieu convenu — à l'heure, en tenue, pancarte à votre nom à la main. Pour les prises en charge à l'aéroport, nous suivons votre vol automatiquement."
+      }
+    ]
+  },
+  "commonEnquiries": {
+    "heading": "Demandes fréquentes",
+    "faqs": [
+      {
+        "q": "J'ai besoin d'un transfert depuis l'aéroport de Prague Václav Havel (PRG).",
+        "a": "Utilisez le formulaire de réservation ou WhatsApp. Communiquez-nous votre numéro de vol, le terminal d'arrivée et l'adresse de destination. Nous suivons le vol et ajustons l'heure de prise en charge en cas d'avance ou de retard."
+      },
+      {
+        "q": "J'ai besoin d'un transfert vers Vienne, Berlin ou une autre ville européenne.",
+        "a": "Consultez la liste complète de nos itinéraires ou indiquez-nous simplement votre point de départ et votre destination. Nous desservons 50 liaisons interurbaines au départ de Prague, à prix fixes et en porte-à-porte."
+      },
+      {
+        "q": "Mon entreprise souhaite ouvrir un compte entreprise.",
+        "a": "Nous mettons en place des comptes entreprise avec facturation mensuelle et un gestionnaire dédié. Consultez la page Entreprises ou décrivez vos besoins dans le formulaire : nous reviendrons vers vous."
+      },
+      {
+        "q": "Je dois annuler ou modifier une réservation.",
+        "a": "Contactez-nous sur WhatsApp ou par e-mail en indiquant votre référence de réservation. Les annulations effectuées au moins 1 heure avant le départ sont gratuites."
+      }
+    ]
+  },
+  "alsoUseful": {
+    "heading": "Également utile",
+    "links": [
+      {
+        "label": "Réserver en ligne instantanément",
+        "href": "/book",
+        "desc": "Choisissez l'itinéraire, le véhicule et la date — confirmation en quelques secondes."
+      },
+      {
+        "label": "Voir les 50 itinéraires",
+        "href": "/routes",
+        "desc": "De Prague à Vienne, Berlin, Munich et 47 autres destinations."
+      },
+      {
+        "label": "Comptes entreprise",
+        "href": "/corporate",
+        "desc": "Facturation mensuelle et gestion dédiée pour les entreprises."
+      },
+      {
+        "label": "FAQ complète",
+        "href": "/faq",
+        "desc": "Annulation, sièges enfant, temps d'attente et bien plus encore."
+      }
+    ]
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "title": "Alquiler de coche con chófer en Praga — Servicio por horas | PRESTIGO",
+    "description": "Alquile un coche con chófer privado en Praga por horas: reuniones de negocios, visitas turísticas, cenas, compras. Flota Mercedes, desde {from} €/hora, mínimo 2 horas, 24/7.",
+    "ogTitle": "Alquiler de coche con chófer en Praga — Servicio por horas | PRESTIGO"
+  },
+  "hero": {
+    "label": "Alquiler de coche con chófer por horas · Praga",
+    "headlineLine1": "Alquile un coche con chófer.",
+    "headlineItalic": "Praga, por horas.",
+    "intro": "Alquile un coche con chófer privado en Praga por horas: un Mercedes-Benz E-Class, S-Class o V-Class con un mínimo de 2 horas y sin límite máximo. Su chófer y su vehículo permanecen con usted durante todo el servicio: reuniones de negocios, teatro, compras, cenas privadas o esperas en el aeropuerto. La tarifa por hora queda fijada en el momento de la reserva.",
+    "ctaPrimary": "Reservar un trayecto urbano",
+    "ctaSecondary": "Todos los servicios"
+  },
+  "priceCallout": {
+    "label": "Desde",
+    "note": "Mínimo 2 horas · Tarifa por hora fija",
+    "features": [
+      "Reserva mínima de 2 horas",
+      "El chófer espera durante todo el servicio",
+      "Múltiples paradas incluidas",
+      "Cobertura en toda Praga",
+      "Disponible 24/7"
+    ],
+    "vClassLine": "Furgoneta Business (V-Class): {vClassHourly} €/h",
+    "firstClassLine": "First Class (S-Class): {firstClassHourly} €/h"
+  },
+  "featuresHeading": "Qué incluye",
+  "features": [
+    {
+      "title": "¿Cómo funciona el alquiler de chófer por horas en Praga?",
+      "body": "Reserve por horas a partir de un mínimo de dos, sin límite máximo. Su chófer acude a la dirección acordada y, desde ese momento, el vehículo y su tiempo son enteramente suyos. No hay taxímetros en marcha ni cargos por desplazamiento desde la base hasta el destino. Tanto si tiene cuatro reuniones en cuatro ubicaciones como una única cena con una larga espera de por medio, la tarifa es un importe fijo por hora confirmado en la reserva. Se pueden añadir horas adicionales el mismo día con solo informar a su chófer."
+    },
+    {
+      "title": "¿Conoce bien Praga el conductor?",
+      "body": "Nuestros chóferes en Praga conocen la ciudad al nivel que solo se adquiere tras años circulando por ella. Saben que Pařížská es de sentido único y cuándo se aplica la restricción del paso de peatones en la Plaza de la Ciudad Vieja. Saben que el acceso al Palace Hotel se hace por Panská y no por Jindřišská, y que Bílkova es más rápida que Kozí para llegar al paseo ribereño de Dvořákovo nábřeží. Una recomendación sobre un bar de vinos en Vinohrady o un sastre en Malá Strana se ofrece cuando se pide, nunca de otro modo."
+    },
+    {
+      "title": "¿En qué se diferencia un trayecto urbano de un traslado al aeropuerto?",
+      "body": "Los traslados al aeropuerto son de punto a punto: recogida en Llegadas, destino en su dirección de Praga. Los trayectos urbanos son todo lo demás —la misma flota Mercedes, el mismo estándar de chófer, la misma confirmación y comunicación— aplicado a una jornada de trabajo con cuatro paradas entre Vinohrady, Smíchov y la Ciudad Vieja, o a una velada privada que comienza en la Nová scéna del Teatro Nacional y termina con una cena en La Degustation. El servicio es idéntico. El itinerario lo define usted por completo."
+    },
+    {
+      "title": "¿Puedo añadir paradas o cambiar mis planes durante el trayecto?",
+      "body": "Sus planes pueden cambiar sin consecuencias. Una parada en una farmacia camino del hotel, un desvío para recoger a un colega en la Plaza de Wenceslao, la decisión de prolongar la velada noventa minutos: nada de esto exige una nueva reserva ni renegociar el precio. La tarifa por hora cubre toda la duración de su tiempo con el vehículo. Los cambios se gestionan informando directamente a su chófer, no navegando por una aplicación ni llamando a una central."
+    }
+  ],
+  "editorialHeading": "Por qué contratar por horas en Praga",
+  "editorial": [
+    "Praga es una ciudad compacta para recorrer a pie, pero no siempre resulta práctica para desplazarse por cuenta propia, especialmente para quienes viajan con equipaje, trabajan con una agenda en la que llegar tarde no es una opción o desconocen qué calles permiten el tráfico de paso y en qué horarios. Las zonas peatonales de la Ciudad Vieja son extensas, y muchos de los mejores hoteles de Praga se encuentran en calles a las que solo se llega con eficacia con conocimiento local.",
+    "Un chófer por horas elimina estas variables. Su conductor sabe qué calles admiten vehículos y a qué horas, dónde esperar sin riesgo de sanción por aparcamiento y qué ruta evita el desbordamiento del mercado navideño en Staroměstské náměstí o el corte por obras en Revoluční. En una ciudad donde un paseo de diez minutos puede convertirse en treinta con equipaje y dos giros equivocados, esto supone una ventaja considerable.",
+    "La reserva mínima es de dos horas. Dentro de ese margen puede cubrir una llegada al aeropuerto, el registro en el hotel y una comida de trabajo en la Ciudad Vieja sin presión de horarios. Para un viajero de negocios que aterriza en PRG y necesita acudir a dos oficinas del centro de Praga antes de un vuelo de tarde, un trayecto urbano de tres horas desde la llegada a la terminal hasta la vuelta a salidas suele ser la fórmula más eficiente: una sola reserva, sin transiciones, sin tiempo perdido."
+  ],
+  "useCasesHeading": "Cuándo utilizarlo",
+  "useCases": [
+    {
+      "title": "Reuniones de negocios",
+      "body": "Varias paradas por toda Praga con equipaje. Sin aparcamiento, sin navegación, sin retrasos."
+    },
+    {
+      "title": "Visitas turísticas",
+      "body": "Barrio del Castillo, Josefov, Vyšehrad: al ritmo que a usted le convenga, con un chófer capaz de sugerir la mejor ruta."
+    },
+    {
+      "title": "Teatro y restaurantes",
+      "body": "Una velada privada en el Teatro Nacional y una cena en un restaurante con estrella Michelin, resuelto de puerta a puerta."
+    },
+    {
+      "title": "Compras",
+      "body": "Lujo en Pařížská, antigüedades en la Ciudad Vieja o Palladium, con un chófer que espera y le ayuda con las bolsas."
+    },
+    {
+      "title": "Citas médicas",
+      "body": "Discreción, paciencia y puntualidad. Su chófer espera y le lleva de vuelta a casa cuando usted lo desee."
+    },
+    {
+      "title": "Conexión con el aeropuerto",
+      "body": "Si su servicio por horas termina en el aeropuerto, pasamos sin interrupciones a nuestro servicio de traslado al aeropuerto."
+    }
+  ],
+  "cta": {
+    "label": "¿Listo para descubrir Praga?",
+    "headingLine1": "Reserve su trayecto urbano",
+    "headingItalic": "en menos de 60 segundos.",
+    "buttonText": "Reservar un trayecto urbano"
+  }
+}

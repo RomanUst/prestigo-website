@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Prague → Munich",
+    "headlineLine1": "De Prague à Munich,",
+    "headlineItalic": "la capitale bavaroise.",
+    "intro": "385 km vers le sud-ouest, à travers la Bohême et la Bavière. Marienplatz, le Jardin anglais, l'Oktoberfest et l'aéroport de Munich — quatre heures, un tarif fixe, de porte à porte."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Munich couvre 385 km par les autoroutes D5 et A93 et dure environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement exécutif ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et allemande, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient le trafic ou le temps d'attente à destination. Les arrêts en chemin — Pilsen ou Ratisbonne — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur consulte les conditions de circulation avant chaque départ et modifie l'itinéraire de lui-même en cas de retard.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Munich",
+    "headingItalic": "en quatre heures.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers le sud-ouest, à travers Pilsen et les paysages vallonnés de Bohême occidentale. La frontière tchéco-allemande de Schengen à Rozvadov/Waidhaus est invisible : aucun arrêt, aucun contrôle de documents. Une fois en Bavière, la route devient l'A6 en direction de l'ouest, vers Nuremberg.",
+      "L'itinéraire rapide classique bifurque ensuite vers le sud sur l'A93, passe Ratisbonne et rejoint l'A9 pour l'approche finale de Munich. La dépose se fait où vous le souhaitez : un hôtel de l'Altstadt près de Marienplatz, un bureau à Maxvorstadt, le BMW Welt ou le terminal d'affaires de l'aéroport de Munich (MUC). La distance totale est d'environ 385 kilomètres.",
+      "Le temps de trajet est de quatre heures dans de bonnes conditions. Le périphérique autoroutier de Munich, l'A99, peut être chargé aux heures de pointe du matin et du soir : comptez 20 à 30 minutes de plus pour une arrivée entre 7h30 et 9h30 ou entre 16h30 et 18h30. Votre chauffeur consulte les informations routières avant chaque départ et contourne la ville par la périphérie lorsque c'est nécessaire. Vous ne payez pas le trafic ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le tarif fixe couvre tout, de la prise en charge à Prague à la dépose à Munich. La voiture, le chauffeur, le carburant, les péages, la vignette. Transfert aéroport, rendez-vous d'affaires, week-end d'Oktoberfest ou séjour en Bavière — votre chauffeur s'occupe de la route pendant que vous vous concentrez sur la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière allemande. Rien n'est facturé en supplément.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1–6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Munich,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur patiente jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Pilsen (en option)",
+      "note": "La capitale de la Bohême occidentale, sur la D5 — la brasserie Pilsner Urquell peut faire l'objet d'un arrêt en chemin.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Ratisbonne, Nuremberg ou tout autre arrêt sur le corridor bavarois. Votre itinéraire, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Munich",
+      "note": "Dépose à n'importe quelle adresse munichoise, à l'aéroport de Munich (MUC), à Marienplatz ou à votre hôtel.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière tchéco-allemande de Schengen à Rozvadov/Waidhaus. Aucun contrôle de passeport pour les citoyens de l'UE."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque et péage autoroutier allemand inclus dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Service aéroport",
+      "value": "Accueil personnalisé complet à l'aéroport de Munich (MUC). Suivi des vols et temps d'attente flexibles inclus."
+    }
+  ],
+  "dayTripLabel": "Excursions d'une journée au départ de Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Munich est à quatre heures de Prague, ce qui rend l'aller-retour dans la journée réalisable pour qui part tôt. Trois formules couvrent la plupart des demandes.",
+    "configurations": [
+      {
+        "title": "La journée Marienplatz et Hofbräuhaus",
+        "body": "Départ à 6h00, arrivée à Munich vers 10h00. Quatre heures dans l'Altstadt — le Glockenspiel de Marienplatz à 11h00, le Viktualienmarkt pour le déjeuner, puis une chope au Hofbräuhaus avant le retour. De retour à Prague pour 20h00.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "La matinée BMW Welt et Olympiapark",
+        "body": "Départ à 6h30, arrivée au BMW Welt pour l'ouverture à 10h00. Trois heures au musée et dans le showroom, puis une promenade dans l'Olympiapark de 1972. Déjeuner à Schwabing avant que le chauffeur ne reprenne la route de Prague.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "La journée des galeries Pinakothek",
+        "body": "Départ à 6h00, arrivée à Maxvorstadt vers 10h00. Cinq heures entre l'Alte, la Neue et la Pinakothek der Moderne — le plus remarquable quartier des musées du sud de l'Allemagne — avec une pause café au Café de l'Alte Pinakothek. Départ à 15h30, retour avant 20h00.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      }
+    ],
+    "footnote": "Prix indicatifs fondés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec 10 % de remise sur le retour le jour même, ou ajouter une mise à disposition horaire en ville si vous souhaitez que le chauffeur vous accompagne dans vos déplacements. Indiquez-nous votre programme et nous confirmerons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueillera devant votre adresse de prise en charge — pas sur un parking de l'autre côté de la rue, ni à un point de rendez-vous aéroportuaire à dix minutes de marche. Si vous êtes à l'aéroport Václav Havel, il se trouve dans le hall des arrivées, avec une tablette Prestigo affichant votre nom. Si votre vol atterrit à l'aéroport de Munich, le même protocole s'applique à MUC : accueil à l'intérieur des arrivées du Terminal 1 ou du Terminal 2, bagages jusqu'à la voiture, autoroute en moins de quinze minutes.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour quatre heures de travail ou de repos, le chauffeur le comprendra et vous laissera tranquille. Si vous souhaitez en savoir plus sur Munich — ce qui distingue la Bavière du reste de l'Allemagne, la reconstruction d'après-guerre de l'Altstadt, l'histoire industrielle de BMW, ce à quoi ressemble l'Oktoberfest vu d'un appartement de Schwabing —, votre chauffeur saura vous répondre.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une pause plus longue, le chauffeur s'arrêtera à l'aire de repos de Heiligenwald sur l'A6, juste après Waidhaus — installations propres, vrai café, dix minutes pour se dégourdir les jambes. Puis retour sur la route et arrivée à l'heure à Munich."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague–Munich.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix que vous voyez est le prix que vous payez. Carburant, vignette tchèque, péage allemand, temps du chauffeur. Rien n'est ajouté à la dépose à Munich."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur fait l'objet d'une vérification d'antécédents, est bilingue et formé au long trajet vers la Bavière."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si l'A93 est fermée près de Ratisbonne, votre chauffeur passe par Bayreuth sans avoir à demander. Si votre vol vers MUC est retardé, la prise en charge est décalée sans le moindre appel. Vous ne devriez pas avoir à gérer le trajet — c'est notre métier."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Munich ?",
+      "a": "Environ 4 heures de porte à porte par l'autoroute D5 via Pilsen, la frontière tchéco-allemande de Rozvadov/Waidhaus, puis l'A6 vers l'ouest, l'A93 vers le sud au-delà de Ratisbonne, et l'A9 jusqu'au centre de Munich. Le trafic du vendredi après-midi sur le périphérique A99 de Munich peut ajouter 20 à 30 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Munich ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers), ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette tchèque, le péage allemand et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée entre Prague et Munich ?",
+      "a": "Oui, même si la journée est longue. Un aller-retour représente environ 8 heures de conduite ; la plupart des clients quittent donc Prague à 6h00 afin de disposer de quatre à six heures sur place à Munich avant le retour. Un retour le jour même bénéficie de 10 % de remise. Si vous souhaitez que le chauffeur vous accompagne dans vos déplacements, ajoutez une mise à disposition horaire en ville."
+    },
+    {
+      "q": "Le passage de la frontière allemande se fait-il sans difficulté ?",
+      "a": "Les deux pays font partie de l'espace Schengen. La frontière tchéco-allemande de Rozvadov/Waidhaus ne fait l'objet d'aucun contrôle de routine. Tous les véhicules Prestigo disposent de la vignette de péage allemande et le chauffeur détient une licence internationale de chauffeur valide, reconnue en Bavière."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et réhausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il allemand ?",
+      "a": "Un chauffeur germanophone est disponible sur demande — utile pour les concierges d'hôtels bavarois, les prises en charge pendant l'Oktoberfest ou les rendez-vous d'affaires à Munich. Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque en standard."
+    }
+  ],
+  "relatedRoutesIntro": "Munich constitue le point d'ancrage du corridor bavarois entre Prague et les Alpes. De nombreux clients associent le trajet vers Munich à Nuremberg ou Ratisbonne, ou le prolongent jusqu'en Autriche. Chaque itinéraire Prestigo repose sur le même principe de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "la Bavière et au-delà."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-nuremberg",
+      "city": "Nuremberg",
+      "distance": "290 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "prague-regensburg",
+      "city": "Ratisbonne",
+      "distance": "290 km",
+      "duration": "3 h 15 min"
+    },
+    {
+      "slug": "prague-passau",
+      "city": "Passau",
+      "distance": "230 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "prague-salzburg",
+      "city": "Salzbourg",
+      "distance": "470 km",
+      "duration": "4 h 45 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~385 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~4 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Munich.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague–Munich — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Munich. 385 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la capitale bavaroise. Péages et vignette inclus.",
+    "ogTitle": "Transfert privé Prague–Munich — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Munich. 385 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la capitale bavaroise."
+  }
+}

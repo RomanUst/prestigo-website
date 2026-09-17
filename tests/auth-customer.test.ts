@@ -12,6 +12,33 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // ---------------------------------------------------------------------------
+// next-intl/server: force the real react-server build (Phase 70, Pattern E).
+// Vitest has no concept of the RSC "react-server" export condition Next.js's
+// bundler sets, so the plain `next-intl/server` specifier resolves to a
+// react-client stub that throws "not supported in Client Components" for
+// every export. Server Actions in login/actions.ts now call
+// getTranslations({namespace:'Errors', locale}) — redirect both specifiers to
+// the real implementation + the real messages/en.json so the round-trip is
+// genuine, not a hand-rolled stub. See tests/login-actions.test.ts for the
+// canonical version of this mock pair.
+// ---------------------------------------------------------------------------
+vi.mock('next-intl/server', async () => {
+  return await vi.importActual(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+})
+
+vi.mock('next-intl/config', async () => {
+  const { getRequestConfig } = await vi.importActual<typeof import('next-intl/server')>(
+    '../node_modules/next-intl/dist/esm/development/server.react-server.js'
+  )
+  const en = (await import('../messages/en.json')).default
+  return {
+    default: getRequestConfig(async () => ({ locale: 'en', messages: en })),
+  }
+})
+
+// ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
 // ---------------------------------------------------------------------------
 const {
@@ -89,7 +116,7 @@ import {
   signInWithPassword,
   signUpWithPassword,
   customerSignOut,
-} from '@/app/login/actions'
+} from '@/app/[locale]/login/actions'
 
 // ---------------------------------------------------------------------------
 // Test suite
@@ -111,7 +138,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       const formData = new FormData()
       formData.set('email', 'test@example.com')
 
-      const result = await sendMagicLink(null, formData)
+      const result = await sendMagicLink('en', null, formData)
 
       expect(mockSignInWithOtp).toHaveBeenCalledOnce()
       const call = mockSignInWithOtp.mock.calls[0][0]
@@ -129,7 +156,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       const formData = new FormData()
       formData.set('email', 'test@example.com')
 
-      const result = await sendMagicLink(null, formData)
+      const result = await sendMagicLink('en', null, formData)
 
       expect(result).toHaveProperty('error')
       expect(typeof (result as { error: string }).error).toBe('string')
@@ -151,7 +178,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       formData.set('email', 'user@example.com')
       formData.set('password', 'wrongpassword')
 
-      const result = await signInWithPassword(null, formData)
+      const result = await signInWithPassword('en', null, formData)
 
       expect(result).toEqual({ error: 'Invalid email or password.' })
     })
@@ -168,7 +195,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       const formData = new FormData()
       formData.set('email', 'rate@example.com')
 
-      const result = await sendMagicLink(null, formData)
+      const result = await sendMagicLink('en', null, formData)
 
       // When rate-limited, the action must NOT call signInWithOtp
       expect(mockSignInWithOtp).not.toHaveBeenCalled()
@@ -189,10 +216,10 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       // The OAuthButtons component calls createBrowserClient.auth.signInWithOAuth.
       // We verify the server action / callback URL builder constructs the correct
       // redirectTo. Since this is a client-side call, we test the helper that
-      // constructs the OAuth options (exported from @/app/login/actions or
+      // constructs the OAuth options (exported from @/app/[locale]/login/actions or
       // @/components/auth/OAuthButtons as buildOAuthOptions).
       // If the export shape changes in Plan 02, update the import here.
-      const { buildOAuthOptions } = await import('@/app/login/auth-helpers')
+      const { buildOAuthOptions } = await import('@/app/[locale]/login/auth-helpers')
 
       const opts = buildOAuthOptions('google', 'https://prestigo.cz')
       expect(opts.provider).toBe('google')
@@ -205,7 +232,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
   // -------------------------------------------------------------------------
   describe('AUTH-03: signInWithOAuth Apple', () => {
     it('signInWithOAuth is called with provider apple and redirectTo path /auth/callback', async () => {
-      const { buildOAuthOptions } = await import('@/app/login/auth-helpers')
+      const { buildOAuthOptions } = await import('@/app/[locale]/login/auth-helpers')
 
       const opts = buildOAuthOptions('apple', 'https://prestigo.cz')
       expect(opts.provider).toBe('apple')
@@ -229,7 +256,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       formData.set('email', 'personal@example.com')
       formData.set('password', 'SecurePass1!')
 
-      await signUpWithPassword(null, formData)
+      await signUpWithPassword('en', null, formData)
 
       expect(mockFrom).toHaveBeenCalledWith('customer_profiles')
       expect(mockUpsert).toHaveBeenCalledWith(
@@ -255,7 +282,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       formData.set('account_type', 'corporate')
       formData.set('company_name', 'Acme s.r.o.')
 
-      await signUpWithPassword(null, formData)
+      await signUpWithPassword('en', null, formData)
 
       expect(mockUpsert).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -293,7 +320,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
     it('links the booking to the authenticated user derived from the session', async () => {
       // Ownership comes from the server session (getUser), so a logged-in
       // booking is linked to the current user — never to a caller-supplied id.
-      const { saveBookingWithUserId } = await import('@/app/login/actions')
+      const { saveBookingWithUserId } = await import('@/app/[locale]/login/actions')
 
       mockGetUser.mockResolvedValue({
         data: { user: { id: 'session-user-uuid' } },
@@ -304,7 +331,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
         booking_reference: 'PRG-TEST-001',
         amount_czk: 1500,
       }
-      const result = await saveBookingWithUserId(bookingRow)
+      const result = await saveBookingWithUserId('en', bookingRow)
 
       expect(result.error).toBeUndefined()
       expect(mockFrom).toHaveBeenCalledWith('bookings')
@@ -314,7 +341,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
     })
 
     it('SECURITY: a caller-supplied user_id cannot override the session user (no ownership forgery)', async () => {
-      const { saveBookingWithUserId } = await import('@/app/login/actions')
+      const { saveBookingWithUserId } = await import('@/app/[locale]/login/actions')
 
       mockGetUser.mockResolvedValue({
         data: { user: { id: 'session-user-uuid' } },
@@ -322,7 +349,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       mockInsert.mockResolvedValue({ data: [{ id: 'booking-uuid' }], error: null })
 
       // Attacker tries to attribute the booking to a victim.
-      await saveBookingWithUserId({
+      await saveBookingWithUserId('en', {
         booking_reference: 'PRG-TEST-002',
         user_id: 'victim-uuid',
       })
@@ -333,11 +360,11 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
     })
 
     it('returns an error and does not insert when there is no authenticated session', async () => {
-      const { saveBookingWithUserId } = await import('@/app/login/actions')
+      const { saveBookingWithUserId } = await import('@/app/[locale]/login/actions')
 
       mockGetUser.mockResolvedValue({ data: { user: null } })
 
-      const result = await saveBookingWithUserId({
+      const result = await saveBookingWithUserId('en', {
         booking_reference: 'PRG-TEST-003',
       })
 
@@ -351,19 +378,19 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
   // -------------------------------------------------------------------------
   describe('safeReturnTo open-redirect guard', () => {
     it('accepts a same-origin relative path', async () => {
-      const { safeReturnTo } = await import('@/app/login/auth-helpers')
+      const { safeReturnTo } = await import('@/app/[locale]/login/auth-helpers')
       expect(safeReturnTo('/booking/confirm')).toBe('/booking/confirm')
     })
 
     it('rejects absolute URLs and protocol-relative paths', async () => {
-      const { safeReturnTo } = await import('@/app/login/auth-helpers')
+      const { safeReturnTo } = await import('@/app/[locale]/login/auth-helpers')
       expect(safeReturnTo('https://evil.com')).toBe('/account')
       expect(safeReturnTo('//evil.com')).toBe('/account')
       expect(safeReturnTo(null)).toBe('/account')
     })
 
     it('SECURITY: rejects the backslash form /\\evil.com (browser-normalized to //evil.com)', async () => {
-      const { safeReturnTo } = await import('@/app/login/auth-helpers')
+      const { safeReturnTo } = await import('@/app/[locale]/login/auth-helpers')
       expect(safeReturnTo('/\\evil.com')).toBe('/account')
     })
   })

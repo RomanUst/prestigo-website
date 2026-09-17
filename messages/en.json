@@ -1,0 +1,738 @@
+{
+  "Booking": {
+    "entryBar": {
+      "pickupLocationLabel": "PICKUP LOCATION",
+      "pickupPlaceholder": "Enter pickup address",
+      "pickupAriaLabel": "Pickup location",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Enter destination",
+      "destinationAriaLabel": "Destination",
+      "dateLabel": "DATE",
+      "timeLabel": "TIME",
+      "timeAriaLabel": "Time",
+      "chooseSlot": "Choose a slot",
+      "flightNumberLabel": "FLIGHT NUMBER (optional)",
+      "flightNumberPlaceholder": "e.g. BA 256",
+      "flightNumberAriaLabel": "Flight number",
+      "addReturnJourney": "Add return journey",
+      "returnDateLabel": "RETURN DATE",
+      "returnTimeLabel": "RETURN TIME",
+      "returnTimeAriaLabel": "Return time",
+      "selectReturnTime": "Select return time",
+      "validationSummary": "Please fill in all required fields before continuing.",
+      "viewVehicles": "View vehicles"
+    },
+    "validation": {
+      "originRequired": "Pickup location is required to continue.",
+      "destinationRequired": "Destination is required to continue.",
+      "dateRequired": "Date is required to continue.",
+      "timeRequired": "Time is required to continue.",
+      "returnDateRequired": "Return date is required for a round trip.",
+      "returnTimeRequired": "Return time is required for a round trip.",
+      "returnAfterPickup": "Return must be after pickup.",
+      "firstNameRequired": "First name is required",
+      "lastNameRequired": "Last name is required",
+      "invalidEmail": "Enter a valid email address",
+      "invalidPhone": "Enter a valid phone number",
+      "invalidFlightFormat": "Invalid IATA format — e.g. BA256 or OK123",
+      "maxCharacters": "Maximum 500 characters"
+    },
+    "step1": {
+      "pickupLabel": "PICKUP LOCATION",
+      "pickupPlaceholder": "Enter pickup address",
+      "pickupAria": "Pickup location",
+      "swapAria": "Swap origin and destination",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Enter destination",
+      "destinationAria": "Destination",
+      "passengersLabel": "PASSENGERS",
+      "luggageLabel": "LUGGAGE",
+      "continue": "Continue",
+      "stopsIncomplete": "Please complete or remove all intermediate stops."
+    },
+    "step2": {
+      "pickupDateLabel": "PICKUP DATE",
+      "leadTimeNotice": "Online bookings require at least {hours} hours advance notice. For urgent or same-day transfers, message us on <wa>WhatsApp</wa>.",
+      "returnDateLabel": "RETURN DATE",
+      "pickupTimeLabel": "PICKUP TIME",
+      "hourLabel": "HOUR",
+      "minuteLabel": "MIN",
+      "hourAria": "Pickup hour",
+      "minuteAria": "Pickup minute",
+      "selectDatePrompt": "Select a pickup date to continue"
+    },
+    "step5": {
+      "firstNameLabel": "FIRST NAME",
+      "lastNameLabel": "LAST NAME",
+      "emailLabel": "EMAIL",
+      "phoneLabel": "PHONE",
+      "flightNumberLabel": "FLIGHT NUMBER (OPTIONAL)",
+      "flightNumberPlaceholder": "e.g. BA256",
+      "terminalLabel": "TERMINAL (OPTIONAL)",
+      "specialRequestsLabel": "SPECIAL REQUESTS",
+      "specialRequestsPlaceholder": "Any special requirements for your journey",
+      "charCount": "{count}/500",
+      "statusScheduled": "SCHEDULED",
+      "statusActive": "ACTIVE",
+      "statusLanded": "LANDED",
+      "statusCancelled": "CANCELLED",
+      "statusDiverted": "DIVERTED",
+      "statusUnknown": "UNKNOWN",
+      "checkFlight": "CHECK FLIGHT",
+      "recheckFlight": "RE-CHECK FLIGHT",
+      "checking": "CHECKING…",
+      "checkFlightAria": "Check flight status",
+      "recheckFlightAria": "Re-check flight status",
+      "checkingAria": "Checking flight status",
+      "arrival": "Arrival: {time}",
+      "delayMinutes": "+{minutes} min delay",
+      "noDelay": "No delay",
+      "airportMismatch": "⚠ Airport mismatch: flight arrives at {airport}, not PRG",
+      "flightNotFound": "⚠ Flight not found or check unavailable — you can proceed anyway"
+    },
+    "step6": {
+      "promoCodeLabel": "PROMO CODE",
+      "promoPlaceholder": "Enter code",
+      "applyCode": "Apply Code",
+      "remove": "Remove",
+      "promoInvalid": "Invalid code.",
+      "promoGenericError": "Something went wrong. Please try again.",
+      "promoDiscount": "PROMO: −{percent}%",
+      "payInLabel": "PAY IN",
+      "eurLabel": "EUR — €",
+      "czkLabel": "CZK — Kč",
+      "securePaymentLabel": "SECURE PAYMENT",
+      "loadingPayment": "Loading payment...",
+      "loading": "Loading...",
+      "payAmount": "PAY {amount}",
+      "chauffeurTransfer": "Chauffeur Transfer",
+      "paymentUnsuccessful": "Payment unsuccessful. {message}. Please check your details and try again.",
+      "paymentGenericError": "Something went wrong. Your booking details are saved — please try again.",
+      "paymentFormLoadError": "Payment form failed to load. Please refresh and try again.",
+      "paymentInitFailed": "Failed to initialise payment",
+      "networkError": "Network error — please refresh and try again"
+    },
+    "tripTypeTabs": {
+      "ariaLabel": "Trip type",
+      "items": ["TRANSFER", "HOURLY", "MULTI-DAY"]
+    },
+    "addressInput": {
+      "clearAddress": "Clear address",
+      "airportAutoSet": "Auto-set for airport transfers.",
+      "noResults": "No results. Try a different address.",
+      "typeAirport": "AIRPORT",
+      "typeHotel": "HOTEL",
+      "typeTrain": "TRAIN",
+      "typeTransit": "TRANSIT",
+      "typeAttraction": "ATTRACTION"
+    },
+    "durationSelector": {
+      "label": "DURATION",
+      "ariaLabel": "Duration",
+      "hourOption": "{hours}h"
+    },
+    "stopList": {
+      "addStop": "Add stop"
+    },
+    "stopItem": {
+      "stopLabel": "STOP {number}",
+      "removeStop": "Remove stop",
+      "addressPlaceholder": "Enter stop address",
+      "addressAria": "Stop {number} address",
+      "waitTimeLabel": "WAIT TIME",
+      "waitTimeAria": "Wait time",
+      "noWait": "No wait",
+      "minutes": "{count} min"
+    },
+    "routeMap": {
+      "empty": "Route unavailable — you can still select a vehicle class.",
+      "aria": "Route map from {origin} to {destination}"
+    },
+    "progressBar": {
+      "aria": "Booking progress: Step {step} of 5"
+    },
+    "stepper": {
+      "decreaseAria": "Decrease {label}",
+      "increaseAria": "Increase {label}"
+    },
+    "vehicleClasses": {
+      "business": { "label": "Business" },
+      "firstClass": { "label": "First Class" },
+      "businessVan": { "label": "Business Van" }
+    },
+    "vehicleSlideshow": {
+      "slideshowAria": "{className} interior slideshow",
+      "prevSlide": "Previous slide",
+      "nextSlide": "Next slide",
+      "caption": "{className} interior"
+    },
+    "stickyPanel": {
+      "pickUp": "Pick up",
+      "estDropoff": "Est. drop-off",
+      "noClassSelected": "No class selected",
+      "outbound": "Outbound",
+      "return": "Return",
+      "combined": "Combined",
+      "bothLegsIncluded": "Both legs · all fees included",
+      "allFeesIncluded": "All fees included",
+      "selectClass": "SELECT {className}",
+      "selectAClass": "SELECT A CLASS",
+      "selectClassAria": "Select {className} class — €{price}",
+      "srClassTrip": "{className} — {tripType} transfer"
+    },
+    "vehicleCard": {
+      "alt": "Prestigo {className}",
+      "oneWay": "{price} one way"
+    },
+    "step3vehicle": {
+      "heading": "Choose your vehicle",
+      "pricingUnavailable": "Pricing unavailable. Your selection has been saved — continue to request a quote.",
+      "whatsIncluded": "What’s included in every ride",
+      "from": "From",
+      "to": "To",
+      "date": "Date",
+      "time": "Time",
+      "pickupLocationLabel": "PICKUP LOCATION",
+      "pickupLocationPlaceholder": "Enter pickup address",
+      "pickupLocationAria": "Pickup location",
+      "destinationLabel": "DESTINATION",
+      "destinationPlaceholder": "Enter destination",
+      "destinationAria": "Destination",
+      "dateLabel": "DATE",
+      "timeLabel": "TIME",
+      "returnDateLabel": "RETURN DATE",
+      "returnTimeLabel": "RETURN TIME",
+      "returnTimeAria": "Return time",
+      "selectReturnTime": "Select return time",
+      "addReturnJourney": "Add return journey",
+      "returnAfterPickup": "Return must be after pickup",
+      "updateSearch": "Update search",
+      "cancel": "Cancel",
+      "included": {
+        "fixedPriceLabel": "Fixed price",
+        "fixedPriceSub": "Guaranteed at booking",
+        "phoneChargingLabel": "Phone charging",
+        "phoneChargingSub": "USB-A & USB-C in every vehicle",
+        "freeWaitingLabel": "60 min free waiting",
+        "freeWaitingSub": "Airport transfers included",
+        "wifiLabel": "Wi-Fi",
+        "wifiSub": "Complimentary on board",
+        "waterLabel": "Water on board",
+        "waterSub": "Still & sparkling",
+        "meetGreetLabel": "Meet & greet",
+        "meetGreetSub": "Name board at arrivals"
+      }
+    },
+    "extras": {
+      "meetAndGreet": {
+        "label": "Meet & Greet",
+        "description": "Driver with name board at arrivals — always included"
+      },
+      "infantSeat": {
+        "label": "Infant Seat (0–9 kg)",
+        "description": "Rear-facing infant carrier for newborns and young infants"
+      },
+      "childSeat": {
+        "label": "Child Seat (18–36 kg)",
+        "description": "Forward-facing safety seat for toddlers and older children"
+      },
+      "boosterSeat": {
+        "label": "Booster Seat",
+        "description": "Booster cushion for children who have outgrown a child seat"
+      }
+    },
+    "step4extras": {
+      "free": "Free"
+    },
+    "priceSummary": {
+      "yourJourney": "Your Journey",
+      "hours": "{hours} hours",
+      "selectVehicle": "Select a vehicle",
+      "requestQuote": "Request a quote",
+      "outbound": "Outbound",
+      "returnLeg": "Return leg",
+      "combined": "Combined",
+      "selectClass": "SELECT {className}",
+      "selectAClass": "SELECT A CLASS"
+    },
+    "summaryBlock": {
+      "outbound": "OUTBOUND",
+      "return": "RETURN",
+      "yourJourney": "YOUR JOURNEY",
+      "hours": "{hours} hours",
+      "dateTimeAt": "{date} at {time}",
+      "classPax": "{className} · {passengers, plural, one {# passenger} other {# passengers}}",
+      "outboundLine": "Outbound",
+      "returnLeg": "Return leg",
+      "subtotal": "Subtotal",
+      "promo": "Promo {code}",
+      "final": "Final"
+    },
+    "bookingWidget": {
+      "pickupLocationLabel": "PICKUP LOCATION",
+      "pickupPlaceholder": "Pick-up address",
+      "pickupAria": "Pick-up address",
+      "destinationLabel": "DESTINATION",
+      "dropoffPlaceholder": "Drop-off address",
+      "dropoffAria": "Drop-off address",
+      "dateLabel": "DATE",
+      "pickupDateAria": "Pickup date",
+      "selectDate": "Select date",
+      "selectPickupDateAria": "Select pickup date",
+      "timeLabel": "TIME",
+      "pickupTimeAria": "Pickup time",
+      "chooseSlot": "Choose a slot",
+      "fillRequired": "Please fill in all required fields before continuing.",
+      "viewVehicles": "VIEW VEHICLES"
+    },
+    "bookingWizard": {
+      "back": "Back",
+      "continue": "Continue",
+      "stepOf": "STEP {step} OF 6",
+      "planJourney": "Plan your journey",
+      "signIn": "Sign in to continue",
+      "addExtras": "Add extras",
+      "passengerDetails": "Passenger details",
+      "payment": "Payment"
+    },
+    "multiDayForm": {
+      "startDateLabel": "Start date",
+      "optionalSuffix": "(optional)",
+      "startDateAria": "Start date",
+      "selectStartDateAria": "Select start date",
+      "selectDate": "Select date",
+      "yourDetails": "Your details",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "phone": "Phone",
+      "specialRequests": "Special requests",
+      "addDay": "+ Add day",
+      "sending": "Sending…",
+      "requestQuote": "Request quote",
+      "thankYou": "Thank you — your request is in our hands.",
+      "quoteReference": "Quote reference:",
+      "reviewNotice": "We’ll review your itinerary and respond within 24 hours.",
+      "addAtLeastOneDay": "Add at least one day.",
+      "dayDepartureRequired": "Day {day}: enter a departure address.",
+      "dayDestinationRequired": "Day {day}: enter a destination address.",
+      "dayEmptyStop": "Day {day}: complete or remove the empty stop.",
+      "dayBaseCityRequired": "Day {day}: enter a base city.",
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "validEmailRequired": "Valid email is required.",
+      "validPhoneRequired": "Valid phone number is required.",
+      "tooManyRequests": "Too many requests. Please wait a minute and try again.",
+      "submitError": "We could not submit your request. Please check your entries and try again.",
+      "networkError": "Network error. Please check your connection and try again."
+    },
+    "dayCard": {
+      "dayLabel": "Day {day}",
+      "removeDayAria": "Remove day {day}",
+      "dateLabel": "Date",
+      "optionalSuffix": "(optional)",
+      "dateAria": "Day {day} date",
+      "selectDate": "Select date",
+      "startTimeLabel": "Start time",
+      "timeAria": "Day {day} time",
+      "datePickerAria": "Day {day} date picker",
+      "timePickerAria": "Day {day} time picker",
+      "hourLabel": "HOUR",
+      "hourListAria": "Day {day} hour",
+      "minLabel": "MIN",
+      "minuteListAria": "Day {day} minute",
+      "typeTablistAria": "Day {day} type",
+      "transferTab": "TRANSFER",
+      "hourlyTab": "HOURLY",
+      "fromLabel": "From",
+      "pickupAddressPlaceholder": "Pickup address",
+      "fromAria": "Day {day} from address",
+      "toLabel": "To",
+      "destinationAddressPlaceholder": "Destination address",
+      "toAria": "Day {day} to address",
+      "pickupLocationLabel": "Pickup location",
+      "pickupLocationAria": "Day {day} pickup location",
+      "hoursLabel": "Hours",
+      "hoursAria": "Day {day} hours",
+      "hoursOption": "{count, plural, one {# hour} other {# hours}}"
+    }
+  },
+  "Nav": {
+    "items": ["Services", "Fleet", "Routes", "Multi-day", "Corporate", "Contact"],
+    "new": "NEW",
+    "signIn": "Sign in",
+    "accountMenu": "Account menu",
+    "myTrips": "My trips",
+    "profile": "Profile",
+    "signOut": "Sign out",
+    "bookNow": "Book now",
+    "menu": "Menu",
+    "homeAriaLabel": "PRESTIGO — home"
+  },
+  "Hero": {
+    "label": "Prague · Premium Chauffeur",
+    "headlineSuffix": "in Prague,",
+    "headlineItalic": "as it should be.",
+    "subhead1": "Your chauffeur is already tracking your flight.",
+    "subhead2": "You simply arrive.",
+    "bookRide": "Book a ride",
+    "priceAnchor": "Airport transfers from <price>€{amount}</price> — fixed price, no surcharges",
+    "scroll": "Scroll",
+    "ratingAria": "Rated {rating} out of 5 from {count} Google reviews",
+    "googleReviews": "Google reviews",
+    "words": ["Chauffeur Service", "Airport Transfer", "Private Driver", "Luxury Transport", "Business Travel"],
+    "bookViaWhatsapp": "Book via WhatsApp",
+    "heroAlt": "Chauffeur driving a Mercedes-Benz S-Class toward the Prague skyline at sunset"
+  },
+  "Footer": {
+    "ctaLabel": "Ready to travel?",
+    "ctaHeadlineLine1": "Book your transfer.",
+    "ctaHeadlineLine2": "We handle the rest.",
+    "bookNow": "Book now",
+    "brandTagline1": "Premium chauffeur service.",
+    "brandTagline2": "Prague and Central Europe.",
+    "servicesHeading": "Services",
+    "services": [
+      "Airport Transfer",
+      "Intercity Routes",
+      "Multi-day Hire",
+      "Corporate Accounts",
+      "VIP & Events",
+      "Group Transfer",
+      "About PRESTIGO",
+      "FAQ"
+    ],
+    "routesHeading": "Popular routes",
+    "routes": [
+      "Prague → Vienna",
+      "Prague → Berlin",
+      "Prague → Munich",
+      "Prague → Budapest",
+      "Prague → Bratislava"
+    ],
+    "viewAllRoutes": "View all routes →",
+    "blogHeading": "Blog",
+    "blog": [
+      "Prague airport → city centre",
+      "Taxi vs chauffeur at PRG",
+      "Prague–Vienna: transfer vs train"
+    ],
+    "viewAllPosts": "View all posts →",
+    "contactHeading": "Contact",
+    "whatsapp": "WhatsApp",
+    "availability": "24 / 7 availability",
+    "copyright": "© {year} PRESTIGO. All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms",
+    "instagramAria": "Instagram",
+    "facebookAria": "Facebook",
+    "tagline": "Prestige in every mile.",
+    "new": "NEW"
+  },
+  "FeatureStrip": {
+    "sectionAria": "Why PRESTIGO",
+    "pillars": [
+      { "title": "Professional chauffeurs", "sub": "English-speaking & discreet" },
+      { "title": "Premium Mercedes fleet", "sub": "E-, S- & V-Class, latest models" },
+      { "title": "Fixed prices", "sub": "No hidden fees, flight tracking" },
+      { "title": "24/7 support", "sub": "Always on time, every day" }
+    ]
+  },
+  "Services": {
+    "label": "Our services",
+    "headingLine1": "Every journey,",
+    "headingLine2": "covered.",
+    "cards": [
+      {
+        "label": "Airport",
+        "title": "Airport Transfer",
+        "body": "Prague Václav Havel Airport. Flight tracking, meet & greet, fixed price.",
+        "detail": "PRG · VIE · BER · MUC"
+      },
+      {
+        "label": "Intercity",
+        "title": "Intercity Routes",
+        "body": "Prague to Vienna, Berlin, Munich, Budapest and beyond. Comfort across borders.",
+        "detail": "4–6 hour routes"
+      },
+      {
+        "label": "Corporate",
+        "title": "Corporate Accounts",
+        "body": "Monthly invoicing, dedicated account manager, priority dispatch, reporting.",
+        "detail": "Volume pricing available"
+      },
+      {
+        "label": "VIP",
+        "title": "VIP & Events",
+        "body": "Diplomatic visits, private events, luxury hotel transfers, multi-vehicle coordination.",
+        "detail": "On request"
+      },
+      {
+        "label": "City",
+        "title": "Car Rental with Chauffeur",
+        "body": "Rent a car with a private chauffeur in Prague by the hour. Business meetings, sightseeing, theatre — at your pace.",
+        "detail": "1–8 hours"
+      },
+      {
+        "label": "Concierge",
+        "title": "Concierge Chauffeur",
+        "body": "Not just a driver — a concierge at the wheel. Reservations, local knowledge, errands and hotel liaison, handled around every ride.",
+        "detail": "Included on every journey"
+      },
+      {
+        "label": "Group",
+        "title": "Group Transfers",
+        "body": "Minivan and multi-car coordination for groups, conferences, and incentive travel.",
+        "detail": "Up to 8 passengers"
+      },
+      {
+        "label": "Multi-day",
+        "title": "Multi-day Hire",
+        "body": "One dedicated chauffeur for your entire trip. Mix transfers and hourly days across Central Europe.",
+        "detail": "Custom itinerary · Quote within 24 h"
+      }
+    ],
+    "fromPrice": "From €{price}",
+    "fromPriceHourly": "From €{price}/hr",
+    "learnMore": "Learn more",
+    "bookTransfer": "Book a transfer",
+    "new": "NEW"
+  },
+  "Fleet": {
+    "label": "The fleet",
+    "headingLine1": "Mercedes only.",
+    "headingLine2": "Always.",
+    "vehicles": [
+      {
+        "category": "Business",
+        "passengers": "3 pax",
+        "bags": "2 bags",
+        "features": ["Leather interior", "Tinted windows", "Climate control", "Wi-Fi on request"],
+        "altTemplate": "{model} — Prague chauffeur service"
+      },
+      {
+        "category": "First Class",
+        "passengers": "3 pax",
+        "bags": "2 bags",
+        "features": ["Executive rear seats", "Ambient lighting", "Champagne service", "Privacy screen"],
+        "altTemplate": "{model} — Prague chauffeur service"
+      },
+      {
+        "category": "Group",
+        "passengers": "6 pax",
+        "bags": "6 bags",
+        "features": ["Facing seats", "Extra luggage space", "Conference seating", "USB charging"],
+        "altTemplate": "{model} — Prague chauffeur service"
+      }
+    ],
+    "seePricing": "See pricing →"
+  },
+  "HowItWorks": {
+    "label": "How it works",
+    "headingLine1": "Three steps.",
+    "headingLine2": "Zero surprises.",
+    "stepPrefix": "Step",
+    "steps": [
+      {
+        "title": "Book online",
+        "body": "Enter your route and travel details. Receive instant confirmation with a fixed price — no hidden fees.",
+        "photoAlt": "Booking a Prague chauffeur online, the Mercedes already waiting outside"
+      },
+      {
+        "title": "We track your flight",
+        "body": "Your driver monitors your flight in real time. Delays, early arrivals — we adjust automatically.",
+        "photoAlt": "Chauffeur checking the live flight status beside the Mercedes at Prague Airport"
+      },
+      {
+        "title": "Simply arrive",
+        "body": "Your chauffeur is waiting at Arrivals with a name board. Direct transfer to your destination.",
+        "photoAlt": "PRESTIGO chauffeur waiting with a name board at Prague Airport Arrivals"
+      }
+    ]
+  },
+  "Testimonials": {
+    "label": "Testimonials",
+    "headingLine1": "Trusted by those",
+    "headingLine2": "who value their time.",
+    "body": "Published with permission. Names abbreviated to protect passenger privacy — part of our discretion policy.",
+    "starsAria": "{stars} out of 5 stars",
+    "googleReview": "Google Review",
+    "carouselAria": "Testimonials",
+    "paginationAria": "Testimonial pagination",
+    "goToSlide": "Go to slide {n}"
+  },
+  "CookieBanner": {
+    "wordmarkAria": "PRESTIGO",
+    "heading": "Welcome aboard.",
+    "consentBody": "Before your journey begins, a quick word on privacy. We use third-party technologies to run the booking flow and refine the experience. You may revoke or change your choice at any time. <privacy>Privacy Policy</privacy> · <terms>Legal Notice</terms>",
+    "tabCategories": "Categories",
+    "tabServices": "Services",
+    "catEssential": "Essential",
+    "catAnalytics": "Analytics",
+    "catMarketing": "Marketing",
+    "catEssentialDesc": "Required for booking, payments, fraud prevention, and core site functionality. Always on.",
+    "catAnalyticsDesc": "Google Analytics 4 — helps us understand how visitors use the site so we can improve it. Data is aggregated and anonymous.",
+    "catMarketingDesc": "Meta Pixel and Google Ads conversion tracking — measures ad performance and lets us show relevant offers on Instagram, Facebook, and Google.",
+    "svcStripeDesc": "Payment processing and fraud prevention.",
+    "svcSupabaseDesc": "Booking database, authentication, and session management.",
+    "svcMapsDesc": "Address autocomplete and route distance calculation.",
+    "svcGa4Desc": "Traffic statistics and user behaviour analysis. Consent Mode v2 — runs anonymously if declined.",
+    "svcMetaDesc": "Ad conversion tracking on Instagram and Facebook.",
+    "acceptAll": "Accept all",
+    "saveSettings": "Save settings",
+    "moreInfo": "More information",
+    "toggleEnabled": "Enabled",
+    "toggleDisabled": "Disabled"
+  },
+  "Errors": {
+    "genericRetry": "Something went wrong. Please try again.",
+    "rateLimited": "Too many attempts. Please try again in a minute.",
+    "notAuthenticated": "Not authenticated.",
+    "invalidCredentials": "Invalid email or password.",
+    "couldNotSaveBooking": "Could not save booking.",
+    "fullNameRequired": "Full name is required.",
+    "phoneRequired": "Phone number is required.",
+    "duplicateDefaultPassenger": "Another default passenger already exists. Please try again.",
+    "invalidAccountType": "Invalid account type."
+  },
+  "Auth": {
+    "login": {
+      "subtitle": "My Account",
+      "divider": "or",
+      "tabSendLink": "Send a link",
+      "tabUsePassword": "Use password",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "sendLinkButton": "Send sign-in link",
+      "checkEmailHeading": "Check your email",
+      "checkEmailBody": "We sent a sign-in link to {email}. The link expires in 1 hour.",
+      "noAccountPrompt": "Don't have an account?",
+      "createAccountLink": "Create one",
+      "forgotPasswordLink": "Forgot password?",
+      "signInButton": "Sign in",
+      "accountTypeLabel": "Account type",
+      "personalOption": "Personal",
+      "corporateOption": "Corporate",
+      "companyNameLabel": "Company name",
+      "createAccountButton": "Create account",
+      "alreadyHaveAccountPrompt": "Already have an account?",
+      "resetSentMessage": "Reset link sent. Check your email.",
+      "sendResetLinkButton": "Send reset link",
+      "backToSignIn": "Back to sign in"
+    },
+    "oauth": {
+      "googleLabel": "Sign in with Google",
+      "continueWithGoogle": "Continue with Google"
+    },
+    "inWizard": {
+      "sendCode": "Send code",
+      "verifyCode": "Verify code",
+      "enterCodeLabel": "Enter code",
+      "codePlaceholder": "000000",
+      "useDifferentEmail": "Use a different email",
+      "backToVehicle": "← Back to vehicle selection",
+      "continueAsGuest": "Continue as guest",
+      "registerSuccess": "Account created. Check your email to confirm, then sign in.",
+      "codeSentTo": "We sent a 6-digit code to <strong>{email}</strong>.",
+      "invalidCode": "Invalid or expired code. Please try again.",
+      "registerError": "Could not create account. {message}"
+    }
+  },
+  "Account": {
+    "dashboard": {
+      "heading": "My Account",
+      "signedInAs": "Signed in as {email}",
+      "tripsLabel": "My Trips",
+      "tripsTitle": "Your journey history",
+      "tripsBody": "View all bookings associated with your account.",
+      "tripsCta": "View trips",
+      "profileLabel": "Profile",
+      "profileTitle": "Account details",
+      "profileBody": "Update your contact information and manage saved passengers.",
+      "profileCta": "Edit profile"
+    },
+    "trips": {
+      "heading": "My Trips",
+      "emptyHeading": "No trips yet",
+      "emptyBody": "Your booked transfers will appear here. Ready to travel?",
+      "emptyCta": "Book a transfer",
+      "statusLabels": {
+        "confirmed": "CONFIRMED",
+        "pending": "PENDING",
+        "completed": "COMPLETED",
+        "cancelled": "CANCELLED"
+      }
+    },
+    "profile": {
+      "heading": "Profile",
+      "contactDetails": "Contact Details",
+      "fullName": "Full name",
+      "emailLabel": "Email",
+      "emailReadonlyNote": "Email cannot be changed here.",
+      "phone": "Phone",
+      "accountType": "Account type",
+      "personal": "Personal",
+      "corporate": "Corporate",
+      "companyDetails": "Company Details",
+      "companyName": "Company name",
+      "ico": "IČO (Company ID)",
+      "vatId": "DIČ / VAT ID",
+      "saving": "Saving…",
+      "saveChanges": "Save changes",
+      "changesSaved": "Changes saved.",
+      "savedPassengers": "Saved Passengers",
+      "noSavedPassengers": "No saved passengers yet.",
+      "defaultBadge": "Default",
+      "editPassengerAria": "Edit {name}",
+      "deletePassengerAria": "Delete {name}",
+      "removeConfirm": "Remove <highlight>{name}</highlight>? This cannot be undone.",
+      "delete": "Delete",
+      "cancel": "Cancel",
+      "addPassenger": "Add passenger",
+      "emailOptional": "Email (optional)",
+      "notesOptional": "Notes (optional)",
+      "setDefaultPassenger": "Set as default passenger",
+      "savePassenger": "Save passenger"
+    },
+    "resetPassword": {
+      "subtitle": "New password",
+      "successMessage": "Password updated. Redirecting to your account...",
+      "verifying": "Verifying your reset link...",
+      "newPasswordLabel": "New password",
+      "updating": "Updating...",
+      "updateButton": "Update password"
+    }
+  },
+  "RoutePage": {
+    "heroCtaPrimary": "Book this Route",
+    "heroCtaSecondary": "Ask a Question",
+    "sectionLabels": {
+      "theRoute": "The Route",
+      "fleet": "Fleet",
+      "theJourney": "The Journey",
+      "goodToKnow": "Good to know",
+      "theChauffeur": "The Chauffeur",
+      "whyPrestigo": "Why Prestigo",
+      "relatedRoutes": "Related Routes"
+    },
+    "includedHeading": {
+      "line1": "Everything included,",
+      "italic": "nothing to arrange."
+    },
+    "chauffeurHeading": {
+      "line1": "What to expect",
+      "italic": "from your driver."
+    },
+    "vehicleFields": {
+      "passengers": "Passengers",
+      "luggage": "Luggage",
+      "transferPrice": "Transfer price"
+    },
+    "chooseYourVehicle": "Choose your vehicle",
+    "availableOnThisRoute": "Available on this route",
+    "ctaFootnote": "No surprises. No meters. Your driver is waiting.",
+    "bookOnline": "Book Online",
+    "bookNow": "Book Now",
+    "allRoutes": "All Routes"
+  }
+}

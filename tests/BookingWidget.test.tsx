@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { screen, fireEvent, act } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import { useBookingStore } from '@/lib/booking-store'
 import type { PlaceResult } from '@/types/booking'
 

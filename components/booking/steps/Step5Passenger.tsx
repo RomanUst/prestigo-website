@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -15,13 +16,24 @@ const IATA_RE = /^([A-Z]{2,3}|[A-Z][0-9]|[0-9][A-Z])\d{1,4}$/i
 // Record<FlightStatus, ...> ensures a compile error if FlightStatus gains/loses members
 // without a corresponding update here. 'delayed' is intentionally absent — it is not
 // a valid FlightStatus produced by the API (see STATUS_MAP in lib/flight-status.ts).
-const STATUS_DISPLAY: Record<FlightStatus, { label: string; color: string }> = {
-  scheduled: { label: 'SCHEDULED', color: 'var(--copper)' },
-  active:    { label: 'ACTIVE',    color: 'var(--copper)' },
-  landed:    { label: 'LANDED',    color: '#27AE60' },
-  cancelled: { label: 'CANCELLED', color: '#f87171' },
-  diverted:  { label: 'DIVERTED',  color: '#f87171' },
-  unknown:   { label: 'UNKNOWN',   color: 'var(--warmgrey)' },
+// Colours stay in code (not translatable); the display label is resolved from the
+// Booking.step5 catalog via STATUS_LABEL_KEY.
+const STATUS_COLOR: Record<FlightStatus, string> = {
+  scheduled: 'var(--copper)',
+  active:    'var(--copper)',
+  landed:    '#27AE60',
+  cancelled: '#f87171',
+  diverted:  '#f87171',
+  unknown:   'var(--warmgrey)',
+}
+
+const STATUS_LABEL_KEY: Record<FlightStatus, string> = {
+  scheduled: 'statusScheduled',
+  active:    'statusActive',
+  landed:    'statusLanded',
+  cancelled: 'statusCancelled',
+  diverted:  'statusDiverted',
+  unknown:   'statusUnknown',
 }
 
 function formatArrivalTime(iso: string | null): string {
@@ -29,20 +41,9 @@ function formatArrivalTime(iso: string | null): string {
   return iso.slice(11, 16) // "2026-04-15T14:35:00.000" -> "14:35"
 }
 
-const passengerSchema = z.object({
-  firstName: z.string().min(1, 'First name is required'),
-  lastName: z.string().min(1, 'Last name is required'),
-  email: z.string().email('Enter a valid email address'),
-  phone: z.string().min(7, 'Enter a valid phone number'),
-  flightNumber: z.string().optional().refine(
-    (val) => !val || IATA_RE.test(val),
-    'Invalid IATA format \u2014 e.g. BA256 or OK123'
-  ),
-  terminal: z.string().optional(),
-  specialRequests: z.string().max(500, 'Maximum 500 characters').optional(),
-})
-
 export default function Step5Passenger() {
+  const t = useTranslations('Booking.step5')
+  const tv = useTranslations('Booking.validation')
   const origin = useBookingStore((s) => s.origin)
   const destination = useBookingStore((s) => s.destination)
   const passengerDetails = useBookingStore((s) => s.passengerDetails)
@@ -59,6 +60,25 @@ export default function Step5Passenger() {
   )
 
   const isAirportRide = isAirportPlace(origin) || isAirportPlace(destination)
+
+  // Schema is built in the component body (not module scope) because its messages
+  // now come from useTranslations. Validation RULES are unchanged — only the message
+  // argument is sourced from the Booking.validation catalog.
+  const passengerSchema = useMemo(
+    () => z.object({
+      firstName: z.string().min(1, tv('firstNameRequired')),
+      lastName: z.string().min(1, tv('lastNameRequired')),
+      email: z.string().email(tv('invalidEmail')),
+      phone: z.string().min(7, tv('invalidPhone')),
+      flightNumber: z.string().optional().refine(
+        (val) => !val || IATA_RE.test(val),
+        tv('invalidFlightFormat')
+      ),
+      terminal: z.string().optional(),
+      specialRequests: z.string().max(500, tv('maxCharacters')).optional(),
+    }),
+    [tv]
+  )
 
   const {
     register,
@@ -176,8 +196,10 @@ export default function Step5Passenger() {
     watchedFlightNumber.length < 2 ||
     !IATA_RE.test(watchedFlightNumber)
 
-  const statusEntry = flightCheckResult
-    ? (STATUS_DISPLAY[flightCheckResult.flight_status.toLowerCase() as FlightStatus] ?? STATUS_DISPLAY.unknown)
+  const statusKey: FlightStatus | null = flightCheckResult
+    ? (STATUS_COLOR[flightCheckResult.flight_status.toLowerCase() as FlightStatus]
+        ? (flightCheckResult.flight_status.toLowerCase() as FlightStatus)
+        : 'unknown')
     : null
 
   return (
@@ -187,7 +209,7 @@ export default function Step5Passenger() {
       {/* Row 1: First Name + Last Name */}
       <div className="flex flex-col md:flex-row" style={{ gap: 24 }}>
         <div style={{ flex: 1 }}>
-          <label htmlFor="firstName" className="label" style={{ display: 'block', marginBottom: 8 }}>FIRST NAME</label>
+          <label htmlFor="firstName" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('firstNameLabel')}</label>
           <input
             id="firstName"
             type="text"
@@ -215,7 +237,7 @@ export default function Step5Passenger() {
         </div>
 
         <div style={{ flex: 1 }}>
-          <label htmlFor="lastName" className="label" style={{ display: 'block', marginBottom: 8 }}>LAST NAME</label>
+          <label htmlFor="lastName" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('lastNameLabel')}</label>
           <input
             id="lastName"
             type="text"
@@ -245,7 +267,7 @@ export default function Step5Passenger() {
 
       {/* Row 2: Email */}
       <div style={{ marginTop: 24 }}>
-        <label htmlFor="email" className="label" style={{ display: 'block', marginBottom: 8 }}>EMAIL</label>
+        <label htmlFor="email" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('emailLabel')}</label>
         <input
           id="email"
           type="email"
@@ -274,7 +296,7 @@ export default function Step5Passenger() {
 
       {/* Row 3: Phone */}
       <div style={{ marginTop: 24 }}>
-        <label htmlFor="phone" className="label" style={{ display: 'block', marginBottom: 8 }}>PHONE</label>
+        <label htmlFor="phone" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('phoneLabel')}</label>
         <input
           id="phone"
           type="tel"
@@ -305,7 +327,7 @@ export default function Step5Passenger() {
       {isAirportRide && (
         <div className="flex flex-col md:flex-row" style={{ gap: 24, marginTop: 24 }}>
           <div style={{ flex: 1 }}>
-            <label htmlFor="flightNumber" className="label" style={{ display: 'block', marginBottom: 8 }}>FLIGHT NUMBER (OPTIONAL)</label>
+            <label htmlFor="flightNumber" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('flightNumberLabel')}</label>
             <input
               id="flightNumber"
               type="text"
@@ -313,7 +335,7 @@ export default function Step5Passenger() {
               aria-required={isAirportRide}
               aria-describedby={errors.flightNumber ? 'flightNumber-error' : undefined}
               onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
-              placeholder="e.g. BA256"
+              placeholder={t('flightNumberPlaceholder')}
               style={{
                 width: '100%',
                 background: 'var(--anthracite-mid)',
@@ -334,7 +356,7 @@ export default function Step5Passenger() {
           </div>
 
           <div style={{ flex: 1 }}>
-            <label htmlFor="terminal" className="label" style={{ display: 'block', marginBottom: 8 }}>TERMINAL (OPTIONAL)</label>
+            <label htmlFor="terminal" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('terminalLabel')}</label>
             <input
               id="terminal"
               type="text"
@@ -371,10 +393,10 @@ export default function Step5Passenger() {
             disabled={isCheckDisabled}
             aria-label={
               flightCheckState === 'success'
-                ? 'Re-check flight status'
+                ? t('recheckFlightAria')
                 : flightCheckState === 'loading'
-                ? 'Checking flight status'
-                : 'Check flight status'
+                ? t('checkingAria')
+                : t('checkFlightAria')
             }
             style={{
               display: 'flex',
@@ -412,10 +434,10 @@ export default function Step5Passenger() {
               />
             )}
             {flightCheckState === 'success'
-              ? 'RE-CHECK FLIGHT'
+              ? t('recheckFlight')
               : flightCheckState === 'loading'
-              ? 'CHECKING\u2026'
-              : 'CHECK FLIGHT'}
+              ? t('checking')
+              : t('checkFlight')}
           </button>
 
           {/* Status block */}
@@ -424,7 +446,7 @@ export default function Step5Passenger() {
             aria-live="polite"
             style={{ marginTop: 8, transition: 'opacity 300ms ease-in' }}
           >
-            {flightCheckState === 'success' && flightCheckResult && statusEntry && (
+            {flightCheckState === 'success' && flightCheckResult && statusKey && (
               <>
                 {/* Line 1: checkmark + IATA + status label */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
@@ -433,28 +455,28 @@ export default function Step5Passenger() {
                     {flightCheckResult.flight_iata}
                   </span>
                   <span style={{ color: 'var(--warmgrey)' }}> &mdash; </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.12em', color: statusEntry.color }}>
-                    {statusEntry.label}
+                  <span style={{ fontSize: 13, fontWeight: 600, letterSpacing: '0.12em', color: STATUS_COLOR[statusKey] }}>
+                    {t(STATUS_LABEL_KEY[statusKey])}
                   </span>
                 </div>
 
                 {/* Line 2: arrival time + delay */}
                 <div style={{ color: 'var(--warmgrey)', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
-                  Arrival: {formatArrivalTime(flightCheckResult.flight_estimated_arrival)}
+                  {t('arrival', { time: formatArrivalTime(flightCheckResult.flight_estimated_arrival) })}
                   {' \u00b7 '}
                   {flightCheckResult.flight_delay_minutes != null && flightCheckResult.flight_delay_minutes > 0 ? (
                     <span style={{ color: '#E67E22' }}>
-                      +{flightCheckResult.flight_delay_minutes} min delay
+                      {t('delayMinutes', { minutes: flightCheckResult.flight_delay_minutes })}
                     </span>
                   ) : (
-                    'No delay'
+                    t('noDelay')
                   )}
                 </div>
 
                 {/* Line 3 (conditional): airport mismatch warning */}
                 {flightCheckResult.flight_arrival_airport !== 'PRG' && (
                     <div style={{ color: '#E67E22', fontSize: 14, fontWeight: 400, marginTop: 4 }}>
-                      &#9888; Airport mismatch: flight arrives at {flightCheckResult.flight_arrival_airport}, not PRG
+                      {t('airportMismatch', { airport: flightCheckResult.flight_arrival_airport })}
                     </div>
                   )}
               </>
@@ -466,7 +488,7 @@ export default function Step5Passenger() {
                 aria-live="assertive"
                 style={{ color: 'var(--warmgrey)', fontSize: 14, fontWeight: 400, marginTop: 8 }}
               >
-                &#9888; Flight not found or check unavailable &mdash; you can proceed anyway
+                {t('flightNotFound')}
               </div>
             )}
           </div>
@@ -475,11 +497,11 @@ export default function Step5Passenger() {
 
       {/* Row 5: Special Requests */}
       <div style={{ marginTop: 24 }}>
-        <label htmlFor="specialRequests" className="label" style={{ display: 'block', marginBottom: 8 }}>SPECIAL REQUESTS</label>
+        <label htmlFor="specialRequests" className="label" style={{ display: 'block', marginBottom: 8 }}>{t('specialRequestsLabel')}</label>
         <textarea
           id="specialRequests"
           {...register('specialRequests')}
-          placeholder="Any special requirements for your journey"
+          placeholder={t('specialRequestsPlaceholder')}
           maxLength={500}
           rows={4}
           onFocus={(e) => e.currentTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })}
@@ -497,7 +519,7 @@ export default function Step5Passenger() {
           }}
         />
         <p style={{ fontSize: 10, fontWeight: 400, color: 'var(--warmgrey)', textAlign: 'right', marginTop: 4, letterSpacing: '0.4em' }}>
-          {(specialRequests ?? '').length}/500
+          {t('charCount', { count: (specialRequests ?? '').length })}
         </p>
         {errors.specialRequests && (
           <p style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>

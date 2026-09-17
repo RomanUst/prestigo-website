@@ -1,0 +1,11 @@
+{
+  "Nav": {
+    "signIn": "Войти",
+    "bookNow": "Book now",
+    "tagline": "   "
+  },
+  "Footer": {
+    "copyright": "All rights reserved",
+    "legal": "All rights reserved"
+  }
+}

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useId } from 'react'
+import { useTranslations } from 'next-intl'
 import { Plane, X } from 'lucide-react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import type { PlaceResult } from '@/types/booking'
@@ -61,6 +62,7 @@ export default function AddressInput({
   onTextChange,
   required = false,
 }: AddressInputProps) {
+  const t = useTranslations('Booking.addressInput')
   const [mapsLoaded, setMapsLoaded] = useState(false)
   const [inputValue, setInputValue] = useState(() => value?.address ?? '')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
@@ -265,7 +267,7 @@ export default function AddressInput({
             marginTop: '8px',
           }}
         >
-          Auto-set for airport transfers.
+          {t('airportAutoSet')}
         </p>
       </div>
     )
@@ -306,12 +308,12 @@ export default function AddressInput({
   }
 
   const PLACE_TYPE_LABELS: Record<string, string> = {
-    airport: 'AIRPORT',
-    international_airport: 'AIRPORT',
-    lodging: 'HOTEL',
-    hotel: 'HOTEL',
-    train_station: 'TRAIN',
-    transit_station: 'TRANSIT',
+    airport: 'typeAirport',
+    international_airport: 'typeAirport',
+    lodging: 'typeHotel',
+    hotel: 'typeHotel',
+    train_station: 'typeTrain',
+    transit_station: 'typeTransit',
   }
 
   return (
@@ -366,7 +368,7 @@ export default function AddressInput({
           <button
             type="button"
             onClick={handleClear}
-            aria-label="Clear address"
+            aria-label={t('clearAddress')}
             style={{
               position: 'absolute',
               right: '12px',
@@ -475,7 +477,7 @@ export default function AddressInput({
                       flexShrink: 0,
                     }}
                   >
-                    {placeType.replace(/_/g, ' ')}
+                    {t(placeType)}
                   </span>
                 )}
               </li>

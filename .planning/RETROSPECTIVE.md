@@ -85,6 +85,41 @@ Abandoned/unpaid checkout capture with a no-duplicate webhook reconcile and an a
 - Model mix: Opus orchestration + Sonnet executors/reviewers/fixers.
 - Notable: one code-review pass caught 2 money-logic blockers that unit tests (all green) never would have.
 
+### Cost Observations
+- Model mix: Opus orchestration + Sonnet integration checker/security auditor.
+- Notable: the whole milestone shipped with zero code gaps at verification — the only open items at each phase were human-only visual/ergonomic UAT checks the plans deliberately deferred.
+
+---
+
+## Milestone: v2.2 — Dispatch & Driver Trip Portal
+
+**Shipped:** 2026-09-02
+**Phases:** 3 (65-67) | **Plans:** 8 | **Tasks:** 23
+
+### What Was Built
+Future-first admin bookings list with a persistent default-horizon setting (Future / Last N days / All) plus in-session past/all overrides that never write back the default, KPI counters kept decoupled (65); a permanent, unguessable per-assignment `trip_token` opening a noindex trip sheet presentable to police control, delivered via driver email CTA + admin copy-link, with the accept/decline flow left byte-for-byte unchanged (66); token-gated driver trip-progress marking (en route→arrived→on board→completed/no-show) + optional note, written to dedicated `driver_assignments` columns structurally isolated from `booking.status`/GNet and surfaced live to admin (67).
+
+### What Worked
+- **Isolation-by-omission as a verifiable contract** — DTRIP-04's "never touch booking.status / GNet" was enforced by the write route importing none of those modules; grep gates returning 0 made the boundary auditable, and the integration checker confirmed it structurally end-to-end.
+- **Single shared validity predicate** — `isTripLinkValid()` used by both the trip-sheet render and the write route meant zero drift between "what a driver can see" and "what a write accepts", with the check re-run live (TOCTOU-closed).
+- **Disjoint columns for coexisting flows** — the new `trip_token` sitting beside the legacy accept/decline `token` (no shared mutable state) let DTRIP-07 coexistence be proven by construction, not regression luck.
+
+### What Was Inefficient
+- **Deploy-gated UAT** — both phases' final UAT checks were pure visual/ergonomic items that could only be run against production; the milestone's human verification stalled until the branch was merged and promoted.
+- **"Live" semantics under-specified** — DTRIP-05's admin visibility shipped as a mount-only fetch; the requirement's word "live" implied realtime, surfaced as tech debt in the audit rather than settled at plan time.
+
+### Patterns Established
+- Token-as-credential write routes hardened as a checklist: CSRF prefix + fixed-literal rate-limit key + `enforceMaxBody` + zod `.max()` + uniform `invalid_token` (no enumeration oracle) + isolation grep gates.
+- Human-only UAT items harvested from the plan's own `<human-check>` blocks into VERIFICATION.md, routing the phase to `human_needed` until run via `/gsd-verify-work` post-deploy.
+
+### Key Lessons
+- Pin down ambiguous requirement adjectives ("live", "instant") to an observable behavior at plan time, or they resurface as audit tech debt.
+- For token-gated public write surfaces, isolation is most trustworthy when it's the *absence* of an import, checked by a grep gate — not a runtime guard that could be bypassed.
+
+### Cost Observations
+- Model mix: Opus orchestration + Sonnet integration checker.
+- Sessions: security review short-circuited (register authored at plan time, ASVS-1) → L1 grep verification, no auditor subagent needed; 11 threats closed directly.
+
 ---
 
 ## Cross-Milestone Trends
@@ -96,13 +131,16 @@ Abandoned/unpaid checkout capture with a no-duplicate webhook reconcile and an a
 | v1.0 SEO Blog | 3 (54-56) | 9 | MDX hybrid model (static JSX + dynamic MDX route) |
 | v2.0 Booking + Auth | 5 (57-61) | 22 | Wave-0 TDD + Supabase MCP live verification |
 | v2.1 Admin Booking + Payment | 3 (62-64) | 13 | Tracer-first phases + one webhook, two reconcile paths |
+| v2.2 Dispatch + Driver Portal | 3 (65-67) | 8 | Isolation-by-omission + single shared validity predicate |
 
 ### Recurring Issues
 
-- **Live environment testing** — OAuth, OTP, and payment flows always block automated UAT; accept `blocked_by: third-party` pattern and move on
+- **Live environment testing** — OAuth, OTP, payment, and now on-device/visual UAT always block automated verification; accept `blocked_by: third-party`/`release-build` and run UAT post-deploy
+- **Under-specified requirement adjectives** — "live" (DTRIP-05) shipped as on-load fetch; nail observable behavior at plan time
 - **Temp filesystem space** — ENOSPC recurred; keep `CLAUDE_CODE_TMPDIR=/tmp` in muscle memory
 
 ### Improving Each Milestone
 
 - v1.0 → v2.0: Added Wave-0 TDD, security review gate, Supabase MCP verification
 - v2.0 → v2.1: Plan: run milestone audit after all phases, create Phase 60-style single-commit docs for small scoped fixes
+- v2.1 → v2.2: Isolation contracts enforced by grep gates; token-gated write-route hardening as a reusable checklist; human UAT harvested into VERIFICATION and run post-deploy

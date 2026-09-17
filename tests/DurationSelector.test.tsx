@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import DurationSelector from '@/components/booking/DurationSelector'
 
 // Mock the Zustand store. Preserve getState() so the component can read fresh state.

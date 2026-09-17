@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Praga → Graz",
+    "headlineLine1": "De Praga a Graz,",
+    "headlineItalic": "la capital de Estiria.",
+    "intro": "450 km hacia el sur a través de Bohemia y Austria hasta la Ciudad del Diseño. El Schlossberg, el Kunsthaus y las montañas estirias al fondo: cuatro horas y media, un precio cerrado."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Graz cubre 450 km y dura aproximadamente 4,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa, eslovaca y austriaca, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —Brno, Viena o Wiener Neustadt— están disponibles dentro de la tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce alguna incidencia.",
+    "Esto no es una lanzadera compartida. Ni una aplicación de VTC. Un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Graz",
+    "headingItalic": "en cuatro horas y media.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la D1 hacia el este a través de las tierras altas de Bohemia y Moravia hasta Brno, y después gira al sur hacia la frontera eslovaca. A partir de ahí, la carretera se convierte en la D2 para atravesar brevemente el extremo eslovaco, rodear Bratislava por la D4 y entrar en Hungría por la M15 y la M1 en dirección a Viena. El último tramo discurre hacia el sur desde Viena por la A2 austriaca, ascendiendo por el puerto de Semmering y las verdes colinas de Estiria hasta Graz. En días de menos tráfico, existe una alternativa más corta: D1, D2 y S6 a la altura de Viena, y después la misma A2 hacia el sur.",
+      "La frontera checo-eslovaca en Břeclav, la eslovaco-húngara en Rajka y el paso húngaro-austriaco están todos dentro del espacio Schengen: invisibles, sin paradas ni controles de documentación. Llegará a la Ciudad Vieja, Patrimonio de la Humanidad de la UNESCO y uno de los centros históricos mejor conservados de Europa Central, con el Schloßberg y la Uhrturm alzándose sobre el Mur y el Kunsthaus —el alienígena amistoso— brillando en azul al otro lado del río.",
+      "Su chófer vigila el tráfico de salida de Praga de los viernes por la tarde y la meteorología del Semmering antes de cada salida. Si hay un corte, modifica la ruta sin preguntar. Usted no paga por el tráfico; paga por el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo lo cubre todo, desde la recogida en Praga hasta la llegada a Graz. El coche, el chófer, el combustible, los peajes y ambas viñetas. Ya sea una visita de negocios, un congreso de diseño o un fin de semana en Estiria, su chófer se ocupa de la ruta mientras usted se concentra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán bajo petición.",
+    "Combustible, todos los peajes, la viñeta checa y la viñeta de autopista austriaca. No se cobra nada adicional.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de teléfono y WiFi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: a contramarcha para bebés, en sentido de la marcha para niños pequeños o elevador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler urbano por horas."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Graz,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, su oficina o el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Viena o Bratislava (opcional)",
+      "note": "Ambas ciudades quedan de camino de forma natural y pueden servir como parada para comer o para una visita breve antes del último tramo hacia el sur.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted quiera",
+      "note": "Una parada en un mirador, en un pueblo o en una taberna de vinos estiria junto a la A2. Su ruta, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Graz",
+      "note": "Llegada a cualquier dirección de Graz, al aeropuerto de Graz (GRZ) o al Schloßberg, bajo la Uhrturm.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Pasos fronterizos",
+      "value": "Checo-eslovaco en Břeclav, eslovaco-húngaro en Rajka y húngaro-austriaco: todos dentro de Schengen, sin controles de pasaporte para ciudadanos de la UE."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta checa, la viñeta austriaca y los peajes de los túneles estirios están incluidos en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos juntos y obtenga una tarifa reducida. La mayoría de los clientes pernocta en Graz."
+    },
+    {
+      "label": "Continuación del viaje",
+      "value": "Viena está a 190 km al norte y la frontera eslovena a 60 km al sur. Prestigo puede prolongar su traslado en una única reserva."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibirá en el aeropuerto Václav Havel o delante de su dirección en el centro de Praga; no en un aparcamiento al otro lado de la calle, ni en un punto de encuentro a diez minutos a pie. En el aeropuerto, le espera dentro de la sala de llegadas con una tablet de Prestigo con su nombre, y el Mercedes negro ya está aparcado en la puerta.",
+    "La conversación es opcional. Si desea una cabina en silencio para cuatro horas de trabajo o descanso, el chófer captará la señal y le dejará tranquilo. Si prefiere conocer el contexto de Graz —la época en que fue sede imperial de los Habsburgo y una de las capitales de la Austria Interior, la declaración de la Ciudad Vieja como Patrimonio de la Humanidad de la UNESCO en 1999, el título de Ciudad del Diseño de la UNESCO obtenido en 2011 o las tradiciones estirias del vino blanco fresco y el aceite oscuro de pipas de calabaza de las colinas al sur de la ciudad—, su chófer lo conoce.",
+    "El cargador de teléfono, el agua embotellada y el WiFi ya están en la cabina. La temperatura se ajusta a su gusto. A mitad de camino hay prevista una parada de descanso en condiciones —normalmente un buen Raststätte de la D1 cerca de Brno o de la A2 austriaca antes de Graz—, no una gasolinera junto a la autopista."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Graz.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, viñeta austriaca, peajes estirios y tiempo del chófer. Nada se añade al llegar a la Herrengasse."
+      },
+      {
+        "title": "Flota propia, chóferes verificados",
+        "body": "Prestigo opera su propia flota de Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes han pasado verificación de antecedentes, son bilingües y están formados para rutas internacionales largas."
+      },
+      {
+        "title": "La ruta, a su manera",
+        "body": "Si desea combinar Graz con Viena o Bratislava por el camino, está incluido. Y para desvíos por la zona vinícola estiria al sur de la ciudad, el chófer conoce la ruta."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Graz?",
+      "a": "Aproximadamente de 4,5 a 5 horas puerta a puerta. La ruta discurre hacia el este por la autopista D1 pasando por Brno, hacia el sur cruzando los extremos eslovaco y húngaro hasta Austria, y baja por la A2 a través de Estiria hasta Graz. El tráfico en los alrededores de Praga durante la hora punta del viernes por la tarde puede añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Graz?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, la viñeta de autopista checa, la viñeta de autopista austriaca, los peajes de los túneles estirios y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta en el mismo día a Graz?",
+      "a": "Es posible, pero exigente. Una ida y vuelta supone cerca de diez horas de carretera antes de cualquier tiempo en destino, por lo que la mayoría de los clientes prefiere pernoctar en Graz y regresar a la mañana siguiente. Si necesita que el chófer se desplace con usted por la ciudad, añada alquiler urbano por horas."
+    },
+    {
+      "q": "¿Hay pasos fronterizos por el camino?",
+      "a": "Sí, uno o dos según el itinerario. La frontera checo-eslovaca en Břeclav y la eslovaco-húngara en Rajka, o bien la frontera eslovaco-austriaca cerca de Bratislava. Todas están dentro del espacio Schengen: sin controles de pasaporte ni paradas. Los pasajeros de fuera de la UE deben llevar documentación de viaje válida por precaución."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de sillas a contramarcha para bebés, sillas en sentido de la marcha para niños pequeños y elevadores, sin coste adicional. Indique la edad de su hijo al reservar para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla alemán?",
+      "a": "Hay chóferes de habla alemana disponibles bajo petición, algo que muchos clientes agradecen en un trayecto a Graz. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie."
+    }
+  ],
+  "relatedRoutesIntro": "Graz se sitúa al final del largo recorrido hacia el sur pasando por Viena y los Alpes austriacos. Muchos clientes combinan el traslado a Graz con Viena, Bratislava, Budapest o una parada en Brno por el camino. Todas las rutas de Prestigo tienen el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-vienna",
+      "city": "Viena",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-bratislava",
+      "city": "Bratislava",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-budapest",
+      "city": "Budapest",
+      "distance": "525 km",
+      "duration": "5 h 15 min"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2 h 15 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~450 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Graz.",
+    "headingItalic": "Desde {ePrice} €, precio cerrado."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Graz: desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Graz. 450 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la capital de Estiria. Peajes y viñeta incluidos.",
+    "ogTitle": "Traslado privado de Praga a Graz: desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Graz. 450 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la capital de Estiria."
+  }
+}

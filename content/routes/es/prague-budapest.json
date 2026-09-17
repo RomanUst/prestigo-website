@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Praga → Budapest",
+    "headlineLine1": "De Praga a Budapest,",
+    "headlineItalic": "la perla del Danubio.",
+    "intro": "535 km hacia el sur a través de Moravia, Eslovaquia y hasta Hungría. El Castillo de Buda, el Puente de las Cadenas, los balnearios termales y los ruin bars de Pest: cinco horas y media, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Budapest cubre 535 km y dura aproximadamente 5,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa, eslovaca y húngara, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada a la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Brno o Bratislava— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
+    "No es un servicio compartido. No es una aplicación de viajes. Un Mercedes privado, un chófer, tres fronteras y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Budapest",
+    "headingItalic": "en cinco horas y media.",
+    "paragraphs": [
+      "Desde una recogida en Praga en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel, su chófer toma la autopista D1 en dirección este a través de las tierras altas checo-moravas hasta Brno y continúa por la D2 hacia el sur hasta la frontera Schengen checo-eslovaca de Břeclav y Brodské. Dentro de Eslovaquia, la carretera desciende al sur rodeando Bratislava por la circunvalación D4, cruza la frontera Schengen eslovaco-húngara en Rajka y Čunovo y se convierte en la M15 húngara. Desde allí, la M1 le lleva hacia el este pasando por Győr y Tatabánya hasta la capital.",
+      "La distancia total es de aproximadamente 535 kilómetros. El tiempo de conducción es de cinco horas y media en condiciones normales. A la llegada a Budapest, el destino final puede estar en la orilla de Pest —el centro histórico de Belváros, los hoteles junto al río o la avenida Andrássy— o en la orilla de Buda, cerca de la colina del Castillo y el Bastión de los Pescadores. Su chófer conoce ambas orillas y el orden de los puentes que las unen.",
+      "Su chófer consulta el tráfico de la D1 antes de cada salida. Si hay obras entre Jihlava y Brno —como ha sucedido durante los trabajos de ampliación en curso—, modifica el itinerario por la red secundaria sin necesidad de preguntar. Usted no paga por el tráfico: paga por su tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Budapest. El coche, el chófer, el combustible, los peajes y tres viñetas. Ya sea una visita de negocios, un fin de semana de balnearios termales o un viaje cultural por el Danubio, su chófer se encarga de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con dominio del inglés y del checo. Húngaro bajo petición.",
+    "Combustible, todos los peajes y las viñetas de autopista checa, eslovaca y húngara. No se cobra nada adicional.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: portabebés en sentido contrario a la marcha, silla infantil en sentido de la marcha o alzador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler por horas en la ciudad."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin cargo alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Budapest,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el aeropuerto de Praga (PRG). El conductor espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Bratislava (opcional)",
+      "note": "La capital eslovaca se encuentra directamente en la ruta: disponible como parada en camino antes del último tramo hacia Hungría.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "Una parada en el codo del Danubio o en cualquier punto del camino. Su horario, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Budapest",
+      "note": "Llegada a cualquier dirección de Budapest, al aeropuerto de Budapest (BUD), al Castillo de Buda o a su hotel en Pest.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Cruces de frontera",
+      "value": "Frontera Schengen checo-eslovaca en Břeclav/Brodské y frontera Schengen eslovaco-húngara en Rajka/Čunovo. Sin control de pasaportes para ciudadanos de la UE."
+    },
+    {
+      "label": "Peajes",
+      "value": "Las viñetas de autopista checa, eslovaca y húngara están todas incluidas en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Conexión con Viena",
+      "value": "Viena se encuentra a unos 60 km al noroeste de Budapest en el mismo corredor. Prestigo puede incorporar una parada en Viena o prolongar su viaje como una única reserva."
+    }
+  ],
+  "dayTripLabel": "Excursiones de un día desde Praga",
+  "dayTrip": {
+    "headingLine1": "Configuraciones",
+    "headingItalic": "más solicitadas.",
+    "intro": "Con once horas de carretera de ida y vuelta, la excursión de un día Praga–Budapest resulta exigente: la mayoría de los clientes prefieren pernoctar en Budapest. Para quienes prefieren dormir en su propia cama, una recogida temprana lo hace posible. Tres configuraciones cubren las opciones prácticas.",
+    "configurations": [
+      {
+        "title": "El exprés del Castillo de Buda y el Bastión de los Pescadores",
+        "body": "Recogida a las 5:00 y llegada al centro de Budapest hacia las 10:30. Tres horas en la colina del Castillo —la Iglesia de Matías, el Bastión de los Pescadores, las vistas del Danubio hacia el Parlamento— con almuerzo en un restaurante con terraza del Várnegyed. Regreso a Praga hacia las 21:00.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "Media jornada en los baños Széchenyi",
+        "body": "Recogida temprana para llegar a las 10:30 al balneario termal Széchenyi, en el Parque de la Ciudad. Cuatro horas en las piscinas exteriores y el edificio neobarroco de baños, con un almuerzo tardío en la avenida Andrássy antes del viaje de vuelta. Albornoces, bañadores y entrada con horario reservado se organizan de antemano bajo petición.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "Jornada por los grandes bulevares de Pest",
+        "body": "Recogida a las 5:00. Cinco horas en Pest: el exterior del Parlamento y la plaza Kossuth, la Basílica de San Esteban, el Gran Mercado Central y la calle Váci por la tarde. Su chófer espera cerca de la plaza Vörösmarty entre paradas. De vuelta en Praga antes de medianoche.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      }
+    ],
+    "footnote": "Precios indicativos basados en los escenarios anteriores. La tarifa final depende del tiempo real que se pase en el destino. Puede reservar el viaje de ida y vuelta con un 10 % de descuento por regreso el mismo día, o añadir alquiler por horas en la ciudad si necesita que el chófer se desplace con usted. Cuéntenos su plan y le confirmaremos un presupuesto firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibirá delante de la dirección de recogida, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si se encuentra en el aeropuerto Václav Havel, le esperará dentro de la sala de llegadas con una tableta Prestigo que mostrará su nombre. En el trayecto de vuelta, un conductor recibe a su grupo en el aeropuerto internacional Ferenc Liszt de Budapest (BUD), en la zona de llegadas de la Terminal 2, con el mismo protocolo.",
+    "La conversación es una elección. Si desea una cabina silenciosa durante cinco horas de trabajo o descanso, el chófer entenderá la señal y le dejará tranquilo. Si desea conocer el contexto de Budapest —el Imperio austrohúngaro que unió Viena y Budapest en un solo Estado, la unificación de Buda y Pest en una única ciudad en 1873, la cultura termal anterior a los romanos o la transformación posterior a 1989 de capital socialista a una de las ciudades más visitadas de Europa—, su chófer la conoce.",
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si necesita una temperatura concreta en la cabina trasera, indíquelo. Si desea parar a tomar un café en el área de servicio de Rohlenka, en la D1 antes de Brno, o en la de Čilizská Radvaň, en el tramo eslovaco, está incluido."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Budapest.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, peajes, tres viñetas de autopista y el tiempo del conductor. No se añade nada a la llegada."
+      },
+      {
+        "title": "Flota propia, chóferes verificados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos con menos de tres años. Todos los chóferes con antecedentes verificados, bilingües y formados para viajes internacionales de larga distancia."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si la M1 está cerrada a la altura de Győr, su chófer desvía la ruta por Tatabánya sin necesidad de preguntar. Si su vuelo a BUD se retrasa, la recogida se ajusta sin una sola llamada. Usted no debería tener que gestionar el viaje: ese es nuestro trabajo."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Budapest?",
+      "a": "Aproximadamente 5 horas y 30 minutos puerta a puerta por la autopista D1 en dirección este a través de Brno, un breve tramo por el sur de Eslovaquia por la D2 y la circunvalación D4 de Bratislava, y después cruzando la frontera húngara hacia la M15 y la M1 hasta el centro de Budapest. Las salidas de Praga los viernes por la tarde pueden añadir de 20 a 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Budapest?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, las tres viñetas de autopista y el tiempo del conductor. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar un viaje de ida y vuelta en el mismo día de Praga a Budapest?",
+      "a": "Es posible, pero exigente: once horas de carretera más el tiempo que pase en Budapest. La mayoría de los clientes de Prestigo pernoctan en Budapest y regresan al día siguiente, lo que además resulta más económico que pagar al chófer por esperar toda la tarde. Si el regreso el mismo día es la opción adecuada para usted, cuéntenos su plan y le presupuestaremos una tarifa firme de ida y vuelta."
+    },
+    {
+      "q": "¿Cuántos cruces de frontera hay en esta ruta?",
+      "a": "Dos. La frontera Schengen checo-eslovaca en Břeclav/Brodské después de Brno y la frontera Schengen eslovaco-húngara en Rajka/Čunovo, al oeste de Budapest. Ambas son invisibles dentro del espacio Schengen: sin paradas ni controles de pasaporte para ciudadanos de la UE. Los pasajeros no comunitarios deben llevar documentación de viaje en vigor."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Portabebés en sentido contrario a la marcha, sillas infantiles en sentido de la marcha y alzadores están disponibles sin coste adicional. Indique la edad de su hijo en el momento de la reserva para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla húngaro?",
+      "a": "Todos los chóferes de Prestigo hablan inglés y checo con fluidez de forma estándar, lo que cubre cualquier situación práctica en la ruta y a la llegada a Budapest. Un chófer que hable húngaro está disponible bajo petición con aviso previo."
+    }
+  ],
+  "relatedRoutesIntro": "Budapest se sitúa en el extremo oriental del corredor de Praga, y muchas de las ciudades intermedias son destinos por derecho propio. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-vienna",
+      "city": "Viena",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-bratislava",
+      "city": "Bratislava",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "205 km",
+      "duration": "2 h 15 min"
+    },
+    {
+      "slug": "prague-krakow",
+      "city": "Cracovia",
+      "distance": "540 km",
+      "duration": "5 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~535 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~5,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Budapest.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Budapest — desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Budapest. 535 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la perla del Danubio.",
+    "ogTitle": "Traslado privado de Praga a Budapest — desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Budapest. 535 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la perla del Danubio."
+  }
+}

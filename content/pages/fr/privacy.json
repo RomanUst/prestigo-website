@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "title": "Politique de confidentialité — PRESTIGO Chauffeur de prestige Prague",
+    "description": "Comment PRESTIGO collecte, utilise et protège vos données personnelles. Politique de confidentialité conforme au RGPD pour notre service de chauffeur de prestige à Prague et en Europe centrale.",
+    "ogTitle": "Politique de confidentialité — PRESTIGO Chauffeur de prestige Prague"
+  },
+  "hero": {
+    "label": "Politique de confidentialité",
+    "headlineLine1": "Vos données, protégées.",
+    "headlineItalic": "Par conception.",
+    "lastUpdated": "Dernière mise à jour : 6 avril 2026"
+  },
+  "section1": {
+    "title": "Responsable du traitement",
+    "controllerPrefix": "Le responsable du traitement de vos données personnelles est ",
+    "controllerName": "chelautotrans s.r.o.",
+    "controllerSuffix": ", exerçant sous le nom de PRESTIGO, dont le siège social est situé Spojovací 685, Vysoký Újezd, République tchèque, IČO : 05650801.",
+    "contactPrefix": "Pour toute question relative au traitement de vos données personnelles, contactez-nous à l’adresse ",
+    "contactEmailLabel": "info@rideprestigo.com",
+    "contactMiddle": " ou appelez le ",
+    "contactPhoneLabel": "+420 725 986 855",
+    "contactSuffix": "."
+  },
+  "section2": {
+    "title": "Les données que nous collectons",
+    "intro": "Nous ne collectons que ce qui est nécessaire à la fourniture de nos services.",
+    "bookingForm": {
+      "heading": "Formulaire de réservation",
+      "text": "Prénom, nom, adresse e-mail, numéro de téléphone, numéro de vol, adresses de prise en charge et de dépose, date et heure, préférence de véhicule, demande de siège enfant, demandes particulières."
+    },
+    "contactForm": {
+      "heading": "Formulaire de contact",
+      "text": "Nom, adresse e-mail, numéro de téléphone, type de prestation, message."
+    },
+    "corporateEnquiry": {
+      "heading": "Demande entreprise",
+      "text": "Nom de la société, nom et fonction du contact, adresse e-mail, nombre estimé de trajets mensuels, remarques."
+    },
+    "automaticallyCollected": {
+      "heading": "Données collectées automatiquement",
+      "text": "Adresse IP, type et version du navigateur, type d’appareil, pages consultées, URL de provenance et données d’interaction — collectées via Google Analytics."
+    },
+    "locationData": {
+      "heading": "Données de localisation",
+      "text": "Les adresses de prise en charge et de destination que vous saisissez sont traitées via l’API Google Maps pour le calcul d’itinéraire et la saisie semi-automatique. Nous ne suivons pas votre position en temps réel."
+    }
+  },
+  "section3": {
+    "title": "Base légale du traitement",
+    "intro": "Nous traitons vos données personnelles sur les bases légales suivantes, définies à l’article 6 du RGPD :",
+    "performanceOfContract": {
+      "heading": "Exécution d’un contrat — art. 6, § 1, b)",
+      "text": "Traitement des données de votre réservation afin d’organiser et d’assurer votre transfert, de traiter le paiement, d’envoyer les confirmations de réservation et de vous communiquer les coordonnées du chauffeur."
+    },
+    "legitimateInterest": {
+      "heading": "Intérêt légitime — art. 6, § 1, f)",
+      "text": "Analyse de la fréquentation du site afin d’améliorer notre service, prévention de la fraude et réponse à vos demandes transmises via le formulaire de contact."
+    },
+    "legalObligation": {
+      "heading": "Obligation légale — art. 6, § 1, c)",
+      "text": "Conservation des justificatifs de réservation et de paiement, conformément à la réglementation fiscale et comptable tchèque."
+    }
+  },
+  "section4": {
+    "title": "Prestataires tiers",
+    "intro": "Nous ne partageons vos données personnelles qu’avec des prestataires de confiance qui les traitent pour notre compte et selon nos instructions.",
+    "privacyPolicyLabel": "Politique de confidentialité →",
+    "providers": [
+      {
+        "name": "Stripe",
+        "purpose": "Traitement des paiements. Les données de carte sont transmises directement à Stripe — PRESTIGO ne conserve jamais votre numéro de carte.",
+        "url": "https://stripe.com/privacy"
+      },
+      {
+        "name": "Google Analytics",
+        "purpose": "Statistiques anonymisées d’utilisation du site afin de nous aider à améliorer notre service.",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Google Maps Platform",
+        "purpose": "Saisie semi-automatique des adresses et calcul d’itinéraire.",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Supabase",
+        "purpose": "Hébergement sécurisé de la base de données des réservations (région UE).",
+        "url": "https://supabase.com/privacy"
+      },
+      {
+        "name": "Resend",
+        "purpose": "Envoi des e-mails transactionnels — confirmations de réservation et coordonnées du chauffeur.",
+        "url": "https://resend.com/legal/privacy-policy"
+      },
+      {
+        "name": "Vercel",
+        "purpose": "Hébergement du site et diffusion des contenus.",
+        "url": "https://vercel.com/legal/privacy-policy"
+      }
+    ]
+  },
+  "section5": {
+    "title": "Transferts internationaux de données",
+    "text": "Les données de vos réservations sont stockées au sein de l’Union européenne (région UE de Supabase). Certains de nos prestataires — notamment Google, Stripe, Resend et Vercel — peuvent traiter des données aux États-Unis. Ces transferts sont encadrés par le cadre de protection des données UE–États-Unis et, le cas échéant, par les clauses contractuelles types approuvées par la Commission européenne."
+  },
+  "section6": {
+    "title": "Durées de conservation",
+    "items": [
+      {
+        "type": "Justificatifs de réservation",
+        "period": "5 ans à compter de la date du transfert, conformément à la réglementation fiscale et comptable tchèque."
+      },
+      {
+        "type": "Messages envoyés via le formulaire de contact",
+        "period": "12 mois après le traitement de votre demande."
+      },
+      {
+        "type": "Données analytiques",
+        "period": "26 mois (durée de conservation par défaut de Google Analytics)."
+      },
+      {
+        "type": "Justificatifs de paiement",
+        "period": "PRESTIGO ne conserve que l’identifiant de référence de la transaction. L’intégralité des données de paiement est conservée par Stripe conformément à sa politique de conservation."
+      }
+    ]
+  },
+  "section7": {
+    "title": "Cookies",
+    "intro": "Notre site utilise un nombre restreint de cookies :",
+    "cookies": [
+      {
+        "name": "_ga / _gid",
+        "purpose": "Google Analytics — statistiques d’utilisation anonymisées. Expirent respectivement au bout de 2 ans et de 24 heures."
+      },
+      {
+        "name": "Cookies essentiels",
+        "purpose": "Gestion de session uniquement. Nécessaires au bon fonctionnement du site."
+      }
+    ],
+    "outro": "Nous n’utilisons aucun cookie publicitaire, de reciblage ou de suivi via les réseaux sociaux."
+  },
+  "section8": {
+    "title": "Vos droits au titre du RGPD",
+    "intro": "En vertu du Règlement général sur la protection des données, vous disposez des droits suivants :",
+    "rights": [
+      {
+        "right": "Droit d’accès",
+        "article": "art. 15",
+        "desc": "Obtenir une copie des données personnelles que nous détenons à votre sujet."
+      },
+      {
+        "right": "Droit de rectification",
+        "article": "art. 16",
+        "desc": "Demander la correction de données inexactes ou incomplètes."
+      },
+      {
+        "right": "Droit à l’effacement",
+        "article": "art. 17",
+        "desc": "Demander la suppression de vos données personnelles (« droit à l’oubli »)."
+      },
+      {
+        "right": "Droit à la limitation",
+        "article": "art. 18",
+        "desc": "Demander que nous limitions le traitement de vos données."
+      },
+      {
+        "right": "Droit à la portabilité des données",
+        "article": "art. 20",
+        "desc": "Recevoir vos données dans un format structuré et lisible par machine."
+      },
+      {
+        "right": "Droit d’opposition",
+        "article": "art. 21",
+        "desc": "Vous opposer à un traitement fondé sur l’intérêt légitime."
+      },
+      {
+        "right": "Droit de retirer votre consentement",
+        "article": "art. 7, § 3",
+        "desc": "Retirer votre consentement à tout moment, sans que cela remette en cause les traitements antérieurs."
+      }
+    ],
+    "outroPrefix": "Pour exercer l’un de ces droits, écrivez à ",
+    "outroEmailLabel": "info@rideprestigo.com",
+    "outroSuffix": ". Nous vous répondrons sous 30 jours."
+  },
+  "section9": {
+    "title": "Autorité de contrôle",
+    "intro": "Si vous estimez que vos droits en matière de protection des données ont été enfreints, vous avez le droit d’introduire une réclamation auprès de l’autorité de contrôle tchèque :",
+    "authorityName": "Úřad pro ochranu osobních údajű",
+    "authorityAddress": "Pplk. Sochora 27, 170 00 Prague 7, République tchèque",
+    "authorityUrlLabel": "www.uoou.cz"
+  },
+  "section10": {
+    "title": "Modifications de la présente politique",
+    "text": "Nous sommes susceptibles de mettre à jour la présente politique de confidentialité de temps à autre. La date de « dernière mise à jour » figurant en haut de cette page correspond à la révision la plus récente. La poursuite de l’utilisation de nos services après toute modification vaut prise de connaissance de la politique actualisée."
+  },
+  "cta": {
+    "headingLine1": "Des questions sur vos données ?",
+    "headingItalic": "Nous sommes à votre disposition.",
+    "buttonPrimary": "Nous écrire",
+    "buttonSecondary": "Page de contact"
+  }
+}

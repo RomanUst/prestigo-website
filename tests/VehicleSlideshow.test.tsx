@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { render, screen, act, fireEvent } from '@testing-library/react'
+import { screen, act, fireEvent } from '@testing-library/react'
+import { renderWithIntl as render } from './helpers/renderWithIntl'
 import VehicleSlideshow from '@/components/booking/VehicleSlideshow'
 
 // Mock next/image to avoid jsdom issues

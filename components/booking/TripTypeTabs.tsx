@@ -1,17 +1,21 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import type { TripType } from '@/types/booking'
 
 type TripTabEntry =
-  | { kind: 'store'; value: TripType; label: string }
-  | { kind: 'navigate'; href: string; label: string }
+  | { kind: 'store'; value: TripType }
+  | { kind: 'navigate'; href: string }
 
+// Structural array keeps only non-translatable routing data. Tab labels come
+// from the catalog (Booking.tripTypeTabs.items), index-paired with this array
+// (Nav NAV_LINKS/items split — Pattern B).
 const TRIP_TYPES: TripTabEntry[] = [
-  { kind: 'store', value: 'transfer', label: 'TRANSFER' },
-  { kind: 'store', value: 'hourly', label: 'HOURLY' },
-  { kind: 'navigate', href: '/book/multi-day', label: 'MULTI-DAY' },
+  { kind: 'store', value: 'transfer' },
+  { kind: 'store', value: 'hourly' },
+  { kind: 'navigate', href: '/book/multi-day' },
 ]
 
 interface TripTypeTabsProps {
@@ -19,16 +23,16 @@ interface TripTypeTabsProps {
 }
 
 export default function TripTypeTabs({ hideMultiDay = false }: TripTypeTabsProps) {
+  const t = useTranslations('Booking.tripTypeTabs')
+  const labels = t.raw('items') as string[]
   const tripType = useBookingStore((s) => s.tripType)
   const setTripType = useBookingStore((s) => s.setTripType)
   const router = useRouter()
 
-  const tabs = hideMultiDay ? TRIP_TYPES.filter((t) => t.kind === 'store') : TRIP_TYPES
-
   return (
     <div
       role="tablist"
-      aria-label="Trip type"
+      aria-label={t('ariaLabel')}
       style={{
         display: 'flex',
         gap: '8px',
@@ -41,7 +45,10 @@ export default function TripTypeTabs({ hideMultiDay = false }: TripTypeTabsProps
       }}
       className="[&::-webkit-scrollbar]:hidden"
     >
-      {tabs.map((tab) => {
+      {TRIP_TYPES.map((tab, i) => {
+        if (hideMultiDay && tab.kind !== 'store') return null
+
+        const label = labels[i]
         const isActive =
           tab.kind === 'store' &&
           (tripType === tab.value || (tab.value === 'transfer' && tripType === 'round_trip'))
@@ -88,7 +95,7 @@ export default function TripTypeTabs({ hideMultiDay = false }: TripTypeTabsProps
               }
             }}
           >
-            {tab.label}
+            {label}
           </button>
         )
       })}

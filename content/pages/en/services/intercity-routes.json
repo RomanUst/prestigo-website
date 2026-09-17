@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "title": "Intercity Routes from Prague — Vienna, Berlin, Munich",
+    "description": "Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door, available 24/7.",
+    "ogTitle": "Intercity Routes from Prague — Vienna, Berlin, Munich | PRESTIGO",
+    "ogDescription": "Private chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava and beyond. Fixed price, door-to-door."
+  },
+  "serviceDescription": "Private door-to-door chauffeur transfers from Prague to Vienna, Berlin, Munich, Budapest, Bratislava, and other Central European cities.",
+  "hero": {
+    "label": "Intercity Routes · Central Europe",
+    "headlineLine1": "Prague to anywhere.",
+    "headlineItalic": "In a Mercedes.",
+    "intro": "Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic. All tolls and vignettes included, Mercedes-Benz fleet, no connections.",
+    "ctaPrimary": "View All Routes",
+    "ctaSecondary": "Book a Transfer"
+  },
+  "popularRoutesHeading": "Popular routes",
+  "viewAllRoutesText": "View all 50+ routes →",
+  "featuresHeading": "Why choose a private transfer",
+  "features": [
+    {
+      "title": "What does a private transfer from Prague cost?",
+      "body": "Every intercity route has a confirmed fixed price before you book. The figure includes fuel, driver time, all motorway tolls, and where applicable, Czech and Austrian or German motorway vignettes. Nothing is added at drop-off. Current prices are shown on each route page and are loaded from our live pricing database."
+    },
+    {
+      "title": "What does door-to-door service mean in practice?",
+      "body": "Your driver arrives at your hotel lobby, office reception, or home address and handles your luggage from that moment. At the destination you are taken to your exact address — a specific hotel, a conference centre, or a private residence. There are no station transfers, no shared coaches, and no need to navigate an unfamiliar city after four hours on the road. The entire journey is a single, uninterrupted movement from your door to theirs."
+    },
+    {
+      "title": "Can I work or take calls during a long transfer?",
+      "body": "Each vehicle carries USB-A and USB-C charging, a phone holder, and onboard Wi-Fi. The S-Class and V-Class also carry chilled bottled water. The separation between driver and passenger compartment means calls, video meetings, and confidential conversations remain private throughout. Four hours Prague to Vienna is genuinely productive time — it is common for passengers on the corporate account to spend the first two hours on calls and the second two in documents, arriving at the destination with the morning's work done."
+    },
+    {
+      "title": "Can I book a transfer for early morning or late at night?",
+      "body": "Intercity departures run at any hour. A 04:30 departure from Prague for a 09:00 meeting in Vienna is one of the most common booking patterns on the corporate account — it allows passengers to arrive rested rather than disrupted by a first-flight-of-the-morning connection through a hub airport. Late returns after a dinner that runs until midnight in a destination city are equally routine. The driver confirms the booking the evening before and sends a departure reminder one hour ahead."
+    }
+  ],
+  "editorialHeading": "Private transfer vs. public transport",
+  "editorial": [
+    "Central Europe is compact by the standards of long-haul travel, but public transport connections are rarely convenient when time and comfort matter. Vienna is 3.5 hours from Prague by road, but the direct Railjet train takes 4 hours 20 minutes and arrives at Wien Hauptbahnhof — a further 30 minutes from most business hotels in the First or Fourth District by taxi or U-Bahn. Berlin by train from Praha hlavní nádraží is 4 hours 40 minutes on the direct EC service, which runs twice daily with limited luggage space and no guaranteed quiet zone.",
+    "A private transfer covers the same ground in fewer total hours, with the vehicle at your door at departure and your exact destination address at the other end. The difference in door-to-door journey time — accounting for the walk or taxi to the station, the waiting time, and the onward journey at the destination — is typically 45 minutes to two hours in favour of the private transfer, depending on the destination city and the time of day.",
+    "PRESTIGO operates 30 confirmed routes from Prague, each with a published fixed price. The fleet is exclusively Mercedes: E-Class for solo and paired travel, S-Class for those who want the additional space and specification of a full executive saloon, and V-Class for groups of up to seven passengers with full luggage. Every route can be extended into a return trip, with a return discount applied automatically at booking."
+  ],
+  "vsTrainHeading": "Private transfer vs. train",
+  "vsTrain": {
+    "prestigo": {
+      "heading": "PRESTIGO Private Transfer",
+      "items": [
+        "Door-to-door, no station transfers",
+        "Fixed price, no dynamic fares",
+        "Work or rest in your own space",
+        "Luggage handled, no overhead bins",
+        "No delays, no cancellations"
+      ]
+    },
+    "trainBus": {
+      "heading": "Train / Bus",
+      "items": [
+        "Station to station only",
+        "Price varies by booking date",
+        "Shared carriage, limited privacy",
+        "Luggage restrictions apply",
+        "Subject to delays and timetable"
+      ]
+    }
+  },
+  "cta": {
+    "label": "Ready to go?",
+    "headingLine1": "Choose your route and book",
+    "headingItalic": "in under 60 seconds.",
+    "ctaPrimary": "View All Routes",
+    "ctaSecondary": "Book Now"
+  }
+}

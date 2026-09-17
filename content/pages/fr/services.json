@@ -1,0 +1,203 @@
+{
+  "metadata": {
+    "title": "Services de chauffeur à Prague — Aéroport, longue distance et entreprises",
+    "description": "Services de chauffeur à Prague : transferts aéroport, liaisons interurbaines, comptes entreprises, événements VIP, trajets en ville. Prix fixe, suivi des vols, réservation immédiate.",
+    "ogTitle": "Services de chauffeur à Prague — Aéroport, longue distance et entreprises"
+  },
+  "hero": {
+    "label": "Services de chauffeur · Prague",
+    "headlineLine1": "Services de chauffeur à Prague.",
+    "headlineItalic": "Chaque détail.",
+    "intro": "De l'aéroport Václav Havel de Prague à n'importe quelle destination d'Europe centrale — les chauffeurs PRESTIGO assurent chaque trajet avec un prix fixe, le suivi des vols et la sérénité discrète d'un service conçu pour les dirigeants."
+  },
+  "services": [
+    {
+      "label": "AÉROPORT",
+      "title": "Transfert aéroport",
+      "description": "Aéroport Václav Havel de Prague — un accueil à l'arrivée, à chaque fois. Votre chauffeur suit votre vol en temps réel, vous attend à l'arrivée avec une pancarte nominative et s'occupe de vos bagages. Prix fixe dès la réservation.",
+      "features": [
+        "Suivi du vol inclus",
+        "Accueil personnalisé aux arrivées",
+        "Pancarte nominative incluse",
+        "Tous les terminaux desservis"
+      ],
+      "price": "À partir de €{airportFrom}",
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/airport-transfer",
+      "bookHref": "/book",
+      "bookCta": "RÉSERVER",
+      "image": "/hero-airport-transfer.webp"
+    },
+    {
+      "label": "À L'HEURE",
+      "title": "Mise à disposition à l'heure avec chauffeur",
+      "description": "Louez une voiture avec chauffeur privé à l'heure à Prague. Minimum 2 heures, sans limite supérieure. Rendez-vous d'affaires, théâtre, dîner privé dans un restaurant étoilé. Votre chauffeur patiente et le véhicule reste à votre disposition tout du long — arrêts multiples inclus, sans compteur qui tourne.",
+      "features": [
+        "Mise à disposition à partir de 2 heures",
+        "Chauffeur privé et Mercedes-Benz",
+        "Arrêts multiples inclus",
+        "Un service digne de l'aéroport, aux tarifs urbains"
+      ],
+      "price": "À partir de €{hourlyFrom}/h",
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/city-rides",
+      "bookHref": "/book",
+      "bookCta": "RÉSERVER",
+      "image": "/hero-city-rides.png"
+    },
+    {
+      "label": "DE VILLE À VILLE",
+      "title": "Liaisons interurbaines",
+      "description": "Prague-Vienne en 3 h 30. Prague-Berlin en 4 heures. De porte à porte, en Mercedes-Benz, avec un chauffeur qui connaît la route. Travaillez tout le trajet ou regardez simplement l'Europe défiler.",
+      "features": [
+        "Prix fixe par itinéraire",
+        "Prague → Vienne, Berlin, Munich, Budapest, Bratislava, Salzbourg, Dresde",
+        "Disponible 24h/24, 7j/7",
+        "Affaires ou loisirs"
+      ],
+      "price": "À partir de €{cheapestIntercity}",
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/intercity-routes",
+      "bookHref": "/routes",
+      "bookCta": "VOIR LES ITINÉRAIRES",
+      "image": "/hero-intercity-routes.png"
+    },
+    {
+      "label": "CONCIERGE",
+      "title": "Chauffeur concierge",
+      "description": "Bien plus qu'un chauffeur — un concierge au volant. Réservations confirmées, conseils d'initié, courses prises en charge, programme modifié le jour même sans la moindre hésitation. Une seule personne de confiance, anglophone, gère toute la logistique de votre séjour à Prague.",
+      "features": [
+        "Réservations et liaison avec votre hôtel",
+        "Une connaissance du terrain, pas un GPS",
+        "Courses et achats pris en charge",
+        "Le même chauffeur pendant tout votre séjour"
+      ],
+      "price": null,
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/concierge",
+      "bookHref": "/book",
+      "bookCta": "RÉSERVER",
+      "image": "/hero-contact.webp"
+    },
+    {
+      "label": "ENTREPRISES",
+      "title": "Comptes entreprises",
+      "description": "Un compte dédié à votre société. Facturation mensuelle, reporting consolidé, un gestionnaire de compte nommément désigné. Votre responsable voyages réserve une fois, PRESTIGO s'occupe de tout le reste.",
+      "features": [
+        "Facturation mensuelle consolidée",
+        "Gestionnaire de compte dédié",
+        "Affectation prioritaire",
+        "Tableau de bord de reporting pour entreprises"
+      ],
+      "price": null,
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/corporate-accounts",
+      "bookHref": "/corporate",
+      "bookCta": "OUVRIR UN COMPTE",
+      "image": "/hero-corporate-accounts.png"
+    },
+    {
+      "label": "VIP",
+      "title": "VIP et événements",
+      "description": "Visites diplomatiques. Vernissages privés. Arrivées dans les hôtels de luxe. Coordination de plusieurs véhicules pour les événements où chaque détail compte et où rien ne peut être laissé au hasard.",
+      "features": [
+        "Maîtrise du protocole diplomatique",
+        "Coordination de plusieurs véhicules",
+        "Discrétion garantie",
+        "Reconnaissance d'itinéraire préalable sur demande"
+      ],
+      "price": null,
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/vip-events",
+      "bookHref": "/contact",
+      "bookCta": "NOUS CONSULTER",
+      "image": "/hero-vip-events.png"
+    },
+    {
+      "label": "GROUPES",
+      "title": "Transferts de groupe",
+      "description": "Délégations de congrès. Voyages de motivation. Séminaires d'entreprise. Monospaces, véhicules multiples, minutage précis. Tout le monde arrive ensemble, à l'heure.",
+      "features": [
+        "Coordination de monospaces et de plusieurs véhicules",
+        "Jusqu'à 50 passagers",
+        "Spécialistes des congrès et événements",
+        "Itinéraires sur mesure"
+      ],
+      "price": null,
+      "cta": "EN SAVOIR PLUS",
+      "href": "/services/group-transfers",
+      "bookHref": "/contact",
+      "bookCta": "DEMANDER UN DEVIS",
+      "image": "/hero-group-transfers.png"
+    },
+    {
+      "label": "PLUSIEURS JOURS",
+      "title": "Mise à disposition sur plusieurs jours",
+      "description": "Un chauffeur dédié pour l'ensemble de votre périple en Europe centrale. Combinez librement journées de transfert et journées à l'heure — Prague-Vienne, un circuit de cinq jours, un roadshow d'entreprise. Devis ferme sous 24 heures.",
+      "features": [
+        "Chauffeur dédié pendant toute la durée",
+        "Combinaison de transferts et de journées à l'heure",
+        "Hébergement du chauffeur et péages inclus",
+        "Itinéraire sur mesure, prix fixe tout compris"
+      ],
+      "price": null,
+      "cta": "COMPOSER VOTRE ITINÉRAIRE",
+      "href": "/book/multi-day",
+      "bookHref": "/book/multi-day",
+      "bookCta": "DEMANDER UN DEVIS",
+      "isNew": true,
+      "image": "/multi-day-hero.png"
+    }
+  ],
+  "trustHeading": "Pourquoi PRESTIGO",
+  "trust": [
+    {
+      "title": "Prix fixe",
+      "body": "Aucune majoration tarifaire. Aucun péage caché. Le prix affiché à la réservation est celui que vous payez."
+    },
+    {
+      "title": "Suivi des vols",
+      "body": "Votre chauffeur suit votre vol en temps réel. Les retards ne vous coûtent rien de plus."
+    },
+    {
+      "title": "Confirmation immédiate",
+      "body": "Réservez en ligne, confirmation en quelques secondes. Aucun formulaire, aucune attente de rappel."
+    }
+  ],
+  "faqHeading": {
+    "label": "Questions sur nos services",
+    "title": "Comment fonctionnent les services PRESTIGO."
+  },
+  "faqs": [
+    {
+      "q": "Quels services PRESTIGO propose-t-il à Prague ?",
+      "a": "PRESTIGO exploite six services de chauffeur distincts au départ de Prague. Les transferts aéroport desservent tous les terminaux de l'aéroport Václav Havel (PRG) avec accueil personnalisé, suivi du vol et un tarif fixe à partir de €{airportFrom}. Les liaisons interurbaines couvrent 30 destinations en Europe centrale, à prix fixe par véhicule, de €{kutnaHora} (Kutná Hora) à €{budapest} (Varsovie). Les comptes entreprises offrent une facturation mensuelle, un gestionnaire de compte dédié et une affectation prioritaire aux sociétés qui font voyager leurs équipes régulièrement. Les services VIP et événementiels prennent en charge les visites diplomatiques, les vernissages privés et la coordination de plusieurs véhicules. Les trajets en ville correspondent à une mise à disposition à l'heure dans Prague à partir de €{hourlyFrom}/heure. Les transferts de groupe coordonnent jusqu'à 50 passagers répartis sur plusieurs véhicules, avec des itinéraires sur mesure. Chaque service est assuré par la même flotte Mercedes-Benz récente, les mêmes chauffeurs sélectionnés et la même garantie de prix fixe."
+    },
+    {
+      "q": "Combien coûte un service de chauffeur à Prague ?",
+      "a": "Les prix sont fixes par véhicule, et non par passager, et sont confirmés avant votre réservation. Un transfert aéroport en Mercedes-Benz E-Class débute à €{airportFrom} ; une S-Class est à €{sClassFallback} et une V-Class pour un maximum de six passagers à €{vClassFallback}. Les liaisons interurbaines vont de €{kutnaHora} (Prague-Kutná Hora, 70 km) à €{vienna} (Prague-Vienne, 295 km), €{berlin} (Prague-Berlin, 350 km), €{munich} (Prague-Munich, 385 km) et €{budapest} (Prague-Budapest, 535 km) — toutes en E-Class, les S-Class et V-Class étant facturées à un tarif supérieur. La mise à disposition à l'heure dans Prague est à €{hourlyFrom}/heure, avec un minimum de deux heures. Chaque prix indiqué comprend déjà le carburant, l'ensemble des péages et vignettes autoroutières, le temps de conduite, l'attente incluse, l'eau en bouteille, le Wi-Fi et les sièges enfant sur demande. Aucuns frais cachés, aucune majoration tarifaire, aucuns frais de dossier par trajet."
+    },
+    {
+      "q": "Suivez-vous les vols et attendez-vous en cas de retard ?",
+      "a": "Oui — le suivi du vol est inclus dans chaque réservation de transfert aéroport, sans supplément. Votre chauffeur suit votre vol grâce aux données du contrôle aérien en direct dès la confirmation de la réservation. Si votre vol atterrit en avance, le chauffeur se trouve déjà dans le hall des arrivées avec une pancarte nominative. Si le vol est retardé de quelques minutes ou de plusieurs heures, la prise en charge est automatiquement décalée à la nouvelle heure d'arrivée et vous ne payez aucun supplément — l'attente liée à un retard de vol est toujours gratuite, sans plafond horaire. Si le vol est purement et simplement annulé, nous annulons la réservation sans frais et la reprogrammons automatiquement pour votre prochaine arrivée prévue. Pour les prises en charge à l'aéroport, nous incluons 60 minutes d'attente gratuite à compter de l'heure réelle d'atterrissage (de quoi passer les contrôles, récupérer vos bagages et rejoindre le point de rencontre) ; pour les transferts programmés, nous incluons 15 minutes d'attente gratuite à l'adresse de prise en charge."
+    },
+    {
+      "q": "Quelles villes et quels itinéraires desservez-vous au départ de Prague ?",
+      "a": "PRESTIGO exploite 30 liaisons interurbaines référencées au départ de Prague, dans sept pays. En République tchèque, nous desservons Kutná Hora, Plzeň, Karlovy Vary, Brno, Olomouc, Ostrava, Zlín, Český Krumlov, České Budějovice, Hradec Králové, Pardubice, Liberec, Mariánské Lázně et Františkovy Lázně. À l'international, nous assurons les trajets vers Vienne, Salzbourg, Linz et Graz (Autriche) ; Berlin, Dresde, Leipzig, Munich, Nuremberg, Ratisbonne et Passau (Allemagne) ; Bratislava (Slovaquie) ; Budapest (Hongrie) ; Cracovie, Wrocław et Varsovie (Pologne). Chaque itinéraire est tarifé et détaillé sur sa propre page dédiée, à l'adresse /routes/prague-[ville]. Les destinations situées en dehors de ces 30 liaisons sont disponibles sur demande auprès de notre service de réservation — nous établissons un tarif fixe sous un jour ouvré pour tout point de l'espace Schengen."
+    },
+    {
+      "q": "Puis-je réserver un aller simple, un aller-retour ou une mise à disposition sur plusieurs jours ?",
+      "a": "Les trois formules sont possibles. L'aller simple est l'option par défaut pour les transferts aéroport comme pour les liaisons interurbaines — réservez-le pour une date et une heure précises et réglez le tarif fixe. Les allers-retours peuvent être réservés en une seule confirmation et bénéficient d'une remise de 10 % sur le trajet de retour lorsque les deux trajets sont programmés à l'avance. Les mises à disposition sur plusieurs jours et les itinéraires à arrêts multiples fonctionnent sous forme de forfaits horaires ou journaliers : votre chauffeur et votre véhicule vous sont dédiés pour toute la durée, disponibles pour les transferts programmés, les trajets en ville improvisés et le temps d'attente entre les arrêts. Les cas de figure les plus courants sont les visites diplomatiques, les roadshows à travers l'Europe centrale, les équipes de tournage ou de photographie ayant besoin d'une base mobile, ou encore une famille passant trois jours à Prague avec des excursions à Kutná Hora et Karlovy Vary. Pour une mise à disposition sur plusieurs jours, adressez votre itinéraire par e-mail à notre service de réservation et nous vous établirons un tarif unique tout compris."
+    },
+    {
+      "q": "Comment réserver et en combien de temps recevrai-je ma confirmation ?",
+      "a": "Vous pouvez réserver de trois façons. La plus rapide est le formulaire de réservation en ligne à l'adresse /book — choisissez votre itinéraire, votre catégorie de véhicule et votre horaire, payez par carte et recevez votre confirmation par e-mail et SMS en moins de dix secondes. La deuxième est WhatsApp ou le téléphone au +420 725 986 855 — notre service de réservation répond 24h/24 et 7j/7 et peut confirmer votre réservation pendant que vous êtes encore en ligne. La troisième est l'e-mail à info@rideprestigo.com, pour les itinéraires complexes, les comptes entreprises ou les devis nécessitant un tarif sur mesure. Les réservations pour le jour même sont acceptées jusqu'à deux heures avant la prise en charge (selon la disponibilité des chauffeurs) ; les réservations de dernière minute dans ce délai sont possibles par téléphone. Les comptes entreprises bénéficient d'une affectation prioritaire et peuvent être confirmés sur la base d'une autorisation permanente, sans validations répétées. Chaque réservation donne lieu à un e-mail de confirmation indiquant le nom du chauffeur, sa photo, la plaque du véhicule et un lien de suivi en direct."
+    }
+  ],
+  "cta": {
+    "label": "Prêt à réserver ?",
+    "headingLine1": "Choisissez votre service et réservez",
+    "headingItalic": "en moins de 60 secondes.",
+    "buttonText": "Réserver un transfert"
+  }
+}

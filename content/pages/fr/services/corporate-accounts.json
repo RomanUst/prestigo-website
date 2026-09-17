@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "title": "Comptes chauffeur entreprise à Prague",
+    "description": "Comptes chauffeur entreprise pour les sociétés praguoises et internationales. Facturation mensuelle, gestionnaire de compte dédié, réservation prioritaire. Ouverture en 24 heures.",
+    "ogTitle": "Comptes chauffeur entreprise à Prague | PRESTIGO",
+    "ogDescription": "Comptes chauffeur entreprise pour les sociétés praguoises et internationales. Facturation mensuelle, gestionnaire de compte dédié, réservation prioritaire."
+  },
+  "serviceDescription": "Comptes chauffeur entreprise dédiés, avec facturation mensuelle, gestionnaire de compte et réservation prioritaire pour les sociétés présentes à Prague.",
+  "hero": {
+    "label": "Comptes entreprise · Prague",
+    "headlineLine1": "Votre entreprise se déplace.",
+    "headlineItalic": "Nous rendons cela évident.",
+    "intro": "Les comptes entreprise PRESTIGO sont conçus pour les sociétés qui font voyager leurs collaborateurs régulièrement et attendent que chaque détail soit maîtrisé. Tarifs fixes, facturation mensuelle, un gestionnaire de compte nommément désigné et une flotte à la hauteur des exigences de votre organisation.",
+    "ctaPrimary": "Ouvrir un compte entreprise",
+    "ctaSecondary": "Tous les services"
+  },
+  "pricingCallout": {
+    "label": "Tarifs entreprise",
+    "heading": "Tarifs dégressifs selon le volume",
+    "note": "Tarifs négociés en fonction du volume mensuel de trajets",
+    "items": [
+      "Facturation mensuelle consolidée",
+      "Gestionnaire de compte dédié",
+      "Réservation prioritaire",
+      "Tableau de bord de reporting entreprise",
+      "Compte ouvert en moins de 24 heures"
+    ]
+  },
+  "benefitsHeading": "Ce dont vous bénéficiez",
+  "benefits": [
+    {
+      "title": "Facturation mensuelle",
+      "body": "Une seule facture. Tous les trajets. Tous les services. Envoyée le premier de chaque mois, mise en forme pour votre service comptable, avec le détail complet des trajets."
+    },
+    {
+      "title": "Gestionnaire de compte dédié",
+      "body": "Un interlocuteur unique qui connaît votre entreprise, vos voyageurs et vos préférences. Joignable par téléphone, e-mail ou WhatsApp."
+    },
+    {
+      "title": "Réservation prioritaire",
+      "body": "Les comptes entreprise bénéficient d'une attribution prioritaire. Réservations le jour même, modifications de dernière minute, transferts aéroport au petit matin — tout est pris en charge."
+    },
+    {
+      "title": "Tableau de bord de reporting",
+      "body": "Consultez l'ensemble des réservations, voyageurs, coûts et itinéraires en un seul endroit. Export possible à tout moment pour vos notes de frais."
+    }
+  ],
+  "builtForHeading": "Conçu pour",
+  "builtFor": [
+    {
+      "title": "Les sociétés établies à Prague",
+      "body": "Qui transfèrent quotidiennement dirigeants, clients et invités VIP depuis l'aéroport Václav Havel."
+    },
+    {
+      "title": "Les sociétés internationales",
+      "body": "Dont les collaborateurs se rendent régulièrement à Prague et qui recherchent un partenaire de transport terrestre fiable et facile à réserver."
+    },
+    {
+      "title": "Les organisateurs d'événements et de congrès",
+      "body": "Qui coordonnent les déplacements de groupes en plusieurs véhicules pour des délégations et des voyages de motivation."
+    }
+  ],
+  "howItWorksHeading": "Comment cela fonctionne",
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Demande",
+      "body": "Remplissez le formulaire de demande. Nous étudions vos besoins et ouvrons votre compte en moins de 24 heures."
+    },
+    {
+      "step": "02",
+      "title": "Réservation",
+      "body": "Vos équipes réservent en ligne ou auprès du gestionnaire de compte. Aucune procédure de validation trajet par trajet."
+    },
+    {
+      "step": "03",
+      "title": "Facturation",
+      "body": "Une facture mensuelle unique couvrant tous les trajets. Règlement par virement bancaire ou carte. Traitement des données pleinement conforme au RGPD."
+    }
+  ],
+  "cta": {
+    "label": "Ouvrez votre compte",
+    "headingLine1": "Compte opérationnel",
+    "headingItalic": "en moins de 24 heures.",
+    "buttonText": "Ouvrir un compte entreprise"
+  }
+}

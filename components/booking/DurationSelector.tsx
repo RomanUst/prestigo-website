@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 
 // Fallback range used while the fetch is in flight OR if the fetch fails.
@@ -16,6 +17,7 @@ function rangeInclusive(min: number, max: number): number[] {
 }
 
 export default function DurationSelector() {
+  const t = useTranslations('Booking.durationSelector')
   const hours = useBookingStore((s) => s.hours)
   const setHours = useBookingStore((s) => s.setHours)
 
@@ -71,11 +73,11 @@ export default function DurationSelector() {
   return (
     <div>
       <p className="label" style={{ marginBottom: '8px' }}>
-        DURATION
+        {t('label')}
       </p>
 
       <select
-        aria-label="Duration"
+        aria-label={t('ariaLabel')}
         value={hours}
         disabled={loading}
         onChange={(e) => setHours(Number(e.target.value))}
@@ -101,7 +103,7 @@ export default function DurationSelector() {
       >
         {options.map((h) => (
           <option key={h} value={h}>
-            {h}h
+            {t('hourOption', { hours: h })}
           </option>
         ))}
       </select>
