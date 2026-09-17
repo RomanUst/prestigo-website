@@ -37,7 +37,7 @@ describe("getPageContent('privacy')", () => {
     for (const locale of TRANSLATED_LOCALES) {
       const loc = getPageContent("privacy", locale);
       expect(loc).not.toEqual(en);
-      expect(Object.keys(loc)).toEqual(Object.keys(en));
+      expect(Object.keys(loc as object)).toEqual(Object.keys(en as object));
     }
     for (const locale of FALLBACK_LOCALES) {
       expect(getPageContent("privacy", locale)).toEqual(en);
@@ -67,7 +67,7 @@ describe("getPageContent('terms')", () => {
     for (const locale of TRANSLATED_LOCALES) {
       const loc = getPageContent("terms", locale);
       expect(loc).not.toEqual(en);
-      expect(Object.keys(loc)).toEqual(Object.keys(en));
+      expect(Object.keys(loc as object)).toEqual(Object.keys(en as object));
     }
     for (const locale of FALLBACK_LOCALES) {
       expect(getPageContent("terms", locale)).toEqual(en);
@@ -98,7 +98,7 @@ describe("getPageContent('data-deletion')", () => {
     for (const locale of TRANSLATED_LOCALES) {
       const loc = getPageContent("data-deletion", locale);
       expect(loc).not.toEqual(en);
-      expect(Object.keys(loc)).toEqual(Object.keys(en));
+      expect(Object.keys(loc as object)).toEqual(Object.keys(en as object));
     }
     for (const locale of FALLBACK_LOCALES) {
       expect(getPageContent("data-deletion", locale)).toEqual(en);

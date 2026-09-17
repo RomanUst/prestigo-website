@@ -37,7 +37,7 @@ describe("getPageContent('services/airport-transfer') — airport-transfer page"
     const en = getPageContent("services/airport-transfer", "en");
     const ru = getPageContent("services/airport-transfer", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -63,7 +63,7 @@ describe("getPageContent('services/corporate-accounts') — corporate-accounts p
     const en = getPageContent("services/corporate-accounts", "en");
     const ru = getPageContent("services/corporate-accounts", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -85,7 +85,7 @@ describe("getPageContent('services/group-transfers') — group-transfers page", 
     const en = getPageContent("services/group-transfers", "en");
     const ru = getPageContent("services/group-transfers", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -107,7 +107,7 @@ describe("getPageContent('services/intercity-routes') — intercity-routes page"
     const en = getPageContent("services/intercity-routes", "en");
     const ru = getPageContent("services/intercity-routes", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -133,7 +133,7 @@ describe("getPageContent('services/vip-events') — vip-events page", () => {
     const en = getPageContent("services/vip-events", "en");
     const ru = getPageContent("services/vip-events", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {

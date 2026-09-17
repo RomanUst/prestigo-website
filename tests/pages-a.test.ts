@@ -39,7 +39,7 @@ describe("getPageContent('home')", () => {
     const en = getPageContent("home", "en");
     const ru = getPageContent("home", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative strings against verbatim originals", () => {
@@ -61,7 +61,7 @@ describe("getPageContent('contact')", () => {
     const en = getPageContent("contact", "en");
     const ru = getPageContent("contact", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative strings against verbatim originals", () => {
@@ -83,7 +83,7 @@ describe("getPageContent('about')", () => {
     const en = getPageContent("about", "en");
     const ru = getPageContent("about", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative strings against verbatim originals, including a JSON-LD-fed string", () => {
@@ -107,7 +107,7 @@ describe("getPageContent('faq')", () => {
     const en = getPageContent("faq", "en");
     const ru = getPageContent("faq", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative strings, including a JSON-LD-fed Q&A pair", () => {
@@ -127,7 +127,7 @@ describe("getPageContent('corporate')", () => {
     const en = getPageContent("corporate", "en");
     const ru = getPageContent("corporate", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative strings against verbatim originals", () => {

@@ -92,7 +92,7 @@ describe("blog listing content (content/pages/en/blog.json)", () => {
     const en = getPageContent("blog", "en");
     const ru = getPageContent("blog", "ru");
     expect(ru).not.toEqual(en);
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 2 known EN strings from the pre-refactor literals", () => {

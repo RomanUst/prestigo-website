@@ -25,7 +25,7 @@ describe("getPageContent('services') — hub page", () => {
     const en = getPageContent("services", "en");
     const ru = getPageContent("services", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -47,7 +47,7 @@ describe("getPageContent('services/city-rides') — city-rides page", () => {
     const en = getPageContent("services/city-rides", "en");
     const ru = getPageContent("services/city-rides", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {
@@ -73,7 +73,7 @@ describe("getPageContent('services/concierge') — concierge page", () => {
     const en = getPageContent("services/concierge", "en");
     const ru = getPageContent("services/concierge", "ru");
     expect(ru).not.toEqual(en); // Phase 72: ru is now translated, not an EN copy
-    expect(Object.keys(ru)).toEqual(Object.keys(en));
+    expect(Object.keys(ru as object)).toEqual(Object.keys(en as object));
   });
 
   it("spot-checks 3 representative body strings against verbatim originals", () => {

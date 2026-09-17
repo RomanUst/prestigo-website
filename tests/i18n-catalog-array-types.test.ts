@@ -53,7 +53,7 @@ describe('batchShortStrings preserves non-string leaf types', () => {
     const translateBatch = async (chunk: { value: unknown }[]) =>
       chunk.map((u) => (typeof u.value === 'string' ? `RU:${u.value}` : JSON.stringify(u.value)))
 
-    const results = await batchShortStrings({ units, locale: 'ru', glossary: {}, translateBatch })
+    const results = (await batchShortStrings({ units, locale: 'ru', glossary: {}, translateBatch })) as Record<string, unknown>
 
     expect(Array.isArray(results['messages/en.json::Nav.items'])).toBe(true)
     expect(results['messages/en.json::Nav.items']).toEqual(['Services', 'Fleet', 'Contact'])
