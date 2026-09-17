@@ -195,7 +195,22 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** not yet planned
+**Plans:** 6 plans
+
+**Wave 1** — tracer
+
+- [ ] 73-01-PLAN.md — Tracer: `/ar/` end-to-end (Noto fonts SC-corrected + conditional className + `:lang` tracking + Nav logical conversion + chevron mirror) + translation config (glossary ar/hi/zh, PHASE_72_LOCALES→6, CI 6-locale) + Wave-0 test scaffolds
+
+**Wave 2** *(blocked on Wave 1 — parallel, disjoint files)*
+
+- [ ] 73-02-PLAN.md — Translation generation: manifest reset → `--locales ar,hi,zh` real run → completeness + byte-parity + QA sampling (TR-02)
+- [ ] 73-03-PLAN.md — RTL components: CookieBanner/Hero/HowItWorks/FeatureStrip/TestimonialsCarousel logical conversion + directional-icon `rtl:` mirror + `<bdi>` DNT isolation
+- [ ] 73-04-PLAN.md — RTL route + service pages: 30 route pages + city-rides `text-left/right`→`text-start/end` (mechanical, byte-parity gated)
+- [ ] 73-05-PLAN.md — RTL blog pages: 3 blog pages pull-quote `border-s/ps`/text swap + `<bdi>` price/phone/flight/time isolation
+
+**Wave 3** *(blocked on Wave 2 — phase gate)*
+
+- [ ] 73-06-PLAN.md — Phase gate: full suite + `--check` + phase-wide byte-parity (D-12) + FONT-01 weight-budget + D-10 5-page RTL visual QA / D-11 mixed-content (human-check at end-of-phase)
 
 </details>
 
@@ -282,6 +297,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/? | Pending | — |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/6 | Planned | — |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
