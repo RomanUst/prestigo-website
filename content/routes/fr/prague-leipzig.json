@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Prague → Leipzig",
+    "headlineLine1": "De Prague à Leipzig,",
+    "headlineItalic": "la ville de Bach.",
+    "intro": "Cap au nord vers la Saxe, dans la ville de Bach et de Schiller, celle du Gewandhaus et l'un des grands centres de foires commerciales d'Allemagne. Deux heures, un prix fixe, de porte à porte."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Leipzig couvre 260 km par les autoroutes D8 et A14 et demande environ 2 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et allemande, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Dresde ou Meissen — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Il ne s'agit pas d'une navette partagée. Ni d'une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Leipzig,",
+    "headingItalic": "trois autoroutes vers le nord.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D8 vers le nord en traversant Ústí nad Labem. La frontière Schengen tchéco-allemande, dans le secteur de Schönwald/Hřensko, est invisible : aucun arrêt, aucun contrôle de documents, seulement une couture d'asphalte entre deux pays. En Allemagne, la route devient l'A17, qui contourne Dresde par le sud, avant que l'A14 ne s'en détache vers le nord-ouest, à travers les campagnes vallonnées de Saxe, jusqu'à Leipzig.",
+      "Dresde constitue le point médian naturel du trajet. De nombreux clients y font une pause pour un café, une heure dans l'Altstadt, ou une demi-journée complète avant de poursuivre vers Leipzig. L'A14 vous conduit ensuite au Markt, à l'église Saint-Thomas où repose Bach dans le chœur, au parc des expositions de la Neue Messe au nord de la ville, au quartier artistique de la Spinnerei à Plagwitz, ou encore au Völkerschlachtdenkmal, en bordure sud. La distance totale est d'environ 260 kilomètres ; le temps de conduite, de deux heures quarante-cinq en conditions normales.",
+      "Votre chauffeur observe le trafic sur le corridor de l'A14 avant chaque départ : le tronçon de Grimma a été sujet à des fermetures de voies lors des récents travaux de réfection, et le contournement par la B6 ajoute quinze minutes plutôt qu'une heure d'immobilisation. Vous ne payez pas la circulation ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Leipzig. La voiture, le chauffeur, le carburant, les péages, la vignette. Foire commerciale, concert au Gewandhaus ou week-end en Saxe : votre chauffeur s'occupe de la route pendant que vous vous consacrez à la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière allemande. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Leipzig,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Dresde (arrêt naturel sur la route)",
+      "note": "Capitale de la Saxe sur l'Elbe — disponible comme arrêt en route avant de poursuivre vers Leipzig. Souvent combinée avec Leipzig dans la même journée.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Une pause panoramique ou tout autre arrêt en chemin. Votre programme, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Leipzig",
+      "note": "Dépose à n'importe quelle adresse de Leipzig, à votre hôtel, à la Messe Leipzig, au Markt ou à l'église Saint-Thomas.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen tchéco-allemande dans le secteur de Schönwald/Hřensko. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent se munir de leurs documents de voyage."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque et péage autoroutier allemand inclus dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Prolongement de l'itinéraire",
+      "value": "Leipzig est reliée à Berlin, Francfort et Hambourg. Prestigo peut prolonger votre transfert au départ de Leipzig."
+    }
+  ],
+  "dayTripLabel": "Excursions à la journée depuis Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Avec deux heures et demie à trois heures dans chaque sens, Leipzig reste dans la limite confortable d'un aller-retour dans la journée depuis Prague — et beaucoup de clients y associent une demi-journée à Dresde sur le trajet du retour. Trois formules répondent à l'essentiel des demandes.",
+    "configurations": [
+      {
+        "title": "La journée Bach et Thomaskirche",
+        "body": "Prise en charge à 7h30, arrivée à Leipzig vers 10h30. Matinée à l'église Saint-Thomas — la tombe de Bach dans le chœur, le musée Bach de l'autre côté de la place et, si les horaires concordent, un office Motette avec le Thomanerchor. Déjeuner sur le Markt avant le retour.",
+        "price": "Formule aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "L'après-midi Spinnerei et musées",
+        "body": "Prise en charge plus tardive, à 9h00. Arrivée pour un après-midi à la Leipziger Baumwollspinnerei — l'ancienne filature de coton devenue quartier d'art contemporain — avec le temps de visiter le Museum der bildenden Künste ou le musée Grassi avant le dîner près du Marktplatz.",
+        "price": "Formule aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "La Bataille des Nations et la vieille ville",
+        "body": "Prise en charge à 8h00. Départ par le Völkerschlachtdenkmal — le monument de la Bataille des Nations, haut de 91 mètres, et sa plateforme panoramique — puis une demi-journée dans la vieille ville, autour du Markt, de l'ancien hôtel de ville et de la Mädler-Passage. Retour en début de soirée.",
+        "price": "Formule aller-retour — contactez-nous pour un devis"
+      }
+    ],
+    "footnote": "Prix indicatifs fondés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec 10 % de remise pour un retour le jour même, ou ajouter une mise à disposition horaire en ville si vous souhaitez que le chauffeur vous accompagne dans vos déplacements. Décrivez-nous votre programme et nous confirmons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueillera devant votre adresse de prise en charge — centre de Prague, votre bureau ou l'aéroport Václav Havel. Si vous arrivez à PRG, il se trouve dans le hall des arrivées avec une tablette Prestigo affichant votre nom, et la voiture est stationnée à quelques pas, et non de l'autre côté d'un périphérique.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour trois heures de travail ou de repos, le chauffeur comprendra le signal et vous laissera tranquille. Si vous voulez du contexte sur Leipzig — les vingt-sept années de Bach comme Thomaskantor, Mendelssohn fondant le premier conservatoire allemand, les manifestations du lundi de 1989 à la Nikolaikirche qui contribuèrent à faire tomber le Mur, les siècles de Leipzig comme berceau de l'édition allemande, le basculement après la réunification d'un déclin industriel vers l'une des villes les plus dynamiques du pays — votre chauffeur saura vous en parler.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une pause café, le Rastplatz Heidenau sur l'A17 au sud de Dresde est l'arrêt le plus soigné de l'itinéraire — une halte facile de dix minutes, à peu près à mi-chemin de Leipzig."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Leipzig.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, péages, vignette allemande, temps du chauffeur. Rien d'ajouté à l'arrivée."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux trajets internationaux."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si l'A14 est fermée près de Grimma, votre chauffeur passe par la B6 sans avoir à demander. Si vous souhaitez combiner Leipzig et Dresde dans la même journée, cela fait partie de la préparation, pas d'une vente additionnelle."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Leipzig ?",
+      "a": "Environ 2 heures 45 à 3 heures de porte à porte, par l'autoroute D8 vers le nord depuis Prague en traversant Ústí nad Labem, l'A17 autour de Dresde, puis l'A14 vers le nord-ouest jusqu'à Leipzig. Les heures de pointe du vendredi à la sortie de Prague ou des travaux sur le corridor de l'A14 peuvent ajouter 20 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Leipzig ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, tous les péages et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée de Prague à Leipzig ?",
+      "a": "Oui — et c'est la formule la plus fréquente sur cet itinéraire. Un retour le jour même bénéficie de 10 % de remise. Beaucoup de clients associent Leipzig à une demi-journée à Dresde, située directement sur la route. Si vous souhaitez que le chauffeur vous accompagne dans vos déplacements pendant la visite, ajoutez une mise à disposition horaire en ville."
+    },
+    {
+      "q": "Le passage de la frontière allemande se fait-il sans difficulté ?",
+      "a": "Les deux pays font partie de l'espace Schengen. Le passage à Schönwald/Hřensko est invisible : aucun arrêt, aucun contrôle de documents. Tous les véhicules Prestigo disposent de la vignette autoroutière allemande et le chauffeur est titulaire d'une licence internationale de chauffeur valable et reconnue en Allemagne."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et rehausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant lors de la réservation afin que le siège approprié soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il allemand ?",
+      "a": "Un chauffeur germanophone est disponible sur demande. Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque en standard."
+    }
+  ],
+  "relatedRoutesIntro": "Leipzig se combine naturellement avec les autres itinéraires allemands au départ de Prague. De nombreux clients associent Leipzig et Dresde dans la même journée, ou prolongent une réservation pour Leipzig jusqu'à Berlin. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-dresden",
+      "city": "Dresde",
+      "distance": "150 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "prague-berlin",
+      "city": "Berlin",
+      "distance": "350 km",
+      "duration": "3 h 45 min"
+    },
+    {
+      "slug": "prague-nuremberg",
+      "city": "Nuremberg",
+      "distance": "360 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "prague-munich",
+      "city": "Munich",
+      "distance": "385 km",
+      "duration": "4 h 15 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~260 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 h 45 min"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "Prague – Leipzig.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Leipzig — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Leipzig. De porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la ville de Bach et capitale des foires commerciales.",
+    "ogTitle": "Transfert privé Prague – Leipzig — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Leipzig. De porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la ville de Bach et capitale des foires commerciales."
+  }
+}

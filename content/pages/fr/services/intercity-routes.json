@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "title": "Trajets interurbains au départ de Prague — Vienne, Berlin, Munich",
+    "description": "Transferts privés avec chauffeur de Prague vers Vienne, Berlin, Munich, Budapest, Bratislava et au-delà. Prix fixe, porte-à-porte, disponible 24h/24 et 7j/7.",
+    "ogTitle": "Trajets interurbains au départ de Prague — Vienne, Berlin, Munich | PRESTIGO",
+    "ogDescription": "Transferts privés avec chauffeur de Prague vers Vienne, Berlin, Munich, Budapest, Bratislava et au-delà. Prix fixe, porte-à-porte."
+  },
+  "serviceDescription": "Transferts privés avec chauffeur, en porte-à-porte, de Prague vers Vienne, Berlin, Munich, Budapest, Bratislava et d'autres villes d'Europe centrale.",
+  "hero": {
+    "label": "Trajets interurbains · Europe centrale",
+    "headlineLine1": "De Prague vers toutes les destinations.",
+    "headlineItalic": "En Mercedes.",
+    "intro": "Les trajets interurbains Prestigo sont des transferts privés en porte-à-porte, à prix fixe, de Prague vers plus de 30 villes en Autriche, en Allemagne, en Pologne, en Hongrie, en Slovaquie et en République tchèque. Tous les péages et vignettes inclus, flotte Mercedes-Benz, aucune correspondance.",
+    "ctaPrimary": "Voir tous les trajets",
+    "ctaSecondary": "Réserver un transfert"
+  },
+  "popularRoutesHeading": "Trajets populaires",
+  "viewAllRoutesText": "Voir les 50+ trajets →",
+  "featuresHeading": "Pourquoi choisir un transfert privé",
+  "features": [
+    {
+      "title": "Combien coûte un transfert privé au départ de Prague ?",
+      "body": "Chaque trajet interurbain fait l'objet d'un prix fixe confirmé avant la réservation. Ce montant comprend le carburant, le temps de conduite, l'ensemble des péages autoroutiers et, le cas échéant, les vignettes autoroutières tchèque, autrichienne ou allemande. Rien n'est ajouté à l'arrivée. Les tarifs en vigueur figurent sur chaque page de trajet et proviennent de notre base tarifaire en temps réel."
+    },
+    {
+      "title": "Que signifie concrètement un service porte-à-porte ?",
+      "body": "Votre chauffeur se présente dans le hall de votre hôtel, à la réception de votre bureau ou à votre domicile et prend en charge vos bagages dès cet instant. À destination, vous êtes conduit à votre adresse exacte — un hôtel précis, un centre de congrès ou une résidence privée. Aucun transfert de gare, aucun autocar partagé, aucune nécessité de vous orienter dans une ville inconnue après quatre heures de route. L'ensemble du trajet forme un déplacement unique et ininterrompu, de votre porte à celle de votre destination."
+    },
+    {
+      "title": "Puis-je travailler ou prendre des appels pendant un long transfert ?",
+      "body": "Chaque véhicule dispose de prises de recharge USB-A et USB-C, d'un support de téléphone et d'une connexion Wi-Fi à bord. La S-Class et la V-Class proposent également de l'eau minérale fraîche. La séparation entre le compartiment du chauffeur et celui des passagers garantit la confidentialité des appels, des visioconférences et des conversations sensibles tout au long du trajet. Les quatre heures entre Prague et Vienne constituent un véritable temps productif : il est courant que les passagers des comptes entreprise consacrent les deux premières heures à leurs appels et les deux suivantes à leurs dossiers, arrivant à destination avec le travail de la matinée achevé."
+    },
+    {
+      "title": "Puis-je réserver un transfert tôt le matin ou tard le soir ?",
+      "body": "Les départs interurbains s'effectuent à toute heure. Un départ de Prague à 04h30 pour une réunion à 09h00 à Vienne figure parmi les schémas de réservation les plus fréquents sur les comptes entreprise : il permet d'arriver reposé plutôt qu'éprouvé par un premier vol matinal avec correspondance dans un aéroport de transit. Les retours tardifs, après un dîner qui se prolonge jusqu'à minuit dans la ville de destination, sont tout aussi habituels. Le chauffeur confirme la réservation la veille au soir et envoie un rappel de départ une heure à l'avance."
+    }
+  ],
+  "editorialHeading": "Transfert privé ou transports en commun",
+  "editorial": [
+    "L'Europe centrale est compacte à l'échelle des voyages longue distance, mais les correspondances en transports en commun sont rarement pratiques lorsque le temps et le confort comptent. Vienne se trouve à 3h30 de Prague par la route, alors que le train Railjet direct met 4h20 et arrive à Wien Hauptbahnhof — à 30 minutes supplémentaires en taxi ou en U-Bahn de la plupart des hôtels d'affaires des premier et quatrième arrondissements. Berlin est à 4h40 de Praha hlavní nádraží par le service EC direct, qui circule deux fois par jour, avec un espace bagages limité et sans zone silence garantie.",
+    "Un transfert privé couvre la même distance en moins d'heures au total, avec le véhicule à votre porte au départ et votre adresse exacte à l'arrivée. L'écart de durée en porte-à-porte — en tenant compte du trajet à pied ou en taxi jusqu'à la gare, du temps d'attente et du déplacement final à destination — s'établit généralement entre 45 minutes et deux heures en faveur du transfert privé, selon la ville de destination et l'heure de la journée.",
+    "PRESTIGO exploite 30 trajets confirmés au départ de Prague, chacun assorti d'un prix fixe publié. La flotte est exclusivement Mercedes : E-Class pour les voyages en solo ou à deux, S-Class pour ceux qui souhaitent l'espace et le niveau d'équipement supplémentaires d'une grande berline de direction, et V-Class pour les groupes allant jusqu'à sept passagers avec l'ensemble de leurs bagages. Chaque trajet peut être prolongé en aller-retour, avec une remise retour appliquée automatiquement lors de la réservation."
+  ],
+  "vsTrainHeading": "Transfert privé ou train",
+  "vsTrain": {
+    "prestigo": {
+      "heading": "Transfert privé PRESTIGO",
+      "items": [
+        "Porte-à-porte, sans transfert de gare",
+        "Prix fixe, sans tarification dynamique",
+        "Travaillez ou reposez-vous dans votre propre espace",
+        "Bagages pris en charge, sans compartiments à bagages",
+        "Aucun retard, aucune annulation"
+      ]
+    },
+    "trainBus": {
+      "heading": "Train / autocar",
+      "items": [
+        "De gare à gare uniquement",
+        "Prix variable selon la date de réservation",
+        "Voiture partagée, intimité limitée",
+        "Restrictions de bagages applicables",
+        "Soumis aux retards et aux horaires"
+      ]
+    }
+  },
+  "cta": {
+    "label": "Prêt à partir ?",
+    "headingLine1": "Choisissez votre trajet et réservez",
+    "headingItalic": "en moins de 60 secondes.",
+    "ctaPrimary": "Voir tous les trajets",
+    "ctaSecondary": "Réserver"
+  }
+}

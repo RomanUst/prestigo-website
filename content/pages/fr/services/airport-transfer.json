@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "title": "Transfert aéroport de Prague & accueil personnalisé — PRG",
+    "description": "Accueil personnalisé et transfert avec chauffeur depuis l'aéroport de Prague (PRG). Accueil avec pancarte nominative aux arrivées, suivi des vols, services VIP et coupe-file sur demande. À partir de €{businessPrice}, 24h/24 et 7j/7.",
+    "ogTitle": "Accueil personnalisé & transfert aéroport de Prague — PRG | PRESTIGO"
+  },
+  "hero": {
+    "label": "Transfert aéroport · Prague",
+    "headlineLine1": "Transfert aéroport de Prague.",
+    "headlineItalic": "Accueilli à l'arrivée, à chaque fois.",
+    "intro": "Le transfert aéroport Prestigo est un service de chauffeur à prix fixe depuis l'aéroport Václav Havel (PRG) vers toute adresse à Prague, à partir de €{businessPrice}. Votre chauffeur suit votre vol en temps réel, vous attend jusqu'à 60 minutes sans supplément aux arrivées avec une pancarte nominative, s'occupe de vos bagages et vous conduit en Mercedes-Benz E-Class, S-Class ou V-Class.",
+    "ctaPrimary": "Réserver un transfert aéroport",
+    "ctaSecondary": "Tous les services"
+  },
+  "featuresHeading": "Ce qui est inclus",
+  "features": [
+    {
+      "title": "Que se passe-t-il si mon vol est retardé ?",
+      "body": "Votre chauffeur suit votre vol en temps réel. En cas de retard, il ajuste son horaire — sans frais supplémentaires et sans que vous ayez à téléphoner."
+    },
+    {
+      "title": "Comment mon chauffeur me trouve-t-il à l'aéroport de Prague ?",
+      "body": "Votre chauffeur vous attend dans le hall des arrivées avec une pancarte à votre nom. Aucune recherche, aucun stress. Dès l'atterrissage, tout est pris en charge."
+    },
+    {
+      "title": "Quel est le prix d'un transfert depuis l'aéroport de Prague ?",
+      "body": "Le prix affiché à la réservation est le prix que vous payez. Aucune tarification dynamique, aucun péage caché, aucune surprise en fin de trajet."
+    },
+    {
+      "title": "À quel terminal mon chauffeur m'accueille-t-il ?",
+      "body": "Le terminal 2 accueille les arrivées Schengen — vols en provenance d'Allemagne, d'Autriche, de France, des Pays-Bas et de la plupart des liaisons européennes. Le terminal 1 couvre toutes les arrivées hors Schengen : Royaume-Uni, États-Unis, Moyen-Orient et long-courrier. Les deux terminaux sont desservis à chaque réservation. Indiquez votre numéro de vol et votre chauffeur vous accueille automatiquement dans le bon hall des arrivées avec votre pancarte nominative — sans parking ni zone VTC."
+    }
+  ],
+  "meetGreet": {
+    "label": "Accueil personnalisé",
+    "heading": "L'accueil personnalisé à l'aéroport de Prague, inclus de série",
+    "paragraph1": "Chaque transfert aéroport Prestigo comprend un accueil personnalisé complet. Votre chauffeur se trouve à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), pancarte nominative en main, avant même que vous n'atteigniez la sortie — et non dans un parking ou une file d'attente VTC. Dès la sortie des douanes, il prend vos bagages et vous accompagne jusqu'à la voiture.",
+    "paragraph2": "Pour les arrivées VIP, diplomatiques et de dirigeants, une Mercedes-Benz S-Class avec chauffeur senior, un passage coupe-file au contrôle des passeports et l'assistance d'un porteur peuvent être organisés à l'avance. C'est l'accueil que nous réservons aux voyageurs venus des États-Unis, du Royaume-Uni et du Golfe, qui atterrissent fatigués et ne souhaitent plus rien avoir à gérer.",
+    "items": [
+      "Accueil avec pancarte nominative à l'intérieur des arrivées (terminaux 1 et 2)",
+      "Jusqu'à 60 minutes d'attente offertes après l'atterrissage",
+      "Suivi des vols en temps réel — retards gérés automatiquement",
+      "Bagages portés du hall jusqu'à la voiture",
+      "Passage coupe-file à l'immigration sur demande",
+      "S-Class VIP et groupes multi-véhicules sur demande"
+    ]
+  },
+  "howItWorksHeading": "Comment ça fonctionne",
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Réservez en ligne",
+      "body": "Indiquez votre numéro de vol, votre adresse de destination et les détails des passagers. Choisissez votre catégorie de véhicule — E-Class, V-Class ou S-Class. Prix fixe confirmé en quelques secondes."
+    },
+    {
+      "step": "02",
+      "title": "Nous suivons votre vol",
+      "body": "Votre chauffeur suit votre vol en direct. En cas de retard, il ajuste automatiquement son horaire."
+    },
+    {
+      "step": "03",
+      "title": "Arrivez, détendez-vous",
+      "body": "Votre chauffeur vous attend aux arrivées avec votre pancarte nominative. À partir de là, tout est pris en charge."
+    }
+  ],
+  "journeyTimesHeading": "Temps de trajet depuis PRG",
+  "journeyTimes": {
+    "paragraph1": "L'aéroport Václav Havel de Prague se situe à 20 km au nord-ouest du centre-ville. Le temps de trajet entre le terminal et votre hôtel ou votre adresse dépend de votre destination et de l'heure de la journée. Les durées ci-dessous correspondent à des conditions habituelles en journée — prévoyez 5 à 10 minutes de plus aux heures de pointe du matin ou du soir.",
+    "paragraph2": "Votre prix est fixé à la réservation, quelle que soit la circulation. Pas de compteur, pas de majoration, aucune négociation à l'arrivée.",
+    "items": [
+      {
+        "place": "Vieille Ville (Staré Město) / place Venceslas",
+        "time": "~25 min"
+      },
+      {
+        "place": "Vinohrady / Žižkov",
+        "time": "~30 min"
+      },
+      {
+        "place": "Smíchov / Anděl",
+        "time": "~25 min"
+      },
+      {
+        "place": "Holešovice / Letná",
+        "time": "~30 min"
+      },
+      {
+        "place": "Karlín",
+        "time": "~32 min"
+      },
+      {
+        "place": "Nusle / Pankrác",
+        "time": "~28 min"
+      }
+    ]
+  },
+  "vehicleClassesHeading": "Choisissez votre véhicule",
+  "vehicleClasses": [
+    {
+      "name": "E-Class",
+      "tag": "Premium standard",
+      "cap": "Jusqu'à 3 passagers · 3 bagages",
+      "price": "À partir de €{businessPrice}",
+      "body": "La Mercedes-Benz E-Class est le véhicule de référence pour les arrivées à l'aéroport de Prague — silencieuse, spacieuse et impeccable. Le choix juste pour les voyageurs seuls, les couples et les arrivées d'affaires qui recherchent le confort sans excès."
+    },
+    {
+      "name": "V-Class",
+      "tag": "Groupes & familles",
+      "cap": "Jusqu'à 6 passagers · 6 bagages",
+      "price": "À partir de €{vClassAirport}",
+      "body": "La Mercedes-Benz V-Class accueille jusqu'à six passagers avec tous leurs bagages. Idéale pour les familles, les groupes et les arrivées d'entreprise, lorsqu'un seul véhicule et un seul prix fixe suffisent pour tout le monde."
+    },
+    {
+      "name": "S-Class",
+      "tag": "Vaisseau amiral",
+      "cap": "Jusqu'à 3 passagers · 3 bagages",
+      "price": "À partir de €{sClassAirport}",
+      "body": "La Mercedes-Benz S-Class est réservée aux arrivées VIP, diplomatiques et de haute direction. Confort des places arrière, éclairage d'ambiance et l'habitacle le plus raffiné de la gamme Mercedes-Benz actuelle."
+    }
+  ],
+  "faqsHeading": "Questions",
+  "faqs": [
+    {
+      "q": "Que se passe-t-il si mon vol est retardé ?",
+      "a": "Votre chauffeur suit votre vol en direct. Les retards sont pris en compte automatiquement — sans frais supplémentaires pour une attente allant jusqu'à 60 minutes après l'atterrissage."
+    },
+    {
+      "q": "Quels aéroports desservez-vous ?",
+      "a": "Nous desservons principalement l'aéroport Václav Havel de Prague (PRG). Nous organisons également des transferts depuis et vers Vienne (VIE), Berlin (BER) et Munich (MUC) sur demande."
+    },
+    {
+      "q": "Comment trouver mon chauffeur à l'aéroport ?",
+      "a": "Votre chauffeur vous attendra dans le hall des arrivées avec une pancarte nominative. Vous recevrez son nom et son numéro de téléphone avant le trajet."
+    },
+    {
+      "q": "En quoi consiste le service d'accueil personnalisé à l'aéroport de Prague ?",
+      "a": "L'accueil personnalisé signifie que votre chauffeur vous attend à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), avec une pancarte à votre nom — et non au bord du trottoir ou dans une zone VTC. Dès la sortie des douanes, il prend vos bagages et vous accompagne directement jusqu'à la voiture. Ce service est inclus dans chaque transfert aéroport Prestigo, sans supplément."
+    },
+    {
+      "q": "Proposez-vous un accueil VIP ou premium à l'aéroport de Prague ?",
+      "a": "Oui. Pour les arrivées VIP, diplomatiques et de dirigeants, nous proposons une Mercedes-Benz S-Class avec chauffeur senior, une prise en charge prioritaire et une discrétion de tous les instants. Le passage coupe-file au contrôle des passeports et l'assistance d'un porteur peuvent être organisés à l'avance — précieux en cas d'horaires serrés, de groupes importants ou d'une première arrivée à Prague."
+    },
+    {
+      "q": "Pouvez-vous organiser un passage coupe-file à l'aéroport de Prague ?",
+      "a": "Le coupe-file à l'immigration et aux contrôles de sûreté peut être ajouté à toute réservation avec accueil personnalisé, sur demande. Associé à l'accueil avec pancarte nominative aux arrivées, il transforme un atterrissage long-courrier en une prise en charge sans rupture — un service particulièrement apprécié de nos clients arrivant des États-Unis, du Royaume-Uni et du Golfe."
+    },
+    {
+      "q": "Puis-je réserver pour une arrivée très tôt le matin ou tard le soir ?",
+      "a": "Oui. PRESTIGO opère 24h/24, 7j/7, 365 jours par an. Les départs au petit matin et les arrivées nocturnes font partie de notre quotidien."
+    },
+    {
+      "q": "Comment PRESTIGO se compare-t-il à un Uber depuis l'aéroport ?",
+      "a": "Uber détient la station de taxis officielle exclusive de PRG depuis septembre 2023. Un Uber standard vers le centre de Prague coûte entre 650 et 800 CZK — moins que le tarif de départ de PRESTIGO. La différence tient à la manière dont vous êtes accueilli : votre chauffeur PRESTIGO se trouve à l'intérieur du hall des arrivées avec une pancarte nominative avant même que vous n'atteigniez la sortie. Avec Uber, il faut marcher 120 mètres jusqu'à la zone de prise en charge P11 et attendre qu'un véhicule vous soit attribué. Pour un voyageur seul, avec peu de bagages et arrivant en heures creuses, Uber est une option pratique. Pour les arrivées d'affaires, les familles ou toute personne avec des bagages et une correspondance serrée, l'accueil personnalisé et le suivi des vols justifient amplement la différence."
+    }
+  ],
+  "cta": {
+    "label": "Prêt à réserver ?",
+    "headingLine1": "Réservez votre transfert aéroport",
+    "headingItalic": "en moins de 60 secondes.",
+    "buttonText": "Réserver un transfert aéroport"
+  }
+}

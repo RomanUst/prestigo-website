@@ -1,0 +1,86 @@
+{
+  "metadata": {
+    "title": "Location de voiture avec chauffeur à Prague — Mise à disposition à l'heure | PRESTIGO",
+    "description": "Louez une voiture avec chauffeur privé à Prague à l'heure — réunions d'affaires, visites, dîners, shopping. Flotte Mercedes, à partir de €{from}/heure, minimum 2 heures, 24h/24 et 7j/7.",
+    "ogTitle": "Location de voiture avec chauffeur à Prague — Mise à disposition à l'heure | PRESTIGO"
+  },
+  "hero": {
+    "label": "Location de voiture avec chauffeur à l'heure · Prague",
+    "headlineLine1": "Louez une voiture avec chauffeur.",
+    "headlineItalic": "Prague, à l'heure.",
+    "intro": "Louez une voiture avec chauffeur privé à Prague à l'heure — une Mercedes-Benz E-Class, S-Class ou V-Class, avec un minimum de 2 heures et sans limite supérieure. Votre chauffeur et votre véhicule restent à votre disposition pendant toute la durée : réunions d'affaires, théâtre, shopping, dîners privés ou attentes à l'aéroport. Le tarif horaire est fixé à la réservation.",
+    "ctaPrimary": "Réserver un trajet en ville",
+    "ctaSecondary": "Tous les services"
+  },
+  "priceCallout": {
+    "label": "À partir de",
+    "note": "Minimum 2 heures · Tarif horaire fixe",
+    "features": [
+      "Réservation de 2 heures minimum",
+      "Le chauffeur reste à votre disposition",
+      "Arrêts multiples inclus",
+      "Couverture de tout Prague",
+      "Disponible 24h/24 et 7j/7"
+    ],
+    "vClassLine": "Business Van (V-Class) : €{vClassHourly}/h",
+    "firstClassLine": "First Class (S-Class) : €{firstClassHourly}/h"
+  },
+  "featuresHeading": "Ce qui est inclus",
+  "features": [
+    {
+      "title": "Comment fonctionne la mise à disposition d'un chauffeur à l'heure à Prague ?",
+      "body": "Réservez à l'heure, à partir de deux heures minimum et sans limite supérieure. Votre chauffeur se présente à l'adresse convenue et, dès cet instant, le véhicule et son temps vous appartiennent entièrement. Aucun compteur ne tourne et aucun frais d'approche n'est facturé. Que vous ayez quatre réunions dans quatre lieux différents ou un seul dîner avec une longue attente, le tarif reste un montant horaire fixe confirmé à la réservation. Des heures supplémentaires peuvent être ajoutées le jour même, simplement en informant votre chauffeur."
+    },
+    {
+      "title": "Le chauffeur connaît-il bien Prague ?",
+      "body": "Nos chauffeurs à Prague connaissent la ville au niveau que seules des années de conduite sur place permettent d'acquérir. Ils savent que Pařížská est à sens unique et à quels moments s'applique la restriction liée à la zone piétonne de la place de la Vieille-Ville. Ils savent que l'accès au Palace Hotel passe par Panská plutôt que par Jindřišská, et que Bílkova est plus rapide que Kozí pour rejoindre les quais de Dvořákovo nábřeží. Une recommandation pour un bar à vin à Vinohrady ou un tailleur à Malá Strana vous sera donnée si vous la demandez, jamais autrement."
+    },
+    {
+      "title": "En quoi un trajet en ville diffère-t-il d'un transfert aéroport ?",
+      "body": "Les transferts aéroport se font de point à point : prise en charge aux arrivées, dépose à votre adresse à Prague. Les trajets en ville, c'est tout le reste — la même flotte Mercedes, le même niveau de chauffeur, la même confirmation et la même communication — appliqués à une journée d'affaires en quatre arrêts entre Vinohrady, Smíchov et la Vieille-Ville, ou à une soirée privée débutant à la Nová scéna du Théâtre national et se terminant par un dîner à La Degustation. Le service est identique. L'itinéraire, lui, vous appartient entièrement."
+    },
+    {
+      "title": "Puis-je ajouter des arrêts ou modifier mes plans en cours de route ?",
+      "body": "Vos plans peuvent changer sans conséquence. Un arrêt en pharmacie sur le chemin de l'hôtel, un détour pour récupérer un collègue place Venceslas, la décision de prolonger la soirée de quatre-vingt-dix minutes — rien de tout cela n'exige une nouvelle réservation ni une renégociation du prix. Le tarif horaire couvre l'intégralité du temps passé avec le véhicule. Les modifications se règlent en informant directement votre chauffeur, sans passer par une application ni appeler un centre de régulation."
+    }
+  ],
+  "editorialHeading": "Pourquoi réserver à l'heure à Prague",
+  "editorial": [
+    "Prague est une ville compacte, agréable à parcourir à pied, mais pas toujours pratique lorsqu'il s'agit de se déplacer par ses propres moyens — en particulier pour les visiteurs encombrés de bagages, tenus par un horaire où arriver en retard n'est pas une option, ou peu familiers des rues ouvertes à la circulation et de leurs horaires. Les zones piétonnes de la Vieille-Ville sont étendues, et bon nombre des meilleurs hôtels de Prague se trouvent dans des rues dont l'accès efficace exige une connaissance locale.",
+    "Un chauffeur à l'heure élimine ces incertitudes. Votre chauffeur sait quelles rues acceptent les véhicules et à quelles heures, où attendre sans risque de contrôle de stationnement, et quel itinéraire évite le débordement des marchés de Noël sur Staroměstské náměstí ou la fermeture pour travaux de Revoluční. Dans une ville où dix minutes de marche peuvent en prendre trente avec des bagages et deux mauvais tournants, l'avantage est concret.",
+    "La réservation minimale est de deux heures. Dans ce laps de temps, vous pouvez couvrir une arrivée à l'aéroport, un enregistrement à l'hôtel et un déjeuner d'affaires dans la Vieille-Ville sans aucune pression horaire. Pour un visiteur d'affaires arrivant à PRG et devant rejoindre deux bureaux du centre de Prague avant un départ en début d'après-midi, un trajet en ville de trois heures, de l'arrivée au terminal jusqu'au retour aux départs, constitue souvent la formule la plus efficace — une seule réservation, aucune transition, aucun temps perdu."
+  ],
+  "useCasesHeading": "Quand y recourir",
+  "useCases": [
+    {
+      "title": "Réunions d'affaires",
+      "body": "Plusieurs arrêts dans Prague avec vos bagages. Pas de stationnement, pas de navigation, aucun retard."
+    },
+    {
+      "title": "Visites touristiques",
+      "body": "Quartier du Château, Josefov, Vyšehrad — à votre rythme, avec un chauffeur capable de suggérer le meilleur itinéraire."
+    },
+    {
+      "title": "Théâtre et restaurants",
+      "body": "Une soirée privée au Théâtre national et un dîner dans un restaurant étoilé Michelin — pris en charge de porte à porte."
+    },
+    {
+      "title": "Shopping",
+      "body": "Boutiques de luxe de Pařížská, antiquaires de la Vieille-Ville ou Palladium — avec un chauffeur qui attend et porte vos achats."
+    },
+    {
+      "title": "Rendez-vous médicaux",
+      "body": "Discret, patient, ponctuel. Votre chauffeur vous attend et vous ramène chez vous lorsque vous êtes prêt."
+    },
+    {
+      "title": "Liaison aéroport",
+      "body": "Si votre mise à disposition à l'heure se termine à l'aéroport, nous enchaînons sans rupture avec notre service de transfert aéroport."
+    }
+  ],
+  "cta": {
+    "label": "Prêt à découvrir Prague ?",
+    "headingLine1": "Réservez votre trajet en ville",
+    "headingItalic": "en moins de 60 secondes.",
+    "buttonText": "Réserver un trajet en ville"
+  }
+}

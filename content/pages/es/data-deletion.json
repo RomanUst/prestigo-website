@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "title": "Eliminación de datos — PRESTIGO Chófer Premium Praga",
+    "description": "Cómo solicitar la eliminación de sus datos personales de PRESTIGO. Instrucciones para solicitar la supresión de datos según el RGPD."
+  },
+  "hero": {
+    "label": "Eliminación de datos",
+    "headlineLine1": "Solicite la eliminación de sus datos.",
+    "headlineItalic": "Sencillo y transparente."
+  },
+  "requestReceived": {
+    "label": "Solicitud recibida",
+    "paragraph1": "Hemos recibido su solicitud de eliminación de datos y será tramitada en un plazo de 30 días. Su código de confirmación:",
+    "paragraph2Prefix": "Conserve este código para sus registros. Si tiene alguna duda, escriba a ",
+    "paragraph2EmailLabel": "info@rideprestigo.com",
+    "paragraph2Suffix": " indicando este código."
+  },
+  "section1": {
+    "title": "Qué datos conserva PRESTIGO",
+    "text": "Si ha reservado un traslado o nos ha enviado una consulta, conservamos su nombre, dirección de correo electrónico, número de teléfono y los datos de la reserva. También tratamos datos analíticos anonimizados del sitio web a través de Google Analytics y Meta Pixel. No almacenamos su identificador de usuario de Facebook: el Meta Pixel únicamente envía datos de comportamiento cifrados mediante hash con fines de medición publicitaria."
+  },
+  "section2": {
+    "title": "Cómo solicitar la eliminación",
+    "paragraph1Prefix": "Envíe un correo electrónico a ",
+    "paragraph1EmailLabel": "info@rideprestigo.com",
+    "paragraph1Suffix": " con el asunto «Solicitud de eliminación de datos». Incluya la dirección de correo electrónico asociada a su reserva o consulta.",
+    "paragraph2": "Confirmaremos la recepción en un plazo de 3 días laborables y completaremos la eliminación en un plazo de 30 días, salvo que la ley nos obligue a conservar determinados registros (por ejemplo, las facturas con fines fiscales, que se conservan durante 5 años conforme a la legislación checa)."
+  },
+  "section3": {
+    "title": "Eliminación a través de Facebook",
+    "paragraph1Prefix": "Si ha utilizado el inicio de sesión de Facebook o ha interactuado con PRESTIGO a través de Facebook y desea retirar el acceso, puede hacerlo en ",
+    "facebookLinkLabel": "Configuración de Facebook → Aplicaciones y sitios web",
+    "paragraph1Suffix": ". De este modo, nuestra aplicación deja de tener acceso a su cuenta de Facebook. Para la eliminación de cualquier dato de reserva que podamos conservar, escríbanos también un correo electrónico según se indica más arriba."
+  },
+  "cta": {
+    "headingLine1": "¿Tiene dudas sobre sus datos?",
+    "headingItalic": "Estamos aquí para ayudarle.",
+    "buttonPrimary": "Solicitar la eliminación",
+    "buttonSecondary": "Política de privacidad"
+  }
+}

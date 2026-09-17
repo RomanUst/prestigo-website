@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "title": "Blog chauffeur à Prague — Aéroport, itinéraires et guides de transfert",
+    "description": "Des guides pratiques sur les transferts aéroport à Prague, les liaisons interurbaines et les services de chauffeur de luxe — tarifs 2026 vérifiés et connaissance du terrain signés Prestigo."
+  },
+  "hero": {
+    "label": "Blog",
+    "headlineLine1": "Voyager à Prague,",
+    "headlineItalic": "en toute clarté.",
+    "intro": "Des guides pratiques rédigés à partir de données de réservation réelles. Chaque tarif, chaque itinéraire et chaque horaire vérifiés pour 2026."
+  },
+  "emptyState": {
+    "heading": "Aucun article pour le moment.",
+    "body": "Nous préparons des guides détaillés sur les transferts et les itinéraires à Prague. Revenez bientôt, ou réservez dès maintenant votre transfert.",
+    "ctaLabel": "Réserver un transfert"
+  },
+  "cta": {
+    "headingLine1": "Prêt à réserver ?",
+    "headingItalic": "Prix fixe, de porte à porte.",
+    "body": "Pas de compteur. Aucune surprise. Flotte Mercedes-Benz, centrale de réservation à Prague 24h/24 et 7j/7.",
+    "primaryLabel": "Réserver un transfert",
+    "secondaryLabel": "Découvrir la flotte"
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Prague → Salzbourg",
+    "headlineLine1": "De Prague à Salzbourg,",
+    "headlineItalic": "la ville de Mozart.",
+    "intro": "305 km vers le sud, à travers la Bohême et l'Autriche, jusqu'à la Salzach, la forteresse de Hohensalzburg et la maison natale de Mozart. Trois heures et demie, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Salzbourg couvre 305 km et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement dirigeant ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Linz ou Mondsee — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC étirée sur trois frontières internationales. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Salzbourg",
+    "headingItalic": "en trois heures et demie.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague dans la Vieille Ville, à Vinohrady, à Malá Strana ou à l'aéroport Václav Havel, votre chauffeur emprunte l'autoroute D3 vers le sud, par Tábor et České Budějovice — la ligne la plus directe vers la frontière autrichienne. Le passage Schengen tchéco-autrichien, à Wullowitz côté autrichien et à Dolní Dvořiště côté tchèque, est invisible. Pas de poste-frontière, pas de contrôle de documents, pas d'arrêt. La route devient la voie express S10 du Mühlviertel et descend vers Linz, sur le Danube.",
+      "Depuis Linz, l'itinéraire rejoint l'A1 Westautobahn et file vers l'ouest, passant Wels et Attnang-Puchheim, jusqu'aux contreforts des Alpes, pour arriver à Salzbourg dans l'Altstadt — la vieille ville classée à l'UNESCO, étendue sur les deux rives de la Salzach, couronnée par la forteresse de Hohensalzburg, avec la maison natale de Mozart sur la Getreidegasse et les jardins du palais Mirabell de l'autre côté de la rivière. Un itinéraire alternatif par la D1 via Brno est disponible lorsqu'une section de la D3 est fermée. La distance totale est d'environ 305 kilomètres.",
+      "Votre chauffeur surveille la circulation sur l'A1 avant chaque départ. Pendant les Salzburg Festspiele, fin juillet et en août, et lors des week-ends d'hiver où le trafic des skieurs se déverse vers le Tyrol, l'A1 à l'ouest de Linz peut ralentir. Le cas échéant, il modifie l'itinéraire sans avoir à demander. Vous ne payez pas la circulation ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Salzbourg. La voiture, le chauffeur, le carburant, la vignette électronique tchèque, la vignette autrichienne. Visite du festival, week-end sur les traces de La Mélodie du bonheur ou appel professionnel à Linz en chemin — votre chauffeur s'occupe de la route pendant que vous vous consacrez à votre destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages, la vignette électronique autoroutière tchèque et la vignette autoroutière autrichienne. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajout d'une mise à disposition horaire en ville (voir les tarifs)."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Salzbourg,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Linz (en option)",
+      "note": "La capitale de la Haute-Autriche, sur le Danube — possible comme arrêt en route avant de poursuivre vers l'ouest par l'A1 jusqu'à Salzbourg.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt au bord d'un lac du Salzkammergut, à Hallstatt ou n'importe où en chemin. Votre Autriche, à votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Salzbourg",
+      "note": "Dépose à n'importe quelle adresse de Salzbourg, à l'aéroport de Salzbourg (SZG) ou dans la vieille ville, l'Altstadt.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen tchéco-autrichienne à Wullowitz/Dolní Dvořiště. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent se munir de leurs documents de voyage."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette électronique tchèque et vignette autoroutière autrichienne incluses dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Saison du festival",
+      "value": "Les Salzburg Festspiele se tiennent de fin juillet à fin août. Réservation anticipée vivement recommandée pour les dates du festival."
+    }
+  ],
+  "dayTripLabel": "Excursions à la journée depuis Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Salzbourg se trouve à trois heures et demie à quatre heures de Prague dans chaque sens, ce qui en fait une excursion à la journée confortable avec un départ matinal. Trois formules couvrent l'essentiel des demandes.",
+    "configurations": [
+      {
+        "title": "La matinée dans la ville de Mozart",
+        "body": "Prise en charge à 6 h 30, arrivée à Salzbourg vers 10 h 30. Quatre heures dans l'Altstadt — la maison natale de Mozart sur la Getreidegasse, la Residenzplatz et un café au Café Tomaselli avant le retour vers Prague.",
+        "price": "Visite à la journée aller-retour — contactez-nous pour un devis."
+      },
+      {
+        "title": "L'après-midi Hohensalzburg et Mirabell",
+        "body": "Une prise en charge un peu plus tardive et cinq heures sur place. Le funiculaire jusqu'à la forteresse de Hohensalzburg pour le panorama sur la Salzach, puis les jardins du palais Mirabell pour le décor de La Mélodie du bonheur, puis un dîner sur la Judengasse avant le trajet de retour.",
+        "price": "Visite à la journée aller-retour — contactez-nous pour un devis."
+      },
+      {
+        "title": "Le château de Hellbrunn et ses jeux d'eau",
+        "body": "Départ matinal et six heures à Salzbourg. La matinée au château de Hellbrunn et ses jeux d'eau du XVIIe siècle, l'après-midi dans l'Altstadt et à la cathédrale, le Dom. Votre chauffeur se repositionne entre les deux étapes.",
+        "price": "Visite à la journée aller-retour — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Prix indicatifs basés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec une remise de 10 % sur le retour effectué le jour même, ou ajouter une mise à disposition horaire en ville (voir les tarifs) si vous souhaitez que le chauffeur vous accompagne dans vos déplacements. Indiquez-nous votre programme et nous confirmons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueillera devant votre adresse de prise en charge, au centre de Prague — pas sur un parking en face, ni à un point de rendez-vous à dix minutes de marche dans l'aéroport. Si vous arrivez à l'aéroport Václav Havel, il vous attend dans le hall des arrivées avec une tablette Prestigo affichant votre nom.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour trois heures et demie de travail ou de repos, le chauffeur saura le percevoir et vous laissera tranquille. Si vous souhaitez en savoir plus sur Salzbourg — comment la maison natale de Mozart, sur la Getreidegasse, est devenue un musée, quels lieux de La Mélodie du bonheur sont authentiques et lesquels sont des inventions pour cars de tourisme, pourquoi les Festspiele ont fait d'une ville provinciale des Habsbourg la capitale européenne de l'opéra estival, comment Salzbourg fait office de porte d'entrée vers les Alpes —, votre chauffeur saura vous répondre.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une température particulière à l'arrière, dites-le. L'itinéraire passe par une véritable aire de repos sur la D3, près de Tábor, et par une autre sur l'A1 à l'ouest de Linz — toutes deux avec un vrai espresso et des installations propres, pas un micro-ondes de station-service."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Prague à Salzbourg.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix que vous voyez est le prix que vous payez. Carburant, péages, vignettes tchèque et autrichienne, temps du chauffeur. Rien n'est ajouté à la dépose dans l'Altstadt."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux trajets internationaux."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si l'A1 est fermée entre Linz et Salzbourg, votre chauffeur passe par Wels et St. Pölten sans un seul appel téléphonique. Si vous souhaitez combiner avec Hallstatt ou la région des lacs du Salzkammergut le même jour, c'est inclus."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Salzbourg ?",
+      "a": "Environ 3 h 30 à 4 h de porte à porte. L'itinéraire principal descend vers le sud par la D3, via Tábor et České Budějovice, franchit la frontière autrichienne à Wullowitz/Dolní Dvořiště, puis rejoint la S10 jusqu'à Linz et l'A1 vers l'ouest jusqu'à Salzbourg. La circulation du vendredi après-midi à la sortie de Prague ou les encombrements estivaux liés aux Festspiele peuvent ajouter 20 à 30 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Salzbourg ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, les vignettes tchèque et autrichienne, tous les péages et le temps du chauffeur. Aucun frais caché à l'arrivée."
+    },
+    {
+      "q": "Un aller-retour dans la journée entre Prague et Salzbourg est-il réalisable ?",
+      "a": "C'est possible — environ sept à huit heures de route, plus le temps sur place —, mais la plupart des clients préfèrent passer la nuit à Salzbourg. L'Altstadt, la forteresse de Hohensalzburg et les jardins Mirabell se visitent difficilement en quelques heures. Si vous souhaitez malgré tout un retour le jour même, votre chauffeur attend sur place et le trajet retour bénéficie d'une remise de 10 %."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière entre la République tchèque et l'Autriche ?",
+      "a": "Les deux pays font partie de l'espace Schengen. Le passage à Wullowitz/Dolní Dvořiště est invisible — pas de poste de contrôle des passeports, pas d'arrêt. Tous les véhicules Prestigo disposent à la fois de la vignette électronique tchèque et de la vignette autoroutière autrichienne."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et réhausseurs sont disponibles sans supplément. Merci d'indiquer l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur peut-il parler allemand ?",
+      "a": "Un chauffeur germanophone est disponible sur demande. Chaque chauffeur Prestigo parle couramment anglais et tchèque en standard."
+    }
+  ],
+  "relatedRoutesIntro": "Salzbourg se situe à l'extrémité occidentale de l'Autriche, trait d'union naturel entre Linz et Vienne à l'est et Munich, au-delà de la frontière allemande, à l'ouest. Beaucoup de clients combinent le trajet vers Salzbourg avec un arrêt à Český Krumlov sur la route du sud. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-linz",
+      "city": "Linz",
+      "distance": "230 km",
+      "duration": "2 h 45"
+    },
+    {
+      "slug": "prague-vienna",
+      "city": "Vienne",
+      "distance": "330 km",
+      "duration": "3 h 30"
+    },
+    {
+      "slug": "prague-munich",
+      "city": "Munich",
+      "distance": "385 km",
+      "duration": "4 h 15"
+    },
+    {
+      "slug": "prague-cesky-krumlov",
+      "city": "Český Krumlov",
+      "distance": "170 km",
+      "duration": "2 h 15"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~305 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~3 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "À partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Salzbourg.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Salzbourg — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Salzbourg. 305 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la ville de Mozart. Péages et vignette inclus.",
+    "ogTitle": "Transfert privé Prague – Salzbourg — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Salzbourg. 305 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la ville de Mozart."
+  }
+}

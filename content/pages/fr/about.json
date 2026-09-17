@@ -1,0 +1,114 @@
+{
+  "metadata": {
+    "title": "À propos de PRESTIGO — Service de chauffeur à Prague",
+    "description": "Le service de chauffeur de Prague, ancré localement et conçu selon les standards internationaux du luxe. Notre histoire, nos chauffeurs et les raisons pour lesquelles les voyageurs exigeants choisissent PRESTIGO.",
+    "ogTitle": "À propos de PRESTIGO — Le service de chauffeur haut de gamme de Prague"
+  },
+  "schema": {
+    "name": "PRESTIGO",
+    "aboutPageName": "À propos de PRESTIGO — Le service de chauffeur haut de gamme de Prague"
+  },
+  "hero": {
+    "label": "À propos de PRESTIGO",
+    "headlineLine1": "Le service de chauffeur de Prague.",
+    "headlineItalic": "Un standard international.",
+    "intro": "PRESTIGO est né d'un simple constat : Prague méritait un service de chauffeur à la hauteur de l'ambition de la ville. Ni un agrégateur mondial dépourvu de connaissance locale, ni un opérateur local dépourvu de marque. Quelque chose entre les deux — et de meilleur que l'un comme l'autre."
+  },
+  "brandStory": {
+    "heading": "La raison d'être de PRESTIGO",
+    "paragraphs": [
+      "Chaque année, des centaines de milliers de dirigeants, de diplomates et de voyageurs exigeants arrivent à Prague en attendant un certain niveau d'exigence. Ce qu'ils trouvent, trop souvent, est un écart — entre la ville pour laquelle ils sont venus et la première impression qu'elle leur laisse.",
+      "PRESTIGO existe pour combler cet écart. De l'instant de l'atterrissage à celui de l'arrivée à votre destination, chaque détail est anticipé, chaque préférence notée, chaque engagement tenu.",
+      "Nous ne sommes pas un taxi. Nous ne sommes pas un agrégateur. Nous sommes la première personne à Prague qui est déjà de votre côté."
+    ]
+  },
+  "quote": "« La première personne à Prague qui est déjà de votre côté. »",
+  "ourStory": {
+    "label": "Notre histoire",
+    "headingLine1": "D'une seule voiture,",
+    "headingItalic": "à un standard.",
+    "paragraphs": [
+      "PRESTIGO a vu le jour en 2016 comme débutent la plupart des petits opérateurs en Europe centrale — avec une seule Mercedes récente et un fondateur lassé de voir des dirigeants de passage descendre de taxis d'aéroport avec l'air d'avoir préféré marcher. L'ambition, dès le premier jour, était étroite et précise : créer à Prague un service de chauffeur qu'un voyageur international reconnaîtrait comme l'équivalent des meilleurs qu'il ait connus à Londres, Zurich ou Tokyo.",
+      "Le principe fondateur est que le niveau d'exigence se définit aux extrêmes, non au centre. N'importe qui peut assurer un bon transfert aéroport un mardi après-midi ensoleillé. La véritable épreuve, c'est la prise en charge à 04h00 sous la neige, le changement d'itinéraire de dernière minute quand une réunion s'éternise, la personnalité en visite accompagnée de son équipe protocolaire, la famille de cinq personnes avec des skis et un chien nerveux. Si le service tient aux extrêmes, le centre se règle de lui-même.",
+      "Aujourd'hui, PRESTIGO exploite depuis Prague une flotte Mercedes-Benz soigneusement sélectionnée, avec une petite équipe de chauffeurs rigoureusement contrôlés, chacun présent chez nous depuis suffisamment longtemps pour se voir confier n'importe quelle réservation. Nous avons délibérément maintenu une structure compacte : nous préférons refuser une mission plutôt que de diluer notre niveau d'exigence."
+    ]
+  },
+  "founder": {
+    "label": "Rencontrez le fondateur",
+    "headingLine1": "Roman Ustyugov,",
+    "headingItalic": "Fondateur.",
+    "extraParagraph": "Dix années dans le métier signifient que chaque prise en charge à 04h00, chaque arrivée au mauvais terminal, chaque protocole VIP a été vu, résolu et consigné dans les méthodes de PRESTIGO. C'est cela que vous réservez lorsque vous faites appel à nous.",
+    "readFullProfile": "Lire le profil complet →"
+  },
+  "discretion": {
+    "label": "À propos de la discrétion",
+    "headingLine1": "Ce que la discrétion",
+    "headingItalic": "signifie réellement.",
+    "intro": "« Discrétion » fait partie de ces mots que tout opérateur haut de gamme affiche sur son site et que très peu définissent. Chez PRESTIGO, la discrétion est un ensemble de pratiques concrètes, non une formule marketing. C'est la raison pour laquelle nous hésitons à photographier nos propres véhicules avec des clients à bord, la raison pour laquelle nos chauffeurs ne portent aucun vêtement aux couleurs de l'entreprise lors des prises en charge pour un dîner, et la raison pour laquelle rien de ce qui se passe dans l'habitacle n'est jamais répété — ni à des collègues, ni à la famille, ni sur un réseau social.",
+    "items": [
+      {
+        "t": "Aucune publication sur les réseaux sociaux — jamais",
+        "b": "Nos chauffeurs ne photographient ni les clients, ni les véhicules avec des clients à bord, ni les adresses où nous effectuons les prises en charge. Il n'existe aucun groupe de discussion interne où circuleraient des anecdotes. Nous n&rsquo;en avons pas."
+      },
+      {
+        "t": "Accords de confidentialité sur demande, sans frais",
+        "b": "Pour toute réservation touchant à des affaires confidentielles, nous signons un accord de confidentialité mutuel standard avant le trajet. Nombre de nos comptes entreprises fonctionnent en permanence sous accord de confidentialité, par principe."
+      },
+      {
+        "t": "Prises en charge privées sans signalétique",
+        "b": "Pour les prises en charge sensibles à un domicile, une ambassade ou une entrée privée, le chauffeur ne porte aucune signalétique de l'entreprise et utilise un véhicule dépourvu de marquage extérieur."
+      },
+      {
+        "t": "La conversation uniquement sur invitation",
+        "b": "Nos chauffeurs ne prennent jamais la parole les premiers. Si vous souhaitez échanger, engagez la conversation. Si vous souhaitez travailler ou dormir, l'habitacle reste silencieux pendant tout le trajet."
+      },
+      {
+        "t": "Ce qui se passe à l'intérieur y reste",
+        "b": "Les appels téléphoniques, les documents posés sur vos genoux, les conversations avec des collègues à l'arrière — rien de tout cela n'existe hors du véhicule. Ce n'est pas un slogan. C'est ainsi que nous sommes formés."
+      }
+    ]
+  },
+  "localKnowledge": {
+    "label": "Connaissance locale, standards internationaux",
+    "headingLine1": "Prague est notre ville.",
+    "headingItalic": "C'est là notre avantage.",
+    "paragraphs": [
+      "La plupart des grandes marques internationales de chauffeurs présentes à Prague sont des plateformes — elles référencent des chauffeurs locaux, perçoivent une commission et disparaissent dès que quelque chose tourne mal. PRESTIGO fait l'inverse. Nous sommes établis à Prague, nous employons directement nos chauffeurs et nous assumons chaque jour les conséquences de nos décisions en matière de service. Voilà ce que signifie réellement « ancré localement ».",
+      "La connaissance locale est un avantage concret. Nos chauffeurs savent que la circulation dans le quartier de Prague 1 change complètement pendant les marchés de Noël, que le pont Charles est fermé aux véhicules, que la place Venceslas devient impraticable dès qu'il y a une manifestation ou une finale de football, et que l'itinéraire le plus rapide de l'aéroport à un hôtel de Malá Strana dépend entièrement de l'heure de la journée. Ils savent quels hôtels attendent une dépose à l'entrée principale et lesquels préfèrent le porche latéral. Ils savent quelles ambassades imposent des contrôles de sécurité qui ajoutent quinze minutes à la prise en charge. Ils connaissent les habitudes de passage à la frontière sur l'E65 vers Vienne à 06h00 un lundi d'été par rapport à un samedi d'hiver.",
+      "Rien de tout cela ne figure dans un manuel de procédures. Cela s'apprend en parcourant la ville pendant des années, puis en choisissant de rester auprès d'un opérateur qui pose les bonnes questions. C'est la principale raison pour laquelle PRESTIGO reste constant aux extrêmes — là où d'autres services commencent à s'effilocher."
+    ]
+  },
+  "principlesHeading": "Ce que nous défendons",
+  "principles": [
+    {
+      "title": "Discrétion",
+      "body": "Votre trajet n'appartient qu'à vous. Nous ne parlons ni de nos clients, ni de leurs itinéraires, ni de leurs conversations."
+    },
+    {
+      "title": "Précision",
+      "body": "La bonne voiture, au bon endroit, à la bonne heure. Aucune excuse admise."
+    },
+    {
+      "title": "Connaissance locale",
+      "body": "Nos chauffeurs connaissent Prague : la circulation, les hôtels, les raccourcis, les histoires."
+    }
+  ],
+  "chauffeurs": {
+    "label": "Nos chauffeurs",
+    "heading": "Nos chauffeurs",
+    "paragraph": "Chaque chauffeur PRESTIGO est sélectionné personnellement, formé aux protocoles du transport de dirigeants et parle couramment l'anglais. Il porte un panonceau nominatif, arrive en avance et ne dit que ce qui doit être dit."
+  },
+  "requirements": [
+    "Antécédents vérifiés · Licence professionnelle",
+    "Formation à l'accueil de dirigeants",
+    "Anglais courant, niveau B2 minimum",
+    "Connaissance certifiée de la géographie de Prague",
+    "Tenue soignée : costume sombre, chaussures impeccables, sans parfum"
+  ],
+  "cta": {
+    "headingLine1": "Voyagez avec PRESTIGO.",
+    "headingItalic": "Découvrez la différence.",
+    "buttonPrimary": "Réserver un transfert",
+    "buttonSecondary": "Comptes entreprises"
+  }
+}

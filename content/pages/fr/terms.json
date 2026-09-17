@@ -1,0 +1,107 @@
+{
+  "metadata": {
+    "title": "Conditions Générales — PRESTIGO Chauffeur Privé de Prestige à Prague",
+    "description": "Conditions générales des services de chauffeur PRESTIGO. Politique de réservation, annulation, modalités de paiement, responsabilité et droit applicable.",
+    "ogTitle": "Conditions Générales — PRESTIGO Chauffeur Privé de Prestige à Prague"
+  },
+  "hero": {
+    "label": "Conditions Générales",
+    "headlineLine1": "Des conditions claires.",
+    "headlineItalic": "Aucune clause en petits caractères.",
+    "lastUpdated": "Dernière mise à jour : 6 avril 2026"
+  },
+  "section1": {
+    "title": "Champ d'application des services",
+    "text": "PRESTIGO est un nom commercial de chelautotrans s.r.o. (IČO : 05650801, dont le siège est situé Spojovací 685, Vysoký Újezd, République tchèque). Nous proposons des services de chauffeur de prestige et de transferts privés à Prague et en Europe centrale, comprenant les transferts aéroport, les trajets interurbains, le transport d'entreprise, le transport VIP et événementiel, ainsi que les transferts de groupe. En effectuant une réservation, vous acceptez les présentes conditions."
+  },
+  "section2": {
+    "title": "Réservation et confirmation",
+    "paragraph1Prefix": "Les réservations peuvent être effectuées via ",
+    "bookingLinkLabel": "rideprestigo.com/book",
+    "paragraph1Suffix": ", par e-mail, par téléphone ou par WhatsApp.",
+    "paragraph2": "Une réservation est confirmée dès réception d'un e-mail de confirmation comportant votre numéro de référence. Il vous appartient de fournir des informations exactes concernant les passagers, le lieu de prise en charge et vos coordonnées.",
+    "paragraph3": "PRESTIGO se réserve le droit de refuser une réservation à sa seule discrétion."
+  },
+  "section3": {
+    "title": "Tarifs et paiement",
+    "paragraph1": "Tous les tarifs sont fixés au moment de la réservation. Il n'existe ni majoration tarifaire ni frais cachés. Le prix indiqué comprend l'ensemble des péages du trajet ainsi que le temps d'attente standard (60 minutes pour les prises en charge à l'aéroport, 15 minutes pour les autres lieux de prise en charge).",
+    "paragraph2": "Le paiement est traité en toute sécurité via Stripe. Nous acceptons Visa et Mastercard. Les prix sont affichés en EUR ; la couronne tchèque (CZK) est disponible sur demande. Les comptes entreprise peuvent régler par facture mensuelle ou par carte société, selon les modalités convenues.",
+    "paragraph3": "Des frais supplémentaires ne s'appliquent que dans les cas suivants : temps d'attente dépassant la durée incluse, arrêts supplémentaires non prévus lors de la réservation initiale, ou frais de nettoyage en cas de dommages causés par le passager."
+  },
+  "section4": {
+    "title": "Annulation et remboursements",
+    "items": [
+      {
+        "label": "Annulation gratuite",
+        "desc": "Jusqu'à 1 heure avant l'heure de prise en charge prévue — remboursement intégral, sans justification."
+      },
+      {
+        "label": "Annulation tardive",
+        "desc": "Moins d'1 heure avant la prise en charge — jusqu'à 100 % du montant de la réservation peut être facturé."
+      },
+      {
+        "label": "Absence du passager",
+        "desc": "Si vous n'annulez pas et ne vous présentez pas au lieu de prise en charge, l'intégralité du montant de la réservation est facturée."
+      },
+      {
+        "label": "Annulation de vol",
+        "desc": "Si votre vol est annulé, nous vous proposons, à votre convenance, un remboursement intégral ou une nouvelle réservation gratuite."
+      },
+      {
+        "label": "Traitement des remboursements",
+        "desc": "Les remboursements sont effectués sur le moyen de paiement d'origine sous 5 à 10 jours ouvrés."
+      }
+    ]
+  },
+  "section5": {
+    "title": "Obligations des passagers",
+    "items": [
+      "Se présenter au lieu de prise en charge désigné à l'heure convenue.",
+      "Traiter le véhicule et le chauffeur avec respect.",
+      "Porter la ceinture de sécurité à tout moment, conformément à la loi.",
+      "Il est interdit de fumer dans le véhicule.",
+      "Les passagers sont responsables de tout dommage causé au véhicule du fait de leurs agissements."
+    ],
+    "extraItem": "PRESTIGO se réserve le droit de refuser le service aux passagers en état d'ébriété ou au comportement perturbateur."
+  },
+  "section6": {
+    "title": "Suivi des vols et temps d'attente",
+    "paragraph1": "Pour les prises en charge à l'aéroport, PRESTIGO suit l'état de votre vol en temps réel. Votre chauffeur s'adapte automatiquement aux retards, sans frais supplémentaires. 60 minutes d'attente offertes sont incluses à compter de l'atterrissage.",
+    "paragraph2": "Pour les prises en charge hors aéroport, 15 minutes d'attente offertes sont incluses à compter de l'heure de prise en charge prévue."
+  },
+  "section7": {
+    "title": "Responsabilité",
+    "paragraph1": "PRESTIGO dispose d'une assurance commerciale complète couvrant l'ensemble des véhicules et des passagers pendant le transfert.",
+    "paragraph2": "La responsabilité en cas de perte ou de détérioration d'effets personnels laissés dans le véhicule est limitée à 500 € par réservation, sauf déclaration préalable d'une valeur supérieure.",
+    "paragraph3": "PRESTIGO ne saurait être tenu responsable des retards dus aux conditions de circulation, aux fermetures de routes ou à des circonstances échappant à son contrôle raisonnable. En tout état de cause, notre responsabilité maximale n'excède pas la valeur totale de la réservation."
+  },
+  "section8": {
+    "title": "Force majeure",
+    "text": "PRESTIGO ne saurait être tenu responsable d'une inexécution résultant de catastrophes naturelles, d'intempéries sévères, de décisions gouvernementales, de grèves, de pandémies ou de tout autre événement échappant à son contrôle raisonnable. Dans de tels cas, nous proposerons une nouvelle réservation ou un remboursement intégral."
+  },
+  "section9": {
+    "title": "Propriété intellectuelle",
+    "text": "L'ensemble du contenu de rideprestigo.com — textes, images, logos et design — est la propriété de Roman Ustyugov et ne peut être reproduit sans autorisation écrite préalable."
+  },
+  "section10": {
+    "title": "Confidentialité",
+    "prefix": "Vos données personnelles sont traitées conformément à notre ",
+    "linkLabel": "Politique de confidentialité",
+    "suffix": "."
+  },
+  "section11": {
+    "title": "Droit applicable et litiges",
+    "paragraph1": "Les présentes conditions sont régies par le droit de la République tchèque. Tout litige découlant des présentes conditions ou de nos services fera d'abord l'objet d'une tentative de résolution amiable.",
+    "paragraph2": "À défaut de résolution, les litiges relèvent de la compétence exclusive des tribunaux de Prague, en République tchèque."
+  },
+  "section12": {
+    "title": "Modifications des présentes conditions",
+    "text": "PRESTIGO se réserve le droit de modifier les présentes conditions. La date de « dernière mise à jour » figurant en haut de cette page indique la révision la plus récente. La poursuite de l'utilisation de nos services après toute modification vaut acceptation des conditions mises à jour."
+  },
+  "cta": {
+    "headingLine1": "Une question ?",
+    "headingItalic": "Nous répondons dans l'heure.",
+    "buttonPrimary": "Nous contacter",
+    "buttonSecondary": "Réserver un transfert"
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Prague → Bratislava",
+    "headlineLine1": "De Prague à Bratislava,",
+    "headlineItalic": "la capitale slovaque en direct.",
+    "intro": "330 km vers l'est jusqu'à la capitale compacte de la Slovaquie, sur le Danube. Le château de Bratislava, la culture des cafés de la Vieille Ville et Vienne à seulement 65 km — trois heures et demie, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Bratislava couvre 330 km et demande environ 3,5 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement exécutif ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et slovaque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfant sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient le trafic ou le temps d'attente à destination. Des arrêts en chemin — Brno ou Hodonín — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Bratislava",
+    "headingItalic": "en trois heures et demie.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers l'est, la longue colonne vertébrale tchèque qui traverse les hauts plateaux de la Vysočina avant de rejoindre Brno, point médian naturel du trajet et halte confortable pour un café. Depuis Brno, l'itinéraire bifurque vers le sud sur la D2, corridor court et direct qui descend jusqu'à la frontière tchéco-slovaque, à Břeclav et Brodské. Le passage est invisible au sein de l'espace Schengen — aucun arrêt, aucun contrôle de documents. La D2 slovaque se prolonge droit jusqu'à Bratislava et vous dépose à votre adresse dans la Vieille Ville (Staré Mesto), au pied du château, ou dans le quartier des institutions européennes le long du Danube.",
+      "La distance totale est d'environ 330 kilomètres. Le temps de conduite est de trois heures et demie en conditions normales. Comptez 20 à 30 minutes de plus lors de la sortie de Prague aux heures de pointe du vendredi après-midi.",
+      "Votre chauffeur surveille le trafic sur la D1 avant chaque départ. En cas de retard lié à des travaux près de Velké Meziříčí ou de Jihlava — comme il s'en produit régulièrement au fil de la longue modernisation de la D1 —, il modifie l'itinéraire par Znojmo sans avoir à demander. Vous ne payez pas les embouteillages ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague jusqu'à la dépose à Bratislava. La voiture, le chauffeur, le carburant, les deux vignettes, chaque péage. Visite d'affaires, réunion européenne ou week-end sur le Danube — votre chauffeur s'occupe de la route pendant que vous vous concentrez sur la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais, tchèque et slovaque courants. Allemand sur demande.",
+    "Carburant, tous les péages, la vignette autoroutière tchèque et la vignette autoroutière slovaque. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajout d'une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Bratislava,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur patiente jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Brno (en option)",
+      "note": "Deuxième ville de République tchèque — proposée comme halte sur la D1 avant de poursuivre vers le sud.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Une halte dans le vignoble de Hodonín ou n'importe où le long de la D2. Votre itinéraire, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Bratislava",
+      "note": "Dépose à n'importe quelle adresse de Bratislava, à l'aéroport de Bratislava (BTS) ou dans la Vieille Ville.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen tchéco-slovaque à Břeclav/Brodské. Aucun contrôle des passeports pour les citoyens de l'UE."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque incluse. Vignette autoroutière slovaque incluse dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Liaison avec Vienne",
+      "value": "Vienne se trouve à 65 km de Bratislava — la plus courte distance entre deux capitales en Europe. Prestigo peut poursuivre jusqu'à Vienne dans le cadre d'une seule réservation."
+    }
+  ],
+  "dayTripLabel": "Excursions d'une journée au départ de Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Bratislava se situe à la limite de ce qui reste confortable pour une excursion d'une journée au départ de Prague — trois heures et demie par trajet — mais la taille compacte de la capitale slovaque permet de découvrir la ville en un après-midi et de rentrer le soir même. Trois formules couvrent l'essentiel des demandes.",
+    "configurations": [
+      {
+        "title": "Le château et la Vieille Ville",
+        "body": "Prise en charge à 7h30, arrivée à Bratislava à 11h00. Quatre heures sur place — le château de Bratislava sur sa colline, la route du couronnement à travers la Vieille Ville (Staré Mesto) et un déjeuner en terrasse sur la place Hviezdoslavovo avant le retour à Prague pour 18h30.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "L'après-midi au château de Devín",
+        "body": "Prise en charge à 8h00. Votre chauffeur vous conduit directement au château de Devín, sur les falaises dominant le confluent du Danube et de la Morava — le point de vue sur trois pays, avec l'Autriche de l'autre côté du fleuve. Une heure parmi les ruines, puis déjeuner tardif dans la Vieille Ville et retour.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "L'express Slavín et pont UFO",
+        "body": "Une demi-journée ciblée. Le mémorial de Slavín pour le panorama sur la ville, puis la plateforme d'observation UFO sur le pont SNP pour la silhouette moderne de Bratislava. Trois heures sur place, retour à Prague avant le dîner.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      }
+    ],
+    "footnote": "Prix indicatifs fondés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec 10 % de remise sur le retour le jour même, ou ajouter une mise à disposition horaire en ville si vous souhaitez que le chauffeur vous accompagne dans vos déplacements. Indiquez-nous votre programme et nous confirmons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous attendra devant votre adresse de prise en charge — pas sur un parking de l'autre côté de la rue, ni à un point de rendez-vous aéroportuaire situé à dix minutes de marche. Si vous arrivez à l'aéroport Václav Havel, il se trouve dans le hall des arrivées avec une tablette Prestigo affichant votre nom. À Bratislava, le même protocole s'applique devant les hôtels de la place Hviezdoslavovo comme devant les portes d'immeubles de Staré Mesto.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour trois heures de travail ou de repos, le chauffeur le comprendra et vous laissera tranquille. Si vous souhaitez des éclairages sur Bratislava — ses années de capitale conjointe de la Tchécoslovaquie, la route du couronnement des Habsbourg à travers Staré Mesto, les institutions européennes regroupées le long du fleuve, ou le point de rencontre des trois pays où la Slovaquie, l'Autriche et la Hongrie se touchent presque —, votre chauffeur saura vous en parler.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous avez oublié un adaptateur européen, demandez. Si vous souhaitez une température précise à l'arrière, dites-le. Et si vous voulez faire une pause café à l'aire de Devět Křížů sur la D1, entre la Vysočina et Brno, c'est inclus."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague — Bratislava.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, les deux vignettes, péages, temps du chauffeur. Rien n'est ajouté à la dépose à Bratislava."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur fait l'objet d'une vérification d'antécédents, parle tchèque et slovaque, et est formé aux trajets internationaux."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si la D1 est fermée près de Velké Meziříčí, votre chauffeur passe par Znojmo sans avoir à demander. Si votre vol vers Prague est retardé, la prise en charge est décalée sans le moindre appel. Vous ne devriez pas avoir à gérer le trajet — c'est notre métier."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Bratislava ?",
+      "a": "Environ 3,5 heures de porte à porte par l'autoroute D1 vers l'est via Brno, puis la D2 vers le sud en franchissant la frontière tchéco-slovaque à Brodské jusqu'à Bratislava. La circulation du vendredi après-midi à la sortie de Prague peut ajouter 20 à 30 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Bratislava ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, les deux vignettes autoroutières, tous les péages et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée entre Prague et Bratislava ?",
+      "a": "Oui, même si la plupart des clients préfèrent passer la nuit sur place compte tenu de la distance. Un retour le jour même bénéficie de 10 % de remise. Si vous souhaitez que le chauffeur vous accompagne durant la visite, ajoutez une mise à disposition horaire en ville. Une excursion type laisse quatre à cinq heures sur place entre la Vieille Ville, le château de Bratislava et un déjeuner au bord du Danube."
+    },
+    {
+      "q": "Le passage de la frontière tchéco-slovaque pose-t-il problème ?",
+      "a": "Les deux pays font partie de l'espace Schengen depuis 2007. Il n'y a pas de contrôle frontalier systématique au poste de Brodské — la ligne sur la carte est invisible depuis la voiture. Les passagers hors UE sont invités à emporter leurs documents de voyage par précaution."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et rehausseurs sont disponibles sans supplément. Merci de préciser l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Quelle langue parlera le chauffeur ?",
+      "a": "Le tchèque et le slovaque sont mutuellement intelligibles — votre chauffeur maîtrisera les deux, ainsi que l'anglais. L'allemand est disponible sur demande. Il n'existe aucune barrière linguistique entre les deux pays ; la seule chose qui change à la frontière est la monnaie, et la Slovaquie utilise l'euro."
+    }
+  ],
+  "relatedRoutesIntro": "Bratislava et Vienne ne sont distantes que de 65 kilomètres — la plus courte distance entre deux capitales en Europe — et de nombreux clients Prestigo combinent les deux en une seule réservation. Brno se situe à mi-chemin de l'itinéraire et fonctionne aussi bien comme destination autonome que comme halte en route. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-vienna",
+      "city": "Vienne",
+      "distance": "330 km",
+      "duration": "3h 30min"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2h 15min"
+    },
+    {
+      "slug": "prague-budapest",
+      "city": "Budapest",
+      "distance": "530 km",
+      "duration": "5h 30min"
+    },
+    {
+      "slug": "prague-graz",
+      "city": "Graz",
+      "distance": "530 km",
+      "duration": "5h 15min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~330 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~3,5 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Bratislava.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague — Bratislava — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Bratislava. 330 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Slovaquie.",
+    "ogTitle": "Transfert privé Prague — Bratislava — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Bratislava. 330 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Slovaquie."
+  }
+}

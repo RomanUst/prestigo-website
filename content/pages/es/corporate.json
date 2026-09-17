@@ -1,0 +1,134 @@
+{
+  "hero": {
+    "label": "Cuentas corporativas",
+    "headlineLine1": "Cuentas corporativas de chófer.",
+    "headlineItalic": "Nosotros lo hacemos sencillo.",
+    "intro": "Las cuentas corporativas de PRESTIGO están diseñadas para empresas que desplazan personas con regularidad y esperan que cada detalle esté atendido. Tarifas fijas, facturación mensual, un gestor de cuenta asignado y una flota que refleja el estándar que su organización se exige a sí misma."
+  },
+  "benefits": [
+    {
+      "title": "Facturación mensual",
+      "body": "Una factura. Todos los trayectos. Todos los departamentos. Enviada el día uno de cada mes, con el formato que necesita su departamento de contabilidad y el desglose completo de cada trayecto."
+    },
+    {
+      "title": "Gestor de cuenta",
+      "body": "Un único contacto que conoce su empresa, sus preferencias y a sus viajeros. Disponible por teléfono, correo electrónico o WhatsApp."
+    },
+    {
+      "title": "Asignación prioritaria",
+      "body": "Las cuentas corporativas reciben asignación prioritaria. Reservas para el mismo día, cambios de última hora y traslados al aeropuerto a primera hora de la mañana: todo resuelto."
+    },
+    {
+      "title": "Panel de informes",
+      "body": "Consulte todas las reservas, viajeros, costes y rutas en un solo lugar. Exporte los datos para sus informes de gastos en cualquier momento."
+    }
+  ],
+  "builtForHeading": "Diseñado para…",
+  "builtFor": [
+    {
+      "title": "Empresas con sede en Praga",
+      "body": "Que trasladan a diario a directivos, clientes e invitados VIP desde el aeropuerto Václav Havel."
+    },
+    {
+      "title": "Empresas internacionales",
+      "body": "Con personal que visita Praga con regularidad y necesita un socio de transporte terrestre fiable y reservable."
+    },
+    {
+      "title": "Organizadores de eventos y congresos",
+      "body": "Que coordinan desplazamientos de grupos con varios vehículos para delegaciones y viajes de incentivo."
+    }
+  ],
+  "howItWorksHeading": "Cómo funciona",
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Solicite",
+      "body": "Rellene el formulario que figura a continuación. Activaremos su cuenta en un plazo de 24 horas."
+    },
+    {
+      "step": "02",
+      "title": "Reserve",
+      "body": "Su equipo reserva en línea o a través del gestor de cuenta. No hace falta aprobación para cada trayecto."
+    },
+    {
+      "step": "03",
+      "title": "Facture",
+      "body": "Una única factura mensual. Pague por transferencia bancaria o con tarjeta. Tratamiento de datos plenamente conforme al RGPD."
+    }
+  ],
+  "whoUses": {
+    "label": "Quién utiliza una cuenta corporativa de PRESTIGO",
+    "headingLine1": "Creado para las firmas",
+    "headingItalic": "con las que trabaja Praga.",
+    "paragraphs": [
+      "Nuestros clientes corporativos son los despachos de abogados, las consultoras, las casas de inversión, las embajadas, los empleadores globales y las agencias de eventos que desplazan personas por Praga cada semana. Una cuenta típica puede reservar dos o tres traslados al aeropuerto un lunes por la mañana, un roadshow de media jornada para un directivo de visita a mitad de semana y un traslado a una cena el viernes por la tarde, todo ello sin una sola llamada telefónica, cadena de aprobación ni factura por trayecto.",
+      "Las cuentas corporativas también absorben esos casos excepcionales que consumen la mayor parte del tiempo de los travel managers: un cambio de última hora cuando una reunión se alarga, un segundo vehículo enviado para recoger a quienes llegan tarde, una recogida privada en una residencia fuera de la ciudad para un miembro del consejo de visita. Estas peticiones llegan directamente al gestor de cuenta, que toma la decisión y envía la confirmación antes de que el travel manager haya terminado de redactar el correo de solicitud.",
+      "Mantenemos deliberadamente un número reducido de cuentas para que cada cliente reciba el mismo nivel de atención. PRESTIGO corporate no es un programa de volumen con servicio por niveles: cada cuenta se gestiona como si fuera la más importante."
+    ]
+  },
+  "usagePatterns": {
+    "label": "Patrones de uso habituales",
+    "headingLine1": "Así es una semana en una",
+    "headingItalic": "cuenta PRESTIGO.",
+    "items": [
+      {
+        "title": "El roadshow con varias etapas",
+        "body": "Un director general de visita aterriza a las 08:10, es recibido en Llegadas con un cartel con su nombre y es conducido a cuatro reuniones consecutivas por Praga antes de su salida a las 17:00. Un chófer, un vehículo, una tarifa fija de media jornada. El viajero nunca hace cola para un taxi ni consulta un mapa."
+      },
+      {
+        "title": "El traslado al aeropuerto antes del amanecer",
+        "body": "Un socio sénior con vuelo a Londres a las 06:15 necesita ser recogido a las 04:20 en una dirección de Vinohrady durante una nevada de un martes. La asignación prioritaria reserva el coche la noche anterior, el chófer retira la nieve del vehículo antes de llegar y el cliente está en la puerta de embarque antes de que la mayor parte de Praga se haya despertado."
+      },
+      {
+        "title": "El V-Class para la reunión del consejo",
+        "body": "Cuatro consejeros que llegan en vuelos distintos en un intervalo de noventa minutos. En lugar de cuatro traslados en E-Class, el gestor de cuenta reserva un único V-Class que circula por la Terminal 1, recoge a cada pasajero en su puerta y lleva al grupo directamente al lugar de la reunión en la Ciudad Vieja. Una tarifa fija, una hora de llegada, una línea de factura."
+      }
+    ]
+  },
+  "onboarding": {
+    "label": "Alta en 48 horas",
+    "headingLine1": "Del formulario al primer trayecto,",
+    "headingItalic": "en menos de dos días laborables.",
+    "paragraph": "Rellenar el formulario de solicitud que figura a continuación lleva unos tres minutos. Ese mismo día laborable asignamos a su gestor de cuenta, redactamos un contrato de servicio y se lo enviamos para su firma. Una vez firmado, configuramos su cuenta en nuestro sistema de asignación, damos de alta a sus viajeros y realizamos una reserva de prueba sin coste alguno, de modo que su primer trayecto real nunca sea el primer trayecto. La mayoría de las cuentas están activas y realizando reservas en menos de 48 horas desde la consulta inicial."
+  },
+  "compliance": {
+    "label": "Cumplimiento normativo, seguros y facturación",
+    "headingLine1": "Documentación lista",
+    "headingItalic": "para su departamento financiero.",
+    "paragraph": "PRESTIGO está operado por chelautotrans s.r.o. (CIF checo 05650801), un operador checo plenamente licenciado y registrado a efectos de IVA. Cada factura se emite con IVA, desglose por trayecto y una referencia única por reserva. Contamos con seguro comercial de responsabilidad civil de pasajeros y seguro a todo riesgo de los vehículos, y podemos facilitar certificados a petición de los departamentos de seguridad o de compras. Los datos de los viajeros se tratan conforme al RGPD, con una política de conservación clara, y nunca se comparten con terceros."
+  },
+  "faqHeading": {
+    "label": "Preguntas sobre las cuentas corporativas",
+    "heading": "Preguntas de los departamentos financiero, de viajes y de compras."
+  },
+  "faqs": [
+    {
+      "q": "¿Qué es una cuenta corporativa de chófer de PRESTIGO?",
+      "a": "Una cuenta corporativa de PRESTIGO es una relación específica de facturación y asignación de servicios para empresas que utilizan transporte con chófer en Praga de forma habitual. En lugar de pagar por trayecto con tarjetas de empresa y perseguir recibos para los informes de gastos, sus viajeros reservan con su nombre a cargo de una cuenta centralizada, cada trayecto queda registrado con una referencia única y todo se factura una vez al mes en un único extracto consolidado con el desglose completo por trayecto. Un gestor de cuenta asignado se encarga de las preferencias de su empresa, las rutas recurrentes y las peticiones excepcionales —cambios en el mismo día, reservas fuera de horario, requisitos de protocolo— sin pasar por la central de asignación general. Las cuentas se activan en unas 48 horas: usted rellena el formulario de solicitud, firmamos un breve contrato de servicio, configuramos a sus viajeros en nuestro sistema de asignación, realizamos una reserva de prueba gratuita y ya está operativa. No hay cuota de alta, ni gasto mínimo, ni contrato de permanencia."
+    },
+    {
+      "q": "¿Quién suele utilizar las cuentas corporativas?",
+      "a": "Nuestros clientes corporativos son los despachos de abogados, las consultoras, las casas de inversión, las embajadas, los empleadores globales, las agencias de eventos y las empresas checas de capital privado que desplazan personas por Praga cada semana. Una cuenta típica puede reservar dos o tres traslados al aeropuerto un lunes por la mañana, un roadshow de media jornada para un directivo de visita a mitad de semana y un traslado a una cena el viernes por la tarde. El tamaño de las cuentas varía desde firmas boutique con cuatro o cinco trayectos al mes hasta multinacionales con varios centenares de reservas. Mantenemos deliberadamente una cartera de cuentas compacta para que cada cliente reciba el mismo nivel de atención con independencia del volumen: no existe un modelo de servicio por niveles en el que las cuentas pequeñas esperen más. Si su empresa reserva con regularidad traslados al aeropuerto o trayectos interurbanos para directivos, clientes o consejeros de visita, una cuenta casi siempre supone un ahorro tanto de dinero como de tiempo administrativo."
+    },
+    {
+      "q": "¿Cómo funcionan la facturación mensual y el pago?",
+      "a": "Cada trayecto de una cuenta corporativa queda registrado en el momento de la reserva con un número de referencia único, la clase de vehículo, el nombre del pasajero, la ruta y las notas opcionales que facilite su travel manager (centro de coste, código de proyecto, referencia de cliente). El primer día laborable de cada mes, nuestro departamento financiero reúne todos los trayectos del mes anterior en una única factura con IVA, detallada por trayecto y, si lo desea, agrupada por centro de coste, departamento o viajero. La factura se envía en PDF a su dirección de cuentas a pagar y es abonable en un plazo de 30 días por transferencia bancaria en EUR o CZK, o con tarjeta de crédito. También podemos habilitar el cargo mensual automático en tarjeta para las empresas que lo prefieran. A los clientes internacionales emitimos facturas con inversión del sujeto pasivo del IVA cuando corresponda. Cualquier discrepancia o ajuste se gestiona sin demora a través de su gestor de cuenta."
+    },
+    {
+      "q": "¿Pueden varios viajeros reservar con una misma cuenta sin credenciales individuales?",
+      "a": "Sí. Las cuentas corporativas funcionan con un modelo de viajeros nominados, no con un modelo de credenciales por usuario. Su travel manager (o el gestor de cuenta en el caso de cuentas más pequeñas) añade a la cuenta a los viajeros autorizados —normalmente los socios, directivos y asistentes que viajan con regularidad— y cada viajero puede ser reservado por sí mismo, por un asistente o por el departamento central de viajes. Las reservas pueden realizarse en línea a cargo de la cuenta, por teléfono o WhatsApp directamente con el gestor de cuenta, o por correo electrónico con una autorización permanente registrada. No hay contraseñas que gestionar, ni cupos de reserva por viajero, ni cadenas de aprobación, salvo que su política interna las exija. Para las empresas que necesiten flujos de aprobación (por ejemplo, la validación de un responsable directo para trayectos por encima de un importe determinado), podemos incorporar ese paso de aprobación al proceso de reserva: basta con que nos indique la política en el momento del alta."
+    },
+    {
+      "q": "¿Qué ocurre con los seguros, el RGPD y el cumplimiento normativo corporativo?",
+      "a": "PRESTIGO está operado por chelautotrans s.r.o. (CIF checo 05650801, registrada a efectos de IVA), un operador checo de transporte de pasajeros plenamente licenciado que posee la koncese comercial exigida para el servicio con chófer. Todos los vehículos cuentan con seguro comercial de responsabilidad civil de pasajeros y cobertura a todo riesgo suscrita por una aseguradora de la UE; podemos facilitar por adelantado certificados de seguro, números de permiso de conducir y datos de matriculación de los vehículos para cualquier reserva en la que su departamento de seguridad o de compras lo requiera. Los datos de los viajeros se tratan conforme al RGPD con una política de conservación clara: los registros de trayectos se conservan durante siete años (legislación contable checa) y los datos personales de contacto solo mientras la cuenta esté activa, tras lo cual se eliminan. No compartimos datos con terceros, no utilizamos los datos de los viajeros con fines de marketing y firmamos acuerdos de confidencialidad mutuos sin coste alguno para las cuentas que los requieran. Los datos se almacenan en infraestructura ubicada en la UE."
+    },
+    {
+      "q": "¿Cuál es el plazo habitual de alta?",
+      "a": "La mayoría de las cuentas corporativas están activas y aceptando reservas en un plazo de 48 horas desde la consulta inicial. La secuencia es la siguiente: día 0, usted completa el formulario de solicitud de tres minutos en /corporate, describiendo su empresa, el volumen mensual previsto y cualquier requisito concreto. Ese mismo día laborable asignamos un gestor de cuenta y enviamos un breve contrato de servicio para su firma (normalmente dos páginas: nuestras condiciones estándar más sus indicaciones concretas). Día 1, una vez firmado, configuramos su cuenta en el sistema de asignación, damos de alta a los viajeros que haya indicado y realizamos una reserva de prueba sin coste alguno, de modo que su primer trayecto real nunca sea el primer trayecto. Día 2, realiza su primera reserva real. En el caso de empresas con requisitos poco habituales —formatos de facturación personalizados, integración con una plataforma de gestión de viajes existente o configuraciones con varias entidades—, el alta puede llevar hasta una semana, y acordamos el calendario de antemano."
+    }
+  ],
+  "testimonial": {
+    "quote": "«Tres directores generales, dos aeropuertos, una sola factura. PRESTIGO lo hizo sencillo.»",
+    "attribution": "S. Novák · Socio sénior · Praga"
+  }
+}

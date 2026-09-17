@@ -1,0 +1,252 @@
+{
+  "hero": {
+    "label": "Praga → Viena",
+    "headlineLine1": "De Praga a Viena,",
+    "headlineItalic": "de puerta a puerta.",
+    "intro": "De Praga a Viena con chófer privado son 330 km de traslado puerta a puerta por la D1 y la A5, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con todos los peajes y ambas viñetas, checa y austriaca, incluidos. Recogida en cualquier dirección de Praga y llegada a cualquier punto de Viena."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Viena recorre 330 km por las autopistas D1 y D52, continúa por la A5 hasta Viena y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar al destino. Las paradas en ruta —Brno, Bratislava o un viñedo en Moravia del Sur— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Esto no es un servicio colectivo. Ni una aplicación de vehículos con conductor. Es un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Viena",
+    "headingItalic": "en tres horas y media.",
+    "paragraphs": [
+      "Desde una recogida en Praga —Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección sureste, atravesando las Tierras Altas de Bohemia y Moravia hacia Brno. Pasado Brno, la ruta enlaza con la D52 y desciende en línea recta por la región vinícola de Moravia del Sur hasta la frontera Schengen checo-austriaca de Mikulov–Drasenhofen, el único paso de autopista entre ambos países, invisible dentro de Schengen: sin paradas ni controles documentales.",
+      "En el lado austriaco la carretera se convierte en la A5 Nordautobahn y llega directamente al extremo norte de Viena, enlazando con el anillo S1 antes de dejarle en su hotel del Innere Stadt o en su terminal de Viena-Schwechat (VIE). La distancia total es de aproximadamente 330 kilómetros. El tiempo de conducción es de tres horas y media en condiciones normales. Añada entre 20 y 30 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
+      "Su chófer consulta el tráfico de la D1 antes de cada salida. Si hay un retraso por obras cerca de Brno —como ha ocurrido de forma intermitente durante las recientes obras de ampliación—, desvía la ruta por Znojmo y el antiguo corredor E59 sin preguntar. Usted no paga el tráfico; paga el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Viena. El coche, el chófer, el combustible, la viñeta checa, la viñeta austriaca y todos los peajes. Reunión de negocios, velada en la ópera o un fin de semana largo en la capital de los Habsburgo: su chófer se encarga de la ruta mientras usted se concentra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán a petición.",
+    "Combustible, todos los peajes, la viñeta de autopista checa y la viñeta de autopista austriaca. No se cobra nada aparte.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles a petición: portabebés a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler urbano por horas (consulte las tarifas)."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Viena,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Brno (opcional)",
+      "note": "Disponible como parada en ruta. Centro de Brno o aeropuerto de Brno–Tuřany.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Bratislava (opcional)",
+      "note": "La capital de Eslovaquia se encuentra a menos de una hora de la ruta. Pare para reuniones, para dejar a alguien en un hotel o para una conexión.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "¿Prefiere otra parada: un pueblo, un mirador, un restaurante? Solo tiene que decírselo a su chófer. La ruta es suya.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Viena",
+      "note": "Llegada a cualquier dirección de Viena, al Aeropuerto Internacional de Viena (VIE) o a la Estación Central de Viena (Wien Hauptbahnhof).",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen checo-austriaca en Mikulov–Drasenhofen. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar consigo sus documentos de viaje."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa y viñeta de autopista austriaca incluidas en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Continuación del viaje",
+      "value": "Viena conecta directamente con Bratislava, Budapest y Salzburgo. Prestigo puede prolongar su traslado en una única reserva."
+    }
+  ],
+  "dayTripLabel": "Excursiones de un día desde Praga",
+  "dayTrip": {
+    "headingLine1": "Configuraciones habituales",
+    "headingItalic": "para un día.",
+    "intro": "Viena supone una jornada más larga desde Praga que Dresde, pero la excursión Praga–Viena es una de las reservas más solicitadas de Prestigo. Tres configuraciones cubren la mayoría de las peticiones.",
+    "configurations": [
+      {
+        "title": "El día de Schönbrunn y el Belvedere",
+        "body": "Recogida a las 7:00 y llegada a Viena a las 10:30. Tres horas en el palacio de Schönbrunn —los aposentos imperiales, la Gloriette, los jardines— y después un traslado por la ciudad para pasar dos horas en el Belvedere Superior con la colección de Klimt. Regreso a Praga hacia las 21:00.",
+        "price": "Visita de un día con ida y vuelta: contáctenos para un presupuesto."
+      },
+      {
+        "title": "El Innere Stadt y una velada de ópera",
+        "body": "Recogida a última hora de la mañana, comida en una Konditorei de la Stephansplatz, una tarde en la Albertina o el Kunsthistorisches Museum y función a las 19:00 en la Wiener Staatsoper. Su chófer espera durante la representación y le lleva de vuelta por la noche.",
+        "price": "Ida y vuelta con velada: contáctenos para un presupuesto."
+      },
+      {
+        "title": "La tarde del Naschmarkt y el MuseumsQuartier",
+        "body": "Recogida a las 8:00 y llegada a Viena a las 11:30. Un paseo entre los puestos de comida del Naschmarkt, comida en una terraza del mercadillo del sábado y una tarde tranquila en el Leopold Museum y el mumok, en el MuseumsQuartier, antes del viaje de regreso.",
+        "price": "Visita de un día con ida y vuelta: contáctenos para un presupuesto."
+      }
+    ],
+    "footnote": "Precios indicativos basados en los supuestos anteriores. La tarifa final depende del tiempo realmente pasado en destino. Puede reservar el viaje de ida y vuelta con un 10 % de descuento por regreso el mismo día, o añadir alquiler urbano por horas (consulte las tarifas) si necesita que el chófer se desplace con usted por la ciudad. Cuéntenos su plan y le confirmaremos un presupuesto firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará delante de la dirección de recogida, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si se encuentra en el aeropuerto Václav Havel de Praga, estará dentro de la sala de llegadas con una tableta Prestigo mostrando su nombre. En el trayecto de vuelta desde Viena-Schwechat, esperará en la salida de la terminal acordada antes de que su avión toque tierra.",
+    "La conversación es opcional. Si desea una cabina silenciosa para tres horas de trabajo o descanso, el chófer captará la señal y le dejará tranquilo. Si desea contexto sobre Viena —la corte de los Habsburgo que gobernó un imperio desde el Hofburg, la cultura musical que dio a Mozart y a Mahler, la reconstrucción de posguerra que levantó la Staatsoper de entre los escombros—, su chófer lo conoce.",
+    "El cargador de teléfono, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si necesita una temperatura concreta en la cabina trasera, dígalo. Si quiere parar a tomar un café en el área de servicio de Devět Křížů, en la D1 entre Velké Meziříčí y Brno, está incluido."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Viena.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, peajes, las viñetas checa y austriaca y el tiempo del chófer. Nada se añade al llegar a Viena."
+      },
+      {
+        "title": "Flota propia, chóferes verificados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos con menos de tres años. Todos los chóferes con antecedentes verificados, bilingües y formados para viajes internacionales a Austria y Eslovaquia."
+      },
+      {
+        "title": "Servicio anticipatorio",
+        "body": "Si la D1 tiene un corte cerca de Brno, su chófer desvía la ruta por Znojmo sin preguntar. Si su vuelo a Viena-Schwechat se retrasa, la recogida se ajusta sin necesidad de una llamada. Usted no debería tener que gestionar el viaje: ese es nuestro trabajo."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Viena?",
+      "a": "Aproximadamente 3 horas y 30 minutos de puerta a puerta por la autopista D1 pasando por Brno, después la D52 hasta la frontera de Mikulov–Drasenhofen y enlazando con la A5 austriaca hasta Viena. El tráfico del viernes por la tarde a la salida de Praga puede añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Viena?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio cubre el combustible, todos los peajes, las viñetas checa y austriaca y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Viena?",
+      "a": "Sí. Puede reservar el viaje de ida y vuelta con un 10 % de descuento por regreso el mismo día. Si necesita que el chófer se desplace con usted por Viena durante la visita, añada el alquiler urbano por horas a la reserva. La mayoría de los clientes reservan una ida y vuelta de 9 a 10 horas para cubrir Schönbrunn, el Innere Stadt y una comida en la Ringstraße."
+    },
+    {
+      "q": "¿Se cruza la frontera austriaca sin problemas?",
+      "a": "Ambos países pertenecen al espacio Schengen. No hay controles fronterizos rutinarios en Mikulov–Drasenhofen. Todos los vehículos de Prestigo llevan la viñeta de autopista austriaca y el chófer dispone de una licencia internacional de chófer válida y reconocida en Austria."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de portabebés a contramarcha, sillas a favor de la marcha y alzadores sin coste adicional. Indique la edad de su hijo al reservar para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla alemán?",
+      "a": "Hay chóferes de habla alemana disponibles a petición, útiles para la coordinación con conserjería en Viena o para reuniones de negocios a la llegada. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie."
+    }
+  ],
+  "relatedRoutesIntro": "Viena se sitúa en el centro del antiguo corredor de los Habsburgo: Bratislava está a una hora al este, Budapest a dos horas más allá y Salzburgo queda al oeste, camino de los Alpes. Muchos clientes combinan el trayecto a Viena con otra capital o lo prolongan hacia Eslovaquia. Todas las rutas de Prestigo tienen el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-bratislava",
+      "city": "Bratislava",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2 h 15 min"
+    },
+    {
+      "slug": "prague-budapest",
+      "city": "Budapest",
+      "distance": "530 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "prague-salzburg",
+      "city": "Salzburgo",
+      "distance": "385 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "330 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Viena.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Viena — Desde {ePrice} €",
+    "description": "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde {ePrice} €, paradas en ruta y horarios flexibles.",
+    "ogTitle": "Traslado privado con chófer de Praga a Viena — Desde {ePrice} €",
+    "ogDescription": "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde {ePrice} €, paradas en ruta y horarios flexibles."
+  }
+}

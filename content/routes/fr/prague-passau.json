@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Prague → Passau",
+    "headlineLine1": "De Prague à Passau,",
+    "headlineItalic": "la ville des trois rivières.",
+    "intro": "220 km vers le sud, en Bavière, là où le Danube, l'Inn et l'Ilz se rejoignent. Une cité cathédrale médiévale, point de départ des croisières sur le Danube et porte entre la Bohême et la Bavière."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Passau couvre 220 km et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et allemande, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et des sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Des arrêts en route — České Budějovice ou Freyung — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Passau",
+    "headingItalic": "en deux heures et demie.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou l'aéroport —, votre chauffeur emprunte l'autoroute D3 vers le sud en passant par Tábor, puis la route 4 au-delà de Strakonice et Vimperk jusqu'aux hauteurs de la Šumava. La frontière Schengen tchéco-allemande de Strážný/Philippsreut est invisible : aucun arrêt, aucun contrôle de documents. La route devient la B12 côté bavarois et descend la forêt de Bavière pour arriver au confluent du Danube, de l'Inn et de l'Ilz, là où l'Altstadt s'étire sur son étroite presqu'île.",
+      "La distance totale est d'environ 220 kilomètres. Le temps de trajet est de deux heures et demie en conditions normales, plutôt trois heures les week-ends d'été ou aux abords des aires de repos de Vimperk. La dépose peut se faire n'importe où à Passau — la cathédrale Saint-Étienne et le plus grand orgue de cathédrale du monde, la forteresse de la Veste Oberhaus surplombant le confluent, ou un hôtel de la Residenzplatz au cœur baroque de l'Altstadt.",
+      "Votre chauffeur vérifie les conditions du col de la B12 avant chaque départ hivernal. Si la neige ou le verglas a fermé l'accès à Philippsreut, il passe par Linz et l'A8 côté autrichien sans avoir à demander. Vous ne payez pas la circulation ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Passau. La voiture, le chauffeur, le carburant, les péages, la vignette. Visite d'affaires, journée cathédrale ou embarquement pour une croisière sur le Danube — votre chauffeur s'occupe de l'itinéraire pendant que vous vous concentrez sur la destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière allemande. Rien n'est facturé en plus.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Retour le jour même — 10 % de remise sur le trajet retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Direction",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Passau,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, à votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Český Krumlov (facultatif)",
+      "note": "Un arrêt naturel sur le corridor de Bohême du Sud — la vieille ville inscrite à l'UNESCO et le château se trouvent à un léger détour de la route 4.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt à un point de vue, dans un village de la forêt de Bohême ou n'importe où en chemin. Votre itinéraire, votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Passau",
+      "note": "Dépose à n'importe quelle adresse à Passau — votre hôtel, la cathédrale Saint-Étienne, la Veste Oberhaus ou le terminal des croisières sur le Danube.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen tchéco-allemande à Strážný/Philippsreut sur la route 4 / B12. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent être munis de leurs documents de voyage."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque et péage autoroutier allemand inclus dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Prolongation d'itinéraire",
+      "value": "Passau est une porte vers Munich (190 km) et Ratisbonne (120 km). Prestigo peut prolonger votre transfert en une seule réservation."
+    }
+  ],
+  "dayTripLabel": "Excursions à la journée depuis Prague",
+  "dayTrip": {
+    "headingLine1": "Formules d'excursion",
+    "headingItalic": "les plus demandées.",
+    "intro": "Avec deux heures et demie à trois heures dans chaque sens, Passau s'inscrit aisément dans une seule journée de route depuis Prague. Trois formules couvrent la plupart des demandes.",
+    "configurations": [
+      {
+        "title": "La journée cathédrale Saint-Étienne et Altstadt",
+        "body": "Prise en charge à 7 h 30, arrivée à Passau vers 10 h 15. Cinq heures dans l'Altstadt — la cathédrale Saint-Étienne et le plus grand orgue de cathédrale du monde, le récital d'orgue de midi, la Residenzplatz et un déjeuner tardif sur une terrasse de la promenade du Danube. Retour à Prague vers 19 h 30.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "L'après-midi Veste Oberhaus et trois rivières",
+        "body": "Prise en charge à 8 h 00. Arrivée à la forteresse de la Veste Oberhaus vers 10 h 45 pour la vue sur le confluent du Danube, de l'Inn et de l'Ilz. Quatre heures pour le musée de la forteresse, la descente jusqu'au Dreiflüsseeck et un déjeuner dans l'Altstadt avant le trajet de retour.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      },
+      {
+        "title": "Le transfert vers la croisière sur le Danube",
+        "body": "Prise en charge à 6 h 30 à Prague. Votre chauffeur vous conduit directement au terminal des croisières de Passau pour un départ Viking, AmaWaterways ou Uniworld sur le Danube, en s'occupant des bagages de la porte de l'hôtel à la passerelle du navire. Au retour de croisière, le chauffeur vous retrouve à quai pour le trajet de retour.",
+        "price": "Forfait aller-retour — contactez-nous pour un devis"
+      }
+    ],
+    "footnote": "Prix indicatifs basés sur les scénarios ci-dessus. Le tarif final dépend du temps réellement passé sur place. Vous pouvez réserver l'aller et le retour avec 10 % de remise sur le retour le jour même, ou ajouter une mise à disposition horaire en ville si vous souhaitez que le chauffeur vous accompagne dans vos déplacements. Indiquez-nous votre programme et nous confirmons un devis ferme avant votre réservation."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueille devant votre adresse de prise en charge — pas sur un parking en face, ni à un point de rendez-vous d'aéroport à dix minutes de marche. Si vous êtes à l'aéroport Václav Havel ou dans un hôtel du centre de Prague, il est là avec une tablette Prestigo affichant votre nom.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour trois heures de travail ou de repos, le chauffeur le comprendra et vous laissera tranquille. Si vous voulez du contexte sur Passau — la ville épiscopale bavaroise sur le Danube, la reconstruction baroque après le grand incendie de 1662, la tradition des récitals d'orgue de la cathédrale, ou la manière dont les trois rivières ont transformé un camp romain en porte d'entrée des croisières fluviales —, votre chauffeur le connaît.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une température précise à l'arrière, dites-le. Si vous voulez vous arrêter pour un café sur une aire de la D3 au sud de Tábor ou au-dessus de Vimperk avant la descente de Philippsreut, c'est inclus."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Passau.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, péages, vignette allemande, temps du chauffeur. Rien n'est ajouté à l'arrivée."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux déplacements internationaux."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si le col de la B12 connaît des conditions hivernales, votre chauffeur passe par Linz et l'A8 côté autrichien sans avoir à demander. Pour les transferts vers les croisières sur le Danube, le chauffeur connaît les horaires d'accès aux quais et la fenêtre de dépôt des bagages : vous ne resterez pas sur le quai avec vos valises."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Passau ?",
+      "a": "Environ 2 h 30 à 3 h de porte à porte par l'autoroute D3 et la route 4 vers le sud à travers la Bohême du Sud, avec passage en Allemagne à Strážný/Philippsreut, puis la descente de la forêt de Bavière par la B12 jusqu'à Passau. La circulation autour de Prague aux heures de pointe peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Passau ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, tous les péages, la vignette allemande et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un aller-retour dans la journée de Prague à Passau ?",
+      "a": "Oui. Un retour le jour même est parfaitement réalisable — l'aller-retour tient aisément dans une seule journée de route. Un retour réservé en même temps bénéficie de 10 % de remise. Si vous souhaitez que le chauffeur vous accompagne dans vos déplacements pendant la visite, ajoutez une mise à disposition horaire en ville. La plupart des clients réservent un aller-retour de 7 à 9 heures pour couvrir la cathédrale Saint-Étienne, l'Altstadt et la Veste Oberhaus."
+    },
+    {
+      "q": "Le passage de la frontière allemande se fait-il sans difficulté ?",
+      "a": "Les deux pays font partie de l'espace Schengen. Le passage de Strážný/Philippsreut sur la route 4 / B12 est invisible : aucun arrêt, aucun contrôle de documents. Tous les véhicules Prestigo disposent de la vignette autoroutière allemande et le chauffeur détient une licence internationale valide reconnue en Allemagne."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et rehausseurs sont disponibles sans supplément. Merci d'indiquer l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Le chauffeur parle-t-il allemand ?",
+      "a": "Un chauffeur germanophone est disponible sur demande. Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque en standard."
+    }
+  ],
+  "relatedRoutesIntro": "Passau se trouve sur le corridor sud entre la Bohême et la Bavière. De nombreux clients combinent le trajet vers Passau avec d'autres itinéraires de la région. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "l'Europe centrale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-cesky-krumlov",
+      "city": "Český Krumlov",
+      "distance": "170 km",
+      "duration": "2 h 15"
+    },
+    {
+      "slug": "prague-linz",
+      "city": "Linz",
+      "distance": "230 km",
+      "duration": "2 h 45"
+    },
+    {
+      "slug": "prague-regensburg",
+      "city": "Ratisbonne",
+      "distance": "300 km",
+      "duration": "3 h 15"
+    },
+    {
+      "slug": "prague-munich",
+      "city": "Munich",
+      "distance": "380 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~220 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Passau.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Passau — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Passau. 220 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la ville des trois rivières.",
+    "ogTitle": "Transfert privé Prague – Passau — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Passau. 220 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, la ville des trois rivières."
+  }
+}

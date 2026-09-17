@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Prague → Hradec Králové",
+    "headlineLine1": "De Prague à Hradec Králové,",
+    "headlineItalic": "la ville royale.",
+    "intro": "115 km vers l'est par la D11 jusqu'à la ville royale sur le cours supérieur de l'Elbe. L'architecture moderniste de Kotěra et Gočár, le Musée de Bohême orientale et la capitale culturelle de la Bohême orientale. Un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Hradec Králové représente 115 km par l'autoroute D11 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Poděbrady ou Chlumec nad Cidlinou — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans qu'il soit nécessaire de le demander en cas de retard.",
+    "Ce n'est pas une navette partagée. Ni une application de taxi. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas entre la réservation et l'arrivée."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Hradec Králové",
+    "headingItalic": "en quatre-vingt-dix minutes.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D11 vers l'est. La D11 est la principale autoroute tchèque en direction de l'est, reliant la capitale à la Bohême orientale ; elle conduit directement du périphérique de Prague aux abords de Hradec Králové, sans embranchement. Aucun passage de frontière, aucune vignette étrangère à prévoir, aucun contrôle de documents à anticiper : l'itinéraire se déroule intégralement en République tchèque.",
+      "À l'arrivée, Hradec Králové se déploie au confluent de l'Elbe et de l'Orlice. Le cœur médiéval s'organise autour du campanile Bílá Věž (la Tour blanche), au-dessus de la place de la Vieille Ville, et de la cathédrale gothique du Saint-Esprit. Autour de cette colonne vertébrale médiévale, la ville a été réaménagée au début du XXe siècle par Jan Kotěra et son protégé Josef Gočár pour devenir l'un des ensembles civiques fonctionnalistes les plus cohérents d'Europe — ce qui a valu à Hradec le surnom de Salon de la République. Le Musée de Bohême orientale, conçu par Kotěra, fait partie de cet héritage.",
+      "La distance totale est d'environ 115 kilomètres. Le temps de trajet normal est de quatre-vingt-dix minutes. La circulation du vendredi soir à la sortie de Prague peut ajouter quinze minutes ; votre chauffeur vérifie les conditions sur la D11 avant chaque départ et modifie l'itinéraire si nécessaire. Vous ne payez pas la circulation ; vous payez le temps."
+    ]
+  },
+  "includedLabel": "Ce qui est compris",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague jusqu'à la dépose à Hradec Králové. La voiture, le chauffeur, le carburant, la vignette autoroutière tchèque. Visite d'affaires, parcours architectural ou journée au Musée de Bohême orientale — votre chauffeur s'occupe de la route pendant que vous vous consacrez à votre destination.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Autres langues sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, et non sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Retour le même jour — 10 % de réduction sur le trajet de retour s'il est réservé en même temps, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Hradec Králové,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur patiente jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Pardubice (en option)",
+      "note": "Ville jumelle voisine. Disponible comme arrêt en route — Vieille Ville, hippodrome ou toute adresse à Pardubice.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt à Poděbrady, une pause en route ou toute adresse sur le chemin. Votre itinéraire, votre horaire.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Hradec Králové",
+      "note": "Dépose à toute adresse de Hradec Králové, au Musée de Bohême orientale ou au centre-ville.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun passage de frontière — intégralement en République tchèque."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque comprise dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Villes jumelles",
+      "value": "Pardubice est voisine. PRESTIGO peut desservir les deux villes lors d'une même réservation — il suffit de le demander à la réservation."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueille devant votre adresse de prise en charge — un hôtel de la Vieille Ville, une résidence à Vinohrady, ou le hall des arrivées de l'aéroport Václav Havel, avec une tablette Prestigo affichant votre nom. Pas un parking de l'autre côté de la rue, ni un point de rendez-vous imposant dix minutes de marche avec les bagages.",
+    "La conversation est un choix. Si vous souhaitez un habitacle silencieux pour quatre-vingt-dix minutes de travail ou de repos, le chauffeur le comprendra et vous laissera tranquille. Si vous souhaitez en savoir plus sur Hradec Králové — la ville royale des reines douairières de Bohême, le réaménagement moderniste de Kotěra et Gočár qui lui a valu le surnom de Salon de la République, l'histoire militaire liée au siège des forces armées tchèques, le rythme d'une ville universitaire tchèque en période de cours —, votre chauffeur saura vous répondre.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une autre température dans l'habitacle, dites-le. Si vous souhaitez une courte pause café à l'aire de Sedlice sur la D11, elle est comprise dans le tarif."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Hradec Králové.",
+    "items": [
+      {
+        "title": "Tarif fixe, sans surprise",
+        "body": "Le prix annoncé est le prix payé. Carburant, vignette autoroutière tchèque, temps du chauffeur. Rien n'est ajouté à l'arrivée, pas de compteur, pas de tarification dynamique."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est contrôlé, bilingue et formé aux longues distances."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si vous souhaitez combiner Hradec Králové et Pardubice dans la même journée, c'est compris. Les deux villes sont séparées de 25 minutes et forment le duo naturel de la Bohême orientale. Indiquez votre programme à votre chauffeur ; le reste est pris en charge."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure le transfert de Prague à Hradec Králové ?",
+      "a": "Environ 1 h 30 de porte à porte par l'autoroute D11. La D11 quitte Prague vers l'est et rejoint directement Hradec Králové — un trajet simple, sur une route bien entretenue, la seule grande voie nécessaire pour ce parcours."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Hradec Králové ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette autoroutière tchèque et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Un retour le même jour est-il possible ?",
+      "a": "Oui. Votre chauffeur peut patienter sur place à Hradec Králové ou revenir à l'heure convenue. Un retour réservé le même jour bénéficie d'une réduction de 10 %. Si vous souhaitez que le chauffeur vous accompagne dans vos déplacements en ville, ajoutez une mise à disposition horaire."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière sur cet itinéraire ?",
+      "a": "Non. Hradec Králové se trouve en Bohême orientale et l'itinéraire se déroule entièrement en République tchèque. Aucun contrôle frontalier, aucune vignette étrangère, aucun changement de devise. Seul le péage autoroutier tchèque s'applique, et il est déjà compris dans votre tarif fixe."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques pour nourrisson dos à la route, sièges face à la route pour jeunes enfants et rehausseurs sont tous disponibles sans supplément. Merci d'indiquer l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Quelle langue parle le chauffeur ?",
+      "a": "Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque. Des chauffeurs germanophones, francophones, italophones ou russophones sont disponibles sur demande — merci de préciser votre préférence à la réservation."
+    }
+  ],
+  "relatedRoutesIntro": "Hradec Králové se situe au cœur de la Bohême orientale. De nombreux clients l'associent à Pardubice, poursuivent vers le nord jusqu'à Liberec ou continuent vers le sud-est en direction de Brno. Chaque itinéraire Prestigo repose sur le même principe de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "la Bohême et au-delà."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-pardubice",
+      "city": "Pardubice",
+      "distance": "105 km",
+      "duration": "1 h 15"
+    },
+    {
+      "slug": "prague-liberec",
+      "city": "Liberec",
+      "distance": "110 km",
+      "duration": "1 h 20"
+    },
+    {
+      "slug": "prague-kutna-hora",
+      "city": "Kutná Hora",
+      "distance": "80 km",
+      "duration": "1 h"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "205 km",
+      "duration": "2 h 20"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~115 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~1 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Hradec Králové.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Hradec Králové — à partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Hradec Králové. 115 km sur la D11 en Mercedes-Benz. Prix fixe à partir de {ePrice} €. Péages et vignette compris.",
+    "ogTitle": "Transfert privé Prague – Hradec Králové — à partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Hradec Králové. 115 km sur la D11 en Mercedes-Benz. Prix fixe à partir de {ePrice} €."
+  }
+}

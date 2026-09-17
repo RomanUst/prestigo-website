@@ -1,0 +1,162 @@
+{
+  "metadata": {
+    "title": "Traslado y recepción personalizada en el aeropuerto de Praga — PRG",
+    "description": "Recepción personalizada y traslado con chófer desde el aeropuerto de Praga (PRG). Bienvenida con cartel con su nombre en Llegadas, seguimiento del vuelo, servicio VIP y fast-track a petición. Desde €{businessPrice}, 24/7.",
+    "ogTitle": "Recepción y traslado en el aeropuerto de Praga — PRG | PRESTIGO"
+  },
+  "hero": {
+    "label": "Traslado al aeropuerto · Praga",
+    "headlineLine1": "Traslado al aeropuerto de Praga.",
+    "headlineItalic": "Le recibimos a su llegada, siempre.",
+    "intro": "El traslado al aeropuerto de Praga de Prestigo es un servicio de chófer con precio fijo desde el aeropuerto Václav Havel (PRG) hasta cualquier dirección de Praga, desde €{businessPrice}. Su chófer sigue su vuelo en tiempo real, espera hasta 60 minutos sin coste en Llegadas con un cartel con su nombre, se ocupa de su equipaje y le conduce en un Mercedes-Benz E-Class, S-Class o V-Class.",
+    "ctaPrimary": "Reservar traslado al aeropuerto",
+    "ctaSecondary": "Todos los servicios"
+  },
+  "featuresHeading": "Qué incluye",
+  "features": [
+    {
+      "title": "¿Qué ocurre si mi vuelo se retrasa?",
+      "body": "Su chófer sigue su vuelo en tiempo real. Si el vuelo se retrasa, su chófer se adapta: sin cargos adicionales y sin necesidad de llamadas."
+    },
+    {
+      "title": "¿Cómo me encontrará mi chófer en el aeropuerto de Praga?",
+      "body": "Su chófer le espera con un cartel con su nombre en la sala de Llegadas. Sin búsquedas ni preocupaciones. Desde el momento en que aterriza, todo está resuelto."
+    },
+    {
+      "title": "¿Cuál es el precio de un traslado al aeropuerto desde Praga?",
+      "body": "El precio que ve al reservar es el precio que paga. Sin tarifas dinámicas, sin peajes ocultos, sin sorpresas al final del trayecto."
+    },
+    {
+      "title": "¿En qué terminal me recibirá mi chófer?",
+      "body": "La Terminal 2 atiende las llegadas del espacio Schengen: vuelos desde Alemania, Austria, Francia, los Países Bajos y la mayoría de las rutas de la UE. La Terminal 1 cubre todas las llegadas extra-Schengen: Reino Unido, Estados Unidos, Oriente Medio y vuelos de larga distancia. Ambas terminales están cubiertas en cada reserva. Indique su número de vuelo y su chófer le recibirá automáticamente en la sala de Llegadas correcta con su cartel con su nombre: sin aparcamientos ni zonas de recogida de VTC."
+    }
+  ],
+  "meetGreet": {
+    "label": "Recepción personalizada",
+    "heading": "Recepción personalizada en el aeropuerto de Praga, incluida de serie",
+    "paragraph1": "Todos los traslados al aeropuerto de Prestigo incluyen una recepción personalizada completa. Su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre antes de que llegue a la salida, no en un aparcamiento ni en una cola de VTC. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña hasta el coche.",
+    "paragraph2": "Para llegadas VIP, diplomáticas y de alta dirección, se puede organizar con antelación un Mercedes S-Class con chófer sénior, fast-track en el control de pasaportes y servicio de mozo de equipajes. Es la bienvenida que ofrecemos a quienes llegan desde Estados Unidos, el Reino Unido y el Golfo tras un vuelo agotador y no quieren tener que ocuparse de nada.",
+    "items": [
+      "Bienvenida con cartel con su nombre dentro de Llegadas (Terminal 1 y Terminal 2)",
+      "Hasta 60 minutos de espera gratuita tras el aterrizaje",
+      "Seguimiento del vuelo en directo: los retrasos se gestionan automáticamente",
+      "Equipaje transportado desde la sala hasta el coche",
+      "Fast-track en el control de inmigración a petición",
+      "S-Class VIP y grupos con varios vehículos a petición"
+    ]
+  },
+  "howItWorksHeading": "Cómo funciona",
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Reserve en línea",
+      "body": "Indique su número de vuelo, la dirección de destino y los datos de los pasajeros. Elija su clase de vehículo: E-Class, V-Class o S-Class. Precio fijo confirmado en segundos."
+    },
+    {
+      "step": "02",
+      "title": "Seguimos su vuelo",
+      "body": "Su chófer sigue su vuelo en directo. Si se retrasa, su chófer se adapta automáticamente."
+    },
+    {
+      "step": "03",
+      "title": "Llegue y relájese",
+      "body": "Su chófer le espera en Llegadas con un cartel con su nombre. A partir de ahí, todo está resuelto."
+    }
+  ],
+  "journeyTimesHeading": "Duración de los trayectos desde PRG",
+  "journeyTimes": {
+    "paragraph1": "El aeropuerto Václav Havel de Praga se encuentra a 20 km al noroeste del centro de la ciudad. La duración del trayecto desde la terminal hasta su hotel o dirección depende del destino y de la hora del día. Las cifras siguientes reflejan condiciones habituales diurnas: prevea entre 5 y 10 minutos adicionales en las horas punta de la mañana o de la tarde.",
+    "paragraph2": "Su precio queda fijado en el momento de la reserva, con independencia del tráfico. Sin taxímetro, sin tarifas dinámicas y sin negociaciones al final.",
+    "items": [
+      {
+        "place": "Ciudad Vieja (Staré Město) / Plaza de Wenceslao",
+        "time": "~25 min"
+      },
+      {
+        "place": "Vinohrady / Žižkov",
+        "time": "~30 min"
+      },
+      {
+        "place": "Smíchov / Anděl",
+        "time": "~25 min"
+      },
+      {
+        "place": "Holešovice / Letná",
+        "time": "~30 min"
+      },
+      {
+        "place": "Karlín",
+        "time": "~32 min"
+      },
+      {
+        "place": "Nusle / Pankrác",
+        "time": "~28 min"
+      }
+    ]
+  },
+  "vehicleClassesHeading": "Elija su vehículo",
+  "vehicleClasses": [
+    {
+      "name": "E-Class",
+      "tag": "Premium estándar",
+      "cap": "Hasta 3 pasajeros · 3 maletas",
+      "price": "Desde €{businessPrice}",
+      "body": "El Mercedes-Benz E-Class es el vehículo habitual para las llegadas al aeropuerto de Praga: silencioso, espacioso e impecable. La elección adecuada para viajeros individuales, parejas y llegadas de negocios que desean confort sin excesos."
+    },
+    {
+      "name": "V-Class",
+      "tag": "Grupos y familias",
+      "cap": "Hasta 6 pasajeros · 6 maletas",
+      "price": "Desde €{vClassAirport}",
+      "body": "El Mercedes-Benz V-Class acomoda hasta seis pasajeros con todo su equipaje. Ideal para familias, grupos y llegadas corporativas en las que un solo vehículo y un solo precio fijo cubren a todos."
+    },
+    {
+      "name": "S-Class",
+      "tag": "Buque insignia ejecutivo",
+      "cap": "Hasta 3 pasajeros · 3 maletas",
+      "price": "Desde €{sClassAirport}",
+      "body": "El Mercedes-Benz S-Class está reservado para llegadas VIP, diplomáticas y de alta dirección. Confort en las plazas traseras, iluminación ambiental y el habitáculo más refinado de la gama actual de Mercedes-Benz."
+    }
+  ],
+  "faqsHeading": "Preguntas",
+  "faqs": [
+    {
+      "q": "¿Qué ocurre si mi vuelo se retrasa?",
+      "a": "Su chófer sigue su vuelo en directo. Los retrasos se gestionan automáticamente: sin coste adicional por esperas de hasta 60 minutos tras el aterrizaje."
+    },
+    {
+      "q": "¿A qué aeropuertos prestan servicio?",
+      "a": "Prestamos servicio principalmente en el aeropuerto Václav Havel de Praga (PRG). También organizamos traslados desde y hacia Viena (VIE), Berlín (BER) y Múnich (MUC) a petición."
+    },
+    {
+      "q": "¿Cómo encuentro a mi chófer en el aeropuerto?",
+      "a": "Su chófer le esperará en la sala de Llegadas con un cartel con su nombre. Recibirá su nombre y su número de teléfono antes del trayecto."
+    },
+    {
+      "q": "¿En qué consiste el servicio de recepción personalizada en el aeropuerto de Praga?",
+      "a": "La recepción personalizada significa que su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre, y no en la acera ni en una zona de recogida de VTC. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña directamente hasta el coche. Está incluida en todos los traslados al aeropuerto de Prestigo sin coste adicional."
+    },
+    {
+      "q": "¿Ofrecen recepción VIP o premium en el aeropuerto de Praga?",
+      "a": "Sí. Para llegadas VIP, diplomáticas y de alta dirección ofrecemos un Mercedes-Benz S-Class con chófer sénior, atención prioritaria y absoluta discreción. El fast-track en el control de pasaportes y el servicio de mozo de equipajes pueden organizarse con antelación, algo muy útil en agendas ajustadas, grupos numerosos o primeras llegadas a Praga."
+    },
+    {
+      "q": "¿Pueden organizar el fast-track en el aeropuerto de Praga?",
+      "a": "El fast-track en inmigración y seguridad puede añadirse a cualquier reserva con recepción personalizada a petición. Combinado con la bienvenida con cartel con su nombre en Llegadas, convierte un vuelo de larga distancia en una transición sin fricciones, algo especialmente valorado por nuestros clientes que llegan desde Estados Unidos, el Reino Unido y el Golfo."
+    },
+    {
+      "q": "¿Puedo reservar para llegadas a primera hora de la mañana o de madrugada?",
+      "a": "Sí. PRESTIGO opera 24/7, 365 días al año. Las salidas a primera hora de la mañana y las llegadas de madrugada son habituales."
+    },
+    {
+      "q": "¿Cómo se compara PRESTIGO con coger un Uber desde el aeropuerto?",
+      "a": "Uber cuenta con la parada de taxis oficial en exclusiva en PRG desde septiembre de 2023. Un Uber estándar hasta el centro de Praga cuesta entre 650 y 800 CZK, menos que el precio inicial de PRESTIGO. La diferencia está en cómo se le recibe: su chófer de PRESTIGO le espera dentro de la sala de Llegadas con un cartel con su nombre antes de que llegue a la salida. Con Uber hay que caminar 120 metros hasta la zona de recogida designada P11 y esperar a que se le asigne un vehículo. Para viajeros que van solos, con poco equipaje y llegan fuera de las horas punta, Uber es una opción práctica. Para llegadas de negocios, familias o cualquier persona con equipaje y una conexión ajustada, la recepción personalizada y el seguimiento del vuelo justifican con creces la diferencia."
+    }
+  ],
+  "cta": {
+    "label": "¿Listo para reservar?",
+    "headingLine1": "Reserve su traslado al aeropuerto",
+    "headingItalic": "en menos de 60 segundos.",
+    "buttonText": "Reservar traslado al aeropuerto"
+  }
+}

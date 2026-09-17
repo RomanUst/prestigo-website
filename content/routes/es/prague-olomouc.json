@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Praga → Olomouc",
+    "headlineLine1": "De Praga a Olomouc,",
+    "headlineItalic": "la Moravia barroca.",
+    "intro": "280 km hacia el este, hasta la gran capital histórica de Moravia. Seis fuentes barrocas, la columna de la Santísima Trinidad declarada Patrimonio de la Humanidad y uno de los cascos antiguos mejor conservados de Europa Central: tres horas, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Olomouc recorre 280 km por las autopistas D1 y D46 y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Brno o Vyškov— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si se produce una demora.",
+    "Esto no es una lanzadera compartida. Ni una aplicación de VTC. Un Mercedes privado, un chófer y una tarifa que no cambia entre la reserva y la llegada."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Olomouc",
+    "headingItalic": "en tres horas.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección este, atravesando las tierras altas de Vysočina hacia Brno. Pasado el punto medio, el paisaje se abre a los campos ondulados de la llanura de Haná y la carretera gira al norte por la D46 hasta llegar a Olomouc, el segundo centro histórico más grande de la República Checa después de la propia Praga. No hay paso fronterizo: todo el trayecto transcurre dentro de la República Checa, por lo que no hay controles de pasaporte ni peajes internacionales.",
+      "Olomouc recompensa el viaje. La columna de la Santísima Trinidad, declarada Patrimonio de la Humanidad por la UNESCO, domina la Plaza Alta, u Horní náměstí, y es el mayor conjunto escultórico barroco del país. Seis fuentes barrocas independientes —César, Hércules, Neptuno, Júpiter, Mercurio y Tritón— se encuentran a pocos minutos a pie unas de otras. La catedral de San Wenceslao se alza en la colina sobre el casco antiguo, el reloj astronómico marca las horas entre su mosaico de la época comunista en la plaza y la Universidad Palacký, fundada en 1573, es una de las más antiguas de Europa Central.",
+      "La distancia total es de aproximadamente 280 kilómetros. Su chófer revisa la D1 antes de cada salida. Si hay un carril cortado cerca de Velké Meziříčí, desvía la ruta por la R602 paralela sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Olomouc. El coche, el chófer, el combustible, la viñeta, los peajes. Ya sea una visita de negocios, una reunión universitaria o un fin de semana entre fuentes barrocas, su chófer se ocupa de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años de antigüedad.",
+    "Un chófer profesional, con dominio del inglés y del checo. Otros idiomas bajo petición.",
+    "Combustible, viñeta de autopista checa y todos los peajes de la D1 y la D46. No se cobra nada aparte.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o elevador. Sin cargo adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler por horas en la ciudad."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Olomouc,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Brno (opcional)",
+      "note": "La capital de Moravia, disponible como parada natural en ruta para una reunión, una comida o una breve visita al casco antiguo.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "Una parada en cualquier punto de la D1 o la D46. Su Moravia, a su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Olomouc",
+      "note": "Llegada a cualquier dirección de Olomouc, al casco antiguo, a la universidad o a su hotel.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso fronterizo",
+      "value": "Sin paso fronterizo: el trayecto transcurre íntegramente dentro de la República Checa."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa incluida en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Conexión con Brno",
+      "value": "Brno está a 75 km de Olomouc. Prestigo puede cubrir ambas ciudades en una sola reserva."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará frente a la dirección de recogida en el centro de Praga, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si llega al aeropuerto Václav Havel, le esperará dentro de la sala de llegadas con una tableta Prestigo mostrando su nombre.",
+    "La conversación es una elección. Si prefiere una cabina silenciosa para tres horas de trabajo o descanso, el chófer captará la señal y le dejará tranquilo. Si desea contexto sobre Olomouc —sus siglos como capital histórica de Moravia, el origen jesuita de la Universidad Palacký, la arquitectura barroca que sobrevivió allí donde la de Praga fue restaurada en exceso, la cultura de café que aún se rige por la hospitalidad de la llanura de Haná—, su chófer la conoce.",
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si necesita una temperatura concreta en la cabina trasera, indíquelo. Y si desea interrumpir el trayecto con un buen café en un área de servicio decente de la D1 en lugar de un quiosco de gasolinera, su chófer ya sabe qué salida tomar."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Olomouc.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta de autopista checa, tiempo del chófer. Nada añadido a la llegada, sin taxímetro, sin recargo por ser viernes por la tarde."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos con menos de tres años de antigüedad. Todos los chóferes con antecedentes verificados, bilingües y conocedores de las rutas y direcciones de Moravia."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si la D1 presenta un corte cerca de Velké Meziříčí, su chófer desvía la ruta por la R602 paralela. Combinar Olomouc con Brno u Ostrava el mismo día también está incluido."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Olomouc?",
+      "a": "Aproximadamente 3 horas de puerta a puerta por la autopista D1 en dirección este pasando por Brno, y después por la D46 hacia el norte hasta Olomouc. El tráfico de salida de Praga durante la hora punta del viernes por la tarde puede añadir 20 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Olomouc?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, viñeta de autopista checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar un viaje de ida y vuelta en el mismo día de Praga a Olomouc?",
+      "a": "Sí. Puede reservar el trayecto de ida y vuelta con un 10 % de descuento por regreso en el mismo día. Si necesita que el chófer le acompañe por Olomouc durante la visita, añada el alquiler por horas en la ciudad a su reserva. La mayoría de los clientes reservan un día completo para recorrer la Plaza Alta, la columna de la Santísima Trinidad y comer en el casco antiguo antes del regreso."
+    },
+    {
+      "q": "¿Hay algún paso fronterizo camino de Olomouc?",
+      "a": "No. La ruta Praga–Olomouc transcurre íntegramente dentro de la República Checa. Sin frontera, sin control de pasaporte, sin peajes internacionales. La viñeta de autopista checa está incluida en el precio indicado."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas a favor de la marcha y elevadores sin coste adicional. Indique la edad de su hijo en el momento de la reserva para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿Qué idiomas habla el chófer?",
+      "a": "Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie. El alemán, el ruso u otros idiomas pueden organizarse bajo petición en el momento de la reserva."
+    }
+  ],
+  "relatedRoutesIntro": "Olomouc se encuentra en la encrucijada de Moravia, a poca distancia de Brno, Ostrava, Zlín y la frontera polaca. Muchos clientes combinan un trayecto a Olomouc con otra ciudad morava o lo prolongan hasta el sur de Polonia. Todas las rutas de Prestigo tienen el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Moravia y más allá."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "210 km",
+      "duration": "2 h 15 min"
+    },
+    {
+      "slug": "prague-ostrava",
+      "city": "Ostrava",
+      "distance": "370 km",
+      "duration": "3 h 45 min"
+    },
+    {
+      "slug": "prague-zlin",
+      "city": "Zlín",
+      "distance": "300 km",
+      "duration": "3 h 15 min"
+    },
+    {
+      "slug": "prague-krakow",
+      "city": "Cracovia",
+      "distance": "540 km",
+      "duration": "5 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~280 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Olomouc.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Olomouc — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Olomouc. 280 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la capital histórica de Moravia.",
+    "ogTitle": "Traslado privado de Praga a Olomouc — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Olomouc. 280 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la capital histórica de Moravia."
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Praga → Hradec Králové",
+    "headlineLine1": "De Praga a Hradec Králové,",
+    "headlineItalic": "la ciudad real.",
+    "intro": "115 km hacia el este por la D11 hasta la ciudad real del alto Elba. Arquitectura modernista de Kotěra y Gočár, el Museo de Bohemia Oriental y la capital cultural de Bohemia Oriental. Un único precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Hradec Králové recorre 115 km por la autopista D11 y dura aproximadamente 1,5 horas puerta a puerta. La tarifa fija parte de €{ePrice} en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde €{vPrice}; el S-Class está disponible desde €{sPrice} para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Poděbrady o Chlumec nad Cidlinou— están disponibles con la misma tarifa fija si se organizan en el momento de la reserva. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
+    "No es un servicio compartido. No es una aplicación de taxi. Un Mercedes privado, un chófer y una tarifa que no cambia entre la reserva y la llegada."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Hradec Králové",
+    "headingItalic": "en noventa minutos.",
+    "paragraphs": [
+      "Desde una recogida en Praga en la Ciudad Vieja, Vinohrady, Malá Strana o el Aeropuerto Václav Havel, su chófer toma la autopista D11 en dirección este. La D11 es la principal autopista checa en dirección este y conecta la capital con Bohemia Oriental: va directamente desde la circunvalación de Praga hasta las afueras de Hradec Králové sin desviaciones. No hay paso de frontera, no hay que gestionar ninguna viñeta extranjera y no cabe esperar ningún control de documentos: todo el trayecto discurre dentro de la República Checa.",
+      "A su llegada, Hradec Králové se despliega en la confluencia de los ríos Elba y Orlice. El núcleo medieval se articula en torno al campanario Bílá Věž (Torre Blanca), sobre la plaza de la Ciudad Vieja, y a la catedral gótica del Espíritu Santo. Alrededor de esa columna medieval, la ciudad fue reurbanizada a comienzos del siglo XX por Jan Kotěra y su discípulo Josef Gočár hasta convertirse en uno de los conjuntos civiles funcionalistas más coherentes de Europa, razón por la cual Hradec es conocida como el Salón de la República. El Museo de Bohemia Oriental, diseñado por Kotěra, forma parte de ese legado.",
+      "La distancia total es de unos 115 kilómetros. El tiempo normal de conducción es de noventa minutos. El tráfico de salida de Praga un viernes por la tarde puede añadir quince minutos; su chófer comprueba el estado de la D11 antes de cada salida y modifica el itinerario si es necesario. No paga usted por el tráfico; paga por el tiempo."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Hradec Králové. El coche, el chófer, el combustible y la viñeta de autopista checa. Visita de negocios, recorrido arquitectónico o un día en el Museo de Bohemia Oriental: su chófer se encarga de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Otros idiomas a petición.",
+    "Combustible, todos los peajes y la viñeta de autopista checa. No se cobra nada aparte.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles a petición: portabebés en sentido contrario a la marcha, silla infantil en sentido de la marcha o alzador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler por horas en la ciudad."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde €{ePrice}",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde €{sPrice}",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Furgoneta Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde €{vPrice}",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Hradec Králové,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el Aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Pardubice (opcional)",
+      "note": "Ciudad gemela contigua. Disponible como parada en ruta: la Ciudad Vieja, el hipódromo o cualquier dirección de Pardubice.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "Una parada en Poděbrady, un descanso en el camino o cualquier dirección de paso. Su ruta, su horario.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Hradec Králové",
+      "note": "Llegada a cualquier dirección de Hradec Králové, al Museo de Bohemia Oriental o al centro de la ciudad.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Sin paso de frontera: todo el trayecto se realiza dentro de la República Checa."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa incluida en el precio indicado."
+    },
+    {
+      "label": "Traslado de regreso",
+      "value": "Reserve ambos trayectos juntos y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Ciudades gemelas",
+      "value": "Pardubice está justo al lado. PRESTIGO puede cubrir ambas ciudades en una sola reserva: solo tiene que solicitarlo al reservar."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibe delante de la dirección de recogida: un hotel en la Ciudad Vieja, una residencia en Vinohrady o la sala de llegadas del Aeropuerto Václav Havel con una tablet de Prestigo con su nombre. No en un aparcamiento al otro lado de la calle, ni en un punto de encuentro que exija diez minutos caminando con el equipaje.",
+    "La conversación es una elección. Si desea una cabina silenciosa durante noventa minutos para trabajar o descansar, el chófer percibirá esa señal y le dejará tranquilo. Si prefiere contexto sobre Hradec Králové —la ciudad real de las reinas viudas de Bohemia, la reurbanización modernista de Kotěra y Gočár que le valió el apodo de Salón de la República, la historia militar vinculada al cuartel general de las Fuerzas Armadas Checas, el ritmo de una ciudad universitaria checa en pleno curso—, su chófer la conoce.",
+    "El cargador de teléfono, el agua embotellada y el wifi ya están en la cabina. Si desea otra temperatura, no dude en indicarlo. Y si le apetece una breve parada para tomar un café en el área de descanso de Sedlice, en la D11, está incluida en la tarifa."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Hradec Králové.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta de autopista checa y tiempo del chófer. Nada añadido al llegar, sin taxímetro ni tarifas dinámicas de aplicación."
+      },
+      {
+        "title": "Flota propia, chóferes verificados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos con menos de tres años. Todos los chóferes con antecedentes verificados, bilingües y formados para trayectos de larga distancia."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si desea combinar Hradec Králové con Pardubice el mismo día, está incluido. Las dos ciudades están a 25 minutos la una de la otra y forman el binomio natural de Bohemia Oriental. Comunique el plan a su chófer; del resto nos encargamos nosotros."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura el traslado de Praga a Hradec Králové?",
+      "a": "Aproximadamente 1,5 horas puerta a puerta por la autopista D11. La D11 sale de Praga en dirección este y llega directamente a Hradec Králové: un trayecto sencillo, por una vía en buen estado, y la única carretera principal necesaria para el viaje."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Hradec Králové?",
+      "a": "Tarifa fija desde €{ePrice} en Mercedes E-Class (hasta 3 pasajeros), €{vPrice} en V-Class (hasta 6 pasajeros) o €{sPrice} en S-Class. Los precios incluyen combustible, la viñeta de autopista checa y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Está disponible el regreso el mismo día?",
+      "a": "Sí. Su chófer puede esperar en Hradec Králové o regresar a una hora acordada. Un regreso reservado el mismo día recibe un 10 % de descuento. Si necesita que el chófer le acompañe por la ciudad, añada el alquiler por horas."
+    },
+    {
+      "q": "¿Hay algún paso de frontera en esta ruta?",
+      "a": "No. Hradec Králové se encuentra en Bohemia Oriental y todo el trayecto discurre dentro de la República Checa. No hay controles fronterizos, ni viñetas extranjeras, ni cambios de moneda. Solo se aplica el peaje de autopista checo, que ya está incluido en su tarifa fija."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Portabebés en sentido contrario a la marcha, sillas infantiles en sentido de la marcha y alzadores están disponibles sin coste adicional. Indique la edad de su hijo al reservar para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿Qué idiomas habla el chófer?",
+      "a": "Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie. Hay chóferes con alemán, francés, italiano o ruso disponibles a petición: indíquenos su preferencia al reservar."
+    }
+  ],
+  "relatedRoutesIntro": "Hradec Králové se encuentra en el corazón de Bohemia Oriental. Muchos clientes la combinan con Pardubice, prolongan el viaje hacia el norte hasta Liberec o continúan hacia el sureste en dirección a Brno. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Bohemia y más allá."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-pardubice",
+      "city": "Pardubice",
+      "distance": "105 km",
+      "duration": "1 h 15 min"
+    },
+    {
+      "slug": "prague-liberec",
+      "city": "Liberec",
+      "distance": "110 km",
+      "duration": "1 h 20 min"
+    },
+    {
+      "slug": "prague-kutna-hora",
+      "city": "Kutná Hora",
+      "distance": "80 km",
+      "duration": "1 h"
+    },
+    {
+      "slug": "prague-brno",
+      "city": "Brno",
+      "distance": "205 km",
+      "duration": "2 h 20 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~115 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~1,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Furgoneta Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "€{ePrice}",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Hradec Králové.",
+    "headingItalic": "Desde €{ePrice}, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Hradec Králové — Desde €{ePrice}",
+    "description": "Reserve un chófer privado de Praga a Hradec Králové. 115 km por la D11 en un Mercedes-Benz. Precio fijo desde €{ePrice}. Peajes y viñeta incluidos.",
+    "ogTitle": "Traslado privado de Praga a Hradec Králové — Desde €{ePrice}",
+    "ogDescription": "Reserve un chófer privado de Praga a Hradec Králové. 115 km por la D11 en un Mercedes-Benz. Precio fijo desde €{ePrice}."
+  }
+}

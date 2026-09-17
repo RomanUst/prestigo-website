@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Praga → Breslavia",
+    "headlineLine1": "De Praga a Breslavia,",
+    "headlineItalic": "la Baja Silesia sin rodeos.",
+    "intro": "285 km hacia el noreste, hasta la ciudad de los enanos de Polonia y una de las plazas de mercado más vibrantes de Europa Central. Tres horas, un precio fijo, de puerta a puerta y cruzando la frontera."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Breslavia recorre 285 km y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos de dirección o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillitas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas por el camino —Liberec o Jelenia Góra— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Esto no es una lanzadera compartida. Ni una aplicación de transporte. Es un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Breslavia",
+    "headingItalic": "en tres horas.",
+    "paragraphs": [
+      "Tras recogerle en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la autopista D11 hacia el norte en dirección a Hradec Králové y enlaza después con la carretera 33 hacia el noreste, atravesando las estribaciones checas hasta la frontera de Náchod y Kudowa-Zdrój. El paso Schengen checo-polaco es imperceptible: sin paradas ni controles de documentación. Ya en Polonia, la vía se convierte en la DK8 y luego en la autovía S8, que desciende hasta Breslavia desde el suroeste.",
+      "La distancia total es de unos 285 kilómetros. El tiempo de conducción es de tres horas en condiciones normales. Añada entre 15 y 20 minutos los viernes por la tarde al salir de Praga. Los fines de semana con tráfico intenso en la frontera polaca, su chófer puede desviarse por Liberec y el paso de Bogatynia: un trayecto algo más largo a través de los Montes de Jizera, pero una entrada más limpia en la Baja Silesia.",
+      "Breslavia bien merece el viaje. El Rynek es una de las mayores plazas de mercado medievales de Europa. Los enanos de bronce de Breslavia —unos seiscientos— nacieron como una única figurita de protesta en los años ochenta y hoy convierten cualquier paseo en una búsqueda. La Isla de la Catedral (Ostrów Tumski), la Sala del Centenario con su pionera cúpula de hormigón armado declarada Patrimonio de la Humanidad por la UNESCO y el inmenso Panorama de Racławice en su rotonda construida a medida completan la lista breve. Su chófer vigila el tráfico de la D11 antes de cada salida. Usted no paga por el tráfico; paga por el tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Breslavia. El coche, el chófer, el combustible, la viñeta checa y los peajes polacos. Ya se trate de una reunión de negocios en la Baja Silesia, de un fin de semana cultural en el Rynek o de una visita familiar en Silesia, su chófer se ocupa de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Polaco bajo petición.",
+    "Combustible, viñeta de autopista checa y peajes de las autovías polacas. No se cobra nada aparte.",
+    "Servicio de puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillitas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o elevador. Sin cargo adicional.",
+    "Regreso en el mismo día: un 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada el alquiler urbano por horas (consulte las tarifas)."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de último modelo, mantenidos según el estándar del fabricante. Sillitas infantiles disponibles bajo petición sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Breslavia,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Frontera checo-polaca",
+      "note": "Paso Schengen en Náchod/Kudowa-Zdrój, sin demoras para los ciudadanos de la UE. Su chófer coordina el cruce.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "Una parada en la ciudad balneario de Kudowa-Zdrój o en cualquier punto del camino. Su ruta, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Breslavia",
+      "note": "Llegada a cualquier dirección de Breslavia, a la plaza del Rynek o a su hotel.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Cruce fronterizo",
+      "value": "Frontera Schengen checo-polaca en Náchod/Kudowa-Zdrój. Sin control de pasaportes para los ciudadanos de la UE."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa incluida. Peajes de las autovías polacas incluidos en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos a la vez y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Continuación del viaje",
+      "value": "Breslavia conecta con Cracovia y Varsovia. PRESTIGO puede prolongar su viaje desde Breslavia."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará delante de la dirección de recogida en el centro de Praga, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si llega en avión al aeropuerto Václav Havel, le esperará dentro de la sala de llegadas con una tableta Prestigo con su nombre, y el equipaje estará en el maletero antes de que usted llegue al coche.",
+    "La conversación es opcional. Si prefiere una cabina silenciosa para tres horas de trabajo o descanso, el chófer captará la señal y le dejará tranquilo. Y si desea contexto sobre Breslavia —la capital de la Baja Silesia que fue la alemana Breslau hasta 1945, el intercambio de población que repobló la ciudad con familias polacas llegadas de Lwów, la tradición universitaria, el movimiento Alternativa Naranja que dio origen a la tradición de los enanos krasnale en los años ochenta y la convirtió en un emblema cultural, o el año 2016 como Capital Europea de la Cultura—, su chófer lo conoce.",
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si necesita una temperatura concreta en la cabina trasera, dígalo. Una parada de descanso en condiciones cerca de Hradec Králové en la D11 o en la S8 polaca tras la frontera está incluida siempre que usted lo desee."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Breslavia.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, peajes polacos y tiempo del chófer. Nada añadido a la llegada."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes pasan una verificación de antecedentes, son bilingües y están formados para los viajes internacionales."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si el paso fronterizo de Náchod sufre congestión de fin de semana, su chófer utiliza la alternativa de Bogatynia o Cieszyn. Para reuniones en polaco, hay chófer polacohablante disponible bajo petición."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Breslavia?",
+      "a": "Aproximadamente 3 horas de puerta a puerta por la autopista D11 hacia el norte hasta Hradec Králové, después por la carretera 33 hacia el noreste hasta la frontera checo-polaca de Náchod/Kudowa-Zdrój y, ya en Polonia, por las vías DK8 y S8 hasta Breslavia. El tráfico en los alrededores de Praga en hora punta puede añadir de 15 a 20 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Breslavia?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros, {vPrice} € en el V-Class para un máximo de 6, o {sPrice} € en el S-Class. El precio cubre el combustible, la viñeta checa, los peajes de las autopistas polacas y el tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Breslavia?",
+      "a": "Sí, y es la modalidad habitual en esta ruta. El regreso el mismo día lleva un 10 % de descuento. Si necesita que el chófer se desplace con usted durante la visita, añada el alquiler urbano por horas (consulte las tarifas). La mayoría de los clientes reservan una ida y vuelta de 10 a 12 horas para cubrir el Rynek, el Panorama de Racławice y una comida cerca de Ostrów Tumski."
+    },
+    {
+      "q": "¿Se cruza la frontera checo-polaca sin problemas?",
+      "a": "Ambos países están dentro del espacio Schengen. El paso de Náchod/Kudowa-Zdrój es imperceptible: sin controles rutinarios ni control de pasaportes. Todos los vehículos de Prestigo llevan la viñeta checa y los peajes polacos prepagados, y el chófer posee una licencia internacional de chófer reconocida en toda la UE."
+    },
+    {
+      "q": "¿Hay sillita infantil disponible?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas a favor de la marcha y elevadores sin coste adicional. Indique la edad de su hijo al reservar para que la sillita correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla polaco?",
+      "a": "Hay chófer polacohablante disponible bajo petición, útil para reuniones de negocios en Breslavia o para clientes que prefieren ser recibidos en polaco. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie."
+    }
+  ],
+  "relatedRoutesIntro": "Breslavia es la puerta de entrada entre Praga y el resto de Polonia. Muchos clientes combinan el trayecto a Breslavia con Cracovia, Varsovia o una parada checa por el camino. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-hradec-kralove",
+      "city": "Hradec Králové",
+      "distance": "115 km",
+      "duration": "1 h 15 min"
+    },
+    {
+      "slug": "prague-liberec",
+      "city": "Liberec",
+      "distance": "110 km",
+      "duration": "1 h 20 min"
+    },
+    {
+      "slug": "prague-krakow",
+      "city": "Cracovia",
+      "distance": "535 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "prague-warsaw",
+      "city": "Varsovia",
+      "distance": "680 km",
+      "duration": "6 h 45 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~285 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Breslavia.",
+    "headingItalic": "Desde {ePrice} €, fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Breslavia — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Breslavia. 285 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la ciudad de los enanos de Polonia.",
+    "ogTitle": "Traslado privado de Praga a Breslavia — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Breslavia. 285 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la ciudad de los enanos de Polonia."
+  }
+}

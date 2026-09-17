@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "title": "Rutas interurbanas desde Praga — Viena, Berlín, Múnich",
+    "description": "Traslados privados con chófer desde Praga a Viena, Berlín, Múnich, Budapest, Bratislava y más allá. Precio fijo, puerta a puerta, disponible 24/7.",
+    "ogTitle": "Rutas interurbanas desde Praga — Viena, Berlín, Múnich | PRESTIGO",
+    "ogDescription": "Traslados privados con chófer desde Praga a Viena, Berlín, Múnich, Budapest, Bratislava y más allá. Precio fijo, puerta a puerta."
+  },
+  "serviceDescription": "Traslados privados con chófer de puerta a puerta desde Praga a Viena, Berlín, Múnich, Budapest, Bratislava y otras ciudades de Europa Central.",
+  "hero": {
+    "label": "Rutas interurbanas · Europa Central",
+    "headlineLine1": "De Praga a cualquier destino.",
+    "headlineItalic": "En un Mercedes.",
+    "intro": "Las rutas interurbanas de Prestigo son traslados privados de puerta a puerta con precio fijo desde Praga a más de 30 ciudades de Austria, Alemania, Polonia, Hungría, Eslovaquia y la República Checa. Todos los peajes y viñetas incluidos, flota Mercedes-Benz, sin transbordos.",
+    "ctaPrimary": "Ver todas las rutas",
+    "ctaSecondary": "Reservar un traslado"
+  },
+  "popularRoutesHeading": "Rutas populares",
+  "viewAllRoutesText": "Ver las más de 50 rutas →",
+  "featuresHeading": "Por qué elegir un traslado privado",
+  "features": [
+    {
+      "title": "¿Cuánto cuesta un traslado privado desde Praga?",
+      "body": "Cada ruta interurbana tiene un precio fijo confirmado antes de que usted reserve. El importe incluye el combustible, el tiempo del conductor, todos los peajes de autopista y, cuando corresponda, las viñetas de autopista checas y austriacas o alemanas. No se añade nada al llegar al destino. Los precios vigentes se muestran en la página de cada ruta y se cargan desde nuestra base de datos de tarifas en tiempo real."
+    },
+    {
+      "title": "¿Qué significa en la práctica el servicio de puerta a puerta?",
+      "body": "Su conductor se presenta en el vestíbulo de su hotel, en la recepción de su oficina o en su domicilio y se encarga de su equipaje desde ese mismo momento. En el destino se le lleva a su dirección exacta: un hotel concreto, un centro de congresos o una residencia privada. No hay traslados entre estaciones, ni autocares compartidos, ni necesidad de orientarse en una ciudad desconocida después de cuatro horas de viaje. Todo el trayecto es un único desplazamiento ininterrumpido, de su puerta a la de su destino."
+    },
+    {
+      "title": "¿Puedo trabajar o atender llamadas durante un traslado largo?",
+      "body": "Cada vehículo dispone de carga USB-A y USB-C, soporte para el teléfono y Wi-Fi a bordo. El S-Class y el V-Class ofrecen además agua embotellada fría. La separación entre el habitáculo del conductor y el del pasajero hace que las llamadas, las videoconferencias y las conversaciones confidenciales se mantengan privadas durante todo el viaje. Las cuatro horas de Praga a Viena son tiempo realmente productivo: es habitual que los pasajeros de la cuenta corporativa dediquen las dos primeras horas a llamadas y las dos siguientes a documentos, llegando al destino con el trabajo de la mañana ya hecho."
+    },
+    {
+      "title": "¿Puedo reservar un traslado a primera hora de la mañana o de noche?",
+      "body": "Las salidas interurbanas se realizan a cualquier hora. Una salida de Praga a las 04:30 para una reunión a las 09:00 en Viena es uno de los patrones de reserva más frecuentes en la cuenta corporativa: permite a los pasajeros llegar descansados en lugar de agotados por un primer vuelo de la mañana con escala en un aeropuerto de conexión. Los regresos tardíos, después de una cena que se prolonga hasta medianoche en la ciudad de destino, son igualmente habituales. El conductor confirma la reserva la tarde anterior y envía un recordatorio de salida una hora antes."
+    }
+  ],
+  "editorialHeading": "Traslado privado frente al transporte público",
+  "editorial": [
+    "Europa Central es compacta si se compara con los viajes de larga distancia, pero las conexiones de transporte público rara vez resultan cómodas cuando el tiempo y el confort importan. Viena está a 3,5 horas de Praga por carretera, pero el tren directo Railjet tarda 4 horas y 20 minutos y llega a Wien Hauptbahnhof, a otros 30 minutos en taxi o U-Bahn de la mayoría de los hoteles de negocios del primer o el cuarto distrito. Berlín está a 4 horas y 40 minutos en tren desde Praha hlavní nádraží con el servicio directo EC, que opera dos veces al día con espacio limitado para el equipaje y sin zona de silencio garantizada.",
+    "Un traslado privado cubre la misma distancia en menos horas totales, con el vehículo en su puerta a la salida y su dirección exacta de destino al final. La diferencia en el tiempo de viaje de puerta a puerta —teniendo en cuenta el trayecto a pie o en taxi hasta la estación, el tiempo de espera y el desplazamiento posterior en el destino— suele ser de 45 minutos a dos horas a favor del traslado privado, según la ciudad de destino y la hora del día.",
+    "PRESTIGO opera 30 rutas confirmadas desde Praga, cada una con un precio fijo publicado. La flota es exclusivamente Mercedes: E-Class para viajes en solitario o en pareja, S-Class para quienes desean el espacio y el equipamiento adicionales de una berlina ejecutiva completa, y V-Class para grupos de hasta siete pasajeros con todo su equipaje. Todas las rutas pueden ampliarse a un viaje de ida y vuelta, con un descuento de regreso aplicado automáticamente en la reserva."
+  ],
+  "vsTrainHeading": "Traslado privado frente al tren",
+  "vsTrain": {
+    "prestigo": {
+      "heading": "Traslado privado PRESTIGO",
+      "items": [
+        "De puerta a puerta, sin traslados entre estaciones",
+        "Precio fijo, sin tarifas dinámicas",
+        "Trabaje o descanse en su propio espacio",
+        "Equipaje atendido, sin compartimentos superiores",
+        "Sin retrasos ni cancelaciones"
+      ]
+    },
+    "trainBus": {
+      "heading": "Tren / autobús",
+      "items": [
+        "Solo de estación a estación",
+        "El precio varía según la fecha de reserva",
+        "Vagón compartido, privacidad limitada",
+        "Se aplican restricciones de equipaje",
+        "Sujeto a retrasos y a los horarios"
+      ]
+    }
+  },
+  "cta": {
+    "label": "¿Listo para partir?",
+    "headingLine1": "Elija su ruta y reserve",
+    "headingItalic": "en menos de 60 segundos.",
+    "ctaPrimary": "Ver todas las rutas",
+    "ctaSecondary": "Reservar ahora"
+  }
+}

@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Praga → Núremberg",
+    "headlineLine1": "De Praga a Núremberg,",
+    "headlineItalic": "la ciudad franconia.",
+    "intro": "360 km hacia el suroeste por la D5 hasta Baviera. Tres horas y media de puerta a puerta. Tarifa fija desde {ePrice} €. Su chófer ya le está esperando."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Núremberg recorre 360 km por las autopistas D5 y A93 y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes-Benz E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, las viñetas de autopista checa y alemana, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada a la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Pilsen o Ratisbona— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Esto no es una lanzadera compartida. No es una aplicación de vehículos con conductor. Es un Mercedes-Benz privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Núremberg",
+    "headingItalic": "en tres horas y media.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D5 hacia el suroeste, atravesando el campo bohemio en dirección a Pilsen. Tras la ciudad cervecera, la D5 asciende hacia la boscosa Selva de Bohemia y alcanza la frontera Schengen checo-alemana en Rozvadov y Waidhaus: invisible dentro del espacio Schengen, sin paradas ni controles de documentación. Ya en Alemania, la carretera se convierte en la A6 y avanza hacia el oeste por las suaves colinas del Alto Palatinado hasta Baviera, llegando a Núremberg desde el este.",
+      "La distancia total es de aproximadamente 360 kilómetros. El tiempo de conducción es de tres horas y media en condiciones normales. La ruta le deja directamente en el Altstadt, con su Kaiserburg sobre la cresta de arenisca que domina el Pegnitz, el Hauptmarkt donde el Christkindlesmarkt llena la plaza cada diciembre, la casa de Alberto Durero bajo el castillo y el Centro de Documentación del antiguo recinto de congresos del Partido Nazi, al sur del centro.",
+      "Su chófer consulta el tráfico en la A6 antes de cada salida. Si un fin de semana festivo de verano ha congestionado la circulación cerca de Amberg, o si las obras de ampliación de la A6 están activas, cambia la ruta sin necesidad de preguntar. Usted no paga por el tráfico; paga por su tiempo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Núremberg. El coche, el chófer, el combustible, la viñeta checa y el peaje alemán. Una feria en NürnbergMesse, un día de museos en el Altstadt o un fin de semana de mercado navideño: su conductor se ocupa de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes-Benz negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con dominio del inglés y del checo. Alemán bajo petición.",
+    "Combustible, todos los peajes y la viñeta alemana. No se cobra nada adicional.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla infantil a favor de la marcha o elevador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler urbano por horas."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Núremberg,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el aeropuerto de Praga (PRG). El conductor espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Pilsen (opcional)",
+      "note": "La capital de Bohemia Occidental: la fábrica de cerveza Pilsner Urquell y el centro de la ciudad, disponibles como parada en ruta por la D5.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "Una parada en la región fronteriza checo-alemana o en cualquier punto de la A6. Su ruta, su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Núremberg",
+      "note": "Llegada a cualquier dirección de Núremberg, al aeropuerto de Núremberg (NUE) o al centro medieval de la ciudad.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Cruce de frontera",
+      "value": "Frontera Schengen checo-alemana en Rozvadov/Waidhaus. Sin control de pasaportes para ciudadanos de la UE."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y el peaje de autopista alemán están incluidos en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Continuación del trayecto",
+      "value": "Múnich está a 160 km al sur. Prestigo puede prolongar su viaje de Núremberg a Múnich en una única reserva."
+    }
+  ],
+  "dayTripLabel": "Excursiones de un día desde Praga",
+  "dayTrip": {
+    "headingLine1": "Configuraciones habituales",
+    "headingItalic": "para un día.",
+    "intro": "Con tres horas y media en cada sentido, Núremberg es una cómoda excursión de un día desde Praga. Tres configuraciones cubren la mayoría de las solicitudes.",
+    "configurations": [
+      {
+        "title": "El Castillo Imperial y el casco antiguo",
+        "body": "Recogida a las 7:30, llegada a Núremberg hacia las 11:00. De cuatro a cinco horas en el Altstadt: el Kaiserburg con su terraza panorámica, la casa de Alberto Durero en la Tiergärtnertorplatz, un almuerzo de Nürnberger Rostbratwürste en una terraza del Hauptmarkt y el Schöner Brunnen. Regreso a Praga por la tarde-noche.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "El día del Christkindlesmarkt",
+        "body": "Solo en diciembre. Recogida a las 8:00 para adelantarse al tráfico de autocares hacia Núremberg. Cuatro horas recorriendo el Christkindlesmarkt en el Hauptmarkt: Lebkuchen, vino caliente y los puestos de madera que definen los mercados navideños alemanes desde 1628. Una cabina cálida le espera para el viaje de vuelta.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      },
+      {
+        "title": "Media jornada en el Centro de Documentación",
+        "body": "Para visitantes interesados en la historia del siglo XX. Tres horas en el Centro de Documentación del antiguo recinto de congresos del Partido Nazi y un paseo por el Zeppelinfeld, con parada opcional en la Sala 600 del Palacio de Justicia, donde se celebraron los Juicios de Núremberg.",
+        "price": "Paquete de ida y vuelta: consúltenos para un presupuesto"
+      }
+    ],
+    "footnote": "Precios orientativos basados en los escenarios anteriores. La tarifa final depende del tiempo real que se pase en el destino. Puede reservar el trayecto de ida y vuelta con un 10 % de descuento por regreso el mismo día, o añadir alquiler urbano por horas si necesita que el chófer se desplace con usted por la ciudad. Cuéntenos su plan y le confirmaremos un presupuesto en firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibirá delante de la dirección de recogida, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si se encuentra en el aeropuerto Václav Havel, le esperará dentro de la sala de llegadas con una tablet de Prestigo con su nombre. Una recogida en el centro de Praga, en la Ciudad Vieja, Vinohrady o Malá Strana, funciona igual: el coche está en la puerta, se carga el equipaje y comienza el trayecto.",
+    "La conversación es una elección. Si prefiere una cabina silenciosa durante tres horas y media para trabajar o descansar, el chófer captará la señal y le dejará tranquilo. Si desea contexto sobre Núremberg —la ciudad que acogió las dietas imperiales del Sacro Imperio Romano Germánico, la cuna de Alberto Durero, el escenario de los congresos del Partido Nazi y de los juicios de posguerra que establecieron el Código de Núremberg en ética médica, el lugar donde se escribió en 1628 la tradición del mercado navideño alemán—, su chófer se lo ofrecerá.",
+    "El cargador de teléfono, el agua embotellada y el wifi ya están en la cabina. Si ha olvidado un adaptador europeo, pídalo. Si necesita una temperatura concreta en la cabina trasera, dígalo. Si desea parar a tomar un café en el área de descanso de Rozvadov, a un kilómetro de la frontera alemana, o en alguna de las áreas de servicio de la A6 entre Waidhaus y Núremberg, está incluido."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Núremberg.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, peajes, la viñeta alemana y el tiempo del conductor. No se añade nada a la llegada a Núremberg."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes-Benz. Todos los vehículos tienen menos de tres años. Todos los chóferes han pasado verificación de antecedentes, son bilingües y están formados para viajes internacionales a Baviera."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si la A6 tiene un corte cerca de Amberg, su chófer desvía la ruta por Bayreuth sin necesidad de preguntar. Si viaja en diciembre para el Christkindlesmarkt, el chófer sabe dónde aparcar para que llegue al Hauptmarkt sin un largo paseo con frío."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Núremberg?",
+      "a": "Aproximadamente 3,5 horas de puerta a puerta por la autopista D5 hacia el suroeste pasando por Pilsen, después cruzando la frontera Schengen checo-alemana en Rozvadov/Waidhaus y siguiendo hacia el oeste por la A6 hasta Baviera. El tráfico de salida de Praga los viernes por la tarde puede añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Núremberg?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes-Benz E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, la viñeta checa, el peaje alemán y el tiempo del conductor. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Núremberg?",
+      "a": "Sí, y resulta un día perfectamente viable con 3,5 horas en cada sentido. El regreso el mismo día tiene un 10 % de descuento. Si necesita que el chófer se desplace con usted durante la visita, añada alquiler urbano por horas. La mayoría de los clientes de excursión de un día reservan entre 4 y 6 horas en destino."
+    },
+    {
+      "q": "¿Cruzan la frontera alemana sin problemas?",
+      "a": "Ambos países están dentro del espacio Schengen. El paso de Rozvadov/Waidhaus es invisible: no hay controles fronterizos rutinarios. Todos los vehículos de Prestigo llevan la viñeta alemana y el chófer posee una licencia internacional de conductor válida y reconocida en Alemania."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas infantiles a favor de la marcha y elevadores, sin coste adicional. Indique la edad de su hijo en el momento de la reserva para instalar la silla adecuada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla alemán?",
+      "a": "Disponemos de chóferes germanoparlantes bajo petición, algo útil en Núremberg, donde el inglés está menos extendido que en Berlín o Múnich. Todos los chóferes de Prestigo hablan inglés y checo con fluidez de serie."
+    }
+  ],
+  "relatedRoutesIntro": "Núremberg se sitúa en el corredor de la D5 y la A6 entre Praga y el sur de Alemania. Muchos clientes combinan el trayecto a Núremberg con una parada en Pilsen, un traslado posterior a Múnich o una ciudad alemana distinta. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-munich",
+      "city": "Múnich",
+      "distance": "380 km",
+      "duration": "4 h 15 min"
+    },
+    {
+      "slug": "prague-regensburg",
+      "city": "Ratisbona",
+      "distance": "280 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "prague-dresden",
+      "city": "Dresde",
+      "distance": "150 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "prague-plzen",
+      "city": "Pilsen",
+      "distance": "90 km",
+      "duration": "1 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~360 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Van Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Núremberg.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Núremberg — desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Núremberg. 360 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la ciudad medieval de Franconia.",
+    "ogTitle": "Traslado privado de Praga a Núremberg — desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Núremberg. 360 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la ciudad medieval de Franconia."
+  }
+}

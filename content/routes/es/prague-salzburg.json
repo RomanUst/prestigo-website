@@ -1,0 +1,246 @@
+{
+  "hero": {
+    "label": "Praga → Salzburgo",
+    "headlineLine1": "De Praga a Salzburgo,",
+    "headlineItalic": "la ciudad de Mozart.",
+    "intro": "305 km hacia el sur atravesando Bohemia y Austria hasta el Salzach, la fortaleza de Hohensalzburg y la casa natal de Mozart. Tres horas y media, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Salzburgo cubre 305 km y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles a peticón sin coste adicional. No se añade nada en el momento de la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Linz o Mondsee— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si se produce una demora.",
+    "Esto no es un servicio compartido. Ni una aplicación de transporte estirada a lo largo de tres fronteras internacionales. Un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Salzburgo",
+    "headingItalic": "en tres horas y media.",
+    "paragraphs": [
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D3 hacia el sur, pasando por Tábor y České Budějovice: la línea más directa hasta la frontera austriaca. El paso Schengen checo-austriaco de Wullowitz, en el lado austriaco, y Dolní Dvořiště, en el checo, es invisible. Sin cabina, sin control de documentos, sin paradas. La carretera se convierte en la vía rápida S10 del Mühlviertel y desciende hasta Linz, a orillas del Danubio.",
+      "Desde Linz, la ruta enlaza con la A1 Westautobahn y avanza hacia el oeste pasando por Wels y Attnang-Puchheim hasta las primeras laderas de los Alpes, para llegar a Salzburgo, al Altstadt: el casco antiguo declarado Patrimonio de la Humanidad por la UNESCO, extendido a ambas orillas del Salzach y coronado por la fortaleza de Hohensalzburg, con la casa natal de Mozart en la Getreidegasse y los jardines del palacio de Mirabell al otro lado del río. Existe una ruta alternativa por la D1 a través de Brno cuando la D3 tiene algún tramo cerrado. La distancia total es de aproximadamente 305 kilómetros.",
+      "Su chófer consulta el tráfico de la A1 antes de cada salida. Durante el Festival de Salzburgo (Festspiele), a finales de julio y en agosto, y los fines de semana de invierno, cuando el tráfico de esquiadores se dirige hacia el Tirol, la A1 al oeste de Linz puede ralentizarse. Si ocurre, el chófer modifica el itinerario sin necesidad de preguntar. Usted no paga por el tráfico; paga por el tiempo."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Salzburgo. El coche, el chófer, el combustible, la viñeta electrónica checa y la viñeta austriaca. Una visita al festival, una escapada de fin de semana tras las huellas de Sonrisas y lágrimas o una llamada de trabajo en Linz de camino: su chófer se encarga de la ruta mientras usted se concentra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro — E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional — inglés y checo con total fluidez. Alemán a petición.",
+    "Combustible, todos los peajes, la viñeta electrónica de autopista checa y la viñeta de autopista austriaca. No se cobra nada aparte.",
+    "Servicio de puerta a puerta — recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y WiFi en la cabina trasera.",
+    "Tiempo de espera en la recogida — 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles a petición — capazo orientado hacia atrás, silla orientada hacia delante o alzador. Sin cargo adicional.",
+    "Regreso el mismo día — 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada el alquiler por horas en la ciudad (véanse las tarifas)."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin cargo alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Salzburgo,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, su oficina o el aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Linz (opcional)",
+      "note": "La capital de la Alta Austria, a orillas del Danubio: disponible como parada en ruta antes de continuar hacia el oeste por la A1 hasta Salzburgo.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "Una parada en un lago del Salzkammergut, en Hallstatt o en cualquier punto del camino. Su Austria, a su ritmo.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Salzburgo",
+      "note": "Llegada a cualquier dirección de Salzburgo, al aeropuerto de Salzburgo (SZG) o al casco antiguo del Altstadt.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen checo-austriaca en Wullowitz/Dolní Dvořiště. Sin control de pasaportes para los ciudadanos de la UE; los pasajeros de fuera de la UE deberían llevar consigo sus documentos de viaje."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta electrónica checa y la viñeta de autopista austriaca están incluidas en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Temporada de festival",
+      "value": "El Festival de Salzburgo (Festspiele) se celebra desde finales de julio hasta agosto. Se recomienda encarecidamente reservar con antelación para las fechas del festival."
+    }
+  ],
+  "dayTripLabel": "Excursiones de un día desde Praga",
+  "dayTrip": {
+    "headingLine1": "Configuraciones habituales",
+    "headingItalic": "para la excursión de un día.",
+    "intro": "Salzburgo está a entre tres horas y media y cuatro horas de Praga en cada sentido, lo que la convierte en una cómoda excursión de un día si se sale temprano. Tres configuraciones cubren la mayoría de las peticiones.",
+    "configurations": [
+      {
+        "title": "La mañana en la ciudad de Mozart",
+        "body": "Recogida a las 6:30 y llegada a Salzburgo en torno a las 10:30. Cuatro horas en el Altstadt: la casa natal de Mozart en la Getreidegasse, la Residenzplatz y un café en el Café Tomaselli antes del regreso a Praga.",
+        "price": "Visita de un día ida y vuelta — contáctenos para obtener un presupuesto."
+      },
+      {
+        "title": "La tarde de Hohensalzburg y Mirabell",
+        "body": "Una recogida algo más tardía y cinco horas en destino. El funicular hasta la fortaleza de Hohensalzburg para disfrutar del panorama sobre el Salzach, después los jardines del palacio de Mirabell con su escenario de Sonrisas y lágrimas y, por último, una cena en la Judengasse antes del viaje de vuelta.",
+        "price": "Visita de un día ida y vuelta — contáctenos para obtener un presupuesto."
+      },
+      {
+        "title": "El palacio de Hellbrunn y sus fuentes sorpresa",
+        "body": "Salida temprana y seis horas en Salzburgo. La mañana en el palacio de Hellbrunn, con sus fuentes sorpresa del siglo XVII, y la tarde en el Altstadt y en la catedral (Dom). Su chófer se reposiciona entre las dos paradas.",
+        "price": "Visita de un día ida y vuelta — contáctenos para obtener un presupuesto."
+      }
+    ],
+    "footnote": "Precios indicativos basados en los escenarios anteriores. La tarifa final depende del tiempo real pasado en destino. Puede reservar el viaje de ida y vuelta con un 10 % de descuento por regreso el mismo día, o añadir el alquiler por horas en la ciudad (véanse las tarifas) si necesita que el chófer se desplace por la ciudad con usted. Cuéntenos su plan y le confirmaremos un presupuesto firme antes de reservar."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará delante de la dirección de recogida en el centro de Praga, no en un aparcamiento al otro lado de la calle ni en un punto de encuentro del aeropuerto a diez minutos a pie. Si se encuentra en el aeropuerto Václav Havel, le esperará dentro de la sala de llegadas con una tableta Prestigo en la que figurará su nombre.",
+    "La conversación es una elección. Si desea una cabina silenciosa durante tres horas y media para trabajar o descansar, el chófer interpretará la señal y le dejará tranquilo. Si prefiere contexto sobre Salzburgo —cómo la casa natal de Mozart en la Getreidegasse se convirtió en museo, qué localizaciones de Sonrisas y lágrimas son reales y cuáles son invenciones para los autobuses turísticos, por qué el Festspiele transformó una ciudad provinciana de los Habsburgo en la capital europea de la ópera estival, o cómo funciona Salzburgo como puerta de entrada a los Alpes—, su chófer lo sabe.",
+    "El cargador de móvil, el agua embotellada y el WiFi ya están en la cabina. Si necesita una temperatura concreta en la cabina trasera, no dude en pedirlo. La ruta pasa por una auténtica área de servicio en la D3, cerca de Tábor, y por otra en la A1, al oeste de Linz: ambas con un espresso decente e instalaciones limpias, no con el microondas de una gasolinera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Salzburgo.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, peajes, viñetas checa y austriaca, tiempo del chófer. Nada añadido al llegar al Altstadt."
+      },
+      {
+        "title": "Flota propia, chóferes seleccionados",
+        "body": "Prestigo opera su propia flota Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes cuentan con verificación de antecedentes, son bilingües y están formados para viajes internacionales."
+      },
+      {
+        "title": "Servicio anticipativo",
+        "body": "Si la A1 tiene un tramo cerrado entre Linz y Salzburgo, su chófer desviará la ruta por Wels y St. Pölten sin necesidad de una llamada. Si desea combinar el viaje con Hallstatt o la región lacustre del Salzkammergut el mismo día, está incluido."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Salzburgo?",
+      "a": "Aproximadamente entre 3,5 y 4 horas de puerta a puerta. La ruta principal va hacia el sur por la D3 pasando por Tábor y České Budějovice, cruza la frontera austriaca en Wullowitz/Dolní Dvořiště y después enlaza con la S10 hasta Linz y la A1 hacia el oeste hasta Salzburgo. El tráfico de salida de Praga los viernes por la tarde o la congestión del Festspiele en verano pueden añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Salzburgo?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros, {vPrice} € en el V-Class para hasta 6 personas, o {sPrice} € en el S-Class. El precio cubre el combustible, las viñetas checa y austriaca, todos los peajes y el tiempo del chófer. Sin cargos ocultos a la llegada."
+    },
+    {
+      "q": "¿Es viable una ida y vuelta de Praga a Salzburgo en el mismo día?",
+      "a": "Es posible —en torno a siete u ocho horas de conducción más el tiempo en destino—, pero la mayoría de los clientes prefieren pernoctar en Salzburgo. El Altstadt, la fortaleza de Hohensalzburg y los jardines de Mirabell son difíciles de ver con calma en unas pocas horas. Si aun así desea regresar el mismo día, su chófer esperará en destino y el trayecto de vuelta se beneficia de un 10 % de descuento."
+    },
+    {
+      "q": "¿Hay un paso de frontera entre la República Checa y Austria?",
+      "a": "Ambos países pertenecen al espacio Schengen. El paso de Wullowitz/Dolní Dvořiště es invisible: sin cabina de pasaportes, sin paradas. Todos los vehículos de Prestigo llevan tanto la viñeta electrónica checa como la viñeta de autopista austriaca."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos orientados hacia atrás, sillas orientadas hacia delante y alzadores sin coste adicional. Indique la edad de su hijo al reservar para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿El chófer habla alemán?",
+      "a": "Un chófer de habla alemana está disponible a petición. Todos los chóferes de Prestigo hablan inglés y checo con total fluidez de serie."
+    }
+  ],
+  "relatedRoutesIntro": "Salzburgo se sitúa en el extremo occidental de Austria, un enlace natural entre Linz y Viena al este y Múnich, al otro lado de la frontera alemana, al oeste. Muchos clientes combinan el trayecto a Salzburgo con una parada en Český Krumlov de camino al sur. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-linz",
+      "city": "Linz",
+      "distance": "230 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "prague-vienna",
+      "city": "Viena",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "prague-munich",
+      "city": "Múnich",
+      "distance": "385 km",
+      "duration": "4 h 15 min"
+    },
+    {
+      "slug": "prague-cesky-krumlov",
+      "city": "Český Krumlov",
+      "distance": "170 km",
+      "duration": "2 h 15 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~305 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Van Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Salzburgo.",
+    "headingItalic": "Desde {ePrice} €, fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Salzburgo — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Salzburgo. 305 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la ciudad de Mozart. Peajes y viñeta incluidos.",
+    "ogTitle": "Traslado privado de Praga a Salzburgo — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Salzburgo. 305 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la ciudad de Mozart."
+  }
+}

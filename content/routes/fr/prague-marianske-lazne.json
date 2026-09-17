@@ -1,0 +1,230 @@
+{
+  "hero": {
+    "label": "Prague → Mariánské Lázně",
+    "headlineLine1": "De Prague à Mariánské Lázně,",
+    "headlineItalic": "la ville d'eaux de Goethe.",
+    "intro": "165 km vers l'ouest, jusqu'à la plus élégante des villes d'eaux de Bohême occidentale. Promenades à colonnades, sources minérales, Fontaine chantante et collines boisées — deux heures, un prix fixe."
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Prague à Mariánské Lázně couvre 165 km par l'autoroute D6 et demande environ 2 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Karlovy Vary ou Cheb — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans avoir à le demander en cas de retard.",
+    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Prague à Mariánské Lázně",
+    "headingItalic": "en deux heures.",
+    "paragraphs": [
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D5 vers l'ouest par le contournement de Pilsen — au-delà du tunnel de Valík et du pont sur l'Úhlava — puis sort à l'échangeur 128 pour rejoindre la route 21. La route s'incurve ensuite vers le nord à travers les collines vallonnées de Bohême occidentale jusqu'au triangle thermal, pour arriver à Mariánské Lázně devant votre hôtel ou à l'adresse thermale que vous avez indiquée. Aucun passage de frontière. Autoroute entièrement tchèque, de la prise en charge à la dépose.",
+      "Mariánské Lázně est la perle verte du triangle thermal de Bohême occidentale. Sa pièce maîtresse est la Colonnade principale en fonte de 1889, une galerie néo-baroque de 119 mètres de long qui encadre la Fontaine chantante, laquelle joue Chopin, Mozart et Smetana à chaque heure. À quelques pas se trouvent la colonnade Maxime-Gorki, les parcs thermaux dessinés par le jardinier municipal Václav Skalník, l'église orthodoxe russe Saint-Vladimir et le Golf Club de Mariánské Lázně — fondé en 1905, l'un des plus anciens parcours d'Europe continentale.",
+      "La distance totale est d'environ 165 kilomètres. Le temps de trajet est de deux heures en conditions normales. Votre chauffeur surveille la D5 avant chaque départ et, si la circulation du vendredi après-midi s'accumule autour du périphérique de Prague, il avance la prise en charge sans avoir à vous solliciter. Vous ne payez pas la circulation ; vous payez du temps."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Mariánské Lázně. La voiture, le chauffeur, le carburant, la vignette. Programme thermal, escapade de week-end ou visite d'affaires dans l'un des établissements — votre chauffeur s'occupe de l'itinéraire pendant que vous vous consacrez à la cure.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Retour le jour même — 10 % de réduction sur le trajet retour s'il est réservé conjointement, ou ajoutez une mise à disposition horaire en ville."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1–6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Prague à Mariánské Lázně,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Prague",
+      "note": "Prise en charge à votre hôtel, votre bureau ou à l'aéroport de Prague (PRG). Le chauffeur attend jusqu'à 60 minutes à l'aéroport.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Karlovy Vary (en option)",
+      "note": "Une halte naturelle sur la route pour qui souhaite parcourir le triangle thermal — trente minutes depuis la route 21 et facile à intégrer dans la même journée.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un arrêt à Pilsen pour déjeuner, une pause le long de la D5, ou partout où l'envie vous mène. Votre Bohême occidentale, à votre rythme.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Mariánské Lázně",
+      "note": "Dépose à n'importe quelle adresse de Mariánské Lázně — votre hôtel thermal, la Colonnade principale ou la Fontaine chantante.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun. L'itinéraire se déroule entièrement en République tchèque — pas de contrôle de passeport, pas de changement de vignette."
+    },
+    {
+      "label": "Péages",
+      "value": "Vignette autoroutière tchèque incluse dans le prix indiqué."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    },
+    {
+      "label": "Triangle thermal",
+      "value": "Karlovy Vary et Františkovy Lázně sont à proximité. Prestigo peut réunir les trois villes d'eaux au sein d'une même réservation de circuit."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous accueillera aux arrivées de l'aéroport Václav Havel ou devant votre hôtel au centre de Prague — pas en face, pas sur un parking. Si vous arrivez en avion, il se tient dans le hall des arrivées avec une tablette Prestigo affichant votre nom et suit l'atterrissage en temps réel.",
+    "La conversation est un choix. Si vous souhaitez une cabine silencieuse pour deux heures de repos avant un programme thermal, le chauffeur saura le percevoir et vous laissera tranquille. Si vous souhaitez en savoir plus sur Mariánské Lázně — la perle verte du triangle thermal de Bohême occidentale, les séjours de Chopin et de Goethe, la tradition de cure ininterrompue depuis 1808, les étés d'Édouard VII —, votre chauffeur la connaît.",
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez une température précise ou une sélection musicale plus discrète, dites-le. Et si vous désirez une véritable pause le long de la D5 vers Pilsen pour un café et une courte marche, elle est comprise dans le temps de trajet."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "pour Prague – Mariánské Lázně.",
+    "items": [
+      {
+        "title": "Tarif fixe, aucune surprise",
+        "body": "Le prix affiché est le prix payé. Carburant, vignette autoroutière tchèque, temps du chauffeur. Rien n'est ajouté à l'arrivée."
+      },
+      {
+        "title": "Flotte en propre, chauffeurs sélectionnés",
+        "body": "Prestigo exploite sa propre flotte Mercedes. Chaque véhicule a moins de trois ans. Chaque chauffeur est vérifié, bilingue et formé aux transferts thermaux longue distance."
+      },
+      {
+        "title": "Un service qui anticipe",
+        "body": "Si vous souhaitez associer Mariánské Lázně à Karlovy Vary ou Františkovy Lázně le même jour pour compléter le triangle thermal, c'est inclus. Si votre soin thermal se prolonge, le chauffeur décale le retour sans qu'un appel soit nécessaire."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Prague à Mariánské Lázně ?",
+      "a": "Environ 2 heures de porte à porte par l'autoroute D5 vers l'ouest à travers Pilsen, puis la route 21 vers le nord jusqu'à la vallée thermale. Les vendredis après-midi au départ de Prague peuvent ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un chauffeur de Prague à Mariánské Lázně ?",
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette autoroutière tchèque et le temps du chauffeur. Aucun frais caché."
+    },
+    {
+      "q": "Puis-je réserver un retour le jour même, et le chauffeur attendra-t-il pendant mon soin thermal ?",
+      "a": "Oui. Un retour le jour même bénéficie d'une réduction de 10 %. Le chauffeur attend à Mariánské Lázně pendant que vous prenez les eaux, parcourez la colonnade ou suivez un programme thermal. Si vous souhaitez que le chauffeur vous accompagne dans ses déplacements en ville, ajoutez une mise à disposition horaire."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière ?",
+      "a": "Non. Mariánské Lázně se situe dans le triangle thermal de Bohême occidentale, en République tchèque. L'itinéraire est entièrement national — pas de contrôle des passeports, pas de changement de vignette, aucune formalité. Votre chauffeur connaît la D5 et la route 21 dans les moindres détails."
+    },
+    {
+      "q": "Un siège enfant est-il disponible ?",
+      "a": "Oui. Coques dos à la route, sièges face à la route et réhausseurs sont disponibles sans supplément. Merci d'indiquer l'âge de votre enfant à la réservation afin que le siège adapté soit installé avant la prise en charge."
+    },
+    {
+      "q": "Quelles langues parle le chauffeur ?",
+      "a": "Chaque chauffeur Prestigo parle couramment l'anglais et le tchèque en standard. L'allemand ou le russe est disponible sur demande, sans supplément — utile pour les hôtes des établissements thermaux qui préfèrent des explications dans leur propre langue."
+    }
+  ],
+  "relatedRoutesIntro": "Mariánské Lázně se trouve au cœur du triangle thermal de Bohême occidentale. Beaucoup de clients l'associent à Karlovy Vary ou Františkovy Lázně, ou poursuivent vers le sud jusqu'à Český Krumlov pour un week-end prolongé. Chaque itinéraire Prestigo repose sur le même modèle de tarif fixe, la même flotte et les mêmes chauffeurs.",
+  "relatedHeading": {
+    "line1": "Poursuivez à travers",
+    "italic": "la Bohême occidentale."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-karlovy-vary",
+      "city": "Karlovy Vary",
+      "distance": "130 km",
+      "duration": "1 h 30"
+    },
+    {
+      "slug": "prague-frantiskovy-lazne",
+      "city": "Františkovy Lázně",
+      "distance": "180 km",
+      "duration": "2 h 15"
+    },
+    {
+      "slug": "prague-plzen",
+      "city": "Pilsen",
+      "distance": "90 km",
+      "duration": "1 h"
+    },
+    {
+      "slug": "prague-cesky-krumlov",
+      "city": "Český Krumlov",
+      "distance": "170 km",
+      "duration": "2 h 30"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~165 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Prague à Mariánské Lázně.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Prague – Mariánské Lázně — À partir de {ePrice} €",
+    "description": "Réservez un chauffeur privé de Prague à Mariánské Lázně. 165 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, ville d'eaux de Bohême occidentale.",
+    "ogTitle": "Transfert privé Prague – Mariánské Lázně — À partir de {ePrice} €",
+    "ogDescription": "Réservez un chauffeur privé de Prague à Mariánské Lázně. 165 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, ville d'eaux de Bohême occidentale."
+  }
+}

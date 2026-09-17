@@ -1,0 +1,87 @@
+{
+  "metadata": {
+    "title": "Cuentas corporativas de chófer en Praga",
+    "description": "Cuentas corporativas de chófer para empresas con sede en Praga e internacionales. Facturación mensual, gestor de cuenta dedicado y asignación prioritaria. Alta en 24 horas.",
+    "ogTitle": "Cuentas corporativas de chófer en Praga | PRESTIGO",
+    "ogDescription": "Cuentas corporativas de chófer para empresas con sede en Praga e internacionales. Facturación mensual, gestor de cuenta dedicado y asignación prioritaria."
+  },
+  "serviceDescription": "Cuentas corporativas de chófer exclusivas con facturación mensual, gestor de cuenta y asignación prioritaria para empresas que operan en Praga.",
+  "hero": {
+    "label": "Cuentas corporativas · Praga",
+    "headlineLine1": "Su empresa viaja.",
+    "headlineItalic": "Nosotros lo hacemos sencillo.",
+    "intro": "Las cuentas corporativas de PRESTIGO están pensadas para empresas que desplazan personas con regularidad y esperan que cada detalle esté cuidado. Tarifas fijas, facturación mensual, un gestor de cuenta asignado y una flota a la altura del estándar que su organización se exige.",
+    "ctaPrimary": "Abrir cuenta corporativa",
+    "ctaSecondary": "Todos los servicios"
+  },
+  "pricingCallout": {
+    "label": "Tarifas corporativas",
+    "heading": "Tarifas por volumen disponibles",
+    "note": "Tarifas negociadas en función del volumen mensual de trayectos",
+    "items": [
+      "Facturación mensual consolidada",
+      "Gestor de cuenta dedicado",
+      "Asignación prioritaria",
+      "Panel de informes corporativos",
+      "Cuenta activada en 24 horas"
+    ]
+  },
+  "benefitsHeading": "Lo que usted obtiene",
+  "benefits": [
+    {
+      "title": "Facturación mensual",
+      "body": "Una sola factura. Todos los trayectos. Todos los departamentos. Enviada el día uno de cada mes, con el formato que su equipo contable necesita y el desglose completo de los trayectos."
+    },
+    {
+      "title": "Gestor de cuenta dedicado",
+      "body": "Un único interlocutor que conoce su empresa, a sus viajeros y sus preferencias. Disponible por teléfono, correo electrónico o WhatsApp."
+    },
+    {
+      "title": "Asignación prioritaria",
+      "body": "Las cuentas corporativas reciben asignación prioritaria. Reservas para el mismo día, cambios de última hora y traslados al aeropuerto a primera hora de la mañana: todo resuelto."
+    },
+    {
+      "title": "Panel de informes",
+      "body": "Consulte todas las reservas, viajeros, costes y rutas en un único lugar. Expórtelo para la justificación de gastos cuando lo desee."
+    }
+  ],
+  "builtForHeading": "Diseñado para",
+  "builtFor": [
+    {
+      "title": "Empresas con sede en Praga",
+      "body": "Que trasladan a diario a directivos, clientes e invitados VIP desde el aeropuerto Václav Havel."
+    },
+    {
+      "title": "Empresas internacionales",
+      "body": "Con personal que visita Praga con regularidad y necesita un socio de transporte terrestre fiable y fácil de reservar."
+    },
+    {
+      "title": "Organizadores de eventos y congresos",
+      "body": "Que coordinan desplazamientos de grupos con varios vehículos para delegaciones y viajes de incentivo."
+    }
+  ],
+  "howItWorksHeading": "Cómo funciona",
+  "howItWorks": [
+    {
+      "step": "01",
+      "title": "Solicite",
+      "body": "Rellene el formulario de consulta. Revisamos sus necesidades y activamos su cuenta en un plazo de 24 horas."
+    },
+    {
+      "step": "02",
+      "title": "Reserve",
+      "body": "Su equipo reserva en línea o a través del gestor de cuenta. Sin procesos de aprobación para cada trayecto."
+    },
+    {
+      "step": "03",
+      "title": "Facture",
+      "body": "Una única factura mensual que cubre todos los trayectos. Pague por transferencia bancaria o tarjeta. Tratamiento de datos plenamente conforme al RGPD."
+    }
+  ],
+  "cta": {
+    "label": "Abra su cuenta",
+    "headingLine1": "Cuenta lista",
+    "headingItalic": "en 24 horas.",
+    "buttonText": "Abrir cuenta corporativa"
+  }
+}

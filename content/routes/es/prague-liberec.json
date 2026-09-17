@@ -1,0 +1,224 @@
+{
+  "hero": {
+    "label": "Praga → Liberec",
+    "headlineLine1": "De Praga a Liberec,",
+    "headlineItalic": "la puerta de la montaña.",
+    "intro": "105 km hacia el norte, hasta la capital de Bohemia del Norte, a los pies de los Montes de Jizera. Teleférico, ayuntamiento neobarroco y la tradición del cristal checo: una hora y media, un precio fijo."
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Praga a Liberec cubre 105 km y dura aproximadamente 1,5 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. Nada se añade al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Mladá Boleslav o Jablonec nad Nisou— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay retrasos.",
+    "No es un servicio de lanzadera compartida. No es una aplicación de transporte. Es un Mercedes privado, un chófer y una tarifa que no cambia."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Praga a Liberec",
+    "headingItalic": "en noventa minutos.",
+    "paragraphs": [
+      "Desde una recogida en Praga en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto, su chófer toma la autopista D10 hacia el norte —parte de la ruta europea E65— pasando por Mladá Boleslav y siguiendo hasta Turnov, la puerta del Paraíso Bohemio. En Turnov la vía enlaza con la R35 y un tramo final más tranquilo entre colinas boscosas le deja en Liberec, a los pies de los Montes de Jizera. En esta ruta no hay paso de frontera. Las fronteras alemana y polaca quedan justo más allá de Liberec, pero el destino se encuentra íntegramente dentro de Chequia.",
+      "Liberec recompensa al visitante. El ayuntamiento neorrenacentista de la plaza Dr. E. Beneše es uno de los edificios civiles más fotografiados del país. El teleférico del Ještěd asciende desde Horní Hanychov hasta la cima, donde la torre-hotel hiperboloide de Karel Hubáček se alza desde 1973 y sigue funcionando como repetidor y restaurante. El Jardín Botánico está a pocos minutos a pie del centro, y las rutas de senderismo y las pistas de esquí de los Montes de Jizera comienzan a veinte minutos de la ciudad.",
+      "Su chófer consulta el tráfico de la D10 antes de cada salida. Los viernes por la tarde a la salida de Praga pueden añadir quince minutos cerca de Brandýs nad Labem, y los fines de semana de temporada de esquí congestionan el tramo final hacia Liberec. Si hay un cierre, modifica el itinerario por la carretera 16 sin necesidad de preguntar. Usted no paga por el tráfico; paga por el tiempo."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo lo cubre todo, desde la recogida en Praga hasta la llegada a Liberec. El coche, el chófer, el combustible, la viñeta de autopista. Ya sea una visita de negocios, un fin de semana de esquí o un día en los Montes de Jizera, su chófer se encarga de la ruta mientras usted se centra en el destino.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán bajo petición.",
+    "Combustible y viñeta de autopista checa. No se cobra nada aparte.",
+    "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla infantil a favor de la marcha o alzador. Sin coste adicional.",
+    "Regreso el mismo día: 10 % de descuento en el trayecto de vuelta si se reserva conjuntamente, o añada alquiler urbano por horas."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Praga a Liberec,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Praga",
+      "note": "Recogida en su hotel, oficina o en el Aeropuerto de Praga (PRG). El chófer espera hasta 60 minutos en el aeropuerto.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Donde usted quiera",
+      "note": "Mladá Boleslav, un pueblo de montaña o cualquier parada por el camino. Su ruta, su horario.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Liberec",
+      "note": "Llegada a cualquier dirección de Liberec, a su hotel o a la estación de esquí de los Montes de Jizera bajo petición.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Sin paso de frontera: el recorrido es íntegramente dentro de la República Checa."
+    },
+    {
+      "label": "Peajes",
+      "value": "Viñeta de autopista checa incluida en el precio indicado."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+    },
+    {
+      "label": "Temporada de esquí",
+      "value": "Las estaciones de esquí de los Montes de Jizera están a 20–30 minutos de Liberec. PRESTIGO puede continuar hasta estaciones concretas bajo petición."
+    }
+  ],
+  "dayTripLabel": "",
+  "dayTrip": {
+    "headingLine1": "",
+    "headingItalic": "",
+    "intro": "",
+    "configurations": [],
+    "footnote": ""
+  },
+  "chauffeurNarrative": [
+    "Su chófer le esperará delante de su dirección de recogida en el centro de Praga, o dentro de la sala de llegadas del Aeropuerto Václav Havel con una tableta Prestigo en la que figurará su nombre. Sin travesías por el aparcamiento. Sin puntos de encuentro en otra terminal.",
+    "La conversación es opcional. Si desea una cabina en silencio durante noventa minutos para trabajar o descansar, el chófer interpretará esa señal y le dejará tranquilo. Si prefiere conocer el contexto de Liberec, su chófer lo domina: la industria textil bohemia que construyó la ciudad, la historia alemana de los Sudetes que la marcó antes de 1945, la tradición del cristal checo todavía viva en los talleres de los alrededores de Jablonec, la vida invernal del Ještěd como estación de esquí en activo y el rincón de los tres países donde Chequia se encuentra con Alemania y Polonia a menos de cuarenta minutos de la plaza principal.",
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si necesita una temperatura concreta en la cabina trasera, no dude en indicarlo. Si desea parar a tomar un café en una auténtica área de servicio de la D10 entre Brandýs nad Labem y Mladá Boleslav, está incluido."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Praga a Liberec.",
+    "items": [
+      {
+        "title": "Tarifa fija, sin sorpresas",
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta de autopista checa y tiempo del chófer. Nada se añade al llegar."
+      },
+      {
+        "title": "Flota propia, chóferes verificados",
+        "body": "Prestigo opera su propia flota de Mercedes. Todos los vehículos tienen menos de tres años. Todos los chóferes han pasado una verificación de antecedentes, son bilingües y están formados para recorridos de larga distancia dentro de Chequia y más allá de las fronteras cercanas."
+      },
+      {
+        "title": "Servicio que anticipa",
+        "body": "Si la D10 tiene un cierre cerca de Mladá Boleslav, su chófer desvía la ruta por la carretera 16 sin necesidad de preguntar. Para las visitas al teleférico del Ještěd, el chófer conoce los horarios de funcionamiento y puede calcular el trayecto para que usted no tenga que esperar en un andén frío."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Praga a Liberec?",
+      "a": "Aproximadamente 1 hora y 30 minutos de puerta a puerta por la autopista D10, pasando por Mladá Boleslav y Turnov, y después por la R35 hasta Liberec. El tráfico suele ser fluido salvo los viernes a la hora punta de la tarde y los fines de semana de la temporada de esquí."
+    },
+    {
+      "q": "¿Cuánto cuesta un chófer de Praga a Liberec?",
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen combustible, viñeta de autopista checa y tiempo del chófer. Sin cargos ocultos."
+    },
+    {
+      "q": "¿Puedo reservar una ida y vuelta en el mismo día de Praga a Liberec?",
+      "a": "Sí. El regreso en el mismo día tiene un 10 % de descuento. Si necesita que el chófer se desplace con usted durante la visita, añada el alquiler urbano por horas. Una excursión de un día típica dura entre seis y ocho horas e incluye el teleférico del Ještěd, la plaza del ayuntamiento y una comida en el casco antiguo."
+    },
+    {
+      "q": "¿Hay algún paso de frontera en esta ruta?",
+      "a": "No. El trayecto de Praga a Liberec discurre íntegramente dentro de la República Checa. Las fronteras alemana y polaca están cerca de Liberec, pero el destino es checo. Si necesita continuar hacia Alemania o Polonia desde Liberec, Prestigo puede ampliar la reserva."
+    },
+    {
+      "q": "¿Hay sillas infantiles disponibles?",
+      "a": "Sí. Disponemos de capazos a contramarcha, sillas infantiles a favor de la marcha y alzadores sin coste adicional. Indique la edad de su hijo en la reserva para que la silla correcta esté instalada antes de la recogida."
+    },
+    {
+      "q": "¿Qué idiomas habla el chófer?",
+      "a": "Todos los chóferes de Prestigo hablan inglés y checo con fluidez de forma estándar. El alemán está disponible bajo petición."
+    }
+  ],
+  "relatedRoutesIntro": "Liberec se sitúa en un cruce de rutas regionales checas y de recorridos transfronterizos hacia Sajonia y Baja Silesia. Todas las rutas de Prestigo comparten el mismo modelo de tarifa fija, la misma flota y los mismos chóferes.",
+  "relatedHeading": {
+    "line1": "Continúe por",
+    "italic": "Europa Central."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "prague-hradec-kralove",
+      "city": "Hradec Králové",
+      "distance": "115 km",
+      "duration": "1 h 20 min"
+    },
+    {
+      "slug": "prague-dresden",
+      "city": "Dresde",
+      "distance": "150 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "prague-wroclaw",
+      "city": "Breslavia",
+      "distance": "340 km",
+      "duration": "3 h 45 min"
+    },
+    {
+      "slug": "prague-pardubice",
+      "city": "Pardubice",
+      "distance": "125 km",
+      "duration": "1 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~105 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~1,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Praga a Liberec.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Praga a Liberec — Desde {ePrice} €",
+    "description": "Reserve un chófer privado de Praga a Liberec. 105 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la puerta de los Montes de Jizera.",
+    "ogTitle": "Chófer privado de Praga a Liberec — Desde {ePrice} €",
+    "ogDescription": "Reserve un chófer privado de Praga a Liberec. 105 km de puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, la puerta de los Montes de Jizera."
+  }
+}
