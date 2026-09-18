@@ -34,6 +34,26 @@
       "toneGuide": "'Vous' throughout, premium/understated register.",
       "pluralCategories": ["one", "other"],
       "termMap": {}
+    },
+    "ar": {
+      "formality": "formal",
+      "dialect": "fusha (Modern Standard Arabic)",
+      "toneGuide": "Modern Standard Arabic (fusḥā), formal premium register — understood across the whole Arab world, not a regional dialect. Standard register for luxury brands.",
+      "pluralCategories": ["zero", "one", "two", "few", "many", "other"],
+      "termMap": {}
+    },
+    "hi": {
+      "formality": "formal",
+      "toneGuide": "Formal register using आप (aap). Moderately literary/Sanskritized Hindi, but common English tech/travel terms (airport, flight, terminal) stay as-is — natural for the urban target audience.",
+      "pluralCategories": ["one", "other"],
+      "termMap": {}
+    },
+    "zh": {
+      "formality": "formal",
+      "dialect": "zh-Hans (Simplified, mainland/PRC)",
+      "toneGuide": "Simplified Chinese, mainland (PRC), polite business register (您). Traditional/TC explicitly rejected.",
+      "pluralCategories": ["other"],
+      "termMap": {}
     }
   }
 }

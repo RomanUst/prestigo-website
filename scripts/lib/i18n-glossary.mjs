@@ -20,8 +20,17 @@ import path from 'node:path'
 import { z } from 'zod'
 import { locales as allLocales } from '../../i18n/locales.ts'
 
-/** ru/es/fr — the locale set this phase (TR-01/TR-02) translates. AR/HI/ZH are Phase 73. */
-export const PHASE_72_LOCALES = allLocales.filter((l) => l === 'ru' || l === 'es' || l === 'fr')
+/**
+ * ru/es/fr/ar/hi/zh — the full non-EN production locale set. Originally
+ * ru/es/fr only (Phase 72, TR-01); extended to all six in Phase 73 (A1
+ * decision, TR-02) so the CLI's default (used when `--locales` is
+ * omitted, including by the CI workflow) and the manual `--locales`
+ * invocation cover the same set going forward — closing the latent bug
+ * where a future EN edit would silently skip ar/hi/zh re-translation.
+ */
+export const PHASE_72_LOCALES = allLocales.filter(
+  (l) => l === 'ru' || l === 'es' || l === 'fr' || l === 'ar' || l === 'hi' || l === 'zh'
+)
 
 const structuralSchema = z.object({
   note: z.string(),

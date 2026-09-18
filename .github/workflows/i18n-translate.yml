@@ -60,30 +60,42 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore(i18n): update RU/ES/FR translations'
+          commit-message: 'chore(i18n): update RU/ES/FR/AR/HI/ZH translations'
           branch: i18n/auto-translate
           delete-branch: true
-          title: 'chore(i18n): update RU/ES/FR translations'
+          title: 'chore(i18n): update RU/ES/FR/AR/HI/ZH translations'
           body: |
             Automated translation update from `scripts/i18n-translate.mjs`.
 
             Review before merging:
             - `i18n/QA-REPORT.md` for completeness / no-leakage / DNT / MDX-structure / sampled-diff results
-            - A native-RU spot-check of a sample of changed strings (D-09)
+            - A native spot-check of a sample of changed strings per locale (D-09)
 
             This PR was opened by the `i18n Translate` workflow — it never commits directly to `main`.
           add-paths: |
             messages/ru.json
             messages/es.json
             messages/fr.json
+            messages/ar.json
+            messages/hi.json
+            messages/zh.json
             content/routes/ru/**
             content/routes/es/**
             content/routes/fr/**
+            content/routes/ar/**
+            content/routes/hi/**
+            content/routes/zh/**
             content/pages/ru/**
             content/pages/es/**
             content/pages/fr/**
+            content/pages/ar/**
+            content/pages/hi/**
+            content/pages/zh/**
             content/blog/ru/**
             content/blog/es/**
             content/blog/fr/**
+            content/blog/ar/**
+            content/blog/hi/**
+            content/blog/zh/**
             i18n/translation-manifest.json
             i18n/QA-REPORT.md
