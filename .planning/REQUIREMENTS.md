@@ -46,8 +46,8 @@ Make the entire public site multilingual. English stays the default at the site 
 
 ### Non-Latin & RTL Infrastructure
 
-- [ ] **RTL-01**: Arabic renders correctly right-to-left — physical-direction Tailwind classes (~42 files) audited and converted to logical properties; no mirrored-layout breakage.
-- [ ] **FONT-01**: Noto Sans Arabic / Devanagari / SC loaded per locale via `next/font`.
+- [x] **RTL-01**: Arabic renders correctly right-to-left — physical-direction Tailwind classes (~42 files) audited and converted to logical properties; no mirrored-layout breakage.
+- [x] **FONT-01**: Noto Sans Arabic / Devanagari / SC loaded per locale via `next/font`.
 
 ### SEO
 
@@ -103,8 +103,8 @@ Populated during roadmap creation (Phases 68–75).
 | CNT-03 | 71 | Complete |
 | TR-01 | 72 | Complete |
 | TR-02 | 72, 73 | Complete |
-| RTL-01 | 73 | Pending |
-| FONT-01 | 73 | Pending |
+| RTL-01 | 73 | Complete |
+| FONT-01 | 73 | Complete |
 | SEO-01 | 74 | Pending |
 | SEO-02 | 74 | Pending |
 | SEO-03 | 74 | Pending |

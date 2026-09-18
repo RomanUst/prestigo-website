@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Phase 73 UI-SPEC approved
-last_updated: "2026-09-17T22:07:32.019Z"
-last_activity: 2026-09-17
-last_activity_desc: Phase 72 complete, transitioned to Phase 73
-state_head: f328729eb590939f97ac52b781ebc84007920fff
+stopped_at: Completed 73-01-PLAN.md
+last_updated: "2026-09-18T07:27:29.015Z"
+last_activity: 2026-09-18
+last_activity_desc: Phase 73 execution started
+state_head: dbc3d58209852e3d6c95b2ffe694827cd015cbf8
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 35
-  completed_plans: 29
+  completed_plans: 30
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-06)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 72 — AI Translation Pipeline & Catalogs
+**Current focus:** Phase 73 — Non-Latin & RTL Infra (AR, HI, ZH)
 
 ## Current Position
 
-Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — READY TO EXECUTE
-Plan: Not started
+Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
+Plan: 2 of 6
 Status: Ready to execute
-Last activity: 2026-09-17 — Phase 72 complete, transitioned to Phase 73
+Last activity: 2026-09-18 — Phase 73 execution started
 
 ## Accumulated Context
 
@@ -127,6 +127,10 @@ Recent decisions affecting current work:
 - [Phase 72]: [Phase 72] 72-03: QA report's no-English-leakage check is scoped to units the run actually processed (summary.accepted) and excludes DNT-only values so brand terms identical across locales are never false-flagged
 - [Phase 72]: 72-04: Owner confirmed provisioning ANTHROPIC_API_KEY GitHub Actions repository secret (human-only, no agent GitHub-secret access)
 - [Phase 72]: 72-04: i18n-translate.yml is the repo's first CI workflow — path-filtered push trigger + workflow_dispatch, least-privilege contents:write+pull-requests:write, EN-unchanged assertion before PR step, PR-only landing via peter-evans/create-pull-request@v8 (never a direct main commit, D-08)
+- [Phase 73]: 73-01: SC font subset corrected from UI-SPEC's invalid 'chinese-simplified' to 'latin' (build-breaking Pitfall 2 fix)
+- [Phase 73]: 73-01: --letter-spacing-nav/-wide/-logo theme tokens have no DOM consumer — reset at custom-property level under :lang(ar)/:lang(hi) rather than inventing non-existent bearing selectors
+- [Phase 73]: 73-01: A1 resolved — PHASE_72_LOCALES extended to all six locales now (ru/es/fr/ar/hi/zh), closing a latent CI re-translation gap
+- [Phase 73]: 73-01: Nav-inclusive byte-parity check moved to a new dedicated file (tests/nav-locale-render-parity.test.tsx) due to Vitest vi.mock hoisting conflict in tests/route-page-render.test.tsx
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -234,9 +238,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-17T18:50:30.235Z
-Stopped at: Phase 73 UI-SPEC approved
-Resume file: .planning/phases/73-non-latin-rtl-infra-ar-hi-zh/73-UI-SPEC.md
+Last session: 2026-09-18T07:27:28.464Z
+Stopped at: Completed 73-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -289,6 +293,7 @@ Resume file: .planning/phases/73-non-latin-rtl-infra-ar-hi-zh/73-UI-SPEC.md
 | Phase 72 P02 | 20min | 2 tasks | 6 files |
 | Phase 72 P03 | 16min | 3 tasks | 7 files |
 | Phase 72 P04 | ~60min (Task1 55min + Task3 5min continuation) | 3 tasks | 2 files |
+| Phase 73 P01 | 17min | 3 tasks | 10 files |
 
 ## Operator Next Steps
 

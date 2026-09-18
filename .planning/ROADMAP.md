@@ -199,7 +199,7 @@ Plans:
 
 **Wave 1** — tracer
 
-- [ ] 73-01-PLAN.md — Tracer: `/ar/` end-to-end (Noto fonts SC-corrected + conditional className + `:lang` tracking + Nav logical conversion + chevron mirror) + translation config (glossary ar/hi/zh, PHASE_72_LOCALES→6, CI 6-locale) + Wave-0 test scaffolds
+- [x] 73-01-PLAN.md — Tracer: `/ar/` end-to-end (Noto fonts SC-corrected + conditional className + `:lang` tracking + Nav logical conversion + chevron mirror) + translation config (glossary ar/hi/zh, PHASE_72_LOCALES→6, CI 6-locale) + Wave-0 test scaffolds
 
 **Wave 2** *(blocked on Wave 1 — parallel, disjoint files)*
 
@@ -297,6 +297,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 0/6 | Planned | — |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 1/6 | In Progress|  |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
