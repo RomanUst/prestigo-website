@@ -55,6 +55,61 @@ describe('checkNoEnglishLeakage', () => {
     const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'ru', enValue: 'Book now', trValue: 'Забронировать' }]
     expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
   })
+
+  // Phase 73 (TR-02) — ar/hi/zh fixture cases, duplicating the ru shape
+  // above per locale. Wave 0 gap flagged in 73-RESEARCH.md Validation
+  // Architecture: this file previously exercised checkNoEnglishLeakage
+  // only against ru fixtures.
+  it('flags a processed unit whose translated value is byte-identical to its EN source (ar)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'ar', enValue: 'Book now', trValue: 'Book now' }]
+    const leaks = checkNoEnglishLeakage(accepted, glossary)
+    expect(leaks).toHaveLength(1)
+    expect(leaks[0].unitKey).toBe('messages/en.json::Nav.bookNow')
+  })
+
+  it('does not flag a genuinely different translation (ar)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'ar', enValue: 'Book now', trValue: 'احجز الآن' }]
+    expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
+  })
+
+  it('does NOT flag a DNT-only unit whose value is identical across locales (ar)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Footer.brand', locale: 'ar', enValue: 'Prestigo', trValue: 'Prestigo' }]
+    expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
+  })
+
+  it('flags a processed unit whose translated value is byte-identical to its EN source (hi)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'hi', enValue: 'Book now', trValue: 'Book now' }]
+    const leaks = checkNoEnglishLeakage(accepted, glossary)
+    expect(leaks).toHaveLength(1)
+    expect(leaks[0].unitKey).toBe('messages/en.json::Nav.bookNow')
+  })
+
+  it('does not flag a genuinely different translation (hi)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'hi', enValue: 'Book now', trValue: 'अभी बुक करें' }]
+    expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
+  })
+
+  it('does NOT flag a DNT-only unit whose value is identical across locales (hi)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Footer.brand', locale: 'hi', enValue: 'Prestigo', trValue: 'Prestigo' }]
+    expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
+  })
+
+  it('flags a processed unit whose translated value is byte-identical to its EN source (zh)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'zh', enValue: 'Book now', trValue: 'Book now' }]
+    const leaks = checkNoEnglishLeakage(accepted, glossary)
+    expect(leaks).toHaveLength(1)
+    expect(leaks[0].unitKey).toBe('messages/en.json::Nav.bookNow')
+  })
+
+  it('does not flag a genuinely different translation (zh)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Nav.bookNow', locale: 'zh', enValue: 'Book now', trValue: '立即预订' }]
+    expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
+  })
+
+  it('does NOT flag a DNT-only unit whose value is identical across locales (zh)', () => {
+    const accepted = [{ unitKey: 'messages/en.json::Footer.brand', locale: 'zh', enValue: 'Prestigo', trValue: 'Prestigo' }]
+    expect(checkNoEnglishLeakage(accepted, glossary)).toEqual([])
+  })
 })
 
 describe('generateQaReport', () => {

@@ -15,7 +15,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
-import { routing } from '@/i18n/routing'
+import { routing, rtlLocales, type AppLocale } from '@/i18n/routing'
 
 // ---------------------------------------------------------------------------
 // vi.hoisted: mock setup runs before any import factories
@@ -293,6 +293,36 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
         const csp = response.headers.get('Content-Security-Policy')
         expect(csp).toBeTruthy()
         expect(csp).not.toMatch(/nonce-/)
+      }
+    )
+  })
+
+  // -------------------------------------------------------------------------
+  // <html dir> attribute — RTL-01 (Phase 73, 73-01 Task 3)
+  //
+  // app/[locale]/layout.tsx computes
+  // `dir={rtlLocales.includes(locale) ? 'rtl' : 'ltr'}` from these exact
+  // two values. tests/i18n-routing.test.ts already asserts rtlLocales
+  // equals ['ar'] in isolation — that is necessary but not sufficient: it
+  // does not prove the resulting `dir` value for the locale that actually
+  // matters. This block exercises the real predicate (not just the array
+  // shape) and asserts dir="rtl" specifically for `ar`, dir="ltr" for
+  // every other configured locale.
+  // -------------------------------------------------------------------------
+  describe('dir attribute resolution (RTL-01) — locale ar specifically, not just rtlLocales in isolation', () => {
+    function resolveDir(locale: string): 'rtl' | 'ltr' {
+      // Same one-line predicate as app/[locale]/layout.tsx line 25.
+      return rtlLocales.includes(locale as AppLocale) ? 'rtl' : 'ltr'
+    }
+
+    it('resolves dir="rtl" for locale ar', () => {
+      expect(resolveDir('ar')).toBe('rtl')
+    })
+
+    it.each(routing.locales.filter((l) => l !== 'ar'))(
+      'resolves dir="ltr" for non-ar locale %s',
+      (locale) => {
+        expect(resolveDir(locale)).toBe('ltr')
       }
     )
   })
