@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Fraunces, Inter } from 'next/font/google'
+import { Fraunces, Inter, Noto_Sans_Arabic, Noto_Sans_Devanagari, Noto_Sans_SC } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages } from 'next-intl/server'
 import '../app/globals.css'
@@ -29,6 +29,35 @@ const inter = Inter({
   variable: '--font-montserrat',
   subsets: ['latin'],
   weight: ['300', '400', '500', '600'],
+  display: 'swap',
+})
+
+// Non-Latin script fonts (Phase 73, FONT-01/D-04) — loaded per-locale, not
+// globally. Loaders MUST stay at module scope (next/font requires static,
+// module-level calls); only the resulting variable's *application* on
+// <body> is locale-conditional (see localeFontClassName below), so /en,
+// /ru, /es, /fr ship zero Noto bytes.
+const notoArabic = Noto_Sans_Arabic({
+  variable: '--font-noto-arabic',
+  subsets: ['arabic'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+})
+const notoDevanagari = Noto_Sans_Devanagari({
+  variable: '--font-noto-devanagari',
+  subsets: ['devanagari'],
+  weight: ['400', '500', '600'],
+  display: 'swap',
+})
+// CORRECTED vs UI-SPEC (73-RESEARCH.md Pitfall 2): 'chinese-simplified' is
+// NOT a valid Noto Sans SC subset per Next.js's bundled font metadata
+// (only cyrillic/latin/latin-ext/vietnamese are) — using it throws a
+// build-time nextFontError. 'latin' is valid and harmless; the full CJK
+// glyph set ships regardless of the subsets value chosen.
+const notoSC = Noto_Sans_SC({
+  variable: '--font-noto-sc',
+  subsets: ['latin'],
+  weight: ['400', '500', '600'],
   display: 'swap',
 })
 
@@ -106,6 +135,19 @@ export default async function SiteChrome({
   const locale = await getLocale()
   const messages = await getMessages()
 
+  // D-04: per-locale Noto className application. Internal routes
+  // (app/(internal)/layout.tsx, which shares this same SiteChrome) always
+  // resolve getLocale() to 'en' (no [locale] segment in the URL), so this
+  // stays '' for /admin and /driver with no extra branch needed.
+  const localeFontClassName =
+    locale === 'ar'
+      ? notoArabic.variable
+      : locale === 'hi'
+        ? notoDevanagari.variable
+        : locale === 'zh'
+          ? notoSC.variable
+          : ''
+
   return (
     <>
       <head>
@@ -123,7 +165,7 @@ export default async function SiteChrome({
         <link rel="dns-prefetch" href="https://www.facebook.com" />
         <link rel="dns-prefetch" href="https://www.clarity.ms" />
       </head>
-      <body className={`${fraunces.variable} ${inter.variable}`}>
+      <body className={`${fraunces.variable} ${inter.variable} ${localeFontClassName}`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <a href="#main-content" className="skip-link btn-primary">
             Skip to content

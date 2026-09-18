@@ -116,6 +116,29 @@ body {
   color: var(--copper-light);
 }
 
+/* ── Non-Latin letter-spacing reset (RTL-01 / FONT-01) ──────────────
+   Positive letter-spacing is a Latin-script convention: it breaks Arabic's
+   cursive/contextual letter-joining and visually fragments Devanagari
+   conjuncts. Reset to `normal` for ar/hi translated copy under a `:lang()`
+   scope — additive only, the base Latin rules above are unchanged. zh gets
+   no override (CJK does not use letter-spacing the same way, and positive
+   tracking does not break CJK glyphs — default stays as-is). Covers both
+   the `.label` class directly and the `--letter-spacing-*` theme tokens
+   (redefined at the custom-property level so any future consumer of
+   var(--letter-spacing-nav|wide|logo|label) inherits the reset too). */
+:lang(ar) .label,
+:lang(hi) .label {
+  letter-spacing: normal;
+}
+
+:lang(ar),
+:lang(hi) {
+  --letter-spacing-label: normal;
+  --letter-spacing-nav: normal;
+  --letter-spacing-wide: normal;
+  --letter-spacing-logo: normal;
+}
+
 /* ── Display heading ───────────────────────────────── */
 .display {
   font-family: var(--font-cormorant);
@@ -571,6 +594,14 @@ body {
   letter-spacing: 0.18em !important;
   text-transform: uppercase !important;
   color: var(--offwhite) !important;
+}
+
+/* Non-Latin tracking reset for the booking-flow date picker caption
+   (RTL-01 / FONT-01) — must also carry !important to win over the base
+   rule above, which is itself !important. */
+:lang(ar) .rdp-caption_label,
+:lang(hi) .rdp-caption_label {
+  letter-spacing: normal !important;
 }
 /* Ghost circular nav buttons with copper chevrons */
 .rdp-button_previous,

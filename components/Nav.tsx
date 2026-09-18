@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Link, usePathname } from '@/i18n/routing'
 import { createBrowserClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
@@ -22,6 +22,8 @@ const NAV_LINKS: ReadonlyArray<{ href: string; isNew?: boolean }> = [
 
 export default function Nav() {
   const t = useTranslations('Nav')
+  const locale = useLocale()
+  const isRtl = locale === 'ar'
   const navItems = t.raw('items') as string[]
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -119,7 +121,7 @@ export default function Nav() {
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 bg-anthracite/95 backdrop-blur-sm ${
+      className={`fixed top-0 start-0 end-0 z-50 transition-all duration-500 bg-anthracite/95 backdrop-blur-sm ${
         scrolled ? 'border-b border-anthracite-light' : ''
       }`}
     >
@@ -202,7 +204,11 @@ export default function Nav() {
                     aria-hidden="true"
                     style={{
                       color: 'var(--warmgrey)',
-                      transform: menuOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                      // D-03/Pattern 4: the rtl: variant can't reach an
+                      // inline style, so the RTL mirror is composed in JS —
+                      // total rotation = existing open/closed rotation +
+                      // 180deg when the resolved locale is RTL (ar).
+                      transform: `rotate(${(menuOpen ? 180 : 0) + (isRtl ? 180 : 0)}deg)`,
                       transition: 'transform 0.2s ease',
                     }}
                   >
@@ -338,7 +344,7 @@ export default function Nav() {
 
         {/* Mobile burger */}
         <button
-          className="md:hidden flex flex-col justify-center gap-[5px] p-3 -mr-1 min-h-[44px] min-w-[44px]"
+          className="md:hidden flex flex-col justify-center gap-[5px] p-3 -me-1 min-h-[44px] min-w-[44px]"
           onClick={() => setOpen(!open)}
           aria-label={t('menu')}
           aria-expanded={open}
@@ -403,7 +409,7 @@ export default function Nav() {
             <form action={customerSignOut}>
               <button
                 type="submit"
-                className="font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors text-warmgrey hover:text-offwhite min-h-[44px] flex items-center w-full text-left bg-transparent border-none cursor-pointer"
+                className="font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors text-warmgrey hover:text-offwhite min-h-[44px] flex items-center w-full text-start bg-transparent border-none cursor-pointer"
               >
                 {t('signOut')}
               </button>
