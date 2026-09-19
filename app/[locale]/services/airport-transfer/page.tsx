@@ -13,7 +13,7 @@ import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import { getPageContent } from '@/lib/page-content'
-import { interpolate } from '@/lib/content-interpolate'
+import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 
 type AirportTransferContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -80,7 +80,7 @@ export default async function AirportTransferPage() {
   const journeyTimes = content.journeyTimes.items
   const meetGreetItems = content.meetGreet.items
   const vehicleClasses = content.vehicleClasses.map((v) => ({ ...v, price: interpolate(v.price, prices) }))
-  const heroIntro = interpolate(content.hero.intro, prices)
+  const heroIntro = interpolateBidi(content.hero.intro, prices)
 
   const pageSchema = {
     '@context': 'https://schema.org',
@@ -260,7 +260,7 @@ export default async function AirportTransferPage() {
                 <span className="copper-line mb-6 block" />
                 <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--warmgrey)' }}>{v.tag}</p>
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-1">Mercedes {v.name}</h3>
-                <p className="font-body font-light text-[11px] tracking-wide mb-4" style={{ color: 'var(--copper)' }}>{v.price} · {v.cap}</p>
+                <p className="font-body font-light text-[11px] tracking-wide mb-4" style={{ color: 'var(--copper)' }}><bdi>{v.price}</bdi> · {v.cap}</p>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{v.body}</p>
               </div>
             ))}

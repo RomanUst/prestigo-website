@@ -185,7 +185,7 @@ export default async function ServicesPage() {
                   <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{s.description}</p>
                   {s.price && (
                     <p className="font-body font-light text-[13px] mt-6" style={{ color: 'var(--copper-light)' }}>
-                      {s.price}
+                      <bdi>{s.price}</bdi>
                     </p>
                   )}
                 </div>
