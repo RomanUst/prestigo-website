@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-07-PLAN.md (CR-01/WR-01/WR-03 RTL fixes)
-last_updated: "2026-09-19T19:42:09.205Z"
+stopped_at: Completed 73-08-PLAN.md (CR-02 DNT price bidi-isolation on prague-berlin + city-rides)
+last_updated: "2026-09-19T19:53:13.021Z"
 last_activity: 2026-09-19
 last_activity_desc: Phase 73 execution started
-state_head: 5b867d7d92a9f307a1fdb3364ef6f28fee095b79
+state_head: 75fdd76508ed34825ec4360c53d297af5fdb60a8
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 41
-  completed_plans: 36
+  completed_plans: 37
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 2 of 12
+Plan: 3 of 12
 Status: Ready to execute
 Last activity: 2026-09-19 — Phase 73 execution started
 
@@ -139,6 +139,8 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73] 73-06: discovered (not fixed, Scope Boundary) a pre-existing getLocale()-without-params bug in 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) that renders EN content on every locale since Phase 71 — recorded to deferred-items.md and WINDOWS.md #7; does not block Phase 73's D-10-scoped gate
 - [Phase 73]: 73-07: CR-01 fix removed the isRtl mirror addend entirely (not scaleX(-1)) — chevron path is horizontally symmetric and needs no mirror of any kind
 - [Phase 73]: 73-07: Task 1/2 committed as two separate atomic commits despite touching the same file (Nav.tsx), by staging/reverting the WR-01 hunk between commits
+- [Phase 73]: 73-08: interpolateBidi splits on the same {token} boundary as interpolate() and wraps only the substituted value in <bdi>; metadata/JSON-LD strings keep the plain-string interpolate()
+- [Phase 73]: 73-08: bare price-token render sites (v.price, c.price, businessHourly) wrap the already-interpolated string directly in inline <bdi>, distinct from sentence-level fields which use interpolateBidi() at the render call
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -246,8 +248,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T19:42:08.308Z
-Stopped at: Completed 73-07-PLAN.md (CR-01/WR-01/WR-03 RTL fixes)
+Last session: 2026-09-19T19:53:12.119Z
+Stopped at: Completed 73-08-PLAN.md (CR-02 DNT price bidi-isolation on prague-berlin + city-rides)
 Resume file: None
 
 ## Performance Metrics
@@ -307,6 +309,7 @@ Resume file: None
 | Phase 73 P05 | ~10min | 2 tasks | 3 files |
 | Phase 73 P06 | 45min | 3 tasks | 4 files |
 | Phase 73 P07 | 10min | 3 tasks | 2 files |
+| Phase 73 P08 | 25min | 3 tasks | 5 files |
 
 ## Operator Next Steps
 
