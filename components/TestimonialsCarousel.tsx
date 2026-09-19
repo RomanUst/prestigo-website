@@ -17,7 +17,7 @@ function StarBadge({ rating }: { rating: number }) {
       {Array.from({ length: stars }).map((_, i) => (
         <span key={i} data-testid="star-filled" aria-hidden="true" style={{ color: 'var(--copper)' }}>★</span>
       ))}
-      <span className="font-body font-light text-[10px] tracking-[0.08em] ml-2" style={{ color: 'var(--copper)' }}>
+      <span className="font-body font-light text-[10px] tracking-[0.08em] ms-2" style={{ color: 'var(--copper)' }}>
         {t('googleReview')}
       </span>
     </span>
@@ -30,7 +30,7 @@ function ReviewCard({ review }: { review: Review }) {
   const name = isGoogle ? review.author : review.name
   const role = isGoogle ? review.relativeTime : review.role
   return (
-    <div className="border-l-2 border-anthracite-light pl-6 py-2 max-w-3xl mx-auto">
+    <div className="border-s-2 border-anthracite-light ps-6 py-2 max-w-3xl mx-auto">
       <p className="font-display font-light italic text-lg text-offwhite leading-snug mb-6">
         &ldquo;{quote}&rdquo;
       </p>

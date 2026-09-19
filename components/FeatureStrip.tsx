@@ -25,7 +25,7 @@ export default function FeatureStrip() {
               <Reveal key={title} variant="up" delay={i * 100}>
                 <div
                   className={`flex items-center gap-4 h-full lg:px-8 ${
-                    i > 0 ? 'lg:border-l lg:border-anthracite-light' : ''
+                    i > 0 ? 'lg:border-s lg:border-anthracite-light' : ''
                   }`}
                 >
                   <Icon
