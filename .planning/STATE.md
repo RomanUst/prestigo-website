@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-10-PLAN.md (WR-02 globals.css logical CSS + WR-05 blog CTA bdi narrowing gap-closure)
-last_updated: "2026-09-19T19:56:56.213Z"
+stopped_at: Completed 73-11-PLAN.md (WR-04 skip-link i18n gap-closure + TR-02 catalog translation)
+last_updated: "2026-09-19T20:20:46.480Z"
 last_activity: 2026-09-19
 last_activity_desc: Phase 73 execution started
-state_head: a3d71f74703f7682ccd93877bc0f3c469d8a9bbf
+state_head: d776e89ee4b88fce8c8ed362d6dadf812fdf2fb9
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 41
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 4 of 12
+Plan: 5 of 12
 Status: Ready to execute
 Last activity: 2026-09-19 — Phase 73 execution started
 
@@ -143,6 +143,8 @@ Recent decisions affecting current work:
 - [Phase 73]: 73-08: bare price-token render sites (v.price, c.price, businessHourly) wrap the already-interpolated string directly in inline <bdi>, distinct from sentence-level fields which use interpolateBidi() at the render call
 - [Phase 73]: 73-10: cta-text hover-zoom transform-origin set to centered (50% 50%) rather than a :dir(rtl)-conditional pair — direction-neutral fix per review's primary suggestion
 - [Phase 73]: 73-10: Vienna blog CTA isolates both price (€455) and duration (3h 15min) in separate <bdi> tags per D-11 numeral-run scope; the two airport CTAs isolate only their price token
+- [Phase 73]: [Phase 73] 73-11: shared Common namespace introduced for SiteChrome-level accessibility strings (skipToContent), distinct from per-component message namespaces
+- [Phase 73]: [Phase 73] 73-11: kept 2 incidental ru/zh route-translation resyncs surfaced by the full-surface AI pipeline run rather than reverting them (Rule 1 - pre-existing EN/translation drift)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -212,6 +214,7 @@ None yet.
   - `GET /api/admin/bookings` → `admin_search_bookings` RPC currently defaults to an empty date range (shows all bookings). Phase 65 changes this client/server-side default to future-only; KPI counters already pass explicit date ranges so should be unaffected by the change, but must be re-verified once the default filter ships (DISP-04).
   - `driver_assignments` (booking_id, driver_id, status, token, token_expires_at) is a SINGLE-USE EXPIRING token today, created by `POST /api/admin/bookings/[id]/assign`; driver responds at `app/driver/response/page.tsx` → `POST /api/driver/respond`. Phase 66's permanent trip-link token is a distinct, longer-lived credential that must coexist with this token, not replace it.
   - Booking status machine lives in `lib/booking-transitions.ts` (`VALID_TRANSITIONS`) and GNet push in `lib/gnet-client.ts` (`pushGnetStatus`). Phase 67's trip-progress field must NOT hook into either — DTRIP-04 requires it to be a fully separate column with no transition validation and no GNet call.
+- Anthropic account API credit exhaustion mid-run (73-11 Task 2) left 6 route files + content/pages/en/corporate.json untranslated for ar/hi/zh/ru/es/fr; needs billing top-up + full re-run of node scripts/i18n-translate.mjs (no --locales filter). See WINDOWS.md #8, deferred-items.md.
 
 ## Deferred Items
 
@@ -250,8 +253,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T19:56:55.306Z
-Stopped at: Completed 73-10-PLAN.md (WR-02 globals.css logical CSS + WR-05 blog CTA bdi narrowing gap-closure)
+Last session: 2026-09-19T20:20:45.546Z
+Stopped at: Completed 73-11-PLAN.md (WR-04 skip-link i18n gap-closure + TR-02 catalog translation)
 Resume file: None
 
 ## Performance Metrics
@@ -313,6 +316,7 @@ Resume file: None
 | Phase 73 P07 | 10min | 3 tasks | 2 files |
 | Phase 73 P08 | 25min | 3 tasks | 5 files |
 | Phase 73 P10 | ~3min | 2 tasks | 4 files |
+| Phase 73 P11 | 20min | 3 tasks | 11 files |
 
 ## Operator Next Steps
 

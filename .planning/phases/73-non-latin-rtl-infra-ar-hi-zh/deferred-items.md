@@ -69,3 +69,39 @@ Phase 70/STR-02. Unrelated to the getLocale() bug above — this string was simp
 externalized at all, on any locale. The actual EntryBar/wizard content beneath it (the D-10
 "booking flow" surface) IS correctly translated and verified this session on `/ar/book`.
 **Action:** Not fixed here — narrow STR-02 (Phase 70) scope gap, not a RTL-01/FONT-01/TR-02 item.
+
+## Anthropic API credit exhaustion mid-run — 6 route files + corporate.json left untranslated for all 6 locales
+
+**Found during:** 73-11 Task 2 (`node scripts/i18n-translate.mjs --locales ar,hi,zh,ru,es,fr`),
+running the full-surface pipeline as instructed to translate the new `Common.skipToContent` key.
+**Symptom:** The pipeline walks every EN source, not just `messages/en.json`; it discovered
+pre-existing stale/pending translation units in
+`content/routes/en/{prague-marianske-lazne,prague-olomouc,prague-pardubice,prague-plzen,prague-wroclaw,prague-zlin}.json`
+and `content/pages/en/corporate.json`, and attempted to translate them for all 6 requested locales.
+Every one of those attempts failed with `400 {"type":"invalid_request_error", "message":"Your
+credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or
+purchase credits."}`.
+**Why not fixed here:** Out of Scope Boundary (unrelated files, not touched by this plan's declared
+`files_modified`) AND blocked by account billing, which only the account owner can resolve — no
+amount of retrying will succeed until credits are topped up.
+**Verified safe:** the manifest's cross-locale-success invariant held — no unit was marked done
+partially; `git diff` shows zero changes to any of the 7 affected files (no corrupt partial
+writes), and `messages/en.json` / all `content/*/en/*.json` sources remain byte-unchanged.
+**Also recorded to:** `.planning/WINDOWS.md` entry #8 (kind: deviation) for ship-gate visibility.
+**Recommended fix:** top up the Anthropic account's credit balance, then re-run
+`node scripts/i18n-translate.mjs` (full surface, no `--locales` filter) to pick up these 7 files
+plus re-verify nothing else drifted since.
+
+## 2 pre-existing stale ru/zh route translations resynced as an incidental fix
+
+**Found during:** 73-11 Task 2, same pipeline run as above.
+**Files:** `content/routes/ru/prague-ceske-budejovice.json`, `content/routes/ru/prague-frantiskovy-lazne.json`,
+`content/routes/zh/prague-ceske-budejovice.json` — one `whyBook.headingLine1` unit each, out of sync
+with the current `content/routes/en/*.json` wording ("Why book with Prestigo").
+**Action:** Kept (not reverted) — Rule 1 auto-fix. The pipeline's own hash-manifest correctly
+detected and re-translated these units in the same run that translates `Common.skipToContent`;
+reverting would knowingly reintroduce an EN/translation mismatch the sanctioned AI pipeline already
+fixed, for no benefit. Committed separately (`fix(73-11): resync 2 pre-existing stale ru/zh route
+translations`) so it's clearly distinguishable from the WR-04 catalog work. `hi`'s equivalent unit
+for the same 2 files remains on its known EN-fallback (WINDOWS #6 — DNT-token drop, unrelated to
+this discovery).
