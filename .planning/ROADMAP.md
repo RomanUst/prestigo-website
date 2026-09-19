@@ -215,15 +215,18 @@ Plans:
 **Gap closure** *(from 73-VERIFICATION.md gaps_found — 4/6 must-haves; CR-01/CR-02/WR-01..05 + D-10/D-11 QA)*
 
 Wave 1 *(parallel, disjoint files)*
-- [ ] 73-07-PLAN.md — Nav account-menu RTL: chevron inversion (CR-01) + logical dropdown inset (WR-01) + carousel arrow-key direction (WR-03)
+
+- [x] 73-07-PLAN.md — Nav account-menu RTL: chevron inversion (CR-01) + logical dropdown inset (WR-01) + carousel arrow-key direction (WR-03)
 - [ ] 73-08-PLAN.md — DNT price bidi helper `interpolateBidi` + prague-berlin/city-rides isolation (CR-02 core) + render backstop
 - [ ] 73-10-PLAN.md — RTL residuals: globals.css logical props (WR-02) + blog CTA `<bdi>` narrowing (WR-05)
 - [ ] 73-11-PLAN.md — Skip-link i18n (WR-04): `Common.skipToContent` across 7 catalogs (pipeline) + SiteChrome wiring (RTL-01, TR-02)
 
 Wave 2 *(blocked on 73-08)*
+
 - [ ] 73-09-PLAN.md — DNT price bidi sweep (CR-02 remainder): 29 route pages + airport-transfer + services index
 
 Wave 3 *(blocked on 73-07..73-11 — QA gate)*
+
 - [ ] 73-12-PLAN.md — D-10/D-11 RTL visual QA walkthrough + FONT-01 tofu confirmation (human-verify checkpoint) → 73-RTL-QA.md (RTL-01, FONT-01)
 
 </details>
@@ -311,6 +314,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 6/6 | In Progress|  |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 7/12 | In Progress|  |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |

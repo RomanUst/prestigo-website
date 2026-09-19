@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
 current_phase: 73
-current_phase_name: non-latin-rtl-infra-ar-hi-zh
+current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-06-PLAN.md (phase 73 closing gate)
-last_updated: "2026-09-19T13:17:10.409Z"
-last_activity: 2026-09-18
+stopped_at: Completed 73-07-PLAN.md (CR-01/WR-01/WR-03 RTL fixes)
+last_updated: "2026-09-19T19:42:09.205Z"
+last_activity: 2026-09-19
 last_activity_desc: Phase 73 execution started
-state_head: 452fe87c1bf929b291f03b6706f8a39e8d919711
+state_head: 5b867d7d92a9f307a1fdb3364ef6f28fee095b79
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 41
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 
 ## Current Position
 
-Phase: 73 (non-latin-rtl-infra-ar-hi-zh) — READY TO EXECUTE
-Plan: 6 of 6
+Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
+Plan: 2 of 12
 Status: Ready to execute
-Last activity: 2026-09-18 — Phase 73 execution started
+Last activity: 2026-09-19 — Phase 73 execution started
 
 ## Accumulated Context
 
@@ -137,6 +137,8 @@ Recent decisions affecting current work:
 - [Phase 73]: 73-04: prague-vienna byte-parity snapshot regenerated after text-right→text-end swap; verified programmatically the only change is the token swap
 - [Phase 73]: [Phase 73] 73-05: span->bdi conversion at the 4 existing price-emphasis JSX render boundaries only; phone/time/most-price DNT tokens embedded mid-sentence in data-array strings (comparison tables, FAQ answers) have no existing wrap boundary and were left as a documented scoped no-op per the plan's 'do not add a new parsing pass' instruction
 - [Phase 73]: [Phase 73] 73-06: discovered (not fixed, Scope Boundary) a pre-existing getLocale()-without-params bug in 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) that renders EN content on every locale since Phase 71 — recorded to deferred-items.md and WINDOWS.md #7; does not block Phase 73's D-10-scoped gate
+- [Phase 73]: 73-07: CR-01 fix removed the isRtl mirror addend entirely (not scaleX(-1)) — chevron path is horizontally symmetric and needs no mirror of any kind
+- [Phase 73]: 73-07: Task 1/2 committed as two separate atomic commits despite touching the same file (Nav.tsx), by staging/reverting the WR-01 hunk between commits
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -244,8 +246,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T12:25:26.605Z
-Stopped at: Completed 73-06-PLAN.md (phase 73 closing gate)
+Last session: 2026-09-19T19:42:08.308Z
+Stopped at: Completed 73-07-PLAN.md (CR-01/WR-01/WR-03 RTL fixes)
 Resume file: None
 
 ## Performance Metrics
@@ -304,6 +306,7 @@ Resume file: None
 | Phase 73 P04 | 15min | 3 tasks | 31 files |
 | Phase 73 P05 | ~10min | 2 tasks | 3 files |
 | Phase 73 P06 | 45min | 3 tasks | 4 files |
+| Phase 73 P07 | 10min | 3 tasks | 2 files |
 
 ## Operator Next Steps
 
