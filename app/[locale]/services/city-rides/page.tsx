@@ -11,7 +11,7 @@ import { getLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
-import { interpolate } from '@/lib/content-interpolate'
+import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 
 type CityRidesContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -72,8 +72,8 @@ export default async function CityRidesPage() {
   const features = content.features
   const editorial = content.editorial
   const useCases = content.useCases
-  const vClassLine = interpolate(content.priceCallout.vClassLine, { vClassHourly })
-  const firstClassLine = interpolate(content.priceCallout.firstClassLine, { firstClassHourly })
+  const vClassLine = interpolateBidi(content.priceCallout.vClassLine, { vClassHourly })
+  const firstClassLine = interpolateBidi(content.priceCallout.firstClassLine, { firstClassHourly })
 
   const faqSchema = {
     '@context': 'https://schema.org',
@@ -135,7 +135,7 @@ export default async function CityRidesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
             <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--warmgrey)' }}>{content.priceCallout.label}</p>
-            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€{businessHourly}<span className="text-[24px]">/hr</span></p>
+            <p className="font-display font-light text-[42px] md:text-[52px] text-offwhite">€<bdi>{businessHourly}</bdi><span className="text-[24px]">/hr</span></p>
             <p className="body-text text-[11px] mt-1">{content.priceCallout.note}</p>
           </div>
           <div className="flex flex-col gap-2">
