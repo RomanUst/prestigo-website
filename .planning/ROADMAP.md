@@ -210,7 +210,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 — phase gate)*
 
-- [ ] 73-06-PLAN.md — Phase gate: full suite + `--check` + phase-wide byte-parity (D-12) + FONT-01 weight-budget + D-10 5-page RTL visual QA / D-11 mixed-content (human-check at end-of-phase)
+- [x] 73-06-PLAN.md — Phase gate: full suite + `--check` + phase-wide byte-parity (D-12) + FONT-01 weight-budget + D-10 5-page RTL visual QA / D-11 mixed-content (human-check at end-of-phase)
 
 </details>
 
@@ -297,6 +297,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 5/6 | In Progress|  |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 6/6 | In Progress|  |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |

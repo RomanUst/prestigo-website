@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-05-PLAN.md
-last_updated: "2026-09-19T09:02:14.450Z"
+stopped_at: Completed 73-06-PLAN.md (phase 73 closing gate)
+last_updated: "2026-09-19T12:25:27.445Z"
 last_activity: 2026-09-18
 last_activity_desc: Phase 73 execution started
-state_head: fbc1b6332f3e9476d54c9746ce5bc52c4b5e58f8
+state_head: ec804c92aa35fcc9873a12887b8a6628bc0708ec
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 35
-  completed_plans: 34
+  completed_plans: 35
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 5 of 6
+Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-09-18 — Phase 73 execution started
 
@@ -136,6 +136,7 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73] 73-03: Hero scroll-cue centering pair (left-1/2 + -translate-x-1/2) left fully unconverted — partial conversion to start-1/2 would break centering under RTL since right:50%+translateX(-50%) is not equivalent
 - [Phase 73]: 73-04: prague-vienna byte-parity snapshot regenerated after text-right→text-end swap; verified programmatically the only change is the token swap
 - [Phase 73]: [Phase 73] 73-05: span->bdi conversion at the 4 existing price-emphasis JSX render boundaries only; phone/time/most-price DNT tokens embedded mid-sentence in data-array strings (comparison tables, FAQ answers) have no existing wrap boundary and were left as a documented scoped no-op per the plan's 'do not add a new parsing pass' instruction
+- [Phase 73]: [Phase 73] 73-06: discovered (not fixed, Scope Boundary) a pre-existing getLocale()-without-params bug in 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) that renders EN content on every locale since Phase 71 — recorded to deferred-items.md and WINDOWS.md #7; does not block Phase 73's D-10-scoped gate
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -243,8 +244,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T09:02:13.828Z
-Stopped at: Completed 73-05-PLAN.md
+Last session: 2026-09-19T12:25:26.605Z
+Stopped at: Completed 73-06-PLAN.md (phase 73 closing gate)
 Resume file: None
 
 ## Performance Metrics
@@ -302,6 +303,7 @@ Resume file: None
 | Phase 73 P03 | 15min | 3 tasks | 5 files |
 | Phase 73 P04 | 15min | 3 tasks | 31 files |
 | Phase 73 P05 | ~10min | 2 tasks | 3 files |
+| Phase 73 P06 | 45min | 3 tasks | 4 files |
 
 ## Operator Next Steps
 
