@@ -3,17 +3,17 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
 current_phase: 73
-current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
+current_phase_name: non-latin-rtl-infra-ar-hi-zh
 status: executing
 stopped_at: Completed 73-06-PLAN.md (phase 73 closing gate)
-last_updated: "2026-09-19T12:25:27.445Z"
+last_updated: "2026-09-19T13:17:10.409Z"
 last_activity: 2026-09-18
 last_activity_desc: Phase 73 execution started
-state_head: ec804c92aa35fcc9873a12887b8a6628bc0708ec
+state_head: 452fe87c1bf929b291f03b6706f8a39e8d919711
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 35
+  total_plans: 41
   completed_plans: 35
 ---
 
@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 
 ## Current Position
 
-Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
+Phase: 73 (non-latin-rtl-infra-ar-hi-zh) — READY TO EXECUTE
 Plan: 6 of 6
 Status: Ready to execute
 Last activity: 2026-09-18 — Phase 73 execution started
