@@ -734,5 +734,8 @@
     "bookOnline": "Book Online",
     "bookNow": "Book Now",
     "allRoutes": "All Routes"
+  },
+  "Common": {
+    "skipToContent": "Skip to content"
   }
 }
