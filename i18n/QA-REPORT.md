@@ -251,3 +251,19 @@ Tell us where you would like to go and when, and we will handle the rest — the
 - `content/routes/en/prague-olomouc.json::whyBook.headingLine1`
   - EN: Why book with Prestigo
   - ZH: 为何选择 Prestigo
+
+## Phase 73 Gate — Automated Confirmation (73-06 Task 1)
+
+Recorded: 2026-09-19T12:06:40Z — commit `a0cce0e` (HEAD at gate time)
+
+| Requirement | Check | Result |
+|---|---|---|
+| SC#1 / TR-02 | `node scripts/i18n-translate.mjs --check --locales ar,hi,zh` | **PASS** — exit 0, 0 missing keys, EN unchanged, no API calls |
+| SC#4 / D-12 | Full `npx vitest run` (full suite) | **PASS** — 124 test files passed (4 skipped), 1458 tests passed (10 skipped, 139 todo), 0 failed |
+| SC#4 / D-12 | `git diff --exit-code` on `messages/en.json`,`messages/ru.json`,`messages/es.json`,`messages/fr.json` + `content/{routes,pages,blog}/{en,ru,es,fr}` | **PASS** — exit 0, zero drift on any existing-locale or EN-root output |
+| SC#2 / RTL-01 | Residual-physical-class grep over in-scope set: `grep -rlE "text-(left|right)\|border-(l\|r)($\|[- ])\|(^\| )-?(pl\|pr\|ml\|mr)-[0-9]" app/[locale] components \| grep -vE "SiteChrome\|globals"` | **PASS** — 0 files (also 0 with the `SiteChrome`/`globals` exclusion removed — no physical-direction occurrences remain anywhere in the in-scope set) |
+| RTL-01 (supplementary) | `grep -rnE "\b(left\|right)-[0-9]" app/[locale] components` (absolute-position residual, excluding the documented centering pair) | **PASS** — 0 unexplained occurrences. The single remaining hit, `components/Hero.tsx:100` (`left-1/2` + `-translate-x-1/2` scroll-cue centering pair), is the documented intentional exception from 73-03-SUMMARY.md (converting only the position half would break centering under `dir="rtl"` — not a true logical equivalent) |
+
+**Gate result: PASS.** All four phase success criteria (complete ar/hi/zh generation — 73-02; `/ar/` RTL logical-property conversion with no unexplained residual — 73-03/04/05; en/ru/es/fr + EN-root byte-for-byte non-regression — this check; full automated suite green) hold together as of this commit. The ~10 hi heading EN-fallback units (see "DNT / ICU-Variable / Plural-Category Preservation" above, WINDOWS #6, by-design per 73-04) are an accepted, documented residual — `--check` still passes because the keys are present with a safe EN fallback, never silently shipped broken.
+
+Remaining gate items (FONT-01 weight-budget build-output inspection; D-10/D-11 human RTL visual QA) are recorded separately in `.planning/phases/73-non-latin-rtl-infra-ar-hi-zh/73-RTL-QA.md`.
