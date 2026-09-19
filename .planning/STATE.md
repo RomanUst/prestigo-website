@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-11-PLAN.md (WR-04 skip-link i18n gap-closure + TR-02 catalog translation)
-last_updated: "2026-09-19T20:20:46.480Z"
+stopped_at: Completed 73-09-PLAN.md (CR-02 DNT price bidi-isolation sweep across 29 route pages + services)
+last_updated: "2026-09-19T20:35:55.481Z"
 last_activity: 2026-09-19
 last_activity_desc: Phase 73 execution started
-state_head: d776e89ee4b88fce8c8ed362d6dadf812fdf2fb9
+state_head: b8546ce20b61470b7119551404efc422eb3736ea
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 41
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 5 of 12
+Plan: 6 of 12
 Status: Ready to execute
 Last activity: 2026-09-19 — Phase 73 execution started
 
@@ -145,6 +145,8 @@ Recent decisions affecting current work:
 - [Phase 73]: 73-10: Vienna blog CTA isolates both price (€455) and duration (3h 15min) in separate <bdi> tags per D-11 numeral-run scope; the two airport CTAs isolate only their price token
 - [Phase 73]: [Phase 73] 73-11: shared Common namespace introduced for SiteChrome-level accessibility strings (skipToContent), distinct from per-component message namespaces
 - [Phase 73]: [Phase 73] 73-11: kept 2 incidental ru/zh route-translation resyncs surfaced by the full-surface AI pipeline run rather than reverting them (Rule 1 - pre-existing EN/translation drift)
+- [Phase 73]: [Phase 73] 73-09: mirrored the interpolateBidi()/inline <bdi> pattern from 73-08's prague-berlin reference across all 29 remaining route pages plus airport-transfer/services index, closing CR-02 project-wide; extended scope to also fix each page's copper 'Price from' highlight bare-render (same site 73-08 fixed on berlin as a Rule 2 deviation, since all 30 route content files carry a copper:true highlight)
+- [Phase 73]: [Phase 73] 73-09: prague-vienna golden EN byte-parity snapshot regenerated (matches 73-04 precedent) since <bdi> renders identically regardless of locale; verified programmatically that stripping all <bdi> tags from the new snapshot reproduces the old one byte-for-byte
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -253,8 +255,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T20:20:45.546Z
-Stopped at: Completed 73-11-PLAN.md (WR-04 skip-link i18n gap-closure + TR-02 catalog translation)
+Last session: 2026-09-19T20:35:54.500Z
+Stopped at: Completed 73-09-PLAN.md (CR-02 DNT price bidi-isolation sweep across 29 route pages + services)
 Resume file: None
 
 ## Performance Metrics
@@ -317,6 +319,7 @@ Resume file: None
 | Phase 73 P08 | 25min | 3 tasks | 5 files |
 | Phase 73 P10 | ~3min | 2 tasks | 4 files |
 | Phase 73 P11 | 20min | 3 tasks | 11 files |
+| Phase 73 P09 | ~15min | 2 tasks | 32 files |
 
 ## Operator Next Steps
 
