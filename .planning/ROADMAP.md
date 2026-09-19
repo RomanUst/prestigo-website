@@ -195,7 +195,7 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 6 plans
+**Plans:** 12 plans (6 original + 6 gap-closure from 73-VERIFICATION gaps_found)
 
 **Wave 1** — tracer
 
@@ -211,6 +211,20 @@ Plans:
 **Wave 3** *(blocked on Wave 2 — phase gate)*
 
 - [x] 73-06-PLAN.md — Phase gate: full suite + `--check` + phase-wide byte-parity (D-12) + FONT-01 weight-budget + D-10 5-page RTL visual QA / D-11 mixed-content (human-check at end-of-phase)
+
+**Gap closure** *(from 73-VERIFICATION.md gaps_found — 4/6 must-haves; CR-01/CR-02/WR-01..05 + D-10/D-11 QA)*
+
+Wave 1 *(parallel, disjoint files)*
+- [ ] 73-07-PLAN.md — Nav account-menu RTL: chevron inversion (CR-01) + logical dropdown inset (WR-01) + carousel arrow-key direction (WR-03)
+- [ ] 73-08-PLAN.md — DNT price bidi helper `interpolateBidi` + prague-berlin/city-rides isolation (CR-02 core) + render backstop
+- [ ] 73-10-PLAN.md — RTL residuals: globals.css logical props (WR-02) + blog CTA `<bdi>` narrowing (WR-05)
+- [ ] 73-11-PLAN.md — Skip-link i18n (WR-04): `Common.skipToContent` across 7 catalogs (pipeline) + SiteChrome wiring (RTL-01, TR-02)
+
+Wave 2 *(blocked on 73-08)*
+- [ ] 73-09-PLAN.md — DNT price bidi sweep (CR-02 remainder): 29 route pages + airport-transfer + services index
+
+Wave 3 *(blocked on 73-07..73-11 — QA gate)*
+- [ ] 73-12-PLAN.md — D-10/D-11 RTL visual QA walkthrough + FONT-01 tofu confirmation (human-verify checkpoint) → 73-RTL-QA.md (RTL-01, FONT-01)
 
 </details>
 
