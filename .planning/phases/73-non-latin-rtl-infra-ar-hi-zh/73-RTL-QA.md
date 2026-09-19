@@ -119,4 +119,75 @@ getLocale() bug above (this string simply was never wired to a translation key a
 EntryBar/wizard content below it (the actual D-10 "booking flow" surface) is correctly
 translated. Logged to deferred-items.md as a narrow STR-02 gap, not a RTL-01/FONT-01/TR-02 item.
 
-<!-- gsd:write-continue -->
+---
+
+## Task 3 — D-10 Visual QA Checklist (5 representative `/ar/` pages) + D-11 Mixed LTR-in-RTL + Tofu + Backstops
+
+**Status: scaffold committed, pending operator visual pass.** Per the task's own `<human-check>`
+verify item, the actual pixel-level walkthrough is **queued for the end-of-phase human-check
+harvest** (rolled into the UAT flow), not performed synchronously by this executor — this agent
+has no browser/screenshot capability in this session. Cells below are pre-filled ONLY where an
+automated/textual check this session already confirms the underlying fact (noted inline); every
+cell requiring an actual visual/rendering judgment is left `PENDING — operator`.
+
+**The 5 D-10 representative pages (confirmed reachable, correctly localized text + correct Noto
+class via `next build && next start` + `curl` this session — see Task 2):**
+
+| # | Template type | URL | Pre-check this session |
+|---|---|---|---|
+| 1 | Home | `/ar/` | Noto class present (dynamic render); Arabic h1 confirmed |
+| 2 | Booking flow (EntryBar → wizard → vehicle cards) | `/ar/book` | Noto class present; EntryBar/wizard Arabic strings confirmed (`aria-label`, `placeholder`) — see deferred-items.md for the one unrelated hardcoded-EN decorative heading above the wizard |
+| 3 | Route page | `/ar/routes/prague-vienna` | Dynamic render (not SSG); Arabic h1 "من براغ إلى فيينا،" confirmed |
+| 4 | Blog post | `/ar/blog/prague-airport-arrivals-guide` | Noto class present; Arabic h1 confirmed (real MDX-translated post, not one of the 3 locked-EN legacy JSX posts) |
+| 5 | Account/login | `/ar/login` | Noto class present; `dir="rtl"` confirmed; Arabic UI strings confirmed |
+
+### Group 1 — Mirroring (labels/icons swap sides; directional chevrons/arrows point reader-correct; non-directional marks do NOT flip)
+
+| Page | Result |
+|---|---|
+| 1. Home | PENDING — operator (Hero decorative corners, scroll-cue centering, FeatureStrip divider — all logical-class-converted per 73-03, needs visual confirmation of correct RTL mirror) |
+| 2. Booking flow | PENDING — operator (EntryBar/wizard step-progress chevrons, journey-timeline arrows — needs visual confirmation of D-03 mirror rule) |
+| 3. Route page | PENDING — operator (`text-end` conversion per 73-04 — needs visual confirmation renders on the correct/mirrored side under `dir="rtl"`) |
+| 4. Blog post | PENDING — operator (pull-quote/results-table logical conversion N/A on MDX posts — MDX posts use the shared blog template, not the 3 legacy JSX pages 73-05 touched; needs visual confirmation) |
+| 5. Account/login | PENDING — operator (Nav.tsx dropdown chevron JS-computed RTL mirror per 73-01 — needs visual confirmation) |
+
+### Group 2 — Tofu (no fallback glyph boxes on `/ar/`, `/hi/`, `/zh/`)
+
+| Page | Result |
+|---|---|
+| 1. Home (ar) | PENDING — operator (correct-script text confirmed reaching the browser + correct Noto class applied; actual glyph-render-without-tofu needs a human eyeball pass) |
+| 2. Booking flow (ar) | PENDING — operator (same basis as above) |
+| 3. Route page (ar) | PENDING — operator (same basis as above) |
+| 4. Blog post (ar) | PENDING — operator (same basis as above) |
+| 5. Account/login (ar) | PENDING — operator (same basis as above) |
+| `/hi/` spot-check (home or login) | PENDING — operator — Noto Sans Devanagari class confirmed present on `/hi/login` (Task 2 count); text-level Devanagari confirmed in `messages/hi.json`/`content/pages/hi/*.json` |
+| `/zh/` spot-check (home or login) | PENDING — operator — Noto Sans SC class confirmed present on `/zh/login` (Task 2 count); text-level Simplified Chinese confirmed in `messages/zh.json`/`content/pages/zh/*.json` |
+
+### Group 3 — Mixed LTR-in-RTL (D-11): prices `€…`, phone `+420 725 986 855`, flight numbers, times stay LTR and un-reversed; EntryBar + RouteMap do not break under `dir="rtl"`
+
+| Page | Result |
+|---|---|
+| 1. Home — Hero price anchor | Confirmed programmatically: `<bdi style="color:var(--copper)">€69</bdi>` present in `/ar/` server-rendered HTML (73-03's bdi wrap). Visual isolation (numeral stays LTR, un-reversed) still needs operator confirmation. |
+| 2. Booking flow — EntryBar/RouteMap integrity under `dir="rtl"` | PENDING — operator (no known price/phone/flight/time literal on the EntryBar chrome itself; the check here is structural — EntryBar/map must not visually break, not a bdi-wrap check) |
+| 3. Route page — any inline price/phone/time tokens | PENDING — operator. Note: route pages were NOT in 73-03/73-05's bdi-wrap scope (no existing DNT span boundary was found there per the RESEARCH audit) — if a price/phone/time token is visually reversed on `/ar/routes/prague-vienna`, this is a **new finding**, not a known scoped no-op, and should be logged as a bug per the plan's prohibition ("MUST NOT declare the phase complete while a `/ar/` QA page shows... a reversed price/phone token"). |
+| 4. Blog post — inline price/phone/time tokens | PENDING — operator. The chosen MDX post (`prague-airport-arrivals-guide`) was not one of the 3 legacy JSX pages 73-05 bdi-wrapped — same "new finding if reversed" caveat as row 3 applies. |
+| 5. Account/login | PENDING — operator (no price/phone content expected on this template; confirm no unexpected token exists) |
+
+### Group 4 — Backstops (overflow/clipping, CJK line-breaking, vertical-rhythm drift)
+
+| Backstop | Scope | Result |
+|---|---|---|
+| Long Arabic/Hindi strings do not clip/overflow fixed-width UI (nav labels, buttons, EntryBar chips) | All 5 pages, `ar` + `hi` spot-check | PENDING — operator. Any clipped label is a bug, not an accepted state (must_haves backstop). |
+| Long Chinese headings/labels do not break mid-character awkwardly on `/zh/` | Home + one heading-heavy page (route or blog post), `zh` | PENDING — operator. Flag + fix any `overflow-wrap`/`word-break` need found. |
+| Taller `ar`/`hi` line-height (1.7–1.8 body / 1.4 heading per UI-SPEC Typography) does not break a section boundary | All 5 pages, `ar` + `hi` spot-check | PENDING — operator. Locale-specific vertical-rhythm drift vs the EN baseline is acceptable IF it doesn't overlap/clip a section boundary. |
+
+### Harvest note
+
+This checklist is authored and committed as scaffold per Task 3's `<done>` criteria
+("73-RTL-QA.md checklist scaffold is committed; the D-10/D-11 visual QA is queued for the
+end-of-phase human-check harvest"). The `PENDING — operator` cells above are the explicit,
+non-silent representation of "no automated evidence exists" for a visual-judgment item — they
+are NOT a pass, and must be completed via a live `/ar/`, `/hi/`, `/zh/` browser walkthrough
+before the phase's D-10/D-11 success criterion can be marked fully verified (human_needed,
+never silently defaulted to pass, per the project's status vocabulary).
+
