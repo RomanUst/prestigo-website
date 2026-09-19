@@ -80,7 +80,11 @@ export default function Hero({ airportPrice, rating }: Props) {
             <p className="animate-on-load delay-600 mt-5 font-body font-light text-[11px] tracking-[0.12em] uppercase" style={{ color: 'var(--warmgrey)' }}>
               {t.rich('priceAnchor', {
                 amount: airportPrice,
-                price: (chunks) => <span style={{ color: 'var(--copper)' }}>{chunks}</span>,
+                // D-11: price is a DNT token (glossary pricePlaceholderPattern) — <bdi>
+                // isolates it so the numeral+currency stay LTR and un-reversed inside
+                // the surrounding RTL (ar) paragraph, at this existing rich-text
+                // ("price" tag) render boundary.
+                price: (chunks) => <bdi style={{ color: 'var(--copper)' }}>{chunks}</bdi>,
               })}
             </p>
 
