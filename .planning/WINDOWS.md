@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 1
+open_count: 2
 waived_count: 0
 fixed_count: 5
-total_count: 6
-last_updated: 2026-09-19T08:28:32.086Z
+total_count: 7
+last_updated: 2026-09-19T12:22:00.327Z
 ---
 
 # Broken Windows Ledger
@@ -21,6 +21,7 @@ last_updated: 2026-09-19T08:28:32.086Z
 | 4 | 68 | deviation | .husky/pre-commit |  | Rule 1 fix: stale app/blog/ exclusion in EUR-price-check hook broken by the move to app/[locale]/blog/, would have false-positive-blocked future blog commits | fixed |  | 2026-09-03T19:22:49.602Z | 2026-09-03T19:23:17.796Z |
 | 5 | 68 | deviation | tests/confirmation-page.test.tsx |  | Rule 1 fix: stale @/app/book/confirmation/page import missed by the plan's declared stale-prefix sweep (book was omitted) | fixed |  | 2026-09-03T19:22:49.877Z | 2026-09-03T19:23:18.078Z |
 | 6 | 73 | stub | messages/hi.json |  | ~10 hi heading units (whyBook.headingLine1 across ~9 route files; corporate.json usagePatterns.headingItalic) drop the 'Prestigo'/'PRESTIGO' DNT token in translation -> verifier EN-fallback by design (T-73-04). --check passes (keys present). Deferred: revisit glossary/verifier so these headings translate around the DNT token instead of falling back. | open |  | 2026-09-19T08:28:32.086Z |  |
+| 7 | 73 | deviation | app/[locale]/about/page.tsx |  | 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN content on every locale (en/ru/es/fr/ar/hi/zh) due to unforwarded getLocale() in force-static pages — pre-existing, not fixed in 73-06, see deferred-items.md | open |  | 2026-09-19T12:22:00.327Z |  |
 
 ````json
 [
@@ -94,6 +95,18 @@ last_updated: 2026-09-19T08:28:32.086Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-19T08:28:32.086Z",
+    "resolved_at": null
+  },
+  {
+    "id": 7,
+    "kind": "deviation",
+    "phase": "73",
+    "file": "app/[locale]/about/page.tsx",
+    "line": null,
+    "description": "7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN content on every locale (en/ru/es/fr/ar/hi/zh) due to unforwarded getLocale() in force-static pages — pre-existing, not fixed in 73-06, see deferred-items.md",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-19T12:22:00.327Z",
     "resolved_at": null
   }
 ]
