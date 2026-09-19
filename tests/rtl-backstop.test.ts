@@ -71,6 +71,13 @@ describe('RTL backstop — app/globals.css logical properties (WR-02)', () => {
   it('has no residual left-anchored transform-origin on the CTA hover-zoom rule', () => {
     expect(src).not.toMatch(/transform-origin:\s*left center/)
   })
+
+  it('forces the Latin brand wordmark to LTR so it never reverses under dir=rtl (73-12 QA)', () => {
+    // The .wordmark flex/inline-flex layouts (Nav, CookieBanner) otherwise reverse
+    // "PRESTI"+"GO" to "GOPRESTI" on /ar. direction:ltr keeps the brand readable.
+    const rule = src.match(/\.wordmark\s*\{[^}]*\}/)?.[0] ?? ''
+    expect(rule).toMatch(/direction:\s*ltr/)
+  })
 })
 
 describe('RTL backstop — static blog CTA bdi scope narrowing (WR-05)', () => {

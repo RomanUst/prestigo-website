@@ -352,6 +352,11 @@ body {
   letter-spacing: 0.6em;
   line-height: 1;
   font-size: 1.1rem;
+  /* The Latin brand wordmark must always read left-to-right. Its flex/inline-flex
+     layouts (Nav, CookieBanner) otherwise reverse "PRESTI"+"GO" under dir=rtl
+     (/ar), rendering "GOPRESTI". Forcing LTR here is a no-op for LTR locales and
+     changes no page HTML — byte-parity for en/ru/es/fr is preserved. (73-12 QA, RTL-01) */
+  direction: ltr;
 }
 
 .wordmark-presti { color: var(--offwhite); }
