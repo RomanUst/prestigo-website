@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-08-PLAN.md (CR-02 DNT price bidi-isolation on prague-berlin + city-rides)
-last_updated: "2026-09-19T19:53:13.021Z"
+stopped_at: Completed 73-10-PLAN.md (WR-02 globals.css logical CSS + WR-05 blog CTA bdi narrowing gap-closure)
+last_updated: "2026-09-19T19:56:56.213Z"
 last_activity: 2026-09-19
 last_activity_desc: Phase 73 execution started
-state_head: 75fdd76508ed34825ec4360c53d297af5fdb60a8
+state_head: a3d71f74703f7682ccd93877bc0f3c469d8a9bbf
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 41
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 3 of 12
+Plan: 4 of 12
 Status: Ready to execute
 Last activity: 2026-09-19 — Phase 73 execution started
 
@@ -141,6 +141,8 @@ Recent decisions affecting current work:
 - [Phase 73]: 73-07: Task 1/2 committed as two separate atomic commits despite touching the same file (Nav.tsx), by staging/reverting the WR-01 hunk between commits
 - [Phase 73]: 73-08: interpolateBidi splits on the same {token} boundary as interpolate() and wraps only the substituted value in <bdi>; metadata/JSON-LD strings keep the plain-string interpolate()
 - [Phase 73]: 73-08: bare price-token render sites (v.price, c.price, businessHourly) wrap the already-interpolated string directly in inline <bdi>, distinct from sentence-level fields which use interpolateBidi() at the render call
+- [Phase 73]: 73-10: cta-text hover-zoom transform-origin set to centered (50% 50%) rather than a :dir(rtl)-conditional pair — direction-neutral fix per review's primary suggestion
+- [Phase 73]: 73-10: Vienna blog CTA isolates both price (€455) and duration (3h 15min) in separate <bdi> tags per D-11 numeral-run scope; the two airport CTAs isolate only their price token
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -248,8 +250,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T19:53:12.119Z
-Stopped at: Completed 73-08-PLAN.md (CR-02 DNT price bidi-isolation on prague-berlin + city-rides)
+Last session: 2026-09-19T19:56:55.306Z
+Stopped at: Completed 73-10-PLAN.md (WR-02 globals.css logical CSS + WR-05 blog CTA bdi narrowing gap-closure)
 Resume file: None
 
 ## Performance Metrics
@@ -310,6 +312,7 @@ Resume file: None
 | Phase 73 P06 | 45min | 3 tasks | 4 files |
 | Phase 73 P07 | 10min | 3 tasks | 2 files |
 | Phase 73 P08 | 25min | 3 tasks | 5 files |
+| Phase 73 P10 | ~3min | 2 tasks | 4 files |
 
 ## Operator Next Steps
 
