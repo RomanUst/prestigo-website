@@ -26,10 +26,10 @@ describe("getAllPosts() locale fallback (D-07)", () => {
 describe("resolveLocalizedMdx()", () => {
   const EN_SLUG = "premium-airport-transfer-prague-shortcut";
 
-  it("returns { dir: 'en', isFallback: true } for a locale with no localized MDX (ar — Phase 73)", () => {
+  it("returns { dir: 'ar', isFallback: false } now that ar MDX exists (Phase 73)", () => {
     expect(resolveLocalizedMdx(EN_SLUG, "ar")).toEqual({
-      dir: "en",
-      isFallback: true,
+      dir: "ar",
+      isFallback: false,
     });
   });
 

@@ -9,8 +9,8 @@ import { getPageContent } from "@/lib/page-content";
 import { routing } from "@/i18n/routing";
 
 const NON_EN_LOCALES = routing.locales.filter((l) => l !== "en");
-// Phase 72 translated ru/es/fr; ar/hi/zh remain EN placeholders (Phase 73), so they still fall back to EN.
-const TRANSLATED_LOCALES = ["ru", "es", "fr"];
+// Phase 72 translated ru/es/fr; Phase 73 translated ar/hi/zh — every non-EN locale now has real translations.
+const TRANSLATED_LOCALES = [...NON_EN_LOCALES];
 const FALLBACK_LOCALES = NON_EN_LOCALES.filter((l) => !TRANSLATED_LOCALES.includes(l));
 
 type PrivacyContent = {

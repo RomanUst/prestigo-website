@@ -32,8 +32,12 @@ describe("Group B route content (71-03)", () => {
       expect(ru).not.toEqual(en);
     });
 
-    it("ar still falls back to EN (no ar file yet — Phase 73)", () => {
-      expect(getRouteContent(slug, "ar")).toEqual(getRouteContent(slug, "en"));
+    it("ar content exists, keeps the EN structure, and is translated (Phase 73)", () => {
+      const en = getRouteContent(slug, "en");
+      const ar = getRouteContent(slug, "ar");
+      assertRouteContentShape(ar);
+      expect(Object.keys(ar)).toEqual(Object.keys(en));
+      expect(ar).not.toEqual(en);
     });
   });
 

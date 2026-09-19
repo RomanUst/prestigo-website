@@ -20,8 +20,12 @@ describe("getRouteContent()", () => {
     expect(ru).not.toEqual(en);
   });
 
-  it("prague-vienna ar still falls back to EN (no ar file yet — Phase 73)", () => {
-    expect(getRouteContent("prague-vienna", "ar")).toEqual(getRouteContent("prague-vienna", "en"));
+  it("prague-vienna ar content exists, keeps the EN structure, and is translated (Phase 73)", () => {
+    const en = getRouteContent("prague-vienna", "en");
+    const ar = getRouteContent("prague-vienna", "ar");
+    assertRouteContentShape(ar);
+    expect(Object.keys(ar)).toEqual(Object.keys(en));
+    expect(ar).not.toEqual(en);
   });
 
   it("path-traversal: getRouteContent('../secrets', 'en') throws", () => {
