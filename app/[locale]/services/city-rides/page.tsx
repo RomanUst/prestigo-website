@@ -146,7 +146,7 @@ export default async function CityRidesPage() {
               </div>
             ))}
           </div>
-          <div className="flex flex-col gap-3 text-right">
+          <div className="flex flex-col gap-3 text-end">
             <p className="font-body font-light text-[11px] text-warmgrey">
               {vClassLine}
             </p>
