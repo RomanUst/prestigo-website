@@ -222,7 +222,7 @@ export default function Nav() {
                   onKeyDown={handleMenuKeyDown}
                   style={{
                     position: 'absolute',
-                    right: 0,
+                    insetInlineEnd: 0,
                     top: '100%',
                     marginTop: '8px',
                     minWidth: '160px',
