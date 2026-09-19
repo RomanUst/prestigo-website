@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { Fraunces, Inter, Noto_Sans_Arabic, Noto_Sans_Devanagari, Noto_Sans_SC } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
-import { getLocale, getMessages } from 'next-intl/server'
+import { getLocale, getMessages, getTranslations } from 'next-intl/server'
 import '../app/globals.css'
 import GoogleAnalytics from '@/components/GoogleAnalytics'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
@@ -134,6 +134,7 @@ export default async function SiteChrome({
 }: Readonly<{ children: React.ReactNode }>) {
   const locale = await getLocale()
   const messages = await getMessages()
+  const t = await getTranslations('Common')
 
   // D-04: per-locale Noto className application. Internal routes
   // (app/(internal)/layout.tsx, which shares this same SiteChrome) always
@@ -168,7 +169,7 @@ export default async function SiteChrome({
       <body className={`${fraunces.variable} ${inter.variable} ${localeFontClassName}`}>
         <NextIntlClientProvider locale={locale} messages={messages}>
           <a href="#main-content" className="skip-link btn-primary">
-            Skip to content
+            {t('skipToContent')}
           </a>
           {children}
           <GoogleAnalytics />
