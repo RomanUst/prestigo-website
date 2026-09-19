@@ -4,7 +4,7 @@ import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
-import { interpolate } from '@/lib/content-interpolate'
+import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 
 export const revalidate = 120
 
@@ -112,7 +112,7 @@ export default async function PraguePardubicePage() {
             <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            {interpolate(content.hero.intro, prices)}
+            {interpolateBidi(content.hero.intro, prices)}
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">{t('heroCtaPrimary')}</a>
@@ -132,7 +132,7 @@ export default async function PraguePardubicePage() {
                 <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>
                 {Array.isArray(h.value) ? (
                   <div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p></div>
-                ) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}
+                ) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{(h as { copper?: boolean }).copper ? <bdi>{h.value}</bdi> : h.value}</p>)}
               </div>
             ))}
           </div>
@@ -206,7 +206,7 @@ export default async function PraguePardubicePage() {
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div>
                     <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div>
-                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div>
+                    <div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span></div>
                   </div>
                   <a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
                 </div>
@@ -351,7 +351,7 @@ export default async function PraguePardubicePage() {
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
-            <h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolate(content.cta.headingItalic, prices)}</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolateBidi(content.cta.headingItalic, prices)}</span></h2>
             <p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p>
           </div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4">

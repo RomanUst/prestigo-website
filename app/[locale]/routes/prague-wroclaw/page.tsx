@@ -4,7 +4,7 @@ import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
-import { interpolate } from '@/lib/content-interpolate'
+import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 
 export const revalidate = 120
 
@@ -106,7 +106,7 @@ export default async function PragueWroclawPage() {
           <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[40px] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
-          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{interpolate(content.hero.intro, prices)}</p>
+          <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{interpolateBidi(content.hero.intro, prices)}</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">{t('heroCtaPrimary')}</a>
             <a href="/contact" className="btn-ghost">{t('heroCtaSecondary')}</a>
@@ -120,7 +120,7 @@ export default async function PragueWroclawPage() {
       <section className="bg-anthracite-mid py-12">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>)}</div></Reveal>))}
+            {highlights.map((h, i) => (<Reveal key={h.label} variant="up" delay={i * 100}><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{h.label}</p>{Array.isArray(h.value) ? (<div><div className="flex flex-wrap gap-2 mt-1">{h.value.map((tag) => (<span key={tag} className="font-body font-light text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 border border-anthracite-light text-offwhite">{tag}</span>))}</div><p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p></div>) : (<p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{(h as { copper?: boolean }).copper ? <bdi>{h.value}</bdi> : h.value}</p>)}</div></Reveal>))}
           </div>
         </div>
       </section>
@@ -184,7 +184,7 @@ export default async function PragueWroclawPage() {
           <Reveal variant="up"><p className="label mb-6">{t('sectionLabels.fleet')}</p>
           <h2 className="display text-[28px] md:text-[38px] mb-14">{t('chooseYourVehicle')}</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a></div></div></Reveal>))}
+            {vehicles.map((v, i) => (<Reveal key={v.name} variant="up" delay={i * 120}><div className="border border-anthracite-light flex flex-col"><div className="w-full overflow-hidden" style={{ aspectRatio: '16/9', position: 'relative' }}><Image src={v.photo} alt={v.name} fill sizes="(max-width: 768px) 100vw, 33vw" className="object-contain" style={{ background: '#EFE8DA', filter: 'brightness(0.92)' }} /></div><div className="p-8 flex flex-col gap-6 flex-1"><div><p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>{v.category}</p><h3 className="font-display font-light text-[24px] text-offwhite mb-2">{v.name}</h3></div><div className="flex flex-col gap-2"><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.passengers')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.capacity}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.luggage')}</span><span className="font-body font-light text-[11px] text-offwhite">{v.bags}</span></div><div className="flex justify-between"><span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span><span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span></div></div><a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a></div></div></Reveal>))}
           </div>
           <p className="body-text text-[11px] mt-8" style={{ lineHeight: '1.8' }}>{content.fleetNote}</p>
         </div>
@@ -300,7 +300,7 @@ export default async function PragueWroclawPage() {
       {/* Final CTA */}
       <section className="bg-anthracite py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolate(content.cta.headingItalic, prices)}</span></h2><p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p></div></Reveal>
+          <Reveal variant="up"><div><h2 className="display text-[28px] md:text-[36px]">{content.cta.headingLine1} <br /><span className="display-italic">{interpolateBidi(content.cta.headingItalic, prices)}</span></h2><p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p></div></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row gap-4"><a href="/book" className="btn-primary">{t('bookNow')}</a><a href="/routes" className="btn-ghost">{t('allRoutes')}</a></div></Reveal>
         </div>
       </section>

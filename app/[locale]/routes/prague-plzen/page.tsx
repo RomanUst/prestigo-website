@@ -4,7 +4,7 @@ import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
-import { interpolate } from '@/lib/content-interpolate'
+import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 
 export const revalidate = 120
 
@@ -112,7 +112,7 @@ export default async function PraguePlzenPage() {
             <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            {interpolate(content.hero.intro, prices)}
+            {interpolateBidi(content.hero.intro, prices)}
           </p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">{t('heroCtaPrimary')}</a>
@@ -140,7 +140,7 @@ export default async function PraguePlzenPage() {
                     <p className="font-body font-light text-[10px] text-warmgrey mt-3" style={{ letterSpacing: '0.03em' }}>{t('availableOnThisRoute')}</p>
                   </div>
                 ) : (
-                  <p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{h.value}</p>
+                  <p className="font-body font-light text-[22px]" style={{ color: (h as { copper?: boolean }).copper ? 'var(--copper-light)' : 'var(--offwhite)' }}>{(h as { copper?: boolean }).copper ? <bdi>{h.value}</bdi> : h.value}</p>
                 )}
               </div>
             ))}
@@ -235,7 +235,7 @@ export default async function PraguePlzenPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-body font-light text-[11px] text-warmgrey tracking-[0.05em]">{t('vehicleFields.transferPrice')}</span>
-                      <span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}>{v.price}</span>
+                      <span className="font-body font-light text-[11px]" style={{ color: 'var(--copper-light)' }}><bdi>{v.price}</bdi></span>
                     </div>
                   </div>
                   <a href="/book" className="btn-primary self-center mt-auto" style={{ padding: '10px 24px', fontSize: '9px' }}>{t('bookOnline')}</a>
@@ -390,7 +390,7 @@ export default async function PraguePlzenPage() {
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
               {content.cta.headingLine1} <br />
-              <span className="display-italic">{interpolate(content.cta.headingItalic, prices)}</span>
+              <span className="display-italic">{interpolateBidi(content.cta.headingItalic, prices)}</span>
             </h2>
             <p className="body-text text-[13px] mt-4">{t('ctaFootnote')}</p>
           </div></Reveal>
