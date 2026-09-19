@@ -1,0 +1,41 @@
+{
+  "metadata": {
+    "title": "数据删除 — PRESTIGO 布拉格高端专车服务",
+    "description": "如何申请从 PRESTIGO 删除您的个人数据。GDPR 数据删除申请指南。"
+  },
+  "hero": {
+    "label": "数据删除",
+    "headlineLine1": "申请删除数据。",
+    "headlineItalic": "简单且透明。"
+  },
+  "requestReceived": {
+    "label": "已收到申请",
+    "paragraph1": "我们已收到您的数据删除申请,并将在 30 天内处理完毕。您的确认码:",
+    "paragraph2Prefix": "请妥善保存此代码以备查询。如有疑问,请发送邮件至 ",
+    "paragraph2EmailLabel": "info@rideprestigo.com",
+    "paragraph2Suffix": " 并注明此代码。"
+  },
+  "section1": {
+    "title": "PRESTIGO 持有哪些数据",
+    "text": "如果您曾预订接送服务或提交过咨询,我们会保存您的姓名、电子邮箱地址、电话号码及预订详情。我们还会通过 Google Analytics 和 Meta Pixel 处理匿名化的网站分析数据。我们不会存储您的 Facebook 用户 ID —— Meta Pixel 仅发送经过哈希处理的行为数据,用于广告效果衡量。"
+  },
+  "section2": {
+    "title": "如何申请删除",
+    "paragraph1Prefix": "请发送邮件至 ",
+    "paragraph1EmailLabel": "info@rideprestigo.com",
+    "paragraph1Suffix": ",主题注明“数据删除申请”。请在邮件中提供与您的预订或咨询相关联的电子邮箱地址。",
+    "paragraph2": "我们将在 3 个工作日内确认收到您的申请,并在 30 天内完成删除,除非法律要求我们保留某些记录(例如出于税务目的的发票 —— 根据捷克法律须保留 5 年)。"
+  },
+  "section3": {
+    "title": "通过 Facebook 删除",
+    "paragraph1Prefix": "如果您曾使用 Facebook 登录,或通过 Facebook 与 PRESTIGO 进行过互动并希望撤销访问权限,您可以通过 ",
+    "facebookLinkLabel": "Facebook 设置 → 应用和网站",
+    "paragraph1Suffix": " 进行操作。此操作将取消我们的应用对您 Facebook 账户的访问权限。如需删除我们可能持有的任何预订数据,请同时按上述方式向我们发送邮件。"
+  },
+  "cta": {
+    "headingLine1": "对您的数据有疑问?",
+    "headingItalic": "我们随时为您提供帮助。",
+    "buttonPrimary": "申请删除",
+    "buttonSecondary": "隐私政策"
+  }
+}

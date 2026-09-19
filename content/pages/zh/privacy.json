@@ -1,0 +1,202 @@
+{
+  "metadata": {
+    "title": "隐私政策 — PRESTIGO 布拉格高端专车服务",
+    "description": "PRESTIGO 如何收集、使用并保护您的个人数据。我们在布拉格及中欧地区提供的高端专车服务遵循符合 GDPR 的隐私政策。",
+    "ogTitle": "隐私政策 — PRESTIGO 布拉格高端专车服务"
+  },
+  "hero": {
+    "label": "隐私政策",
+    "headlineLine1": "您的数据，受到保护。",
+    "headlineItalic": "始于设计之初。",
+    "lastUpdated": "最后更新：2026年4月6日"
+  },
+  "section1": {
+    "title": "数据控制者",
+    "controllerPrefix": "您个人数据的控制者为 ",
+    "controllerName": "chelautotrans s.r.o.",
+    "controllerSuffix": "，以 PRESTIGO 名义经营，注册地址为 Spojovací 685, Vysoký Újezd, 捷克共和国，IČO：05650801。",
+    "contactPrefix": "如对您个人数据的处理有任何疑问，请通过 ",
+    "contactEmailLabel": "info@rideprestigo.com",
+    "contactMiddle": " 与我们联系，或致电 ",
+    "contactPhoneLabel": "+420 725 986 855",
+    "contactSuffix": "。"
+  },
+  "section2": {
+    "title": "我们收集哪些数据",
+    "intro": "我们仅收集为提供服务所必需的信息。",
+    "bookingForm": {
+      "heading": "预订表单",
+      "text": "名字、姓氏、电子邮箱、电话号码、航班号、上车与下车地址、日期与时间、车型偏好、儿童座椅需求、特殊要求。"
+    },
+    "contactForm": {
+      "heading": "联系表单",
+      "text": "姓名、电子邮箱、电话号码、服务类型、留言内容。"
+    },
+    "corporateEnquiry": {
+      "heading": "企业咨询",
+      "text": "公司名称、联系人姓名与职务、电子邮箱、预计每月行程次数、备注。"
+    },
+    "automaticallyCollected": {
+      "heading": "自动收集的信息",
+      "text": "IP 地址、浏览器类型与版本、设备类型、访问页面、来源网址以及交互数据 — 通过 Google Analytics 收集。"
+    },
+    "locationData": {
+      "heading": "位置数据",
+      "text": "您输入的上车地址与目的地地址将通过 Google Maps API 进行处理，用于路线计算与地址自动补全。我们不会追踪您的实时位置。"
+    }
+  },
+  "section3": {
+    "title": "处理的法律依据",
+    "intro": "我们依据 GDPR 第 6 条规定的以下法律依据处理您的个人数据：",
+    "performanceOfContract": {
+      "heading": "合同履行 — 第 6(1)(b) 条",
+      "text": "处理您的预订数据以安排并完成您的接送服务、处理付款、发送预订确认，以及提供司机联系信息。"
+    },
+    "legitimateInterest": {
+      "heading": "合法利益 — 第 6(1)(f) 条",
+      "text": "用于改进服务的网站分析、防范欺诈，以及通过联系表单回复您的咨询。"
+    },
+    "legalObligation": {
+      "heading": "法律义务 — 第 6(1)(c) 条",
+      "text": "按照捷克税务与会计法规的要求保存预订与付款记录。"
+    }
+  },
+  "section4": {
+    "title": "第三方服务提供商",
+    "intro": "我们仅与受信赖的服务提供商共享个人数据，这些提供商代表我们并按照我们的指示处理数据。",
+    "privacyPolicyLabel": "隐私政策 →",
+    "providers": [
+      {
+        "name": "Stripe",
+        "purpose": "支付处理。银行卡数据直接发送至 Stripe — PRESTIGO 绝不存储您的卡号。",
+        "url": "https://stripe.com/privacy"
+      },
+      {
+        "name": "Google Analytics",
+        "purpose": "匿名化的网站使用统计，帮助我们改进服务。",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Google Maps Platform",
+        "purpose": "地址自动补全与路线计算。",
+        "url": "https://policies.google.com/privacy"
+      },
+      {
+        "name": "Supabase",
+        "purpose": "用于预订记录的安全数据库托管（欧盟区域）。",
+        "url": "https://supabase.com/privacy"
+      },
+      {
+        "name": "Resend",
+        "purpose": "事务性邮件发送 — 预订确认与司机信息。",
+        "url": "https://resend.com/legal/privacy-policy"
+      },
+      {
+        "name": "Vercel",
+        "purpose": "网站托管与内容分发。",
+        "url": "https://vercel.com/legal/privacy-policy"
+      }
+    ]
+  },
+  "section5": {
+    "title": "跨境数据传输",
+    "text": "您的预订数据存储于欧盟境内（Supabase 欧盟区域）。我们的部分服务提供商 — 包括 Google、Stripe、Resend 和 Vercel — 可能在美国处理数据。此类传输受《欧盟—美国数据隐私框架》保护，并在适用情况下受欧盟委员会批准的标准合同条款保护。"
+  },
+  "section6": {
+    "title": "数据保存期限",
+    "items": [
+      {
+        "type": "预订记录",
+        "period": "自接送服务之日起 5 年，依据捷克税务与会计法规的要求。"
+      },
+      {
+        "type": "联系表单提交内容",
+        "period": "在您的咨询处理完毕后保存 12 个月。"
+      },
+      {
+        "type": "分析数据",
+        "period": "26 个月（Google Analytics 默认保存期限）。"
+      },
+      {
+        "type": "付款记录",
+        "period": "PRESTIGO 仅存储交易参考编号。完整付款数据由 Stripe 依据其保存政策留存。"
+      }
+    ]
+  },
+  "section7": {
+    "title": "Cookie",
+    "intro": "我们的网站仅使用有限数量的 Cookie：",
+    "cookies": [
+      {
+        "name": "_ga / _gid",
+        "purpose": "Google Analytics — 匿名化使用统计。分别在 2 年 / 24 小时后过期。"
+      },
+      {
+        "name": "必要 Cookie",
+        "purpose": "仅用于会话管理。为网站正常运行所必需。"
+      }
+    ],
+    "outro": "我们不使用广告、再营销或社交媒体追踪 Cookie。"
+  },
+  "section8": {
+    "title": "您在 GDPR 下享有的权利",
+    "intro": "根据《通用数据保护条例》，您享有以下权利：",
+    "rights": [
+      {
+        "right": "访问权",
+        "article": "第 15 条",
+        "desc": "获取我们所持有的您的个人数据副本。"
+      },
+      {
+        "right": "更正权",
+        "article": "第 16 条",
+        "desc": "要求更正不准确或不完整的数据。"
+      },
+      {
+        "right": "删除权",
+        "article": "第 17 条",
+        "desc": "要求删除您的个人数据（“被遗忘权”）。"
+      },
+      {
+        "right": "限制处理权",
+        "article": "第 18 条",
+        "desc": "要求我们限制对您数据的处理。"
+      },
+      {
+        "right": "数据可携权",
+        "article": "第 20 条",
+        "desc": "以结构化、机器可读的格式获取您的数据。"
+      },
+      {
+        "right": "反对权",
+        "article": "第 21 条",
+        "desc": "对基于合法利益的处理提出反对。"
+      },
+      {
+        "right": "撤回同意权",
+        "article": "第 7(3) 条",
+        "desc": "随时撤回同意，且不影响此前已进行的处理。"
+      }
+    ],
+    "outroPrefix": "如需行使上述任一权利，请发送邮件至 ",
+    "outroEmailLabel": "info@rideprestigo.com",
+    "outroSuffix": "。我们将在 30 天内答复。"
+  },
+  "section9": {
+    "title": "监管机构",
+    "intro": "如果您认为自己的数据保护权利受到侵犯，您有权向捷克监管机构提出投诉：",
+    "authorityName": "Úřad pro ochranu osobních údajű",
+    "authorityAddress": "Pplk. Sochora 27, 170 00 布拉格 7 区, 捷克共和国",
+    "authorityUrlLabel": "www.uoou.cz"
+  },
+  "section10": {
+    "title": "本政策的变更",
+    "text": "我们可能会不时更新本隐私政策。本页面顶部的“最后更新”日期反映最近一次修订。在任何变更后继续使用我们的服务，即表示您认可更新后的政策。"
+  },
+  "cta": {
+    "headingLine1": "对您的数据有疑问？",
+    "headingItalic": "我们乐意为您提供帮助。",
+    "buttonPrimary": "发送邮件",
+    "buttonSecondary": "联系页面"
+  }
+}

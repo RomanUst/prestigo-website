@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "title": "布拉格专车博客 — 机场、路线与接送指南",
+    "description": "关于布拉格机场接送、城际路线及豪华专车服务的实用指南 — Prestigo 提供经核实的 2026 年价格与本地资讯。"
+  },
+  "hero": {
+    "label": "博客",
+    "headlineLine1": "布拉格出行,",
+    "headlineItalic": "为您清晰解读。",
+    "intro": "基于真实调度数据撰写的实用指南。所有价格、路线与时间均已针对 2026 年核实。"
+  },
+  "emptyState": {
+    "heading": "暂无文章。",
+    "body": "我们正在准备关于布拉格接送与路线的详细指南。请稍后再来查看,或立即预订您的接送服务。",
+    "ctaLabel": "预订接送服务"
+  },
+  "cta": {
+    "headingLine1": "准备好预订了吗?",
+    "headingItalic": "固定价格,门到门服务。",
+    "body": "无需打表。绝无意外收费。Mercedes-Benz 车队,布拉格 24/7 全天候调度。",
+    "primaryLabel": "预订接送服务",
+    "secondaryLabel": "查看车队"
+  }
+}
