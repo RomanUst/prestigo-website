@@ -23,7 +23,6 @@ const NAV_LINKS: ReadonlyArray<{ href: string; isNew?: boolean }> = [
 export default function Nav() {
   const t = useTranslations('Nav')
   const locale = useLocale()
-  const isRtl = locale === 'ar'
   const navItems = t.raw('items') as string[]
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
@@ -204,11 +203,10 @@ export default function Nav() {
                     aria-hidden="true"
                     style={{
                       color: 'var(--warmgrey)',
-                      // D-03/Pattern 4: the rtl: variant can't reach an
-                      // inline style, so the RTL mirror is composed in JS —
-                      // total rotation = existing open/closed rotation +
-                      // 180deg when the resolved locale is RTL (ar).
-                      transform: `rotate(${(menuOpen ? 180 : 0) + (isRtl ? 180 : 0)}deg)`,
+                      // CR-01 fix: this chevron path (M2 4l4 4 4-4) is
+                      // horizontally symmetric about x=6, so it needs no
+                      // RTL mirror — rotation reflects open/closed only.
+                      transform: `rotate(${menuOpen ? 180 : 0}deg)`,
                       transition: 'transform 0.2s ease',
                     }}
                   >
