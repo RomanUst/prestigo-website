@@ -6,15 +6,15 @@ current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
 stopped_at: Completed 73-01-PLAN.md
-last_updated: "2026-09-18T07:27:29.015Z"
+last_updated: "2026-09-19T08:29:12.010Z"
 last_activity: 2026-09-18
 last_activity_desc: Phase 73 execution started
-state_head: dbc3d58209852e3d6c95b2ffe694827cd015cbf8
+state_head: be1a9909ea7a1c88b12b2f75aadbe75b622a1d31
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 35
-  completed_plans: 30
+  completed_plans: 31
 ---
 
 # Project State
@@ -131,6 +131,7 @@ Recent decisions affecting current work:
 - [Phase 73]: 73-01: --letter-spacing-nav/-wide/-logo theme tokens have no DOM consumer — reset at custom-property level under :lang(ar)/:lang(hi) rather than inventing non-existent bearing selectors
 - [Phase 73]: 73-01: A1 resolved — PHASE_72_LOCALES extended to all six locales now (ru/es/fr/ar/hi/zh), closing a latent CI re-translation gap
 - [Phase 73]: 73-01: Nav-inclusive byte-parity check moved to a new dedicated file (tests/nav-locale-render-parity.test.tsx) due to Vitest vi.mock hoisting conflict in tests/route-page-render.test.tsx
+- [Phase 73]: 73-02: real ar/hi/zh catalogs+content generated (33 blog MDX, --check green, en/ru/es/fr untouched); ~10 hi heading DNT-fallbacks deferred (WINDOWS #6)
 
 ### Brownfield phases (pre-GSD, completed)
 
