@@ -397,7 +397,7 @@ export default function CompareAirportTaxiPage() {
       <section className="bg-anthracite-mid py-12 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
           <p className="body-text text-[14px]">
-            Skip the comparison — a PRESTIGO chauffeur is <span style={{ color: 'var(--copper-light)' }}>€69 fixed</span>, met inside Arrivals with your name board, flight tracked, no surge.
+            Skip the comparison — a PRESTIGO chauffeur is <bdi style={{ color: 'var(--copper-light)' }}>€69 fixed</bdi>, met inside Arrivals with your name board, flight tracked, no surge.
           </p>
           <a href="/book" className="btn-primary whitespace-nowrap">Book a transfer</a>
         </div>
@@ -485,7 +485,7 @@ export default function CompareAirportTaxiPage() {
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
               Skip the taxi rank entirely. <br />
-              <span className="display-italic">€69 fixed, chauffeur inside Arrivals.</span>
+              <bdi className="display-italic">€69 fixed, chauffeur inside Arrivals.</bdi>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Free flight tracking. Free waiting on delays.</p>
           </div>

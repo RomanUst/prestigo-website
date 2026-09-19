@@ -596,7 +596,7 @@ export default function GuidePragueAirportPage() {
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
               Skip the airport taxi rank. <br />
-              <span className="display-italic">€69 fixed. Chauffeur inside Arrivals.</span>
+              <bdi className="display-italic">€69 fixed. Chauffeur inside Arrivals.</bdi>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.</p>
           </div>
