@@ -784,5 +784,8 @@
     "bookOnline": "ऑनलाइन बुक करें",
     "bookNow": "अभी बुक करें",
     "allRoutes": "सभी रूट"
+  },
+  "Common": {
+    "skipToContent": "सामग्री पर जाएँ"
   }
 }

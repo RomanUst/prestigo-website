@@ -784,5 +784,8 @@
     "bookOnline": "在线预订",
     "bookNow": "立即预订",
     "allRoutes": "所有路线"
+  },
+  "Common": {
+    "skipToContent": "跳转到主要内容"
   }
 }

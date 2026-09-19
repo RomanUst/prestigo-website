@@ -784,5 +784,8 @@
     "bookOnline": "Reservar en línea",
     "bookNow": "Reservar ahora",
     "allRoutes": "Todas las rutas"
+  },
+  "Common": {
+    "skipToContent": "Ir al contenido principal"
   }
 }

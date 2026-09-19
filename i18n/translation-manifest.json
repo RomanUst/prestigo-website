@@ -8748,6 +8748,10 @@
     "content/blog/en/private-day-trips-from-prague.mdx::body": {
       "enHash": "sha256:9c0444579f02b30b4e5940804c5b4cb59a8f523c8265e8ee29af71b526d08f13",
       "lastTranslatedAt": "2026-09-19T07:29:35.694Z"
+    },
+    "messages/en.json::Common.skipToContent": {
+      "enHash": "sha256:ac576a66d4563e600314a2ce6e731725e9826fd88baf2399e05f60bfb177dbc0",
+      "lastTranslatedAt": "2026-09-19T19:58:59.152Z"
     }
   }
 }
