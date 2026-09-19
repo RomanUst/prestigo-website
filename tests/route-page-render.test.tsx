@@ -21,6 +21,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import enMessages from "../messages/en.json";
 import { FIXTURE_PRICES } from "./helpers/route-content-parity";
+import { getLocale } from "next-intl/server";
 
 function getNamespace(namespace: string): Record<string, unknown> {
   return namespace
@@ -121,5 +122,59 @@ describe("PragueViennaPage — render byte-parity proof", () => {
     );
 
     expect(html).toMatchSnapshot();
+  });
+});
+
+// CR-02 / D-11 backstop (gap-closure plan 73-08): confirm the DNT price
+// bidi-isolation fix actually lands in the rendered /ar markup for
+// prague-berlin — the page that pulls real, AI-translated Arabic content
+// (content/routes/ar/prague-berlin.json) and interpolates live prices into
+// it. This does NOT touch the en/ru/es/fr byte-parity snapshot above (D-12)
+// — it is a separate, non-snapshot assertion against a locale that
+// snapshot never covers.
+describe("PragueBerlinPage — /ar DNT price bidi-isolation (CR-02 backstop)", () => {
+  it("wraps every rendered price token in <bdi>, without wrapping surrounding prose", async () => {
+    vi.mocked(getLocale).mockResolvedValueOnce("ar");
+
+    const { default: PragueBerlinPage } = await import(
+      "@/app/[locale]/routes/prague-berlin/page"
+    );
+    const { render } = await import("@testing-library/react");
+
+    const PageElement = await PragueBerlinPage();
+    const { container } = render(PageElement);
+    const html = container.innerHTML;
+
+    // At least one <bdi> isolate is present in the rendered /ar markup.
+    expect(html).toContain("<bdi>");
+
+    // The sentence-level render site (content.cta.headingItalic, fixed via
+    // interpolateBidi at the render call) isolates ONLY the substituted
+    // price digits — the surrounding Arabic prose ("ابتداءً من" / "، بسعر
+    // ثابت.") stays outside the <bdi>, unlike the WR-05 anti-pattern the
+    // review flagged (wrapping the whole sentence). FIXTURE_PRICES.ePrice
+    // is 485; the literal "€" in the content string sits outside the
+    // {ePrice} token boundary, so only the digits are isolated.
+    const ctaExact = `ابتداءً من €<bdi>${FIXTURE_PRICES.ePrice}</bdi>، بسعر ثابت.`;
+    expect(html).toContain(ctaExact);
+    // The prose immediately preceding/following the isolate is never
+    // itself inside the <bdi> — confirmed by the exact substring above
+    // matching with the prose OUTSIDE the tag.
+    expect(html).not.toContain(
+      `<bdi>ابتداءً من €${FIXTURE_PRICES.ePrice}، بسعر ثابت.</bdi>`
+    );
+
+    // Collect every <bdi> isolate present and confirm none of them is a
+    // full multi-clause sentence (a defensive backstop against the same
+    // over-wrapping regression, independent of the exact prose above).
+    const bdiContents = Array.from(html.matchAll(/<bdi>([^<]*)<\/bdi>/g)).map(
+      (m) => m[1]
+    );
+    expect(bdiContents.length).toBeGreaterThan(0);
+    for (const content of bdiContents) {
+      // A full translated sentence ends in terminal punctuation; a price
+      // isolate never does.
+      expect(content).not.toMatch(/[.،؛]\s*$/);
+    }
   });
 });
