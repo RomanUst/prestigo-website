@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-01-PLAN.md
-last_updated: "2026-09-19T08:29:12.010Z"
+stopped_at: Completed 73-03-PLAN.md
+last_updated: "2026-09-19T08:42:50.029Z"
 last_activity: 2026-09-18
 last_activity_desc: Phase 73 execution started
-state_head: be1a9909ea7a1c88b12b2f75aadbe75b622a1d31
+state_head: f69906db64a20797a9a6f610ce108aabebae0fd1
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 35
-  completed_plans: 31
+  completed_plans: 32
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 2 of 6
+Plan: 3 of 6
 Status: Ready to execute
 Last activity: 2026-09-18 — Phase 73 execution started
 
@@ -132,6 +132,8 @@ Recent decisions affecting current work:
 - [Phase 73]: 73-01: A1 resolved — PHASE_72_LOCALES extended to all six locales now (ru/es/fr/ar/hi/zh), closing a latent CI re-translation gap
 - [Phase 73]: 73-01: Nav-inclusive byte-parity check moved to a new dedicated file (tests/nav-locale-render-parity.test.tsx) due to Vitest vi.mock hoisting conflict in tests/route-page-render.test.tsx
 - [Phase 73]: 73-02: real ar/hi/zh catalogs+content generated (33 blog MDX, --check green, en/ru/es/fr untouched); ~10 hi heading DNT-fallbacks deferred (WINDOWS #6)
+- [Phase 73]: [Phase 73] 73-03: CookieBanner toggle knob added rtl:-translate-x-5 alongside start-0.5 (Rule 1) so the checked-state slide mirrors instead of pushing the knob off-track under dir=rtl
+- [Phase 73]: [Phase 73] 73-03: Hero scroll-cue centering pair (left-1/2 + -translate-x-1/2) left fully unconverted — partial conversion to start-1/2 would break centering under RTL since right:50%+translateX(-50%) is not equivalent
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -239,8 +241,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-18T07:27:28.464Z
-Stopped at: Completed 73-01-PLAN.md
+Last session: 2026-09-19T08:42:40.893Z
+Stopped at: Completed 73-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -295,6 +297,7 @@ Resume file: None
 | Phase 72 P03 | 16min | 3 tasks | 7 files |
 | Phase 72 P04 | ~60min (Task1 55min + Task3 5min continuation) | 3 tasks | 2 files |
 | Phase 73 P01 | 17min | 3 tasks | 10 files |
+| Phase 73 P03 | 15min | 3 tasks | 5 files |
 
 ## Operator Next Steps
 
