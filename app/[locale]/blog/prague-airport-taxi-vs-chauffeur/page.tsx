@@ -362,7 +362,7 @@ export default function CompareAirportTaxiPage() {
             verified against operator websites and PID Lítačka tariff updates effective 1 January 2026.
           </p>
           <div className="border border-anthracite-light overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-start">
               <thead>
                 <tr className="border-b border-anthracite-light bg-anthracite">
                   <th className="p-4 font-body font-medium text-[10px] tracking-[0.15em] uppercase text-warmgrey">Factor</th>
@@ -416,7 +416,7 @@ export default function CompareAirportTaxiPage() {
           </p>
           <div className="flex flex-col gap-12">
             {profiles.map((p) => (
-              <div key={p.profile} className="border-l-2 border-copper pl-8 py-2">
+              <div key={p.profile} className="border-s-2 border-copper ps-8 py-2">
                 <p className="label mb-3" style={{ color: 'var(--copper-light)' }}>{p.winner}</p>
                 <h3 className="font-display font-light text-[22px] md:text-[26px] text-offwhite mb-2">{p.profile}</h3>
                 <p className="font-body font-light text-[13px] mb-4" style={{ color: 'var(--copper-light)' }}>{p.cost}</p>

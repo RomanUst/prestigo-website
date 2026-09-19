@@ -496,7 +496,7 @@ export default function GuidePragueAirportPage() {
           </p>
           <div className="flex flex-col gap-12">
             {profiles.map((p) => (
-              <div key={p.title} className="border-l-2 border-copper pl-8 py-2">
+              <div key={p.title} className="border-s-2 border-copper ps-8 py-2">
                 <p className="label mb-3" style={{ color: 'var(--copper-light)' }}>{p.pick} · {p.cost}</p>
                 <h3 className="font-display font-light text-[22px] md:text-[26px] text-offwhite mb-5">{p.title}</h3>
                 <ol className="flex flex-col gap-3">
@@ -525,7 +525,7 @@ export default function GuidePragueAirportPage() {
             districts with the fastest public-transit route and a taxi-time estimate.
           </p>
           <div className="border border-anthracite-light overflow-x-auto">
-            <table className="w-full text-left">
+            <table className="w-full text-start">
               <thead>
                 <tr className="border-b border-anthracite-light bg-anthracite-mid">
                   <th className="p-4 font-body font-medium text-[10px] tracking-[0.15em] uppercase text-warmgrey">Neighbourhood</th>
