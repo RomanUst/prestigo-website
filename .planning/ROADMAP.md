@@ -227,7 +227,7 @@ Wave 2 *(blocked on 73-08)*
 
 Wave 3 *(blocked on 73-07..73-11 — QA gate)*
 
-- [ ] 73-12-PLAN.md — D-10/D-11 RTL visual QA walkthrough + FONT-01 tofu confirmation (human-verify checkpoint) → 73-RTL-QA.md (RTL-01, FONT-01)
+- [x] 73-12-PLAN.md — D-10/D-11 RTL visual QA walkthrough + FONT-01 tofu confirmation (human-verify checkpoint) → 73-RTL-QA.md (RTL-01, FONT-01)
 
 </details>
 
@@ -314,6 +314,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 11/12 | In Progress|  |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 12/12 | In Progress|  |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
