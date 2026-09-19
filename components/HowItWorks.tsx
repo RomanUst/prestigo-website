@@ -59,7 +59,7 @@ export default function HowItWorks() {
                       }}
                     />
                     <span
-                      className="absolute left-5 bottom-4 font-display leading-none text-offwhite"
+                      className="absolute start-5 bottom-4 font-display leading-none text-offwhite"
                       style={{ fontSize: '40px', fontVariationSettings: "'opsz' 144" }}
                     >
                       {cfg.number}

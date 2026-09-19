@@ -33,11 +33,11 @@ export default function Hero({ airportPrice, rating }: Props) {
       />
 
       {/* Copper accent — top left corner line */}
-      <div className="absolute top-0 left-0 w-px h-48 bg-gradient-to-b from-copper/60 to-transparent" />
-      <div className="absolute top-0 left-0 w-48 h-px bg-gradient-to-r from-copper/60 to-transparent" />
+      <div className="absolute top-0 start-0 w-px h-48 bg-gradient-to-b from-copper/60 to-transparent" />
+      <div className="absolute top-0 start-0 w-48 h-px bg-gradient-to-r from-copper/60 to-transparent" />
 
       {/* Copper accent — bottom right */}
-      <div className="absolute bottom-0 right-0 w-px h-64 bg-gradient-to-t from-copper/30 to-transparent" />
+      <div className="absolute bottom-0 end-0 w-px h-64 bg-gradient-to-t from-copper/30 to-transparent" />
 
       {/* Main content */}
       <div className="relative max-w-7xl mx-auto w-full px-6 md:px-12 pb-16 md:pb-20 pt-24 md:pt-28">
