@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-04-PLAN.md
-last_updated: "2026-09-19T08:55:03.647Z"
+stopped_at: Completed 73-05-PLAN.md
+last_updated: "2026-09-19T09:02:14.450Z"
 last_activity: 2026-09-18
 last_activity_desc: Phase 73 execution started
-state_head: d300c31fd959c126cbbc8052354e6feefdeab8df
+state_head: fbc1b6332f3e9476d54c9746ce5bc52c4b5e58f8
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 35
-  completed_plans: 33
+  completed_plans: 34
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 ## Current Position
 
 Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 4 of 6
+Plan: 5 of 6
 Status: Ready to execute
 Last activity: 2026-09-18 — Phase 73 execution started
 
@@ -135,6 +135,7 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73] 73-03: CookieBanner toggle knob added rtl:-translate-x-5 alongside start-0.5 (Rule 1) so the checked-state slide mirrors instead of pushing the knob off-track under dir=rtl
 - [Phase 73]: [Phase 73] 73-03: Hero scroll-cue centering pair (left-1/2 + -translate-x-1/2) left fully unconverted — partial conversion to start-1/2 would break centering under RTL since right:50%+translateX(-50%) is not equivalent
 - [Phase 73]: 73-04: prague-vienna byte-parity snapshot regenerated after text-right→text-end swap; verified programmatically the only change is the token swap
+- [Phase 73]: [Phase 73] 73-05: span->bdi conversion at the 4 existing price-emphasis JSX render boundaries only; phone/time/most-price DNT tokens embedded mid-sentence in data-array strings (comparison tables, FAQ answers) have no existing wrap boundary and were left as a documented scoped no-op per the plan's 'do not add a new parsing pass' instruction
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -242,8 +243,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-19T08:55:02.977Z
-Stopped at: Completed 73-04-PLAN.md
+Last session: 2026-09-19T09:02:13.828Z
+Stopped at: Completed 73-05-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -300,6 +301,7 @@ Resume file: None
 | Phase 73 P01 | 17min | 3 tasks | 10 files |
 | Phase 73 P03 | 15min | 3 tasks | 5 files |
 | Phase 73 P04 | 15min | 3 tasks | 31 files |
+| Phase 73 P05 | ~10min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
