@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import type { Review } from '@/lib/google-reviews'
 
 interface Props {
@@ -53,6 +53,7 @@ function ReviewCard({ review }: { review: Review }) {
 
 export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Props) {
   const t = useTranslations('Testimonials')
+  const isRtl = useLocale() === 'ar'
   const [activeIndex, setActiveIndex] = useState(0)
   const [tick, setTick] = useState(0) // bump to reset timer on manual nav
   const len = reviews.length
@@ -76,10 +77,10 @@ export default function TestimonialsCarousel({ reviews, intervalMs = 5000 }: Pro
   const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'ArrowRight') {
       e.preventDefault()
-      goTo(activeIndex + 1)
+      goTo(activeIndex + (isRtl ? -1 : 1))
     } else if (e.key === 'ArrowLeft') {
       e.preventDefault()
-      goTo(activeIndex - 1)
+      goTo(activeIndex + (isRtl ? 1 : -1))
     }
   }
 
