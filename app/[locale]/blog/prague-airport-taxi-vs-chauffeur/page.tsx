@@ -485,7 +485,7 @@ export default function CompareAirportTaxiPage() {
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
               Skip the taxi rank entirely. <br />
-              <bdi className="display-italic">€69 fixed, chauffeur inside Arrivals.</bdi>
+              <span className="display-italic"><bdi>€69</bdi> fixed, chauffeur inside Arrivals.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Free flight tracking. Free waiting on delays.</p>
           </div>

@@ -538,7 +538,7 @@ export default function ComparePragueViennaPage() {
           <div>
             <h2 className="display text-[28px] md:text-[36px]">
               Ready for the transfer? <br />
-              <bdi className="display-italic">€455 fixed. 3h 15min door-to-door.</bdi>
+              <span className="display-italic"><bdi>€455</bdi> fixed. <bdi>3h 15min</bdi> door-to-door.</span>
             </h2>
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Flight tracking on return. 10 % off round trips within 24 h.</p>
           </div>
