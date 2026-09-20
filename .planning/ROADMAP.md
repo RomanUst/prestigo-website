@@ -237,7 +237,7 @@ Wave 1 *(code fix)*
 
 Wave 2 *(blocked on 73-13)*
 
-- [ ] 73-14-PLAN.md — GAP-2: strengthen `rtl-backstop.test.ts` CR-02 to per-field render-call-site assertions; GAP-3: re-run D-10/D-11 Group 3 structural bidi check + correct 73-RTL-QA.md route-page row (RTL-01; FONT-01 tofu = non-gating human note)
+- [x] 73-14-PLAN.md — GAP-2: strengthen `rtl-backstop.test.ts` CR-02 to per-field render-call-site assertions; GAP-3: re-run D-10/D-11 Group 3 structural bidi check + correct 73-RTL-QA.md route-page row (RTL-01; FONT-01 tofu = non-gating human note)
 
 </details>
 
@@ -324,6 +324,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 13/14 | In Progress|  |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | In Progress|  |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |

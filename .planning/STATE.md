@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 73
 current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
 status: executing
-stopped_at: Completed 73-13-PLAN.md (GAP-1 bidi-isolation gap-closure across all 30 route pages)
-last_updated: "2026-09-20T16:54:37.743Z"
+stopped_at: Completed 73-14-PLAN.md (GAP-2/GAP-3 closure — rtl-backstop.test.ts per-field CR-02 assertions + 73-RTL-QA.md Group 3 corrected to PASS). Phase 73 complete (14/14 plans); FONT-01 tofu human-verification still open.
+last_updated: "2026-09-20T17:06:20.195Z"
 last_activity: 2026-09-20
 last_activity_desc: Phase 73 execution started
-state_head: b94ab3846a73650fa2213d703cf47794b64ec773
+state_head: 821ea5d95615675c1162b095f3f48916f5427399
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 43
-  completed_plans: 42
+  completed_plans: 43
 ---
 
 # Project State
@@ -28,9 +28,9 @@ See: .planning/PROJECT.md (updated 2026-09-06)
 
 ## Current Position
 
-Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — EXECUTING
-Plan: 2 of 14
-Status: Ready to execute
+Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — ALL 14 PLANS COMPLETE
+Plan: 14 of 14 (GAP-2/GAP-3 gap-closure cycle done; FONT-01 tofu human-verification still open — see 73-VERIFICATION.md)
+Status: Ready for phase re-verification
 Last activity: 2026-09-20 — Phase 73 execution started
 
 ## Accumulated Context
@@ -148,6 +148,7 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73] 73-09: mirrored the interpolateBidi()/inline <bdi> pattern from 73-08's prague-berlin reference across all 29 remaining route pages plus airport-transfer/services index, closing CR-02 project-wide; extended scope to also fix each page's copper 'Price from' highlight bare-render (same site 73-08 fixed on berlin as a Rule 2 deviation, since all 30 route content files carry a copper:true highlight)
 - [Phase 73]: [Phase 73] 73-09: prague-vienna golden EN byte-parity snapshot regenerated (matches 73-04 precedent) since <bdi> renders identically regardless of locale; verified programmatically that stripping all <bdi> tags from the new snapshot reproduces the old one byte-for-byte
 - [Phase 73]: 73-13: closed GAP-1 bidi-isolation defect (openingParagraphs/routeNarrative.paragraphs/faqs[].a switched to interpolateBidi()/aBidi at render, JSON-LD text: f.a carve-out preserved) across all 30 route pages
+- [Phase 73]: [Phase 73]: 73-14: strengthened rtl-backstop.test.ts CR-02 block to per-field render-call-site assertions (openingParagraphs/routeNarrative.paragraphs interpolateBidi precomputes, faqs.aBidi + faq.aBidi render, JSON-LD text: f.a carve-out) across all 30 route pages, regression-proofed against the original GAP-1 defect; corrected 73-RTL-QA.md's Group 3 route-page row FAIL->PASS backed by a new prague-berlin /ar structural render re-check
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -256,8 +257,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-20T16:54:36.614Z
-Stopped at: Completed 73-13-PLAN.md (GAP-1 bidi-isolation gap-closure across all 30 route pages)
+Last session: 2026-09-20T17:06:19.127Z
+Stopped at: Completed 73-14-PLAN.md (GAP-2/GAP-3 closure — rtl-backstop.test.ts per-field CR-02 assertions + 73-RTL-QA.md Group 3 corrected to PASS). Phase 73 complete (14/14 plans); FONT-01 tofu human-verification still open.
 Resume file: None
 
 ## Performance Metrics
@@ -322,7 +323,9 @@ Resume file: None
 | Phase 73 P11 | 20min | 3 tasks | 11 files |
 | Phase 73 P09 | ~15min | 2 tasks | 32 files |
 | Phase 73 P13 | 30min | 2 tasks | 32 files |
+| Phase 73 P14 | 20min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
-- Plan the next phase: /gsd-plan-phase 71 (Content Externalization — Marketing & SEO Pages; may split 71a/71b)
+- Phase 73 (all 14 plans) is complete; GAP-1/GAP-2/GAP-3 from the 2026-09-19 `73-VERIFICATION.md` `gaps_found` re-review are closed. Re-run phase 73 verification to confirm the score upgrades. The one remaining item is FONT-01's glyph-tofu visual sign-off, which is routed to independent human review (not a code gap) and does not block re-verification.
+- Next phase to plan: /gsd-plan-phase 74 (SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher)
