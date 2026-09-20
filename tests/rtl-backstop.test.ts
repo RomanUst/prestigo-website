@@ -137,11 +137,42 @@ describe('RTL backstop — route/service page price bidi isolation (CR-02)', () 
     'prague-zlin',
   ]
 
+  // 73-14 gap closure (GAP-2 / RTL-01): the old per-route-slug assertion
+  // below only checked `/interpolateBidi/.test(src) || /<bdi>/.test(src)`
+  // ANYWHERE in the file — true on every route page because hero.intro is
+  // wrapped, so it stayed green (46/46) even while openingParagraphs and
+  // faqs[].a were rendered through the plain, unprotected interpolate()
+  // helper (the GAP-1 defect). These per-field assertions instead pin the
+  // SPECIFIC render call sites 73-13 fixed, and assert the plain-helper
+  // form is gone from exactly those sites (not a file-level grep) — so a
+  // future regression at these sites fails the gate instead of passing it.
   for (const slug of routeSlugs) {
-    it(`app/[locale]/routes/${slug}/page.tsx renders bidi isolation at a price site`, () => {
-      const src = read(`app/[locale]/routes/${slug}/page.tsx`)
-      const hasBidiEvidence = /interpolateBidi/.test(src) || /<bdi>/.test(src)
-      expect(hasBidiEvidence).toBe(true)
+    const src = read(`app/[locale]/routes/${slug}/page.tsx`)
+
+    it(`app/[locale]/routes/${slug}/page.tsx isolates the openingParagraphs precompute via interpolateBidi (not plain interpolate)`, () => {
+      expect(src).toMatch(/content\.openingParagraphs\.map\(\(p\) => interpolateBidi\(p, prices\)\)/)
+      // Anchored on the full field-qualified LHS so this cannot false-match
+      // the sibling chauffeurNarrative precompute, which legitimately stays
+      // on the plain helper — and the `interpolate\(` token boundary
+      // (immediate `(` after the helper name) cannot match `interpolateBidi(`.
+      expect(src).not.toMatch(/content\.openingParagraphs\.map\(\(p\) => interpolate\(p, prices\)\)/)
+    })
+
+    it(`app/[locale]/routes/${slug}/page.tsx isolates the routeNarrative.paragraphs precompute via interpolateBidi (not plain interpolate)`, () => {
+      expect(src).toMatch(/content\.routeNarrative\.paragraphs\.map\(\(p\) => interpolateBidi\(p, prices\)\)/)
+      expect(src).not.toMatch(/content\.routeNarrative\.paragraphs\.map\(\(p\) => interpolate\(p, prices\)\)/)
+    })
+
+    it(`app/[locale]/routes/${slug}/page.tsx defines faqs.aBidi via interpolateBidi(f.a, prices) and renders it in the FAQ answer JSX`, () => {
+      expect(src).toMatch(/aBidi:\s*interpolateBidi\(f\.a,\s*prices\)/)
+      expect(src).toMatch(/\{faq\.aBidi\}/)
+    })
+
+    it(`app/[locale]/routes/${slug}/page.tsx keeps the FAQPage JSON-LD acceptedAnswer.text on the plain f.a string (carve-out)`, () => {
+      // The JSON-LD `text` field must stay a plain string — JSON.stringify
+      // must never receive a ReactNode. `f.a` is the plain
+      // interpolate()-derived field (distinct from the aBidi sibling above).
+      expect(src).toMatch(/text:\s*f\.a\b/)
     })
   }
 
