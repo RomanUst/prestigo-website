@@ -51,8 +51,8 @@ export default async function PragueGrazPage() {
   const vPrice = route?.vClassEur ?? ROUTE_FALLBACK.vClassEur
   const prices = { ePrice, sPrice, vPrice }
 
-  const openingParagraphs = content.openingParagraphs.map((p) => interpolate(p, prices))
-  const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolate(p, prices))
+  const openingParagraphs = content.openingParagraphs.map((p) => interpolateBidi(p, prices))
+  const routeNarrativeParagraphs = content.routeNarrative.paragraphs.map((p) => interpolateBidi(p, prices))
 
   const highlights = content.highlights.map((h) => ({
     ...h,
@@ -63,7 +63,7 @@ export default async function PragueGrazPage() {
 
   const inclusions = content.inclusions.map((s) => interpolate(s, prices))
 
-  const faqs = content.faqs.map((f) => ({ q: f.q, a: interpolate(f.a, prices) }))
+  const faqs = content.faqs.map((f) => ({ q: f.q, a: interpolate(f.a, prices), aBidi: interpolateBidi(f.a, prices) }))
 
   const whyBook = content.whyBook.items
 
@@ -262,7 +262,7 @@ export default async function PragueGrazPage() {
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">{content.faqsHeading}</h2></Reveal>
-          <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<Reveal key={faq.q} variant="up" delay={i * 70}><div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.a}</p></div></Reveal>))}</div>
+          <div className="flex flex-col gap-0">{faqs.map((faq, i) => (<Reveal key={faq.q} variant="up" delay={i * 70}><div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}><h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3><p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{faq.aBidi}</p></div></Reveal>))}</div>
         </div>
       </section>
 
