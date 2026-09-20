@@ -233,7 +233,7 @@ Wave 3 *(blocked on 73-07..73-11 — QA gate)*
 
 Wave 1 *(code fix)*
 
-- [ ] 73-13-PLAN.md — GAP-1: switch openingParagraphs/routeNarrative.paragraphs/faqs[].a render sites to `interpolateBidi()` across all 30 route pages (FAQPage JSON-LD `text` kept plain via carve-out) + render-test proof + EN snapshot regen (RTL-01, D-11)
+- [x] 73-13-PLAN.md — GAP-1: switch openingParagraphs/routeNarrative.paragraphs/faqs[].a render sites to `interpolateBidi()` across all 30 route pages (FAQPage JSON-LD `text` kept plain via carve-out) + render-test proof + EN snapshot regen (RTL-01, D-11)
 
 Wave 2 *(blocked on 73-13)*
 
@@ -324,6 +324,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 12/12 | In Progress|  |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 13/14 | In Progress|  |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
