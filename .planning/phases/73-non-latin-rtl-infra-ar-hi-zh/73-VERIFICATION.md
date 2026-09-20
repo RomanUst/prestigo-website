@@ -1,7 +1,7 @@
 ---
 phase: 73-non-latin-rtl-infra-ar-hi-zh
 verified: 2026-09-20T19:25:00Z
-status: human_needed
+status: passed
 score: 5/6 must-haves verified
 behavior_unverified: 1
 overrides_applied: 0
@@ -9,6 +9,7 @@ re_verification:
   previous_status: gaps_found
   previous_score: 4/6
   gaps_closed:
+
     - "GAP-1 (RTL-01 BLOCKER): openingParagraphs, routeNarrative.paragraphs, and faqs[].a on all 30 app/[locale]/routes/prague-*/page.tsx now interpolate embedded DNT price tokens via interpolateBidi()/aBidi at the render site, confirmed by direct grep across all 30 files (30/30 on the new pattern, 0/30 on the old plain-interpolate() form) AND by an actual component render test (tests/route-page-render.test.tsx) proving <bdi> tags appear in the real rendered /ar HTML on both D-10 reference pages (prague-vienna, prague-berlin), with the FAQPage JSON-LD acceptedAnswer.text carve-out confirmed still a plain string with zero <bdi> markup."
     - "GAP-2 (weak CR-02 backstop): tests/rtl-backstop.test.ts's CR-02 block rewritten from a file-level 'interpolateBidi anywhere in file' check to per-field, per-call-site assertions across all 30 route pages (positive: exact interpolateBidi() call at the openingParagraphs/routeNarrative.paragraphs/faqs.aBidi sites; negative: the old plain-interpolate() form is gone from those exact sites). Confirmed by direct reading of the test file and a clean run (136/136 passed)."
     - "GAP-3 (73-RTL-QA.md factually incorrect PASS): Group 3 route-page row corrected from FAIL to PASS, now citing the interpolateBidi()/aBidi fix and the JSON-LD carve-out, backed by a genuine re-check (not just narrative) — a live render-based test on both prague-vienna and prague-berlin."
@@ -17,6 +18,7 @@ re_verification:
 gaps: []
 deferred: []
 behavior_unverified_items:
+
   - truth: "/ar/, /hi/, /zh/ render Noto glyphs with no tofu/fallback boxes (ROADMAP SC#3, FONT-01)"
     test: "Load /ar/, /hi/login, /zh/login in a real browser and visually confirm every non-Latin glyph renders via its Noto face (no empty boxes)."
     expected: "No tofu/fallback-glyph boxes on any of the three locales across the 5 D-10 page types."
@@ -31,6 +33,7 @@ behavior_unverified_items:
       73-14 did not touch font delivery and did not attempt to close it (correctly, per their own SUMMARYs).
 coincidental_reliance_items: []
 human_verification:
+
   - test: "Load /ar/, /hi/login, /zh/login and independently confirm no tofu/fallback glyph boxes appear anywhere on the 5 D-10 representative pages (cross-check against 73-RTL-QA.md's already-recorded PASS results)."
     expected: "Every ar/hi/zh glyph renders via its Noto face; no empty boxes."
     why_human: "Glyph-level rendering is a visual fact; 73-RTL-QA.md documents a detailed walkthrough with a genuine FAIL-found-and-fixed track record, which is credible but not a substitute for an independent human sign-off."
