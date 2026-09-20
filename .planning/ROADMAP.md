@@ -195,7 +195,7 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 12 plans (6 original + 6 gap-closure from 73-VERIFICATION gaps_found)
+**Plans:** 14 plans (6 original + 6 gap-closure cycle 1 + 2 gap-closure cycle 2 from 73-VERIFICATION re-review gaps_found)
 
 **Wave 1** — tracer
 
@@ -228,6 +228,16 @@ Wave 2 *(blocked on 73-08)*
 Wave 3 *(blocked on 73-07..73-11 — QA gate)*
 
 - [x] 73-12-PLAN.md — D-10/D-11 RTL visual QA walkthrough + FONT-01 tofu confirmation (human-verify checkpoint) → 73-RTL-QA.md (RTL-01, FONT-01)
+
+**Gap closure — cycle 2** *(from 73-VERIFICATION.md re-review gaps_found — WR-01 residual bidi in route prose: openingParagraphs/routeNarrative/faqs unprotected)*
+
+Wave 1 *(code fix)*
+
+- [ ] 73-13-PLAN.md — GAP-1: switch openingParagraphs/routeNarrative.paragraphs/faqs[].a render sites to `interpolateBidi()` across all 30 route pages (FAQPage JSON-LD `text` kept plain via carve-out) + render-test proof + EN snapshot regen (RTL-01, D-11)
+
+Wave 2 *(blocked on 73-13)*
+
+- [ ] 73-14-PLAN.md — GAP-2: strengthen `rtl-backstop.test.ts` CR-02 to per-field render-call-site assertions; GAP-3: re-run D-10/D-11 Group 3 structural bidi check + correct 73-RTL-QA.md route-page row (RTL-01; FONT-01 tofu = non-gating human note)
 
 </details>
 
