@@ -2,17 +2,17 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
-current_phase: 73
-current_phase_name: Non-Latin & RTL Infra (AR, HI, ZH)
-status: executing
-stopped_at: Completed 73-14-PLAN.md (GAP-2/GAP-3 closure — rtl-backstop.test.ts per-field CR-02 assertions + 73-RTL-QA.md Group 3 corrected to PASS). Phase 73 complete (14/14 plans); FONT-01 tofu human-verification still open.
-last_updated: "2026-09-20T17:06:20.195Z"
+current_phase: 74
+current_phase_name: seo — hreflang, localized metadata, sitemap, structured data, switcher
+status: planning
+stopped_at: Phase 73 complete, ready to plan Phase 74
+last_updated: "2026-09-20T21:13:21.411Z"
 last_activity: 2026-09-20
-last_activity_desc: Phase 73 execution started
-state_head: 821ea5d95615675c1162b095f3f48916f5427399
+last_activity_desc: Phase 73 complete, transitioned to Phase 74
+state_head: 5f7b7f0fc86cb736b9eb0ef984afa713c6b8be6a
 progress:
   total_phases: 6
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 43
   completed_plans: 43
 ---
@@ -21,17 +21,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-06)
+See: .planning/PROJECT.md (updated 2026-09-20)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 73 — Non-Latin & RTL Infra (AR, HI, ZH)
+**Current focus:** Phase 74 — SEO (hreflang, localized metadata, sitemap, structured data, locale switcher)
 
 ## Current Position
 
-Phase: 73 (Non-Latin & RTL Infra (AR, HI, ZH)) — ALL 14 PLANS COMPLETE
-Plan: 14 of 14 (GAP-2/GAP-3 gap-closure cycle done; FONT-01 tofu human-verification still open — see 73-VERIFICATION.md)
-Status: Ready for phase re-verification
-Last activity: 2026-09-20 — Phase 73 execution started
+Phase: 74 — seo — hreflang, localized metadata, sitemap, structured data, switcher
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-20 — Phase 73 complete, transitioned to Phase 74
 
 ## Accumulated Context
 
@@ -40,6 +40,8 @@ Last activity: 2026-09-20 — Phase 73 execution started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v3.0 (Phase 73): ar/hi/zh non-Latin + RTL infra shipped. Noto Sans Arabic/Devanagari/SC delivered per-locale via a single `localeFontClassName` ternary in SiteChrome (zero Noto bytes on en/ru/es/fr, no cross-family leak). Physical-direction Tailwind → logical properties; Arabic `dir="rtl"` with `.wordmark { direction: ltr }` to keep the PRESTIGO wordmark un-reversed. DNT price/phone/time tokens bidi-isolated via `interpolateBidi()`/`<bdi>` at the render site on all 30 route pages; FAQPage JSON-LD `acceptedAnswer.text` kept a plain `f.a` string (never a ReactNode) — guarded by strengthened CR-02 backstop. FONT-01 glyph-tofu independently browser-verified (0 tofu) 2026-09-20; security 16/16 threats closed.
+- v3.0 (Phase 73, deferred): 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN on every locale via an unforwarded `getLocale()` in page.tsx — pre-existing since Phase 71, out of Phase-73 scope (WINDOWS #7 / deferred-items.md). Fix = forward `{ locale } = await params` into generateMetadata/body across ~7 files.
 - v2.2 roadmap: 3 phases derived from DISP-* and DTRIP-* — Phase 65 (DISP-01..04, dispatch list defaults) is independent of the driver portal. Phase 66 (DTRIP-01,02,07,08 — permanent link + trip sheet) is the foundation the status-marking work builds on; Phase 67 (DTRIP-03,04,05,06 — status marking, note, admin visibility) depends on Phase 66's token/trip-sheet infrastructure. Execution order: (65 ∥ 66) → 67.
 - v2.2 roadmap: DTRIP-04's constraint (trip-progress is a separate field, never mutates `booking.status`, no GNet push) is carried as an explicit success criterion in Phase 67, not left implicit — matches REQUIREMENTS.md Out of Scope guardrail.
 - v2.1 roadmap: ABND (abandoned/unpaid capture) is the foundation phase (62) — persists a booking row at the payment step and reconciles it in place on payment success (no duplicate insert). AEDIT (63) and ANEW (64) both depend on Phase 62's shared admin bookings surface / status vocabulary; ANEW-04 additionally reuses the reconcile-in-place webhook pattern for payment-link payments.
@@ -258,7 +260,7 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 ## Session Continuity
 
 Last session: 2026-09-20T17:06:19.127Z
-Stopped at: Completed 73-14-PLAN.md (GAP-2/GAP-3 closure — rtl-backstop.test.ts per-field CR-02 assertions + 73-RTL-QA.md Group 3 corrected to PASS). Phase 73 complete (14/14 plans); FONT-01 tofu human-verification still open.
+Stopped at: Phase 73 complete, ready to plan Phase 74
 Resume file: None
 
 ## Performance Metrics

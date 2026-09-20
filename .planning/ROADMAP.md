@@ -22,7 +22,7 @@
 - [x] **Phase 70: String Externalization — Booking & Account** — Booking wizard/EntryBar/vehicle cards, forms, validation/error/toast, account + auth pages. — STR-02 (completed 2026-09-05)
 - [x] **Phase 71: Content Externalization — Marketing & SEO Pages** — Home long-form, 8 service pages, about/faq/contact/corporate/legal, 29–30 route-page bodies, blog → `content/blog/<locale>/`. Largest content restructure (may split 71a/71b). — CNT-01/02/03 (completed 2026-09-11)
 - [x] **Phase 72: AI Translation Pipeline & Catalogs** — Build re-runnable `scripts/i18n-translate.mjs` (glossary + do-not-translate); generate RU/ES/FR catalogs + content; QA sampling. — TR-01/02 (completed 2026-09-17)
-- [ ] **Phase 73: Non-Latin & RTL Infra (AR, HI, ZH)** — `dir="rtl"` for AR, logical-property audit + fixes (~42 files), Noto Arabic/Devanagari/SC via next/font, generate + render AR/HI/ZH, RTL visual QA. — RTL-01, FONT-01, TR-02
+- [x] **Phase 73: Non-Latin & RTL Infra (AR, HI, ZH)** — `dir="rtl"` for AR, logical-property audit + fixes (~42 files), Noto Arabic/Devanagari/SC via next/font, generate + render AR/HI/ZH, RTL visual QA. — RTL-01, FONT-01, TR-02 (completed 2026-09-20)
 - [ ] **Phase 74: SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher** — `getAlternates`→6+`x-default`, locale-aware `generateMetadata`, sitemap all-locale URLs + alternates, JSON-LD `inLanguage`, language switcher + `NEXT_LOCALE` cookie, Accept-Language detection. — SEO-01/02/03/04, UX-01/02
 - [ ] **Phase 75: E2E Verification & Launch** — Cross-locale E2E (render, switcher, per-locale booking incl. RTL, analytics locale dimension, no EN leakage, hreflang validator, Rich Results, no CSP regression, guest checkout intact); clear red baseline in touched files. — VER-01
 
@@ -195,7 +195,7 @@ Plans:
 
 **UI hint**: yes
 
-**Plans:** 14 plans (6 original + 6 gap-closure cycle 1 + 2 gap-closure cycle 2 from 73-VERIFICATION re-review gaps_found)
+**Plans:** 14/14 plans complete
 
 **Wave 1** — tracer
 
@@ -324,6 +324,6 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 70. String Externalization — Booking & Account | v3.0 | 8/8 | Complete    | 2026-09-05 |
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
-| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | In Progress|  |
+| 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
