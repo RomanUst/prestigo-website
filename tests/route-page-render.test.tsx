@@ -178,3 +178,50 @@ describe("PragueBerlinPage — /ar DNT price bidi-isolation (CR-02 backstop)", (
     }
   });
 });
+
+// 73-13 gap closure (GAP-1 / RTL-01): openingParagraphs, routeNarrative
+// paragraphs, and faqs[].a were deliberately excluded from the 73-08/73-09
+// CR-02 sweep (they are excluded per that plan's own scope note). This
+// verifies the three fields now isolate their embedded DNT price tokens via
+// interpolateBidi()/aBidi at the RENDER site, while the FAQPage JSON-LD
+// acceptedAnswer.text — serialized via JSON.stringify — stays a plain
+// interpolate()-derived string with zero <bdi> markup.
+describe("PragueViennaPage — /ar openingParagraphs/faqs bidi isolation + JSON-LD plain-text carve-out (73-13)", () => {
+  it("wraps openingParagraphs and FAQ answer price tokens in <bdi> on render, while the FAQPage JSON-LD text stays a plain string", async () => {
+    vi.mocked(getLocale).mockResolvedValueOnce("ar");
+
+    const { default: PragueViennaPage } = await import(
+      "@/app/[locale]/routes/prague-vienna/page"
+    );
+    const { render } = await import("@testing-library/react");
+
+    const PageElement = await PragueViennaPage();
+    const { container } = render(PageElement);
+    const html = container.innerHTML;
+
+    // (a) openingParagraphs[0] render output wraps the substituted ePrice
+    // value in <bdi>, isolated from the surrounding Arabic RTL prose.
+    expect(html).toContain(`<bdi>${FIXTURE_PRICES.ePrice}</bdi> يورو`);
+    expect(html).toContain(`<bdi>${FIXTURE_PRICES.vPrice}</bdi> يورو`);
+    expect(html).toContain(`<bdi>${FIXTURE_PRICES.sPrice}</bdi> يورو`);
+
+    // (b) The FAQ answer render output wraps its price tokens in <bdi> too
+    // (content/routes/ar/prague-vienna.json faqs[1].a embeds all three
+    // price tokens).
+    const faqBdiCount = (html.match(/<bdi>/g) ?? []).length;
+    expect(faqBdiCount).toBeGreaterThanOrEqual(6); // 3 in openingParagraphs + 3 in the FAQ answer
+
+    // (c) The FAQPage JSON-LD <script> payload contains the FAQ answer text
+    // as a PLAIN string with no <bdi> markup anywhere — JSON.stringify never
+    // receives a ReactNode. The plain interpolated price value IS present
+    // verbatim (unwrapped) inside the JSON-LD.
+    const scriptMatch = html.match(
+      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/
+    );
+    expect(scriptMatch).not.toBeNull();
+    const jsonLd = scriptMatch![1];
+    expect(jsonLd).not.toContain("<bdi>");
+    expect(jsonLd).not.toContain("</bdi>");
+    expect(jsonLd).toContain(`${FIXTURE_PRICES.ePrice} يورو`);
+  });
+});
