@@ -225,3 +225,46 @@ describe("PragueViennaPage — /ar openingParagraphs/faqs bidi isolation + JSON-
     expect(jsonLd).toContain(`${FIXTURE_PRICES.ePrice} يورو`);
   });
 });
+
+// 73-14 gap closure (GAP-3 / RTL-01, D-10/D-11 Group 3 route-page re-check):
+// the same openingParagraphs/faqs bidi-isolation proof as the 73-13 block
+// above, run against prague-berlin — the second D-10 reference page named
+// in 73-RTL-QA.md's Group 3 route-page row. Confirms the fix is not
+// specific to prague-vienna's content shape.
+describe("PragueBerlinPage — /ar openingParagraphs/faqs bidi isolation (73-14 Group 3 re-check)", () => {
+  it("wraps openingParagraphs and FAQ answer price tokens in <bdi> on render, while the FAQPage JSON-LD text stays a plain string", async () => {
+    vi.mocked(getLocale).mockResolvedValueOnce("ar");
+
+    const { default: PragueBerlinPage } = await import(
+      "@/app/[locale]/routes/prague-berlin/page"
+    );
+    const { render } = await import("@testing-library/react");
+
+    const PageElement = await PragueBerlinPage();
+    const { container } = render(PageElement);
+    const html = container.innerHTML;
+
+    // (a) openingParagraphs[0] render output wraps the substituted price
+    // values in <bdi>, isolated from the surrounding Arabic RTL prose.
+    expect(html).toContain(`€<bdi>${FIXTURE_PRICES.ePrice}</bdi>`);
+    expect(html).toContain(`€<bdi>${FIXTURE_PRICES.vPrice}</bdi>`);
+    expect(html).toContain(`€<bdi>${FIXTURE_PRICES.sPrice}</bdi>`);
+
+    // (b) The FAQ answer render output wraps its price tokens in <bdi> too
+    // (content/routes/ar/prague-berlin.json faqs[1].a embeds all three
+    // price tokens).
+    const bdiCount = (html.match(/<bdi>/g) ?? []).length;
+    expect(bdiCount).toBeGreaterThanOrEqual(6); // 3 in openingParagraphs + 3 in the FAQ answer
+
+    // (c) The FAQPage JSON-LD <script> payload contains the FAQ answer text
+    // as a PLAIN string with no <bdi> markup anywhere.
+    const scriptMatch = html.match(
+      /<script type="application\/ld\+json">([\s\S]*?)<\/script>/
+    );
+    expect(scriptMatch).not.toBeNull();
+    const jsonLd = scriptMatch![1];
+    expect(jsonLd).not.toContain("<bdi>");
+    expect(jsonLd).not.toContain("</bdi>");
+    expect(jsonLd).toContain(`€${FIXTURE_PRICES.ePrice}`);
+  });
+});

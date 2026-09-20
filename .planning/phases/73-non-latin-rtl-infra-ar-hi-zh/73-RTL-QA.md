@@ -178,7 +178,7 @@ to `tests/rtl-backstop.test.ts` (46/46 green).
 |---|---|
 | 1. Home — Hero price anchor | PASS — `<bdi>€69</bdi>` renders with `direction:ltr; unicode-bidi:isolate`; numeral stays LTR, un-reversed. |
 | 2. Booking flow — EntryBar/RouteMap under `dir=rtl` | PASS — EntryBar chips, wizard, and RouteMap render without visual breakage; step numbers "01/02/03" and times "12:00 AM" stay LTR. |
-| 3. Route page — inline price/phone/time tokens | **FAIL (corrected post-verification, WR-01)** — the *discrete* price fields (hero intro, CTA, `v.price`/`c.price`, copper highlight) ARE bidi-isolated by the 73-08/73-09 sweep, BUT `openingParagraphs`/`routeNarrative.paragraphs`/`faqs[].a` embed `{ePrice}`/`{vPrice}`/`{sPrice}` tokens inside Arabic RTL prose and render via plain `interpolate()` with NO `<bdi>` — unprotected across all ~31 route pages (the sweep deliberately excluded these fields). Verified on `/ar/routes/prague-berlin` (`<p>` prose with bare price tokens, `hasBdi:false`). This is a real D-11 bidi gap → tracked in `73-VERIFICATION.md` (gaps_found) for a follow-up gap cycle. *(Separate data note: price values render "€0" in local dev on all locales incl. en/ru — missing local Supabase pricing, not an RTL defect.)* |
+| 3. Route page — inline price/phone/time tokens | **PASS (closed by gap cycle 73-13/73-14)** — the *discrete* price fields (hero intro, CTA, `v.price`/`c.price`, copper highlight) were already bidi-isolated by the 73-08/73-09 sweep. This row previously recorded a FAIL because `openingParagraphs`/`routeNarrative.paragraphs`/`faqs[].a` embedded `{ePrice}`/`{vPrice}`/`{sPrice}` tokens inside Arabic RTL prose and rendered via plain `interpolate()` with NO `<bdi>` — unprotected across all 30 route pages, confirmed live on `/ar/routes/prague-vienna` and `/ar/routes/prague-berlin`. 73-13 switched these three fields' render sites to `interpolateBidi()`/`aBidi` across all 30 `app/[locale]/routes/prague-*/page.tsx` files (FAQPage JSON-LD `acceptedAnswer.text` kept on the plain `f.a` string — carve-out preserved, JSON.stringify never receives a ReactNode). A live structural re-check this cycle (`tests/route-page-render.test.tsx` — the 73-13 `PragueViennaPage` `/ar` assertion plus a new equivalent 73-14 `PragueBerlinPage` `/ar` assertion) proves the opening-paragraph and FAQ-answer price tokens now render inside `<bdi>` on both D-10 reference pages (6+ `<bdi>` isolates each, JSON-LD payload stays plain-string). `tests/rtl-backstop.test.ts`'s CR-02 block is now strengthened (73-14, GAP-2) to assert these exact render call sites per-field (not file-level presence) across all 30 route pages, so a future regression at these sites fails the gate. *(Separate data note: price values render "€0" in local dev on all locales incl. en/ru — missing local Supabase pricing, not an RTL defect; independent of this structural fix.)* |
 | 4. Blog post — inline tokens | PASS — chosen MDX post carries no DNT price/phone tokens in body; no reversed token present. |
 | 5. Account/login | PASS — no price/phone content; nothing reversed. |
 
@@ -202,3 +202,18 @@ this plan (`app/globals.css`), and re-verified PASS; a machine backstop for it w
 unresolved-operator cells. Known out-of-scope items (7 static pages `getLocale()` EN-fallback
 — WINDOWS #7; `/book` hardcoded-EN decorative heading — STR-02; local dev €0 pricing data)
 are noted but are not Phase-73 RTL/FONT/TR FAILs and remain in `deferred-items.md`.
+
+**Update (gap cycle 73-13/73-14):** Group 3's route-page row (above) initially recorded a
+genuine FAIL, correctly caught by this walkthrough and confirmed independently by
+`73-VERIFICATION.md`'s re-verification pass (2026-09-19) — `openingParagraphs`/
+`routeNarrative.paragraphs`/`faqs[].a` embedded unprotected DNT price tokens in Arabic RTL
+prose on every route page. 73-13 closed the defect (switched to `interpolateBidi()`/`aBidi`
+at the render site across all 30 route pages, JSON-LD `text: f.a` carve-out preserved);
+73-14 re-ran the D-10/D-11 structural check on `/ar/routes/prague-vienna` and
+`/ar/routes/prague-berlin` (via `tests/route-page-render.test.tsx`, confirming `<bdi>`
+isolation in the rendered markup on both pages) and strengthened `tests/rtl-backstop.test.ts`'s
+CR-02 assertions to per-field render-call-site checks so this class of regression fails the
+gate instead of passing it silently. The Group 3 route-page row is now corrected to PASS.
+This closes the previously-open Group 3 route-page gap; no other row in this document is
+affected by this update, and the FONT-01 glyph-tofu human-verification item (Task 3, Group 2)
+remains routed to independent human sign-off, unchanged.
