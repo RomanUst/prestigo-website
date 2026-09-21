@@ -94,18 +94,26 @@ Everything else in both components — trigger label, non-active dropdown rows, 
 
 ## UI Considerations
 
-Applicable state considerations resolved: **6 covered/backstop, 0 unresolved** (5 categories dismissed as not-applicable — see reasons below; both new elements are static/config-driven with no network fetch, so `empty`/`loading`/`error`/`partial` are structurally out of scope for this phase's UI, not gaps).
+Probe: **12 applicable considerations across 2 surfaces** (LocaleSwitcher, FirstVisitBanner). Resolved: **8** (4 explicit truths + 4 backstop) · Dismissed: **6 N/A** (both components are static/config-driven with no network fetch — `empty`/`loading`/`error`/`partial` are structurally out of scope, not gaps) · Unresolved: **0**. State coverage confirmed against the checker-verified spec; the probe surfaced no missed state.
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| populated | LocaleSwitcher dropdown (list-collection) | ✅ covered | Dropdown always renders exactly 7 static locale rows (endonym label + current-locale checkmark), styled identically to Nav's existing account-menu rows (44px min-height, 11px/0.18em-tracking base, `--warmgrey`→`--offwhite` hover, `--copper-light` for the one active row) |
-| overflow | LocaleSwitcher dropdown panel (nav) | 🧪 backstop | Dropdown panel `min-width: 200px` (wider than the account-menu's 160px) so the longest endonym string (`العربية` / `हिन्दी`) never wraps to a second line inside a menu row, in both LTR and RTL |
-| long-text | LocaleSwitcher trigger (interactive-control) | ✅ covered | Trigger shows the fixed-width 2-letter locale code (`EN`/`RU`/`ES`/`FR`/`AR`/`HI`/`ZH`) + chevron — not the full endonym — so the header's control width never shifts when the active locale changes; the full endonym only appears inside dropdown rows |
-| zero-one-many | LocaleSwitcher dropdown (list-collection) | ✅ covered | Exactly 7 rows always (compile-time structural array from `i18n/locales.ts`, never runtime-fetched) — no singular/plural copy variance applies |
-| overflow | FirstVisitBanner message (static-content) | 🧪 backstop | Banner copy ("This site is also available in {endonym}." + two buttons) fits one row ≥360px viewport width; below that it wraps via `flex-wrap`/`flex-col` (never truncates or clips) |
-| long-text | FirstVisitBanner buttons (interactive-control) | ✅ covered | "Switch to {endonym}" / "Stay in {endonym}" buttons use `flex-shrink-0` so labels never compress illegibly; the message text wraps independently in its own flex item |
+### LocaleSwitcher (E1)
 
-**Dismissed (not applicable — no reason to raise):** `empty`/`loading`/`error`/`partial` for both components — neither the switcher's locale list nor the banner's suggestion computation involves a network fetch or async data source (switcher = static config array; banner = synchronous `navigator.language` read in a `useEffect`, per `74-RESEARCH.md` Pattern 6). A locale-switch navigation is standard client-side routing, not a bespoke fetch with its own loading/error UI.
+- **populated** (dropdown list-collection) — *resolved (explicit).* The dropdown always renders exactly 7 static locale rows (endonym label + current-locale checkmark), styled identically to Nav's existing account-menu rows: 44px min-height, 11px base with 0.18em tracking, `--warmgrey`→`--offwhite` on hover, `--copper-light` for the single active row.
+- **zero-one-many** (dropdown list-collection) — *resolved (explicit).* Exactly 7 rows always — compile-time structural array from `i18n/locales.ts`, never runtime-fetched; no singular/plural copy variance applies.
+- **long-text** (trigger, interactive-control) — *resolved (explicit).* Trigger shows the fixed-width 2-letter locale code (`EN`/`RU`/`ES`/`FR`/`AR`/`HI`/`ZH`) + chevron, not the full endonym, so the header control width never shifts when the active locale changes; the full endonym appears only inside dropdown rows.
+- **overflow** (dropdown panel, nav) — `{ statement: "Dropdown panel min-width 200px (wider than the account-menu's 160px) so the longest endonym string (العربية / हिन्दी) never wraps to a second line inside a menu row, in both LTR and RTL.", verification: backstop }`
+
+### FirstVisitBanner (E2)
+
+- **long-text** (buttons, interactive-control) — *resolved (explicit).* "Switch to {endonym}" / "Stay in {current endonym}" buttons use `flex-shrink-0` so labels never compress illegibly; the message text wraps independently in its own flex item.
+- **overflow** (banner message, static-content) — `{ statement: "Banner copy ('This site is also available in {endonym}.' + two buttons) fits one row ≥360px viewport width; below that it wraps via flex-wrap/flex-col — never truncates or clips.", verification: backstop }`
+
+### Dismissed — N/A (no network fetch / async data source)
+
+- **empty** (E1) — switcher list is a static 7-item structural array; never an empty/zero collection.
+- **loading** (E1, E2) — no fetch: switcher = static config; banner = synchronous `navigator.language` read in a `useEffect` (`74-RESEARCH.md` Pattern 6). No async data to show a skeleton/spinner for.
+- **error** (E1, E2) — no network fetch exists to fail. A rare locale-switch navigation failure falls through to Next.js's standard error boundary, not a bespoke error UI.
+- **partial** (E1) — static array, never partially-loaded/incomplete data.
 
 **Open sequencing note for the planner (not a state-coverage gap, a z-order/mount-order constraint):** `CookieBanner` renders as a **blocking modal** (`fixed inset-0` backdrop + `overflow: hidden` body-scroll-lock) on first visit. `FirstVisitBanner` must **not** render simultaneously underneath/behind that backdrop — defer its visibility check until `getConsent()` (from `components/CookieBanner.tsx`) returns non-null (i.e., the cookie modal has been dismissed), so a first-time visitor never sees two overlapping prompts. `FirstVisitBanner`'s own `z-index` should sit below `CookieBanner`'s `z-[400]` (recommend `z-40` — non-blocking, no backdrop, does not need to win a stacking fight it should never be in if the mount-order guard is honored).
 
@@ -144,11 +152,11 @@ Applicable state considerations resolved: **6 covered/backstop, 0 unresolved** (
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: FLAG (non-blocking — add one explicit "primary visual anchor" sentence per component; hierarchy is currently derivable from the color/typography contract)
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: FLAG (non-blocking — 44px touch target + legacy button paddings are declared, justified reuse of a locked site-wide convention, not new violations)
+- [x] Dimension 6 Registry Safety: PASS
 
-**Approval:** pending
+**Approval:** APPROVED (2 non-blocking FLAGs) — gsd-ui-checker, 2026-09-21
