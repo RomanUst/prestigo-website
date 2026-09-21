@@ -295,6 +295,11 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // NOTE: static-file extensions must be excluded here or requests to them
+    // fall through to next-intl locale routing and 404 (regression that broke
+    // every /public/**/*.avif in prod — e.g. /vehicles/*.avif on the fleet
+    // page — while .webp/.png/.jpg served fine). Keep this list in sync with
+    // the image formats actually shipped in /public (avif, ico added).
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)',
   ],
 }
