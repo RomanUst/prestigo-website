@@ -239,6 +239,24 @@ Wave 2 *(blocked on 73-13)*
 
 - [x] 73-14-PLAN.md — GAP-2: strengthen `rtl-backstop.test.ts` CR-02 to per-field render-call-site assertions; GAP-3: re-run D-10/D-11 Group 3 structural bidi check + correct 73-RTL-QA.md route-page row (RTL-01; FONT-01 tofu = non-gating human note)
 
+### Phase 74: SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher
+
+**Goal**: The multilingual site is fully SEO-wired so search engines and users treat the 7 locales (EN root + `/ru /es /fr /ar /hi /zh`) correctly. Every indexable page emits its full hreflang alternates cluster (up to 6 locales + `x-default`) through a centralized, translation- and index-aware `getAlternates()` that also feeds the sitemap; `generateMetadata` produces per-locale title/description/OG from the Phase 71/72 content model and catalogs; JSON-LD carries `inLanguage` and localized text fields; and a header language switcher (with `NEXT_LOCALE` cookie) plus a soft, crawler-safe `Accept-Language` first-visit banner give users locale control without ever redirecting or cloaking. English root output stays byte-for-byte unchanged.
+
+**Depends on**: Phase 71 (content model + EN-fallback loaders + blog D-07/D-08), Phase 72 (RU/ES/FR catalogs + content-sourced metadata), Phase 73 (AR/HI/ZH translations + `<html lang/dir>`/`rtlLocales` wiring)
+**Requirements**: SEO-01, SEO-02, SEO-03, SEO-04, UX-01, UX-02
+**Success Criteria** (what must be TRUE):
+
+  1. Every indexable page emits a full hreflang alternates cluster (up to 6 locales + `x-default`) via a centralized `getAlternates(path, opts)` helper that replaces the ~56 hardcoded `{ en, x-default }` blocks; the cluster is **index-aware** (the 20 `noindex` `prague-to-{city}` routes and their locale variants emit no cluster and stay self-canonical, D-06) and **translation-aware** (a locale alternate is emitted only where a genuine translation exists — EN-fallback and EN-only JSX posts are excluded and stay self-canonical → EN, D-07). (SEO-01)
+  2. `generateMetadata` produces per-locale `title`/`description`/OG across the site, sourced from the Phase 71/72 content model + catalogs; one shared text-neutral `og-image.jpg` is used for all locales with only `og:title`, `og:description`, and the OG `alt` localized (D-08). (SEO-02)
+  3. `app/sitemap.ts` emits every locale URL with a full alternates cluster built from the **same** `getAlternates()` source of truth (single choke point via the `entry()` helper), honoring the same index-status and translation-availability rules. (SEO-03)
+  4. JSON-LD carries `inLanguage` set to the active locale as a BCP-47 tag (e.g. `zh-Hans`) plus localized text fields (name/description from the content model), while locale-invariant data (prices, `priceValidUntil`, Place ID, ratings) is unchanged; EN structured-data output remains byte-for-byte identical (Phase 71 constraint / snapshot date-drift normalization preserved). (SEO-04)
+  5. A header language switcher (replacing the existing `A ▾` control in `SiteChrome`) lists the 7 endonyms (`English · Русский · Español · Français · العربية · हिन्दी · 中文`, no flags), switches to the **same page** in the target locale via `@/i18n/routing` locale-aware navigation (never string concatenation, EN-fallback where untranslated), and persists the choice to a `NEXT_LOCALE` cookie. (UX-01)
+  6. First-visit detection is a soft, dismissible, crawler-safe banner: when `Accept-Language` matches a supported locale it suggests that locale, but the URL is **never** changed without a click and there is **no automatic redirect ever** (`routing.localeDetection` stays `false`, D-04/D-05/D-05a); the banner is shown once and the dismissal/choice is remembered via `NEXT_LOCALE`. Crawler and user always see the same URL. (UX-02)
+  7. `ru`/`es`/`fr`/`ar`/`hi`/`zh` rendering and the English root output are unaffected outside these SEO additions, and no CSP-nonce / RTL (`/ar`) regression is introduced by the switcher/banner mount.
+
+**UI hint**: yes
+
 </details>
 
 <details>
