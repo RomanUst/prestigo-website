@@ -13,6 +13,7 @@ import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
+import { getAlternates } from '@/lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -23,13 +24,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: interpolate(content.metadata.title, prices),
     description: interpolate(content.metadata.description, prices),
-    alternates: {
-      canonical: '/routes/prague-salzburg',
-      languages: {
-        en: 'https://rideprestigo.com/routes/prague-salzburg',
-        'x-default': 'https://rideprestigo.com/routes/prague-salzburg',
-      },
-    },
+    alternates: getAlternates('/routes/prague-salzburg', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-salzburg' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-salzburg',
       title: interpolate(content.metadata.ogTitle, prices),
@@ -76,7 +74,13 @@ export default async function PragueSalzburgPage() {
   const pageSchema = {
     '@context': 'https://schema.org',
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-salzburg')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-salzburg', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-salzburg#faq',

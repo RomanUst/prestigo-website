@@ -5,6 +5,7 @@ import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
+import { getAlternates } from '@/lib/seo'
 
 export const revalidate = 120
 
@@ -24,13 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: interpolate(content.metadata.title, prices),
     description: interpolate(content.metadata.description, prices),
-    alternates: {
-      canonical: '/routes/prague-linz',
-      languages: {
-        en: 'https://rideprestigo.com/routes/prague-linz',
-        'x-default': 'https://rideprestigo.com/routes/prague-linz',
-      },
-    },
+    alternates: getAlternates('/routes/prague-linz', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-linz' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-linz',
       title: interpolate(content.metadata.ogTitle, prices),
@@ -78,7 +76,13 @@ export default async function PragueLinzPage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-linz')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-linz', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-linz#faq',
