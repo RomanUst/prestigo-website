@@ -141,3 +141,43 @@ describe('buildAirportTransferJsonLd', () => {
     expect(names.some(n => n.includes('V-Class'))).toBe(true)
   })
 })
+
+// SEO-04: buildAirportTransferJsonLd carries inLanguage (BCP-47); EN
+// name/description/price stay byte-for-byte unchanged (D-09).
+describe('buildAirportTransferJsonLd — inLanguage (SEO-04)', () => {
+  it('defaults to inLanguage="en" and the pre-phase hardcoded name/description when opts is omitted', () => {
+    const result = buildAirportTransferJsonLd(promoActiveGlobals, 120, 76)
+    const service = result['@graph'][0] as Record<string, unknown>
+    expect(service.inLanguage).toBe('en')
+    expect(service.name).toBe('Airport Transfer Prague')
+    expect(service.description).toBe('Premium airport transfer service at Prague Václav Havel Airport.')
+  })
+
+  it('opts.locale="en" also keeps the hardcoded template and inLanguage="en"', () => {
+    const result = buildAirportTransferJsonLd(promoActiveGlobals, 120, 76, { locale: 'en' })
+    const service = result['@graph'][0] as Record<string, unknown>
+    expect(service.inLanguage).toBe('en')
+    expect(service.name).toBe('Airport Transfer Prague')
+  })
+
+  it('a non-EN locale maps inLanguage via the zh-Hans BCP-47 tag for zh', () => {
+    const result = buildAirportTransferJsonLd(promoActiveGlobals, 120, 76, { locale: 'zh' })
+    const service = result['@graph'][0] as Record<string, unknown>
+    expect(service.inLanguage).toBe('zh-Hans')
+  })
+
+  it('ru locale maps inLanguage to "ru" (no script-subtag remap)', () => {
+    const result = buildAirportTransferJsonLd(promoActiveGlobals, 120, 76, { locale: 'ru' })
+    const service = result['@graph'][0] as Record<string, unknown>
+    expect(service.inLanguage).toBe('ru')
+  })
+
+  it('EN price is unchanged by the opts extension', () => {
+    const result = buildAirportTransferJsonLd(promoActiveGlobals, 120, 76, { locale: 'ru' })
+    const service = result['@graph'][0] as Record<string, unknown>
+    const catalog = service['hasOfferCatalog'] as Record<string, unknown>
+    const list = catalog['itemListElement'] as Array<Record<string, unknown>>
+    const businessOffer = list.find(o => String(o.name).includes('E-Class'))
+    expect(businessOffer?.price).toBe('59')
+  })
+})

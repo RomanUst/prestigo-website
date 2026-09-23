@@ -137,19 +137,30 @@ export function buildAirportTransferJsonLd(
   globals: PricingGlobals,
   sClassPrice: number,
   vClassPrice: number,
+  opts?: { locale?: string; name?: string; description?: string },
 ): JsonLdDocument {
   const priceValidUntil = futureIsoDate(365)
   const businessPrice = globals.airportPromoActive
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur
+  // EN name/description stay the pre-phase hardcoded strings unless a
+  // genuine content-model source supplies non-EN text (same pattern as
+  // buildRouteJsonLd, SEO-04/D-09) — defaults to 'en' when opts is omitted.
+  const isLocalized = !!opts && opts.locale !== undefined && opts.locale !== 'en'
+  const name = isLocalized && opts.name ? opts.name : 'Airport Transfer Prague'
+  const description = isLocalized && opts.description
+    ? opts.description
+    : 'Premium airport transfer service at Prague Václav Havel Airport.'
+  const inLanguage = BCP47_TAG[(opts?.locale ?? 'en') as AppLocale] ?? opts?.locale ?? 'en'
   return {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'Service',
         '@id': `${BASE_URL}/services/airport-transfer#service`,
-        name: 'Airport Transfer Prague',
-        description: 'Premium airport transfer service at Prague Václav Havel Airport.',
+        inLanguage,
+        name,
+        description,
         provider: { '@type': 'LocalBusiness', '@id': `${BASE_URL}/#business` },
         areaServed: 'Prague, Czech Republic',
         hasOfferCatalog: {

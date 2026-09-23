@@ -63,7 +63,7 @@ export default async function AirportTransferPage() {
   const { globals } = await getPricingConfig()
   const sClassAirport = AIRPORT_FALLBACK.sClass
   const vClassAirport = AIRPORT_FALLBACK.vClass
-  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport)
+  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport, { locale })
   const rating = getStaticAggregateRating()
 
   const businessPrice = globals.airportPromoActive
