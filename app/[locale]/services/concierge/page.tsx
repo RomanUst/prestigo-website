@@ -10,6 +10,7 @@ import BookingSection from '@/components/BookingSection'
 import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
 
 type ConciergeContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -35,13 +36,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: {
-      canonical: '/services/concierge',
-      languages: {
-        en: 'https://rideprestigo.com/services/concierge',
-        'x-default': 'https://rideprestigo.com/services/concierge',
-      },
-    },
+    alternates: getAlternates('/services/concierge', {
+      indexable: true,
+      content: { kind: 'page', key: 'services/concierge' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/services/concierge',
       title: content.metadata.ogTitle,

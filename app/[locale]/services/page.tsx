@@ -12,6 +12,7 @@ import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
+import { getAlternates } from '@/lib/seo'
 
 interface ServiceEntry {
   label: string
@@ -44,13 +45,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      canonical: '/services',
-      languages: {
-        en: 'https://rideprestigo.com/services',
-        'x-default': 'https://rideprestigo.com/services',
-      },
-    },
+    alternates: getAlternates('/services', {
+      indexable: true,
+      content: { kind: 'page', key: 'services' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/services',
       title: content.metadata.ogTitle,

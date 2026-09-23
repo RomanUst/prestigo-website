@@ -5,6 +5,7 @@ import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 import MetaViewContent from '@/components/MetaViewContent'
 import { businessNodeDoc } from '@/lib/jsonld'
+import { getAlternates } from '@/lib/seo'
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -20,13 +21,7 @@ export const metadata: Metadata = {
   title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
   description:
     'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
-  alternates: {
-    canonical: 'https://rideprestigo.com/book/multi-day',
-    languages: {
-      en: 'https://rideprestigo.com/book/multi-day',
-      'x-default': 'https://rideprestigo.com/book/multi-day',
-    },
-  },
+  alternates: getAlternates('/book/multi-day', { indexable: true }),
   openGraph: {
     url: 'https://rideprestigo.com/book/multi-day',
     title: 'Multi-day Chauffeur Hire | PRESTIGO',
