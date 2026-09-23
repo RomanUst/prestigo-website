@@ -262,7 +262,7 @@ Wave 2 *(blocked on 73-13)*
 Plans:
 **Wave 1** — tracer
 
-- [ ] 74-01-PLAN.md — Tracer: `getAlternates()` + i18n locale/BCP-47 maps + JSON-LD `inLanguage` + full sitemap cluster, wired end-to-end on `prague-vienna` (SEO-01/03/04)
+- [x] 74-01-PLAN.md — Tracer: `getAlternates()` + i18n locale/BCP-47 maps + JSON-LD `inLanguage` + full sitemap cluster, wired end-to-end on `prague-vienna` (SEO-01/03/04)
 
 **Wave 2** *(blocked on Wave 1 — parallel, disjoint files)*
 
@@ -358,5 +358,5 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
-| 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 0/? | Pending | — |
+| 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 1/6 | In Progress|  |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
