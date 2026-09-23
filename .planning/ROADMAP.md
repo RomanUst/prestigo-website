@@ -257,6 +257,21 @@ Wave 2 *(blocked on 73-13)*
 
 **UI hint**: yes
 
+**Plans:** 6 plans
+
+Plans:
+**Wave 1** — tracer
+
+- [ ] 74-01-PLAN.md — Tracer: `getAlternates()` + i18n locale/BCP-47 maps + JSON-LD `inLanguage` + full sitemap cluster, wired end-to-end on `prague-vienna` (SEO-01/03/04)
+
+**Wave 2** *(blocked on Wave 1 — parallel, disjoint files)*
+
+- [ ] 74-02-PLAN.md — Route-page sweep: 30 indexable route pages onto `getAlternates()` + JSON-LD `inLanguage` (SEO-01/04)
+- [ ] 74-03-PLAN.md — Non-route ISR sweep: services/fleet/book/home/blog onto `getAlternates()`, close the `/data-deletion` D-06 violation, blog D-07 cluster (SEO-01/03/04)
+- [ ] 74-04-PLAN.md — Fix the 10 force-static EN-leak pages (forward `{ locale } = await params`) + wire onto `getAlternates()` (SEO-01/02)
+- [ ] 74-05-PLAN.md — Header LocaleSwitcher: 7-endonym dropdown, same-page navigation via `@/i18n/routing`, mounted in `Nav.tsx` desktop + mobile (UX-01)
+- [ ] 74-06-PLAN.md — FirstVisitBanner: crawler-safe `Accept-Language` suggestion, no auto-redirect, `NEXT_LOCALE` persistence, mounted in `SiteChrome.tsx` (UX-02)
+
 </details>
 
 <details>
