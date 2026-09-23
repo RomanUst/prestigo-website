@@ -4,22 +4,32 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 export const revalidate = 120
 
 const FLEET_DESCRIPTION = 'Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared.'
 
-export const metadata: Metadata = {
-  title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
-  description: FLEET_DESCRIPTION,
-  alternates: getAlternates('/fleet', { indexable: true }),
-  openGraph: {
-    url: 'https://rideprestigo.com/fleet',
+// CR-01: converted from a static `metadata` export to generateMetadata()
+// so the current locale is available for the self-referencing canonical.
+// No `content` ref -> chrome-only page (all 7 locales assumed valid). Note:
+// /fleet's own copy is still hardcoded EN (a separate, deferred
+// content-externalization gap — see 74-CONTEXT.md Deferred Ideas), not
+// something this fix changes.
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const alternates = getAlternates('/fleet', { indexable: true, locale })
+  return {
     title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
     description: FLEET_DESCRIPTION,
-    images: [{ url: 'https://rideprestigo.com/hero-fleet.webp', width: 1200, height: 630 }],
-  },
+    alternates,
+    openGraph: {
+      url: toAbsoluteUrl(alternates.canonical),
+      title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
+      description: FLEET_DESCRIPTION,
+      images: [{ url: 'https://rideprestigo.com/hero-fleet.webp', width: 1200, height: 630 }],
+    },
+  }
 }
 
 type VehicleSpec = {

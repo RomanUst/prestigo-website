@@ -5,7 +5,7 @@ import Footer from '@/components/Footer'
 import MultiDayForm from '@/components/booking/MultiDayForm'
 import MetaViewContent from '@/components/MetaViewContent'
 import { businessNodeDoc } from '@/lib/jsonld'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -17,17 +17,24 @@ const breadcrumbSchema = {
   ],
 }
 
-export const metadata: Metadata = {
-  title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
-  description:
-    'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
-  alternates: getAlternates('/book/multi-day', { indexable: true }),
-  openGraph: {
-    url: 'https://rideprestigo.com/book/multi-day',
-    title: 'Multi-day Chauffeur Hire | PRESTIGO',
-    description: 'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
-    images: [{ url: 'https://rideprestigo.com/multi-day-hero.png', width: 1200, height: 630 }],
-  },
+// CR-01: converted from a static `metadata` export to generateMetadata()
+// so the current locale is available for the self-referencing canonical.
+// No `content` ref -> chrome-only page (all 7 locales assumed valid).
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const alternates = getAlternates('/book/multi-day', { indexable: true, locale })
+  return {
+    title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
+    description:
+      'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
+    alternates,
+    openGraph: {
+      url: toAbsoluteUrl(alternates.canonical),
+      title: 'Multi-day Chauffeur Hire | PRESTIGO',
+      description: 'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
+      images: [{ url: 'https://rideprestigo.com/multi-day-hero.png', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const INCLUDES = [

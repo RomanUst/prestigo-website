@@ -3,7 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import BookingWizard from '@/components/booking/BookingWizard'
 import { businessNodeDoc } from '@/lib/jsonld'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 const bookingSchema = {
   '@context': 'https://schema.org',
@@ -57,16 +57,24 @@ const bookingSchema = {
   ],
 }
 
-export const metadata: Metadata = {
-  title: 'Book a Transfer — Prague Chauffeur',
-  description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
-  alternates: getAlternates('/book', { indexable: true }),
-  openGraph: {
-    url: 'https://rideprestigo.com/book',
-    title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
+// CR-01: converted from a static `metadata` export to generateMetadata()
+// so the current locale is available for the self-referencing canonical.
+// No `content` ref -> chrome-only page (all 7 locales assumed valid, per
+// the lib/seo.ts doc comment's own canonical example).
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const alternates = getAlternates('/book', { indexable: true, locale })
+  return {
+    title: 'Book a Transfer — Prague Chauffeur',
     description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
-    images: [{ url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }],
-  },
+    alternates,
+    openGraph: {
+      url: toAbsoluteUrl(alternates.canonical),
+      title: 'Book a Transfer — PRESTIGO Prague Chauffeur',
+      description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
+      images: [{ url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }],
+    },
+  }
 }
 
 const guarantees = [
