@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type VipEventsContent = {
@@ -28,12 +28,13 @@ type VipEventsContent = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const content = getPageContent('services/vip-events', locale) as VipEventsContent
+  const alternates = getAlternates('/services/vip-events', { indexable: true, content: { kind: 'page', key: 'services/vip-events' }, locale })
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: getAlternates('/services/vip-events', { indexable: true, content: { kind: 'page', key: 'services/vip-events' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/services/vip-events',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.ogDescription,
       images: [{ url: 'https://rideprestigo.com/hero-vip-events.png', width: 1200, height: 630 }],

@@ -10,7 +10,7 @@ import { getStaticAggregateRating } from '@/lib/google-reviews'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type AboutContent = {
@@ -33,12 +33,13 @@ type AboutContent = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const content = getPageContent('about', locale) as AboutContent
+  const alternates = getAlternates('/about', { indexable: true, content: { kind: 'page', key: 'about' }, locale })
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: getAlternates('/about', { indexable: true, content: { kind: 'page', key: 'about' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/about',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
       images: [{ url: 'https://rideprestigo.com/hero-about.png', width: 1200, height: 630 }],

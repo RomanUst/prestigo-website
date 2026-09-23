@@ -7,18 +7,19 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import CorporateForm from './CorporateForm'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const content = getPageContent('corporate', locale) as CorporateContent
+  const alternates = getAlternates('/corporate', { indexable: true, content: { kind: 'page', key: 'corporate' }, locale })
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: getAlternates('/corporate', { indexable: true, content: { kind: 'page', key: 'corporate' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/corporate',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
       images: [{ url: 'https://rideprestigo.com/hero-corporate-accounts.png', width: 1200, height: 630 }],

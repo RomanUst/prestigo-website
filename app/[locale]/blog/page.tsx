@@ -6,7 +6,7 @@ import Reveal from '@/components/Reveal'
 import BlogCard from '@/components/BlogCard'
 import { getAllPosts } from '@/lib/blog'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
@@ -28,12 +28,13 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   const content = getPageContent('blog', locale) as BlogListingContent
   const posts = getAllPosts(locale)
   const ogImage = posts[0]?.coverImage ?? '/hero-airport-transfer.webp'
+  const alternates = getAlternates('/blog', { indexable: true, content: { kind: 'page', key: 'blog' }, locale })
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: getAlternates('/blog', { indexable: true, content: { kind: 'page', key: 'blog' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/blog',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.title,
       description: content.metadata.description,
       images: [

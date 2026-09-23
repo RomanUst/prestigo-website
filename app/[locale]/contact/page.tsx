@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import ContactForm from '@/components/ContactForm'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type ContactContent = {
@@ -23,12 +23,13 @@ type ContactContent = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const content = getPageContent('contact', locale) as ContactContent
+  const alternates = getAlternates('/contact', { indexable: true, content: { kind: 'page', key: 'contact' }, locale })
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: getAlternates('/contact', { indexable: true, content: { kind: 'page', key: 'contact' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/contact',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
       images: [{ url: 'https://rideprestigo.com/hero-contact.webp', width: 1200, height: 630 }],
