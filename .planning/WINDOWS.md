@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 9
 waived_count: 0
 fixed_count: 5
-total_count: 8
-last_updated: 2026-09-19T20:18:02.957Z
+total_count: 14
+last_updated: 2026-09-23T21:28:53.493Z
 ---
 
 # Broken Windows Ledger
@@ -23,6 +23,12 @@ last_updated: 2026-09-19T20:18:02.957Z
 | 6 | 73 | stub | messages/hi.json |  | ~10 hi heading units (whyBook.headingLine1 across ~9 route files; corporate.json usagePatterns.headingItalic) drop the 'Prestigo'/'PRESTIGO' DNT token in translation -> verifier EN-fallback by design (T-73-04). --check passes (keys present). Deferred: revisit glossary/verifier so these headings translate around the DNT token instead of falling back. | open |  | 2026-09-19T08:28:32.086Z |  |
 | 7 | 73 | deviation | app/[locale]/about/page.tsx |  | 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN content on every locale (en/ru/es/fr/ar/hi/zh) due to unforwarded getLocale() in force-static pages — pre-existing, not fixed in 73-06, see deferred-items.md | open |  | 2026-09-19T12:22:00.327Z |  |
 | 8 | 73 | deviation | content/routes/en/prague-marianske-lazne.json |  | i18n-translate pipeline run (73-11 Task 2) hit 'credit balance too low' Anthropic API errors for 6 route files (prague-marianske-lazne, prague-olomouc, prague-pardubice, prague-plzen, prague-wroclaw, prague-zlin) and content/pages/en/corporate.json across all 6 target locales (ar/hi/zh/ru/es/fr). Manifest correctly not advanced (no partial writes); EN sources unchanged. Needs Anthropic billing top-up then a full re-run of node scripts/i18n-translate.mjs (no --locales filter) to pick these up. | open |  | 2026-09-19T20:18:02.957Z |  |
+| 9 | 74 | stub | messages/ru.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | open |  | 2026-09-23T21:28:41.975Z |  |
+| 10 | 74 | stub | messages/es.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | open |  | 2026-09-23T21:28:46.369Z |  |
+| 11 | 74 | stub | messages/fr.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | open |  | 2026-09-23T21:28:48.035Z |  |
+| 12 | 74 | stub | messages/ar.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | open |  | 2026-09-23T21:28:49.933Z |  |
+| 13 | 74 | stub | messages/hi.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | open |  | 2026-09-23T21:28:51.597Z |  |
+| 14 | 74 | stub | messages/zh.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | open |  | 2026-09-23T21:28:53.493Z |  |
 
 ````json
 [
@@ -120,6 +126,78 @@ last_updated: 2026-09-19T20:18:02.957Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-19T20:18:02.957Z",
+    "resolved_at": null
+  },
+  {
+    "id": 9,
+    "kind": "stub",
+    "phase": "74",
+    "file": "messages/ru.json",
+    "line": 790,
+    "description": "Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-23T21:28:41.975Z",
+    "resolved_at": null
+  },
+  {
+    "id": 10,
+    "kind": "stub",
+    "phase": "74",
+    "file": "messages/es.json",
+    "line": 790,
+    "description": "Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-23T21:28:46.369Z",
+    "resolved_at": null
+  },
+  {
+    "id": 11,
+    "kind": "stub",
+    "phase": "74",
+    "file": "messages/fr.json",
+    "line": 790,
+    "description": "Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-23T21:28:48.035Z",
+    "resolved_at": null
+  },
+  {
+    "id": 12,
+    "kind": "stub",
+    "phase": "74",
+    "file": "messages/ar.json",
+    "line": 790,
+    "description": "Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-23T21:28:49.933Z",
+    "resolved_at": null
+  },
+  {
+    "id": 13,
+    "kind": "stub",
+    "phase": "74",
+    "file": "messages/hi.json",
+    "line": 790,
+    "description": "Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-23T21:28:51.597Z",
+    "resolved_at": null
+  },
+  {
+    "id": 14,
+    "kind": "stub",
+    "phase": "74",
+    "file": "messages/zh.json",
+    "line": 790,
+    "description": "Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-23T21:28:53.493Z",
     "resolved_at": null
   }
 ]
