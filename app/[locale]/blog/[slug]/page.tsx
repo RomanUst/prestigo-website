@@ -9,7 +9,7 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '@/lib/blog'
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
@@ -39,21 +39,22 @@ function findMdxPost(slug: string, dir: string): BlogPost | undefined {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; locale: string }>
 }): Promise<Metadata> {
-  const { slug } = await params
-  const locale = await getLocale()
+  // CR-01: locale comes from the route's own dynamic segment (`params`),
+  // not a bare `getLocale()` call — this page is `force-static`, and a
+  // bare getLocale() on a force-static route was the Phase-73 EN-leak bug.
+  const { slug, locale } = await params
   const resolved = resolveLocalizedMdx(slug, locale)
   if (!resolved) return { title: 'Not Found — Prestigo' }
   const post = findMdxPost(slug, resolved.dir)
   if (!post) return { title: 'Not Found — Prestigo' }
-  // canonical → EN for an untranslated localized path (D-07); for en (or a
-  // future genuinely localized post) this is byte-identical to today's
-  // locale-relative /blog/<slug> canonical. getAlternates' own D-07 fs-probe
-  // (content: { kind: 'blog', key: slug }) sources the languages cluster —
-  // only locales with a genuine content/blog/<locale>/<slug>.mdx join it.
-  const canonical = blogCanonical(slug, resolved.isFallback)
-  const absolute = `https://rideprestigo.com/blog/${slug}`
+  // canonical → EN for an untranslated localized path (D-07); self-refs the
+  // current locale's own URL for a genuinely localized post (CR-01).
+  // getAlternates' own D-07 fs-probe (content: { kind: 'blog', key: slug })
+  // sources the languages cluster — only locales with a genuine
+  // content/blog/<locale>/<slug>.mdx join it.
+  const canonical = blogCanonical(slug, resolved.isFallback, locale)
   const { languages } = getAlternates(`/blog/${slug}`, {
     indexable: true,
     content: { kind: 'blog', key: slug },
@@ -65,7 +66,7 @@ export async function generateMetadata({
     openGraph: {
       title: post.title,
       description: post.description,
-      url: absolute,
+      url: toAbsoluteUrl(canonical),
       images: [
         {
           url: `https://rideprestigo.com${post.coverImage}`,
