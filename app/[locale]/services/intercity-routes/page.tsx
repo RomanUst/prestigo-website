@@ -10,7 +10,7 @@ import { getLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 type IntercityRoutesContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -40,9 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
     // routes hub; signals are consolidated there (SEO audit M11). getAlternates
     // is called with '/routes' as the canonical target path (not this page's
     // own URL) — the single-argument convention it inherits from the pre-Phase-74 helper.
-    alternates: getAlternates('/routes', { indexable: true }),
+    // `locale` makes that cross-canonical self-reference the routes hub's own
+    // locale URL (CR-01) rather than always the EN /routes URL.
+    alternates: getAlternates('/routes', { indexable: true, locale }),
     openGraph: {
-      url: 'https://rideprestigo.com/services/intercity-routes',
+      // WR-02: og:url stays this page's OWN address (not the /routes
+      // cross-canonical target) — a second, locale-scoped getAlternates()
+      // call against this page's own path, since the primary `alternates`
+      // above intentionally targets a different path.
+      url: toAbsoluteUrl(getAlternates('/services/intercity-routes', { indexable: true, locale }).canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.ogDescription,
       images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
