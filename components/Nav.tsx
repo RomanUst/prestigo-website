@@ -6,6 +6,7 @@ import { Link, usePathname } from '@/i18n/routing'
 import { createBrowserClient } from '@supabase/ssr'
 import type { User } from '@supabase/supabase-js'
 import { customerSignOut } from '@/app/[locale]/login/actions'
+import LocaleSwitcher from '@/components/LocaleSwitcher'
 
 // Static href map for the 6 nav items — hrefs are routes, not translatable
 // copy, and stay in code. Labels come from messages/en.json Nav.items
@@ -151,6 +152,9 @@ export default function Nav() {
 
           {/* Auth affordance + Book now wrapper */}
           <div className="flex items-center gap-3">
+            {/* UX-01: locale switcher — leftmost item, near the Book button (D-01) */}
+            <LocaleSwitcher />
+
             {!user ? (
               /* NAV-01: Guest Sign in button */
               <Link
@@ -376,6 +380,11 @@ export default function Nav() {
             )}
           </Link>
         ))}
+
+        {/* UX-01: locale switcher — mobile menu equivalent of the desktop mount (D-01) */}
+        <div className="mt-2">
+          <LocaleSwitcher />
+        </div>
 
         {/* Mobile auth affordance */}
         {!user ? (
