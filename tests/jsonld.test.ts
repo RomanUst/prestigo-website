@@ -59,6 +59,57 @@ describe('buildRouteJsonLd', () => {
   })
 })
 
+// SEO-04: locale-aware inLanguage + name/description, EN byte-parity (D-09,
+// Pitfall 7 — the EN template intentionally does NOT match
+// content/routes/en/*.json's metadata.title verbatim, so it must stay
+// hardcoded and untouched by the opts branch).
+describe('buildRouteJsonLd — inLanguage + locale-conditional name/description (SEO-04)', () => {
+  it('EN with no opts keeps the pre-phase hardcoded template and inLanguage="en"', () => {
+    const result = buildRouteJsonLd(routeFixture, 'prague-brno')
+    const service = serviceNode(result)
+    expect(service.inLanguage).toBe('en')
+    expect(service.name).toBe('Private Chauffeur Transfer from Prague to Brno')
+    expect(service.description).toBe(
+      'Private chauffeured transfer from Prague to Brno. Fixed price from €290. 200 km door-to-door in a Mercedes E, S, or V-Class.'
+    )
+  })
+
+  it('EN opts.locale="en" also keeps the hardcoded template — opts.name/description ignored', () => {
+    const result = buildRouteJsonLd(routeFixture, 'prague-brno', {
+      locale: 'en',
+      name: 'SHOULD NOT APPEAR',
+      description: 'SHOULD NOT APPEAR',
+    })
+    const service = serviceNode(result)
+    expect(service.inLanguage).toBe('en')
+    expect(service.name).toBe('Private Chauffeur Transfer from Prague to Brno')
+    expect(service.description).not.toContain('SHOULD NOT APPEAR')
+  })
+
+  it('a non-EN locale uses opts.name/description and the zh-Hans BCP-47 tag for zh', () => {
+    const result = buildRouteJsonLd(routeFixture, 'prague-brno', {
+      locale: 'zh',
+      name: '布拉格到布尔诺的私人接送服务',
+      description: '布拉格到布尔诺的私人司机接送服务说明',
+    })
+    const service = serviceNode(result)
+    expect(service.inLanguage).toBe('zh-Hans')
+    expect(service.name).toBe('布拉格到布尔诺的私人接送服务')
+    expect(service.description).toBe('布拉格到布尔诺的私人司机接送服务说明')
+  })
+
+  it('ru locale maps inLanguage to "ru" (no script-subtag remap) and uses opts text', () => {
+    const result = buildRouteJsonLd(routeFixture, 'prague-brno', {
+      locale: 'ru',
+      name: 'Частный трансфер Прага — Брно',
+      description: 'Описание трансфера',
+    })
+    const service = serviceNode(result)
+    expect(service.inLanguage).toBe('ru')
+    expect(service.name).toBe('Частный трансфер Прага — Брно')
+  })
+})
+
 describe('buildAirportTransferJsonLd', () => {
   it('emits promo price when active', () => {
     const result = buildAirportTransferJsonLd(promoActiveGlobals, 120, 76)

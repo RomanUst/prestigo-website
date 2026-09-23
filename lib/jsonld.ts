@@ -4,6 +4,7 @@
 
 import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingGlobals } from '@/lib/pricing-config'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 const BASE_URL = 'https://rideprestigo.com'
 
@@ -59,8 +60,25 @@ export function businessNodeDoc(): JsonLdDocument {
   return { '@context': 'https://schema.org', '@graph': [businessNode()] }
 }
 
-export function buildRouteJsonLd(route: RoutePrice, slug: string): JsonLdDocument {
+export function buildRouteJsonLd(
+  route: RoutePrice,
+  slug: string,
+  opts?: { locale: string; name: string; description: string }
+): JsonLdDocument {
   const priceValidUntil = futureIsoDate(365)
+  // EN template stays byte-for-byte the pre-phase hardcoded string (Pitfall
+  // 7) — it does NOT match content/routes/en/*.json's metadata.title
+  // verbatim, so switching its source unconditionally would silently drift
+  // the EN structured-data output. Only a genuinely non-EN locale branches
+  // to the content-sourced opts.name/opts.description.
+  const isLocalized = !!opts && opts.locale !== 'en'
+  const name = isLocalized
+    ? opts.name
+    : `Private Chauffeur Transfer from ${route.fromLabel} to ${route.toLabel}`
+  const description = isLocalized
+    ? opts.description
+    : `Private chauffeured transfer from ${route.fromLabel} to ${route.toLabel}. Fixed price from €${route.eClassEur}. ${route.distanceKm} km door-to-door in a Mercedes E, S, or V-Class.`
+  const inLanguage = BCP47_TAG[(opts?.locale ?? 'en') as AppLocale] ?? opts?.locale ?? 'en'
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -69,8 +87,9 @@ export function buildRouteJsonLd(route: RoutePrice, slug: string): JsonLdDocumen
         '@type': 'Service',
         '@id': `${BASE_URL}/routes/${slug}#service`,
         url: `${BASE_URL}/routes/${slug}`,
-        name: `Private Chauffeur Transfer from ${route.fromLabel} to ${route.toLabel}`,
-        description: `Private chauffeured transfer from ${route.fromLabel} to ${route.toLabel}. Fixed price from €${route.eClassEur}. ${route.distanceKm} km door-to-door in a Mercedes E, S, or V-Class.`,
+        inLanguage,
+        name,
+        description,
         serviceType: 'Private ground transfer',
         areaServed: [
           { '@type': 'Place', name: route.fromLabel },
