@@ -10,34 +10,24 @@ import { getPageContent } from '@/lib/page-content'
 import { getAlternates } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
-// Duplicated verbatim from ./layout.tsx (that static export is superseded by
-// this page-level generateMetadata for title/description/alternates/openGraph
-// — Next.js merges page metadata over layout metadata per matching key). No
-// `metadata` field exists in content/pages/*/corporate.json for any locale
-// (confirmed: only the layout.tsx-era EN copy exists), so title/description
-// stay this pre-existing EN literal for every locale — the alternates cluster
-// below is still made fully D-07-aware via getAlternates() rather than the
-// old hand-rolled en-plus-default-locale literal. See 74-04-SUMMARY.md Deviations.
-const CORPORATE_DESCRIPTION = 'Corporate chauffeur accounts in Prague: monthly invoicing, a dedicated account manager, priority dispatch, and a Mercedes fleet on call. Set up in 24 hours.'
-
-// `params` is intentionally unused here (title/description have no per-locale
-// source, see comment above) — kept in the signature for shape parity with
-// the other 9 force-static pages' generateMetadata.
-export async function generateMetadata({ params: _params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const content = getPageContent('corporate', locale) as CorporateContent
   return {
-    title: 'Corporate Chauffeur Accounts Prague',
-    description: CORPORATE_DESCRIPTION,
+    title: content.metadata.title,
+    description: content.metadata.description,
     alternates: getAlternates('/corporate', { indexable: true, content: { kind: 'page', key: 'corporate' } }),
     openGraph: {
       url: 'https://rideprestigo.com/corporate',
-      title: 'Corporate Chauffeur Accounts Prague | PRESTIGO',
-      description: CORPORATE_DESCRIPTION,
+      title: content.metadata.ogTitle,
+      description: content.metadata.description,
       images: [{ url: 'https://rideprestigo.com/hero-corporate-accounts.png', width: 1200, height: 630 }],
     },
   }
 }
 
 type CorporateContent = {
+  metadata: { title: string; description: string; ogTitle: string }
   hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
   benefits: { title: string; body: string }[]
   builtForHeading: string
