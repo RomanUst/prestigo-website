@@ -786,6 +786,11 @@
     "allRoutes": "Todas las rutas"
   },
   "Common": {
-    "skipToContent": "Ir al contenido principal"
+    "skipToContent": "Ir al contenido principal",
+    "firstVisitBanner": {
+      "suggestion": "This site is also available in {endonym}.",
+      "switchTo": "Switch to {endonym}",
+      "stayIn": "Stay in {endonym}"
+    }
   }
 }
