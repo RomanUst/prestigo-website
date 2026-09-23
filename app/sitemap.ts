@@ -85,9 +85,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
       indexable: true,
       content: { kind: 'page', key: 'services/group-transfers' },
     }),
-    // /fleet and /authors/roman-ustyugov have no content-model backing
-    // (deliberately deferred — see PROJECT.md Deferred Ideas); treated as
-    // chrome-only pages, no content ref supplied.
+    // /fleet has no content-model backing (deliberately deferred — see
+    // PROJECT.md Deferred Ideas); treated as a chrome-only page, no content
+    // ref supplied.
     entry('/fleet', 'app/[locale]/fleet/page.tsx', { indexable: true }),
     entry('/routes', 'app/[locale]/routes/page.tsx', { indexable: true }),
     ...routeEntries,
@@ -119,6 +119,17 @@ export default function sitemap(): MetadataRoute.Sitemap {
       content: { kind: 'page', key: 'privacy' },
     }),
     entry('/terms', 'app/[locale]/terms/page.tsx', { indexable: true, content: { kind: 'page', key: 'terms' } }),
-    entry('/authors/roman-ustyugov', 'app/[locale]/authors/roman-ustyugov/page.tsx', { indexable: true }),
+    // CR-02: content ref must match the page's own generateMetadata() call
+    // exactly (app/[locale]/authors/roman-ustyugov/page.tsx) — no
+    // content/pages/<locale>/authors/roman-ustyugov.json exists for any
+    // locale, so this collapses to en + x-default only (D-07 EN-fallback),
+    // matching what the page itself already declares. Previously this entry
+    // omitted the content ref, which produced a full 7-locale hreflang
+    // cluster here while the page declared itself EN-only — a
+    // non-reciprocal, self-contradicting hreflang divergence.
+    entry('/authors/roman-ustyugov', 'app/[locale]/authors/roman-ustyugov/page.tsx', {
+      indexable: true,
+      content: { kind: 'page', key: 'authors/roman-ustyugov' },
+    }),
   ]
 }

@@ -5,7 +5,7 @@ import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 export const revalidate = 120
 
@@ -22,15 +22,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const route = await getRoutePrice('prague-dresden')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const prices = { ePrice }
+  const alternates = getAlternates('/routes/prague-dresden', {
+    indexable: true,
+    content: { kind: 'route', key: 'prague-dresden' },
+    locale,
+  })
   return {
     title: interpolate(content.metadata.title, prices),
     description: interpolate(content.metadata.description, prices),
-    alternates: getAlternates('/routes/prague-dresden', {
-      indexable: true,
-      content: { kind: 'route', key: 'prague-dresden' },
-    }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/routes/prague-dresden',
+      url: toAbsoluteUrl(alternates.canonical),
       title: interpolate(content.metadata.ogTitle, prices),
       description: interpolate(content.metadata.ogDescription, prices),
       images: [{ url: "https://rideprestigo.com/hero-intercity-routes.png", width: 1200, height: 630 }],

@@ -8,11 +8,13 @@ import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import { getLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
   const routes = await getAllRoutes('display_order')
   const vienna = routes.find((r) => r.slug === 'prague-vienna')
   const berlin = routes.find((r) => r.slug === 'prague-berlin')
@@ -23,12 +25,13 @@ export async function generateMetadata(): Promise<Metadata> {
   const munichPrice = munich?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const budapestPrice = budapest?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const description = `Private chauffeur from Prague to 30 Central European destinations. Vienna from €${viennaPrice}, Berlin from €${berlinPrice}, Munich from €${munichPrice}, Budapest from €${budapestPrice}. Fixed price, door-to-door.`
+  const alternates = getAlternates('/routes', { indexable: true, locale })
   return {
     title: 'Prague Private Chauffeur — 30 Intercity Routes',
     description,
-    alternates: getAlternates('/routes', { indexable: true }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/routes',
+      url: toAbsoluteUrl(alternates.canonical),
       title: 'Prague Private Chauffeur — 30 Intercity Routes',
       description,
       images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],

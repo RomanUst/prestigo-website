@@ -12,7 +12,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 type CityRidesContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -33,15 +33,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const { hourlyRate } = await getPricingConfig()
   const from = hourlyRate['business'] ?? 49
   const description = interpolate(content.metadata.description, { from })
+  const alternates = getAlternates('/services/city-rides', {
+    indexable: true,
+    content: { kind: 'page', key: 'services/city-rides' },
+    locale,
+  })
   return {
     title: { absolute: content.metadata.title },
     description,
-    alternates: getAlternates('/services/city-rides', {
-      indexable: true,
-      content: { kind: 'page', key: 'services/city-rides' },
-    }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/services/city-rides',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description,
       images: [{ url: 'https://rideprestigo.com/hero-city-rides.png', width: 1200, height: 630 }],

@@ -13,7 +13,7 @@ import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -22,15 +22,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const prices = { ePrice }
   const desc = interpolate(content.metadata.description, prices)
+  const alternates = getAlternates('/routes/prague-vienna', {
+    indexable: true,
+    content: { kind: 'route', key: 'prague-vienna' },
+    locale,
+  })
   return {
     title: interpolate(content.metadata.title, prices),
     description: desc,
-    alternates: getAlternates('/routes/prague-vienna', {
-      indexable: true,
-      content: { kind: 'route', key: 'prague-vienna' },
-    }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/routes/prague-vienna',
+      url: toAbsoluteUrl(alternates.canonical),
       title: interpolate(content.metadata.ogTitle, prices),
       description: interpolate(content.metadata.ogDescription, prices),
       images: [{ url: "https://rideprestigo.com/vienna.png", width: 1200, height: 630 }],

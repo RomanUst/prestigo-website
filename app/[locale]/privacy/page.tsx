@@ -5,7 +5,7 @@ export const dynamic = 'force-static'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 type PrivacyContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -73,12 +73,13 @@ type PrivacyContent = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const content = getPageContent('privacy', locale) as PrivacyContent
+  const alternates = getAlternates('/privacy', { indexable: true, content: { kind: 'page', key: 'privacy' }, locale })
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: getAlternates('/privacy', { indexable: true, content: { kind: 'page', key: 'privacy' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/privacy',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
     },

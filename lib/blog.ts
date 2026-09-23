@@ -11,7 +11,7 @@ import fs from "node:fs";
 import path from "node:path";
 import matter from "gray-matter";
 import type { AuthorSlug } from "@/lib/authors";
-import { routing } from "@/i18n/routing";
+import { routing, getPathname } from "@/i18n/routing";
 
 export type BlogPost = {
   slug: string;
@@ -168,9 +168,28 @@ export function resolveLocalizedMdx(
  * canonical locale), else the absolute English URL when serving an
  * EN-fallback body under a non-EN locale path (canonical → EN, D-07 — no
  * duplicate indexation of untranslated content).
+ *
+ * CR-01: `locale` is threaded through so the non-fallback branch actually
+ * self-references its own locale-prefixed URL (e.g. `/ru/blog/<slug>`)
+ * instead of always returning the plain EN path regardless of locale.
+ * Defaults to 'en' (and falls back to 'en' for an invalid/unconfigured
+ * locale, mirroring resolveLocalizedMdx's guard) so every pre-existing
+ * 2-arg call site — and the isFallback:false/en case — stays byte-identical
+ * to before.
  */
-export function blogCanonical(slug: string, isFallback: boolean): string {
-  return isFallback
-    ? `https://rideprestigo.com/blog/${slug}`
-    : `/blog/${slug}`;
+export function blogCanonical(
+  slug: string,
+  isFallback: boolean,
+  locale: string = "en"
+): string {
+  if (isFallback) {
+    return `https://rideprestigo.com/blog/${slug}`;
+  }
+  const validLocale = (routing.locales as readonly string[]).includes(locale)
+    ? locale
+    : "en";
+  return getPathname({
+    locale: validLocale as (typeof routing.locales)[number],
+    href: `/blog/${slug}`,
+  });
 }

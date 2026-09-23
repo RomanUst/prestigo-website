@@ -10,7 +10,7 @@ import BookingSection from '@/components/BookingSection'
 import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 type ConciergeContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -33,15 +33,17 @@ type ConciergeContent = {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const content = getPageContent('services/concierge', locale) as ConciergeContent
+  const alternates = getAlternates('/services/concierge', {
+    indexable: true,
+    content: { kind: 'page', key: 'services/concierge' },
+    locale,
+  })
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: getAlternates('/services/concierge', {
-      indexable: true,
-      content: { kind: 'page', key: 'services/concierge' },
-    }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/services/concierge',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.ogDescription,
       images: [{ url: 'https://rideprestigo.com/hero-contact.webp', width: 1200, height: 630 }],

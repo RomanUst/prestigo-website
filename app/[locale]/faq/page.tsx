@@ -8,7 +8,7 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type FaqContent = {
@@ -21,12 +21,13 @@ type FaqContent = {
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const content = getPageContent('faq', locale) as FaqContent
+  const alternates = getAlternates('/faq', { indexable: true, content: { kind: 'page', key: 'faq' }, locale })
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: getAlternates('/faq', { indexable: true, content: { kind: 'page', key: 'faq' } }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/faq',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
       images: [{ url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }],

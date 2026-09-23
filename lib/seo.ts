@@ -50,6 +50,28 @@ interface GetAlternatesOpts {
   indexable?: boolean
   /** Content-model reference used to probe per-locale translation presence (D-07). */
   content?: ContentRef
+  /**
+   * CR-01: the locale the page is currently rendering under. When supplied
+   * AND it resolves to a genuine member of the page's `languages` cluster
+   * (a real translation, or any locale for a chrome-only page with no
+   * `content` ref), `canonical` self-references that locale's own absolute
+   * URL instead of the plain EN path — required so a page never advertises
+   * itself as a legitimate hreflang alternate while also declaring the EN
+   * URL as its own canonical (Google treats that as contradictory and may
+   * drop the non-EN URL from the index).
+   *
+   * Deliberately typed `string` (not `AppLocale`) so every call site can
+   * pass its already-resolved `locale` variable (from `getLocale()` or
+   * `(await params).locale`, both plain `string`) with no cast — validated
+   * internally against `routing.locales` before use, mirroring the
+   * `hasLocaleContent()` guard below.
+   *
+   * Omitted, invalid, or resolving to 'en'/an unavailable locale (D-07
+   * EN-fallback) -> `canonical` is byte-identical to the pre-CR-01 output
+   * (the relative EN-form path) so every existing caller — above all
+   * app/sitemap.ts, which never passes `locale` — sees no change at all.
+   */
+  locale?: string
 }
 
 const CONTENT_ROOTS: Record<ContentRef['kind'], string> = {
@@ -92,11 +114,16 @@ export function getAlternates(
 ): AlternatesConfig {
   const normPath = canonicalPath === '/' ? '' : canonicalPath
   const fullUrl = normPath === '' ? BASE : `${BASE}${normPath}`
-  const canonical = normPath === '' ? BASE : normPath
+  // Pre-CR-01 relative-path canonical form — preserved byte-for-byte as the
+  // fallback for every case that isn't a genuine self-referencing non-EN
+  // locale (see canonical computation below).
+  const fallbackCanonical = normPath === '' ? BASE : normPath
 
-  // D-06: noindex pages emit no hreflang cluster at all.
+  // D-06: noindex pages emit no hreflang cluster at all. Canonical shape is
+  // left exactly as before — noindex pages are excluded from the
+  // self-referencing-canonical requirement entirely (D-06/CR-01: no churn).
   if (opts.indexable === false) {
-    return { canonical, languages: {} }
+    return { canonical: fallbackCanonical, languages: {} }
   }
 
   // D-07: only locales with a genuine translation (or 'en', the canonical
@@ -117,5 +144,38 @@ export function getAlternates(
   }
   languages['x-default'] = fullUrl
 
+  // CR-01: self-referencing canonical. `opts.locale` must be (a) a real
+  // routing locale and (b) present in this page's available cluster (a
+  // genuine translation, or any locale for a chrome-only page) before it is
+  // trusted — an invalid/omitted/unavailable locale, or the literal 'en',
+  // all fall through to `fallbackCanonical` (byte-identical to today).
+  const availableLocaleSet = availableLocales as readonly string[]
+  const selfLocale: AppLocale | null =
+    opts.locale && opts.locale !== 'en' && availableLocaleSet.includes(opts.locale)
+      ? (opts.locale as AppLocale)
+      : null
+
+  const canonical = selfLocale
+    ? (() => {
+        const localizedPath = getPathname({ locale: selfLocale, href })
+        return localizedPath === '/' ? BASE : BASE + localizedPath
+      })()
+    : fallbackCanonical
+
   return { canonical, languages }
+}
+
+/**
+ * Normalizes an `AlternatesConfig.canonical` value to an absolute URL.
+ *
+ * `canonical` is deliberately relative in the EN/no-locale/D-07-fallback
+ * case (resolved by Next.js against `metadataBase`) but absolute in the
+ * CR-01 self-referencing non-EN case. `openGraph.url` in this codebase is
+ * always written as a literal absolute string (WR-02) — this normalizes
+ * both shapes to that one form without changing the EN/no-locale output
+ * (still `${BASE}${relativePath}`, identical to what every page previously
+ * hardcoded).
+ */
+export function toAbsoluteUrl(canonical: string): string {
+  return canonical.startsWith('http') ? canonical : `${BASE}${canonical}`
 }

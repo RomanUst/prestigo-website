@@ -32,7 +32,10 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     title: content.metadata.title,
     description: content.metadata.description,
     robots: { index: false, follow: true },
-    alternates: getAlternates('/corporate', { indexable: false }),
+    // indexable: false -> CR-01's self-referencing-canonical branch never
+    // triggers (D-06: noindex canonical shape is intentionally unchanged),
+    // so `locale` is a no-op here — passed anyway for sweep consistency.
+    alternates: getAlternates('/corporate', { indexable: false, locale }),
     openGraph: {
       url: 'https://rideprestigo.com/services/corporate-accounts',
       title: content.metadata.ogTitle,

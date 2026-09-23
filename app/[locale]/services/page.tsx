@@ -12,7 +12,7 @@ import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 interface ServiceEntry {
   label: string
@@ -42,15 +42,17 @@ type ServicesHubContent = {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const content = getPageContent('services', locale) as ServicesHubContent
+  const alternates = getAlternates('/services', {
+    indexable: true,
+    content: { kind: 'page', key: 'services' },
+    locale,
+  })
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: getAlternates('/services', {
-      indexable: true,
-      content: { kind: 'page', key: 'services' },
-    }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/services',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
       images: [{ url: 'https://rideprestigo.com/og-image.jpg', width: 1200, height: 630 }],

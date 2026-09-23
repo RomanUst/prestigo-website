@@ -5,7 +5,7 @@ export const dynamic = 'force-static'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 // Author profile page — E-E-A-T Experience signal for YMYL (transport).
 // Google's 2022+ Experience update expects a named, bio'd human behind
@@ -19,23 +19,34 @@ const CANONICAL = `https://rideprestigo.com/authors/${author.slug}`
 const DESCRIPTION =
   'Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides.'
 
-export const metadata: Metadata = {
-  title: { absolute: 'Roman Ustyugov — Founder, PRESTIGO Prague' },
-  description: DESCRIPTION,
-  // EN-only page (D-08) — no content/pages/<locale>/authors/roman-ustyugov.json
-  // exists for this key in any locale, so the D-07 fs-probe naturally
-  // collapses the cluster to an EN-only fallback (no non-EN alternate claimed).
-  alternates: getAlternates(`/authors/${author.slug}`, {
+// CR-01: converted from a static `metadata` export to generateMetadata()
+// so the current locale is available for the self-referencing canonical.
+// EN-only page (D-08) — no content/pages/<locale>/authors/roman-ustyugov.json
+// exists for this key in any locale, so the D-07 fs-probe naturally
+// collapses the cluster to an EN-only fallback (no non-EN alternate
+// claimed) regardless of which locale is passed — canonical and og:url
+// stay pinned to the EN URL for every locale, matching the six statically
+// generated locale URLs which currently all render the same hardcoded
+// English JSX (a separate, deferred content gap — see CR-02 in 74-REVIEW.md).
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const alternates = getAlternates(`/authors/${author.slug}`, {
     indexable: true,
     content: { kind: 'page', key: `authors/${author.slug}` },
-  }),
-  openGraph: {
-    url: CANONICAL,
-    title: 'Roman Ustyugov — Founder of PRESTIGO Chauffeur Service',
+    locale,
+  })
+  return {
+    title: { absolute: 'Roman Ustyugov — Founder, PRESTIGO Prague' },
     description: DESCRIPTION,
-    images: [author.imageUrl],
-    type: 'profile',
-  },
+    alternates,
+    openGraph: {
+      url: toAbsoluteUrl(alternates.canonical),
+      title: 'Roman Ustyugov — Founder of PRESTIGO Chauffeur Service',
+      description: DESCRIPTION,
+      images: [author.imageUrl],
+      type: 'profile',
+    },
+  }
 }
 
 const personSchema = personSchemaFor('roman-ustyugov')

@@ -40,8 +40,10 @@ export async function generateMetadata(): Promise<Metadata> {
     description: content.metadata.description,
     // D-06: this page is noindex — getAlternates(indexable:false) returns an
     // empty languages cluster while keeping the page self-canonical, so no
-    // hreflang cluster contradicts the noindex directive below.
-    alternates: getAlternates('/data-deletion', { indexable: false }),
+    // hreflang cluster contradicts the noindex directive below. `locale` is
+    // a no-op here (CR-01's self-canonical branch never triggers when
+    // indexable is false) — passed anyway for sweep consistency.
+    alternates: getAlternates('/data-deletion', { indexable: false, locale }),
     robots: { index: false },
   }
 }
