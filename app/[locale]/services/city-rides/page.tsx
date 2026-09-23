@@ -12,6 +12,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
+import { getAlternates } from '@/lib/seo'
 
 type CityRidesContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -35,13 +36,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: content.metadata.title },
     description,
-    alternates: {
-      canonical: '/services/city-rides',
-      languages: {
-        en: 'https://rideprestigo.com/services/city-rides',
-        'x-default': 'https://rideprestigo.com/services/city-rides',
-      },
-    },
+    alternates: getAlternates('/services/city-rides', {
+      indexable: true,
+      content: { kind: 'page', key: 'services/city-rides' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/services/city-rides',
       title: content.metadata.ogTitle,

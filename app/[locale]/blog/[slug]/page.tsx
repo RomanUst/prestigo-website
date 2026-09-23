@@ -9,6 +9,7 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '@/lib/blog'
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
+import { getAlternates } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
@@ -48,16 +49,19 @@ export async function generateMetadata({
   if (!post) return { title: 'Not Found — Prestigo' }
   // canonical → EN for an untranslated localized path (D-07); for en (or a
   // future genuinely localized post) this is byte-identical to today's
-  // locale-relative /blog/<slug> canonical.
+  // locale-relative /blog/<slug> canonical. getAlternates' own D-07 fs-probe
+  // (content: { kind: 'blog', key: slug }) sources the languages cluster —
+  // only locales with a genuine content/blog/<locale>/<slug>.mdx join it.
   const canonical = blogCanonical(slug, resolved.isFallback)
   const absolute = `https://rideprestigo.com/blog/${slug}`
+  const { languages } = getAlternates(`/blog/${slug}`, {
+    indexable: true,
+    content: { kind: 'blog', key: slug },
+  })
   return {
     title: { absolute: `${post.title} — Prestigo` },
     description: post.description,
-    alternates: {
-      canonical,
-      languages: { en: absolute, 'x-default': absolute },
-    },
+    alternates: { canonical, languages },
     openGraph: {
       title: post.title,
       description: post.description,

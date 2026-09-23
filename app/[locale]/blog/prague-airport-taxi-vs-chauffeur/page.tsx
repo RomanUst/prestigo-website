@@ -6,9 +6,18 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
+import { getAlternates } from '@/lib/seo'
 
 const CANONICAL_PATH = '/blog/prague-airport-taxi-vs-chauffeur'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
+// EN-only legacy JSX article (D-08) — no content/blog/<locale>/<slug>.mdx
+// exists for this slug in ANY locale (not even en), so the D-07 fs-probe
+// naturally collapses the cluster to an EN-only fallback. Matches the
+// JSX_POSTS treatment already established in app/sitemap.ts.
+const ALTERNATES = getAlternates(CANONICAL_PATH, {
+  indexable: true,
+  content: { kind: 'blog', key: 'prague-airport-taxi-vs-chauffeur' },
+})
 
 const ARTICLE_PUBLISHED = '2026-04-09'
 const ARTICLE_MODIFIED = '2026-04-09'
@@ -23,13 +32,7 @@ const DESCRIPTION = 'Prague airport taxi vs private chauffeur 2026: Uber holds t
 export const metadata: Metadata = {
   title: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
   description: DESCRIPTION,
-  alternates: {
-    canonical: CANONICAL_PATH,
-    languages: {
-      en: CANONICAL_ABS,
-      'x-default': CANONICAL_ABS,
-    },
-  },
+  alternates: ALTERNATES,
   openGraph: {
     url: CANONICAL_ABS,
     title: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',

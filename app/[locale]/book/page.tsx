@@ -3,6 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import BookingWizard from '@/components/booking/BookingWizard'
 import { businessNodeDoc } from '@/lib/jsonld'
+import { getAlternates } from '@/lib/seo'
 
 const bookingSchema = {
   '@context': 'https://schema.org',
@@ -59,13 +60,7 @@ const bookingSchema = {
 export const metadata: Metadata = {
   title: 'Book a Transfer — Prague Chauffeur',
   description: 'Book your Prague chauffeur in 60 seconds. Fixed price, instant confirmation, flight tracking included. Airport transfers, intercity routes, corporate travel.',
-  alternates: {
-    canonical: 'https://rideprestigo.com/book',
-    languages: {
-      en: 'https://rideprestigo.com/book',
-      'x-default': 'https://rideprestigo.com/book',
-    },
-  },
+  alternates: getAlternates('/book', { indexable: true }),
   openGraph: {
     url: 'https://rideprestigo.com/book',
     title: 'Book a Transfer — PRESTIGO Prague Chauffeur',

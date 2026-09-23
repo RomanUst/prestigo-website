@@ -14,6 +14,7 @@ import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
+import { getAlternates } from '@/lib/seo'
 
 type AirportTransferContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -43,13 +44,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: content.metadata.title,
     description,
-    alternates: {
-      canonical: '/services/airport-transfer',
-      languages: {
-        en: 'https://rideprestigo.com/services/airport-transfer',
-        'x-default': 'https://rideprestigo.com/services/airport-transfer',
-      },
-    },
+    alternates: getAlternates('/services/airport-transfer', {
+      indexable: true,
+      content: { kind: 'page', key: 'services/airport-transfer' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/services/airport-transfer',
       title: content.metadata.ogTitle,
@@ -65,7 +63,7 @@ export default async function AirportTransferPage() {
   const { globals } = await getPricingConfig()
   const sClassAirport = AIRPORT_FALLBACK.sClass
   const vClassAirport = AIRPORT_FALLBACK.vClass
-  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport)
+  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport, { locale })
   const rating = getStaticAggregateRating()
 
   const businessPrice = globals.airportPromoActive

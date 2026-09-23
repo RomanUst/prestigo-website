@@ -8,6 +8,8 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import FeatureStrip from '@/components/FeatureStrip'
@@ -36,13 +38,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: {
-      canonical: HOME_URL,
-      languages: {
-        en: HOME_URL,
-        'x-default': HOME_URL,
-      },
-    },
+    alternates: getAlternates('/', {
+      indexable: true,
+      content: { kind: 'page', key: 'home' },
+    }),
     openGraph: {
       url: HOME_URL,
       title: content.metadata.ogTitle,
@@ -69,11 +68,14 @@ const MAPS_URL = process.env.GOOGLE_PLACE_ID
 
 // Schema name/description are content-sourced (single source with
 // generateMetadata above) — see buildLocalBusinessSchema/buildWebsiteSchema.
-function buildLocalBusinessSchema(content: HomeContent) {
+// inLanguage is BCP-47 of the active locale (zh -> zh-Hans), same map used by
+// lib/seo.ts/lib/jsonld.ts (SEO-04, D-09) — added here, no other value touched.
+function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   return {
   '@context': 'https://schema.org',
   '@type': ['LocalBusiness', 'TaxiService'],
   '@id': 'https://rideprestigo.com/#business',
+  inLanguage: BCP47_TAG[locale as AppLocale] ?? locale,
   name: content.schema.name,
   legalName: 'chelautotrans s.r.o.',
   // IČO is the Czech company registration number, not a tax ID — expose it as
@@ -218,7 +220,7 @@ export default async function Home() {
       : AIRPORT_FALLBACK.regular
   const hourlyFrom = hourlyRate['business'] ?? AIRPORT_FALLBACK.regular
 
-  const localBusinessSchema = buildLocalBusinessSchema(content)
+  const localBusinessSchema = buildLocalBusinessSchema(content, locale)
   const websiteSchema = buildWebsiteSchema(content)
 
   const schema = aggregateRating

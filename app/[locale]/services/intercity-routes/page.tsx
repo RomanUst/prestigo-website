@@ -10,6 +10,7 @@ import { getLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
 
 type IntercityRoutesContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -35,15 +36,11 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      // Cross-canonical to /routes — this service page overlaps heavily with the
-      // routes hub; signals are consolidated there (SEO audit M11).
-      canonical: '/routes',
-      languages: {
-        en: 'https://rideprestigo.com/routes',
-        'x-default': 'https://rideprestigo.com/routes',
-      },
-    },
+    // Cross-canonical to /routes — this service page overlaps heavily with the
+    // routes hub; signals are consolidated there (SEO audit M11). getAlternates
+    // is called with '/routes' as the canonical target path (not this page's
+    // own URL) — the single-argument convention it inherits from the pre-Phase-74 helper.
+    alternates: getAlternates('/routes', { indexable: true }),
     openGraph: {
       url: 'https://rideprestigo.com/services/intercity-routes',
       title: content.metadata.ogTitle,

@@ -3,6 +3,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
 
 type DataDeletionContent = {
   metadata: { title: string; description: string }
@@ -37,13 +38,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: {
-      canonical: '/data-deletion',
-      languages: {
-        en: 'https://rideprestigo.com/data-deletion',
-        'x-default': 'https://rideprestigo.com/data-deletion',
-      },
-    },
+    // D-06: this page is noindex — getAlternates(indexable:false) returns an
+    // empty languages cluster while keeping the page self-canonical, so no
+    // hreflang cluster contradicts the noindex directive below.
+    alternates: getAlternates('/data-deletion', { indexable: false }),
     robots: { index: false },
   }
 }
