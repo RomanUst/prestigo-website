@@ -70,7 +70,13 @@ export default async function PragueFrantiskovyLaznePage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-frantiskovy-lazne')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-frantiskovy-lazne', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-frantiskovy-lazne#faq',

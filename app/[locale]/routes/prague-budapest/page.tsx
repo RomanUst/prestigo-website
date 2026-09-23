@@ -76,7 +76,13 @@ export default async function PragueBudapestPage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-budapest')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-budapest', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-budapest#faq',

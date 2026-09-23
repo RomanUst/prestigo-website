@@ -70,7 +70,13 @@ export default async function PragueWroclawPage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-wroclaw')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-wroclaw', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-wroclaw#faq',

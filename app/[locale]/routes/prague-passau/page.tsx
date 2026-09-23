@@ -76,7 +76,13 @@ export default async function PraguePassauPage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-passau')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-passau', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-passau#faq',

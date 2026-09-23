@@ -74,7 +74,13 @@ export default async function PragueSalzburgPage() {
   const pageSchema = {
     '@context': 'https://schema.org',
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-salzburg')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-salzburg', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-salzburg#faq',

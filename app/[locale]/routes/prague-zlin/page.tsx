@@ -70,7 +70,13 @@ export default async function PragueZlinPage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-zlin')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-zlin', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-zlin#faq',

@@ -70,7 +70,13 @@ export default async function PragueOlomoucPage() {
   const pageSchema = {
     '@context': 'https://schema.org' as const,
     '@graph': [
-      ...(route ? buildRouteJsonLd(route, 'prague-olomouc')['@graph'] : []),
+      ...(route
+        ? buildRouteJsonLd(route, 'prague-olomouc', {
+            locale,
+            name: interpolate(content.metadata.title, prices),
+            description: interpolate(content.metadata.description, prices),
+          })['@graph']
+        : []),
       {
         '@type': 'FAQPage',
         '@id': 'https://rideprestigo.com/routes/prague-olomouc#faq',
