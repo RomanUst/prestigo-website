@@ -7,8 +7,9 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { businessNodeDoc } from '@/lib/jsonld'
-import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type FaqContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -17,19 +18,13 @@ type FaqContent = {
   cta: { headingLine1: string; headingItalic: string; contactButton: string; bookButton: string; emailPrefix: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('faq', locale) as FaqContent
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      canonical: '/faq',
-      languages: {
-        en: 'https://rideprestigo.com/faq',
-        'x-default': 'https://rideprestigo.com/faq',
-      },
-    },
+    alternates: getAlternates('/faq', { indexable: true, content: { kind: 'page', key: 'faq' } }),
     openGraph: {
       url: 'https://rideprestigo.com/faq',
       title: content.metadata.ogTitle,
@@ -42,10 +37,11 @@ export async function generateMetadata(): Promise<Metadata> {
 // Derived from `content.sections` so every visible question is
 // machine-readable — single source of truth, no drift between page copy
 // and JSON-LD.
-function buildFaqSchema(content: FaqContent) {
+function buildFaqSchema(content: FaqContent, locale: string) {
   return {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
+    inLanguage: BCP47_TAG[locale as AppLocale],
     mainEntity: content.sections.flatMap((section) =>
       section.faqs.map((faq) => ({
         '@type': 'Question',
@@ -66,10 +62,10 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function FaqPage() {
-  const locale = await getLocale()
+export default async function FaqPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('faq', locale) as FaqContent
-  const faqSchema = buildFaqSchema(content)
+  const faqSchema = buildFaqSchema(content, locale)
   const businessDoc = businessNodeDoc()
   return (
     <main id="main-content">

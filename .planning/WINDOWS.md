@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 3
+open_count: 2
 waived_count: 0
-fixed_count: 11
+fixed_count: 12
 total_count: 14
-last_updated: 2026-09-23T21:31:45.904Z
+last_updated: 2026-09-23T21:33:05.201Z
 ---
 
 # Broken Windows Ledger
@@ -21,7 +21,7 @@ last_updated: 2026-09-23T21:31:45.904Z
 | 4 | 68 | deviation | .husky/pre-commit |  | Rule 1 fix: stale app/blog/ exclusion in EUR-price-check hook broken by the move to app/[locale]/blog/, would have false-positive-blocked future blog commits | fixed |  | 2026-09-03T19:22:49.602Z | 2026-09-03T19:23:17.796Z |
 | 5 | 68 | deviation | tests/confirmation-page.test.tsx |  | Rule 1 fix: stale @/app/book/confirmation/page import missed by the plan's declared stale-prefix sweep (book was omitted) | fixed |  | 2026-09-03T19:22:49.877Z | 2026-09-03T19:23:18.078Z |
 | 6 | 73 | stub | messages/hi.json |  | ~10 hi heading units (whyBook.headingLine1 across ~9 route files; corporate.json usagePatterns.headingItalic) drop the 'Prestigo'/'PRESTIGO' DNT token in translation -> verifier EN-fallback by design (T-73-04). --check passes (keys present). Deferred: revisit glossary/verifier so these headings translate around the DNT token instead of falling back. | open |  | 2026-09-19T08:28:32.086Z |  |
-| 7 | 73 | deviation | app/[locale]/about/page.tsx |  | 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN content on every locale (en/ru/es/fr/ar/hi/zh) due to unforwarded getLocale() in force-static pages — pre-existing, not fixed in 73-06, see deferred-items.md | open |  | 2026-09-19T12:22:00.327Z |  |
+| 7 | 73 | deviation | app/[locale]/about/page.tsx |  | 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN content on every locale (en/ru/es/fr/ar/hi/zh) due to unforwarded getLocale() in force-static pages — pre-existing, not fixed in 73-06, see deferred-items.md | fixed |  | 2026-09-19T12:22:00.327Z | 2026-09-23T21:33:05.201Z |
 | 8 | 73 | deviation | content/routes/en/prague-marianske-lazne.json |  | i18n-translate pipeline run (73-11 Task 2) hit 'credit balance too low' Anthropic API errors for 6 route files (prague-marianske-lazne, prague-olomouc, prague-pardubice, prague-plzen, prague-wroclaw, prague-zlin) and content/pages/en/corporate.json across all 6 target locales (ar/hi/zh/ru/es/fr). Manifest correctly not advanced (no partial writes); EN sources unchanged. Needs Anthropic billing top-up then a full re-run of node scripts/i18n-translate.mjs (no --locales filter) to pick these up. | open |  | 2026-09-19T20:18:02.957Z |  |
 | 9 | 74 | stub | messages/ru.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:41.975Z | 2026-09-23T21:31:45.030Z |
 | 10 | 74 | stub | messages/es.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:46.369Z | 2026-09-23T21:31:45.207Z |
@@ -111,10 +111,10 @@ last_updated: 2026-09-23T21:31:45.904Z
     "file": "app/[locale]/about/page.tsx",
     "line": null,
     "description": "7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN content on every locale (en/ru/es/fr/ar/hi/zh) due to unforwarded getLocale() in force-static pages — pre-existing, not fixed in 73-06, see deferred-items.md",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-19T12:22:00.327Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-23T21:33:05.201Z"
   },
   {
     "id": 8,

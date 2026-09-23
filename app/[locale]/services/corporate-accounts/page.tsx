@@ -6,9 +6,10 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type CorporateAccountsContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -24,20 +25,14 @@ type CorporateAccountsContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; buttonText: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('services/corporate-accounts', locale) as CorporateAccountsContent
   return {
     title: content.metadata.title,
     description: content.metadata.description,
     robots: { index: false, follow: true },
-    alternates: {
-      canonical: '/corporate',
-      languages: {
-        en: 'https://rideprestigo.com/corporate',
-        'x-default': 'https://rideprestigo.com/corporate',
-      },
-    },
+    alternates: getAlternates('/corporate', { indexable: false }),
     openGraph: {
       url: 'https://rideprestigo.com/services/corporate-accounts',
       title: content.metadata.ogTitle,
@@ -57,8 +52,8 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function CorporateAccountsPage() {
-  const locale = await getLocale()
+export default async function CorporateAccountsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('services/corporate-accounts', locale) as CorporateAccountsContent
   const businessDoc = businessNodeDoc()
 
@@ -67,6 +62,7 @@ export default async function CorporateAccountsPage() {
     '@type': 'Service',
     name: 'Corporate Chauffeur Accounts Prague',
     description: content.serviceDescription,
+    inLanguage: BCP47_TAG[locale as AppLocale],
     provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
     areaServed: 'Prague, Czech Republic',
     url: 'https://rideprestigo.com/services/corporate-accounts',

@@ -6,9 +6,10 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type VipEventsContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -24,19 +25,13 @@ type VipEventsContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; body: string; buttonText: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('services/vip-events', locale) as VipEventsContent
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      canonical: '/services/vip-events',
-      languages: {
-        en: 'https://rideprestigo.com/services/vip-events',
-        'x-default': 'https://rideprestigo.com/services/vip-events',
-      },
-    },
+    alternates: getAlternates('/services/vip-events', { indexable: true, content: { kind: 'page', key: 'services/vip-events' } }),
     openGraph: {
       url: 'https://rideprestigo.com/services/vip-events',
       title: content.metadata.ogTitle,
@@ -56,8 +51,8 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function VipEventsPage() {
-  const locale = await getLocale()
+export default async function VipEventsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('services/vip-events', locale) as VipEventsContent
   const businessDoc = businessNodeDoc()
 
@@ -66,6 +61,7 @@ export default async function VipEventsPage() {
     '@type': 'Service',
     name: 'VIP & Events Chauffeur Prague',
     description: content.serviceDescription,
+    inLanguage: BCP47_TAG[locale as AppLocale],
     provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
     areaServed: 'Prague, Czech Republic',
     url: 'https://rideprestigo.com/services/vip-events',

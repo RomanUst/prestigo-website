@@ -1,5 +1,4 @@
 import type { Metadata } from 'next'
-import { getLocale } from 'next-intl/server'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
@@ -7,6 +6,7 @@ import Reveal from '@/components/Reveal'
 import BlogCard from '@/components/BlogCard'
 import { getAllPosts } from '@/lib/blog'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
 
 export const dynamic = 'force-static'
 
@@ -23,21 +23,15 @@ type BlogListingContent = {
   }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('blog', locale) as BlogListingContent
   const posts = getAllPosts(locale)
   const ogImage = posts[0]?.coverImage ?? '/hero-airport-transfer.webp'
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      canonical: '/blog',
-      languages: {
-        en: 'https://rideprestigo.com/blog',
-        'x-default': 'https://rideprestigo.com/blog',
-      },
-    },
+    alternates: getAlternates('/blog', { indexable: true, content: { kind: 'page', key: 'blog' } }),
     openGraph: {
       url: 'https://rideprestigo.com/blog',
       title: content.metadata.title,
@@ -53,8 +47,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function BlogPage() {
-  const locale = await getLocale()
+export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('blog', locale) as BlogListingContent
   const posts = getAllPosts(locale)
   return (

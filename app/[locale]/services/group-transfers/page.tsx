@@ -6,9 +6,10 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type GroupTransfersContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
@@ -24,19 +25,13 @@ type GroupTransfersContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; body: string; buttonText: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('services/group-transfers', locale) as GroupTransfersContent
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      canonical: '/services/group-transfers',
-      languages: {
-        en: 'https://rideprestigo.com/services/group-transfers',
-        'x-default': 'https://rideprestigo.com/services/group-transfers',
-      },
-    },
+    alternates: getAlternates('/services/group-transfers', { indexable: true, content: { kind: 'page', key: 'services/group-transfers' } }),
     openGraph: {
       url: 'https://rideprestigo.com/services/group-transfers',
       title: content.metadata.ogTitle,
@@ -56,8 +51,8 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function GroupTransfersPage() {
-  const locale = await getLocale()
+export default async function GroupTransfersPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('services/group-transfers', locale) as GroupTransfersContent
   const businessDoc = businessNodeDoc()
 
@@ -66,6 +61,7 @@ export default async function GroupTransfersPage() {
     '@type': 'Service',
     name: 'Group Transfers Prague',
     description: content.serviceDescription,
+    inLanguage: BCP47_TAG[locale as AppLocale],
     provider: { '@type': 'LocalBusiness', '@id': 'https://rideprestigo.com/#business' },
     areaServed: 'Prague, Czech Republic',
     url: 'https://rideprestigo.com/services/group-transfers',
