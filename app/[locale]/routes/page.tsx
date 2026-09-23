@@ -10,6 +10,7 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { getAllRoutes } from '@/lib/route-prices'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
+import { getAlternates } from '@/lib/seo'
 
 export async function generateMetadata(): Promise<Metadata> {
   const routes = await getAllRoutes('display_order')
@@ -25,13 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Prague Private Chauffeur — 30 Intercity Routes',
     description,
-    alternates: {
-      canonical: '/routes',
-      languages: {
-        en: 'https://rideprestigo.com/routes',
-        'x-default': 'https://rideprestigo.com/routes',
-      },
-    },
+    alternates: getAlternates('/routes', { indexable: true }),
     openGraph: {
       url: 'https://rideprestigo.com/routes',
       title: 'Prague Private Chauffeur — 30 Intercity Routes',

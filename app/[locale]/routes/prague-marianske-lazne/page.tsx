@@ -5,6 +5,7 @@ import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
+import { getAlternates } from '@/lib/seo'
 
 export const revalidate = 120
 
@@ -24,13 +25,10 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: interpolate(content.metadata.title, prices),
     description: interpolate(content.metadata.description, prices),
-    alternates: {
-      canonical: '/routes/prague-marianske-lazne',
-      languages: {
-        en: 'https://rideprestigo.com/routes/prague-marianske-lazne',
-        'x-default': 'https://rideprestigo.com/routes/prague-marianske-lazne',
-      },
-    },
+    alternates: getAlternates('/routes/prague-marianske-lazne', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-marianske-lazne' },
+    }),
     openGraph: {
       url: 'https://rideprestigo.com/routes/prague-marianske-lazne',
       title: interpolate(content.metadata.ogTitle, prices),
