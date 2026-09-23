@@ -4,8 +4,8 @@ export const dynamic = 'force-static'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
-import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
 
 type PrivacyContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -70,19 +70,13 @@ type PrivacyContent = {
   cta: { headingLine1: string; headingItalic: string; buttonPrimary: string; buttonSecondary: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('privacy', locale) as PrivacyContent
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: {
-      canonical: '/privacy',
-      languages: {
-        en: 'https://rideprestigo.com/privacy',
-        'x-default': 'https://rideprestigo.com/privacy',
-      },
-    },
+    alternates: getAlternates('/privacy', { indexable: true, content: { kind: 'page', key: 'privacy' } }),
     openGraph: {
       url: 'https://rideprestigo.com/privacy',
       title: content.metadata.ogTitle,
@@ -343,8 +337,8 @@ function buildSections(content: PrivacyContent) {
   ]
 }
 
-export default async function PrivacyPage() {
-  const locale = await getLocale()
+export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('privacy', locale) as PrivacyContent
   const sections = buildSections(content)
 

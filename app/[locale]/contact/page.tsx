@@ -7,8 +7,9 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import ContactForm from '@/components/ContactForm'
-import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type ContactContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -19,19 +20,13 @@ type ContactContent = {
   alsoUseful: { heading: string; links: { label: string; href: string; desc: string }[] }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('contact', locale) as ContactContent
   return {
     title: content.metadata.title,
     description: content.metadata.description,
-    alternates: {
-      canonical: '/contact',
-      languages: {
-        en: 'https://rideprestigo.com/contact',
-        'x-default': 'https://rideprestigo.com/contact',
-      },
-    },
+    alternates: getAlternates('/contact', { indexable: true, content: { kind: 'page', key: 'contact' } }),
     openGraph: {
       url: 'https://rideprestigo.com/contact',
       title: content.metadata.ogTitle,
@@ -44,18 +39,22 @@ export async function generateMetadata(): Promise<Metadata> {
 const WHATSAPP_NUMBER = '420725986855'
 
 
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Contact', item: 'https://rideprestigo.com/contact' },
-  ],
+function buildBreadcrumbSchema(locale: string) {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    inLanguage: BCP47_TAG[locale as AppLocale],
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
+      { '@type': 'ListItem', position: 2, name: 'Contact', item: 'https://rideprestigo.com/contact' },
+    ],
+  }
 }
 
-export default async function ContactPage() {
-  const locale = await getLocale()
+export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('contact', locale) as ContactContent
+  const breadcrumbSchema = buildBreadcrumbSchema(locale)
   return (
     <main id="main-content">
       <Nav />

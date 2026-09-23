@@ -9,8 +9,9 @@ import { getAuthor, personSchemaFor } from '@/lib/authors'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
-import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
+import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type AboutContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -29,19 +30,13 @@ type AboutContent = {
   cta: { headingLine1: string; headingItalic: string; buttonPrimary: string; buttonSecondary: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('about', locale) as AboutContent
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: {
-      canonical: '/about',
-      languages: {
-        en: 'https://rideprestigo.com/about',
-        'x-default': 'https://rideprestigo.com/about',
-      },
-    },
+    alternates: getAlternates('/about', { indexable: true, content: { kind: 'page', key: 'about' } }),
     openGraph: {
       url: 'https://rideprestigo.com/about',
       title: content.metadata.ogTitle,
@@ -53,7 +48,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 const founder = getAuthor('roman-ustyugov')
 
-function buildAboutPageSchemaGraph(content: AboutContent) {
+function buildAboutPageSchemaGraph(content: AboutContent, locale: string) {
   return {
   '@context': 'https://schema.org',
   '@graph': [
@@ -71,6 +66,7 @@ function buildAboutPageSchemaGraph(content: AboutContent) {
       url: 'https://rideprestigo.com/about',
       name: content.schema.aboutPageName,
       description: content.metadata.description,
+      inLanguage: BCP47_TAG[locale as AppLocale],
       mainEntity: { '@id': 'https://rideprestigo.com/#business' },
       about: personSchemaFor('roman-ustyugov'),
     },
@@ -90,12 +86,12 @@ function buildAboutPageSchemaGraph(content: AboutContent) {
   }
 }
 
-export default async function AboutPage() {
-  const locale = await getLocale()
+export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('about', locale) as AboutContent
   const principlesList = content.principles
   const requirementsList = content.requirements
-  const aboutPageSchemaGraph = buildAboutPageSchemaGraph(content)
+  const aboutPageSchemaGraph = buildAboutPageSchemaGraph(content, locale)
   const rating = getStaticAggregateRating()
   const schemaGraph = rating
     ? {

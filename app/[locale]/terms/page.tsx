@@ -4,8 +4,8 @@ export const dynamic = 'force-static'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
-import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
+import { getAlternates } from '@/lib/seo'
 
 type TermsContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -32,19 +32,13 @@ type TermsContent = {
   cta: { headingLine1: string; headingItalic: string; buttonPrimary: string; buttonSecondary: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
   const content = getPageContent('terms', locale) as TermsContent
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: {
-      canonical: '/terms',
-      languages: {
-        en: 'https://rideprestigo.com/terms',
-        'x-default': 'https://rideprestigo.com/terms',
-      },
-    },
+    alternates: getAlternates('/terms', { indexable: true, content: { kind: 'page', key: 'terms' } }),
     openGraph: {
       url: 'https://rideprestigo.com/terms',
       title: content.metadata.ogTitle,
@@ -224,8 +218,8 @@ function buildSections(content: TermsContent) {
   ]
 }
 
-export default async function TermsPage() {
-  const locale = await getLocale()
+export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
   const content = getPageContent('terms', locale) as TermsContent
   const sections = buildSections(content)
 
