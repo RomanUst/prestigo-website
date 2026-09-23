@@ -101,6 +101,40 @@ beforeEach(() => {
   vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 });
 
+// CR-01/WR-02 backstop: generateMetadata() on a routes/prague-* page (ISR,
+// getLocale()-based) self-canonicalizes for a genuinely translated locale
+// and stays byte-identical to today for 'en'.
+describe("PragueViennaPage — generateMetadata() locale-aware canonical/og:url (CR-01/WR-02)", () => {
+  it("locale:'ru' -> self-referencing ru canonical + ru og:url", async () => {
+    vi.mocked(getLocale).mockResolvedValueOnce("ru");
+
+    const { generateMetadata } = await import(
+      "@/app/[locale]/routes/prague-vienna/page"
+    );
+    const metadata = await generateMetadata();
+
+    expect(metadata.alternates?.canonical).toBe(
+      "https://rideprestigo.com/ru/routes/prague-vienna"
+    );
+    expect(metadata.openGraph?.url).toBe(
+      "https://rideprestigo.com/ru/routes/prague-vienna"
+    );
+  });
+
+  it("locale:'en' matches today's hardcoded EN values byte-for-byte", async () => {
+    // getLocale defaults to "en" per the module-level mock above.
+    const { generateMetadata } = await import(
+      "@/app/[locale]/routes/prague-vienna/page"
+    );
+    const metadata = await generateMetadata();
+
+    expect(metadata.alternates?.canonical).toBe("/routes/prague-vienna");
+    expect(metadata.openGraph?.url).toBe(
+      "https://rideprestigo.com/routes/prague-vienna"
+    );
+  });
+});
+
 describe("PragueViennaPage — render byte-parity proof", () => {
   it("renders and matches the golden EN snapshot", async () => {
     const { default: PragueViennaPage } = await import(

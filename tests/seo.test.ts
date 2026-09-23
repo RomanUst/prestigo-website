@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 /**
  * Pins the target getAlternates(path, opts) contract (Phase 74, SEO-01/03/04).
@@ -87,5 +87,99 @@ describe('getAlternates', () => {
     const resultSlash = getAlternates('/', { indexable: true })
     expect(resultSlash.canonical).toBe('https://rideprestigo.com')
     expect(resultSlash.languages['x-default']).toBe('https://rideprestigo.com')
+  })
+})
+
+/**
+ * CR-01: alternates.canonical is now locale-aware via opts.locale.
+ * Grounded against the same real content tree as the suite above:
+ *   - content/routes/{en,ru,...}/prague-berlin.json exist (fully translated).
+ *   - content/pages/{en,ru,...}/data-deletion.json exist (real noindex page).
+ *   - content/blog/<locale>/prague-airport-to-city-center.mdx does NOT exist
+ *     for any locale (JSX_POSTS legacy article, D-08 EN-only).
+ */
+describe('getAlternates — locale-aware canonical (CR-01)', () => {
+  it('(a) no-locale call is byte-identical to the pre-CR-01 output', () => {
+    const withLocaleOmitted = getAlternates('/routes/prague-vienna', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-vienna' },
+    })
+    expect(withLocaleOmitted.canonical).toBe('/routes/prague-vienna')
+  })
+
+  it('(b) locale:"ru" with translated content -> self-referencing ru canonical', () => {
+    const result = getAlternates('/routes/prague-berlin', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-berlin' },
+      locale: 'ru',
+    })
+    expect(result.canonical).toBe('https://rideprestigo.com/ru/routes/prague-berlin')
+  })
+
+  it('(c) locale:"ru" with a content ref but no ru translation file -> canonical stays EN (D-07 fallback)', () => {
+    const result = getAlternates('/blog/prague-airport-to-city-center', {
+      indexable: true,
+      content: { kind: 'blog', key: 'prague-airport-to-city-center' },
+      locale: 'ru',
+    })
+    expect(result.canonical).toBe('/blog/prague-airport-to-city-center')
+  })
+
+  it('(d) locale:"en" is identical to omitting locale entirely', () => {
+    const withEn = getAlternates('/routes/prague-berlin', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-berlin' },
+      locale: 'en',
+    })
+    const withoutLocale = getAlternates('/routes/prague-berlin', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-berlin' },
+    })
+    expect(withEn.canonical).toBe(withoutLocale.canonical)
+  })
+
+  it('(e) home ("/") with locale:"ru" -> https://rideprestigo.com/ru', () => {
+    const result = getAlternates('/', { indexable: true, locale: 'ru' })
+    expect(result.canonical).toBe('https://rideprestigo.com/ru')
+  })
+
+  it('(f) indexable:false ignores opts.locale entirely — canonical/languages unchanged', () => {
+    const result = getAlternates('/data-deletion', {
+      indexable: false,
+      content: { kind: 'page', key: 'data-deletion' },
+      locale: 'ru',
+    })
+    expect(result.canonical).toBe('/data-deletion')
+    expect(result.languages).toEqual({})
+  })
+
+  it('an invalid/unconfigured locale falls through to the EN-form canonical', () => {
+    const result = getAlternates('/routes/prague-berlin', {
+      indexable: true,
+      content: { kind: 'route', key: 'prague-berlin' },
+      locale: 'xx',
+    })
+    expect(result.canonical).toBe('/routes/prague-berlin')
+  })
+
+  it('a chrome-only page (no content ref) self-canonicalizes for any routing locale', () => {
+    const result = getAlternates('/book', { indexable: true, locale: 'es' })
+    expect(result.canonical).toBe('https://rideprestigo.com/es/book')
+  })
+})
+
+describe('toAbsoluteUrl (WR-02)', () => {
+  it('leaves an already-absolute canonical unchanged', () => {
+    expect(toAbsoluteUrl('https://rideprestigo.com/ru/about')).toBe(
+      'https://rideprestigo.com/ru/about'
+    )
+  })
+
+  it('prefixes a relative canonical with BASE', () => {
+    expect(toAbsoluteUrl('/about')).toBe('https://rideprestigo.com/about')
+  })
+
+  it('home-page BASE-only canonical is returned unchanged (already absolute)', () => {
+    expect(toAbsoluteUrl('https://rideprestigo.com')).toBe('https://rideprestigo.com')
   })
 })

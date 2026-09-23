@@ -72,6 +72,26 @@ describe("blogCanonical()", () => {
   it("returns the current locale-relative /blog/<slug> form when isFallback is false (en)", () => {
     expect(blogCanonical(SLUG, false)).toBe(`/blog/${SLUG}`);
   });
+
+  // CR-01: locale is threaded through so a genuinely localized post
+  // self-references its own locale-prefixed URL.
+  it("returns the ru-prefixed URL when isFallback is false and locale='ru' (CR-01)", () => {
+    expect(blogCanonical(SLUG, false, "ru")).toBe(`/ru/blog/${SLUG}`);
+  });
+
+  it("locale='en' is byte-identical to the 2-arg default", () => {
+    expect(blogCanonical(SLUG, false, "en")).toBe(blogCanonical(SLUG, false));
+  });
+
+  it("falls back to 'en' for an invalid/unconfigured locale", () => {
+    expect(blogCanonical(SLUG, false, "xx")).toBe(`/blog/${SLUG}`);
+  });
+
+  it("isFallback:true ignores locale — always the absolute EN URL", () => {
+    expect(blogCanonical(SLUG, true, "ru")).toBe(
+      `https://rideprestigo.com/blog/${SLUG}`
+    );
+  });
 });
 
 describe("blog listing content (content/pages/en/blog.json)", () => {
