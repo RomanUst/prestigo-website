@@ -8,7 +8,7 @@ import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getPageContent } from '@/lib/page-content'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
@@ -35,15 +35,17 @@ type HomeContent = {
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
   const content = getPageContent('home', locale) as HomeContent
+  const alternates = getAlternates('/', {
+    indexable: true,
+    content: { kind: 'page', key: 'home' },
+    locale,
+  })
   return {
     title: { absolute: content.metadata.title },
     description: content.metadata.description,
-    alternates: getAlternates('/', {
-      indexable: true,
-      content: { kind: 'page', key: 'home' },
-    }),
+    alternates,
     openGraph: {
-      url: HOME_URL,
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description: content.metadata.description,
       images: [

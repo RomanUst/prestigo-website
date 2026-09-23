@@ -14,7 +14,7 @@ import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
 import { getStaticAggregateRating } from '@/lib/google-reviews'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
-import { getAlternates } from '@/lib/seo'
+import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 
 type AirportTransferContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -41,15 +41,17 @@ export async function generateMetadata(): Promise<Metadata> {
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur
   const description = interpolate(content.metadata.description, { businessPrice })
+  const alternates = getAlternates('/services/airport-transfer', {
+    indexable: true,
+    content: { kind: 'page', key: 'services/airport-transfer' },
+    locale,
+  })
   return {
     title: content.metadata.title,
     description,
-    alternates: getAlternates('/services/airport-transfer', {
-      indexable: true,
-      content: { kind: 'page', key: 'services/airport-transfer' },
-    }),
+    alternates,
     openGraph: {
-      url: 'https://rideprestigo.com/services/airport-transfer',
+      url: toAbsoluteUrl(alternates.canonical),
       title: content.metadata.ogTitle,
       description,
       images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
@@ -63,14 +65,24 @@ export default async function AirportTransferPage() {
   const { globals } = await getPricingConfig()
   const sClassAirport = AIRPORT_FALLBACK.sClass
   const vClassAirport = AIRPORT_FALLBACK.vClass
-  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport, { locale })
-  const rating = getStaticAggregateRating()
-
   const businessPrice = globals.airportPromoActive
     ? globals.airportPromoPriceEur
     : globals.airportRegularPriceEur
 
   const prices = { businessPrice, vClassAirport, sClassAirport }
+
+  // WR-01: thread the already-loaded localized content into the JSON-LD
+  // Service node's name/description — previously only `locale` was passed,
+  // so inLanguage correctly flipped to e.g. "ru" while name/description
+  // stayed the hardcoded EN strings. description is interpolated with the
+  // same businessPrice token generateMetadata() above already uses, so the
+  // {businessPrice} placeholder never leaks into the JSON-LD literally.
+  const airportJsonLd = buildAirportTransferJsonLd(globals, sClassAirport, vClassAirport, {
+    locale,
+    name: content.metadata.ogTitle,
+    description: interpolate(content.metadata.description, { businessPrice }),
+  })
+  const rating = getStaticAggregateRating()
 
   const features = content.features
   const faqs = content.faqs
