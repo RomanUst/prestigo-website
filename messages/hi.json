@@ -788,9 +788,9 @@
   "Common": {
     "skipToContent": "सामग्री पर जाएँ",
     "firstVisitBanner": {
-      "suggestion": "This site is also available in {endonym}.",
-      "switchTo": "Switch to {endonym}",
-      "stayIn": "Stay in {endonym}"
+      "suggestion": "यह साइट {endonym} में भी उपलब्ध है।",
+      "switchTo": "{endonym} पर जाएँ",
+      "stayIn": "{endonym} में ही रहें"
     }
   }
 }

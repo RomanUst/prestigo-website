@@ -788,9 +788,9 @@
   "Common": {
     "skipToContent": "تخطَّ إلى المحتوى",
     "firstVisitBanner": {
-      "suggestion": "This site is also available in {endonym}.",
-      "switchTo": "Switch to {endonym}",
-      "stayIn": "Stay in {endonym}"
+      "suggestion": "هذا الموقع متاح أيضًا باللغة {endonym}.",
+      "switchTo": "التبديل إلى {endonym}",
+      "stayIn": "البقاء على {endonym}"
     }
   }
 }

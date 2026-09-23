@@ -788,9 +788,9 @@
   "Common": {
     "skipToContent": "Перейти к содержимому",
     "firstVisitBanner": {
-      "suggestion": "This site is also available in {endonym}.",
-      "switchTo": "Switch to {endonym}",
-      "stayIn": "Stay in {endonym}"
+      "suggestion": "Этот сайт также доступен на языке: {endonym}.",
+      "switchTo": "Перейти на {endonym}",
+      "stayIn": "Остаться: {endonym}"
     }
   }
 }
