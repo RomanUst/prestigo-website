@@ -38,6 +38,27 @@ vi.mock('@/app/[locale]/login/actions', () => ({
   customerSignOut: vi.fn(),
 }))
 
+// 74-05: Nav now mounts LocaleSwitcher, which calls useRouter() from
+// @/i18n/routing (-> next/navigation). next/navigation's useRouter() throws
+// "invariant expected app router to be mounted" outside a real Next App
+// Router context (unlike usePathname(), which returns null gracefully) — so
+// a router stub is required wherever the real Nav is rendered. usePathname
+// keeps its real (already-working) implementation via importOriginal.
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/navigation')>()
+  return {
+    ...actual,
+    useRouter: () => ({
+      replace: vi.fn(),
+      push: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+  }
+})
+
 import Nav from '@/components/Nav'
 
 describe('i18n navigation — locale-prefix retention (IN-01 closure)', () => {
