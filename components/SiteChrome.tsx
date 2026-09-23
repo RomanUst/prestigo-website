@@ -8,6 +8,7 @@ import AnalyticsPageView from '@/components/AnalyticsPageView'
 import Clarity from '@/components/Clarity'
 import MetaPixel from '@/components/MetaPixel'
 import CookieBanner from '@/components/CookieBanner'
+import FirstVisitBanner from '@/components/FirstVisitBanner'
 import EngagementTracker from '@/components/EngagementTracker'
 
 // Display serif — Fraunces. High-contrast "old-style" cut with soft terminals,
@@ -177,6 +178,7 @@ export default async function SiteChrome({
           <Clarity />
           <MetaPixel />
           <CookieBanner />
+          <FirstVisitBanner />
           <EngagementTracker />
         </NextIntlClientProvider>
       </body>

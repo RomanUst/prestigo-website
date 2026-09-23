@@ -786,6 +786,11 @@
     "allRoutes": "सभी रूट"
   },
   "Common": {
-    "skipToContent": "सामग्री पर जाएँ"
+    "skipToContent": "सामग्री पर जाएँ",
+    "firstVisitBanner": {
+      "suggestion": "This site is also available in {endonym}.",
+      "switchTo": "Switch to {endonym}",
+      "stayIn": "Stay in {endonym}"
+    }
   }
 }

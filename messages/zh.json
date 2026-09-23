@@ -786,6 +786,11 @@
     "allRoutes": "所有路线"
   },
   "Common": {
-    "skipToContent": "跳转到主要内容"
+    "skipToContent": "跳转到主要内容",
+    "firstVisitBanner": {
+      "suggestion": "This site is also available in {endonym}.",
+      "switchTo": "Switch to {endonym}",
+      "stayIn": "Stay in {endonym}"
+    }
   }
 }
