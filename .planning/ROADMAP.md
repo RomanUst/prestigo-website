@@ -266,11 +266,11 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 — parallel, disjoint files)*
 
-- [ ] 74-02-PLAN.md — Route-page sweep: 30 indexable route pages onto `getAlternates()` + JSON-LD `inLanguage` (SEO-01/04)
-- [ ] 74-03-PLAN.md — Non-route ISR sweep: services/fleet/book/home/blog onto `getAlternates()`, close the `/data-deletion` D-06 violation, blog D-07 cluster (SEO-01/03/04)
-- [ ] 74-04-PLAN.md — Fix the 10 force-static EN-leak pages (forward `{ locale } = await params`) + wire onto `getAlternates()` (SEO-01/02)
-- [ ] 74-05-PLAN.md — Header LocaleSwitcher: 7-endonym dropdown, same-page navigation via `@/i18n/routing`, mounted in `Nav.tsx` desktop + mobile (UX-01)
-- [ ] 74-06-PLAN.md — FirstVisitBanner: crawler-safe `Accept-Language` suggestion, no auto-redirect, `NEXT_LOCALE` persistence, mounted in `SiteChrome.tsx` (UX-02)
+- [x] 74-02-PLAN.md — Route-page sweep: 30 indexable route pages onto `getAlternates()` + JSON-LD `inLanguage` (SEO-01/04)
+- [x] 74-03-PLAN.md — Non-route ISR sweep: services/fleet/book/home/blog onto `getAlternates()`, close the `/data-deletion` D-06 violation, blog D-07 cluster (SEO-01/03/04)
+- [x] 74-04-PLAN.md — Fix the 10 force-static EN-leak pages (forward `{ locale } = await params`) + wire onto `getAlternates()` (SEO-01/02)
+- [x] 74-05-PLAN.md — Header LocaleSwitcher: 7-endonym dropdown, same-page navigation via `@/i18n/routing`, mounted in `Nav.tsx` desktop + mobile (UX-01)
+- [x] 74-06-PLAN.md — FirstVisitBanner: crawler-safe `Accept-Language` suggestion, no auto-redirect, `NEXT_LOCALE` persistence, mounted in `SiteChrome.tsx` (UX-02)
 
 </details>
 
@@ -358,5 +358,5 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 71. Content Externalization — Marketing & SEO Pages | v3.0 | 9/9 | Complete    | 2026-09-11 |
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
-| 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 1/6 | In Progress|  |
+| 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | In Progress|  |
 | 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
