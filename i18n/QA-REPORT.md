@@ -1,6 +1,6 @@
 # i18n Translation Pipeline — QA Report
 
-Generated: 2026-09-23T21:20:51.868Z
+Generated: 2026-09-24T08:00:11.233Z
 
 ## Key Completeness (vs `messages/en.json`)
 
