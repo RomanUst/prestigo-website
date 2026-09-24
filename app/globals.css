@@ -710,3 +710,18 @@ h4 {
   color: var(--copper); text-decoration: none; margin-top: 1.5rem;
 }
 .hourly-strip-cta::after { content: '→'; font-size: 14px; }
+
+/* iOS Safari renders <input type="date"> with its own intrinsic size and
+   ignores width/height unless the native appearance is dropped — the booking
+   DATE field overflowed under TIME and was taller. iOS only (the desktop
+   Chrome calendar indicator stays). */
+@supports (-webkit-touch-callout: none) {
+  input[type='date'],
+  input[type='time'] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+input[type='date']::-webkit-date-and-time-value {
+  text-align: start;
+}

@@ -191,7 +191,9 @@ export default function EntryBar() {
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(2, 1fr)',
+          // minmax(0, …): iOS Safari gives <input type=date> an intrinsic min-width
+          // that otherwise stretches its cell under the neighbouring TIME field.
+          gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
           gap: 16,
           marginTop: 16,
         }}
@@ -283,6 +285,8 @@ export default function EntryBar() {
             }}
             style={{
               width: '100%',
+              height: 46,
+              minWidth: 0,
               padding: '10px 12px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: 14,
@@ -327,6 +331,8 @@ export default function EntryBar() {
             }}
             style={{
               width: '100%',
+              height: 46,
+              minWidth: 0,
               padding: '10px 12px',
               fontFamily: 'var(--font-montserrat)',
               fontSize: 14,
@@ -481,6 +487,8 @@ export default function EntryBar() {
                 }}
                 style={{
                   width: '100%',
+                  height: 46,
+                  minWidth: 0,
                   padding: '10px 12px',
                   fontFamily: 'var(--font-montserrat)',
                   fontSize: 14,
@@ -520,6 +528,8 @@ export default function EntryBar() {
                 }}
                 style={{
                   width: '100%',
+                  height: 46,
+                  minWidth: 0,
                   padding: '10px 12px',
                   fontFamily: 'var(--font-montserrat)',
                   fontSize: 14,
