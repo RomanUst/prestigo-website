@@ -8,8 +8,10 @@
  *   - deterministic top-preference matching (navigator.languages[0] only)
  *   - "Switch" navigates via the same router.replace(pathname, {locale})
  *     bridge as LocaleSwitcher (74-05) — never a hand-built URL/home jump
- *   - "Stay" hand-writes NEXT_LOCALE to the CURRENT locale and never
- *     navigates (D-04/D-05 — no automatic redirect, ever)
+ *   - "Stay" writes the banner-owned PRESTIGO_LOCALE_PROMPT flag and never
+ *     navigates (D-04/D-05 — no automatic redirect, ever); "Switch" writes
+ *     the same flag. A server-set NEXT_LOCALE cookie alone must NOT hide the
+ *     banner — next-intl sets it on every response (UAT G-74-2).
  *
  * NOTE: This file is intentionally RED (failing) until Task 2 creates
  * components/FirstVisitBanner.tsx.
@@ -137,14 +139,26 @@ describe('FirstVisitBanner — suggest/switch/stay contract (UX-02)', () => {
     expect(container).toBeEmptyDOMElement()
   })
 
-  it('renders nothing when a NEXT_LOCALE cookie already exists (already switched or dismissed once)', () => {
+  it('renders nothing when the visitor already answered the prompt (PRESTIGO_LOCALE_PROMPT set)', () => {
     mockGetConsent.mockReturnValue({ analytics: true, marketing: true })
-    document.cookie = 'NEXT_LOCALE=en; path=/'
+    document.cookie = 'PRESTIGO_LOCALE_PROMPT=1; path=/'
     stubNavigatorLanguages(['ru-RU', 'ru'], 'ru-RU')
 
     const { container } = renderBanner('en')
 
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('still shows when only the server-set NEXT_LOCALE cookie exists (next-intl writes it on every response)', () => {
+    mockGetConsent.mockReturnValue({ analytics: true, marketing: true })
+    document.cookie = 'NEXT_LOCALE=en; path=/'
+    stubNavigatorLanguages(['ru-RU', 'ru'], 'ru-RU')
+
+    renderBanner('en')
+
+    expect(
+      screen.getByText('This site is also available in Русский.')
+    ).toBeInTheDocument()
   })
 
   it('renders nothing when the top browser preference base subtag equals the current locale (adjacency)', () => {
@@ -180,9 +194,10 @@ describe('FirstVisitBanner — suggest/switch/stay contract (UX-02)', () => {
 
     expect(mockReplace).toHaveBeenCalledWith('/routes/prague-vienna', { locale: 'ru' })
     expect(mockPush).not.toHaveBeenCalled()
+    expect(document.cookie).toContain('PRESTIGO_LOCALE_PROMPT=1')
   })
 
-  it('clicking "Stay in {endonym}" writes NEXT_LOCALE=<currentLocale> and hides the banner without navigating', () => {
+  it('clicking "Stay in {endonym}" writes PRESTIGO_LOCALE_PROMPT and hides the banner without navigating', () => {
     mockGetConsent.mockReturnValue({ analytics: true, marketing: true })
     stubNavigatorLanguages(['ru-RU', 'en'], 'ru-RU')
 
@@ -190,8 +205,7 @@ describe('FirstVisitBanner — suggest/switch/stay contract (UX-02)', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Stay in English' }))
 
-    expect(document.cookie).toContain('NEXT_LOCALE=en')
-    expect(document.cookie).not.toContain('NEXT_LOCALE=ru')
+    expect(document.cookie).toContain('PRESTIGO_LOCALE_PROMPT=1')
     expect(mockReplace).not.toHaveBeenCalled()
     expect(mockPush).not.toHaveBeenCalled()
     expect(

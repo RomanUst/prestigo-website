@@ -23,14 +23,23 @@ import { getConsent } from '@/components/CookieBanner'
  * structure without editing that file.
  */
 
-const NEXT_LOCALE_COOKIE = 'NEXT_LOCALE'
+// Banner-owned "already answered" flag. Deliberately NOT NEXT_LOCALE:
+// next-intl's middleware writes NEXT_LOCALE on every response (including a
+// visitor's very first one), so its presence says nothing about whether the
+// visitor ever made a choice — gating on it hid the banner for everyone.
+const PROMPT_DONE_COOKIE = 'PRESTIGO_LOCALE_PROMPT'
+const PROMPT_DONE_MAX_AGE = 60 * 60 * 24 * 365
 const CONSENT_POLL_INTERVAL_MS = 300
 
-function hasNextLocaleCookie(): boolean {
+function hasAnsweredPrompt(): boolean {
   if (typeof document === 'undefined') return false
   return document.cookie
     .split(';')
-    .some((c) => c.trim().startsWith(`${NEXT_LOCALE_COOKIE}=`))
+    .some((c) => c.trim().startsWith(`${PROMPT_DONE_COOKIE}=`))
+}
+
+function markPromptAnswered() {
+  document.cookie = `${PROMPT_DONE_COOKIE}=1; path=/; sameSite=lax; max-age=${PROMPT_DONE_MAX_AGE}`
 }
 
 /** Base subtag before any hyphen, lowercased — zh-Hans/zh-CN/en-US -> zh/zh/en. */
@@ -76,7 +85,7 @@ export default function FirstVisitBanner() {
 
     function evaluate() {
       if (cancelled) return
-      if (hasNextLocaleCookie()) {
+      if (hasAnsweredPrompt()) {
         setVisible(false)
         return
       }
@@ -115,17 +124,18 @@ export default function FirstVisitBanner() {
   const currentEndonym = LOCALE_ENDONYMS[currentLocale] ?? currentLocale
 
   function handleSwitch() {
+    markPromptAnswered()
     router.replace(pathname, { locale: suggestedLocale as AppLocale })
   }
 
   function handleStay() {
-    document.cookie = `${NEXT_LOCALE_COOKIE}=${currentLocale}; path=/; sameSite=lax; max-age=31536000`
+    markPromptAnswered()
     setVisible(false)
   }
 
   return (
     <div
-      className="fixed inset-inline-0 bottom-0 z-40 flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6"
+      className="fixed inset-x-0 bottom-0 z-40 flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:px-6"
       style={{
         backgroundColor: 'var(--anthracite-mid)',
         borderTop: '1px solid var(--anthracite-light)',
