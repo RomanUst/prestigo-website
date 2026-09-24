@@ -300,6 +300,9 @@ export const config = {
     // every /public/**/*.avif in prod — e.g. /vehicles/*.avif on the fleet
     // page — while .webp/.png/.jpg served fine). Keep this list in sync with
     // the image formats actually shipped in /public (avif, ico added).
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)',
+    // txt/xml/webmanifest: robots.txt, sitemap.xml (app/sitemap.ts), llms.txt,
+    // BingSiteAuth.xml and the IndexNow key file were all rewritten to
+    // /en/<file> and 404'd in prod until these were excluded.
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
   ],
 }
