@@ -74,11 +74,14 @@ interface GetAlternatesOpts {
   locale?: string
 }
 
-const CONTENT_ROOTS: Record<ContentRef['kind'], string> = {
-  route: path.join(process.cwd(), 'content', 'routes'),
-  page: path.join(process.cwd(), 'content', 'pages'),
-  blog: path.join(process.cwd(), 'content', 'blog'),
-}
+// One module-level constant per content kind, each a literal
+// path.join(process.cwd(), 'content', '<kind>') — mirrors lib/page-content.ts
+// and lib/route-content.ts. A lookup table here made the root dynamic, so
+// Turbopack's file tracer could not scope it and traced the whole project
+// into every server function that imports this module.
+const ROUTES_ROOT = path.join(process.cwd(), 'content', 'routes')
+const PAGES_ROOT = path.join(process.cwd(), 'content', 'pages')
+const BLOG_ROOT = path.join(process.cwd(), 'content', 'blog')
 
 /**
  * D-07 gate: true when a genuine, locale-specific translation file exists
@@ -89,9 +92,14 @@ const CONTENT_ROOTS: Record<ContentRef['kind'], string> = {
  */
 function hasLocaleContent(ref: ContentRef, locale: string): boolean {
   if (!(routing.locales as readonly string[]).includes(locale)) return false
-  const ext = ref.kind === 'blog' ? 'mdx' : 'json'
-  const root = CONTENT_ROOTS[ref.kind]
-  return fs.existsSync(path.join(root, locale, `${ref.key}.${ext}`))
+  switch (ref.kind) {
+    case 'route':
+      return fs.existsSync(path.join(ROUTES_ROOT, locale, `${ref.key}.json`))
+    case 'page':
+      return fs.existsSync(path.join(PAGES_ROOT, locale, `${ref.key}.json`))
+    case 'blog':
+      return fs.existsSync(path.join(BLOG_ROOT, locale, `${ref.key}.mdx`))
+  }
 }
 
 /**
