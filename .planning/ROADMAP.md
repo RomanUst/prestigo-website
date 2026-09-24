@@ -272,6 +272,24 @@ Plans:
 - [x] 74-05-PLAN.md — Header LocaleSwitcher: 7-endonym dropdown, same-page navigation via `@/i18n/routing`, mounted in `Nav.tsx` desktop + mobile (UX-01)
 - [x] 74-06-PLAN.md — FirstVisitBanner: crawler-safe `Accept-Language` suggestion, no auto-redirect, `NEXT_LOCALE` persistence, mounted in `SiteChrome.tsx` (UX-02)
 
+### Phase 75: E2E Verification & Launch
+
+**Goal**: Prove the multilingual site works end-to-end on production for all 7 locales and close milestone v3.0. Every locale renders, the switcher works, the guest booking flow reaches a localized Stripe payment form in every locale (incl. RTL `/ar`), no English leaks onto localized pages (systematic static + rendered audit, fixes translated in-session), GA4 and Meta events carry a `site_locale` dimension (client and server-side via the booking), hreflang clusters validate, Rich Results pass, CSP has no regression, and the vitest red baseline in v3.0-touched files is cleared. Launch = GSC sitemap resubmit + indexing baseline, milestone close, and Metricool announcement drafts.
+
+**Depends on**: Phase 74 (SEO wiring, switcher, banner), Phases 68–73 (i18n foundation, catalogs, content, RTL)
+**Requirements**: VER-01
+**Success Criteria** (what must be TRUE):
+
+  1. Repeatable QA scripts under `scripts/qa/` (render, switcher, EN-leak, hreflang reciprocity, CSP, booking) run against production for all 7 locales and their results are recorded in `75-VERIFICATION.md`.
+  2. Guest booking completes through all 6 wizard steps up to a rendered, localized Stripe payment form in every locale (incl. `/ar` RTL); sign-in + account path verified in RU and AR; test bookings use an `E2E TEST` marker and are removed from Supabase afterwards.
+  3. No EN leakage on localized pages across visible text, form errors/placeholders/aria/alt, metadata/JSON-LD, and Stripe Elements / Google Places locale; intentional EN-fallback (untranslated blog, EN-only JSX posts) is an explicit allowlist; the known leaks (/book hero + How it works, /book/multi-day examples, airport-transfer booking block, CorporateForm placeholder) and the ~10 hi DNT-fallback headings are fixed.
+  4. GA4 events carry a `site_locale` param registered as an event-scoped custom dimension; Meta Pixel + CAPI carry `custom_data.site_locale` without breaking eventId dedup; locale is persisted on the booking and forwarded by the Stripe webhook to server GA4 purchase + CAPI.
+  5. hreflang clusters are reciprocal, Rich Results Test passes on sampled locale URLs, no CSP violations, overflow audit stays at 0 issues.
+  6. vitest is green for all v3.0-touched files; pre-existing unrelated failures are listed.
+  7. Launch: sitemap resubmitted in GSC with a per-locale indexing baseline recorded; Metricool announcement created as drafts only; milestone v3.0 audited and closed.
+
+**Plans:** TBD
+
 </details>
 
 <details>
