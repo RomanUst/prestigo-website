@@ -303,6 +303,12 @@ export const config = {
     // txt/xml/webmanifest: robots.txt, sitemap.xml (app/sitemap.ts), llms.txt,
     // BingSiteAuth.xml and the IndexNow key file were all rewritten to
     // /en/<file> and 404'd in prod until these were excluded.
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
+    // SECURITY: the extension exclusion must NOT apply under api/, admin/,
+    // driver/, auth/ or [locale/]account/ — otherwise a crafted dynamic
+    // segment (e.g. PUT /api/admin/route-prices/prague-vienna.xml) skips
+    // middleware and with it the CSRF Origin check and route gating
+    // (Phase 74 security audit, T-74-07). Those prefixes never serve static
+    // files, so they always run the middleware.
+    '/((?!_next/static|_next/image|favicon.ico|(?!(?:api|admin|driver|auth)/|(?:[a-z]{2}/)?account/).*\\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico|txt|xml|webmanifest)$).*)',
   ],
 }

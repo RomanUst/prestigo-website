@@ -37,4 +37,21 @@ describe('middleware matcher — static/SEO files bypass locale routing', () => 
       expect(entersMiddleware(pathname)).toBe(true)
     }
   )
+
+  // T-74-07: a dynamic segment ending in an excluded extension must not let a
+  // protected request skip middleware (CSRF Origin check + route gating).
+  it.each([
+    '/api/admin/route-prices/prague-vienna.xml',
+    '/api/admin/drivers/abc.png',
+    '/api/bookings/x.txt',
+    '/admin/bookings/abc.xml',
+    '/driver/trip/token.webmanifest',
+    '/auth/callback.ico',
+    '/account/bookings/abc.jpg',
+    '/ru/account/bookings/abc.svg',
+  ])('protected path %s still enters middleware despite a static-file extension',
+    (pathname) => {
+      expect(entersMiddleware(pathname)).toBe(true)
+    }
+  )
 })
