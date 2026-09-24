@@ -119,3 +119,8 @@ Finish the SEO wiring for the multilingual site so search engines and users trea
 
 *Phase: 74-SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher*
 *Context gathered: 2026-09-21*
+
+## Post-UAT revision (2026-09-24)
+
+- **UX-02 revised (owner decision during UAT):** the first-visit language suggestion no longer ships as a separate bottom banner. It lives inside the cookie consent modal header (`components/CookieBanner.tsx`, detection in `i18n/suggest-locale.ts`): one prompt instead of two, and the consent text can be read in the visitor's language after switching. D-04 (crawler-safe, client-only decision) and D-05 (no automatic redirect) are unchanged. Trade-off accepted: visitors who already gave consent get no suggestion (header LocaleSwitcher remains). Reason for revisiting: UAT found the standalone banner never rendered in production (next-intl sets NEXT_LOCALE on every response) and its full-width bar clashed with the /book mobile price bar.
+

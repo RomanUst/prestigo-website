@@ -3,7 +3,7 @@ status: testing
 phase: 74-seo-hreflang-localized-metadata-sitemap-structured-data-swit
 source: [74-VERIFICATION.md]
 started: 2026-09-24T02:01:38Z
-updated: 2026-09-24T16:28:16Z
+updated: 2026-09-24T16:54:51Z
 ---
 
 ## Current Test
@@ -21,7 +21,7 @@ expected: Sitemap fetches successfully (also /robots.txt and /llms.txt return 20
 result: pass
 note: "Automated prod crawl 2026-09-24: sitemap.xml 200 (63 entries); all 417 localized URLs 200, self-canonical, no noindex, page hreflang cluster == sitemap cluster (0 problems). Owner submitted sitemap in Search Console."
 
-### 2. First-visit language banner in a real browser
+### 2. First-visit language suggestion in a real browser (revised: inside the cookie consent modal)
 expected: With the browser language set to e.g. Russian and cookies cleared, opening an EN page shows the banner only after hydration (view-source has no banner markup); "Switch" opens the same page in /ru; "Stay" hides it and it does not return on reload; no automatic redirect ever happens
 result: issue
 reported: "Automated Playwright run on prod (browser locale ru-RU, fresh context, cookies accepted): banner never appears on /about. Server sets `NEXT_LOCALE=en` on the very first response, and the banner treats any NEXT_LOCALE cookie as an already-made choice."
@@ -57,6 +57,7 @@ blocked: 0
   missing:
     - "Use a banner-owned persisted flag (set on Stay and on Switch) instead of NEXT_LOCALE presence"
     - "Unit test that a server-set NEXT_LOCALE cookie alone does not suppress the banner"
-  fix_commit: 12b3b160
+  fix_commit: 12b3b160, 663b6ef9
+  design_change: "Owner decision 2026-09-24: merge the language suggestion into the cookie consent modal (one prompt instead of two). Standalone FirstVisitBanner removed. Verified locally (Playwright, ru-RU browser): row in modal header, Switch → same page /ru with modal re-rendered in Russian and no consent recorded, Arabic/RTL, mobile, /book no longer clashes with the price bar, en browser → no row."
   fix_note: "Banner now uses its own PRESTIGO_LOCALE_PROMPT flag; also inset-inline-0 (not a Tailwind 4 class) → inset-x-0 so the bar is full width per UI-SPEC. Verified locally with Playwright (ru-RU browser): shows after consent, Switch → /ru/about + NEXT_LOCALE=ru, Stay hides and persists across reload, Arabic/RTL banner on /ar/about, full width desktop/mobile/RTL. Prod raw HTML identical for ru vs en Accept-Language. Awaiting deploy + prod re-run."
 
