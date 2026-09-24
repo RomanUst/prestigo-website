@@ -7,7 +7,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
-import { isAirportPlace } from '@/types/booking'
+import { isAirportPlace, VEHICLE_CONFIG } from '@/types/booking'
+import Stepper from '@/components/booking/Stepper'
 import type { FlightStatus } from '@/types/booking'
 
 // Mirrors IATA_RE from lib/flight-status.ts (server-only module — cannot be imported client-side)
@@ -51,6 +52,19 @@ export default function Step5Passenger() {
   const setFlightCheckResult = useBookingStore((s) => s.setFlightCheckResult)
   const flightCheckResult = useBookingStore((s) => s.flightCheckResult)
   const pickupDate = useBookingStore((s) => s.pickupDate)
+  const vehicleClass = useBookingStore((s) => s.vehicleClass)
+  const passengers = useBookingStore((s) => s.passengers)
+  const setPassengers = useBookingStore((s) => s.setPassengers)
+  const goToStep = useBookingStore((s) => s.goToStep)
+
+  // Seat limit comes from the vehicle chosen in step 2: E-Class and S-Class
+  // seat 3, V-Class seats 6. Clamp if the vehicle was changed to a smaller one.
+  const maxPassengers =
+    VEHICLE_CONFIG.find((v) => v.key === vehicleClass)?.maxPassengers ?? 3
+  const largestCapacity = Math.max(...VEHICLE_CONFIG.map((v) => v.maxPassengers))
+  useEffect(() => {
+    if (passengers > maxPassengers) setPassengers(maxPassengers)
+  }, [passengers, maxPassengers, setPassengers])
 
   const supabase = useMemo(
     () => createBrowserClient(
@@ -319,6 +333,38 @@ export default function Step5Passenger() {
         {errors.phone && (
           <p id="phone-error" style={{ color: '#f87171', fontSize: 14, fontWeight: 300, marginTop: 8 }}>
             {errors.phone.message}
+          </p>
+        )}
+      </div>
+
+      {/* Row 3b: Passenger count — capped by the selected vehicle */}
+      <div style={{ marginTop: 24 }}>
+        <Stepper
+          label={t('passengersLabel')}
+          value={Math.min(passengers, maxPassengers)}
+          min={1}
+          max={maxPassengers}
+          onChange={setPassengers}
+        />
+        <p className="body-text" style={{ fontSize: 13, marginTop: 8 }}>
+          {t('passengersCapacity', { max: maxPassengers })}
+        </p>
+        {passengers >= maxPassengers && maxPassengers < largestCapacity && (
+          <p className="body-text" style={{ fontSize: 13, marginTop: 4 }}>
+            {t('passengersUpgrade', { max: largestCapacity })}{' '}
+            <button
+              type="button"
+              onClick={() => goToStep(2)}
+              className="underline underline-offset-2"
+              style={{ color: 'var(--copper)', minHeight: 44 }}
+            >
+              {t('passengersChangeVehicle')}
+            </button>
+          </p>
+        )}
+        {passengers >= maxPassengers && maxPassengers >= largestCapacity && (
+          <p className="body-text" style={{ fontSize: 13, marginTop: 4 }}>
+            {t('passengersGroup', { max: largestCapacity })}
           </p>
         )}
       </div>

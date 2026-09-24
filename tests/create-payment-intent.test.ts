@@ -693,3 +693,21 @@ describe('ABND-06: attempt_id dedup + round-trip capture (Phase 62-02)', () => {
     expect(chain.update).toHaveBeenCalledTimes(2)
   })
 })
+
+describe('Passenger seat limit per vehicle class (server-side)', () => {
+  it.each([
+    ['business', '3', 200],
+    ['business', '4', 400],
+    ['first_class', '3', 200],
+    ['first_class', '4', 400],
+    ['business_van', '6', 200],
+    ['business_van', '7', 400],
+    ['business', '0', 400],
+    ['business', 'abc', 400],
+  ])('%s with %s passengers → %i', async (vehicleClass, passengers, status) => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ vehicleClass, passengers }) })
+    )
+    expect(res.status).toBe(status)
+  })
+})

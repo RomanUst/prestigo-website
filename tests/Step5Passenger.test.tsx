@@ -33,9 +33,11 @@ import Step5Passenger from '@/components/booking/steps/Step5Passenger'
 // vi.hoisted — declare stubs before vi.mock factories run
 // ---------------------------------------------------------------------------
 
-const { storeRef, mockSetPassengerDetails, mockSetFlightCheckResult } = vi.hoisted(() => {
+const { storeRef, mockSetPassengerDetails, mockSetFlightCheckResult, mockSetPassengers, mockGoToStep } = vi.hoisted(() => {
   const mockSetPassengerDetails = vi.fn()
   const mockSetFlightCheckResult = vi.fn()
+  const mockSetPassengers = vi.fn()
+  const mockGoToStep = vi.fn()
 
   const storeRef = {
     current: {
@@ -51,10 +53,14 @@ const { storeRef, mockSetPassengerDetails, mockSetFlightCheckResult } = vi.hoist
       pickupDate: '2026-06-15',
       setPassengerDetails: mockSetPassengerDetails,
       setFlightCheckResult: mockSetFlightCheckResult,
+      vehicleClass: 'business' as string | null,
+      passengers: 1,
+      setPassengers: mockSetPassengers,
+      goToStep: mockGoToStep,
     },
   }
 
-  return { storeRef, mockSetPassengerDetails, mockSetFlightCheckResult }
+  return { storeRef, mockSetPassengerDetails, mockSetFlightCheckResult, mockSetPassengers, mockGoToStep }
 })
 
 vi.mock('@/lib/booking-store', () => {
@@ -108,6 +114,10 @@ function resetStore(overrides: Partial<typeof storeRef.current> = {}) {
     pickupDate: '2026-06-15',
     setPassengerDetails: mockSetPassengerDetails,
     setFlightCheckResult: mockSetFlightCheckResult,
+    vehicleClass: 'business',
+    passengers: 1,
+    setPassengers: mockSetPassengers,
+    goToStep: mockGoToStep,
     ...overrides,
   }
 }
@@ -323,5 +333,52 @@ describe('Step5Passenger', () => {
       const firstNameInput = allTextboxes[0]
       expect(firstNameInput).not.toBeDisabled()
     })
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Passenger count — capped by the selected vehicle (E/S-Class 3, V-Class 6)
+// ---------------------------------------------------------------------------
+
+describe('Step5Passenger — passenger count', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('caps the stepper at 3 for E-Class and offers switching to the V-Class at the limit', () => {
+    resetStore({ vehicleClass: 'business', passengers: 3 })
+    render(<Step5Passenger />)
+    expect(screen.getByText('Your vehicle seats up to 3 passengers.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /increase/i })).toHaveAttribute('aria-disabled', 'true')
+    fireEvent.click(screen.getByRole('button', { name: 'Change vehicle' }))
+    expect(mockGoToStep).toHaveBeenCalledWith(2)
+  })
+
+  it('S-Class is also capped at 3', () => {
+    resetStore({ vehicleClass: 'first_class', passengers: 2 })
+    render(<Step5Passenger />)
+    expect(screen.getByText('Your vehicle seats up to 3 passengers.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Change vehicle' })).not.toBeInTheDocument()
+  })
+
+  it('V-Class allows up to 6 and points larger groups to contact us', () => {
+    resetStore({ vehicleClass: 'business_van', passengers: 6 })
+    render(<Step5Passenger />)
+    expect(screen.getByText('Your vehicle seats up to 6 passengers.')).toBeInTheDocument()
+    expect(screen.getByText(/More than 6 passengers\?/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Change vehicle' })).not.toBeInTheDocument()
+  })
+
+  it('clamps an over-capacity count after switching to a smaller vehicle', () => {
+    resetStore({ vehicleClass: 'business', passengers: 5 })
+    render(<Step5Passenger />)
+    expect(mockSetPassengers).toHaveBeenCalledWith(3)
+  })
+
+  it('increments through setPassengers', () => {
+    resetStore({ vehicleClass: 'business_van', passengers: 2 })
+    render(<Step5Passenger />)
+    fireEvent.click(screen.getByRole('button', { name: /increase/i }))
+    expect(mockSetPassengers).toHaveBeenCalledWith(3)
   })
 })

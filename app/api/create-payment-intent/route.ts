@@ -22,6 +22,7 @@ import {
   computeCombinedTotalMinor,
 } from '@/lib/server-pricing'
 import type { TripType, VehicleClass } from '@/types/booking'
+import { VEHICLE_CONFIG } from '@/types/booking'
 
 // Lazy init — STRIPE_SECRET_KEY is Production-only; avoid module-load crash in Preview
 let _stripe: Stripe | null = null
@@ -69,6 +70,7 @@ const createPaymentIntentSchema = z.object({
     phone:       z.string().max(30).regex(NO_LINE_BREAKS).optional(),
     flightNumber: z.string().max(20).regex(NO_LINE_BREAKS).optional(),
     terminal:     z.string().max(50).regex(NO_LINE_BREAKS).optional(),
+    passengers:   z.string().regex(/^\d{1,2}$/).optional().or(z.literal('')),
     // Phase 62 D-06/ASVS-V5: client-generated per-attempt dedup key — must be
     // a well-formed UUID before it is ever used as a DB query key.
     attemptId: z.string().uuid().optional(),
@@ -119,6 +121,15 @@ export async function POST(req: Request) {
     }
     if (!VEHICLE_CLASSES.includes(vehicleClass)) {
       return NextResponse.json({ error: 'Invalid vehicleClass' }, { status: 400 })
+    }
+    // Seat limit per class (E/S-Class 3, V-Class 6) — the step-5 stepper caps
+    // this client-side; enforce it here so a crafted request can't exceed it.
+    if (bookingData.passengers) {
+      const pax = parseInt(bookingData.passengers, 10)
+      const maxPax = VEHICLE_CONFIG.find((v) => v.key === vehicleClass)?.maxPassengers ?? 0
+      if (!(pax >= 1 && pax <= maxPax)) {
+        return NextResponse.json({ error: 'Too many passengers for the selected vehicle' }, { status: 400 })
+      }
     }
 
     const distanceKm = bookingData.distanceKm ? parseFloat(bookingData.distanceKm) : null

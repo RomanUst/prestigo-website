@@ -130,6 +130,7 @@ export interface BookingStore {
   updateStop: (id: string, place: PlaceResult | null) => void
   nextStep: () => void
   prevStep: () => void
+  goToStep: (step: number) => void
   swapOriginDestination: () => void
   setPickupDate: (date: string | null) => void
   setPickupTime: (time: string | null) => void

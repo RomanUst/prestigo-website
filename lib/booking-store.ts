@@ -67,6 +67,7 @@ export const useBookingStore = create<BookingStore>()(
           currentStep: Math.min(6, s.currentStep + 1),
         })),
       prevStep: () => set((s) => ({ currentStep: Math.max(1, s.currentStep - 1) })),
+      goToStep: (step) => set({ currentStep: Math.max(1, Math.min(6, Math.trunc(step))) }),
       swapOriginDestination: () => {
         const { origin, destination } = get()
         set({ origin: destination, destination: origin })
