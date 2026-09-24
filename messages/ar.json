@@ -789,8 +789,7 @@
     "skipToContent": "تخطَّ إلى المحتوى",
     "firstVisitBanner": {
       "suggestion": "هذا الموقع متاح أيضًا باللغة {endonym}.",
-      "switchTo": "التبديل إلى {endonym}",
-      "stayIn": "البقاء على {endonym}"
+      "switchTo": "التبديل إلى {endonym}"
     }
   }
 }

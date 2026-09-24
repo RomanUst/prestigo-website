@@ -789,8 +789,7 @@
     "skipToContent": "Перейти к содержимому",
     "firstVisitBanner": {
       "suggestion": "Этот сайт также доступен на языке: {endonym}.",
-      "switchTo": "Перейти на {endonym}",
-      "stayIn": "Остаться: {endonym}"
+      "switchTo": "Перейти на {endonym}"
     }
   }
 }

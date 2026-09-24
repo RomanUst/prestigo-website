@@ -789,8 +789,7 @@
     "skipToContent": "Ir al contenido principal",
     "firstVisitBanner": {
       "suggestion": "Este sitio también está disponible en {endonym}.",
-      "switchTo": "Cambiar a {endonym}",
-      "stayIn": "Seguir en {endonym}"
+      "switchTo": "Cambiar a {endonym}"
     }
   }
 }

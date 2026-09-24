@@ -1,8 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useTranslations } from 'next-intl'
-import { Link } from '@/i18n/routing'
+import { useLocale, useTranslations } from 'next-intl'
+import { Link, usePathname, useRouter, type AppLocale } from '@/i18n/routing'
+import { LOCALE_ENDONYMS } from '@/i18n/locales'
+import { detectSuggestedLocale } from '@/i18n/suggest-locale'
 
 /**
  * Granular consent modal — two-step design inspired by Blacklane's
@@ -25,6 +27,15 @@ import { Link } from '@/i18n/routing'
  *
  * MetaPixel listens for the 'prestigo:consent-granted' CustomEvent (fired only
  * when marketing is granted) to initialise fbevents.js in-place without reload.
+ *
+ * Language suggestion (UX-02): when the browser's top language is a supported
+ * locale other than the page's, the modal header offers a one-click switch to
+ * the same page in that locale, so the consent text itself can be read in the
+ * visitor's language. The decision runs client-side after hydration only
+ * (server HTML identical for every Accept-Language); it never redirects on its
+ * own and is independent of the consent choice. After switching, the modal
+ * re-renders on the new locale (consent still unanswered) and the row
+ * disappears because the suggestion now equals the current locale.
  */
 
 const CONSENT_KEY = 'prestigo_consent_v2'
@@ -61,7 +72,12 @@ export function getConsent(): ConsentState | null {
 
 export default function CookieBanner() {
   const t = useTranslations('CookieBanner')
+  const tLang = useTranslations('Common.firstVisitBanner')
+  const currentLocale = useLocale()
+  const pathname = usePathname()
+  const router = useRouter()
   const [visible, setVisible] = useState(false)
+  const [suggestedLocale, setSuggestedLocale] = useState<AppLocale | null>(null)
   const [expanded, setExpanded] = useState(false)
   const [tab, setTab] = useState<'categories' | 'services'>('categories')
   // Default all toggles on — matches Blacklane pattern. User opts OUT via
@@ -70,8 +86,11 @@ export default function CookieBanner() {
   const [marketing, setMarketing] = useState(true)
 
   useEffect(() => {
-    if (!getConsent()) setVisible(true)
-  }, [])
+    if (!getConsent()) {
+      setVisible(true)
+      setSuggestedLocale(detectSuggestedLocale(currentLocale))
+    }
+  }, [currentLocale])
 
   // Body scroll lock while modal is open — Blacklane-style blocking behavior.
   useEffect(() => {
@@ -152,6 +171,21 @@ export default function CookieBanner() {
       >
         {/* Header — wordmark + welcome copy. Mirrors the site's own brand
             presentation so the first touchpoint feels consistent. */}
+        {suggestedLocale && (
+          <div className="px-6 py-3 border-b border-anthracite-light flex-shrink-0 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-center">
+            <p className="font-body font-light text-[12px] text-offwhite leading-relaxed">
+              {tLang('suggestion', { endonym: LOCALE_ENDONYMS[suggestedLocale] })}
+            </p>
+            <button
+              type="button"
+              onClick={() => router.replace(pathname, { locale: suggestedLocale })}
+              className="min-h-[44px] px-4 font-body font-light text-[10px] tracking-[0.2em] uppercase text-copper-light hover:text-offwhite underline underline-offset-4 transition-colors"
+            >
+              {tLang('switchTo', { endonym: LOCALE_ENDONYMS[suggestedLocale] })}
+            </button>
+          </div>
+        )}
+
         <div className="px-6 pt-7 pb-5 border-b border-anthracite-light flex-shrink-0 text-center">
           <div
             className="wordmark text-[14px] tracking-[0.6em] inline-flex items-center justify-center mb-4"

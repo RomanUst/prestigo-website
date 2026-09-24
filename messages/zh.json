@@ -789,8 +789,7 @@
     "skipToContent": "跳转到主要内容",
     "firstVisitBanner": {
       "suggestion": "本网站也提供{endonym}版本。",
-      "switchTo": "切换到{endonym}",
-      "stayIn": "继续使用{endonym}"
+      "switchTo": "切换到{endonym}"
     }
   }
 }
