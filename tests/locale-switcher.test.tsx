@@ -114,3 +114,33 @@ describe('LocaleSwitcher — UX-01 switch contract', () => {
     expect(mockReplace).toHaveBeenCalledWith('/routes/prague-vienna', { locale: 'en' })
   })
 })
+
+describe('LocaleSwitcher — inline variant (mobile menu)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    mockUsePathname.mockReturnValue('/routes/prague-vienna')
+    mockUseLocale.mockReturnValue('ru')
+  })
+
+  it('renders all 7 endonyms in-flow as buttons (no popover, nothing to scroll to)', () => {
+    renderWithIntl(<LocaleSwitcher variant="inline" />)
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+    const buttons = screen.getAllByRole('button')
+    expect(buttons.map((el) => el.textContent?.trim())).toEqual(
+      locales.map((loc) => LOCALE_ENDONYMS[loc])
+    )
+    buttons.forEach((b, i) => expect(b).toHaveAttribute('lang', locales[i]))
+  })
+
+  it('marks only the active locale with aria-current', () => {
+    renderWithIntl(<LocaleSwitcher variant="inline" />)
+    expect(screen.getByRole('button', { name: LOCALE_ENDONYMS.ru })).toHaveAttribute('aria-current', 'true')
+    expect(screen.getByRole('button', { name: LOCALE_ENDONYMS.en })).not.toHaveAttribute('aria-current')
+  })
+
+  it('one tap switches to the same page in that locale', () => {
+    renderWithIntl(<LocaleSwitcher variant="inline" />)
+    fireEvent.click(screen.getByRole('button', { name: LOCALE_ENDONYMS.zh }))
+    expect(mockReplace).toHaveBeenCalledWith('/routes/prague-vienna', { locale: 'zh' })
+  })
+})

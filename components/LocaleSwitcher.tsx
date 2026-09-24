@@ -12,6 +12,12 @@
  * live in 74-05 Task 1 — RESEARCH Pattern 5 / Q3); this component never
  * hand-writes the cookie.
  *
+ * Two variants:
+ *   - 'dropdown' (default, desktop header): popover menu, below.
+ *   - 'inline' (mobile menu): all 7 endonyms rendered in-flow as wrapping
+ *     chips. The mobile menu clips overflow, so a popover there could not be
+ *     scrolled to the lower languages (reported on iPhone, 2026-09-24).
+ *
  * Modeled on Nav.tsx's existing account-menu dropdown: outside-click close,
  * Escape close, arrow-key menu navigation, RTL-safe `insetInlineEnd`
  * positioning, and the same chevron SVG (horizontally symmetric, no RTL
@@ -22,7 +28,7 @@ import { useLocale } from 'next-intl'
 import { usePathname, useRouter } from '@/i18n/routing'
 import { locales, LOCALE_ENDONYMS, type AppLocale } from '@/i18n/locales'
 
-export default function LocaleSwitcher() {
+export default function LocaleSwitcher({ variant = 'dropdown' }: { variant?: 'dropdown' | 'inline' }) {
   const activeLocale = useLocale() as AppLocale
   const pathname = usePathname()
   const router = useRouter()
@@ -84,6 +90,32 @@ export default function LocaleSwitcher() {
     // automatically on this navigation (RESEARCH Pattern 5) — no
     // document.cookie write here.
     router.replace(pathname, { locale: target })
+  }
+
+  if (variant === 'inline') {
+    return (
+      <div className="flex flex-wrap gap-2 py-2">
+        {locales.map((loc) => {
+          const isActive = loc === activeLocale
+          return (
+            <button
+              key={loc}
+              type="button"
+              lang={loc}
+              aria-current={isActive ? 'true' : undefined}
+              onClick={() => selectLocale(loc)}
+              className={`min-h-[44px] px-4 border font-body font-light text-[12px] transition-colors ${
+                isActive
+                  ? 'border-copper/60 text-copper-light'
+                  : 'border-anthracite-light text-warmgrey hover:text-offwhite hover:border-warmgrey/40'
+              }`}
+            >
+              {LOCALE_ENDONYMS[loc]}
+            </button>
+          )
+        })}
+      </div>
+    )
   }
 
   return (

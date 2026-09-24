@@ -134,7 +134,10 @@ export default function Nav() {
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-8">
+        {/* Full header only from xl (1280px): the link row + locale switcher +
+            auth + Book CTA needs ~1100px in EN and ~1270px in RU, so below xl
+            the burger menu is used (it overflowed on tablets/small laptops). */}
+        <div className="hidden xl:flex items-center gap-8">
           {NAV_LINKS.map((link, i) => (
             <Link
               key={link.href}
@@ -346,7 +349,7 @@ export default function Nav() {
 
         {/* Mobile burger */}
         <button
-          className="md:hidden flex flex-col justify-center gap-[5px] p-3 -me-1 min-h-[44px] min-w-[44px]"
+          className="xl:hidden flex flex-col justify-center gap-[5px] p-3 -me-1 min-h-[44px] min-w-[44px]"
           onClick={() => setOpen(!open)}
           aria-label={t('menu')}
           aria-expanded={open}
@@ -361,8 +364,8 @@ export default function Nav() {
       <div
         id="mobile-menu"
         aria-hidden={!open}
-        className={`md:hidden bg-anthracite-mid border-anthracite-light px-6 flex flex-col overflow-hidden transition-all duration-300 ease-out ${
-          open ? 'max-h-[600px] py-4 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
+        className={`xl:hidden bg-anthracite-mid border-anthracite-light px-6 flex flex-col overflow-hidden transition-all duration-300 ease-out ${
+          open ? 'max-h-[calc(100dvh-4rem)] overflow-y-auto py-4 border-t opacity-100' : 'max-h-0 py-0 opacity-0 pointer-events-none'
         }`}
       >
         {NAV_LINKS.map((link, i) => (
@@ -383,7 +386,7 @@ export default function Nav() {
 
         {/* UX-01: locale switcher — mobile menu equivalent of the desktop mount (D-01) */}
         <div className="mt-2">
-          <LocaleSwitcher />
+          <LocaleSwitcher variant="inline" />
         </div>
 
         {/* Mobile auth affordance */}
