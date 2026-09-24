@@ -1,27 +1,34 @@
 ---
 phase: 74-seo-hreflang-localized-metadata-sitemap-structured-data-swit
 verified: 2026-09-24T02:10:00Z
-status: human_needed
+status: passed
 score: 17/17 must-haves verified
 gap_closure: "2026-09-24 — orchestrator fixed the sitemap gap inline (commit 4a1571f): middleware matcher now excludes txt/xml/webmanifest; tests/middleware-matcher.test.ts locks it; live dev curl /sitemap.xml, /robots.txt, /llms.txt, /llms-full.txt, /BingSiteAuth.xml, IndexNow key → all 200, no x-middleware-rewrite, sitemap has 63 URLs with zh-Hans alternates. Full suite 1671 passed / 0 failed. Production takes effect on deploy."
 behavior_unverified: 0
 overrides_applied: 0
 gaps:
+
   - truth: "app/sitemap.ts feeds a real, crawlable sitemap.xml to search engines (SEO-03 / Goal: 'getAlternates() that also feeds the sitemap')"
     status: closed
     reason: "The sitemap() function itself is correct (unit-tested, delegates to getAlternates() with an identical cluster to every page — confirmed via tests/sitemap.test.ts, 3/3 passing), but the live HTTP route /sitemap.xml is completely unreachable. next-intl's middleware rewrites the unprefixed request to /en/sitemap.xml (confirmed via `x-middleware-rewrite: /en/sitemap.xml` response header on both a local dev server and production), and because app/sitemap.ts is a root-level Next.js file convention route (not nested under app/[locale]/), that rewritten path does not exist — Next.js resolves it to a 404. Reproduced on https://rideprestigo.com/sitemap.xml (live production, HTTP/2 404, x-matched-path: /404) and on a local `next dev` server. Root cause: middleware.ts's matcher regex (`/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp|avif|ico)$).*)`) does not exclude /sitemap.xml (or any non-image static convention route), so next-intl's locale-rewrite logic intercepts it before it ever reaches the app/sitemap.ts route handler. Whatever hreflang-cluster correctness this phase built into app/sitemap.ts has zero real-world effect: Google (or any crawler) requesting /sitemap.xml today gets a 404, not the generated sitemap."
     artifacts:
+
       - path: "middleware.ts"
         issue: "matcher config (line ~297-304) does not exclude /sitemap.xml from next-intl's locale-prefix rewrite, so the root-level app/sitemap.ts convention route is unreachable"
+
       - path: "app/sitemap.ts"
         issue: "no issue in the file itself — sitemap() is correct and passes its own tests — the defect is purely in middleware routing upstream of it"
     missing:
+
       - "Exclude /sitemap.xml (and ideally other root-level Next.js convention routes such as /manifest.webmanifest, /opengraph-image, etc. if any exist) from the middleware matcher's rewrite scope, e.g. add `sitemap\\.xml` to the negative lookahead alongside the existing image extensions, or add an explicit early-return in middleware.ts for pathname === '/sitemap.xml'"
       - "Re-verify with `curl -I https://rideprestigo.com/sitemap.xml` (or the local dev equivalent) returns 200 with Content-Type: application/xml and the full URL set, and that the response carries no x-middleware-rewrite header pointing at a locale-prefixed path"
+
 human_verification:
+
   - test: "Submit https://rideprestigo.com/sitemap.xml to Google Search Console (after the middleware fix ships) and confirm hreflang hits/errors report"
     expected: "Sitemap fetches successfully; hreflang report shows reciprocal, non-conflicting annotations for the indexable page set"
     why_human: "Requires live Search Console access and a multi-day crawl/indexing cycle — cannot be verified from the codebase"
+
   - test: "On a real device/browser, set the browser's preferred language to a non-EN supported locale (e.g. Russian) that differs from the current page's locale, load an EN page fresh (cleared cookies), and confirm FirstVisitBanner appears post-hydration, offers Switch/Stay, and the initial server HTML (view-source) contains no banner markup or locale branch"
     expected: "Banner appears only after hydration via a client useEffect; view-source HTML is identical regardless of Accept-Language; clicking Switch navigates to the same page in the target locale; clicking Stay hides the banner and it does not reappear on reload"
     why_human: "Real Accept-Language negotiation and post-hydration timing can only be observed in an actual browser — code review confirms the architecture (no headers()/cookies() read, useEffect-only decision, routing.localeDetection: false) but not the live rendered behavior"
@@ -138,7 +145,6 @@ The one confirmed gap is severe: **`/sitemap.xml` is completely unreachable (HTT
 
 _Verified: 2026-09-24T02:10:00Z_
 _Verifier: Claude (gsd-verifier)_
-
 
 ## Gap Closure (2026-09-24)
 

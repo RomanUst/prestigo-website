@@ -2,19 +2,19 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
-current_phase: 74
-current_phase_name: SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher
-status: executing
-stopped_at: Phase 74 UI-SPEC approved
-last_updated: "2026-09-23T20:57:38.530Z"
-last_activity: 2026-09-23
-last_activity_desc: Phase 74 execution started
-state_head: df8005278b93cb7a375854f09214379a518b90fb
+current_phase: 75
+current_phase_name: e2e verification & launch
+status: planning
+stopped_at: Phase 74 complete, ready to plan Phase 75
+last_updated: "2026-09-24T17:13:16.814Z"
+last_activity: 2026-09-24
+last_activity_desc: Phase 74 complete, transitioned to Phase 75
+state_head: 4ee5079f048d59a57c527ca8082851794d9d8e9b
 progress:
   total_phases: 7
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 49
-  completed_plans: 43
+  completed_plans: 49
 ---
 
 # Project State
@@ -28,10 +28,10 @@ See: .planning/PROJECT.md (updated 2026-09-20)
 
 ## Current Position
 
-Phase: 74 (SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher) — EXECUTING
-Plan: 1 of 6
-Status: Executing Phase 74
-Last activity: 2026-09-23 — Phase 74 execution started
+Phase: 75 — e2e verification & launch
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-24 — Phase 74 complete, transitioned to Phase 75
 
 ## Accumulated Context
 
@@ -41,7 +41,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
 - v3.0 (Phase 73): ar/hi/zh non-Latin + RTL infra shipped. Noto Sans Arabic/Devanagari/SC delivered per-locale via a single `localeFontClassName` ternary in SiteChrome (zero Noto bytes on en/ru/es/fr, no cross-family leak). Physical-direction Tailwind → logical properties; Arabic `dir="rtl"` with `.wordmark { direction: ltr }` to keep the PRESTIGO wordmark un-reversed. DNT price/phone/time tokens bidi-isolated via `interpolateBidi()`/`<bdi>` at the render site on all 30 route pages; FAQPage JSON-LD `acceptedAnswer.text` kept a plain `f.a` string (never a ReactNode) — guarded by strengthened CR-02 backstop. FONT-01 glyph-tofu independently browser-verified (0 tofu) 2026-09-20; security 16/16 threats closed.
-- v3.0 (Phase 73, deferred): 7 static pages (about/terms/corporate/privacy/faq/blog-index/contact) render EN on every locale via an unforwarded `getLocale()` in page.tsx — pre-existing since Phase 71, out of Phase-73 scope (WINDOWS #7 / deferred-items.md). Fix = forward `{ locale } = await params` into generateMetadata/body across ~7 files.
+- v3.0: ~~7 static pages render EN on every locale (WINDOWS #7)~~ — FIXED in Phase 74 (74-04, params-forwarded locale).
 - v2.2 roadmap: 3 phases derived from DISP-* and DTRIP-* — Phase 65 (DISP-01..04, dispatch list defaults) is independent of the driver portal. Phase 66 (DTRIP-01,02,07,08 — permanent link + trip sheet) is the foundation the status-marking work builds on; Phase 67 (DTRIP-03,04,05,06 — status marking, note, admin visibility) depends on Phase 66's token/trip-sheet infrastructure. Execution order: (65 ∥ 66) → 67.
 - v2.2 roadmap: DTRIP-04's constraint (trip-progress is a separate field, never mutates `booking.status`, no GNet push) is carried as an explicit success criterion in Phase 67, not left implicit — matches REQUIREMENTS.md Out of Scope guardrail.
 - v2.1 roadmap: ABND (abandoned/unpaid capture) is the foundation phase (62) — persists a booking row at the payment step and reconciles it in place on payment success (no duplicate insert). AEDIT (63) and ANEW (64) both depend on Phase 62's shared admin bookings surface / status vocabulary; ANEW-04 additionally reuses the reconcile-in-place webhook pattern for payment-link payments.
@@ -220,7 +220,8 @@ None yet.
   - `GET /api/admin/bookings` → `admin_search_bookings` RPC currently defaults to an empty date range (shows all bookings). Phase 65 changes this client/server-side default to future-only; KPI counters already pass explicit date ranges so should be unaffected by the change, but must be re-verified once the default filter ships (DISP-04).
   - `driver_assignments` (booking_id, driver_id, status, token, token_expires_at) is a SINGLE-USE EXPIRING token today, created by `POST /api/admin/bookings/[id]/assign`; driver responds at `app/driver/response/page.tsx` → `POST /api/driver/respond`. Phase 66's permanent trip-link token is a distinct, longer-lived credential that must coexist with this token, not replace it.
   - Booking status machine lives in `lib/booking-transitions.ts` (`VALID_TRANSITIONS`) and GNet push in `lib/gnet-client.ts` (`pushGnetStatus`). Phase 67's trip-progress field must NOT hook into either — DTRIP-04 requires it to be a fully separate column with no transition validation and no GNet call.
-- Anthropic account API credit exhaustion mid-run (73-11 Task 2) left 6 route files + content/pages/en/corporate.json untranslated for ar/hi/zh/ru/es/fr; needs billing top-up + full re-run of node scripts/i18n-translate.mjs (no --locales filter). See WINDOWS.md #8, deferred-items.md.
+- Anthropic API credit is empty (checked 2026-09-24). All 282 content locale files are genuinely translated (none identical to EN), so the old 73-11 gap is closed. The `i18n Translate` GitHub workflow is DISABLED (gh workflow disable) — new EN strings are translated in-session until credit is topped up; the translation manifest may be out of sync for hand-translated keys (a future pipeline run would re-translate them).
+- [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
 
 ## Deferred Items
 
@@ -260,7 +261,7 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 ## Session Continuity
 
 Last session: 2026-09-21T15:54:34.823Z
-Stopped at: Phase 74 UI-SPEC approved
+Stopped at: Phase 74 complete, ready to plan Phase 75
 Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/74-seo-hreflang-localized-metadata-sitemap-structured-data-swit/74-UI-SPEC.md
 
 ## Performance Metrics

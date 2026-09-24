@@ -51,15 +51,15 @@ Make the entire public site multilingual. English stays the default at the site 
 
 ### SEO
 
-- [ ] **SEO-01**: `getAlternates()` emits all 6 hreflang alternates + `x-default` on every page.
-- [ ] **SEO-02**: `generateMetadata` produces localized title/description/OG per locale.
-- [ ] **SEO-03**: The sitemap emits every locale URL with a full alternates cluster.
-- [ ] **SEO-04**: JSON-LD carries `inLanguage` and localized text fields.
+- [x] **SEO-01**: `getAlternates()` emits all 6 hreflang alternates + `x-default` on every page.
+- [x] **SEO-02**: `generateMetadata` produces localized title/description/OG per locale.
+- [x] **SEO-03**: The sitemap emits every locale URL with a full alternates cluster.
+- [x] **SEO-04**: JSON-LD carries `inLanguage` and localized text fields.
 
 ### UX & Verification
 
-- [ ] **UX-01**: Language switcher UI with `NEXT_LOCALE` cookie persistence.
-- [ ] **UX-02**: First-visit language auto-detection via `Accept-Language` (no crawler cloaking; localized URLs remain directly indexable).
+- [x] **UX-01**: Language switcher UI with `NEXT_LOCALE` cookie persistence.
+- [x] **UX-02**: First-visit language auto-detection via `Accept-Language` (no crawler cloaking; localized URLs remain directly indexable).
 - [ ] **VER-01**: Cross-locale E2E green — every locale renders, switcher works, booking completes per-locale (incl. RTL), guest checkout intact, GA4/Meta analytics carry a locale dimension, no CSP regression, no EN leakage.
 
 ## v2 Requirements (deferred)
@@ -105,12 +105,12 @@ Populated during roadmap creation (Phases 68–75).
 | TR-02 | 72, 73 | Complete |
 | RTL-01 | 73 | Complete |
 | FONT-01 | 73 | Complete |
-| SEO-01 | 74 | Pending |
-| SEO-02 | 74 | Pending |
-| SEO-03 | 74 | Pending |
-| SEO-04 | 74 | Pending |
-| UX-01 | 74 | Pending |
-| UX-02 | 74 | Pending |
+| SEO-01 | 74 | Complete |
+| SEO-02 | 74 | Complete |
+| SEO-03 | 74 | Complete |
+| SEO-04 | 74 | Complete |
+| UX-01 | 74 | Complete |
+| UX-02 | 74 | Complete |
 | VER-01 | 75 | Pending |
 
 **Coverage:**

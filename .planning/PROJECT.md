@@ -58,6 +58,7 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 - ✓ DISP-01..04: Future-first admin bookings list, persistent default-horizon setting (Future/Last N days/All), in-session past/all override, KPI counters accurate — v2.2 (Phase 65)
 - ✓ DTRIP-01/02/07/08: Permanent unguessable per-assignment trip link, noindex police-presentable trip sheet, coexists with accept/decline, token invalid on terminal status/reassignment — v2.2 (Phase 66)
 - ✓ DTRIP-03/04/05/06: Driver trip-progress marking (en route/arrived/on board/completed/no-show) + optional note in dedicated columns isolated from `booking.status`/GNet, surfaced to admin — v2.2 (Phase 67)
+- ✓ SEO-01..04, UX-01/02: Multilingual SEO — centralized translation/index-aware `getAlternates()` (hreflang incl. `zh-Hans`, self-referencing canonical + og:url per locale), sitemap cluster, localized metadata, JSON-LD `inLanguage`, header LocaleSwitcher, language suggestion inside the consent modal; prod-verified 417 localized URLs, 0 hreflang problems — v3.0 (Phase 74)
 
 ### Active
 
@@ -135,6 +136,8 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 | v3.0: locale-middleware composed INTO existing middleware (not replacing it) | CSP nonce + Supabase session + CSRF must survive byte-for-byte | — Pending (Phase 68) |
 | v3.0: AI-only translation via a re-runnable pipeline with glossary + do-not-translate | Owner chose AI-only; prices/brand/vehicle-class/proper-nouns must never be translated | — Pending (Phase 72) |
 | v3.0: long-form content → per-locale content files, UI strings → message catalogs | Abstract prose does not belong in JSON catalogs; keeps SEO bodies maintainable | — Pending (Phase 71) |
+| v3.0: first-visit language suggestion lives inside the cookie consent modal, not a separate banner | One prompt instead of two; consent text readable in visitor's language; standalone banner never rendered in prod (next-intl sets NEXT_LOCALE on every response) and clashed with /book price bar | ✓ Good (Phase 74 UAT) |
+| v3.0: middleware matcher skips static-file extensions only outside api/admin/driver/auth/account | txt/xml had to be excluded (robots/sitemap/llms 404'd since Phase 68) but a blanket suffix exclusion let crafted admin API paths skip CSRF | ✓ Good (Phase 74, 8821d8b8) |
 
 ## Evolution
 
@@ -154,4 +157,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-20 after Phase 73. Milestone v3.0 Site Internationalization (i18n): 7 locales (EN root + RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation, next-intl + app/[locale]. Phases 68–73 shipped (foundation/routing, UI-chrome externalization, booking & account externalization, content externalization, ru/es/fr generation, and non-Latin/RTL infra for ar/hi/zh — Noto per-locale fonts, logical-property RTL, bidi-isolated DNT tokens). Phase 73 UAT + security verified (glyph-tofu browser-verified, 16/16 threats closed). Known deferred: 7 static pages render EN via unforwarded getLocale() (WINDOWS #7). Next: /gsd-plan-phase 74 (SEO — hreflang, localized metadata, sitemap, structured data, locale switcher).*
+*Last updated: 2026-09-24 after Phase 74. Milestone v3.0 Site Internationalization (i18n): Phases 68–74 shipped. Phase 74 delivered multilingual SEO (hreflang/canonical/sitemap/metadata/JSON-LD), header LocaleSwitcher and consent-modal language suggestion; UAT + security verified (18/18 threats closed). Also fixed during Phase 74: robots.txt/sitemap.xml/llms.txt were 404 in prod since Phase 68 (middleware matcher), and the WINDOWS #7 static-page EN leak. i18n Translate GitHub workflow disabled (Anthropic API credit empty; translations done in-session). Next: Phase 75 (E2E verification & launch).*

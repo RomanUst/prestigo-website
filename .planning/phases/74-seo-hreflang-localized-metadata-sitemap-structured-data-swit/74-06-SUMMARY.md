@@ -220,3 +220,8 @@ resolves all 6 Known Stubs above with no code changes.
 ## Self-Check: PASSED
 
 All created/modified files verified present on disk (`components/FirstVisitBanner.tsx`, `tests/first-visit-banner.test.tsx`, `components/SiteChrome.tsx`, `messages/en.json`, `messages/ru.json`, `messages/es.json`, `messages/fr.json`, `messages/ar.json`, `messages/hi.json`, `messages/zh.json`). All 3 task commits (`d0e76f9`, `4025e25`, `c07a828`) verified present in `git log`. `npx vitest run tests/first-visit-banner.test.tsx` re-confirmed green (7/7) and `node scripts/i18n-translate.mjs --check` re-confirmed PASSED for all 6 non-EN locales against the committed state.
+
+## Post-UAT Supersession (2026-09-24)
+
+`components/FirstVisitBanner.tsx` and `tests/first-visit-banner.test.tsx` were removed after UAT: the banner never rendered in production (next-intl sets `NEXT_LOCALE` on every response) and, by owner decision, the language suggestion moved into the cookie consent modal (`components/CookieBanner.tsx` + `i18n/suggest-locale.ts`, tests in `tests/cookie-banner-locale-suggestion.test.tsx`). Commits 12b3b160, 663b6ef9. The unused `Common.firstVisitBanner.stayIn` key was dropped from all 7 catalogs.
+
