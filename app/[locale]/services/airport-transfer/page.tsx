@@ -144,7 +144,7 @@ export default async function AirportTransferPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">
+          <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-2xl">
             {content.hero.headlineLine1} <br />
             <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
@@ -268,7 +268,7 @@ export default async function AirportTransferPage() {
             {vehicleClasses.map((v) => (
               <div key={v.name} className="border border-anthracite-light p-8">
                 <span className="copper-line mb-6 block" />
-                <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--warmgrey)' }}>{v.tag}</p>
+                <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-1 hyphens-auto break-words" style={{ color: 'var(--warmgrey)' }}>{v.tag}</p>
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-1">Mercedes {v.name}</h3>
                 <p className="font-body font-light text-[11px] tracking-wide mb-4" style={{ color: 'var(--copper)' }}><bdi>{v.price}</bdi> · {v.cap}</p>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{v.body}</p>

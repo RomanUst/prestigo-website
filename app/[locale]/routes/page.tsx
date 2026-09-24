@@ -110,7 +110,7 @@ export default async function RoutesPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">Intercity Routes</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-xl">
+          <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-xl">
             Central Europe, <br />
             <span className="display-italic">door to door.</span>
           </h1>

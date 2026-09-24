@@ -152,6 +152,31 @@ body {
   color: var(--offwhite);
 }
 
+/* Never clip a heading: a word wider than its column breaks instead of
+   overflowing the viewport (long ru/es/fr words on narrow phones). */
+.display,
+h1,
+h2,
+h3,
+h4 {
+  overflow-wrap: break-word;
+}
+
+/* Hero rotator (components/HeroTypewriter.tsx): own line, may wrap. Locales
+   whose phrases wrap reserve two lines so swapping words never shifts the
+   layout below; text sits on the bottom line, next to the suffix. */
+.hero-rotator {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+:lang(ru) .hero-rotator,
+:lang(es) .hero-rotator,
+:lang(fr) .hero-rotator,
+:lang(ar) .hero-rotator {
+  min-height: calc(2em * 1.08);
+}
+
 .display-italic {
   font-style: italic;
   font-variation-settings: 'opsz' 144, 'SOFT' 60, 'WONK' 0;

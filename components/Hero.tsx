@@ -54,11 +54,14 @@ export default function Hero({ airportPrice, rating }: Props) {
             {/* Copper line */}
             <span className="copper-line animate-on-load delay-200 mb-8 block" />
 
-            {/* Headline — H1 stays in server component so crawlers always see keyword text */}
-            <h1 className="display text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-300 mb-2">
+            {/* Headline — H1 stays in server component so crawlers always see keyword text.
+                Fluid size: the longest single word in any locale's rotator
+                (ru "Премиальные", ~6.75em) must fit the column on every
+                viewport — the rotator may wrap to two lines (see .hero-rotator). */}
+            <h1 className="display text-[length:clamp(38px,calc((100vw_-_48px)/6.9),52px)] md:text-[68px] lg:text-[length:clamp(56px,5.8vw,76px)] animate-on-load delay-300 mb-2">
               <HeroTypewriter /> {t('headlineSuffix')}
             </h1>
-            <p className="display display-italic text-[52px] md:text-[68px] lg:text-[76px] animate-on-load delay-400 mb-10">
+            <p className="display display-italic text-[length:clamp(38px,calc((100vw_-_48px)/6.9),52px)] md:text-[68px] lg:text-[length:clamp(56px,5.8vw,76px)] animate-on-load delay-400 mb-10">
               {t('headlineItalic')}
             </p>
 

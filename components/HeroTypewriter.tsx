@@ -3,11 +3,12 @@
 import { useState, useEffect } from 'react'
 import { useTranslations } from 'next-intl'
 
-// words[0] (Hero.words[0] in the message catalog) must stay the visually
-// widest phrase: the rotator renders as its own block line, so every later
-// swap paints a line no wider than the first. A wider later paint would
-// register as a new, later LCP candidate and inflate the reported LCP by
-// many seconds (observed 11.9 s in lab runs).
+// words[0] (Hero.words[0] in the message catalog) should stay the visually
+// widest phrase so later swaps never paint a larger LCP candidate (rotation
+// also only starts after the first interaction, when LCP stops updating).
+// The rotator is its own block (.hero-rotator) and MAY wrap: ru/es/fr/ar
+// phrases do not fit one line on phones or even on desktop, so those locales
+// reserve a two-line box in globals.css to keep rotation shift-free (CLS).
 
 export default function HeroTypewriter() {
   const t = useTranslations('Hero')
@@ -52,10 +53,9 @@ export default function HeroTypewriter() {
 
   return (
     <span
+      className="hero-rotator"
       style={{
         color: 'var(--offwhite)',
-        display: 'block',
-        whiteSpace: 'nowrap',
         transition: reducedMotion ? 'none' : 'opacity 0.35s ease, transform 0.35s ease',
         opacity: visible ? 1 : 0,
         transform: reducedMotion || visible ? 'translateY(0px)' : 'translateY(-10px)',

@@ -291,7 +291,7 @@ export default function ComparePragueViennaPage() {
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <p className="label mb-6">Comparison guide · Updated July 2026</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px]">
+          <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px]">
             Prague to Vienna: <br />
             <span className="display-italic">the honest comparison.</span>
           </h1>

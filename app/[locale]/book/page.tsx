@@ -131,7 +131,7 @@ export default function BookPage() {
             <span className="copper-line mb-8 block" />
             <h2 className="display text-[28px] md:text-[36px]">Four steps, <span className="display-italic">sixty seconds.</span></h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {[
               { step: '01', title: 'Choose your route', body: 'Enter your pickup address, destination, date and time. Every Prague address and every major Central European city is supported.' },
               { step: '02', title: 'Pick your vehicle', body: 'Mercedes E-Class, S-Class or V-Class — each price is quoted up front and includes every toll, vignette and fee along the way.' },

@@ -117,7 +117,7 @@ export default async function PragueLinzPage() {
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
-          <h1 className="display text-[40px] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
+          <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-2xl">{content.hero.headlineLine1} <br /><span className="display-italic">{content.hero.headlineItalic}</span></h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>{interpolateBidi(content.hero.intro, prices)}</p>
           <div className="mt-10 flex flex-col sm:flex-row gap-4">
             <a href="/book" className="btn-primary">{t('heroCtaPrimary')}</a>

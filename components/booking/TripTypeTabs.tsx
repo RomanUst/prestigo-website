@@ -35,15 +35,16 @@ export default function TripTypeTabs({ hideMultiDay = false }: TripTypeTabsProps
       aria-label={t('ariaLabel')}
       style={{
         display: 'flex',
+        // Wrap instead of a hidden-scrollbar horizontal scroller: ru/es/fr
+        // labels don't fit one row on phones and the cut-off last tab gave
+        // no hint that the row could be scrolled.
+        flexWrap: 'wrap',
         gap: '8px',
-        overflowX: 'auto',
-        scrollbarWidth: 'none',
         position: 'sticky',
         top: 0,
         zIndex: 10,
         paddingBottom: '4px',
       }}
-      className="[&::-webkit-scrollbar]:hidden"
     >
       {TRIP_TYPES.map((tab, i) => {
         if (hideMultiDay && tab.kind !== 'store') return null

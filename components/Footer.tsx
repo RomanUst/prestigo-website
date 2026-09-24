@@ -50,7 +50,7 @@ export default function Footer() {
 
       {/* Main footer */}
       <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-10">
 
           {/* Brand */}
           <div className="md:col-span-1">
@@ -142,7 +142,7 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="mailto:info@rideprestigo.com" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
+                <a href="mailto:info@rideprestigo.com" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5 [overflow-wrap:anywhere]">
                   info@rideprestigo.com
                 </a>
               </li>

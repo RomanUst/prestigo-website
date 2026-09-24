@@ -443,7 +443,7 @@ export default function MultiDayPage() {
         >
           These are real trip types we run regularly. Use them as starting points — every itinerary we quote is built from scratch around your requirements.
         </p>
-        <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))' }}>
+        <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))' }}>
           {EXAMPLES.map((example) => (
             <article
               key={example.title}

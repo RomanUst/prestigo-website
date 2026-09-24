@@ -96,7 +96,7 @@ export default function CorporateForm() {
         <textarea id="notes" rows={4} value={form.notes} onChange={set('notes')} placeholder="Preferred vehicles, recurring routes, special requirements…" className={`${inputClass} resize-none`} />
       </div>
       {/* Honeypot — hidden from real users */}
-      <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1 }} aria-hidden="true" />
+      <input type="text" name="website" value={form.website} onChange={set('website')} tabIndex={-1} autoComplete="off" style={{ position: 'absolute', width: 1, height: 1, padding: 0, margin: -1, overflow: 'hidden', clipPath: 'inset(50%)', whiteSpace: 'nowrap', border: 0, opacity: 0 }} aria-hidden="true" />
       {state === 'error' && errorMessage && (
         <div className="border border-anthracite-light p-4 mb-4" style={{ color: 'var(--copper)' }}>{errorMessage}</div>
       )}
