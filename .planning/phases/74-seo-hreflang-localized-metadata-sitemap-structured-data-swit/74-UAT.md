@@ -1,18 +1,14 @@
 ---
-status: testing
+status: complete
 phase: 74-seo-hreflang-localized-metadata-sitemap-structured-data-swit
 source: [74-VERIFICATION.md]
 started: 2026-09-24T02:01:38Z
-updated: 2026-09-24T16:54:51Z
+updated: 2026-09-24T16:59:14Z
 ---
 
 ## Current Test
 
-number: 1
-name: Google Search Console — sitemap fetch + hreflang report (after deploy)
-expected: |
-  After the phase ships to production, https://rideprestigo.com/sitemap.xml returns 200 and Search Console fetches it successfully; the international-targeting / hreflang report shows reciprocal, non-conflicting annotations for the indexable page set.
-awaiting: user response
+[testing complete]
 
 ## Tests
 
@@ -23,15 +19,16 @@ note: "Automated prod crawl 2026-09-24: sitemap.xml 200 (63 entries); all 417 lo
 
 ### 2. First-visit language suggestion in a real browser (revised: inside the cookie consent modal)
 expected: With the browser language set to e.g. Russian and cookies cleared, opening an EN page shows the banner only after hydration (view-source has no banner markup); "Switch" opens the same page in /ru; "Stay" hides it and it does not return on reload; no automatic redirect ever happens
-result: issue
-reported: "Automated Playwright run on prod (browser locale ru-RU, fresh context, cookies accepted): banner never appears on /about. Server sets `NEXT_LOCALE=en` on the very first response, and the banner treats any NEXT_LOCALE cookie as an already-made choice."
+result: pass
+resolution: \"Initially failed (banner never rendered in prod). Fixed + redesigned (suggestion merged into consent modal, 12b3b160/663b6ef9), deployed 8469b24e. Prod Playwright re-run (ru-RU browser): row in modal on /about, Switch → /ru/about with Russian modal and no consent recorded, Arabic RTL on /ar/about, mobile + /book OK, en browser no row; raw HTML identical for ru vs en Accept-Language.\"
+reported_initially: "Automated Playwright run on prod (browser locale ru-RU, fresh context, cookies accepted): banner never appears on /about. Server sets `NEXT_LOCALE=en` on the very first response, and the banner treats any NEXT_LOCALE cookie as an already-made choice."
 severity: major
 
 ## Summary
 
 total: 2
-passed: 1
-issues: 1
+passed: 2
+issues: 0
 pending: 0
 skipped: 0
 blocked: 0
@@ -46,7 +43,9 @@ blocked: 0
 
 - gap_id: G-74-2
   truth: "First-visit banner appears for a visitor whose browser language differs from the page locale and who has not yet chosen a language"
-  status: failed
+  status: resolved
+  resolved_by: "663b6ef9 (deployed 8469b24e)"
+  resolved_at: 2026-09-24
   reason: "Automated prod check: banner never renders — next-intl middleware sets NEXT_LOCALE on every response (`set-cookie: NEXT_LOCALE=en` on first /about visit), and FirstVisitBanner.hasNextLocaleCookie() hides the banner whenever that cookie exists"
   severity: major
   test: 2
