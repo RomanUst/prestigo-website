@@ -214,4 +214,56 @@ describe('updateSession middleware — customer route gating (AUTH-05)', () => {
       }
     })
   })
+
+  // -------------------------------------------------------------------------
+  // 75-15 (D-04): unauthenticated /account/* under a non-EN locale prefix
+  // redirects to that SAME locale's /login (not the English one), with the
+  // RAW (locale-prefixed) pathname preserved in return-to.
+  //
+  // updateSession()'s 4th arg (pathnameOverride) is the locale-STRIPPED
+  // pathname middleware.ts's public branch passes for the `/account` gate
+  // CHECK (stripLocalePrefix(pathname, routing.locales)) — mirroring that
+  // exact call shape here, while `request.nextUrl.pathname` (used for both
+  // the new locale derivation AND the return-to value) stays the RAW,
+  // locale-prefixed URL, matching production.
+  // -------------------------------------------------------------------------
+  describe('75-15 (D-04): locale-aware /login redirect target', () => {
+    it('unauthenticated /ru/account/trips redirects to /ru/login?return-to=%2Fru%2Faccount%2Ftrips', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+
+      const request = makeRequest('/ru/account/trips')
+      const response = await updateSession(request, undefined, undefined, '/account/trips')
+
+      expect(response.status).toBe(307)
+      const url = new URL(response.headers.get('location')!)
+      expect(url.pathname).toBe('/ru/login')
+      expect(decodeURIComponent(url.searchParams.get('return-to') ?? '')).toBe(
+        '/ru/account/trips'
+      )
+    })
+
+    it('unauthenticated /ar/account redirects to /ar/login?return-to=%2Far%2Faccount', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+
+      const request = makeRequest('/ar/account')
+      const response = await updateSession(request, undefined, undefined, '/account')
+
+      expect(response.status).toBe(307)
+      const url = new URL(response.headers.get('location')!)
+      expect(url.pathname).toBe('/ar/login')
+      expect(decodeURIComponent(url.searchParams.get('return-to') ?? '')).toBe('/ar/account')
+    })
+
+    it('unauthenticated /account (no locale prefix, EN) still redirects to /login — regression backstop', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+
+      const request = makeRequest('/account')
+      const response = await updateSession(request)
+
+      expect(response.status).toBe(307)
+      const url = new URL(response.headers.get('location')!)
+      expect(url.pathname).toBe('/login')
+      expect(decodeURIComponent(url.searchParams.get('return-to') ?? '')).toBe('/account')
+    })
+  })
 })

@@ -1,8 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { createBrowserClient } from '@supabase/ssr'
+import { getPathname } from '@/i18n/routing'
+import type { AppLocale } from '@/i18n/locales'
 
 interface OAuthButtonsProps {
   returnTo?: string
@@ -10,6 +12,7 @@ interface OAuthButtonsProps {
 
 export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
   const t = useTranslations('Auth.oauth')
+  const locale = useLocale()
   // Memoize so the browser client isn't re-instantiated on every render.
   const supabase = useMemo(
     () =>
@@ -22,9 +25,11 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
 
   async function handleOAuth(provider: 'google' | 'apple') {
     const url = new URL('/auth/callback', window.location.origin)
-    if (returnTo) {
-      url.searchParams.set('return-to', returnTo)
-    }
+    // D-04: always carry a return-to — the explicitly provided prop, or
+    // else the active locale's /account path — so /auth/callback lands the
+    // user back in their own locale instead of the English /account.
+    const target = returnTo ?? getPathname({ locale: locale as AppLocale, href: '/account' })
+    url.searchParams.set('return-to', target)
     // Flag so the return landing can fire a GA4 login event after the redirect
     sessionStorage.setItem('oauth_login_pending', '1')
     await supabase.auth.signInWithOAuth({
