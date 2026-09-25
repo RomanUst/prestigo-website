@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 75
 current_phase_name: E2E Verification & Launch
 status: executing
-stopped_at: Completed 75-01-PLAN.md
-last_updated: "2026-09-25T09:02:59.946Z"
+stopped_at: Completed 75-02-PLAN.md
+last_updated: "2026-09-25T11:44:59.478Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 75 execution started
-state_head: f715fb64d261a1665878205e92e28569ab8b9bd1
+state_head: f7e38e4f7b21318e2c839bc3e27df298a464df17
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 70
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-20)
 ## Current Position
 
 Phase: 75 (E2E Verification & Launch) — EXECUTING
-Plan: 2 of 21
+Plan: 3 of 21
 Status: Ready to execute
 Last activity: 2026-09-25 — Phase 75 execution started
 
@@ -153,6 +153,9 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73]: 73-14: strengthened rtl-backstop.test.ts CR-02 block to per-field render-call-site assertions (openingParagraphs/routeNarrative.paragraphs interpolateBidi precomputes, faqs.aBidi + faq.aBidi render, JSON-LD text: f.a carve-out) across all 30 route pages, regression-proofed against the original GAP-1 defect; corrected 73-RTL-QA.md's Group 3 route-page row FAIL->PASS backed by a new prague-berlin /ar structural render re-check
 - [Phase 75]: hreflang_reciprocity.py reciprocity check implemented as sitemap-surface-vs-rendered-page-surface cross-check (not the naive full-mesh target-lookup) since app/sitemap.ts emits one entry per EN canonical carrying the full locale cluster inline — RESEARCH.md's code example assumed a sitemap with one entry per locale; the real structure only has EN-keyed entries, so a literal target-lookup would spuriously fail on every non-EN alternate
 - [Phase 75]: switcher_audit.py locates the LocaleSwitcher trigger/menu by stable id prefix and waits for aria-expanded=true before clicking a menuitem, instead of aria-haspopup + fixed sleep — aria-haspopup also matches the signed-in NAV-02 account-menu trigger; the dropdown menu is always mounted (opacity-toggled) so a fixed sleep raced React state updates and produced intermittent false failures
+- [Phase 75]: R4 findings (object-literal title/body/q/a/name/description leaves) are review-only and never fail the CLI exit code, keeping the auto-gate scoped to proven R1/R2/R3 defects
+- [Phase 75]: es/fr rendered-scan leak rule requires 3-word byte-identical-to-EN match (both Latin-script); ru/ar/hi/zh use a looser 2-word any-Latin-run rule (Latin script itself is inherently suspicious there)
+- [Phase 75]: components/admin/** findings are bucketed under an explicit UNOWNED heading in 75-EN-LEAK-AUDIT.md rather than assigned to a Phase 75 fix plan (admin panel is out of i18n scope per STATE.md)
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -264,8 +267,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-25T09:02:59.429Z
-Stopped at: Completed 75-01-PLAN.md
+Last session: 2026-09-25T11:44:59.004Z
+Stopped at: Completed 75-02-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -332,6 +335,7 @@ Resume file: None
 | Phase 73 P13 | 30min | 2 tasks | 32 files |
 | Phase 73 P14 | 20min | 2 tasks | 3 files |
 | Phase 75 P01 | 45min | 3 tasks | 8 files |
+| Phase 75 P02 | 48min | 2 tasks | 8 files |
 
 ## Operator Next Steps
 

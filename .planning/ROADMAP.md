@@ -294,7 +294,7 @@ Plans:
 **Wave 1**
 
 - [x] 75-01-PLAN.md — QA harness (render, switcher, hreflang, JSON-LD, CSP) + pre-change production baseline
-- [ ] 75-02-PLAN.md — Two-layer EN-leak audit (AST static + rendered prod scan) + D-09 allowlist + inventory
+- [x] 75-02-PLAN.md — Two-layer EN-leak audit (AST static + rendered prod scan) + D-09 allowlist + inventory
 - [ ] 75-03-PLAN.md — Booking E2E driver (guest x7 incl. RTL, RU/AR account path, Stripe/Places locale, E2E marker)
 - [ ] 75-04-PLAN.md — site_locale on GA4 (gtag set) + Meta Pixel/CAPI (identical, strict schema fixed) + analytics QA script
 - [ ] 75-06-PLAN.md — /book page chrome -> content model, translated x6
@@ -423,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 1/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 2/21 | In Progress|  |
