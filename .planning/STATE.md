@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 75
 current_phase_name: E2E Verification & Launch
 status: executing
-stopped_at: Phase 75 context gathered
-last_updated: "2026-09-25T08:04:33.311Z"
-last_activity: 2026-09-24
-last_activity_desc: Phase 74 complete, transitioned to Phase 75
-state_head: c3049b17b7e871883d9d1a2f9bcd84595ba66cb1
+stopped_at: Completed 75-01-PLAN.md
+last_updated: "2026-09-25T09:02:59.946Z"
+last_activity: 2026-09-25
+last_activity_desc: Phase 75 execution started
+state_head: f715fb64d261a1665878205e92e28569ab8b9bd1
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 70
-  completed_plans: 49
+  completed_plans: 50
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-20)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 74 — SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher
+**Current focus:** Phase 75 — E2E Verification & Launch
 
 ## Current Position
 
-Phase: 75 (E2E Verification & Launch) — READY TO EXECUTE
-Plan: Not started
+Phase: 75 (E2E Verification & Launch) — EXECUTING
+Plan: 2 of 21
 Status: Ready to execute
-Last activity: 2026-09-24 — Phase 74 complete, transitioned to Phase 75
+Last activity: 2026-09-25 — Phase 75 execution started
 
 ## Accumulated Context
 
@@ -151,6 +151,8 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73] 73-09: prague-vienna golden EN byte-parity snapshot regenerated (matches 73-04 precedent) since <bdi> renders identically regardless of locale; verified programmatically that stripping all <bdi> tags from the new snapshot reproduces the old one byte-for-byte
 - [Phase 73]: 73-13: closed GAP-1 bidi-isolation defect (openingParagraphs/routeNarrative.paragraphs/faqs[].a switched to interpolateBidi()/aBidi at render, JSON-LD text: f.a carve-out preserved) across all 30 route pages
 - [Phase 73]: [Phase 73]: 73-14: strengthened rtl-backstop.test.ts CR-02 block to per-field render-call-site assertions (openingParagraphs/routeNarrative.paragraphs interpolateBidi precomputes, faqs.aBidi + faq.aBidi render, JSON-LD text: f.a carve-out) across all 30 route pages, regression-proofed against the original GAP-1 defect; corrected 73-RTL-QA.md's Group 3 route-page row FAIL->PASS backed by a new prague-berlin /ar structural render re-check
+- [Phase 75]: hreflang_reciprocity.py reciprocity check implemented as sitemap-surface-vs-rendered-page-surface cross-check (not the naive full-mesh target-lookup) since app/sitemap.ts emits one entry per EN canonical carrying the full locale cluster inline — RESEARCH.md's code example assumed a sitemap with one entry per locale; the real structure only has EN-keyed entries, so a literal target-lookup would spuriously fail on every non-EN alternate
+- [Phase 75]: switcher_audit.py locates the LocaleSwitcher trigger/menu by stable id prefix and waits for aria-expanded=true before clicking a menuitem, instead of aria-haspopup + fixed sleep — aria-haspopup also matches the signed-in NAV-02 account-menu trigger; the dropdown menu is always mounted (opacity-toggled) so a fixed sleep raced React state updates and produced intermittent false failures
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -262,9 +264,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-24T20:23:03.571Z
-Stopped at: Phase 75 context gathered
-Resume file: .planning/phases/75-e2e-verification-launch/75-CONTEXT.md
+Last session: 2026-09-25T09:02:59.429Z
+Stopped at: Completed 75-01-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -329,6 +331,7 @@ Resume file: .planning/phases/75-e2e-verification-launch/75-CONTEXT.md
 | Phase 73 P09 | ~15min | 2 tasks | 32 files |
 | Phase 73 P13 | 30min | 2 tasks | 32 files |
 | Phase 73 P14 | 20min | 2 tasks | 3 files |
+| Phase 75 P01 | 45min | 3 tasks | 8 files |
 
 ## Operator Next Steps
 
