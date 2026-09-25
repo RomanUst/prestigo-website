@@ -66,8 +66,8 @@ vi.mock("next/image", () => ({
 vi.mock("@/components/Nav", () => ({ default: () => null }));
 vi.mock("@/components/Footer", () => ({ default: () => null }));
 
-const getRoutePriceMock = vi.fn(async () => ({
-  slug: "prague-vienna",
+const getRoutePriceMock = vi.fn(async (slug: string) => ({
+  slug,
   fromLabel: "Prague",
   toLabel: "Vienna",
   distanceKm: 330,
@@ -154,5 +154,69 @@ describe("PragueViennaPage — locale-aware links + content-driven hero alt (75-
     const ruContent = getRouteContent("prague-vienna", "ru");
     expect(ruContent.hero.imageAlt).toBeTruthy();
     expect(html).toContain(`alt="${ruContent.hero.imageAlt}"`);
+  });
+});
+
+// 75-10 Task 2: the same locale-prefix proof as the tracer above, generalized
+// across all 30 route slugs against 'ar' (an RTL locale, the widest possible
+// distance from the 'ru' tracer check) -- confirms the getPathname()
+// mechanical repeat (Task 2's codemod) landed identically on every page.
+const ALL_SLUGS = [
+  "prague-berlin",
+  "prague-bratislava",
+  "prague-brno",
+  "prague-budapest",
+  "prague-ceske-budejovice",
+  "prague-cesky-krumlov",
+  "prague-dresden",
+  "prague-frantiskovy-lazne",
+  "prague-graz",
+  "prague-hradec-kralove",
+  "prague-karlovy-vary",
+  "prague-krakow",
+  "prague-kutna-hora",
+  "prague-leipzig",
+  "prague-liberec",
+  "prague-linz",
+  "prague-marianske-lazne",
+  "prague-munich",
+  "prague-nuremberg",
+  "prague-olomouc",
+  "prague-ostrava",
+  "prague-pardubice",
+  "prague-passau",
+  "prague-plzen",
+  "prague-regensburg",
+  "prague-salzburg",
+  "prague-vienna",
+  "prague-warsaw",
+  "prague-wroclaw",
+  "prague-zlin",
+];
+
+describe("All 30 route pages — locale:'ar' renders every single-slash href prefixed with /ar/ (75-10 Task 2)", () => {
+  it.each(ALL_SLUGS)("%s", async (slug) => {
+    vi.mocked(getLocale).mockResolvedValueOnce("ar");
+
+    const pageModule = await import(`@/app/[locale]/routes/${slug}/page.tsx`);
+    const { render } = await import("@testing-library/react");
+
+    const PageElement = await pageModule.default();
+    const { container } = render(PageElement);
+    const html = container.innerHTML;
+
+    const hrefs = collectSingleSlashHrefs(html);
+    expect(hrefs.length).toBeGreaterThan(0);
+    for (const href of hrefs) {
+      expect(href.startsWith("/ar/")).toBe(true);
+    }
+    expect(hrefs).toContain("/ar/book");
+    expect(hrefs).toContain("/ar/contact");
+    expect(hrefs).toContain("/ar/routes");
+    expect(hrefs.some((h) => h.startsWith("/ar/routes/prague-"))).toBe(true);
+
+    const arContent = getRouteContent(slug, "ar");
+    expect(arContent.hero.imageAlt).toBeTruthy();
+    expect(html).toContain(`alt="${arContent.hero.imageAlt}"`);
   });
 });

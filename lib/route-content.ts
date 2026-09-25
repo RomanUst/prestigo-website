@@ -22,11 +22,9 @@ export type RouteContent = {
     headlineLine1: string;
     headlineItalic: string;
     intro: string;
-    // 75-10 Task 1: content-driven hero image alt text (D-07). Optional
-    // here so the loader keeps working while the remaining 29 routes'
-    // content files are backfilled by Task 2, which then makes this
-    // required once all 210 files (30 slugs x 7 locales) carry it.
-    imageAlt?: string;
+    // 75-10: content-driven hero image alt text (D-07). Required — all
+    // 210 route content files (30 slugs x 7 locales) carry it.
+    imageAlt: string;
   };
   openingParagraphs: string[];
   routeNarrative: {

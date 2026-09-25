@@ -1,0 +1,45 @@
+# 75-10: 30 route pages -- hero.imageAlt (all 30 slugs) + the 9 hi
+# whyBook.headingLine1 units that closed WINDOWS #6 (English-fallback
+# heading) -- hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh.
+# Plan 75-18 applies this pattern to i18n/translation-manifest.json so a
+# future pipeline run neither overwrites these units nor re-spends tokens
+# on them.
+content/routes/en/prague-berlin.json::hero.imageAlt
+content/routes/en/prague-bratislava.json::hero.imageAlt
+content/routes/en/prague-brno.json::hero.imageAlt
+content/routes/en/prague-budapest.json::hero.imageAlt
+content/routes/en/prague-ceske-budejovice.json::hero.imageAlt
+content/routes/en/prague-cesky-krumlov.json::hero.imageAlt
+content/routes/en/prague-dresden.json::hero.imageAlt
+content/routes/en/prague-frantiskovy-lazne.json::hero.imageAlt
+content/routes/en/prague-graz.json::hero.imageAlt
+content/routes/en/prague-hradec-kralove.json::hero.imageAlt
+content/routes/en/prague-karlovy-vary.json::hero.imageAlt
+content/routes/en/prague-krakow.json::hero.imageAlt
+content/routes/en/prague-kutna-hora.json::hero.imageAlt
+content/routes/en/prague-leipzig.json::hero.imageAlt
+content/routes/en/prague-liberec.json::hero.imageAlt
+content/routes/en/prague-linz.json::hero.imageAlt
+content/routes/en/prague-marianske-lazne.json::hero.imageAlt
+content/routes/en/prague-munich.json::hero.imageAlt
+content/routes/en/prague-nuremberg.json::hero.imageAlt
+content/routes/en/prague-olomouc.json::hero.imageAlt
+content/routes/en/prague-ostrava.json::hero.imageAlt
+content/routes/en/prague-pardubice.json::hero.imageAlt
+content/routes/en/prague-passau.json::hero.imageAlt
+content/routes/en/prague-plzen.json::hero.imageAlt
+content/routes/en/prague-regensburg.json::hero.imageAlt
+content/routes/en/prague-salzburg.json::hero.imageAlt
+content/routes/en/prague-vienna.json::hero.imageAlt
+content/routes/en/prague-warsaw.json::hero.imageAlt
+content/routes/en/prague-wroclaw.json::hero.imageAlt
+content/routes/en/prague-zlin.json::hero.imageAlt
+content/routes/en/prague-ceske-budejovice.json::whyBook.headingLine1
+content/routes/en/prague-wroclaw.json::whyBook.headingLine1
+content/routes/en/prague-frantiskovy-lazne.json::whyBook.headingLine1
+content/routes/en/prague-olomouc.json::whyBook.headingLine1
+content/routes/en/prague-hradec-kralove.json::whyBook.headingLine1
+content/routes/en/prague-marianske-lazne.json::whyBook.headingLine1
+content/routes/en/prague-zlin.json::whyBook.headingLine1
+content/routes/en/prague-plzen.json::whyBook.headingLine1
+content/routes/en/prague-pardubice.json::whyBook.headingLine1
