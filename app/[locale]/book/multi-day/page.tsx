@@ -6,6 +6,24 @@ import MultiDayForm from '@/components/booking/MultiDayForm'
 import MetaViewContent from '@/components/MetaViewContent'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { getPageContent } from '@/lib/page-content'
+
+type MultiDayContent = {
+  metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
+  hero: { label: string; headlineLine1: string; headlineLine2: string; intro: string[] }
+  included: { heading: string; items: string[] }
+  howItWorks: { label: string; steps: { title: string; body: string }[] }
+  examples: {
+    heading: string
+    intro: string
+    dayLabel: string
+    dayTypeLabels: { TRANSFER: string; HOURLY: string }
+    items: { title: string; subtitle: string; description: string; daySummaries: string[] }[]
+  }
+  faq: { heading: string; items: { q: string; a: string }[] }
+  builder: { heading: string; intro: string }
+  imageAlts: { hero: string; section: string }
+}
 
 const breadcrumbSchema = {
   '@context': 'https://schema.org',
@@ -19,148 +37,81 @@ const breadcrumbSchema = {
 
 // CR-01: converted from a static `metadata` export to generateMetadata()
 // so the current locale is available for the self-referencing canonical.
-// No `content` ref -> chrome-only page (all 7 locales assumed valid).
+// 75-07: /book/multi-day now has a content model
+// (content/pages/<locale>/book/multi-day.json) -> `content: { kind: 'page',
+// key: 'book/multi-day' }` makes the hreflang cluster translation-aware
+// (Phase 74 D-07), not "all locales assumed valid".
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
-  const alternates = getAlternates('/book/multi-day', { indexable: true, locale })
+  const content = getPageContent('book/multi-day', locale) as MultiDayContent
+  const alternates = getAlternates('/book/multi-day', { indexable: true, content: { kind: 'page', key: 'book/multi-day' }, locale })
   return {
-    title: { absolute: 'Multi-day Chauffeur Hire | PRESTIGO' },
-    description:
-      'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
+    title: { absolute: content.metadata.title },
+    description: content.metadata.description,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
-      title: 'Multi-day Chauffeur Hire | PRESTIGO',
-      description: 'Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.',
+      title: content.metadata.ogTitle,
+      description: content.metadata.ogDescription,
       images: [{ url: 'https://rideprestigo.com/multi-day-hero.png', width: 1200, height: 630 }],
     },
   }
 }
 
-const INCLUDES = [
-  'Dedicated English-speaking chauffeur for the full duration of your trip',
-  'Premium vehicle class matched to your group size and comfort preferences',
-  'Flexible day-by-day routing — Transfer, Hourly, or a combination of both',
-  'Driver accommodation, tolls, parking, and road taxes fully covered by PRESTIGO',
-  'Meet & greet at airports and hotels with name-board service',
-  '24/7 concierge support throughout your journey for last-minute changes',
-  'Flight monitoring on travel days — we track delays so your schedule stays intact',
-  'Child seats, extra luggage space, and special requests arranged on request',
-]
-
 interface ExampleDay {
   day: number
   type: 'TRANSFER' | 'HOURLY'
-  summary: string
 }
 
-interface ExampleItinerary {
-  title: string
-  subtitle: string
-  description: string
-  days: ExampleDay[]
-}
-
-const EXAMPLES: ExampleItinerary[] = [
-  {
-    title: 'Executive trip — Prague to Vienna',
-    subtitle: '3 days · 2 transfers + city programme',
-    description:
-      'A classic Central European business circuit. Day one moves you from Prague to Vienna in style, with a brief stop at the Lednice château en route if time allows. Day two is yours — the chauffeur is on call for meetings, the airport, the opera, or a private wine dinner in the Wachau. Day three returns you to Prague in time for an afternoon flight.',
-    days: [
-      { day: 1, type: 'TRANSFER', summary: 'Prague (hotel / airport) → Vienna — ≈4 h drive, optional scenic stop' },
-      { day: 2, type: 'HOURLY', summary: 'Vienna city programme — 6 h, meetings, sightseeing, or both' },
-      { day: 3, type: 'TRANSFER', summary: 'Vienna → Prague (return), morning departure' },
-    ],
-  },
-  {
-    title: 'Central Europe scenic tour',
-    subtitle: '5 days · Prague → Český Krumlov → Salzburg → Munich',
-    description:
-      'A leisurely cultural arc through four countries. The chauffeur handles all logistics — luggage loading, hotel drop-offs, and border crossings — so you move between UNESCO sites and alpine scenery without a single logistical worry. Each city stop is long enough to feel unhurried.',
-    days: [
-      { day: 1, type: 'TRANSFER', summary: 'Prague → Český Krumlov — UNESCO old town, castle views' },
-      { day: 2, type: 'HOURLY', summary: 'Český Krumlov exploration — 5 h guided atmosphere' },
-      { day: 3, type: 'TRANSFER', summary: 'Český Krumlov → Salzburg — alpine foothills, lunch stop' },
-      { day: 4, type: 'HOURLY', summary: 'Salzburg — Mozart sites, Mirabell gardens, old town — 6 h' },
-      { day: 5, type: 'TRANSFER', summary: 'Salzburg → Munich (airport or hotel drop-off)' },
-    ],
-  },
-  {
-    title: 'Corporate roadshow — Prague · Brno · Warsaw',
-    subtitle: '4 days · senior team client visits across three cities',
-    description:
-      'Designed for senior teams running back-to-back client or investor meetings across multiple cities. One dedicated vehicle, one familiar driver, no time lost on logistics. The itinerary below is typical; we adapt departure times around your calendar in real time.',
-    days: [
-      { day: 1, type: 'TRANSFER', summary: 'Prague → Brno — morning departure, afternoon meetings' },
-      { day: 2, type: 'HOURLY', summary: 'Brno — office visits and working lunch — 7 h on-call' },
-      { day: 3, type: 'TRANSFER', summary: 'Brno → Warsaw — long-distance transfer, overnight' },
-      { day: 4, type: 'HOURLY', summary: 'Warsaw city — final meetings + evening flight drop-off — 8 h' },
-    ],
-  },
-  {
-    title: 'Spa & wellness retreat — Karlovy Vary',
-    subtitle: '3 days · Prague base + two full days in the spa triangle',
-    description:
-      'Western Bohemia\'s spa towns — Karlovy Vary, Mariánské Lázně, Františkovy Lázně — are just 90 minutes from Prague and among the most serene in Europe. This itinerary gives you two full unhurried days in the colonnades, with the car available for morning and evening transfers between hotels and treatment centres.',
-    days: [
-      { day: 1, type: 'TRANSFER', summary: 'Prague → Karlovy Vary — check-in, evening colonnade walk' },
-      { day: 2, type: 'HOURLY', summary: 'Karlovy Vary & surrounds — 6 h spa circuit, optional Mariánské Lázně' },
-      { day: 3, type: 'TRANSFER', summary: 'Karlovy Vary → Prague — flexible departure, airport option' },
-    ],
-  },
-  {
-    title: 'Wedding weekend — private group transfer',
-    subtitle: '2 days · Prague city + Bohemian countryside venue',
-    description:
-      'Moving a wedding party between Prague hotels, the countryside venue, and back requires precision timing and a vehicle that matches the occasion. We coordinate with your event planner, hold waiting time between ceremony and reception, and ensure guests arrive composed.',
-    days: [
-      { day: 1, type: 'TRANSFER', summary: 'Prague hotels → countryside venue — ceremony and reception' },
-      { day: 2, type: 'TRANSFER', summary: 'Venue → Prague (hotels + airport) — morning returns' },
-    ],
-  },
-  {
-    title: 'Wine & gastronomy — Moravia',
-    subtitle: '4 days · Prague → South Moravia wine region loop',
-    description:
-      'Moravia\'s wine country sits two hours east of Prague and produces some of the best Welschriesling and Blaufränkisch in Central Europe — virtually unknown outside the region. This circuit combines cellar visits, open-air wine villages, and the Lednice–Valtice UNESCO landscape.',
-    days: [
-      { day: 1, type: 'TRANSFER', summary: 'Prague → Mikulov — boutique wine hotel, hillside castle' },
-      { day: 2, type: 'HOURLY', summary: 'Wine cellar circuit — Valtice, Znojmo, Pálava hills — 7 h' },
-      { day: 3, type: 'HOURLY', summary: 'Lednice–Valtice UNESCO landscape, afternoon tasting — 6 h' },
-      { day: 4, type: 'TRANSFER', summary: 'Mikulov → Prague (or Brno airport) — return journey' },
-    ],
-  },
+// Structural config — day numbers and TRANSFER/HOURLY type per example stay
+// in code, zipped by index with the translated `examples.items[i].daySummaries`
+// catalog array (Phase 69 convention). The displayed TRANSFER/HOURLY badge
+// text itself is translated via `examples.dayTypeLabels` (keyed by these
+// same structural type values) so the badge does not leak English.
+const EXAMPLE_DAYS: ExampleDay[][] = [
+  [
+    { day: 1, type: 'TRANSFER' },
+    { day: 2, type: 'HOURLY' },
+    { day: 3, type: 'TRANSFER' },
+  ],
+  [
+    { day: 1, type: 'TRANSFER' },
+    { day: 2, type: 'HOURLY' },
+    { day: 3, type: 'TRANSFER' },
+    { day: 4, type: 'HOURLY' },
+    { day: 5, type: 'TRANSFER' },
+  ],
+  [
+    { day: 1, type: 'TRANSFER' },
+    { day: 2, type: 'HOURLY' },
+    { day: 3, type: 'TRANSFER' },
+    { day: 4, type: 'HOURLY' },
+  ],
+  [
+    { day: 1, type: 'TRANSFER' },
+    { day: 2, type: 'HOURLY' },
+    { day: 3, type: 'TRANSFER' },
+  ],
+  [
+    { day: 1, type: 'TRANSFER' },
+    { day: 2, type: 'TRANSFER' },
+  ],
+  [
+    { day: 1, type: 'TRANSFER' },
+    { day: 2, type: 'HOURLY' },
+    { day: 3, type: 'HOURLY' },
+    { day: 4, type: 'TRANSFER' },
+  ],
 ]
 
-const FAQ = [
-  {
-    q: 'How far in advance do I need to book?',
-    a: 'We accept requests up to 12 months ahead and as close as 48 hours before the first day, subject to vehicle availability. For peak periods (May–September, December) we recommend booking at least two weeks out.',
-  },
-  {
-    q: 'Can I change the itinerary after submitting?',
-    a: 'Yes. Once we send your quote, you can request changes before confirming. After confirmation, minor adjustments — departure times, additional stops — are handled directly with your driver. Major route changes may affect pricing.',
-  },
-  {
-    q: 'Which countries do you cover?',
-    a: 'Our primary territory is Czech Republic, Austria, Germany, Slovakia, Poland, and Hungary. We can also arrange transfers into Croatia, Slovenia, and the Benelux on request. Longer itineraries are quoted individually.',
-  },
-  {
-    q: 'What vehicle classes are available for multi-day trips?',
-    a: 'Business (Mercedes E-Class or equivalent), First Class (Mercedes S-Class or equivalent), and Business Van (Mercedes V-Class, up to 6 passengers). All classes include ample boot space; extra luggage trailers are available for group transfers.',
-  },
-  {
-    q: 'Is accommodation for the driver included?',
-    a: 'Yes — driver accommodation, meals on multi-day routes, and all tolls are fully included in your quote. There are no hidden surcharges.',
-  },
-  {
-    q: 'Do you provide receipts for corporate expense reporting?',
-    a: 'Yes. We issue a VAT invoice after the journey is complete. We can address invoices to your company and split by cost centre on request.',
-  },
-]
+// Structural config — the 4 how-it-works step numbers stay in code, zipped
+// by index with the translated `howItWorks.steps` catalog array (Phase 69
+// convention, reused from 75-06's /book refactor).
+const stepNumbers = ['01', '02', '03', '04']
 
-export default function MultiDayPage() {
+export default async function MultiDayPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const content = getPageContent('book/multi-day', locale) as MultiDayContent
   const businessDoc = businessNodeDoc()
   return (
     <>
@@ -192,7 +143,7 @@ export default function MultiDayPage() {
         {/* Background image */}
         <Image
           src="/multi-day-hero.png"
-          alt="Prestigo chauffeur and luxury car on a multi-day journey through Central Europe"
+          alt={content.imageAlts.hero}
           fill
           style={{ objectFit: 'cover', objectPosition: 'center 40%' }}
         />
@@ -217,7 +168,7 @@ export default function MultiDayPage() {
               marginBottom: '16px',
             }}
           >
-            PRESTIGO · Multi-day chauffeur hire
+            {content.hero.label}
           </p>
           <h1
             id="multiday-hero-heading"
@@ -230,7 +181,7 @@ export default function MultiDayPage() {
               color: 'var(--offwhite)',
             }}
           >
-            One chauffeur. Every day. <br />Wherever Central Europe takes you.
+            {content.hero.headlineLine1} <br />{content.hero.headlineLine2}
           </h1>
           <p
             style={{
@@ -242,7 +193,7 @@ export default function MultiDayPage() {
               marginBottom: '20px',
             }}
           >
-            Some journeys don&rsquo;t fit into a single booking. A corporate roadshow spanning three cities. A family tour across Bohemia and Bavaria. A wedding weekend that moves between Prague and a countryside château. For these, you need a dedicated vehicle and a driver who knows your itinerary as well as you do.
+            {content.hero.intro[0]}
           </p>
           <p
             style={{
@@ -253,7 +204,7 @@ export default function MultiDayPage() {
               maxWidth: '640px',
             }}
           >
-            Build your day-by-day itinerary below — mix Transfer and Hourly days freely, add intermediate stops, set departure times — and we&rsquo;ll return a fixed quote within 24 hours. No online payment required: once the itinerary is right, we confirm by email and the rest is taken care of.
+            {content.hero.intro[1]}
           </p>
         </div>
       </section>
@@ -280,7 +231,7 @@ export default function MultiDayPage() {
             marginBottom: '24px',
           }}
         >
-          Everything included
+          {content.included.heading}
         </h2>
         <ul
           style={{
@@ -292,7 +243,7 @@ export default function MultiDayPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           }}
         >
-          {INCLUDES.map((item) => (
+          {content.included.items.map((item) => (
             <li
               key={item}
               style={{
@@ -337,7 +288,7 @@ export default function MultiDayPage() {
             marginBottom: '32px',
           }}
         >
-          How it works
+          {content.howItWorks.label}
         </h2>
         <ol
           style={{
@@ -349,12 +300,9 @@ export default function MultiDayPage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           }}
         >
-          {[
-            { step: '01', title: 'Build your itinerary', body: 'Add days, choose Transfer or Hourly for each, set dates and departure times. Stops and special requests go in the notes.' },
-            { step: '02', title: 'Receive your quote', body: 'We review your route and send a fixed all-inclusive quote within 24 hours. No surprises — the price covers driver, tolls, and accommodation.' },
-            { step: '03', title: 'Confirm by email', body: 'Reply to accept. No payment link, no deposit. We confirm your booking and assign your dedicated chauffeur.' },
-            { step: '04', title: 'Travel', body: 'Your driver meets you at the first pick-up point. From that moment, logistics are ours to manage.' },
-          ].map(({ step, title, body }) => (
+          {stepNumbers.map((step, i) => {
+            const s = content.howItWorks.steps[i]
+            return (
             <div
               key={step}
               style={{
@@ -385,7 +333,7 @@ export default function MultiDayPage() {
                   marginBottom: '10px',
                 }}
               >
-                {title}
+                {s.title}
               </p>
               <p
                 style={{
@@ -395,14 +343,15 @@ export default function MultiDayPage() {
                   color: 'var(--warmgrey)',
                 }}
               >
-                {body}
+                {s.body}
               </p>
             </div>
-          ))}
+            )
+          })}
         </ol>
       </section>
 
-      {/* ── Example itineraries ── */}
+      {/* ── Itinerary examples (content.examples) ── */}
       <section
         aria-labelledby="multiday-examples-heading"
         style={{
@@ -414,7 +363,7 @@ export default function MultiDayPage() {
         {/* Background image */}
         <Image
           src="/multi-day-itineraries-bg.png"
-          alt="Scenic Central European landscape along Prestigo multi-day chauffeur itineraries"
+          alt={content.imageAlts.section}
           fill
           style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.22 }}
         />
@@ -430,7 +379,7 @@ export default function MultiDayPage() {
             marginBottom: '8px',
           }}
         >
-          Example itineraries
+          {content.examples.heading}
         </h2>
         <p
           style={{
@@ -441,10 +390,12 @@ export default function MultiDayPage() {
             lineHeight: 1.6,
           }}
         >
-          These are real trip types we run regularly. Use them as starting points — every itinerary we quote is built from scratch around your requirements.
+          {content.examples.intro}
         </p>
         <div style={{ display: 'grid', gap: '24px', gridTemplateColumns: 'repeat(auto-fit, minmax(min(340px, 100%), 1fr))' }}>
-          {EXAMPLES.map((example) => (
+          {EXAMPLE_DAYS.map((days, exampleIndex) => {
+            const example = content.examples.items[exampleIndex]
+            return (
             <article
               key={example.title}
               style={{
@@ -491,7 +442,7 @@ export default function MultiDayPage() {
                 {example.description}
               </p>
               <ol style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: '10px' }}>
-                {example.days.map((d) => (
+                {days.map((d, dayIndex) => (
                   <li
                     key={d.day}
                     style={{
@@ -513,18 +464,19 @@ export default function MultiDayPage() {
                         paddingTop: '2px',
                       }}
                     >
-                      DAY {d.day}
+                      {content.examples.dayLabel.replace('{day}', String(d.day))}
                     </span>
                     <span>
-                      <strong style={{ fontWeight: 500, color: 'var(--copper-lighter)' }}>{d.type}</strong>
+                      <strong style={{ fontWeight: 500, color: 'var(--copper-lighter)' }}>{content.examples.dayTypeLabels[d.type]}</strong>
                       {' — '}
-                      {d.summary}
+                      {example.daySummaries[dayIndex]}
                     </span>
                   </li>
                 ))}
               </ol>
             </article>
-          ))}
+            )
+          })}
         </div>
         </div>
       </section>
@@ -550,10 +502,10 @@ export default function MultiDayPage() {
             marginBottom: '32px',
           }}
         >
-          Frequently asked questions
+          {content.faq.heading}
         </h2>
         <dl style={{ display: 'grid', gap: '0' }}>
-          {FAQ.map(({ q, a }) => (
+          {content.faq.items.map(({ q, a }) => (
             <div
               key={q}
               style={{
@@ -612,7 +564,7 @@ export default function MultiDayPage() {
             marginBottom: '8px',
           }}
         >
-          Build your itinerary
+          {content.builder.heading}
         </h2>
         <p
           style={{
@@ -623,7 +575,7 @@ export default function MultiDayPage() {
             lineHeight: 1.6,
           }}
         >
-          Add your days below. Each day can be a point-to-point Transfer or an Hourly block — mix freely. We&rsquo;ll review and respond with a fixed quote within 24 hours.
+          {content.builder.intro}
         </p>
         <MultiDayForm />
       </section>
