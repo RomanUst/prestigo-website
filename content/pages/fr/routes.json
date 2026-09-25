@@ -1,0 +1,181 @@
+{
+  "hero": {
+    "label": "Trajets interurbains",
+    "headlineLine1": "L'Europe centrale, ",
+    "headlineItalic": "porte à porte.",
+    "intro": "Prague est le centre de l'Europe centrale. Vienne, Berlin, Munich, Budapest — tout à une journée de route. Les chauffeurs PRESTIGO couvrent 30 trajets à prix fixe, avec des véhicules premium et sans surprise."
+  },
+  "imageAlt": "PRESTIGO — trajets interurbains, chauffeur privé en Europe centrale",
+  "fromToLabel": "Prague → {city}",
+  "popular": {
+    "label": "Trajets les plus demandés",
+    "headingLine1": "Meilleurs trajets depuis Prague, ",
+    "headingItalic": "tarifs en direct.",
+    "fromLabels": {
+      "eClass": "E-Class à partir de",
+      "vClass": "V-Class à partir de",
+      "sClass": "S-Class à partir de"
+    },
+    "viewRoute": "Voir le trajet →"
+  },
+  "whyPrivate": {
+    "label": "Organiser un trajet interurbain",
+    "headingLine1": "Pourquoi un transfert privé ",
+    "headingItalic": "vaut mieux que le train.",
+    "paragraphs": [
+      "Le train interurbain en Europe centrale est excellent — mais il s'arrête à la gare, pas à la porte de votre hôtel. Pour la plupart de nos clients, le coût caché d'un trajet Prague–Vienne ou Prague–Berlin n'est pas le billet. C'est les deux taxis à chaque extrémité, l'heure passée à traîner les bagages dans une gare, l'horaire de départ rigide et le temps perdu entre deux rendez-vous quand le planning glisse.",
+      "Un transfert privé PRESTIGO remplace tout cela par un trajet unique à prix fixe. Votre chauffeur vous prend à votre adresse à Prague, se charge de vos bagages, traverse la ville par l'itinéraire le plus rapide du jour et vous dépose exactement à l'entrée de votre destination — hôtel, bureau, ambassade, centre de conférences, aéroport. Si vous devez passer des appels tout le trajet, c'est possible. Si vous devez dormir, c'est possible. Si vous devez vous arrêter déjeuner à Brno, Bratislava ou Dresde, dites-le simplement au chauffeur.",
+      "Chaque trajet interurbain de cette page est assuré avec la même flotte, les mêmes chauffeurs vérifiés et le même niveau de service que nos transferts aéroport. Les prix sont indiqués par véhicule, pas par passager — deux personnes paient donc le même tarif qu'une seule, et un V-Class avec six passagers et tous les bagages voyage toujours pour un montant fixe unique."
+    ]
+  },
+  "countries": {
+    "label": "Pays de destination",
+    "headingOne": "1 trajet depuis Prague",
+    "headingMany": "{count} trajets depuis Prague",
+    "introOne": "Un trajet avec chauffeur privé depuis Prague jusqu'en {country}.",
+    "introMany": "{count} trajets avec chauffeur privé depuis Prague jusqu'en {country}, classés par distance.",
+    "introSuffix": "Chaque trajet est proposé à un tarif fixe unique, porte à porte, avec suivi de vol au retour lorsque applicable.",
+    "cardLabels": {
+      "distance": "Distance",
+      "duration": "Durée",
+      "price": "Prix"
+    },
+    "bookButton": "Réserver Prague → {city}",
+    "routeDetails": "Détails du trajet"
+  },
+  "destinationNames": {
+    "prague-kutna-hora": "Kutná Hora",
+    "prague-plzen": "Pilsen",
+    "prague-liberec": "Liberec",
+    "prague-pardubice": "Pardubice",
+    "prague-hradec-kralove": "Hradec Králové",
+    "prague-karlovy-vary": "Karlovy Vary",
+    "prague-dresden": "Dresde",
+    "prague-ceske-budejovice": "České Budějovice",
+    "prague-marianske-lazne": "Mariánské Lázně",
+    "prague-cesky-krumlov": "Český Krumlov",
+    "prague-frantiskovy-lazne": "Františkovy Lázně",
+    "prague-linz": "Linz",
+    "prague-brno": "Brno",
+    "prague-passau": "Passau",
+    "prague-leipzig": "Leipzig",
+    "prague-olomouc": "Olomouc",
+    "prague-regensburg": "Ratisbonne",
+    "prague-wroclaw": "Wrocław",
+    "prague-vienna": "Vienne",
+    "prague-salzburg": "Salzbourg",
+    "prague-zlin": "Zlín",
+    "prague-bratislava": "Bratislava",
+    "prague-berlin": "Berlin",
+    "prague-nuremberg": "Nuremberg",
+    "prague-ostrava": "Ostrava",
+    "prague-krakow": "Cracovie",
+    "prague-munich": "Munich",
+    "prague-graz": "Graz",
+    "prague-budapest": "Budapest",
+    "prague-warsaw": "Varsovie"
+  },
+  "countryNames": {
+    "Czech Republic": "République tchèque",
+    "Germany": "Allemagne",
+    "Austria": "Autriche",
+    "Poland": "Pologne",
+    "Slovakia": "Slovaquie",
+    "Hungary": "Hongrie"
+  },
+  "howItWorks": {
+    "heading": "Comment ça marche",
+    "steps": [
+      { "title": "Réservez", "body": "Choisissez votre trajet et votre véhicule. Prix fixe confirmé instantanément." },
+      { "title": "En route", "body": "Votre chauffeur vous prend en charge à l'heure et au lieu convenus." },
+      { "title": "Arrivée", "body": "Livraison porte à porte. Sans correspondance, sans terminal, sans attente." }
+    ]
+  },
+  "borders": {
+    "label": "Frontières, péages et démarches",
+    "headingLine1": "Traverser les frontières ",
+    "headingItalic": "sans complications.",
+    "items": [
+      {
+        "title": "Espace Schengen par défaut",
+        "body": "Tous nos trajets s'effectuent au sein de l'espace Schengen — Tchéquie, Autriche, Allemagne, Slovaquie, Hongrie, Pologne. Il n'y a pas de contrôle de passeport à la frontière ni de vérification de documents en cours de route. Les titulaires de passeports hors UE doivent néanmoins garder leur passeport sur eux, des contrôles ponctuels pouvant survenir lors de grands événements."
+      },
+      {
+        "title": "Tous les péages et vignettes inclus",
+        "body": "Le prix fixe de chaque trajet couvre tous les péages d'autoroute, les frais de tunnel, la vignette autrichienne et slovaque, la vignette tchèque dálniční známka et toute taxe de congestion urbaine en cours de route. Aucun supplément pour le carburant, l'attente à la frontière ou les heures supplémentaires du chauffeur."
+      },
+      {
+        "title": "Documents pour les déplacements professionnels",
+        "body": "Pour les clients professionnels et diplomatiques, nous pouvons préparer à l'avance une confirmation de trajet détaillée — plaque du véhicule, nom et numéro de licence du chauffeur, référence d'assurance et itinéraire estimé — utile pour les équipes de sécurité, les ambassades et les lieux exigeant une notification préalable."
+      }
+    ]
+  },
+  "luggage": {
+    "label": "Bagages, animaux et enfants",
+    "headingLine1": "Voyagez avec tout ",
+    "headingItalic": "ce dont vous avez besoin.",
+    "intro": "Les trajets interurbains impliquent généralement plus de bagages qu'un trajet urbain — housses de ski, sacs de golf, valisettes d'échantillons, matériel de présentation, ou l'ensemble des valises d'une famille qui déménage entre deux capitales. Chaque classe PRESTIGO est adaptée à une charge de bagages réaliste, et en cas de doute, nous vous surclassons au même prix plutôt que de restreindre votre trajet.",
+    "items": [
+      { "t": "Bagages E-Class", "b": "2 grandes valises + 2 bagages à main." },
+      { "t": "Bagages S-Class", "b": "2 grandes valises + 2 bagages à main. Même capacité, avec plus d'espace pour les jambes à l'arrière et des sièges massants." },
+      { "t": "Bagages V-Class", "b": "Jusqu'à 6 grandes valises et 6 bagages à main avec tous les sièges occupés — pratiquement illimité pour 2 ou 3 passagers." },
+      { "t": "Animaux acceptés", "b": "Les petits animaux voyagent gratuitement dans une caisse de transport ; les grands chiens sont acceptés sur demande dans le V-Class. Merci de le signaler lors de la réservation." },
+      { "t": "Sièges enfant et rehausseurs", "b": "Sièges bébé, sièges enfant et rehausseurs certifiés UE disponibles sans frais. Indiquez simplement l'âge et le poids de l'enfant lors de la réservation." },
+      { "t": "Objets volumineux", "b": "Skis, sacs de golf, vélos (partiellement démontés) et instruments de musique transportés sur demande — le V-Class est presque toujours la bonne réponse." }
+    ]
+  },
+  "longDistance": {
+    "label": "Trajets longue distance",
+    "headingLine1": "Devis ",
+    "headingItalic": "sur demande.",
+    "intro": "Les destinations suivantes sont tarifées individuellement selon l'itinéraire, les horaires et les besoins de nuitée. Devis écrit sous 2 heures.",
+    "destinations": [
+      "Erfurt", "Francfort", "Augsbourg", "Stuttgart", "Cologne",
+      "Düsseldorf", "Hambourg", "Innsbruck", "Košice", "Bâle",
+      "Zurich", "Berne", "Genève", "Venise", "Vérone",
+      "Milan", "Strasbourg", "Paris", "Bruxelles", "Amsterdam"
+    ]
+  },
+  "faq": {
+    "heading": "Questions fréquentes",
+    "items": [
+      {
+        "q": "Puis-je faire une halte entre Prague et ma destination ?",
+        "a": "Oui — les haltes sont incluses sans frais supplémentaires sur tous les trajets interurbains et peuvent être ajoutées à la réservation ou demandées le jour même directement au chauffeur. Les haltes habituelles comprennent une pause déjeuner dans un restaurant de bord de route, un point de vue panoramique, ou une ville intermédiaire (Brno entre Prague et Vienne, Dresde entre Prague et Berlin, Bratislava entre Prague et Budapest). Le temps d'attente à chaque halte est inclus jusqu'à 30 minutes ; au-delà, nous facturons un tarif horaire clair convenu à l'avance. Si vous avez besoin d'une halte plus longue — par exemple une visite de trois heures à Karlovy Vary en route vers Munich — réservez-la comme un itinéraire à plusieurs haltes, et nous vous proposerons un tarif fixe unique pour l'ensemble du trajet. Pour les clients professionnels, nous pouvons intégrer des itinéraires récurrents à plusieurs haltes dans le compte, afin que vos voyageurs puissent les sélectionner en un clic."
+      },
+      {
+        "q": "Que se passe-t-il si mes plans changent après la réservation ?",
+        "a": "Les annulations sont gratuites jusqu'à deux heures avant l'heure de prise en charge prévue — sans justification, avec remboursement sur le mode de paiement d'origine dans un délai d'un jour ouvré. Les changements d'heure de prise en charge, d'adresse de départ ou d'arrivée, de classe de véhicule ou de nom du passager sont gratuits à tout moment, y compris le jour même : appelez simplement la centrale au +420 725 986 855 ou écrivez-nous sur WhatsApp. Pour les trajets interurbains réservés plus de 48 heures à l'avance, vous pouvez reporter le trajet à une date future sans pénalité, le paiement initial étant conservé. Pour une annulation de dernière minute dans la fenêtre de deux heures, nous facturons des frais minimums de 50 % pour couvrir le positionnement déjà engagé du chauffeur, sauf en cas d'annulation liée à un vol annulé — le trajet est alors annulé sans frais et nous vous aidons à le reprogrammer pour votre prochaine arrivée."
+      },
+      {
+        "q": "Puis-je réserver le trajet de retour vers Prague ?",
+        "a": "Oui — les réservations aller-retour sont disponibles sur tous les trajets et bénéficient d'une remise de 10 % sur le trajet retour lorsque les deux trajets sont réservés ensemble. La remise s'applique automatiquement lors du paiement dès que vous sélectionnez une date et une heure de retour. Les retours le jour même (par exemple un départ matinal de Prague vers Dresde et un retour le soir) sont le cas le plus fréquent et fonctionnent particulièrement bien pour les excursions d'une journée à Karlovy Vary, Kutná Hora, Dresde ou Vienne. Les retours sur plusieurs jours conviennent tout aussi bien aux déplacements professionnels — réservez les deux trajets dès maintenant, et le même véhicule (ou au moins la même classe) sera affecté à chacun d'eux. Pour les retours liés à un vol — un transfert vers Vienne, un vol vers ailleurs, puis une prise en charge à Vienne quelques jours plus tard — le retour est suivi selon votre numéro de vol, exactement comme une prise en charge à l'aéroport."
+      },
+      {
+        "q": "Dans quel véhicule vais-je voyager et puis-je surclasser ?",
+        "a": "Vous choisissez la classe de véhicule lors de la réservation. La Mercedes E-Class est notre berline affaires : jusqu'à 3 passagers, 3 grandes valises plus des bagages à main, intérieur cuir, Wi-Fi à bord, et le tarif de base sur tous les trajets. La S-Class est notre berline exécutive de même capacité, mais avec sièges massants à l'arrière, davantage d'espace pour les jambes et un éclairage d'ambiance — environ 50 % plus chère que l'E-Class sur un même trajet. La V-Class est notre monospace six places, tarifée entre l'E-Class et la S-Class, et constitue le bon choix dès que vous avez plus de trois passagers, six bagages ou plus, ou souhaitez un confort de groupe supérieur. Un surclassement après réservation est possible selon disponibilité : contactez la centrale, et nous confirmons en quelques minutes. Tous nos véhicules sont de l'année 2022 ou plus récents."
+      },
+      {
+        "q": "Les péages, vignettes et le carburant sont-ils inclus dans le prix indiqué ?",
+        "a": "Oui — tous les coûts liés au trajet sont inclus dans le tarif fixe indiqué. Cela couvre le carburant, la vignette tchèque dálniční známka (vignette autoroutière), les vignettes autrichienne et slovaque le cas échéant, tous les péages autoroutiers allemands, tous les frais de pont ou de tunnel, ainsi que toute taxe de congestion urbaine en cours de route. Cela couvre également le temps du chauffeur sur l'ensemble du trajet, ainsi que le temps d'attente inclus à vos adresses de départ et d'arrivée. Rien n'est ajouté à la fin du trajet : ni frais de service, ni supplément carburant, ni supplément frontière, ni supplément de nuit, ni majoration de week-end. La seule chose qui peut modifier le montant total après la réservation, c'est l'ajout d'une halte, une prolongation du temps d'attente ou une demande de service supplémentaire (par exemple une seconde dépose dans une autre ville) — et dans ces cas, le devis ajusté vous est toujours confirmé avant l'application du changement."
+      },
+      {
+        "q": "Combien de temps à l'avance dois-je réserver un trajet interurbain ?",
+        "a": "Nous recommandons de réserver au moins 24 heures à l'avance pour plus de tranquillité, et entre 48 et 72 heures pour les destinations principales (Vienne, Berlin, Munich, Budapest) pendant les périodes de forte affluence (Pâques, marchés de Noël, grands salons professionnels, week-ends de Formule 1). PRESTIGO accepte néanmoins des réservations le jour même sur tous les trajets jusqu'à deux heures avant la prise en charge, selon la disponibilité des chauffeurs, et pour les comptes professionnels nous garantissons une disponibilité le jour même avec une répartition prioritaire. Les réservations de dernière minute dans la fenêtre de deux heures sont mieux gérées par téléphone au +420 725 986 855 — la centrale trouve souvent un véhicule alors que le système en ligne indique une absence de disponibilité. Pour les itinéraires complexes à plusieurs haltes, les déplacements de week-end ou de jours fériés, ou les réservations en V-Class en haute saison, nous recommandons de réserver au moins 72 heures à l'avance pour garantir exactement le véhicule et le chauffeur souhaités."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Vous ne trouvez pas votre destination ? ",
+    "headingItalic": "Nous allons partout.",
+    "intro": "PRESTIGO couvre toutes les destinations d'Europe centrale.",
+    "bookButton": "Réserver un trajet",
+    "contactButton": "Demander un trajet personnalisé"
+  },
+  "metadata": {
+    "title": "Chauffeur privé depuis Prague — 30 trajets interurbains",
+    "description": "Chauffeur privé depuis Prague vers 30 destinations d'Europe centrale. Vienne à partir de €{viennaPrice}, Berlin à partir de €{berlinPrice}, Munich à partir de €{munichPrice}, Budapest à partir de €{budapestPrice}. Prix fixe, porte à porte.",
+    "ogTitle": "Chauffeur privé depuis Prague — 30 trajets interurbains",
+    "ogDescription": "Chauffeur privé depuis Prague vers 30 destinations d'Europe centrale. Vienne à partir de €{viennaPrice}, Berlin à partir de €{berlinPrice}, Munich à partir de €{munichPrice}, Budapest à partir de €{budapestPrice}. Prix fixe, porte à porte."
+  }
+}
