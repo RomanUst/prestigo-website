@@ -288,7 +288,30 @@ Plans:
   6. vitest is green for all v3.0-touched files; pre-existing unrelated failures are listed.
   7. Launch: sitemap resubmitted in GSC with a per-locale indexing baseline recorded; Metricool announcement created as drafts only; milestone v3.0 audited and closed.
 
-**Plans:** TBD
+**Plans:** 21 plans
+
+Plans:
+- [ ] 75-01-PLAN.md — QA harness (render, switcher, hreflang, JSON-LD, CSP) + pre-change production baseline
+- [ ] 75-02-PLAN.md — Two-layer EN-leak audit (AST static + rendered prod scan) + D-09 allowlist + inventory
+- [ ] 75-03-PLAN.md — Booking E2E driver (guest x7 incl. RTL, RU/AR account path, Stripe/Places locale, E2E marker)
+- [ ] 75-04-PLAN.md — site_locale on GA4 (gtag set) + Meta Pixel/CAPI (identical, strict schema fixed) + analytics QA script
+- [ ] 75-05-PLAN.md — Booking locale: Stripe Elements/Places locale, PaymentIntent metadata, webhook server GA4
+- [ ] 75-06-PLAN.md — /book page chrome -> content model, translated x6
+- [ ] 75-07-PLAN.md — /book/multi-day -> content model, translated x6
+- [ ] 75-08-PLAN.md — /fleet -> content model, translated x6
+- [ ] 75-09-PLAN.md — /routes hub -> content model with localized names + locale links, translated x6
+- [ ] 75-10-PLAN.md — 30 route pages: translated hero alts, locale-preserving links, hi DNT headings (WINDOWS #6)
+- [ ] 75-11-PLAN.md — Services + static pages: localizedHref links, translated alts, hi/zh content fixes
+- [ ] 75-12-PLAN.md — CorporateForm + ContactForm + contact details externalized (messages #1)
+- [ ] 75-13-PLAN.md — Shared components, 404, loading, blog CTA, author page (messages #2)
+- [ ] 75-14-PLAN.md — Booking-flow navigation locale continuity + locale-links backstop test
+- [ ] 75-15-PLAN.md — Sign-in/account/sign-out locale continuity (RU/AR account path)
+- [ ] 75-16-PLAN.md — Coded API/auth errors rendered translated (messages #3)
+- [ ] 75-17-PLAN.md — D-11 storage decision; optional bookings.locale migration 062 + admin display (MCP apply)
+- [ ] 75-18-PLAN.md — Manifest freeze, Metricool draft support, content parity, full pre-deploy gate (D-15)
+- [ ] 75-19-PLAN.md — Approved production deploy + smoke; GA4 dimension + E2E account setup
+- [ ] 75-20-PLAN.md — Full production QA run (all scripts x7 locales, booking E2E, overflow) + strict E2E cleanup
+- [ ] 75-21-PLAN.md — Launch: GSC baseline/resubmit, Rich Results, Metricool drafts, milestone-close handoff
 
 </details>
 
