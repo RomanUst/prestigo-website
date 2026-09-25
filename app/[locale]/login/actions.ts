@@ -7,6 +7,8 @@ import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
+import { getPathname } from '@/i18n/routing'
+import type { AppLocale } from '@/i18n/locales'
 
 // Note: safeReturnTo and buildOAuthOptions are pure (synchronous) helpers and
 // live in ./auth-helpers — a 'use server' module may only export async
@@ -87,7 +89,13 @@ export async function signInWithPassword(
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const returnTo = safeReturnTo(formData.get('return-to') as string | null)
+  // D-04: default to the visitor's own locale's /account, not the English
+  // one — fallback is computed server-side via getPathname (open-redirect
+  // guard in safeReturnTo is untouched, only the fallback value changes).
+  const returnTo = safeReturnTo(
+    formData.get('return-to') as string | null,
+    getPathname({ locale: locale as AppLocale, href: '/account' })
+  )
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
