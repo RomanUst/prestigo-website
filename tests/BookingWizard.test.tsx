@@ -4,10 +4,20 @@ import { renderWithIntl as render } from './helpers/renderWithIntl'
 import { useBookingStore } from '@/lib/booking-store'
 import BookingWizard from '@/components/booking/BookingWizard'
 
-// Helper: mock next/navigation (router) since BookingWizard uses useRouter
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}))
+// Helper: mock next/navigation (router) since BookingWizard uses useRouter.
+// Keep every other real export via importOriginal (75-15): OAuthButtons
+// (rendered inside Step3Auth) now imports getPathname from @/i18n/routing,
+// whose createNavigation() call needs next/navigation's real `redirect`/
+// `permanentRedirect` at module-load time — a full mock replacement with
+// only `useRouter` breaks that. Matches the existing importOriginal
+// convention in tests/i18n-navigation.test.tsx / tests/nav-auth.test.tsx.
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/navigation')>()
+  return {
+    ...actual,
+    useRouter: () => ({ push: vi.fn() }),
+  }
+})
 
 // Prevent next/image from throwing in jsdom
 vi.mock('next/image', () => ({
