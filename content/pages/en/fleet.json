@@ -1,0 +1,134 @@
+{
+  "metadata": {
+    "title": "Our Fleet — Mercedes Chauffeur Cars Prague",
+    "description": "Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared.",
+    "ogTitle": "Our Fleet — Mercedes Chauffeur Cars Prague",
+    "ogDescription": "Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared."
+  },
+  "imageAlts": {
+    "hero": "PRESTIGO Mercedes Fleet — Prague Chauffeur",
+    "vehicleTemplate": "{model} — PRESTIGO chauffeur service Prague"
+  },
+  "hero": {
+    "label": "Mercedes Fleet · Prague",
+    "headlineLine1": "Mercedes Chauffeur Fleet.",
+    "headlineItalic": "Part of the experience.",
+    "intro": "Every PRESTIGO vehicle is a late-model Mercedes-Benz, maintained to exacting standards, fully insured, and prepared before every journey. The interior is your space to think, work, or simply arrive."
+  },
+  "vehicles": [
+    {
+      "category": "Business Sedan",
+      "description": "The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.",
+      "features": ["Leather interior", "Dual-zone climate control", "Onboard Wi-Fi", "USB-C fast charging", "Bottled water"],
+      "idealFor": "Airport, city, solo business travel"
+    },
+    {
+      "category": "Executive Sedan",
+      "description": "For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.",
+      "features": ["Premium Nappa leather", "Rear massage seats", "Ambient lighting", "Executive rear package", "Champagne on request"],
+      "idealFor": "VIP, diplomatic, extended intercity"
+    },
+    {
+      "category": "Executive Van",
+      "description": "Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.",
+      "features": ["6 captain seats", "Full luggage capacity", "Rear privacy glass", "Fold-out table", "Individual reading lights"],
+      "idealFor": "Groups, families, conference transfers"
+    }
+  ],
+  "specsLabels": {
+    "seatsLabel": "Seats",
+    "luggageLabel": "Luggage",
+    "passengersTemplate": "{n} passengers",
+    "luggageTemplate": "{cases} large cases + {bags} cabin bags"
+  },
+  "idealForPrefix": "Ideal for:",
+  "bookButtonTemplate": "Book {className}",
+  "standards": {
+    "heading": "Every vehicle, every time",
+    "items": [
+      { "title": "Pre-trip inspection", "body": "Checked before every journey" },
+      { "title": "Interior cleaned", "body": "Fresh cabin for every client" },
+      { "title": "Climate preset", "body": "Set to your preference" },
+      { "title": "Chargers & Wi-Fi", "body": "Stay connected on the move" }
+    ]
+  },
+  "marque": {
+    "label": "Why Mercedes-Benz exclusively",
+    "headingLine1": "One marque. Three silhouettes.",
+    "headingItalic": "Zero compromise.",
+    "paragraphs": [
+      "PRESTIGO operates a pure Mercedes-Benz fleet — not because it’s the easy choice, but because it’s the right one. For executive transport in Central Europe, Mercedes remains the undisputed standard: the E-Class is the default business sedan of every capital from Prague to Warsaw, the S-Class defines the upper tier of ground luxury, and the V-Class is the only premium van our corporate clients recognise on sight.",
+      "A single-marque fleet also means consistency. Every driver already knows the controls, the service intervals, and the quirks of each chassis. Every passenger steps into an interior they already know how to use — the same climate logic, the same seat controls, the same quality of leather and stitching. There are no surprises, and in executive travel, surprises are the enemy.",
+      "We refresh vehicles on a rolling schedule, well before the cosmetic or mechanical standard begins to slip. Our clients travel in a car that feels current — because it is."
+    ]
+  },
+  "maintenance": {
+    "label": "Maintenance & Safety",
+    "headingLine1": "Prepared before",
+    "headingItalic": "every journey.",
+    "items": [
+      { "title": "Manufacturer-schedule servicing", "body": "Every vehicle is serviced by authorised Mercedes-Benz technicians on the factory-recommended schedule. We keep complete service records and replace consumables (tyres, brake pads, wipers) well before the legal minimum." },
+      { "title": "Commercial insurance, fully comprehensive", "body": "Every journey is covered by commercial passenger liability and fully comprehensive vehicle insurance, underwritten in the EU. Documentation is available on request for corporate compliance teams." },
+      { "title": "Daily pre-trip inspection", "body": "Tyre pressure, fluid levels, lights, and cabin cleanliness are checked before the first assignment of the day — and again between back-to-back executive bookings." }
+    ]
+  },
+  "technology": {
+    "label": "Technology onboard",
+    "headingLine1": "A rolling office.",
+    "headingItalic": "A quiet sanctuary.",
+    "intro": "Our passengers often arrive at the car with work still to finish — or nerves still to settle after a long flight. The cabin of every PRESTIGO vehicle is prepared for both. Whether you need to take a video call between meetings or simply close your eyes for an hour, the interior adapts to you, not the other way around.",
+    "items": [
+      { "t": "Unlimited mobile Wi-Fi", "b": "Enterprise-grade 5G router in every vehicle. Multiple devices, full bandwidth, no data caps." },
+      { "t": "Fast charging for every device", "b": "USB-C and USB-A ports within reach of every seat. Apple and Samsung fast-charge supported." },
+      { "t": "Climate preset on arrival", "b": "Your preferred cabin temperature is set before the car reaches you — noted once, remembered for every future booking." },
+      { "t": "Still and sparkling water", "b": "Complimentary chilled mineral water on every transfer. Tea, coffee and champagne available on request for executive and VIP bookings." },
+      { "t": "Child &amp; booster seats", "b": "Full range of EU-certified child restraints available at no extra charge — just note the age and weight at booking." },
+      { "t": "Discreet privacy", "b": "S-Class and V-Class offer privacy glass and optional rear partitions. What happens in the cabin stays in the cabin." }
+    ]
+  },
+  "selection": {
+    "label": "How we choose a class for your journey",
+    "headingLine1": "Matching vehicle to",
+    "headingItalic": "occasion.",
+    "paragraphs": [
+      "The right vehicle depends on the trip, not the price list. A solo executive arriving from London City with a briefcase and a carry-on is best served by an E-Class — efficient, quiet, and perfectly appointed for a ninety-minute airport run. A visiting principal with protocol requirements and an aide will prefer the S-Class, where rear legroom, massage seats, and the near-silent cabin become genuinely useful. A family of five with skis and luggage, or a four-person board arriving for a half-day roadshow, belongs in the V-Class — the only vehicle in the fleet that comfortably seats six adults with full luggage.",
+      "If you’re unsure which class fits your booking, note your passenger count, luggage, and journey length in the booking form and our dispatcher will confirm the right pairing within minutes. For recurring corporate travel, we maintain vehicle preferences against your account profile so every trip is matched automatically."
+    ]
+  },
+  "faq": {
+    "label": "Fleet questions",
+    "heading": "About the vehicles.",
+    "items": [
+      {
+        "q": "Which Mercedes-Benz models does PRESTIGO operate?",
+        "a": "PRESTIGO runs a three-class Mercedes-Benz fleet in Prague: the E-Class (E 220 d or E 300 de Hybrid) as our business sedan, the S-Class (S 450 4MATIC or S 580 e Hybrid) as our executive sedan, and the V-Class (V 300 d Extralong AVANTGARDE) as our six-passenger van. Every vehicle is 2022 model year or newer, 9-speed automatic transmission, and configured in black exterior with black leather or Nappa interior. Each chassis is serviced on the factory-recommended schedule by authorised Mercedes-Benz Prague technicians, and we refresh the fleet on a rolling cycle so no car remains in service long enough for its cosmetic or mechanical standard to slip. We deliberately run one marque and three silhouettes — it means every driver knows the controls, every passenger recognises the interior, and there are no surprises."
+      },
+      {
+        "q": "How many passengers and how much luggage fit in each class?",
+        "a": "The Mercedes E-Class seats up to 3 passengers and carries 2 large suitcases plus 2 cabin bags comfortably in its 540-litre boot — the right choice for a solo traveller or couple with full airport luggage. The S-Class has the same 3-passenger limit but adds executive-package rear legroom and massage seats; the boot is 550 litres, so luggage capacity is effectively identical to the E-Class. The V-Class seats up to 6 passengers in individual captain chairs and takes 6 large cases plus 6 cabin bags without compromise thanks to its 1,410-litre cargo area — the only fleet choice for families, board transfers, and multi-bag intercity trips. If you are carrying skis, golf bags, or oversized items, book the V-Class and tell us at booking."
+      },
+      {
+        "q": "Are the vehicles insured and licensed for international travel?",
+        "a": "Yes. Every PRESTIGO vehicle is fully registered in the Czech Republic, carries commercial passenger-liability insurance and comprehensive vehicle cover underwritten by an EU insurer, and holds the Czech passenger-transport licence (koncese) required for commercial chauffeur operation. For intercity routes we carry the Czech dálniční známka, the Austrian and Slovak vignettes, and we pay every German motorway toll and every bridge or tunnel charge along the way — all included in the quoted fare. Drivers hold valid international professional driver qualifications (ŘPZD), background checks, and fluent English at minimum B2. We are happy to provide insurance certificates and vehicle documentation in advance for corporate procurement teams or diplomatic security requirements — email info@rideprestigo.com and we will send the dossier within one business day."
+      },
+      {
+        "q": "Can I request a specific vehicle, colour, or interior configuration?",
+        "a": "Vehicle class (E, S, or V) is always your choice and is guaranteed at booking. Within a class, every PRESTIGO car is black exterior with black leather or Nappa interior and the same specification set, so requesting a specific chassis is rarely necessary — the experience is consistent across the fleet. If you have a genuine preference (for example, a client who has travelled with a specific driver before and would like the same vehicle), note it in the booking form and we will honour the request when scheduling allows. For VIP, diplomatic, or multi-vehicle event bookings we can coordinate matching cars, pre-position them at a specific arrival time, and provide a single point of dispatch contact. Child seats, phone chargers, and bottled water are standard in every car."
+      },
+      {
+        "q": "How often is the fleet serviced and replaced?",
+        "a": "PRESTIGO vehicles are serviced by authorised Mercedes-Benz technicians on the manufacturer-recommended schedule — typically every 25,000 km or 12 months, whichever comes first, for E-Class and S-Class, and every 20,000 km or 12 months for V-Class. Between scheduled services we run daily pre-trip inspections covering tyre pressure and tread, fluid levels, lighting, brake response, and cabin cleanliness. Consumables (tyres, brake pads, wipers, cabin filters) are replaced well before the legal minimum. We retire and replace vehicles on a rolling 3–4 year cycle so no car in service is ever old enough to look or feel dated. If a vehicle needs unscheduled repair mid-assignment, dispatch swaps it for a matching class car immediately — you should never notice, and in practice our clients rarely do."
+      },
+      {
+        "q": "Is Wi-Fi, phone charging, and child seats really included in every car?",
+        "a": "Yes, included at no extra cost in every PRESTIGO vehicle. Wi-Fi runs on an enterprise 5G mobile router with unlimited data — bandwidth is good enough to take a video call from Prague to Vienna without dropping. USB-C and USB-A fast-charging ports are within reach of every seat, and Apple and Samsung fast-charge protocols are supported. We carry a full range of EU-certified (R129/i-Size) child and booster seats — rear-facing infant, forward-facing toddler, and booster — and install the right one before pickup as long as you confirm the child&rsquo;s age and weight at booking. Bottled still and sparkling water are standard; coffee, tea, and champagne are available on request for executive and VIP bookings. If you need an adapter or a specific amenity, just ask at booking."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Choose your vehicle.",
+    "headingItalic": "Book online.",
+    "intro": "Select your preferred class at checkout.",
+    "button": "Book a Transfer"
+  }
+}
