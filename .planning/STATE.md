@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 75
 current_phase_name: E2E Verification & Launch
 status: executing
-stopped_at: Completed 75-03-PLAN.md
-last_updated: "2026-09-25T12:14:29.588Z"
+stopped_at: Completed 75-04-PLAN.md
+last_updated: "2026-09-25T12:41:26.948Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 75 execution started
-state_head: 0c693d7191af68c612f94f3a0fa1b769ecedb026
+state_head: bb6420f2de7994ced63206e522f06448aa1d8d6e
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 70
-  completed_plans: 52
+  completed_plans: 53
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-20)
 ## Current Position
 
 Phase: 75 (E2E Verification & Launch) — EXECUTING
-Plan: 4 of 21
+Plan: 5 of 21
 Status: Ready to execute
 Last activity: 2026-09-25 — Phase 75 execution started
 
@@ -159,6 +159,9 @@ Recent decisions affecting current work:
 - [Phase 75]: 75-03: booking_e2e.py drives the guest wizard on production using messages/<locale>.json for every locator so an English label on a localized page fails the run (D-01/D-07 leak-detector-by-construction) — Locale-agnostic selectors would hide EN leaks in the wizard itself; resolving text from the real catalog makes the E2E script double as a regression check
 - [Phase 75]: 75-03: EntryBar actually uses the legacy AddressInput.tsx (not AddressInputNew.tsx as read_first assumed); both call the same places.googleapis.com v1 Places RPC so the language-capture logic is unaffected — Corrects a stale planning assumption before plan 75-05 touches the same files
 - [Phase 75]: 75-03: pre-fix baseline confirmed live on production for all 7 locales -- Stripe Elements locale and Google Places language are both hardcoded to 'en' regardless of site locale; hi is an accepted Stripe-locale exception (no hi locale exists in Stripe) but not exempted on the Places-language check — Gives plan 75-05 a concrete, script-verified before-state and regression check
+- [Phase 75]: 75-04: site_locale derived only from pathname (siteLocaleFromPathname), never navigator.language, matching D-10
+- [Phase 75]: 75-04: GoogleAnalytics.tsx/MetaPixel.tsx compute site_locale inline from window.location.pathname rather than a server-passed locale prop
+- [Phase 75]: 75-04: analytics_locale_audit.py poll window widened 8s->25s (Rule 1) -- production Consent Mode v2 wait_for_update:20000 queues GA4 hits in a ~21s quiet period
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -228,10 +231,11 @@ None yet.
   - `GET /api/admin/bookings` → `admin_search_bookings` RPC currently defaults to an empty date range (shows all bookings). Phase 65 changes this client/server-side default to future-only; KPI counters already pass explicit date ranges so should be unaffected by the change, but must be re-verified once the default filter ships (DISP-04).
   - `driver_assignments` (booking_id, driver_id, status, token, token_expires_at) is a SINGLE-USE EXPIRING token today, created by `POST /api/admin/bookings/[id]/assign`; driver responds at `app/driver/response/page.tsx` → `POST /api/driver/respond`. Phase 66's permanent trip-link token is a distinct, longer-lived credential that must coexist with this token, not replace it.
   - Booking status machine lives in `lib/booking-transitions.ts` (`VALID_TRANSITIONS`) and GNet push in `lib/gnet-client.ts` (`pushGnetStatus`). Phase 67's trip-progress field must NOT hook into either — DTRIP-04 requires it to be a fully separate column with no transition validation and no GNet call.
-- Anthropic API credit is empty (checked 2026-09-24). All 282 content locale files are genuinely translated (none identical to EN), so the old 73-11 gap is closed. The `i18n Translate` GitHub workflow is DISABLED (gh workflow disable) — new EN strings are translated in-session until credit is topped up; the translation manifest may be out of sync for hand-translated keys (a future pipeline run would re-translate them).
+- Anthropic API credit is empty (checked 2026-09-24). All 282 content locale files are genuinely translated (identical to EN), so the old 73-11 gap is closed. The `i18n Translate` GitHub workflow is DISABLED (gh workflow disable) — new EN strings are translated in-session until credit is topped up; the translation manifest may be out of sync for hand-translated keys (a future pipeline run would re-translate them).
 - [Phase 75 input] Known EN leaks on localized pages (found 2026-09-24, not yet translated): /book "How it works" steps (app/[locale]/book/page.tsx), /book/multi-day "Example itineraries" section (EXAMPLES const + headings), /services/airport-transfer booking block ("Book your chauffeur now", bullet list), CorporateForm notes placeholder, /book hero ("Your transfer, confirmed in seconds.", "Instant booking"). Phase 75 VER-01 "no EN leakage" needs a systematic hardcoded-EN audit, not just these.
 - [Phase 75 input] Responsive overflow audit script (Playwright, 7 locales x 21 pages x 320/375/768/1024/1280) returned 0 issues on 2026-09-24 — reuse it as a Phase 75 regression check.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
+- 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
 
 ## Deferred Items
 
@@ -270,8 +274,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-25T12:14:29.111Z
-Stopped at: Completed 75-03-PLAN.md
+Last session: 2026-09-25T12:41:26.463Z
+Stopped at: Completed 75-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -340,6 +344,7 @@ Resume file: None
 | Phase 75 P01 | 45min | 3 tasks | 8 files |
 | Phase 75 P02 | 48min | 2 tasks | 8 files |
 | Phase 75 P03 | 30min | 2 tasks | 1 files |
+| Phase 75 P04 | 40min | 3 tasks | 11 files |
 
 ## Operator Next Steps
 
