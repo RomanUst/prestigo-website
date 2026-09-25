@@ -826,5 +826,40 @@
         "generic": "Algo salió mal — inténtelo de nuevo más tarde."
       }
     }
+  },
+  "ContactForm": {
+    "heading": "Envíenos un mensaje",
+    "responseNote": "Respondemos en un plazo de 30 minutos durante el horario laboral.",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Su nombre completo",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "su@correo.com",
+    "phoneLabel": "Teléfono",
+    "serviceLabel": "Servicio",
+    "serviceOptionPrompt": "Seleccione un servicio…",
+    "services": {
+      "airportTransfer": "Traslado al aeropuerto",
+      "intercityRoute": "Ruta interurbana",
+      "corporateAccount": "Cuenta corporativa",
+      "vipEvents": "VIP y eventos",
+      "groupTransfer": "Traslado en grupo",
+      "other": "Otro"
+    },
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Describa su traslado, fechas, número de pasajeros…",
+    "prefillMessage": "Me gustaría solicitar un presupuesto para un traslado privado desde Praga a {destination}. Incluya la fecha y los datos de los pasajeros en su respuesta.",
+    "submit": "Enviar mensaje",
+    "sending": "Enviando…",
+    "success": {
+      "heading": "Mensaje enviado.",
+      "body": "Su mensaje ha sido recibido por nuestro equipo.",
+      "followUp": "Nos pondremos en contacto con usted en breve.",
+      "another": "Enviar otro mensaje →"
+    },
+    "errors": {
+      "heading": "Algo salió mal.",
+      "body": "No pudimos enviar su mensaje. Inténtelo de nuevo o contáctenos directamente en",
+      "retry": "Intentar de nuevo →"
+    }
   }
 }

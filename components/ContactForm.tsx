@@ -1,15 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useTranslations } from 'next-intl'
 
-const services = [
-  'Airport Transfer',
-  'Intercity Route',
-  'Corporate Account',
-  'VIP & Events',
-  'Group Transfer',
-  'Other',
-]
+// Values posted to /api/contact and used as the GA4 `service` param stay the
+// English identifier (matches CorporateForm's trips-value pattern) — only the
+// visible <option> label is localized via ContactForm.services.<key>.
+const SERVICE_OPTIONS = [
+  { value: 'Airport Transfer', key: 'airportTransfer' },
+  { value: 'Intercity Route', key: 'intercityRoute' },
+  { value: 'Corporate Account', key: 'corporateAccount' },
+  { value: 'VIP & Events', key: 'vipEvents' },
+  { value: 'Group Transfer', key: 'groupTransfer' },
+  { value: 'Other', key: 'other' },
+] as const
 
 type FormState = 'idle' | 'sending' | 'success' | 'error'
 
@@ -32,6 +36,7 @@ function pushGA4Event(eventName: string, params: Record<string, unknown>): void 
 }
 
 export default function ContactForm() {
+  const t = useTranslations('ContactForm')
   const [form, setForm] = useState({ name: '', email: '', phone: '', service: '', message: '' })
   const [state, setState] = useState<FormState>('idle')
   const [formStartFired, setFormStartFired] = useState(false)
@@ -45,8 +50,9 @@ export default function ContactForm() {
     setForm((prev) => ({
       ...prev,
       service: prev.service || 'Intercity Route',
-      message: prev.message || `I'd like a quote for a private transfer from Prague to ${destination}. Please include date and passenger details in your reply.`,
+      message: prev.message || t('prefillMessage', { destination }),
     }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -107,9 +113,9 @@ export default function ContactForm() {
     return (
       <div className="border border-anthracite-light p-10 flex flex-col items-start gap-6">
         <div>
-          <h3 className="font-display font-light text-[22px] text-offwhite mb-2">Something went wrong.</h3>
+          <h3 className="font-display font-light text-[22px] text-offwhite mb-2">{t('errors.heading')}</h3>
           <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>
-            We could not send your message. Please try again or contact us directly at<br />
+            {t('errors.body')}<br />
             <span style={{ color: 'var(--copper)' }}>info@rideprestigo.com</span>
           </p>
         </div>
@@ -118,7 +124,7 @@ export default function ContactForm() {
           className="font-body font-light text-[10px] tracking-[0.18em] uppercase hover:text-offwhite transition-colors"
           style={{ color: 'var(--copper)' }}
         >
-          Try again →
+          {t('errors.retry')}
         </button>
       </div>
     )
@@ -133,10 +139,10 @@ export default function ContactForm() {
           </svg>
         </span>
         <div>
-          <h3 className="font-display font-light text-[22px] text-offwhite mb-2">Message sent.</h3>
+          <h3 className="font-display font-light text-[22px] text-offwhite mb-2">{t('success.heading')}</h3>
           <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>
-            Your message has been received by our team.<br />
-            We will get back to you shortly.
+            {t('success.body')}<br />
+            {t('success.followUp')}
           </p>
         </div>
         <button
@@ -144,7 +150,7 @@ export default function ContactForm() {
           className="font-body font-light text-[10px] tracking-[0.18em] uppercase hover:text-offwhite transition-colors"
           style={{ color: 'var(--copper)' }}
         >
-          Send another message →
+          {t('success.another')}
         </button>
       </div>
     )
@@ -153,33 +159,33 @@ export default function ContactForm() {
   return (
     <form onSubmit={handleSubmit} className="border border-anthracite-light p-8 md:p-10 flex flex-col gap-6" noValidate>
       <div>
-        <p className="font-display font-light text-[22px] text-offwhite mb-1">Send us a message</p>
-        <p className="body-text text-[11px]">We respond within 30 minutes during business hours.</p>
+        <p className="font-display font-light text-[22px] text-offwhite mb-1">{t('heading')}</p>
+        <p className="body-text text-[11px]">{t('responseNote')}</p>
       </div>
 
       {/* Name + Email */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="name" className={labelClass}>Name <span style={{ color: 'var(--copper)' }}>*</span></label>
+          <label htmlFor="name" className={labelClass}>{t('nameLabel')} <span style={{ color: 'var(--copper)' }}>*</span></label>
           <input
             id="name"
             type="text"
             required
             value={form.name}
             onChange={set('name')}
-            placeholder="Your full name"
+            placeholder={t('namePlaceholder')}
             className={inputClass}
           />
         </div>
         <div>
-          <label htmlFor="email" className={labelClass}>Email <span style={{ color: 'var(--copper)' }}>*</span></label>
+          <label htmlFor="email" className={labelClass}>{t('emailLabel')} <span style={{ color: 'var(--copper)' }}>*</span></label>
           <input
             id="email"
             type="email"
             required
             value={form.email}
             onChange={set('email')}
-            placeholder="your@email.com"
+            placeholder={t('emailPlaceholder')}
             className={inputClass}
           />
         </div>
@@ -188,7 +194,7 @@ export default function ContactForm() {
       {/* Phone + Service */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="phone" className={labelClass}>Phone</label>
+          <label htmlFor="phone" className={labelClass}>{t('phoneLabel')}</label>
           <input
             id="phone"
             type="tel"
@@ -199,29 +205,29 @@ export default function ContactForm() {
           />
         </div>
         <div>
-          <label htmlFor="service" className={labelClass}>Service</label>
+          <label htmlFor="service" className={labelClass}>{t('serviceLabel')}</label>
           <select
             id="service"
             value={form.service}
             onChange={set('service')}
             className={`${inputClass} appearance-none cursor-pointer`}
           >
-            <option value="" disabled>Select service…</option>
-            {services.map(s => <option key={s} value={s}>{s}</option>)}
+            <option value="" disabled>{t('serviceOptionPrompt')}</option>
+            {SERVICE_OPTIONS.map(s => <option key={s.value} value={s.value}>{t(`services.${s.key}`)}</option>)}
           </select>
         </div>
       </div>
 
       {/* Message */}
       <div>
-        <label htmlFor="message" className={labelClass}>Message <span style={{ color: 'var(--copper)' }}>*</span></label>
+        <label htmlFor="message" className={labelClass}>{t('messageLabel')} <span style={{ color: 'var(--copper)' }}>*</span></label>
         <textarea
           id="message"
           required
           rows={5}
           value={form.message}
           onChange={set('message')}
-          placeholder="Describe your transfer, dates, number of passengers…"
+          placeholder={t('messagePlaceholder')}
           className={`${inputClass} resize-none`}
         />
       </div>
@@ -233,10 +239,10 @@ export default function ContactForm() {
           disabled={state === 'sending'}
           className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {state === 'sending' ? 'Sending…' : 'Send message'}
+          {state === 'sending' ? t('sending') : t('submit')}
         </button>
         <p className="font-body font-light text-[10px] tracking-wide text-warmgrey/70">
-          We respond within 30 minutes during business hours.
+          {t('responseNote')}
         </p>
       </div>
     </form>

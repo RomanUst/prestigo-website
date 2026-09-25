@@ -826,5 +826,40 @@
         "generic": "Une erreur est survenue — veuillez réessayer plus tard."
       }
     }
+  },
+  "ContactForm": {
+    "heading": "Envoyez-nous un message",
+    "responseNote": "Nous répondons sous 30 minutes pendant les heures ouvrables.",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Votre nom complet",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "votre@email.com",
+    "phoneLabel": "Téléphone",
+    "serviceLabel": "Service",
+    "serviceOptionPrompt": "Sélectionnez un service…",
+    "services": {
+      "airportTransfer": "Transfert aéroport",
+      "intercityRoute": "Trajet intercité",
+      "corporateAccount": "Compte professionnel",
+      "vipEvents": "VIP & Événements",
+      "groupTransfer": "Transfert de groupe",
+      "other": "Autre"
+    },
+    "messageLabel": "Message",
+    "messagePlaceholder": "Décrivez votre trajet, les dates, le nombre de passagers…",
+    "prefillMessage": "Je souhaite un devis pour un transfert privé de Prague à {destination}. Merci d'indiquer la date et les détails des passagers dans votre réponse.",
+    "submit": "Envoyer le message",
+    "sending": "Envoi…",
+    "success": {
+      "heading": "Message envoyé.",
+      "body": "Votre message a été reçu par notre équipe.",
+      "followUp": "Nous vous recontacterons rapidement.",
+      "another": "Envoyer un autre message →"
+    },
+    "errors": {
+      "heading": "Une erreur est survenue.",
+      "body": "Nous n'avons pas pu envoyer votre message. Veuillez réessayer ou nous contacter directement à",
+      "retry": "Réessayer →"
+    }
   }
 }

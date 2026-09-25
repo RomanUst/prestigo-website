@@ -826,5 +826,40 @@
         "generic": "कुछ गलत हो गई — कृपया बाद में पुनः प्रयास करें।"
       }
     }
+  },
+  "ContactForm": {
+    "heading": "हमें संदेश भेजें",
+    "responseNote": "व्यावसायिक घंंटों के दौरान हम 30 मिनट के भीतर उत्तर देते हें।",
+    "nameLabel": "नाम",
+    "namePlaceholder": "आपका पूरा नाम",
+    "emailLabel": "ईमेल",
+    "emailPlaceholder": "rahul@email.com",
+    "phoneLabel": "फोन",
+    "serviceLabel": "सेवा",
+    "serviceOptionPrompt": "सेवा चुनें…",
+    "services": {
+      "airportTransfer": "ेएयरपोर्ट ट्रांसफर",
+      "intercityRoute": "इंटरसिटी मार्ग",
+      "corporateAccount": "कॉर्पोरेट खाता",
+      "vipEvents": "वीआईपी और आयोजन",
+      "groupTransfer": "समूह ट्रांसफर",
+      "other": "अन्य"
+    },
+    "messageLabel": "संदेश",
+    "messagePlaceholder": "अपनी यात्रा, तारीखें, यात्रियों की संख्या का विवरण दें…",
+    "prefillMessage": "गमे प्राग से {destination} के लिए निजी ट्रांसफर का कोटेशन चाहता हू। कृपया अपने उत्तर के साथ तारीख और यात्री विवरण शारिल करें।",
+    "submit": "संदेश भेजें",
+    "sending": "भेजा जा रहा हे…",
+    "success": {
+      "heading": "संदेश भेज दिया गया।",
+      "body": "आपका संदेश हमारी टीम को प्राप्त हो गया है।",
+      "followUp": "हम शीघ्र ही आपसे संपर्क करेंगे।",
+      "another": "ओर संदेश भेजें →"
+    },
+    "errors": {
+      "heading": "कुछ गलत हो गई।",
+      "body": "हम आपका संदेश नहीं भेज सके। कृपया पुनः प्रयास करें या हसे सीधे संपर्क करें",
+      "retry": "पुनः प्रयास करें →"
+    }
   }
 }

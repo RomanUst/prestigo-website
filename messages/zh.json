@@ -826,5 +826,40 @@
         "generic": "出现错误 — 请稍后重试。"
       }
     }
+  },
+  "ContactForm": {
+    "heading": "给我们留言",
+    "responseNote": "我们在营业时间内将于30分钟内回复。",
+    "nameLabel": "姓名",
+    "namePlaceholder": "您的全名",
+    "emailLabel": "电子邮箱",
+    "emailPlaceholder": "wang@email.com",
+    "phoneLabel": "电话",
+    "serviceLabel": "服务",
+    "serviceOptionPrompt": "选择服务…",
+    "services": {
+      "airportTransfer": "机场接送",
+      "intercityRoute": "城际路线",
+      "corporateAccount": "企业账户",
+      "vipEvents": "贵宾及活动",
+      "groupTransfer": "团体接送",
+      "other": "其他"
+    },
+    "messageLabel": "留言",
+    "messagePlaceholder": "请描述您的行程、日期及乘客人数…",
+    "prefillMessage": "我想咨询从布拉格到{destination}的私人接送报价。请在回复中注明日期和乘客信息。",
+    "submit": "发送留言",
+    "sending": "发送中…",
+    "success": {
+      "heading": "留言已发送。",
+      "body": "您的留言已由我们团队收到。",
+      "followUp": "我们将尽快与您联系。",
+      "another": "发送新留言 →"
+    },
+    "errors": {
+      "heading": "出现错误。",
+      "body": "我们无法发送您的留言，请重试或直接联系我们，邮箱为",
+      "retry": "重试 →"
+    }
   }
 }

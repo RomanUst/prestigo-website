@@ -1,9 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { fireEvent, waitFor } from '@testing-library/react'
+import type { AbstractIntlMessages } from 'next-intl'
 import { renderWithIntl, screen } from '@/tests/helpers/renderWithIntl'
 import CorporateForm from '@/app/[locale]/corporate/CorporateForm'
 import enMessages from '@/messages/en.json'
 import ruMessages from '@/messages/ru.json'
+
+const ruMessagesTyped = ruMessages as unknown as AbstractIntlMessages
 
 const originalFetch = global.fetch
 
@@ -65,7 +68,7 @@ describe('CorporateForm (en)', () => {
 
 describe('CorporateForm (ru) — no English leakage, incl. error paths', () => {
   it('renders every ru label/placeholder/button and no English text', () => {
-    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessages })
+    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessagesTyped })
 
     expect(screen.getByText(ruMessages.Corporate.form.heading)).toBeTruthy()
     expect(screen.getByText(ruMessages.Corporate.form.subheading)).toBeTruthy()
@@ -83,14 +86,14 @@ describe('CorporateForm (ru) — no English leakage, incl. error paths', () => {
   })
 
   it('the trips-per-month option labels render via ICU with the numeric bucket values unchanged', () => {
-    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessages })
+    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessagesTyped })
     expect(screen.getByText(`1–5 ${ruMessages.Corporate.form.tripsPerMonth.replace('{count} ', '')}`)).toBeTruthy()
     expect(screen.getByText(`30+ ${ruMessages.Corporate.form.tripsPerMonth.replace('{count} ', '')}`)).toBeTruthy()
   })
 
   it('shows the ru rate-limit message on a 429 response', async () => {
     ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: false, status: 429 })
-    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessages })
+    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessagesTyped })
     fireEvent.click(screen.getByRole('button', { name: ruMessages.Corporate.form.submit }))
     await waitFor(() => expect(screen.getByText(ruMessages.Corporate.form.errors.rateLimited)).toBeTruthy())
     expect(screen.queryByText(enMessages.Corporate.form.errors.rateLimited)).toBeNull()
@@ -98,21 +101,21 @@ describe('CorporateForm (ru) — no English leakage, incl. error paths', () => {
 
   it('shows the ru invalid-input message on a 400 response', async () => {
     ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: false, status: 400 })
-    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessages })
+    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessagesTyped })
     fireEvent.click(screen.getByRole('button', { name: ruMessages.Corporate.form.submit }))
     await waitFor(() => expect(screen.getByText(ruMessages.Corporate.form.errors.invalidInput)).toBeTruthy())
   })
 
   it('shows the ru generic message on a non-429/400 error status', async () => {
     ;(global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({ ok: false, status: 500 })
-    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessages })
+    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessagesTyped })
     fireEvent.click(screen.getByRole('button', { name: ruMessages.Corporate.form.submit }))
     await waitFor(() => expect(screen.getByText(ruMessages.Corporate.form.errors.generic)).toBeTruthy())
   })
 
   it('shows the ru generic message when fetch throws (network failure)', async () => {
     ;(global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(new Error('network down'))
-    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessages })
+    renderWithIntl(<CorporateForm />, { locale: 'ru', messages: ruMessagesTyped })
     fireEvent.click(screen.getByRole('button', { name: ruMessages.Corporate.form.submit }))
     await waitFor(() => expect(screen.getByText(ruMessages.Corporate.form.errors.generic)).toBeTruthy())
   })

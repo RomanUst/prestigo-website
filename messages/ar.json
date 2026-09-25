@@ -826,5 +826,40 @@
         "generic": "حدث خلل ما — يرجى المحاولة مجددًا لاحقًا."
       }
     }
+  },
+  "ContactForm": {
+    "heading": "أرسل لنا رسالة",
+    "responseNote": "نرد خلال 30 دقيقة أثناء ساعات العمل.",
+    "nameLabel": "الاسم",
+    "namePlaceholder": "اسمك الكامل",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "ahmed@email.com",
+    "phoneLabel": "الهاتف",
+    "serviceLabel": "الخدمة",
+    "serviceOptionPrompt": "اختر خدمة…",
+    "services": {
+      "airportTransfer": "نقل من المطار",
+      "intercityRoute": "رحلة بين المدن",
+      "corporateAccount": "حساب الشركات",
+      "vipEvents": "كبار الشخصيات والفعاليات",
+      "groupTransfer": "نقل جماعي",
+      "other": "أخرى"
+    },
+    "messageLabel": "الرسالة",
+    "messagePlaceholder": "اوصف رحلتك، التواريخ، وعدد الركاب…",
+    "prefillMessage": "أرقلل الحصول على عرض سعر لرحلة خاصة من براق إلى {destination}. يرجى إدراج التاريخ وتفاصيل الركاب في ردكم.",
+    "submit": "إرسال الرسالة",
+    "sending": "جارٍ الإرسال…",
+    "success": {
+      "heading": "تم إرسال الرسالة.",
+      "body": "تم استلام رسالتك من قبل فريقنا.",
+      "followUp": "سنتواصل معكم قريبًا.",
+      "another": "إرسال رسالة أخرى →"
+    },
+    "errors": {
+      "heading": "حدث خطأ ما.",
+      "body": "لم نتمكن من إرسال رسالتك. يرجى المحاولة مرة أخرى أو التواصل معنا مباشرةة على",
+      "retry": "المحاولة مرة أخرى →"
+    }
   }
 }

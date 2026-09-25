@@ -78,5 +78,17 @@
         "desc": "取消政策、儿童座椅、等候时间及更多内容。"
       }
     ]
+  },
+  "details": {
+    "phoneLabel": "电话",
+    "emailLabel": "电子邮箱",
+    "locationLabel": "位置",
+    "locationLines": [
+      "捷克共和国布拉格",
+      "服务范围：中欧"
+    ],
+    "availabilityLabel": "服务时间",
+    "availability": "24/7 全年365天",
+    "legalEntityLabel": "法律实体"
   }
 }
