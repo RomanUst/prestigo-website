@@ -134,7 +134,14 @@ export async function POST(request: Request) {
       }
     }
 
-    if (isRoundTrip) {
+    // Payment-link PaymentIntents carry `bookingId` in payment_intent_data.metadata
+    // (lib/stripe-payment-links.ts) and none of the checkout metadata. Route them to
+    // the payment-link reconcile so confirmation never depends on the endpoint also
+    // being subscribed to checkout.session.completed. Both paths are status-gated,
+    // so whichever event arrives second is a no-op.
+    if (meta.bookingId) {
+      await handlePaymentLinkSucceeded(meta.bookingId, meta.linkedBookingId || null, paymentIntent.id)
+    } else if (isRoundTrip) {
       await handleRoundTripSucceeded(paymentIntent, meta)
     } else {
       await handleOneWaySucceeded(paymentIntent, meta)
