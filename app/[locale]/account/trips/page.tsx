@@ -1,9 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
-import { getTranslations } from 'next-intl/server'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { redirect, getPathname } from '@/i18n/routing'
+import { localizedHref } from '@/lib/localized-href'
 import Nav from '@/components/Nav'
 import { VEHICLE_CLASS_KEY, type VehicleClass } from '@/types/booking'
+import type { AppLocale } from '@/i18n/locales'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,9 +26,23 @@ function formatDate(iso: string | null): string {
 }
 
 export default async function AccountTripsPage() {
+  const locale = (await getLocale()) as AppLocale
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login?next=/account/trips')
+  if (!user) {
+    // D-04: land back on the visitor's own locale's login, with a
+    // return-to parameter (not the legacy 'next' one, which the login page
+    // never reads) pointing at this same localized trips page. Defense in
+    // depth on top of the middleware's /account/* gate. `return` (redirect()
+    // is typed `never`) so TS narrows `user` to non-null below.
+    return redirect({
+      href: {
+        pathname: '/login',
+        query: { 'return-to': getPathname({ locale, href: '/account/trips' }) },
+      },
+      locale,
+    })
+  }
 
   const t = await getTranslations('Account.trips')
   const vt = await getTranslations('Booking.vehicleClasses')
@@ -106,9 +121,9 @@ export default async function AccountTripsPage() {
               >
                 {t('emptyBody')}
               </p>
-              <Link href="/book" className="btn-primary" style={{ padding: '12px 32px' }}>
+              <a href={localizedHref(locale, '/book')} className="btn-primary" style={{ padding: '12px 32px' }}>
                 {t('emptyCta')}
-              </Link>
+              </a>
             </div>
           </div>
         ) : (

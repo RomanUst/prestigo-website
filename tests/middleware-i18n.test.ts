@@ -175,15 +175,19 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
 
   // -------------------------------------------------------------------------
   // Locale-preserving auth redirect: /ru/account
+  //
+  // 75-15 (D-04): updated from the pre-75-15 behavior, which sent EVERY
+  // locale to the English /login (a locale-dropping bug this plan fixes) —
+  // the redirect target itself is now also localized, not just return-to.
   // -------------------------------------------------------------------------
   describe('locale-preserving auth redirect (/ru/account)', () => {
-    it('unauthenticated /ru/account 307-redirects to /login with return-to encoding /ru/account (raw)', async () => {
+    it('unauthenticated /ru/account 307-redirects to /ru/login with return-to encoding /ru/account (raw)', async () => {
       const response = await middleware(makeRequest('/ru/account'))
       expect(response.status).toBe(307)
       const location = response.headers.get('location')
       expect(location).toBeTruthy()
       const url = new URL(location!)
-      expect(url.pathname).toBe('/login')
+      expect(url.pathname).toBe('/ru/login')
       const returnTo = url.searchParams.get('return-to')
       expect(returnTo).toBe('/ru/account')
     })

@@ -1,5 +1,7 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { getPathname } from '@/i18n/routing'
+import { siteLocaleFromPathname } from '@/i18n/locales'
 
 /**
  * @param baseResponse Optional response object to mutate/return instead of
@@ -94,10 +96,21 @@ export async function updateSession(
   // Uses the (possibly locale-stripped) gatedPathname for the check, but the
   // returnTo target keeps the RAW pathname so /ru/account redirects back to
   // /ru/account, not /account.
+  //
+  // 75-15 (D-04): the login page itself must also be localized — an
+  // unauthenticated /ru/account/* request must land on /ru/login, not the
+  // English /login. siteLocaleFromPathname() derives the locale from the
+  // RAW pathname's first segment (never the stripped gatedPathname — /admin
+  // is never locale-prefixed, and this branch never runs for it anyway) and
+  // defaults to 'en' for anything that isn't a configured locale.
+  // getPathname() returns '/login' unprefixed for 'en' (localePrefix:
+  // 'as-needed'), so this is byte-identical to the pre-75-15 behavior for
+  // English requests.
   if (gatedPathname.startsWith('/account') && !user) {
     const url = request.nextUrl.clone()
     const returnTo = encodeURIComponent(pathname + request.nextUrl.search)
-    url.pathname = '/login'
+    const locale = siteLocaleFromPathname(pathname)
+    url.pathname = getPathname({ locale, href: '/login' })
     url.search = `?return-to=${returnTo}`
     return NextResponse.redirect(url)
   }
