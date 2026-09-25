@@ -1,0 +1,6 @@
+# 75-06: /book page chrome content model (hero, guarantees, how-it-works,
+# after-you-book, why-book-direct, FAQ, metadata/OG) — hand-translated
+# in-session (D-08) into ru/es/fr/ar/hi/zh. Plan 75-18 applies this pattern
+# to i18n/translation-manifest.json so a future pipeline run neither
+# overwrites these units nor re-spends tokens on them.
+content/pages/en/book.json

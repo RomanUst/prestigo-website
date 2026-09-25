@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "title": "Réserver un transfert — Chauffeur à Prague",
+    "description": "Réservez votre chauffeur à Prague en 60 secondes. Prix fixe, confirmation instantanée, suivi de vol inclus. Transferts aéroport, trajets intervilles, déplacements professionnels.",
+    "ogTitle": "Réserver un transfert — PRESTIGO, chauffeur à Prague",
+    "ogDescription": "Réservez votre chauffeur à Prague en 60 secondes. Prix fixe, confirmation instantanée, suivi de vol inclus. Transferts aéroport, trajets intervilles, déplacements professionnels."
+  },
+  "hero": {
+    "label": "Réservation instantanée",
+    "headlineLine1": "Votre transfert,",
+    "headlineItalic": "confirmé en quelques secondes.",
+    "subhead": "Prix fixe. Confirmation instantanée. Sans rappel téléphonique."
+  },
+  "guarantees": [
+    "Prix fixe — garanti à la réservation",
+    "Annulation gratuite jusqu'à 1 heure avant",
+    "Suivi de vol inclus"
+  ],
+  "howItWorks": {
+    "label": "Comment fonctionne la réservation",
+    "headingLine1": "Quatre étapes,",
+    "headingItalic": "soixante secondes.",
+    "steps": [
+      { "title": "Choisissez votre itinéraire", "body": "Indiquez l'adresse de prise en charge, la destination, la date et l'heure. Toutes les adresses de Prague et toutes les grandes villes d'Europe centrale sont couvertes." },
+      { "title": "Choisissez votre véhicule", "body": "Mercedes E-Class, S-Class ou V-Class — chaque prix est indiqué à l'avance et inclut tous les péages, vignettes et frais du trajet." },
+      { "title": "Confirmez en quelques secondes", "body": "Paiement sécurisé par carte ou facturation pour les comptes professionnels. Un e-mail de confirmation avec les coordonnées du chauffeur arrive dans votre boîte avant même le rechargement de la page." },
+      { "title": "Ensuite, nous nous occupons de tout", "body": "Votre chauffeur commence à suivre votre vol (pour les prises en charge à l'aéroport) ou votre agenda (pour les trajets programmés). Vous n'avez qu'à arriver à l'heure." }
+    ]
+  },
+  "afterYouBook": {
+    "label": "Après la réservation",
+    "headingLine1": "Le travail commence",
+    "headingItalic": "dès la confirmation.",
+    "intro": "Une réservation PRESTIGO n'est pas une demande, c'est un engagement. Dès que vous confirmez, votre trajet entre dans notre système de répartition, un chauffeur et un véhicule sont assignés, et la préparation commence. Vous recevrez le nom, la photo, le numéro de téléphone et les informations du véhicule de votre chauffeur bien avant la prise en charge. S'il s'agit d'un transfert aéroport, le suivi de vol est déjà en cours.",
+    "items": [
+      { "t": "Confirmation instantanée par e-mail et SMS", "b": "Référence de réservation, heure de prise en charge, coordonnées du chauffeur et un lien de suivi en direct — généralement dans les dix secondes suivant le paiement." },
+      { "t": "Chauffeur assigné à l'avance", "b": "Pour la plupart des réservations, votre chauffeur est confirmé plusieurs heures ou jours avant la prise en charge. Pour les réservations le jour même, vous recevez les coordonnées du chauffeur dès que l'affectation est terminée." },
+      { "t": "Suivi de vol pour les prises en charge à l'aéroport", "b": "Votre chauffeur surveille votre vol à partir de données de contrôle aérien en direct. Si vous atterrissez en avance, la voiture est déjà là. Si vous atterrissez en retard, l'attente est à notre charge." },
+      { "t": "Accueil personnalisé à l'arrivée", "b": "Pour les prises en charge à l'aéroport, votre chauffeur attend en zone d'arrivée avec un panneau PRESTIGO. Vous n'avez jamais à le chercher — c'est lui qui vous trouve." },
+      { "t": "Trajet silencieux par défaut", "b": "La conversation est la bienvenue, mais jamais attendue. La plupart de nos chauffeurs ne parleront pas les premiers." },
+      { "t": "E-mail de confirmation avec facture", "b": "Une fois le trajet terminé, une facture complète arrive automatiquement dans votre boîte mail. Les comptes professionnels reçoivent à la place des relevés mensuels consolidés." }
+    ]
+  },
+  "whyBookDirect": {
+    "label": "Pourquoi réserver directement",
+    "headingLine1": "Le prix que vous voyez",
+    "headingItalic": "est le prix que vous payez.",
+    "intro": "La plupart des trajets premium avec chauffeur à Prague sont vendus par des agrégateurs mondiaux qui ajoutent une marge de 25 à 40 % sur le tarif de l'opérateur. Vous payez plus, le chauffeur gagne moins, et personne, d'un côté comme de l'autre du trajet, n'est vraiment sûr de qui est responsable quand quelque chose se passe mal. Réserver directement avec PRESTIGO élimine tout cela.",
+    "items": [
+      { "title": "Aucune marge d'intermédiaire", "body": "Chaque euro que vous payez va à l'opérateur et au chauffeur. Réserver directement coûte entre 20 et 40 % moins cher que le même trajet vendu via un agrégateur mondial." },
+      { "title": "Contact direct avec le chauffeur", "body": "Vous avez le numéro de téléphone de votre chauffeur dès la confirmation de la réservation. Aucun intermédiaire, aucun système de tickets, aucun centre d'appels entre vous et la voiture." },
+      { "title": "Un seul opérateur responsable", "body": "PRESTIGO exploite les véhicules et emploie les chauffeurs. Quand une réservation doit être modifiée, réacheminée ou récupérée, il y a exactement une personne au téléphone — pas le sous-traitant d'un sous-traitant." }
+    ]
+  },
+  "faq": {
+    "heading": "Questions sur la réservation",
+    "items": [
+      { "q": "Puis-je annuler ou modifier ma réservation ?", "a": "Oui. L'annulation est gratuite jusqu'à une heure avant la prise en charge prévue — le remboursement est traité sur le moyen de paiement d'origine dans un délai d'un jour ouvré, sans frais d'annulation ni déduction. Les modifications de l'heure de prise en charge, de l'adresse de prise en charge ou de destination, de la catégorie de véhicule ou du nom du passager sont gratuites à tout moment, y compris dans la dernière heure et même après le départ du chauffeur. Pour effectuer un changement, appelez ou écrivez sur WhatsApp à notre centrale au +420 725 986 855, ou envoyez votre référence de réservation à info@rideprestigo.com. Pour les annulations de dernière minute dans la dernière heure, nous facturons 50 % du tarif afin de couvrir le créneau perdu du chauffeur déjà en route, sauf lorsque l'annulation est due à un vol annulé ou fortement retardé — dans ce cas, nous annulons entièrement les frais et reprogrammons automatiquement votre prochaine arrivée, sans coût supplémentaire." },
+      { "q": "Quels moyens de paiement acceptez-vous ?", "a": "Les réservations en ligne sont payées par carte de crédit ou de débit lors de la validation — nous acceptons Visa, Mastercard, American Express, ainsi qu'Apple Pay et Google Pay via Stripe. Le montant total est débité au moment de la confirmation, et non après le trajet, afin qu'il n'y ait aucune surprise à la dépose. Les comptes professionnels reçoivent à la place une facture mensuelle consolidée, payable par virement bancaire ou par carte dans un délai de 30 jours ; vos voyageurs ne voient jamais d'écran de paiement. Nous n'acceptons pas les espèces à bord et ne demandons jamais de paiement supplémentaire au chauffeur après le trajet — toute personne prétendant le contraire n'est pas un chauffeur PRESTIGO. Le pourboire n'est pas attendu mais toujours bienvenu et revient directement au chauffeur. Les reçus et factures avec TVA sont envoyés automatiquement par e-mail quelques minutes après la fin du trajet." },
+      { "q": "Le temps d'attente est-il inclus dans le tarif ?", "a": "Oui, un temps d'attente généreux est inclus dans chaque réservation. Pour les prises en charge à l'aéroport de Václav Havel (PRG), nous incluons 60 minutes d'attente gratuite décomptées à partir de l'heure réelle d'atterrissage — suffisant pour passer le contrôle des passeports, récupérer les bagages et rejoindre le point de rendez-vous, même après un atterrissage retardé ou une longue file à l'immigration. Pour les transferts programmés depuis un hôtel, un bureau ou un domicile, nous incluons 15 minutes d'attente gratuite au point de prise en charge. Une fois la franchise incluse dépassée, l'attente est facturée selon un tarif horaire clair (voir les tarifs), et le chauffeur vous contacte toujours avant le déclenchement du décompte, afin que la prolongation soit un choix conscient et non une surprise sur la facture finale. Les comptes professionnels peuvent configurer des franchises d'attente plus longues sur demande." },
+      { "q": "Que se passe-t-il si mon vol est retardé ou annulé ?", "a": "Votre chauffeur suit votre vol en temps réel dès la confirmation de la réservation, en utilisant des données de contrôle aérien en direct plutôt que les horaires prévus. Si vous atterrissez en avance, le chauffeur est déjà en zone d'arrivée avec un panneau PRESTIGO. Si le vol est retardé de quelques minutes ou de plusieurs heures, la prise en charge se décale automatiquement sur la nouvelle heure réelle d'atterrissage et vous ne payez rien de plus — l'attente due à un retard de vol est toujours gratuite, sans plafond horaire. Si le vol est entièrement annulé par la compagnie aérienne, nous annulons la réservation sans frais et reprogrammons de manière proactive votre prochaine arrivée dès qu'elle est confirmée. Pour les vols avec correspondance, nous suivons le dernier tronçon d'arrivée, pas l'horaire d'origine prévu, si bien qu'une correspondance manquée ne vous laisse jamais avec un chauffeur à la mauvaise porte au mauvais moment." },
+      { "q": "Puis-je emporter des bagages, des enfants ou des animaux dans le véhicule ?", "a": "Oui pour les trois, la capacité exacte dépendant de la catégorie de véhicule choisie. La E-Class accueille 2 grandes valises plus 2 bagages à main ; la S-Class autant ; la V-Class prend 6 grandes valises plus 6 bagages à main avec tous les sièges occupés. Les enfants sont les bienvenus à tout âge — nous disposons de sièges auto certifiés R129/i-Size dos à la route, de sièges pour tout-petits face à la route et de rehausseurs sans frais supplémentaires, installés avant la prise en charge une fois l'âge et le poids de l'enfant confirmés à la réservation. Les petits animaux (chats, petits chiens) voyagent gratuitement dans une caisse de transport, et les chiens plus grands sont acceptés dans la V-Class avec un préavis. Les objets encombrants (skis, sacs de golf, vélos partiellement démontés, instruments de musique) trouvent leur place dans la V-Class sur demande. Si vous n'êtes pas certain que vos bagages rentrent, envoyez-nous un inventaire approximatif au moment de la réservation et nous confirmerons la catégorie adaptée." },
+      { "q": "Puis-je réserver un trajet pour quelqu'un d'autre ?", "a": "Tout à fait — c'est ainsi que fonctionnent en pratique la plupart de nos réservations professionnelles et hôtelières. Indiquez le nom du passager dans le champ correspondant lors de la validation, et le chauffeur affichera ce nom sur le panneau d'arrivée, accueillera le passager par son nom au point de prise en charge et le conduira jusqu'à sa destination. Vous pouvez aussi ajouter le numéro de mobile du passager pour que le chauffeur le contacte directement à l'arrivée, ce qui est particulièrement utile pour les prises en charge VIP à l'aéroport lorsque la réservation a été effectuée à l'avance par un assistant de voyage. La confirmation de réservation, le reçu de paiement et la facture sont envoyés à votre e-mail (celui de la personne qui réserve), pas au passager — votre service comptable reçoit ainsi les documents tandis que le passager voyage simplement. Pour les réservations récurrentes au nom de tiers, les comptes professionnels simplifient encore cela : un gestionnaire de voyages réserve pour des dizaines de passagers nommés dans toute l'entreprise." }
+    ]
+  }
+}
