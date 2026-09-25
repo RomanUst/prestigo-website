@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 75
 current_phase_name: E2E Verification & Launch
 status: executing
-stopped_at: Completed 75-02-PLAN.md
-last_updated: "2026-09-25T11:44:59.478Z"
+stopped_at: Completed 75-03-PLAN.md
+last_updated: "2026-09-25T12:14:29.588Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 75 execution started
-state_head: f7e38e4f7b21318e2c839bc3e27df298a464df17
+state_head: 0c693d7191af68c612f94f3a0fa1b769ecedb026
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 70
-  completed_plans: 51
+  completed_plans: 52
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-20)
 ## Current Position
 
 Phase: 75 (E2E Verification & Launch) — EXECUTING
-Plan: 3 of 21
+Plan: 4 of 21
 Status: Ready to execute
 Last activity: 2026-09-25 — Phase 75 execution started
 
@@ -156,6 +156,9 @@ Recent decisions affecting current work:
 - [Phase 75]: R4 findings (object-literal title/body/q/a/name/description leaves) are review-only and never fail the CLI exit code, keeping the auto-gate scoped to proven R1/R2/R3 defects
 - [Phase 75]: es/fr rendered-scan leak rule requires 3-word byte-identical-to-EN match (both Latin-script); ru/ar/hi/zh use a looser 2-word any-Latin-run rule (Latin script itself is inherently suspicious there)
 - [Phase 75]: components/admin/** findings are bucketed under an explicit UNOWNED heading in 75-EN-LEAK-AUDIT.md rather than assigned to a Phase 75 fix plan (admin panel is out of i18n scope per STATE.md)
+- [Phase 75]: 75-03: booking_e2e.py drives the guest wizard on production using messages/<locale>.json for every locator so an English label on a localized page fails the run (D-01/D-07 leak-detector-by-construction) — Locale-agnostic selectors would hide EN leaks in the wizard itself; resolving text from the real catalog makes the E2E script double as a regression check
+- [Phase 75]: 75-03: EntryBar actually uses the legacy AddressInput.tsx (not AddressInputNew.tsx as read_first assumed); both call the same places.googleapis.com v1 Places RPC so the language-capture logic is unaffected — Corrects a stale planning assumption before plan 75-05 touches the same files
+- [Phase 75]: 75-03: pre-fix baseline confirmed live on production for all 7 locales -- Stripe Elements locale and Google Places language are both hardcoded to 'en' regardless of site locale; hi is an accepted Stripe-locale exception (no hi locale exists in Stripe) but not exempted on the Places-language check — Gives plan 75-05 a concrete, script-verified before-state and regression check
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -267,8 +270,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-25T11:44:59.004Z
-Stopped at: Completed 75-02-PLAN.md
+Last session: 2026-09-25T12:14:29.111Z
+Stopped at: Completed 75-03-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -336,6 +339,7 @@ Resume file: None
 | Phase 73 P14 | 20min | 2 tasks | 3 files |
 | Phase 75 P01 | 45min | 3 tasks | 8 files |
 | Phase 75 P02 | 48min | 2 tasks | 8 files |
+| Phase 75 P03 | 30min | 2 tasks | 1 files |
 
 ## Operator Next Steps
 
