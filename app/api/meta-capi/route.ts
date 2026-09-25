@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { z } from 'zod'
 import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
+import { locales } from '@/i18n/locales'
 
 // SEC-06: prefer server-only META_PIXEL_ID; fall back to NEXT_PUBLIC_ for compat.
 // To stop the pixel ID from being bundled in client JS, add META_PIXEL_ID to server env.
@@ -90,7 +91,13 @@ export async function POST(request: NextRequest) {
   }
   if (eventId) event['event_id'] = eventId
   if (eventSourceUrl) event['event_source_url'] = eventSourceUrl
-  // SEC-07: allow-list custom_data fields to prevent analytics poisoning
+  // SEC-07: allow-list custom_data fields to prevent analytics poisoning.
+  // site_locale/content_type/content_ids are bounded additions (D-12) —
+  // this schema must stay strict, never relaxed to admit arbitrary keys.
+  // content_type/content_ids also fix a pre-existing defect where the
+  // confirmation page's Purchase custom_data (which already sent these two
+  // keys) was silently dropped in full by the old strict schema, taking
+  // value/currency down with it.
   if (body.custom_data && typeof body.custom_data === 'object') {
     const customDataSchema = z.object({
       value: z.number().optional(),
@@ -98,6 +105,9 @@ export async function POST(request: NextRequest) {
       content_name: z.string().max(200).optional(),
       content_category: z.string().max(200).optional(),
       num_items: z.number().optional(),
+      site_locale: z.enum(locales).optional(),
+      content_type: z.string().max(50).optional(),
+      content_ids: z.array(z.string().max(100)).max(20).optional(),
     }).strict()
     const parsed = customDataSchema.safeParse(body.custom_data)
     if (parsed.success) {

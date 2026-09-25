@@ -9,6 +9,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, cleanup } from '@testing-library/react'
 import AnalyticsPageView from '@/components/AnalyticsPageView'
 
+// window.gtag is already declared globally elsewhere (e.g. PriceSummary.tsx);
+// window.dataLayer is not, so declare it here for the fallback-branch test.
+declare global {
+  interface Window {
+    dataLayer?: unknown[]
+  }
+}
+
 const { mockUsePathname, mockUseSearchParams } = vi.hoisted(() => {
   return {
     mockUsePathname: vi.fn(),
@@ -24,9 +32,7 @@ vi.mock('next/navigation', () => ({
 describe('AnalyticsPageView', () => {
   beforeEach(() => {
     mockUseSearchParams.mockReturnValue({ toString: () => '' })
-    // @ts-expect-error test-only global assignment
     delete window.gtag
-    // @ts-expect-error test-only global assignment
     delete window.dataLayer
   })
 
