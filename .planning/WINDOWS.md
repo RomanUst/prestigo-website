@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 4
+open_count: 6
 waived_count: 0
 fixed_count: 13
-total_count: 17
-last_updated: 2026-09-25T19:30:56.319Z
+total_count: 19
+last_updated: 2026-09-25T21:08:17.526Z
 ---
 
 # Broken Windows Ledger
@@ -32,6 +32,8 @@ last_updated: 2026-09-25T19:30:56.319Z
 | 15 | 75 | deviation | components/MetaPixel.tsx |  | Production Meta Pixel never fires: NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline, so fbq('init','<id>\\n') throws a SyntaxError on script insertion (appendChild); fbq stays undefined on every real page load. Env var needs re-entry in Vercel without trailing newline (human action). | open |  | 2026-09-25T12:39:18.185Z |  |
 | 16 | 75 | deviation | lib/routes.ts |  | 75-09: per-route h2/description/notes (30 unique route blurbs) intentionally stay English on the /routes hub across all locales -- out of this plan's scope per files_modified/must_haves (chrome/labels only); separate from the already-translated dedicated /routes/<slug> pages | open |  | 2026-09-25T14:43:54.229Z |  |
 | 17 | 75 | deviation | tests/account-trips.test.tsx |  | Pre-existing ERR_MODULE_NOT_FOUND at import (next-intl/server.react-server.js hardcoded relative path) on 5 test files unrelated to plan 75-12's scope; not fixed per scope boundary | open |  | 2026-09-25T19:30:56.319Z |  |
+| 18 | 75 | unrun-verify | tests/login-actions.test.ts |  | Known worktree-only next-intl/server import failure (relative vi.importActual path resolves outside the worktree's next/headers export map) prevents running this suite in-worktree; logic independently verified via a scratch composition check and will run/pass on main (matches 75-11-SUMMARY.md precedent). | open |  | 2026-09-25T21:05:40.466Z |  |
+| 19 | 75 | unrun-verify | tests/account-trips.test.tsx |  | Same known worktree-only next-intl/server import failure (see entry #18) — this file IS in plan 75-15's own scope (extended with new D-04 locale-redirect test cases), so the new assertions could not be executed in-worktree either; logic independently verified via a scratch mock-composition check and will run/pass on main. | open |  | 2026-09-25T21:08:17.526Z |  |
 
 ````json
 [
@@ -237,6 +239,30 @@ last_updated: 2026-09-25T19:30:56.319Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-25T19:30:56.319Z",
+    "resolved_at": null
+  },
+  {
+    "id": 18,
+    "kind": "unrun-verify",
+    "phase": "75",
+    "file": "tests/login-actions.test.ts",
+    "line": null,
+    "description": "Known worktree-only next-intl/server import failure (relative vi.importActual path resolves outside the worktree's next/headers export map) prevents running this suite in-worktree; logic independently verified via a scratch composition check and will run/pass on main (matches 75-11-SUMMARY.md precedent).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-25T21:05:40.466Z",
+    "resolved_at": null
+  },
+  {
+    "id": 19,
+    "kind": "unrun-verify",
+    "phase": "75",
+    "file": "tests/account-trips.test.tsx",
+    "line": null,
+    "description": "Same known worktree-only next-intl/server import failure (see entry #18) — this file IS in plan 75-15's own scope (extended with new D-04 locale-redirect test cases), so the new assertions could not be executed in-worktree either; logic independently verified via a scratch mock-composition check and will run/pass on main.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-25T21:08:17.526Z",
     "resolved_at": null
   }
 ]
