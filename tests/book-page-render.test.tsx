@@ -29,3 +29,22 @@ describe('BookPage — render byte-parity proof (EN golden)', () => {
     expect(container.innerHTML).toMatchSnapshot()
   })
 })
+
+// 75-06 D-06/D-08: /book is now driven by content/pages/<locale>/book.json —
+// a real Russian render must show the translated hero headline and step 1
+// title, and show NEITHER of the corresponding hardcoded EN strings.
+describe('BookPage — ru render shows localized content, not EN (VER-01)', () => {
+  it('renders the ru hero headline and step-1 title, and contains no EN hero/step strings', async () => {
+    const { default: BookPage } = await import('@/app/[locale]/book/page')
+    const { render } = await import('@testing-library/react')
+
+    const PageElement = await BookPage({ params: Promise.resolve({ locale: 'ru' }) })
+    const { container } = render(PageElement)
+    const html = container.innerHTML
+
+    expect(html).toContain('подтверждён за секунды.')
+    expect(html).toContain('Выберите маршрут')
+    expect(html).not.toContain('confirmed in seconds.')
+    expect(html).not.toContain('Choose your route')
+  })
+})
