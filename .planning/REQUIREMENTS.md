@@ -60,7 +60,7 @@ Make the entire public site multilingual. English stays the default at the site 
 
 - [x] **UX-01**: Language switcher UI with `NEXT_LOCALE` cookie persistence.
 - [x] **UX-02**: First-visit language auto-detection via `Accept-Language` (no crawler cloaking; localized URLs remain directly indexable).
-- [x] **VER-01**: Cross-locale E2E green — every locale renders, switcher works, booking completes per-locale (incl. RTL), guest checkout intact, GA4/Meta analytics carry a locale dimension, no CSP regression, no EN leakage.
+- [ ] **VER-01**: Cross-locale E2E green — every locale renders, switcher works, booking completes per-locale (incl. RTL), guest checkout intact, GA4/Meta analytics carry a locale dimension, no CSP regression, no EN leakage.
 
 ## v2 Requirements (deferred)
 
@@ -111,7 +111,7 @@ Populated during roadmap creation (Phases 68–75).
 | SEO-04 | 74 | Complete |
 | UX-01 | 74 | Complete |
 | UX-02 | 74 | Complete |
-| VER-01 | 75 | Complete |
+| VER-01 | 75 | Pending |
 
 **Coverage:**
 
