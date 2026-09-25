@@ -796,5 +796,35 @@
       "suggestion": "本网站也提供{endonym}版本。",
       "switchTo": "切换到{endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "设置您的企业账户",
+      "subheading": "我们将审核您的需求，并在24小时内为您准备好账户。",
+      "companyLabel": "公司名称",
+      "companyPlaceholder": "示例有限公司",
+      "contactNameLabel": "联系人姓名与职位",
+      "contactNamePlaceholder": "王伟，财务总监",
+      "emailLabel": "电子邮箱",
+      "emailPlaceholder": "wang@company.com",
+      "tripsLabel": "预计每月行程数",
+      "tripsPlaceholder": "选择范围…",
+      "tripsPerMonth": "每月 {count} 次行程",
+      "notesLabel": "备注",
+      "notesPlaceholder": "偏好车型、常用路线、特殊要求…",
+      "submit": "提交申请",
+      "sending": "发送中…",
+      "success": {
+        "heading": "申请已收到。",
+        "body": "您的企业账户申请已转交我们团队。",
+        "followUp": "我们将在24小时内为您准备好账户。",
+        "another": "提交新申请 →"
+      },
+      "errors": {
+        "rateLimited": "请求过多，请稍后一分钟再试。",
+        "invalidInput": "请检查您填写的信息后重试。",
+        "generic": "出现错误 — 请稍后重试。"
+      }
+    }
   }
 }

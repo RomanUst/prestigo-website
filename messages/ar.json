@@ -796,5 +796,35 @@
       "suggestion": "هذا الموقع متاح أيضًا باللغة {endonym}.",
       "switchTo": "التبديل إلى {endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "أنشئ حسابكم",
+      "subheading": "سنراجع متطلباتكم ونجهّز حسابكم خلال 24 ساعة.",
+      "companyLabel": "اسم الشركة",
+      "companyPlaceholder": "شركة المثال",
+      "contactNameLabel": "اسم جهة الاتصال والمنصب",
+      "contactNamePlaceholder": "أحمد محمد، المدير المالي",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "ahmed@company.com",
+      "tripsLabel": "عدد الرحلات الشهرية المتوقع",
+      "tripsPlaceholder": "اختر نطاقًا…",
+      "tripsPerMonth": "{count} رحلة/شهريًا",
+      "notesLabel": "ملاحظات",
+      "notesPlaceholder": "المركبات المفضلة، المسارات المتكررة، المتطلبات الخاصة…",
+      "submit": "إرسال الطلب",
+      "sending": "جارٍ الإرسال…",
+      "success": {
+        "heading": "تم استلام الطلب.",
+        "body": "تم إحالة طلب فتح حسابكم للشركات إلى فريقنا.",
+        "followUp": "سنجهّز حسابكم خلال 24 ساعة.",
+        "another": "إرسال طلب آخر →"
+      },
+      "errors": {
+        "rateLimited": "عدد الطلبات كبير جدًا، يرجى المحاولة مجددًا بعد دقيقة.",
+        "invalidInput": "يرجى مراجعة البيانات المدخلة والمحاولة مجددًا.",
+        "generic": "حدث خلل ما — يرجى المحاولة مجددًا لاحقًا."
+      }
+    }
   }
 }

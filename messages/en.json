@@ -746,5 +746,35 @@
       "suggestion": "This site is also available in {endonym}.",
       "switchTo": "Switch to {endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "Set up your account",
+      "subheading": "We’ll review your requirements and have your account ready within 24 hours.",
+      "companyLabel": "Company name",
+      "companyPlaceholder": "ACME Corp",
+      "contactNameLabel": "Contact name & role",
+      "contactNamePlaceholder": "John Smith, CFO",
+      "emailLabel": "Email",
+      "emailPlaceholder": "john@company.com",
+      "tripsLabel": "Estimated monthly trips",
+      "tripsPlaceholder": "Select range…",
+      "tripsPerMonth": "{count} trips/month",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Preferred vehicles, recurring routes, special requirements…",
+      "submit": "Submit Request",
+      "sending": "Sending…",
+      "success": {
+        "heading": "Request received.",
+        "body": "Your corporate account request has been forwarded to our team.",
+        "followUp": "We will have your account ready within 24 hours.",
+        "another": "Submit another request →"
+      },
+      "errors": {
+        "rateLimited": "Too many requests, please try again in a minute",
+        "invalidInput": "Please check your input and try again",
+        "generic": "Something went wrong — please try again later"
+      }
+    }
   }
 }

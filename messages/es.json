@@ -796,5 +796,35 @@
       "suggestion": "Este sitio también está disponible en {endonym}.",
       "switchTo": "Cambiar a {endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "Configure su cuenta",
+      "subheading": "Revisaremos sus requisitos y tendremos su cuenta lista en 24 horas.",
+      "companyLabel": "Nombre de la empresa",
+      "companyPlaceholder": "Empresa Ejemplo S.L.",
+      "contactNameLabel": "Nombre de contacto y cargo",
+      "contactNamePlaceholder": "Juan Pérez, Director Financiero",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "juan@empresa.com",
+      "tripsLabel": "Viajes mensuales estimados",
+      "tripsPlaceholder": "Seleccione un rango…",
+      "tripsPerMonth": "{count} viajes/mes",
+      "notesLabel": "Notas",
+      "notesPlaceholder": "Vehículos preferidos, rutas habituales, requisitos especiales…",
+      "submit": "Enviar solicitud",
+      "sending": "Enviando…",
+      "success": {
+        "heading": "Solicitud recibida.",
+        "body": "Su solicitud de cuenta corporativa ha sido enviada a nuestro equipo.",
+        "followUp": "Tendremos su cuenta lista en un plazo de 24 horas.",
+        "another": "Enviar otra solicitud →"
+      },
+      "errors": {
+        "rateLimited": "Demasiadas solicitudes; inténtelo de nuevo en un minuto.",
+        "invalidInput": "Compruebe los datos introducidos e inténtelo de nuevo.",
+        "generic": "Algo salió mal — inténtelo de nuevo más tarde."
+      }
+    }
   }
 }
