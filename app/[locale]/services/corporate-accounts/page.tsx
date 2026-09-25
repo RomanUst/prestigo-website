@@ -10,11 +10,12 @@ import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { localizedHref } from '@/lib/localized-href'
 
 type CorporateAccountsContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
   serviceDescription: string
-  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string; imageAlt: string }
   pricingCallout: { label: string; heading: string; note: string; items: string[] }
   benefitsHeading: string
   benefits: { title: string; body: string }[]
@@ -85,7 +86,7 @@ export default async function CorporateAccountsPage({ params }: { params: Promis
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-corporate-accounts.png" alt="Corporate Chauffeur Accounts Prague — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-corporate-accounts.png" alt={content.hero.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
@@ -98,8 +99,8 @@ export default async function CorporateAccountsPage({ params }: { params: Promis
             {content.hero.intro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/corporate" className="btn-primary">{content.hero.ctaPrimary}</a>
-            <a href="/services" className="btn-secondary">{content.hero.ctaSecondary}</a>
+            <a href={localizedHref(locale, '/corporate')} className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -193,7 +194,7 @@ export default async function CorporateAccountsPage({ params }: { params: Promis
             <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="mt-10">
-            <a href="/corporate" className="btn-primary">{content.cta.buttonText}</a>
+            <a href={localizedHref(locale, '/corporate')} className="btn-primary">{content.cta.buttonText}</a>
           </div>
         </div>
       </section>

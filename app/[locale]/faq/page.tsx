@@ -10,6 +10,7 @@ import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { localizedHref } from '@/lib/localized-href'
 
 type FaqContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -121,8 +122,8 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
             <span className="display-italic">{content.cta.headingItalic}</span>
           </h2></Reveal>
           <Reveal variant="fade" delay={150}><div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <a href="/contact" className="btn-primary">{content.cta.contactButton}</a>
-            <a href="/book" className="btn-ghost">{content.cta.bookButton}</a>
+            <a href={localizedHref(locale, '/contact')} className="btn-primary">{content.cta.contactButton}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-ghost">{content.cta.bookButton}</a>
           </div></Reveal>
           <Reveal variant="fade" delay={250}><p className="font-body font-light text-[12px] text-warmgrey mt-6">
             {content.cta.emailPrefix}{' '}

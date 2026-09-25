@@ -10,7 +10,8 @@
     "headlineItalic": "Le recibimos a su llegada, siempre.",
     "intro": "El traslado al aeropuerto de Praga de Prestigo es un servicio de chófer con precio fijo desde el aeropuerto Václav Havel (PRG) hasta cualquier dirección de Praga, desde €{businessPrice}. Su chófer sigue su vuelo en tiempo real, espera hasta 60 minutos sin coste en Llegadas con un cartel con su nombre, se ocupa de su equipaje y le conduce en un Mercedes-Benz E-Class, S-Class o V-Class.",
     "ctaPrimary": "Reservar traslado al aeropuerto",
-    "ctaSecondary": "Todos los servicios"
+    "ctaSecondary": "Todos los servicios",
+    "imageAlt": "Recibimiento y traslado con chófer en el aeropuerto de Praga — PRESTIGO"
   },
   "featuresHeading": "Qué incluye",
   "features": [

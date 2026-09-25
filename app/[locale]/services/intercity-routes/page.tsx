@@ -11,11 +11,12 @@ import { getAllRoutes } from '@/lib/route-prices'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 type IntercityRoutesContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
   serviceDescription: string
-  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string; imageAlt: string }
   popularRoutesHeading: string
   viewAllRoutesText: string
   featuresHeading: string
@@ -107,7 +108,7 @@ export default async function IntercityRoutesPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-intercity-routes.png" alt="Intercity Routes from Prague — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-intercity-routes.png" alt={content.hero.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
@@ -120,8 +121,8 @@ export default async function IntercityRoutesPage() {
             {content.hero.intro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/routes" className="btn-primary">{content.hero.ctaPrimary}</a>
-            <a href="/book" className="btn-secondary">{content.hero.ctaSecondary}</a>
+            <a href={localizedHref(locale, '/routes')} className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -135,7 +136,7 @@ export default async function IntercityRoutesPage() {
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-anthracite-light">
             {popularRoutes.map((r) => (
-              <a key={r.slug} href={`/routes/${r.slug}`} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group block">
+              <a key={r.slug} href={localizedHref(locale, `/routes/${r.slug}`)} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors group block">
                 <p className="font-body font-light text-[10px] tracking-[0.2em] uppercase mb-3" style={{ color: 'var(--copper)' }}>
                   {r.fromLabel} → {r.toLabel}
                 </p>
@@ -148,7 +149,7 @@ export default async function IntercityRoutesPage() {
             ))}
           </div>
           <div className="mt-8">
-            <a href="/routes" className="font-body font-light text-[11px] tracking-[0.18em] uppercase hover:text-offwhite transition-colors" style={{ color: 'var(--copper)' }}>
+            <a href={localizedHref(locale, '/routes')} className="font-body font-light text-[11px] tracking-[0.18em] uppercase hover:text-offwhite transition-colors" style={{ color: 'var(--copper)' }}>
               {content.viewAllRoutesText}
             </a>
           </div>
@@ -235,8 +236,8 @@ export default async function IntercityRoutesPage() {
             <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
-            <a href="/routes" className="btn-primary">{content.cta.ctaPrimary}</a>
-            <a href="/book" className="btn-secondary">{content.cta.ctaSecondary}</a>
+            <a href={localizedHref(locale, '/routes')} className="btn-primary">{content.cta.ctaPrimary}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-secondary">{content.cta.ctaSecondary}</a>
           </div>
         </div>
       </section>

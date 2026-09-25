@@ -10,7 +10,8 @@
     "headlineItalic": "Accueilli à l'arrivée, à chaque fois.",
     "intro": "Le transfert aéroport Prestigo est un service de chauffeur à prix fixe depuis l'aéroport Václav Havel (PRG) vers toute adresse à Prague, à partir de €{businessPrice}. Votre chauffeur suit votre vol en temps réel, vous attend jusqu'à 60 minutes sans supplément aux arrivées avec une pancarte nominative, s'occupe de vos bagages et vous conduit en Mercedes-Benz E-Class, S-Class ou V-Class.",
     "ctaPrimary": "Réserver un transfert aéroport",
-    "ctaSecondary": "Tous les services"
+    "ctaSecondary": "Tous les services",
+    "imageAlt": "Accueil et transfert avec chauffeur à l'aéroport de Prague — PRESTIGO"
   },
   "featuresHeading": "Ce qui est inclus",
   "features": [

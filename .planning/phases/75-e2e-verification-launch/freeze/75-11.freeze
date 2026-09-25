@@ -1,0 +1,17 @@
+# 75-11: hero.imageAlt (7 service pages + about) + the 2 D-09
+# English-identical content units (hi/zh corporate.json
+# usagePatterns.headingItalic, hi data-deletion.json
+# section3.facebookLinkLabel) -- hand-translated in-session (D-08) into
+# ru/es/fr/ar/hi/zh. Plan 75-18 applies this pattern to
+# i18n/translation-manifest.json so a future pipeline run neither
+# overwrites these units nor re-spends tokens on them.
+content/pages/en/services/airport-transfer.json::hero.imageAlt
+content/pages/en/services/city-rides.json::hero.imageAlt
+content/pages/en/services/concierge.json::hero.imageAlt
+content/pages/en/services/corporate-accounts.json::hero.imageAlt
+content/pages/en/services/group-transfers.json::hero.imageAlt
+content/pages/en/services/intercity-routes.json::hero.imageAlt
+content/pages/en/services/vip-events.json::hero.imageAlt
+content/pages/en/about.json::hero.imageAlt
+content/pages/en/corporate.json::usagePatterns.headingItalic
+content/pages/en/data-deletion.json::section3.facebookLinkLabel

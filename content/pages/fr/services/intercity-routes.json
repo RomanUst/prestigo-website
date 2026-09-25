@@ -12,7 +12,8 @@
     "headlineItalic": "En Mercedes.",
     "intro": "Les trajets interurbains Prestigo sont des transferts privés en porte-à-porte, à prix fixe, de Prague vers plus de 30 villes en Autriche, en Allemagne, en Pologne, en Hongrie, en Slovaquie et en République tchèque. Tous les péages et vignettes inclus, flotte Mercedes-Benz, aucune correspondance.",
     "ctaPrimary": "Voir tous les trajets",
-    "ctaSecondary": "Réserver un transfert"
+    "ctaSecondary": "Réserver un transfert",
+    "imageAlt": "Trajets interurbains depuis Prague — PRESTIGO"
   },
   "popularRoutesHeading": "Trajets populaires",
   "viewAllRoutesText": "Voir les 50+ trajets →",

@@ -13,10 +13,11 @@ import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 type CityRidesContent = {
   metadata: { title: string; description: string; ogTitle: string }
-  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string; imageAlt: string }
   priceCallout: { label: string; note: string; features: string[]; vClassLine: string; firstClassLine: string }
   featuresHeading: string
   features: { title: string; body: string }[]
@@ -109,7 +110,7 @@ export default async function CityRidesPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-city-rides.png" alt="Prague City Rides — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-city-rides.png" alt={content.hero.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
@@ -122,8 +123,8 @@ export default async function CityRidesPage() {
             {content.hero.intro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/book" className="btn-primary">{content.hero.ctaPrimary}</a>
-            <a href="/services" className="btn-secondary">{content.hero.ctaSecondary}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -226,7 +227,7 @@ export default async function CityRidesPage() {
             <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="mt-10">
-            <a href="/book" className="btn-primary">{content.cta.buttonText}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.cta.buttonText}</a>
           </div>
         </div>
       </section>

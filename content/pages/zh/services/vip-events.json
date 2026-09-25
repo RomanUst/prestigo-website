@@ -12,7 +12,8 @@
     "headlineItalic": "半点差错。",
     "intro": "Prestigo VIP 与活动用车,为布拉格全城的外交访问、豪华酒店抵达、私人开幕式、晚宴庆典及影视制作提供统筹协调的私人司机服务。低调专业的司机、精准同步的抵达时间窗、实时调度联络,以及面向时间、保密与形象皆不容有失场合的零失误执行规范。可按需求安排单车服务或整支车队编队。",
     "ctaPrimary": "咨询 VIP 服务",
-    "ctaSecondary": "全部服务"
+    "ctaSecondary": "全部服务",
+    "imageAlt": "布拉格VIP与活动专属司机服务 — PRESTIGO"
   },
   "pricingCallout": {
     "label": "价格",

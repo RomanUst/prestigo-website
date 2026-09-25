@@ -4,6 +4,7 @@ import Footer from '@/components/Footer'
 import { getLocale } from 'next-intl/server'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 type DataDeletionContent = {
   metadata: { title: string; description: string }
@@ -179,7 +180,7 @@ export default async function DataDeletionPage({ searchParams }: Props) {
             <a href="mailto:info@rideprestigo.com?subject=Data%20Deletion%20Request" className="btn-primary">
               {content.cta.buttonPrimary}
             </a>
-            <a href="/privacy" className="btn-ghost">
+            <a href={localizedHref(locale, '/privacy')} className="btn-ghost">
               {content.cta.buttonSecondary}
             </a>
           </div>

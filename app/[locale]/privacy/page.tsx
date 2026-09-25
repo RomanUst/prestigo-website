@@ -6,6 +6,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 type PrivacyContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -390,7 +391,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
             <a href="mailto:info@rideprestigo.com" className="btn-primary">
               {content.cta.buttonPrimary}
             </a>
-            <a href="/contact" className="btn-ghost">
+            <a href={localizedHref(locale, '/contact')} className="btn-ghost">
               {content.cta.buttonSecondary}
             </a>
           </div>
