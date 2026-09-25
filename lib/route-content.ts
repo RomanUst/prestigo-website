@@ -22,6 +22,9 @@ export type RouteContent = {
     headlineLine1: string;
     headlineItalic: string;
     intro: string;
+    // 75-10: content-driven hero image alt text (D-07). Required — all
+    // 210 route content files (30 slugs x 7 locales) carry it.
+    imageAlt: string;
   };
   openingParagraphs: string[];
   routeNarrative: {
