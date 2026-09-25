@@ -9,3 +9,5 @@ node_modules
 tsconfig.tsbuildinfo
 next
 .env.vercel-prod
+scripts/qa/out/
+scripts/qa/.e2e-account.json
