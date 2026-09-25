@@ -1,0 +1,8 @@
+# 75-09: /routes hub content model (hero, popular-cards chrome, why-private,
+# country grouping headings/labels, how-it-works, borders, luggage,
+# long-distance quote block, FAQ, CTA, metadata/OG, destinationNames,
+# countryNames) — hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh.
+# Plan 75-18 applies this pattern to i18n/translation-manifest.json so a
+# future pipeline run neither overwrites these units nor re-spends tokens
+# on them.
+content/pages/en/routes.json
