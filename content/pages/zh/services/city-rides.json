@@ -10,7 +10,8 @@
     "headlineItalic": "布拉格，按小时计。",
     "intro": "在布拉格按小时租用配私人司机的座驾 — Mercedes-Benz E-Class、S-Class 或 V-Class，最低 2 小时起，上不封顶。在整个租用时段内，司机与车辆全程为您服务：商务会议、剧院演出、购物、私人宴请或机场等候。小时费率在预订时即已固定。",
     "ctaPrimary": "预订市内用车",
-    "ctaSecondary": "全部服务"
+    "ctaSecondary": "全部服务",
+    "imageAlt": "布拉格市内专属司机用车服务 — PRESTIGO"
   },
   "priceCallout": {
     "label": "起价",

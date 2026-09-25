@@ -11,11 +11,12 @@ import { getLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 type ConciergeContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
   serviceDescription: string
-  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string; imageAlt: string }
   handlesHeading: string
   handles: { title: string; body: string }[]
   editorialHeading: string
@@ -104,7 +105,7 @@ export default async function ConciergePage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-contact.webp" alt="Concierge chauffeur service in Prague — PRESTIGO" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)', objectPosition: '30% 15%' }} />
+          <Image src="/hero-contact.webp" alt={content.hero.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)', objectPosition: '30% 15%' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
@@ -117,8 +118,8 @@ export default async function ConciergePage() {
             {content.hero.intro}
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <a href="/book" className="btn-primary">{content.hero.ctaPrimary}</a>
-            <a href="/services" className="btn-secondary">{content.hero.ctaSecondary}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.hero.ctaPrimary}</a>
+            <a href={localizedHref(locale, '/services')} className="btn-secondary">{content.hero.ctaSecondary}</a>
           </div>
         </div>
       </section>
@@ -187,7 +188,7 @@ export default async function ConciergePage() {
           <span className="copper-line mb-10 block" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-anthracite-light">
             {content.pairsWell.map((c) => (
-              <a key={c.title} href={c.href} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors block">
+              <a key={c.title} href={localizedHref(locale, c.href)} className="bg-anthracite-mid p-8 hover:bg-anthracite transition-colors block">
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{c.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{c.body}</p>
                 <span className="font-body font-light text-[10px] tracking-[0.2em] uppercase mt-4 inline-block" style={{ color: 'var(--copper)' }}>{content.pairsWellCta}</span>
@@ -227,8 +228,8 @@ export default async function ConciergePage() {
             <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="mt-10 flex flex-wrap gap-4 justify-center">
-            <a href="/book" className="btn-primary">{content.cta.primaryButton}</a>
-            <a href="/contact" className="btn-secondary">{content.cta.secondaryButton}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.cta.primaryButton}</a>
+            <a href={localizedHref(locale, '/contact')} className="btn-secondary">{content.cta.secondaryButton}</a>
           </div>
         </div>
       </section>

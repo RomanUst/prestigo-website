@@ -12,7 +12,8 @@
     "headlineItalic": "puede salir mal.",
     "intro": "El servicio de transporte VIP y para eventos de Prestigo coordina el servicio de chófer privado para visitas diplomáticas, llegadas a hoteles de lujo, inauguraciones privadas, galas y producciones cinematográficas en toda Praga. Chóferes discretos, ventanas de llegada sincronizadas, contacto directo con la central operativa y un protocolo de cero errores para eventos en los que la puntualidad, la confidencialidad y la presencia importan. Un solo vehículo o convoyes con la flota completa, según solicitud.",
     "ctaPrimary": "Consultar el servicio VIP",
-    "ctaSecondary": "Todos los servicios"
+    "ctaSecondary": "Todos los servicios",
+    "imageAlt": "Chófer VIP y para eventos en Praga — PRESTIGO"
   },
   "pricingCallout": {
     "label": "Tarifas",

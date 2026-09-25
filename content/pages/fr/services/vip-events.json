@@ -12,7 +12,8 @@
     "headlineItalic": "ne peut faillir.",
     "intro": "Le service de transport VIP et événementiel Prestigo coordonne des prestations de chauffeur privé pour les visites diplomatiques, les arrivées dans les hôtels de luxe, les inaugurations privées, les galas et les tournages à Prague. Chauffeurs discrets, fenêtres d'arrivée synchronisées, contact permanent avec notre régulation et protocole zéro erreur pour les événements où la précision, la confidentialité et la présentation sont déterminantes. Véhicule unique ou convoi de flotte complète sur demande.",
     "ctaPrimary": "Demander une prestation VIP",
-    "ctaSecondary": "Tous les services"
+    "ctaSecondary": "Tous les services",
+    "imageAlt": "Chauffeur VIP et événementiel à Prague — PRESTIGO"
   },
   "pricingCallout": {
     "label": "Tarifs",

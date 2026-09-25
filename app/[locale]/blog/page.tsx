@@ -7,6 +7,7 @@ import BlogCard from '@/components/BlogCard'
 import { getAllPosts } from '@/lib/blog'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 export const dynamic = 'force-static'
 
@@ -86,7 +87,7 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
                 <p className="body-text mb-8">
                   {content.emptyState.body}
                 </p>
-                <a href="/book" className="btn-primary">{content.emptyState.ctaLabel}</a>
+                <a href={localizedHref(locale, '/book')} className="btn-primary">{content.emptyState.ctaLabel}</a>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -115,8 +116,8 @@ export default async function BlogPage({ params }: { params: Promise<{ locale: s
               {content.cta.body}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/book" className="btn-primary">{content.cta.primaryLabel}</a>
-              <a href="/fleet" className="btn-ghost">{content.cta.secondaryLabel}</a>
+              <a href={localizedHref(locale, '/book')} className="btn-primary">{content.cta.primaryLabel}</a>
+              <a href={localizedHref(locale, '/fleet')} className="btn-ghost">{content.cta.secondaryLabel}</a>
             </div>
           </div>
         </section>

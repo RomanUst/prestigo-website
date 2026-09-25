@@ -12,11 +12,12 @@ import Divider from '@/components/Divider'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { localizedHref } from '@/lib/localized-href'
 
 type AboutContent = {
   metadata: { title: string; description: string; ogTitle: string }
   schema: { name: string; aboutPageName: string }
-  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; imageAlt: string }
   brandStory: { heading: string; paragraphs: string[] }
   quote: string
   ourStory: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
@@ -124,7 +125,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-about.png" alt="About PRESTIGO — Prague's Premium Chauffeur Service" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-about.png" alt={content.hero.imageAlt} fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>
@@ -236,7 +237,7 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
               </p>
               <div className="pt-2">
                 <a
-                  href={`/authors/${founder.slug}`}
+                  href={localizedHref(locale, `/authors/${founder.slug}`)}
                   className="font-body text-[11px] tracking-[0.12em] uppercase text-copper hover:text-offwhite transition-colors"
                 >
                   {content.founder.readFullProfile}
@@ -364,8 +365,8 @@ export default async function AboutPage({ params }: { params: Promise<{ locale: 
           </Reveal>
           <Reveal variant="fade" delay={150}>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="/book" className="btn-primary">{content.cta.buttonPrimary}</a>
-            <a href="/corporate" className="btn-ghost">{content.cta.buttonSecondary}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.cta.buttonPrimary}</a>
+            <a href={localizedHref(locale, '/corporate')} className="btn-ghost">{content.cta.buttonSecondary}</a>
           </div>
           </Reveal>
         </div>

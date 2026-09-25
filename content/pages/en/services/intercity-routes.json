@@ -12,7 +12,8 @@
     "headlineItalic": "In a Mercedes.",
     "intro": "Prestigo intercity routes are fixed-price door-to-door private transfers from Prague to 30+ cities across Austria, Germany, Poland, Hungary, Slovakia, and the Czech Republic. All tolls and vignettes included, Mercedes-Benz fleet, no connections.",
     "ctaPrimary": "View All Routes",
-    "ctaSecondary": "Book a Transfer"
+    "ctaSecondary": "Book a Transfer",
+    "imageAlt": "Intercity Routes from Prague — PRESTIGO"
   },
   "popularRoutesHeading": "Popular routes",
   "viewAllRoutesText": "View all 50+ routes →",

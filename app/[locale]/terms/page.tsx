@@ -6,6 +6,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 type TermsContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -48,7 +49,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   }
 }
 
-function buildSections(content: TermsContent) {
+function buildSections(content: TermsContent, locale: string) {
   return [
     {
       number: '1',
@@ -66,7 +67,7 @@ function buildSections(content: TermsContent) {
         <>
           <p className="body-text text-[13px] mb-4" style={{ lineHeight: '1.9' }}>
             {content.section2.paragraph1Prefix}
-            <a href="/book" className="text-offwhite hover:text-copper transition-colors">
+            <a href={localizedHref(locale, '/book')} className="text-offwhite hover:text-copper transition-colors">
               {content.section2.bookingLinkLabel}
             </a>
             {content.section2.paragraph1Suffix}
@@ -186,7 +187,7 @@ function buildSections(content: TermsContent) {
       content: (
         <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
           {content.section10.prefix}
-          <a href="/privacy" className="text-offwhite hover:text-copper transition-colors">
+          <a href={localizedHref(locale, '/privacy')} className="text-offwhite hover:text-copper transition-colors">
             {content.section10.linkLabel}
           </a>
           {content.section10.suffix}
@@ -222,7 +223,7 @@ function buildSections(content: TermsContent) {
 export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params
   const content = getPageContent('terms', locale) as TermsContent
-  const sections = buildSections(content)
+  const sections = buildSections(content, locale)
 
   return (
     <main id="main-content">
@@ -268,10 +269,10 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
             <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10">
-            <a href="/contact" className="btn-primary">
+            <a href={localizedHref(locale, '/contact')} className="btn-primary">
               {content.cta.buttonPrimary}
             </a>
-            <a href="/book" className="btn-ghost">
+            <a href={localizedHref(locale, '/book')} className="btn-ghost">
               {content.cta.buttonSecondary}
             </a>
           </div>
