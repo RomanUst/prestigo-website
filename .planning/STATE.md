@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 75
 current_phase_name: E2E Verification & Launch
 status: executing
-stopped_at: Completed 75-06-PLAN.md
-last_updated: "2026-09-25T13:03:05.186Z"
+stopped_at: Completed 75-07-PLAN.md
+last_updated: "2026-09-25T13:31:00.964Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 75 execution started
-state_head: 23daa7aa09db0ee8dc3eb4dc158b56bf13ec7e8c
+state_head: cefb340e06b30f9cda44797f77ccccf3cf2bb536
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 70
-  completed_plans: 54
+  completed_plans: 55
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-20)
 ## Current Position
 
 Phase: 75 (E2E Verification & Launch) — EXECUTING
-Plan: 6 of 21
+Plan: 7 of 21
 Status: Ready to execute
 Last activity: 2026-09-25 — Phase 75 execution started
 
@@ -164,6 +164,7 @@ Recent decisions affecting current work:
 - [Phase 75]: 75-04: analytics_locale_audit.py poll window widened 8s->25s (Rule 1) -- production Consent Mode v2 wait_for_update:20000 queues GA4 hits in a ~21s quiet period
 - [Phase 75]: 75-06: /book localized via content model — hero/how-it-works/after-you-book/why-book-direct/FAQ/metadata moved into content/pages/<locale>/book.json, translated in-session into all 6 non-EN locales, EN byte-parity proven via a pre-refactor golden snapshot
 - [Phase 75]: 75-06: entity-handling split preserved on /book — dangerouslySetInnerHTML fields keep literal HTML-entity text (matches about.json convention); plain-JSX-text fields converted to literal Unicode characters, since {expr} interpolation doesn't decode entities the way JSX text children did
+- [Phase 75]: 75-07: translated the TRANSFER/HOURLY example-day badge (not in must_haves) reusing messages/*.json's Booking.dayCard terms, to close an EN-leak the plan's own success criterion required
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -276,8 +277,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-25T13:03:04.687Z
-Stopped at: Completed 75-06-PLAN.md
+Last session: 2026-09-25T13:31:00.403Z
+Stopped at: Completed 75-07-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -348,6 +349,7 @@ Resume file: None
 | Phase 75 P03 | 30min | 2 tasks | 1 files |
 | Phase 75 P04 | 40min | 3 tasks | 11 files |
 | Phase 75 P06 | 16min | 2 tasks | 11 files |
+| Phase 75-e2e-verification-launch P07 | 25min | 2 tasks | 11 files |
 
 ## Operator Next Steps
 

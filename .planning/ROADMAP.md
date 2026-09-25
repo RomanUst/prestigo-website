@@ -298,7 +298,7 @@ Plans:
 - [x] 75-03-PLAN.md — Booking E2E driver (guest x7 incl. RTL, RU/AR account path, Stripe/Places locale, E2E marker)
 - [x] 75-04-PLAN.md — site_locale on GA4 (gtag set) + Meta Pixel/CAPI (identical, strict schema fixed) + analytics QA script
 - [x] 75-06-PLAN.md — /book page chrome -> content model, translated x6
-- [ ] 75-07-PLAN.md — /book/multi-day -> content model, translated x6
+- [x] 75-07-PLAN.md — /book/multi-day -> content model, translated x6
 - [ ] 75-08-PLAN.md — /fleet -> content model, translated x6
 - [ ] 75-09-PLAN.md — /routes hub -> content model with localized names + locale links, translated x6
 - [ ] 75-10-PLAN.md — 30 route pages: translated hero alts, locale-preserving links, hi DNT headings (WINDOWS #6)
