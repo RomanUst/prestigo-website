@@ -2,6 +2,7 @@
 
 import { useEffect, Suspense } from 'react'
 import { usePathname, useSearchParams } from 'next/navigation'
+import { siteLocaleFromPathname } from '@/i18n/locales'
 
 /**
  * SPA page_view tracker for GA4.
@@ -39,16 +40,26 @@ function PageViewInner() {
       ? `${window.location.origin}${pathname}?${qs}`
       : `${window.location.origin}${pathname}`
 
+    // D-10: site_locale is derived from the pathname (never browser
+    // language) and set as a persistent GA4 param BEFORE page_view fires,
+    // so every later gtag event in this session (begin_checkout,
+    // select_item, purchase, etc.) inherits it automatically via
+    // gtag('set', ...) scope — no per-call-site edits needed.
+    const site_locale = siteLocaleFromPathname(pathname)
+
     const payload = {
       page_location,
       page_path: pathname,
       page_title: document.title,
+      site_locale,
     }
 
     if (typeof w.gtag === 'function') {
+      w.gtag('set', { site_locale })
       w.gtag('event', 'page_view', payload)
     } else {
       w.dataLayer = w.dataLayer || []
+      w.dataLayer.push(['set', { site_locale }])
       w.dataLayer.push(['event', 'page_view', payload])
     }
   }, [pathname, searchParams])

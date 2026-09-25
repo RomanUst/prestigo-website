@@ -1,7 +1,11 @@
 import Script from 'next/script'
+import { locales } from '@/i18n/locales'
 
 const GA_ID = process.env.NEXT_PUBLIC_GA_ID
 const CONSENT_KEY = 'prestigo_cookie_consent'
+// Static locale allow-list serialized into the inline script below (T-75-12:
+// only this constant literal is interpolated — no request-derived value).
+const LOCALES_JSON = JSON.stringify(locales)
 
 /**
  * Google Analytics 4 + Consent Mode v2.
@@ -73,6 +77,14 @@ export default function GoogleAnalytics() {
           // client-side route change (including the initial load) so we don't
           // double-count.
           if (!window.location.pathname.startsWith('/admin')) {
+            // D-10: site_locale, derived from the pathname's first segment
+            // against the static locale allow-list below (never browser
+            // language) — set BEFORE gtag('config', ...) so it is applied
+            // to every GA4 event, including the very first page_view.
+            var __locales = ${LOCALES_JSON};
+            var __seg = window.location.pathname.split('/').filter(Boolean)[0];
+            var __siteLocale = (__seg && __locales.indexOf(__seg) !== -1) ? __seg : 'en';
+            gtag('set', { site_locale: __siteLocale });
             gtag('config', '${GA_ID}', { send_page_view: false });
           }
         `}
