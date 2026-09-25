@@ -796,5 +796,70 @@
       "suggestion": "Este sitio también está disponible en {endonym}.",
       "switchTo": "Cambiar a {endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "Configure su cuenta",
+      "subheading": "Revisaremos sus requisitos y tendremos su cuenta lista en 24 horas.",
+      "companyLabel": "Nombre de la empresa",
+      "companyPlaceholder": "Empresa Ejemplo S.L.",
+      "contactNameLabel": "Nombre de contacto y cargo",
+      "contactNamePlaceholder": "Juan Pérez, Director Financiero",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "juan@empresa.com",
+      "tripsLabel": "Viajes mensuales estimados",
+      "tripsPlaceholder": "Seleccione un rango…",
+      "tripsPerMonth": "{count} viajes/mes",
+      "notesLabel": "Notas",
+      "notesPlaceholder": "Vehículos preferidos, rutas habituales, requisitos especiales…",
+      "submit": "Enviar solicitud",
+      "sending": "Enviando…",
+      "success": {
+        "heading": "Solicitud recibida.",
+        "body": "Su solicitud de cuenta corporativa ha sido enviada a nuestro equipo.",
+        "followUp": "Tendremos su cuenta lista en un plazo de 24 horas.",
+        "another": "Enviar otra solicitud →"
+      },
+      "errors": {
+        "rateLimited": "Demasiadas solicitudes; inténtelo de nuevo en un minuto.",
+        "invalidInput": "Compruebe los datos introducidos e inténtelo de nuevo.",
+        "generic": "Algo salió mal — inténtelo de nuevo más tarde."
+      }
+    }
+  },
+  "ContactForm": {
+    "heading": "Envíenos un mensaje",
+    "responseNote": "Respondemos en un plazo de 30 minutos durante el horario laboral.",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "Su nombre completo",
+    "emailLabel": "Correo electrónico",
+    "emailPlaceholder": "su@correo.com",
+    "phoneLabel": "Teléfono",
+    "serviceLabel": "Servicio",
+    "serviceOptionPrompt": "Seleccione un servicio…",
+    "services": {
+      "airportTransfer": "Traslado al aeropuerto",
+      "intercityRoute": "Ruta interurbana",
+      "corporateAccount": "Cuenta corporativa",
+      "vipEvents": "VIP y eventos",
+      "groupTransfer": "Traslado en grupo",
+      "other": "Otro"
+    },
+    "messageLabel": "Mensaje",
+    "messagePlaceholder": "Describa su traslado, fechas, número de pasajeros…",
+    "prefillMessage": "Me gustaría solicitar un presupuesto para un traslado privado desde Praga a {destination}. Incluya la fecha y los datos de los pasajeros en su respuesta.",
+    "submit": "Enviar mensaje",
+    "sending": "Enviando…",
+    "success": {
+      "heading": "Mensaje enviado.",
+      "body": "Su mensaje ha sido recibido por nuestro equipo.",
+      "followUp": "Nos pondremos en contacto con usted en breve.",
+      "another": "Enviar otro mensaje →"
+    },
+    "errors": {
+      "heading": "Algo salió mal.",
+      "body": "No pudimos enviar su mensaje. Inténtelo de nuevo o contáctenos directamente en",
+      "retry": "Intentar de nuevo →"
+    }
   }
 }

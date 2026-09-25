@@ -9,6 +9,7 @@ import Divider from '@/components/Divider'
 import ContactForm from '@/components/ContactForm'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type ContactContent = {
@@ -18,6 +19,15 @@ type ContactContent = {
   whatHappensNext: { heading: string; steps: { step: string; title: string; body: string }[] }
   commonEnquiries: { heading: string; faqs: { q: string; a: string }[] }
   alsoUseful: { heading: string; links: { label: string; href: string; desc: string }[] }
+  details: {
+    phoneLabel: string
+    emailLabel: string
+    locationLabel: string
+    locationLines: string[]
+    availabilityLabel: string
+    availability: string
+    legalEntityLabel: string
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
@@ -113,32 +123,36 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             {/* Contact details */}
             <div className="flex flex-col gap-6">
               <div>
-                <p className="label mb-3">Phone</p>
+                <p className="label mb-3">{content.details.phoneLabel}</p>
                 <a href="tel:+420725986855" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
                   +420 725 986 855
                 </a>
               </div>
               <div>
-                <p className="label mb-3">Email</p>
+                <p className="label mb-3">{content.details.emailLabel}</p>
                 <a href="mailto:info@rideprestigo.com" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
                   info@rideprestigo.com
                 </a>
               </div>
               <div>
-                <p className="label mb-3">Location</p>
+                <p className="label mb-3">{content.details.locationLabel}</p>
                 <p className="font-body font-light text-[13px] text-warmgrey" style={{ lineHeight: '1.8' }}>
-                  Prague, Czech Republic<br />
-                  Service area: Central Europe
+                  {content.details.locationLines.map((line, i) => (
+                    <span key={line}>
+                      {line}
+                      {i < content.details.locationLines.length - 1 && <br />}
+                    </span>
+                  ))}
                 </p>
               </div>
               <div>
-                <p className="label mb-3">Availability</p>
+                <p className="label mb-3">{content.details.availabilityLabel}</p>
                 <p className="font-body font-light text-[13px] text-warmgrey">
-                  24 / 7 — 365 days a year
+                  {content.details.availability}
                 </p>
               </div>
               <div>
-                <p className="label mb-3">Legal entity</p>
+                <p className="label mb-3">{content.details.legalEntityLabel}</p>
                 <address className="font-body font-light text-[13px] text-warmgrey not-italic" style={{ lineHeight: '1.8' }}>
                   <span className="text-offwhite">chelautotrans s.r.o.</span><br />
                   IČO: 05650801<br />
@@ -200,7 +214,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
                 {content.alsoUseful.links.map((link) => (
                   <a
                     key={link.href}
-                    href={link.href}
+                    href={localizedHref(locale, link.href)}
                     className="flex flex-col gap-1 border border-anthracite-light px-5 py-4 hover:border-copper transition-colors group"
                   >
                     <p className="font-body font-medium text-[11px] tracking-[0.1em] uppercase text-offwhite group-hover:text-copper transition-colors">{link.label} →</p>

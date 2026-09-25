@@ -78,5 +78,17 @@
         "desc": "Cancelaciones, sillas infantiles, tiempo de espera y mucho más."
       }
     ]
+  },
+  "details": {
+    "phoneLabel": "Teléfono",
+    "emailLabel": "Correo electrónico",
+    "locationLabel": "Ubicación",
+    "locationLines": [
+      "Praga, República Checa",
+      "Área de servicio: Europa Central"
+    ],
+    "availabilityLabel": "Disponibilidad",
+    "availability": "24 / 7 — 365 días al año",
+    "legalEntityLabel": "Entidad legal"
   }
 }
