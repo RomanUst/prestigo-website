@@ -1,0 +1,129 @@
+{
+  "metadata": {
+    "title": "Alquiler de chófer para varios días | PRESTIGO",
+    "description": "Servicio de chófer dedicado para viajes de varios días por Europa Central. Elabore su itinerario día a día y reciba un presupuesto personalizado en 24 horas.",
+    "ogTitle": "Alquiler de chófer para varios días | PRESTIGO",
+    "ogDescription": "Servicio de chófer dedicado para viajes de varios días por Europa Central. Elabore su itinerario día a día y reciba un presupuesto personalizado en 24 horas."
+  },
+  "hero": {
+    "label": "PRESTIGO · Alquiler de chófer para varios días",
+    "headlineLine1": "Un chófer. Cada día.",
+    "headlineLine2": "A donde le lleve Europa Central.",
+    "intro": [
+      "Algunos viajes no encajan en una sola reserva. Un roadshow corporativo por tres ciudades. Un tour familiar por Bohemia y Baviera. Un fin de semana de boda que se mueve entre Praga y un castillo en el campo. Para estos casos necesita un vehículo dedicado y un chófer que conozca su itinerario tan bien como usted.",
+      "Elabore su itinerario día a día a continuación — combine libremente días de traslado y días por horas, añada paradas intermedias, fije las horas de salida — y le enviaremos un presupuesto fijo en 24 horas. No se requiere pago en línea: en cuanto el itinerario esté listo, confirmamos por correo electrónico y del resto nos encargamos nosotros."
+    ]
+  },
+  "included": {
+    "heading": "Todo incluido",
+    "items": [
+      "Chófer dedicado de habla inglesa durante toda la duración de su viaje",
+      "Clase de vehículo premium adaptada al tamaño de su grupo y sus preferencias de comodidad",
+      "Ruta flexible día a día — traslado, por horas o una combinación de ambos",
+      "Alojamiento del chófer, peajes, aparcamiento e impuestos de circulación totalmente cubiertos por PRESTIGO",
+      "Recogida en aeropuertos y hoteles con cartel identificativo",
+      "Asistencia de conserjería 24/7 durante todo el viaje para cambios de última hora",
+      "Seguimiento de vuelos en los días de viaje — controlamos los retrasos para que su itinerario no se vea afectado",
+      "Sillas infantiles, espacio adicional para equipaje y peticiones especiales organizadas a petición"
+    ]
+  },
+  "howItWorks": {
+    "label": "Cómo funciona",
+    "steps": [
+      { "title": "Elabore su itinerario", "body": "Añada días, elija traslado o por horas para cada uno, fije fechas y horas de salida. Las paradas y peticiones especiales se indican en las notas." },
+      { "title": "Reciba su presupuesto", "body": "Revisamos su ruta y le enviamos un presupuesto fijo con todo incluido en 24 horas. Sin sorpresas — el precio cubre chófer, peajes y alojamiento." },
+      { "title": "Confirme por correo electrónico", "body": "Responda para aceptar. Sin enlace de pago, sin depósito. Confirmamos su reserva y le asignamos su chófer dedicado." },
+      { "title": "Viaje", "body": "Su chófer le espera en el primer punto de recogida. A partir de ese momento, la logística es cosa nuestra." }
+    ]
+  },
+  "examples": {
+    "heading": "Ejemplos de itinerarios",
+    "intro": "Estos son tipos de viaje reales que organizamos con regularidad. Utilícelos como punto de partida — cada itinerario que presupuestamos se elabora desde cero según sus necesidades.",
+    "dayLabel": "DÍA {day}",
+    "dayTypeLabels": { "TRANSFER": "TRASLADO", "HOURLY": "POR HORAS" },
+    "items": [
+      {
+        "title": "Viaje ejecutivo — Praga a Viena",
+        "subtitle": "3 días · 2 traslados + programa en la ciudad",
+        "description": "Un circuito de negocios clásico de Europa Central. El primer día le lleva de Praga a Viena con estilo, con una breve parada en el castillo de Lednice por el camino si el tiempo lo permite. El segundo día es suyo — el chófer está disponible para reuniones, el aeropuerto, la ópera o una cena privada de vinos en Wachau. El tercer día le devuelve a Praga a tiempo para un vuelo por la tarde.",
+        "daySummaries": [
+          "Praga (hotel / aeropuerto) → Viena — ≈4 h de trayecto, parada panorámica opcional",
+          "Programa en la ciudad de Viena — 6 h, reuniones, turismo o ambos",
+          "Viena → Praga (regreso), salida por la mañana"
+        ]
+      },
+      {
+        "title": "Tour panorámico por Europa Central",
+        "subtitle": "5 días · Praga → Český Krumlov → Salzburgo → Múnich",
+        "description": "Un recorrido cultural pausado por cuatro países. El chófer se encarga de toda la logística — carga de equipaje, traslados a hoteles y cruces de frontera — para que se mueva entre lugares Patrimonio de la Humanidad y paisajes alpinos sin una sola preocupación logística. Cada parada en la ciudad dura lo suficiente para no sentirse apresurado.",
+        "daySummaries": [
+          "Praga → Český Krumlov — casco antiguo Patrimonio de la Humanidad, vistas al castillo",
+          "Exploración de Český Krumlov — 5 h con ambiente guiado",
+          "Český Krumlov → Salzburgo — estribaciones alpinas, parada para comer",
+          "Salzburgo — lugares de Mozart, jardines de Mirabell, casco antiguo — 6 h",
+          "Salzburgo → Múnich (aeropuerto o hotel)"
+        ]
+      },
+      {
+        "title": "Roadshow corporativo — Praga · Brno · Varsovia",
+        "subtitle": "4 días · visitas de clientes del equipo directivo en tres ciudades",
+        "description": "Diseñado para equipos directivos que enlazan reuniones con clientes o inversores en varias ciudades. Un vehículo dedicado, un chófer conocido, sin pérdida de tiempo en logística. El itinerario siguiente es habitual; adaptamos las horas de salida a su agenda en tiempo real.",
+        "daySummaries": [
+          "Praga → Brno — salida por la mañana, reuniones por la tarde",
+          "Brno — visitas a oficinas y comida de trabajo — 7 h disponible",
+          "Brno → Varsovia — traslado de larga distancia, durante la noche",
+          "Ciudad de Varsovia — reuniones finales + traslado nocturno al vuelo — 8 h"
+        ]
+      },
+      {
+        "title": "Retiro de spa y bienestar — Karlovy Vary",
+        "subtitle": "3 días · base en Praga + dos días completos en el triángulo del spa",
+        "description": "Los balnearios de Bohemia Occidental — Karlovy Vary, Mariánské Lázně, Františkovy Lázně — están a solo 90 minutos de Praga y son de los más serenos de Europa. Este itinerario le ofrece dos días completos y sin prisas en las columnatas, con el vehículo disponible para traslados matutinos y vespertinos entre hoteles y centros de tratamiento.",
+        "daySummaries": [
+          "Praga → Karlovy Vary — registro, paseo vespertino por la columnata",
+          "Karlovy Vary y alrededores — 6 h de circuito de spa, Mariánské Lázně opcional",
+          "Karlovy Vary → Praga — salida flexible, opción de aeropuerto"
+        ]
+      },
+      {
+        "title": "Fin de semana de boda — traslado grupal privado",
+        "subtitle": "2 días · ciudad de Praga + finca en el campo de Bohemia",
+        "description": "Mover a un cortejo nupcial entre hoteles de Praga, la finca en el campo y de vuelta requiere una sincronización precisa y un vehículo acorde a la ocasión. Coordinamos con su organizador de eventos, mantenemos tiempo de espera entre la ceremonia y la recepción, y garantizamos que los invitados lleguen impecables.",
+        "daySummaries": [
+          "Hoteles de Praga → finca en el campo — ceremonia y recepción",
+          "Finca → Praga (hoteles + aeropuerto) — regresos por la mañana"
+        ]
+      },
+      {
+        "title": "Vino y gastronomía — Moravia",
+        "subtitle": "4 días · Praga → circuito vinícola del sur de Moravia",
+        "description": "La región vinícola de Moravia se encuentra a dos horas al este de Praga y produce algunos de los mejores Welschriesling y Blaufränkisch de Europa Central — prácticamente desconocidos fuera de la región. Este circuito combina visitas a bodegas, pueblos vinícolas al aire libre y el paisaje Patrimonio de la Humanidad de Lednice–Valtice.",
+        "daySummaries": [
+          "Praga → Mikulov — hotel vinícola boutique, castillo en la colina",
+          "Circuito de bodegas — Valtice, Znojmo, colinas de Pálava — 7 h",
+          "Paisaje Patrimonio de la Humanidad de Lednice–Valtice, degustación por la tarde — 6 h",
+          "Mikulov → Praga (o aeropuerto de Brno) — viaje de regreso"
+        ]
+      }
+    ]
+  },
+  "faq": {
+    "heading": "Preguntas frecuentes",
+    "items": [
+      { "q": "¿Con cuánta antelación debo reservar?", "a": "Aceptamos solicitudes hasta 12 meses antes y con tan solo 48 horas de antelación al primer día, según disponibilidad de vehículos. Para períodos de máxima demanda (mayo–septiembre, diciembre) recomendamos reservar con al menos dos semanas de antelación." },
+      { "q": "¿Puedo cambiar el itinerario después de enviarlo?", "a": "Sí. Una vez le enviemos su presupuesto, puede solicitar cambios antes de confirmar. Tras la confirmación, los ajustes menores — horas de salida, paradas adicionales — se gestionan directamente con su chófer. Los cambios importantes de ruta pueden afectar al precio." },
+      { "q": "¿Qué países cubren?", "a": "Nuestro territorio principal es República Checa, Austria, Alemania, Eslovaquia, Polonia y Hungría. También podemos organizar traslados a Croacia, Eslovenia y el Benelux a petición. Los itinerarios más largos se presupuestan individualmente." },
+      { "q": "¿Qué clases de vehículo están disponibles para viajes de varios días?", "a": "Business (Mercedes E-Class o equivalente), First Class (Mercedes S-Class o equivalente) y Business Van (Mercedes V-Class, hasta 6 pasajeros). Todas las clases incluyen amplio espacio en el maletero; hay remolques de equipaje adicionales disponibles para traslados de grupo." },
+      { "q": "¿Está incluido el alojamiento del chófer?", "a": "Sí — el alojamiento del chófer, las comidas en rutas de varios días y todos los peajes están totalmente incluidos en su presupuesto. No hay recargos ocultos." },
+      { "q": "¿Facilitan recibos para la contabilidad corporativa?", "a": "Sí. Emitimos una factura con IVA una vez finalizado el viaje. Podemos dirigir las facturas a su empresa y desglosarlas por centro de coste a petición." }
+    ]
+  },
+  "builder": {
+    "heading": "Elabore su itinerario",
+    "intro": "Añada sus días a continuación. Cada día puede ser un traslado punto a punto o un bloque por horas — combine libremente. Revisaremos su solicitud y responderemos con un presupuesto fijo en 24 horas."
+  },
+  "imageAlts": {
+    "hero": "Chófer de Prestigo y coche de lujo en un viaje de varios días por Europa Central",
+    "section": "Paisaje panorámico de Europa Central junto a los itinerarios de chófer de varios días de Prestigo"
+  }
+}
