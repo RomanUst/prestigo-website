@@ -443,3 +443,19 @@ describe('checkout.session.completed webhook (ANEW-04, T-64-02/03)', () => {
     expect(sendClientConfirmation).not.toHaveBeenCalled()
   })
 })
+
+describe('payment_intent.succeeded for a payment-link PaymentIntent', () => {
+  it('reconciles by metadata.bookingId and sends the confirmation (no checkout.session.completed needed)', async () => {
+    stripeStub.constructEvent.mockReturnValue({
+      id: 'evt_pi_link',
+      type: 'payment_intent.succeeded',
+      data: { object: { id: 'pi_link_123', amount: 6000, currency: 'eur', metadata: { bookingId: 'booking-uuid-1', leg: 'outbound' } } },
+    })
+
+    const res = await POST(makeRequest())
+    expect(res.status).toBe(200)
+    expect(reconcileBookingByIdToConfirmed).toHaveBeenCalledWith('booking-uuid-1', 'pi_link_123')
+    expect(sendClientConfirmation).toHaveBeenCalledTimes(1)
+    expect(sendManagerAlert).toHaveBeenCalledTimes(1)
+  })
+})

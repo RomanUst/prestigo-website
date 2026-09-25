@@ -1,0 +1,129 @@
+{
+  "metadata": {
+    "title": "Multi-day Chauffeur Hire | PRESTIGO",
+    "description": "Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours.",
+    "ogTitle": "Multi-day Chauffeur Hire | PRESTIGO",
+    "ogDescription": "Dedicated chauffeur service for multi-day journeys across Central Europe. Build your day-by-day itinerary and receive a tailored quote within 24 hours."
+  },
+  "hero": {
+    "label": "PRESTIGO · Multi-day chauffeur hire",
+    "headlineLine1": "One chauffeur. Every day.",
+    "headlineLine2": "Wherever Central Europe takes you.",
+    "intro": [
+      "Some journeys don’t fit into a single booking. A corporate roadshow spanning three cities. A family tour across Bohemia and Bavaria. A wedding weekend that moves between Prague and a countryside château. For these, you need a dedicated vehicle and a driver who knows your itinerary as well as you do.",
+      "Build your day-by-day itinerary below — mix Transfer and Hourly days freely, add intermediate stops, set departure times — and we’ll return a fixed quote within 24 hours. No online payment required: once the itinerary is right, we confirm by email and the rest is taken care of."
+    ]
+  },
+  "included": {
+    "heading": "Everything included",
+    "items": [
+      "Dedicated English-speaking chauffeur for the full duration of your trip",
+      "Premium vehicle class matched to your group size and comfort preferences",
+      "Flexible day-by-day routing — Transfer, Hourly, or a combination of both",
+      "Driver accommodation, tolls, parking, and road taxes fully covered by PRESTIGO",
+      "Meet & greet at airports and hotels with name-board service",
+      "24/7 concierge support throughout your journey for last-minute changes",
+      "Flight monitoring on travel days — we track delays so your schedule stays intact",
+      "Child seats, extra luggage space, and special requests arranged on request"
+    ]
+  },
+  "howItWorks": {
+    "label": "How it works",
+    "steps": [
+      { "title": "Build your itinerary", "body": "Add days, choose Transfer or Hourly for each, set dates and departure times. Stops and special requests go in the notes." },
+      { "title": "Receive your quote", "body": "We review your route and send a fixed all-inclusive quote within 24 hours. No surprises — the price covers driver, tolls, and accommodation." },
+      { "title": "Confirm by email", "body": "Reply to accept. No payment link, no deposit. We confirm your booking and assign your dedicated chauffeur." },
+      { "title": "Travel", "body": "Your driver meets you at the first pick-up point. From that moment, logistics are ours to manage." }
+    ]
+  },
+  "examples": {
+    "heading": "Example itineraries",
+    "intro": "These are real trip types we run regularly. Use them as starting points — every itinerary we quote is built from scratch around your requirements.",
+    "dayLabel": "DAY {day}",
+    "dayTypeLabels": { "TRANSFER": "TRANSFER", "HOURLY": "HOURLY" },
+    "items": [
+      {
+        "title": "Executive trip — Prague to Vienna",
+        "subtitle": "3 days · 2 transfers + city programme",
+        "description": "A classic Central European business circuit. Day one moves you from Prague to Vienna in style, with a brief stop at the Lednice château en route if time allows. Day two is yours — the chauffeur is on call for meetings, the airport, the opera, or a private wine dinner in the Wachau. Day three returns you to Prague in time for an afternoon flight.",
+        "daySummaries": [
+          "Prague (hotel / airport) → Vienna — ≈4 h drive, optional scenic stop",
+          "Vienna city programme — 6 h, meetings, sightseeing, or both",
+          "Vienna → Prague (return), morning departure"
+        ]
+      },
+      {
+        "title": "Central Europe scenic tour",
+        "subtitle": "5 days · Prague → Český Krumlov → Salzburg → Munich",
+        "description": "A leisurely cultural arc through four countries. The chauffeur handles all logistics — luggage loading, hotel drop-offs, and border crossings — so you move between UNESCO sites and alpine scenery without a single logistical worry. Each city stop is long enough to feel unhurried.",
+        "daySummaries": [
+          "Prague → Český Krumlov — UNESCO old town, castle views",
+          "Český Krumlov exploration — 5 h guided atmosphere",
+          "Český Krumlov → Salzburg — alpine foothills, lunch stop",
+          "Salzburg — Mozart sites, Mirabell gardens, old town — 6 h",
+          "Salzburg → Munich (airport or hotel drop-off)"
+        ]
+      },
+      {
+        "title": "Corporate roadshow — Prague · Brno · Warsaw",
+        "subtitle": "4 days · senior team client visits across three cities",
+        "description": "Designed for senior teams running back-to-back client or investor meetings across multiple cities. One dedicated vehicle, one familiar driver, no time lost on logistics. The itinerary below is typical; we adapt departure times around your calendar in real time.",
+        "daySummaries": [
+          "Prague → Brno — morning departure, afternoon meetings",
+          "Brno — office visits and working lunch — 7 h on-call",
+          "Brno → Warsaw — long-distance transfer, overnight",
+          "Warsaw city — final meetings + evening flight drop-off — 8 h"
+        ]
+      },
+      {
+        "title": "Spa & wellness retreat — Karlovy Vary",
+        "subtitle": "3 days · Prague base + two full days in the spa triangle",
+        "description": "Western Bohemia's spa towns — Karlovy Vary, Mariánské Lázně, Františkovy Lázně — are just 90 minutes from Prague and among the most serene in Europe. This itinerary gives you two full unhurried days in the colonnades, with the car available for morning and evening transfers between hotels and treatment centres.",
+        "daySummaries": [
+          "Prague → Karlovy Vary — check-in, evening colonnade walk",
+          "Karlovy Vary & surrounds — 6 h spa circuit, optional Mariánské Lázně",
+          "Karlovy Vary → Prague — flexible departure, airport option"
+        ]
+      },
+      {
+        "title": "Wedding weekend — private group transfer",
+        "subtitle": "2 days · Prague city + Bohemian countryside venue",
+        "description": "Moving a wedding party between Prague hotels, the countryside venue, and back requires precision timing and a vehicle that matches the occasion. We coordinate with your event planner, hold waiting time between ceremony and reception, and ensure guests arrive composed.",
+        "daySummaries": [
+          "Prague hotels → countryside venue — ceremony and reception",
+          "Venue → Prague (hotels + airport) — morning returns"
+        ]
+      },
+      {
+        "title": "Wine & gastronomy — Moravia",
+        "subtitle": "4 days · Prague → South Moravia wine region loop",
+        "description": "Moravia's wine country sits two hours east of Prague and produces some of the best Welschriesling and Blaufränkisch in Central Europe — virtually unknown outside the region. This circuit combines cellar visits, open-air wine villages, and the Lednice–Valtice UNESCO landscape.",
+        "daySummaries": [
+          "Prague → Mikulov — boutique wine hotel, hillside castle",
+          "Wine cellar circuit — Valtice, Znojmo, Pálava hills — 7 h",
+          "Lednice–Valtice UNESCO landscape, afternoon tasting — 6 h",
+          "Mikulov → Prague (or Brno airport) — return journey"
+        ]
+      }
+    ]
+  },
+  "faq": {
+    "heading": "Frequently asked questions",
+    "items": [
+      { "q": "How far in advance do I need to book?", "a": "We accept requests up to 12 months ahead and as close as 48 hours before the first day, subject to vehicle availability. For peak periods (May–September, December) we recommend booking at least two weeks out." },
+      { "q": "Can I change the itinerary after submitting?", "a": "Yes. Once we send your quote, you can request changes before confirming. After confirmation, minor adjustments — departure times, additional stops — are handled directly with your driver. Major route changes may affect pricing." },
+      { "q": "Which countries do you cover?", "a": "Our primary territory is Czech Republic, Austria, Germany, Slovakia, Poland, and Hungary. We can also arrange transfers into Croatia, Slovenia, and the Benelux on request. Longer itineraries are quoted individually." },
+      { "q": "What vehicle classes are available for multi-day trips?", "a": "Business (Mercedes E-Class or equivalent), First Class (Mercedes S-Class or equivalent), and Business Van (Mercedes V-Class, up to 6 passengers). All classes include ample boot space; extra luggage trailers are available for group transfers." },
+      { "q": "Is accommodation for the driver included?", "a": "Yes — driver accommodation, meals on multi-day routes, and all tolls are fully included in your quote. There are no hidden surcharges." },
+      { "q": "Do you provide receipts for corporate expense reporting?", "a": "Yes. We issue a VAT invoice after the journey is complete. We can address invoices to your company and split by cost centre on request." }
+    ]
+  },
+  "builder": {
+    "heading": "Build your itinerary",
+    "intro": "Add your days below. Each day can be a point-to-point Transfer or an Hourly block — mix freely. We’ll review and respond with a fixed quote within 24 hours."
+  },
+  "imageAlts": {
+    "hero": "Prestigo chauffeur and luxury car on a multi-day journey through Central Europe",
+    "section": "Scenic Central European landscape along Prestigo multi-day chauffeur itineraries"
+  }
+}

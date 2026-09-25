@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "title": "Reservar un traslado — Chófer en Praga",
+    "description": "Reserve su chófer en Praga en 60 segundos. Precio fijo, confirmación instantánea, seguimiento de vuelo incluido. Traslados al aeropuerto, rutas interurbanas, viajes corporativos.",
+    "ogTitle": "Reservar un traslado — PRESTIGO, chófer en Praga",
+    "ogDescription": "Reserve su chófer en Praga en 60 segundos. Precio fijo, confirmación instantánea, seguimiento de vuelo incluido. Traslados al aeropuerto, rutas interurbanas, viajes corporativos."
+  },
+  "hero": {
+    "label": "Reserva instantánea",
+    "headlineLine1": "Su traslado,",
+    "headlineItalic": "confirmado en segundos.",
+    "subhead": "Precio fijo. Confirmación instantánea. Sin llamadas de vuelta."
+  },
+  "guarantees": [
+    "Precio fijo — garantizado al reservar",
+    "Cancelación gratuita hasta 1 hora antes",
+    "Seguimiento de vuelo incluido"
+  ],
+  "howItWorks": {
+    "label": "Cómo funciona la reserva",
+    "headingLine1": "Cuatro pasos,",
+    "headingItalic": "sesenta segundos.",
+    "steps": [
+      { "title": "Elija su ruta", "body": "Introduzca la dirección de recogida, el destino, la fecha y la hora. Cubrimos todas las direcciones de Praga y todas las principales ciudades de Europa Central." },
+      { "title": "Elija su vehículo", "body": "Mercedes E-Class, S-Class o V-Class — cada precio se indica por adelantado e incluye todos los peajes, viñetas y tasas del trayecto." },
+      { "title": "Confirme en segundos", "body": "Pago seguro con tarjeta o facturación para cuentas corporativas. Recibirá un correo de confirmación con los datos del chófer antes de que la página se recargue." },
+      { "title": "A partir de ahí, nos ocupamos nosotros", "body": "Su chófer empieza a seguir su vuelo (para recogidas en el aeropuerto) o su agenda (para traslados programados). Usted solo tiene que llegar a tiempo." }
+    ]
+  },
+  "afterYouBook": {
+    "label": "Después de reservar",
+    "headingLine1": "El trabajo empieza",
+    "headingItalic": "en el momento de confirmar.",
+    "intro": "Una reserva de PRESTIGO no es una solicitud, es un compromiso. En el instante en que confirma, su viaje entra en nuestro sistema de despacho, se asignan un chófer y un vehículo, y comienza la preparación. Recibirá el nombre, la foto, el número de teléfono y los datos del vehículo de su chófer mucho antes de la recogida. Si se trata de un traslado al aeropuerto, el seguimiento del vuelo ya está en marcha.",
+    "items": [
+      { "t": "Confirmación instantánea por correo y SMS", "b": "Referencia de la reserva, hora de recogida, contacto del chófer y un enlace de estado en vivo — normalmente en menos de diez segundos tras el pago." },
+      { "t": "Chófer asignado con antelación", "b": "En la mayoría de las reservas, su chófer queda confirmado horas o días antes de la recogida. Para reservas del mismo día, recibirá los datos del chófer en cuanto se complete la asignación." },
+      { "t": "Seguimiento de vuelo para recogidas en el aeropuerto", "b": "Su chófer supervisa su vuelo con datos de control aéreo en tiempo real. Si aterriza antes de tiempo, el coche ya está allí. Si aterriza tarde, la espera corre a nuestro cargo." },
+      { "t": "Encuentro y saludo a la llegada", "b": "Para las recogidas en el aeropuerto, su chófer espera en la zona de llegadas con un cartel de PRESTIGO. Usted nunca tiene que buscarlo — él le encuentra a usted." },
+      { "t": "Viaje silencioso por defecto", "b": "La conversación es bienvenida, pero nunca se espera. La mayoría de nuestros chóferes no hablarán a menos que usted hable primero." },
+      { "t": "Correo de confirmación con factura", "b": "Una vez finalizado el trayecto, recibirá automáticamente una factura completa en su correo. Las cuentas corporativas reciben en su lugar extractos mensuales consolidados." }
+    ]
+  },
+  "whyBookDirect": {
+    "label": "Por qué reservar directamente",
+    "headingLine1": "El precio que ve",
+    "headingItalic": "es el precio que paga.",
+    "intro": "La mayoría de los viajes premium con chófer en Praga se venden a través de agregadores globales que añaden un margen del 25–40 % sobre la tarifa del operador. Usted paga más, el conductor gana menos, y nadie en ninguno de los dos lados del viaje está del todo seguro de quién es responsable cuando algo va mal. Reservar directamente con PRESTIGO elimina todo eso.",
+    "items": [
+      { "title": "Sin margen de intermediario", "body": "Cada euro que paga va al operador y al conductor. Reservar directamente es entre un 20 y un 40 por ciento más barato que el mismo viaje vendido a través de un agregador global." },
+      { "title": "Contacto directo con el chófer", "body": "Tiene el número de teléfono de su chófer desde el momento en que se confirma la reserva. Sin intermediarios, sin sistemas de tickets, sin centro de llamadas entre usted y el coche." },
+      { "title": "Un único operador responsable", "body": "PRESTIGO opera los vehículos y emplea a los conductores. Cuando una reserva necesita cambiarse, redirigirse o recuperarse, hay exactamente una persona al teléfono — no el subcontratista de un subcontratista." }
+    ]
+  },
+  "faq": {
+    "heading": "Preguntas sobre la reserva",
+    "items": [
+      { "q": "¿Puedo cancelar o modificar mi reserva?", "a": "Sí. La cancelación es gratuita hasta una hora antes de la recogida programada — el reembolso se procesa al método de pago original dentro de un día hábil, sin cargo por cancelación y sin deducciones. Los cambios de hora de recogida, dirección de recogida o destino, clase de vehículo o nombre del pasajero son gratuitos en cualquier momento, incluso dentro de la última hora e incluso después de que el chófer haya salido. Para hacer un cambio, llame o escriba por WhatsApp a nuestra central en el +420 725 986 855, o envíe su referencia de reserva a info@rideprestigo.com. En cancelaciones de última hora dentro de la última hora cobramos un 50 % de la tarifa para cubrir la plaza perdida del chófer ya en ruta, salvo que la cancelación se deba a un vuelo cancelado o muy retrasado — en ese caso anulamos el cargo por completo y reprogramamos automáticamente su próxima llegada, sin coste adicional." },
+      { "q": "¿Qué métodos de pago aceptan?", "a": "Las reservas en línea se pagan con tarjeta de crédito o débito al finalizar la reserva — aceptamos Visa, Mastercard, American Express, así como Apple Pay y Google Pay a través de Stripe. El importe total se cobra en el momento de confirmar, no después del viaje, para que no haya sorpresas al finalizar. Las cuentas corporativas reciben en su lugar una factura mensual consolidada, pagadera por transferencia bancaria o tarjeta en un plazo de 30 días; sus viajeros nunca ven una pantalla de pago. No aceptamos efectivo dentro del vehículo y nunca pedimos ningún pago adicional al chófer después del viaje — quien afirme lo contrario no es un conductor de PRESTIGO. No se espera propina, pero siempre es bienvenida y va directamente al chófer. Los recibos y facturas con IVA se envían automáticamente por correo pocos minutos después de finalizar el trayecto." },
+      { "q": "¿El tiempo de espera está incluido en la tarifa?", "a": "Sí, en cada reserva se incluye un tiempo de espera generoso. Para las recogidas en el aeropuerto de Václav Havel (PRG) incluimos 60 minutos de espera gratuita medidos desde la hora real de aterrizaje — suficiente para pasar el control de pasaportes, recoger el equipaje y llegar al punto de encuentro incluso tras un aterrizaje retrasado o una cola larga en inmigración. Para traslados programados desde un hotel, oficina o domicilio, incluimos 15 minutos de espera gratuita en el punto de recogida. Una vez superado el margen incluido, la espera se cobra a una tarifa horaria clara (consulte los precios), y el chófer siempre se pone en contacto con usted antes de que empiece a contar el tiempo, para que la prórroga sea una decisión consciente y no una sorpresa en la factura final. Las cuentas corporativas pueden configurar márgenes de espera más largos a petición." },
+      { "q": "¿Qué ocurre si mi vuelo se retrasa o se cancela?", "a": "Su chófer sigue su vuelo en tiempo real desde el momento en que confirma la reserva, usando datos de control de tráfico aéreo en vivo en lugar de los horarios programados. Si aterriza antes de tiempo, el chófer ya está en la zona de llegadas con un cartel de PRESTIGO. Si el vuelo se retrasa minutos u horas, la recogida se ajusta automáticamente a la nueva hora real de aterrizaje y usted no paga nada adicional — la espera por retraso de vuelo siempre es gratuita y sin límite de horas. Si el vuelo es cancelado por completo por la aerolínea, cancelamos la reserva sin coste alguno y reprogramamos de forma proactiva su próxima llegada en cuanto quede confirmada. En vuelos de conexión seguimos el último tramo de entrada, no el horario original programado, de modo que una conexión perdida nunca le deja con un chófer en la puerta equivocada a la hora equivocada." },
+      { "q": "¿Puedo llevar equipaje, niños o mascotas en el vehículo?", "a": "Sí a los tres, con la capacidad exacta dependiendo de la clase de vehículo elegida. El E-Class admite 2 maletas grandes más 2 bolsas de cabina; el S-Class lo mismo; el V-Class lleva 6 maletas grandes más 6 bolsas de cabina con todos los asientos ocupados. Los niños son bienvenidos a cualquier edad — disponemos de sillas infantiles homologadas R129/i-Size orientadas hacia atrás, sillas para niños pequeños orientadas hacia delante y alzadores sin coste adicional, instaladas antes de la recogida una vez confirmada la edad y el peso del menor al reservar. Las mascotas pequeñas (gatos, perros pequeños) viajan gratis en un transportín, y los perros más grandes son bienvenidos en el V-Class con aviso previo. Los objetos de gran tamaño (esquís, bolsas de golf, bicicletas parcialmente desmontadas, instrumentos musicales) caben en el V-Class por solicitud. Si no está seguro de si su equipaje cabe, envíenos un inventario aproximado al reservar y confirmaremos la clase adecuada." },
+      { "q": "¿Puedo reservar un viaje para otra persona?", "a": "Por supuesto — así es como funciona en la práctica la mayoría de nuestras reservas corporativas y de hostelería. Introduzca el nombre del pasajero en el campo correspondiente al finalizar la reserva, y el chófer mantendrá ese nombre en el cartel de llegadas, recogerá al pasajero por su nombre en el punto de encuentro y lo llevará hasta el destino. Opcionalmente puede añadir el número de móvil del pasajero para que el chófer se ponga en contacto con él directamente a la llegada, algo especialmente útil para recogidas VIP en el aeropuerto cuando la reserva la ha hecho un asistente de viajes con antelación. La confirmación de la reserva, el recibo de pago y la factura se envían a su correo (el de quien reserva), no al pasajero — de modo que su departamento financiero recibe la documentación y el pasajero simplemente viaja. Para reservas repetidas a nombre de terceros, las cuentas corporativas agilizan esto aún más: un gestor de viajes reserva para decenas de pasajeros nombrados en toda la empresa." }
+    ]
+  }
+}

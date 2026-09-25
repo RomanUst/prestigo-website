@@ -272,6 +272,70 @@ Plans:
 - [x] 74-05-PLAN.md — Header LocaleSwitcher: 7-endonym dropdown, same-page navigation via `@/i18n/routing`, mounted in `Nav.tsx` desktop + mobile (UX-01)
 - [x] 74-06-PLAN.md — FirstVisitBanner: crawler-safe `Accept-Language` suggestion, no auto-redirect, `NEXT_LOCALE` persistence, mounted in `SiteChrome.tsx` (UX-02)
 
+### Phase 75: E2E Verification & Launch
+
+**Goal**: Prove the multilingual site works end-to-end on production for all 7 locales and close milestone v3.0. Every locale renders, the switcher works, the guest booking flow reaches a localized Stripe payment form in every locale (incl. RTL `/ar`), no English leaks onto localized pages (systematic static + rendered audit, fixes translated in-session), GA4 and Meta events carry a `site_locale` dimension (client and server-side via the booking), hreflang clusters validate, Rich Results pass, CSP has no regression, and the vitest red baseline in v3.0-touched files is cleared. Launch = GSC sitemap resubmit + indexing baseline, milestone close, and Metricool announcement drafts.
+
+**Depends on**: Phase 74 (SEO wiring, switcher, banner), Phases 68–73 (i18n foundation, catalogs, content, RTL)
+**Requirements**: VER-01
+**Success Criteria** (what must be TRUE):
+
+  1. Repeatable QA scripts under `scripts/qa/` (render, switcher, EN-leak, hreflang reciprocity, CSP, booking) run against production for all 7 locales and their results are recorded in `75-VERIFICATION.md`.
+  2. Guest booking completes through all 6 wizard steps up to a rendered, localized Stripe payment form in every locale (incl. `/ar` RTL); sign-in + account path verified in RU and AR; test bookings use an `E2E TEST` marker and are removed from Supabase afterwards.
+  3. No EN leakage on localized pages across visible text, form errors/placeholders/aria/alt, metadata/JSON-LD, and Stripe Elements / Google Places locale; intentional EN-fallback (untranslated blog, EN-only JSX posts) is an explicit allowlist; the known leaks (/book hero + How it works, /book/multi-day examples, airport-transfer booking block, CorporateForm placeholder) and the ~10 hi DNT-fallback headings are fixed.
+  4. GA4 events carry a `site_locale` param registered as an event-scoped custom dimension; Meta Pixel + CAPI carry `custom_data.site_locale` without breaking eventId dedup; locale is persisted on the booking and forwarded by the Stripe webhook to server GA4 purchase + CAPI.
+  5. hreflang clusters are reciprocal, Rich Results Test passes on sampled locale URLs, no CSP violations, overflow audit stays at 0 issues.
+  6. vitest is green for all v3.0-touched files; pre-existing unrelated failures are listed.
+  7. Launch: sitemap resubmitted in GSC with a per-locale indexing baseline recorded; Metricool announcement created as drafts only; milestone v3.0 audited and closed.
+
+**Plans:** 21 plans
+
+Plans:
+**Wave 1**
+
+- [x] 75-01-PLAN.md — QA harness (render, switcher, hreflang, JSON-LD, CSP) + pre-change production baseline
+- [x] 75-02-PLAN.md — Two-layer EN-leak audit (AST static + rendered prod scan) + D-09 allowlist + inventory
+- [x] 75-03-PLAN.md — Booking E2E driver (guest x7 incl. RTL, RU/AR account path, Stripe/Places locale, E2E marker)
+- [x] 75-04-PLAN.md — site_locale on GA4 (gtag set) + Meta Pixel/CAPI (identical, strict schema fixed) + analytics QA script
+- [x] 75-06-PLAN.md — /book page chrome -> content model, translated x6
+- [x] 75-07-PLAN.md — /book/multi-day -> content model, translated x6
+- [ ] 75-08-PLAN.md — /fleet -> content model, translated x6
+- [ ] 75-09-PLAN.md — /routes hub -> content model with localized names + locale links, translated x6
+- [ ] 75-10-PLAN.md — 30 route pages: translated hero alts, locale-preserving links, hi DNT headings (WINDOWS #6)
+- [ ] 75-11-PLAN.md — Services + static pages: localizedHref links, translated alts, hi/zh content fixes
+- [ ] 75-12-PLAN.md — CorporateForm + ContactForm + contact details externalized (messages #1)
+- [ ] 75-15-PLAN.md — Sign-in/account/sign-out locale continuity (RU/AR account path)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
+- [ ] 75-05-PLAN.md — Booking locale: Stripe Elements/Places locale, PaymentIntent metadata, webhook server GA4
+- [ ] 75-13-PLAN.md — Shared components, 404, loading, blog CTA, author page (messages #2)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+
+- [ ] 75-16-PLAN.md — Coded API/auth errors rendered translated (messages #3)
+- [ ] 75-17-PLAN.md — D-11 storage decision; optional bookings.locale migration 062 + admin display (MCP apply)
+
+**Wave 4** *(blocked on Wave 3 completion)*
+
+- [ ] 75-14-PLAN.md — Booking-flow navigation locale continuity + locale-links backstop test
+
+**Wave 5** *(blocked on Wave 4 completion)*
+
+- [ ] 75-18-PLAN.md — Manifest freeze, Metricool draft support, content parity, full pre-deploy gate (D-15)
+
+**Wave 6** *(blocked on Wave 5 completion)*
+
+- [ ] 75-19-PLAN.md — Approved production deploy + smoke; GA4 dimension + E2E account setup
+
+**Wave 7** *(blocked on Wave 6 completion)*
+
+- [ ] 75-20-PLAN.md — Full production QA run (all scripts x7 locales, booking E2E, overflow) + strict E2E cleanup
+
+**Wave 8** *(blocked on Wave 7 completion)*
+
+- [ ] 75-21-PLAN.md — Launch: GSC baseline/resubmit, Rich Results, Metricool drafts, milestone-close handoff
+
 </details>
 
 <details>
@@ -359,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 0/? | Pending | — |
+| 75. E2E Verification & Launch | v3.0 | 5/21 | In Progress|  |

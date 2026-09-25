@@ -8,6 +8,7 @@ import { consumePurchaseSnapshot } from '@/lib/analytics-snapshot'
 import Link from 'next/link'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { trackMetaEvent } from '@/components/MetaPixel'
+import { siteLocaleFromPathname } from '@/i18n/locales'
 
 const VEHICLE_LABELS: Record<string, string> = {
   business: 'Business',
@@ -233,6 +234,9 @@ function ConfirmationContent() {
               currency,
               content_type: 'product',
               content_ids: [ref],
+              // D-12: same derivation trackMetaEvent uses for the paired
+              // Pixel Purchase above, so both carry an identical value.
+              site_locale: siteLocaleFromPathname(window.location.pathname),
             },
           }),
         })

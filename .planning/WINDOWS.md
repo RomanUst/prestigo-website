@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 2
+open_count: 3
 waived_count: 0
 fixed_count: 12
-total_count: 14
-last_updated: 2026-09-23T21:33:05.201Z
+total_count: 15
+last_updated: 2026-09-25T12:39:18.185Z
 ---
 
 # Broken Windows Ledger
@@ -29,6 +29,7 @@ last_updated: 2026-09-23T21:33:05.201Z
 | 12 | 74 | stub | messages/ar.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:49.933Z | 2026-09-23T21:31:45.552Z |
 | 13 | 74 | stub | messages/hi.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:51.597Z | 2026-09-23T21:31:45.733Z |
 | 14 | 74 | stub | messages/zh.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:53.493Z | 2026-09-23T21:31:45.904Z |
+| 15 | 75 | deviation | components/MetaPixel.tsx |  | Production Meta Pixel never fires: NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline, so fbq('init','<id>\\n') throws a SyntaxError on script insertion (appendChild); fbq stays undefined on every real page load. Env var needs re-entry in Vercel without trailing newline (human action). | open |  | 2026-09-25T12:39:18.185Z |  |
 
 ````json
 [
@@ -199,6 +200,18 @@ last_updated: 2026-09-23T21:33:05.201Z
     "reason": "",
     "recorded_at": "2026-09-23T21:28:53.493Z",
     "resolved_at": "2026-09-23T21:31:45.904Z"
+  },
+  {
+    "id": 15,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "components/MetaPixel.tsx",
+    "line": null,
+    "description": "Production Meta Pixel never fires: NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline, so fbq('init','<id>\\n') throws a SyntaxError on script insertion (appendChild); fbq stays undefined on every real page load. Env var needs re-entry in Vercel without trailing newline (human action).",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-25T12:39:18.185Z",
+    "resolved_at": null
   }
 ]
 ````

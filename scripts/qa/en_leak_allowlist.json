@@ -1,0 +1,96 @@
+{
+  "dnt": [
+    { "value": "Prestigo", "reason": "i18n/glossary.json doNotTranslate.brand" },
+    { "value": "PRESTIGO", "reason": "i18n/glossary.json doNotTranslate.brand" },
+    { "value": "chelautotrans s.r.o.", "reason": "i18n/glossary.json doNotTranslate.brand (legal entity name)" },
+    { "value": "Mercedes-Benz", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
+    { "value": "E-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
+    { "value": "S-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
+    { "value": "V-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
+    { "value": "rideprestigo.com", "reason": "i18n/glossary.json doNotTranslate.structural.domains" },
+    { "value": "Meta Pixel", "reason": "third-party product name, never translated" },
+    { "value": "WhatsApp", "reason": "third-party product name, never translated" },
+    { "value": "Google", "reason": "third-party product name, never translated" },
+    { "value": "Stripe", "reason": "third-party product name, never translated" },
+    { "value": "Apple", "reason": "third-party product name, never translated" }
+  ],
+  "placeNames": [
+    { "value": "Prague", "reason": "72-RESEARCH.md A1: place names use the standard target-locale exonym; EN-form 'Prague' is not a leak on its own" },
+    { "value": "Czech Republic", "reason": "place name (country)" },
+    { "value": "Central Europe", "reason": "place name (region)" },
+    { "value": "Kutná Hora", "reason": "lib/routes.ts destination name" },
+    { "value": "Plzeň", "reason": "lib/routes.ts destination name" },
+    { "value": "Liberec", "reason": "lib/routes.ts destination name" },
+    { "value": "Pardubice", "reason": "lib/routes.ts destination name" },
+    { "value": "Hradec Králové", "reason": "lib/routes.ts destination name" },
+    { "value": "Karlovy Vary", "reason": "lib/routes.ts destination name" },
+    { "value": "Dresden", "reason": "lib/routes.ts destination name" },
+    { "value": "České Budějovice", "reason": "lib/routes.ts destination name" },
+    { "value": "Mariánské Lázně", "reason": "lib/routes.ts destination name" },
+    { "value": "Český Krumlov", "reason": "lib/routes.ts destination name" },
+    { "value": "Františkovy Lázně", "reason": "lib/routes.ts destination name" },
+    { "value": "Linz", "reason": "lib/routes.ts destination name" },
+    { "value": "Brno", "reason": "lib/routes.ts destination name" },
+    { "value": "Passau", "reason": "lib/routes.ts destination name" },
+    { "value": "Leipzig", "reason": "lib/routes.ts destination name" },
+    { "value": "Olomouc", "reason": "lib/routes.ts destination name" },
+    { "value": "Regensburg", "reason": "lib/routes.ts destination name" },
+    { "value": "Wrocław", "reason": "lib/routes.ts destination name" },
+    { "value": "Vienna", "reason": "lib/routes.ts destination name" },
+    { "value": "Salzburg", "reason": "lib/routes.ts destination name" },
+    { "value": "Zlín", "reason": "lib/routes.ts destination name" },
+    { "value": "Bratislava", "reason": "lib/routes.ts destination name" },
+    { "value": "Berlin", "reason": "lib/routes.ts destination name" },
+    { "value": "Nuremberg", "reason": "lib/routes.ts destination name" },
+    { "value": "Ostrava", "reason": "lib/routes.ts destination name" },
+    { "value": "Kraków", "reason": "lib/routes.ts destination name" },
+    { "value": "Munich", "reason": "lib/routes.ts destination name" },
+    { "value": "Graz", "reason": "lib/routes.ts destination name" },
+    { "value": "Budapest", "reason": "lib/routes.ts destination name" },
+    { "value": "Warsaw", "reason": "lib/routes.ts destination name" },
+    { "value": "Austria", "reason": "lib/routes.ts destination country" },
+    { "value": "Germany", "reason": "lib/routes.ts destination country" },
+    { "value": "Slovakia", "reason": "lib/routes.ts destination country" },
+    { "value": "Poland", "reason": "lib/routes.ts destination country" },
+    { "value": "Hungary", "reason": "lib/routes.ts destination country" }
+  ],
+  "tierNames": [
+    { "value": "First Class", "reason": "vehicle tier name accepted in EN across all locales" },
+    { "value": "Business Van", "reason": "vehicle tier name accepted in EN across all locales" },
+    { "value": "PRG · VIE · BER · MUC", "reason": "airport code shorthand, never translated" },
+    { "value": "EUR — €", "reason": "currency label, never translated" },
+    { "value": "CZK — Kč", "reason": "currency label, never translated" },
+    { "value": "DIČ / VAT ID", "reason": "invoicing/legal field label, never translated" }
+  ],
+  "enFallbackPaths": [
+    { "value": "/blog/prague-vienna-transfer-vs-train", "reason": "D-09 EN-only JSX_POSTS legacy post — self-canonical to EN, excluded from hreflang per 71 D-07/D-08, 74 D-07" },
+    { "value": "/blog/prague-airport-to-city-center", "reason": "D-09 EN-only JSX_POSTS legacy post — self-canonical to EN, excluded from hreflang per 71 D-07/D-08, 74 D-07" },
+    { "value": "/blog/prague-airport-taxi-vs-chauffeur", "reason": "D-09 EN-only JSX_POSTS legacy post — self-canonical to EN, excluded from hreflang per 71 D-07/D-08, 74 D-07" }
+  ],
+  "recordedAsIs": [
+    { "value": "/book/confirmation", "reason": "D-05 post-booking surface recorded as-is this phase — no real payment is made, so confirmation/email language is established from code/templates, not fixed here" }
+  ],
+  "jsonLdByDesign": [
+    { "value": "BreadcrumbList.name", "reason": "Phase 74 D-09 by-design English JSON-LD — breadcrumb item names are not user-visible page copy" },
+    { "value": "Service.name (non-route)", "reason": "Phase 74 D-09 by-design English JSON-LD for non-route Service nodes (e.g. the /book LocalBusiness Service node)" },
+    { "value": "Service.description (non-route)", "reason": "Phase 74 D-09 by-design English JSON-LD for non-route Service nodes" }
+  ],
+  "staticIgnoreFiles": [
+    { "value": "app/[locale]/blog/prague-vienna-transfer-vs-train/page.tsx", "reason": "D-09 EN-only JSX_POSTS legacy post — fully English by design, excluded from all rules" },
+    { "value": "app/[locale]/blog/prague-airport-to-city-center/page.tsx", "reason": "D-09 EN-only JSX_POSTS legacy post — fully English by design, excluded from all rules" },
+    { "value": "app/[locale]/blog/prague-airport-taxi-vs-chauffeur/page.tsx", "reason": "D-09 EN-only JSX_POSTS legacy post — fully English by design, excluded from all rules" },
+    { "value": "app/[locale]/book/confirmation/page.tsx", "reason": "D-05 recorded-as-is post-booking surface — text findings (R1/R2) suppressed; R3 navigation is still checked, so R3/R4 are NOT in this entry's rules list", "rules": ["R1", "R2"] }
+  ],
+  "linkExempt": [
+    { "value": "hreflang-attribute", "reason": "An anchor carrying an hreflang attribute is an intentional cross-locale alternate link, not a locale-dropping leak" },
+    { "value": "locale-switcher-menu", "reason": "components/LocaleSwitcher.tsx menu items intentionally point at other locales" },
+    { "value": "first-visit-locale-banner", "reason": "components/CookieBanner.tsx first-visit banner intentionally offers another locale" },
+    { "value": "mailto:", "reason": "mailto: links are not internal navigation" },
+    { "value": "tel:", "reason": "tel: links are not internal navigation" },
+    { "value": "external-https", "reason": "External https:// URLs are not internal navigation" },
+    { "value": "hash-only", "reason": "Hash-only in-page anchors (#section) carry no path, cannot drop a locale prefix" },
+    { "value": "/api/", "reason": "API routes are not localized and are not user navigation" },
+    { "value": "/_next/", "reason": "Next.js internal asset paths are never locale-prefixed" },
+    { "value": "static-file-extension", "reason": "Asset paths with a file extension (images, PDFs, etc.) are not localized page routes" }
+  ]
+}

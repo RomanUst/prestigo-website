@@ -5,28 +5,46 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { getPageContent } from '@/lib/page-content'
+import { getPathname } from '@/i18n/routing'
 
 export const revalidate = 120
 
-const FLEET_DESCRIPTION = 'Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared.'
+type FleetContent = {
+  metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
+  imageAlts: { hero: string; vehicleTemplate: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  vehicles: { category: string; description: string; features: string[]; idealFor: string }[]
+  specsLabels: { seatsLabel: string; luggageLabel: string; passengersTemplate: string; luggageTemplate: string }
+  idealForPrefix: string
+  bookButtonTemplate: string
+  standards: { heading: string; items: { title: string; body: string }[] }
+  marque: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
+  maintenance: { label: string; headingLine1: string; headingItalic: string; items: { title: string; body: string }[] }
+  technology: { label: string; headingLine1: string; headingItalic: string; intro: string; items: { t: string; b: string }[] }
+  selection: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
+  faq: { label: string; heading: string; items: { q: string; a: string }[] }
+  cta: { headingLine1: string; headingItalic: string; intro: string; button: string }
+}
 
 // CR-01: converted from a static `metadata` export to generateMetadata()
 // so the current locale is available for the self-referencing canonical.
-// No `content` ref -> chrome-only page (all 7 locales assumed valid). Note:
-// /fleet's own copy is still hardcoded EN (a separate, deferred
-// content-externalization gap — see 74-CONTEXT.md Deferred Ideas), not
-// something this fix changes.
+// 75-08: /fleet now has a content model (content/pages/<locale>/fleet.json)
+// -> `content: { kind: 'page', key: 'fleet' }` makes the hreflang cluster
+// translation-aware (Phase 74 D-07), closing the deferred gap noted in
+// 74-CONTEXT.md.
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
-  const alternates = getAlternates('/fleet', { indexable: true, locale })
+  const content = getPageContent('fleet', locale) as FleetContent
+  const alternates = getAlternates('/fleet', { indexable: true, content: { kind: 'page', key: 'fleet' }, locale })
   return {
-    title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
-    description: FLEET_DESCRIPTION,
+    title: content.metadata.title,
+    description: content.metadata.description,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
-      title: 'Our Fleet — Mercedes Chauffeur Cars Prague',
-      description: FLEET_DESCRIPTION,
+      title: content.metadata.ogTitle,
+      description: content.metadata.ogDescription,
       images: [{ url: 'https://rideprestigo.com/hero-fleet.webp', width: 1200, height: 630 }],
     },
   }
@@ -34,16 +52,17 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
 
 type VehicleSpec = {
   model: string
-  category: string
-  description: string
-  features: string[]
-  idealFor: string
   photo: string
-  photoAlt: string
+  // EN-only, used exclusively for the Vehicle ItemList JSON-LD (Phase 74
+  // D-09 — Service/ItemList/Breadcrumb names stay English by design). The
+  // visible, localized equivalents live in content.vehicles[i].
+  categoryEn: string
+  descriptionEn: string
   // Structured spec table for Vehicle schema + on-page display
   specs: {
     seating: number
-    luggage: string
+    luggageCases: number
+    luggageBags: number
     fuelType: 'hybrid' | 'petrol' | 'diesel' | 'electric'
     transmission: 'automatic' | 'manual'
     driveType: 'rwd' | 'awd' | 'fwd'
@@ -55,18 +74,19 @@ type VehicleSpec = {
   }
 }
 
+// Structural data — model names, photo paths, capacities, bag counts, and
+// the EN-only category/description used for JSON-LD stay in code (Phase 69
+// convention). Zipped by index with the translated content.vehicles array.
 const vehicles: VehicleSpec[] = [
   {
     model: 'Mercedes-Benz E-Class',
-    category: 'Business Sedan',
-    description: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
-    features: ['Leather interior', 'Dual-zone climate control', 'Onboard Wi-Fi', 'USB-C fast charging', 'Bottled water'],
-    idealFor: 'Airport, city, solo business travel',
+    categoryEn: 'Business Sedan',
+    descriptionEn: 'The first choice for airport transfers and city rides. Comfortable, discreet, efficient. Capacity: 3 passengers + luggage.',
     photo: '/vehicles/e-class.avif',
-    photoAlt: 'Mercedes-Benz E-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 3,
-      luggage: '2 large cases + 2 cabin bags',
+      luggageCases: 2,
+      luggageBags: 2,
       fuelType: 'hybrid',
       transmission: 'automatic',
       driveType: 'rwd',
@@ -79,15 +99,13 @@ const vehicles: VehicleSpec[] = [
   },
   {
     model: 'Mercedes-Benz S-Class',
-    category: 'Executive Sedan',
-    description: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
-    features: ['Premium Nappa leather', 'Rear massage seats', 'Ambient lighting', 'Executive rear package', 'Champagne on request'],
-    idealFor: 'VIP, diplomatic, extended intercity',
+    categoryEn: 'Executive Sedan',
+    descriptionEn: 'For those who travel at the highest level. Rear massaging seats, ambient lighting, panoramic roof. Silence as standard.',
     photo: '/vehicles/s-class.avif',
-    photoAlt: 'Mercedes-Benz S-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 3,
-      luggage: '2 large cases + 2 cabin bags',
+      luggageCases: 2,
+      luggageBags: 2,
       fuelType: 'hybrid',
       transmission: 'automatic',
       driveType: 'awd',
@@ -100,15 +118,13 @@ const vehicles: VehicleSpec[] = [
   },
   {
     model: 'Mercedes-Benz V-Class',
-    category: 'Executive Van',
-    description: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
-    features: ['6 captain seats', 'Full luggage capacity', 'Rear privacy glass', 'Fold-out table', 'Individual reading lights'],
-    idealFor: 'Groups, families, conference transfers',
+    categoryEn: 'Executive Van',
+    descriptionEn: 'Up to 6 passengers. Full luggage. Privacy partition available. The choice for families, groups, and multi-bag travellers who refuse to compromise.',
     photo: '/vehicles/v-class.avif',
-    photoAlt: 'Mercedes-Benz V-Class — PRESTIGO chauffeur service Prague',
     specs: {
       seating: 6,
-      luggage: '6 large cases + 6 cabin bags',
+      luggageCases: 6,
+      luggageBags: 6,
       fuelType: 'diesel',
       transmission: 'automatic',
       driveType: 'rwd',
@@ -119,13 +135,6 @@ const vehicles: VehicleSpec[] = [
       vehicleConfiguration: 'V 300 d Extralong AVANTGARDE',
     },
   },
-]
-
-const standards = [
-  { title: 'Pre-trip inspection', body: 'Checked before every journey' },
-  { title: 'Interior cleaned', body: 'Fresh cabin for every client' },
-  { title: 'Climate preset', body: 'Set to your preference' },
-  { title: 'Chargers & Wi-Fi', body: 'Stay connected on the move' },
 ]
 
 const vehicleListSchema = {
@@ -140,13 +149,13 @@ const vehicleListSchema = {
       '@type': 'Vehicle',
       '@id': `https://rideprestigo.com/fleet#${v.model.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
       name: v.model,
-      description: v.description,
+      description: v.descriptionEn,
       image: `https://rideprestigo.com${v.photo}`,
       brand: { '@type': 'Brand', name: 'Mercedes-Benz' },
       manufacturer: { '@type': 'Organization', name: 'Mercedes-Benz Group AG' },
       vehicleModelDate: String(v.specs.modelYearFrom),
       vehicleConfiguration: v.specs.vehicleConfiguration,
-      bodyType: v.category,
+      bodyType: v.categoryEn,
       fuelType: v.specs.fuelType,
       vehicleTransmission: v.specs.transmission,
       driveWheelConfiguration: v.specs.driveType === 'rwd'
@@ -177,51 +186,36 @@ const breadcrumbSchema = {
   ],
 }
 
-const fleetFaqs = [
-  {
-    q: 'Which Mercedes-Benz models does PRESTIGO operate?',
-    a: 'PRESTIGO runs a three-class Mercedes-Benz fleet in Prague: the E-Class (E 220 d or E 300 de Hybrid) as our business sedan, the S-Class (S 450 4MATIC or S 580 e Hybrid) as our executive sedan, and the V-Class (V 300 d Extralong AVANTGARDE) as our six-passenger van. Every vehicle is 2022 model year or newer, 9-speed automatic transmission, and configured in black exterior with black leather or Nappa interior. Each chassis is serviced on the factory-recommended schedule by authorised Mercedes-Benz Prague technicians, and we refresh the fleet on a rolling cycle so no car remains in service long enough for its cosmetic or mechanical standard to slip. We deliberately run one marque and three silhouettes — it means every driver knows the controls, every passenger recognises the interior, and there are no surprises.',
-  },
-  {
-    q: 'How many passengers and how much luggage fit in each class?',
-    a: 'The Mercedes E-Class seats up to 3 passengers and carries 2 large suitcases plus 2 cabin bags comfortably in its 540-litre boot — the right choice for a solo traveller or couple with full airport luggage. The S-Class has the same 3-passenger limit but adds executive-package rear legroom and massage seats; the boot is 550 litres, so luggage capacity is effectively identical to the E-Class. The V-Class seats up to 6 passengers in individual captain chairs and takes 6 large cases plus 6 cabin bags without compromise thanks to its 1,410-litre cargo area — the only fleet choice for families, board transfers, and multi-bag intercity trips. If you are carrying skis, golf bags, or oversized items, book the V-Class and tell us at booking.',
-  },
-  {
-    q: 'Are the vehicles insured and licensed for international travel?',
-    a: 'Yes. Every PRESTIGO vehicle is fully registered in the Czech Republic, carries commercial passenger-liability insurance and comprehensive vehicle cover underwritten by an EU insurer, and holds the Czech passenger-transport licence (koncese) required for commercial chauffeur operation. For intercity routes we carry the Czech dálniční známka, the Austrian and Slovak vignettes, and we pay every German motorway toll and every bridge or tunnel charge along the way — all included in the quoted fare. Drivers hold valid international professional driver qualifications (ŘPZD), background checks, and fluent English at minimum B2. We are happy to provide insurance certificates and vehicle documentation in advance for corporate procurement teams or diplomatic security requirements — email info@rideprestigo.com and we will send the dossier within one business day.',
-  },
-  {
-    q: 'Can I request a specific vehicle, colour, or interior configuration?',
-    a: 'Vehicle class (E, S, or V) is always your choice and is guaranteed at booking. Within a class, every PRESTIGO car is black exterior with black leather or Nappa interior and the same specification set, so requesting a specific chassis is rarely necessary — the experience is consistent across the fleet. If you have a genuine preference (for example, a client who has travelled with a specific driver before and would like the same vehicle), note it in the booking form and we will honour the request when scheduling allows. For VIP, diplomatic, or multi-vehicle event bookings we can coordinate matching cars, pre-position them at a specific arrival time, and provide a single point of dispatch contact. Child seats, phone chargers, and bottled water are standard in every car.',
-  },
-  {
-    q: 'How often is the fleet serviced and replaced?',
-    a: 'PRESTIGO vehicles are serviced by authorised Mercedes-Benz technicians on the manufacturer-recommended schedule — typically every 25,000 km or 12 months, whichever comes first, for E-Class and S-Class, and every 20,000 km or 12 months for V-Class. Between scheduled services we run daily pre-trip inspections covering tyre pressure and tread, fluid levels, lighting, brake response, and cabin cleanliness. Consumables (tyres, brake pads, wipers, cabin filters) are replaced well before the legal minimum. We retire and replace vehicles on a rolling 3–4 year cycle so no car in service is ever old enough to look or feel dated. If a vehicle needs unscheduled repair mid-assignment, dispatch swaps it for a matching class car immediately — you should never notice, and in practice our clients rarely do.',
-  },
-  {
-    q: 'Is Wi-Fi, phone charging, and child seats really included in every car?',
-    a: 'Yes, included at no extra cost in every PRESTIGO vehicle. Wi-Fi runs on an enterprise 5G mobile router with unlimited data — bandwidth is good enough to take a video call from Prague to Vienna without dropping. USB-C and USB-A fast-charging ports are within reach of every seat, and Apple and Samsung fast-charge protocols are supported. We carry a full range of EU-certified (R129/i-Size) child and booster seats — rear-facing infant, forward-facing toddler, and booster — and install the right one before pickup as long as you confirm the child&rsquo;s age and weight at booking. Bottled still and sparkling water are standard; coffee, tea, and champagne are available on request for executive and VIP bookings. If you need an adapter or a specific amenity, just ask at booking.',
-  },
-]
-
-const fleetSchemaGraph = {
-  '@context': 'https://schema.org',
-  '@graph': [
-    vehicleListSchema,
-    breadcrumbSchema,
-    {
-      '@type': 'FAQPage',
-      '@id': 'https://rideprestigo.com/fleet#faq',
-      mainEntity: fleetFaqs.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-  ],
+// FAQPage mainEntity is built from content.faq.items (D-06/D-07) — visible
+// FAQ and structured FAQ always come from the same source per locale.
+// acceptedAnswer.text is the plain answer string (73-CONTEXT.md rule: never
+// a ReactNode). Service/ItemList/Breadcrumb stay English by design
+// (Phase 74 D-09) and are module-level constants above.
+function buildFleetSchemaGraph(content: FleetContent) {
+  return {
+    '@context': 'https://schema.org',
+    '@graph': [
+      vehicleListSchema,
+      breadcrumbSchema,
+      {
+        '@type': 'FAQPage',
+        '@id': 'https://rideprestigo.com/fleet#faq',
+        mainEntity: content.faq.items.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      },
+    ],
+  }
 }
 
-export default function FleetPage() {
+export default async function FleetPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const content = getPageContent('fleet', locale) as FleetContent
+  const fleetSchemaGraph = buildFleetSchemaGraph(content)
+  const bookHref = getPathname({ locale, href: '/book' })
+
   return (
     <main id="main-content">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(fleetSchemaGraph) }} />
@@ -230,17 +224,17 @@ export default function FleetPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-fleet.webp" alt="PRESTIGO Mercedes Fleet — Prague Chauffeur" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-fleet.webp" alt={content.imageAlts.hero} fill style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Mercedes Fleet · Prague</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-xl">
-            Mercedes Chauffeur Fleet. <br />
-            <span className="display-italic">Part of the experience.</span>
+            {content.hero.headlineLine1} <br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Every PRESTIGO vehicle is a late-model Mercedes-Benz, maintained to exacting standards, fully insured, and prepared before every journey. The interior is your space to think, work, or simply arrive.
+            {content.hero.intro}
           </p>
         </div>
       </section>
@@ -248,65 +242,73 @@ export default function FleetPage() {
       {/* Vehicle cards */}
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col gap-16">
-          {vehicles.map((v, i) => (
-            <Reveal key={v.model} variant="up" delay={i * 150}>
-            <div
-              className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 pb-16 ${i < vehicles.length - 1 ? 'border-b border-anthracite-light' : ''}`}
-            >
-              {/* Photo */}
-              <div className="relative h-64 md:h-80 overflow-hidden">
-                <Image
-                  src={v.photo}
-                  alt={v.photoAlt}
-                  width={600}
-                  height={340}
-                  className="w-full h-full object-contain"
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  priority={i === 0}
-                />
-              </div>
-
-              {/* Info */}
-              <div className="flex flex-col justify-center gap-6">
-                <div>
-                  <p className="label mb-2">{v.category}</p>
-                  <h2 className="display text-[28px] md:text-[34px] mb-3">{v.model}</h2>
-                  <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{v.description}</p>
+          {vehicles.map((v, i) => {
+            const vc = content.vehicles[i]
+            const photoAlt = content.imageAlts.vehicleTemplate.replace('{model}', v.model)
+            const seatsValue = content.specsLabels.passengersTemplate.replace('{n}', String(v.specs.seating))
+            const luggageValue = content.specsLabels.luggageTemplate
+              .replace('{cases}', String(v.specs.luggageCases))
+              .replace('{bags}', String(v.specs.luggageBags))
+            return (
+              <Reveal key={v.model} variant="up" delay={i * 150}>
+              <div
+                className={`grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16 pb-16 ${i < vehicles.length - 1 ? 'border-b border-anthracite-light' : ''}`}
+              >
+                {/* Photo */}
+                <div className="relative h-64 md:h-80 overflow-hidden">
+                  <Image
+                    src={v.photo}
+                    alt={photoAlt}
+                    width={600}
+                    height={340}
+                    className="w-full h-full object-contain"
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    priority={i === 0}
+                  />
                 </div>
-                <ul className="flex flex-col gap-2">
-                  {v.features.map((f) => (
-                    <li key={f} className="flex items-center gap-3">
-                      <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
-                      <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
-                    </li>
-                  ))}
-                </ul>
 
-                {/* Spec table */}
-                <dl className="border-t border-anthracite-light pt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-[11px]">
-                  {[
-                    ['Seats', `${v.specs.seating} passengers`],
-                    ['Luggage', v.specs.luggage],
-                  ].map(([label, val]) => (
-                    <div key={String(label)} className="flex flex-col">
-                      <dt className="font-body font-medium uppercase tracking-[0.12em] text-warmgrey/80" style={{ fontSize: '9px' }}>{label}</dt>
-                      <dd className="font-body font-light text-offwhite mt-1">{val}</dd>
-                    </div>
-                  ))}
-                </dl>
+                {/* Info */}
+                <div className="flex flex-col justify-center gap-6">
+                  <div>
+                    <p className="label mb-2">{vc.category}</p>
+                    <h2 className="display text-[28px] md:text-[34px] mb-3">{v.model}</h2>
+                    <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{vc.description}</p>
+                  </div>
+                  <ul className="flex flex-col gap-2">
+                    {vc.features.map((f) => (
+                      <li key={f} className="flex items-center gap-3">
+                        <span className="w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
+                        <span className="font-body font-light text-[12px] text-warmgrey tracking-wide">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
 
-                <div className="flex items-center gap-6">
-                  <a href="/book" className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
-                    Book {v.model.split(' ').pop()}
-                  </a>
+                  {/* Spec table */}
+                  <dl className="border-t border-anthracite-light pt-5 grid grid-cols-2 gap-x-6 gap-y-3 text-[11px]">
+                    {[
+                      [content.specsLabels.seatsLabel, seatsValue],
+                      [content.specsLabels.luggageLabel, luggageValue],
+                    ].map(([label, val]) => (
+                      <div key={label} className="flex flex-col">
+                        <dt className="font-body font-medium uppercase tracking-[0.12em] text-warmgrey/80" style={{ fontSize: '9px' }}>{label}</dt>
+                        <dd className="font-body font-light text-offwhite mt-1">{val}</dd>
+                      </div>
+                    ))}
+                  </dl>
+
+                  <div className="flex items-center gap-6">
+                    <a href={bookHref} className="btn-primary" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                      {content.bookButtonTemplate.replace('{className}', v.model.split(' ').pop() ?? '')}
+                    </a>
+                  </div>
+                  <p className="font-body font-light text-[11px] text-warmgrey">
+                    {content.idealForPrefix} {vc.idealFor}
+                  </p>
                 </div>
-                <p className="font-body font-light text-[11px] text-warmgrey">
-                  Ideal for: {v.idealFor}
-                </p>
               </div>
-            </div>
-            </Reveal>
-          ))}
+              </Reveal>
+            )
+          })}
         </div>
       </section>
 
@@ -316,10 +318,10 @@ export default function FleetPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up" className="mb-14">
-            <h2 className="display text-[28px] md:text-[36px]">Every vehicle, every time</h2>
+            <h2 className="display text-[28px] md:text-[36px]">{content.standards.heading}</h2>
           </Reveal>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {standards.map((s, i) => (
+            {content.standards.items.map((s, i) => (
               <Reveal key={s.title} variant="up" delay={i * 100}>
               <div>
                 <span className="copper-line mb-5 block" />
@@ -339,22 +341,18 @@ export default function FleetPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
-            <p className="label mb-6">Why Mercedes-Benz exclusively</p>
+            <p className="label mb-6">{content.marque.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px] mb-8">One marque. Three silhouettes. <span className="display-italic">Zero compromise.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-8">{content.marque.headingLine1} <span className="display-italic">{content.marque.headingItalic}</span></h2>
           </div>
           </Reveal>
           <Reveal variant="up" delay={150}>
           <div className="flex flex-col gap-6">
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              PRESTIGO operates a pure Mercedes-Benz fleet — not because it&rsquo;s the easy choice, but because it&rsquo;s the right one. For executive transport in Central Europe, Mercedes remains the undisputed standard: the E-Class is the default business sedan of every capital from Prague to Warsaw, the S-Class defines the upper tier of ground luxury, and the V-Class is the only premium van our corporate clients recognise on sight.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              A single-marque fleet also means consistency. Every driver already knows the controls, the service intervals, and the quirks of each chassis. Every passenger steps into an interior they already know how to use — the same climate logic, the same seat controls, the same quality of leather and stitching. There are no surprises, and in executive travel, surprises are the enemy.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              We refresh vehicles on a rolling schedule, well before the cosmetic or mechanical standard begins to slip. Our clients travel in a car that feels current — because it is.
-            </p>
+            {content.marque.paragraphs.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                {para}
+              </p>
+            ))}
           </div>
           </Reveal>
         </div>
@@ -367,26 +365,13 @@ export default function FleetPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
           <div className="mb-14">
-            <p className="label mb-6">Maintenance &amp; Safety</p>
+            <p className="label mb-6">{content.maintenance.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">Prepared before <br /><span className="display-italic">every journey.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">{content.maintenance.headingLine1} <br /><span className="display-italic">{content.maintenance.headingItalic}</span></h2>
           </div>
           </Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              {
-                title: 'Manufacturer-schedule servicing',
-                body: 'Every vehicle is serviced by authorised Mercedes-Benz technicians on the factory-recommended schedule. We keep complete service records and replace consumables (tyres, brake pads, wipers) well before the legal minimum.',
-              },
-              {
-                title: 'Commercial insurance, fully comprehensive',
-                body: 'Every journey is covered by commercial passenger liability and fully comprehensive vehicle insurance, underwritten in the EU. Documentation is available on request for corporate compliance teams.',
-              },
-              {
-                title: 'Daily pre-trip inspection',
-                body: 'Tyre pressure, fluid levels, lights, and cabin cleanliness are checked before the first assignment of the day — and again between back-to-back executive bookings.',
-              },
-            ].map((item, i) => (
+            {content.maintenance.items.map((item, i) => (
               <Reveal key={item.title} variant="up" delay={i * 120}>
               <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-5 block" />
@@ -406,24 +391,17 @@ export default function FleetPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up">
           <div>
-            <p className="label mb-6">Technology onboard</p>
+            <p className="label mb-6">{content.technology.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px] mb-6">A rolling office. <br /><span className="display-italic">A quiet sanctuary.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-6">{content.technology.headingLine1} <br /><span className="display-italic">{content.technology.headingItalic}</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Our passengers often arrive at the car with work still to finish — or nerves still to settle after a long flight. The cabin of every PRESTIGO vehicle is prepared for both. Whether you need to take a video call between meetings or simply close your eyes for an hour, the interior adapts to you, not the other way around.
+              {content.technology.intro}
             </p>
           </div>
           </Reveal>
           <Reveal variant="up" delay={150}>
           <ul className="flex flex-col gap-5">
-            {[
-              { t: 'Unlimited mobile Wi-Fi', b: 'Enterprise-grade 5G router in every vehicle. Multiple devices, full bandwidth, no data caps.' },
-              { t: 'Fast charging for every device', b: 'USB-C and USB-A ports within reach of every seat. Apple and Samsung fast-charge supported.' },
-              { t: 'Climate preset on arrival', b: 'Your preferred cabin temperature is set before the car reaches you — noted once, remembered for every future booking.' },
-              { t: 'Still and sparkling water', b: 'Complimentary chilled mineral water on every transfer. Tea, coffee and champagne available on request for executive and VIP bookings.' },
-              { t: 'Child &amp; booster seats', b: 'Full range of EU-certified child restraints available at no extra charge — just note the age and weight at booking.' },
-              { t: 'Discreet privacy', b: 'S-Class and V-Class offer privacy glass and optional rear partitions. What happens in the cabin stays in the cabin.' },
-            ].map((item) => (
+            {content.technology.items.map((item) => (
               <li key={item.t} className="flex items-start gap-4 py-4 border-b border-anthracite-light last:border-0">
                 <span className="mt-[9px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                 <div>
@@ -443,18 +421,17 @@ export default function FleetPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-4xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
-          <p className="label mb-6">How we choose a class for your journey</p>
+          <p className="label mb-6">{content.selection.label}</p>
           <span className="copper-line mb-8 block" />
-          <h2 className="display text-[28px] md:text-[36px] mb-10">Matching vehicle to <span className="display-italic">occasion.</span></h2>
+          <h2 className="display text-[28px] md:text-[36px] mb-10">{content.selection.headingLine1} <span className="display-italic">{content.selection.headingItalic}</span></h2>
           </Reveal>
           <Reveal variant="fade" delay={100}>
           <div className="flex flex-col gap-6">
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              The right vehicle depends on the trip, not the price list. A solo executive arriving from London City with a briefcase and a carry-on is best served by an E-Class — efficient, quiet, and perfectly appointed for a ninety-minute airport run. A visiting principal with protocol requirements and an aide will prefer the S-Class, where rear legroom, massage seats, and the near-silent cabin become genuinely useful. A family of five with skis and luggage, or a four-person board arriving for a half-day roadshow, belongs in the V-Class — the only vehicle in the fleet that comfortably seats six adults with full luggage.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              If you&rsquo;re unsure which class fits your booking, note your passenger count, luggage, and journey length in the booking form and our dispatcher will confirm the right pairing within minutes. For recurring corporate travel, we maintain vehicle preferences against your account profile so every trip is matched automatically.
-            </p>
+            {content.selection.paragraphs.map((para, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                {para}
+              </p>
+            ))}
           </div>
           </Reveal>
         </div>
@@ -466,12 +443,12 @@ export default function FleetPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
           <Reveal variant="up">
-          <p className="label mb-6">Fleet questions</p>
+          <p className="label mb-6">{content.faq.label}</p>
           <span className="copper-line mb-8 block" />
-          <h2 className="display text-[28px] md:text-[36px] mb-12">About the vehicles.</h2>
+          <h2 className="display text-[28px] md:text-[36px] mb-12">{content.faq.heading}</h2>
           </Reveal>
           <div className="flex flex-col gap-0">
-            {fleetFaqs.map((faq, i) => (
+            {content.faq.items.map((faq, i) => (
               <Reveal key={faq.q} variant="up" delay={i * 80}>
               <div className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}>
                 <h3 className="font-body font-medium text-[12px] tracking-[0.1em] uppercase text-offwhite mb-3">{faq.q}</h3>
@@ -490,13 +467,13 @@ export default function FleetPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 text-center">
           <Reveal variant="up">
           <h2 className="display text-[32px] md:text-[42px] mb-4">
-            Choose your vehicle. <br />
-            <span className="display-italic">Book online.</span>
+            {content.cta.headingLine1} <br />
+            <span className="display-italic">{content.cta.headingItalic}</span>
           </h2>
-          <p className="body-text text-[13px] mt-4 mb-10">Select your preferred class at checkout.</p>
+          <p className="body-text text-[13px] mt-4 mb-10">{content.cta.intro}</p>
           </Reveal>
           <Reveal variant="fade" delay={150}>
-          <a href="/book" className="btn-primary">Book a Transfer</a>
+          <a href={bookHref} className="btn-primary">{content.cta.button}</a>
           </Reveal>
         </div>
       </section>

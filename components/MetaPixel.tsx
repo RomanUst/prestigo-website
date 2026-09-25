@@ -3,8 +3,13 @@
 import Script from 'next/script'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { locales, siteLocaleFromPathname } from '@/i18n/locales'
 
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
+// Static locale allow-list serialized into the inline init script below
+// (T-75-12 pattern, mirrors GoogleAnalytics.tsx) — only this constant
+// literal is interpolated, no request-derived value.
+const LOCALES_JSON = JSON.stringify(locales)
 // Legacy single-enum key is still mirrored by CookieBanner for backwards compat.
 const LEGACY_CONSENT_KEY = 'prestigo_cookie_consent'
 // New per-category key. Marketing === true required to load the pixel.
@@ -31,10 +36,18 @@ export function trackMetaEvent(
   eventId?: string,
 ) {
   if (typeof window === 'undefined' || typeof window.fbq !== 'function') return
+  // D-12: every Pixel event carries site_locale, derived from the pathname
+  // (same helper GA4 uses) — unless the caller already supplied one, which
+  // is never overwritten.
+  const site_locale =
+    params && 'site_locale' in params
+      ? params.site_locale
+      : siteLocaleFromPathname(window.location.pathname)
+  const finalParams = { ...(params ?? {}), site_locale }
   if (eventId) {
-    window.fbq('track', eventName, params ?? {}, { eventID: eventId })
+    window.fbq('track', eventName, finalParams, { eventID: eventId })
   } else {
-    window.fbq('track', eventName, params ?? {})
+    window.fbq('track', eventName, finalParams)
   }
 }
 
@@ -78,7 +91,7 @@ export default function MetaPixel() {
       return
     }
     if (!consented || typeof window.fbq !== 'function') return
-    window.fbq('track', 'PageView')
+    window.fbq('track', 'PageView', { site_locale: siteLocaleFromPathname(pathname) })
   }, [pathname, consented])
 
   if (!PIXEL_ID || !consented) return null
@@ -88,7 +101,7 @@ export default function MetaPixel() {
       id="meta-pixel"
       strategy="lazyOnload"
       dangerouslySetInnerHTML={{
-        __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${PIXEL_ID}');fbq('track','PageView');`,
+        __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init','${PIXEL_ID}');var __locs=${LOCALES_JSON};var __seg=window.location.pathname.split('/').filter(Boolean)[0];var __siteLocale=(__seg&&__locs.indexOf(__seg)!==-1)?__seg:'en';fbq('track','PageView',{site_locale:__siteLocale});`,
       }}
     />
   )

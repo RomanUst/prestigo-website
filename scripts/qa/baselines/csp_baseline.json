@@ -1,0 +1,57 @@
+{
+ "/": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/ru": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/ru/fleet": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/routes/prague-vienna": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/ar/routes/prague-vienna": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/book": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/ru/book": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/login": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/ru/login": {
+  "status": 200,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/ru/account": {
+  "status": 307,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ },
+ "/api/health": {
+  "status": 401,
+  "csp": "default-src 'self'; script-src 'unsafe-inline' https:; frame-src https://js.stripe.com https://hooks.stripe.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com; form-action 'self' https://accounts.google.com https://appleid.apple.com; report-uri /api/csp-report",
+  "cspReportOnly": ""
+ }
+}

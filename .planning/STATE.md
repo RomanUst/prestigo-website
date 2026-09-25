@@ -3,18 +3,18 @@ gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
 current_phase: 75
-current_phase_name: e2e verification & launch
-status: planning
-stopped_at: Phase 74 complete, ready to plan Phase 75
-last_updated: "2026-09-24T17:13:16.814Z"
-last_activity: 2026-09-24
-last_activity_desc: Phase 74 complete, transitioned to Phase 75
-state_head: 4ee5079f048d59a57c527ca8082851794d9d8e9b
+current_phase_name: E2E Verification & Launch
+status: executing
+stopped_at: Completed 75-07-PLAN.md
+last_updated: "2026-09-25T13:31:00.964Z"
+last_activity: 2026-09-25
+last_activity_desc: Phase 75 execution started
+state_head: cefb340e06b30f9cda44797f77ccccf3cf2bb536
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
-  total_plans: 49
-  completed_plans: 49
+  total_plans: 70
+  completed_plans: 55
 ---
 
 # Project State
@@ -24,14 +24,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-20)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 74 — SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher
+**Current focus:** Phase 75 — E2E Verification & Launch
 
 ## Current Position
 
-Phase: 75 — e2e verification & launch
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-09-24 — Phase 74 complete, transitioned to Phase 75
+Phase: 75 (E2E Verification & Launch) — EXECUTING
+Plan: 7 of 21
+Status: Ready to execute
+Last activity: 2026-09-25 — Phase 75 execution started
 
 ## Accumulated Context
 
@@ -151,6 +151,20 @@ Recent decisions affecting current work:
 - [Phase 73]: [Phase 73] 73-09: prague-vienna golden EN byte-parity snapshot regenerated (matches 73-04 precedent) since <bdi> renders identically regardless of locale; verified programmatically that stripping all <bdi> tags from the new snapshot reproduces the old one byte-for-byte
 - [Phase 73]: 73-13: closed GAP-1 bidi-isolation defect (openingParagraphs/routeNarrative.paragraphs/faqs[].a switched to interpolateBidi()/aBidi at render, JSON-LD text: f.a carve-out preserved) across all 30 route pages
 - [Phase 73]: [Phase 73]: 73-14: strengthened rtl-backstop.test.ts CR-02 block to per-field render-call-site assertions (openingParagraphs/routeNarrative.paragraphs interpolateBidi precomputes, faqs.aBidi + faq.aBidi render, JSON-LD text: f.a carve-out) across all 30 route pages, regression-proofed against the original GAP-1 defect; corrected 73-RTL-QA.md's Group 3 route-page row FAIL->PASS backed by a new prague-berlin /ar structural render re-check
+- [Phase 75]: hreflang_reciprocity.py reciprocity check implemented as sitemap-surface-vs-rendered-page-surface cross-check (not the naive full-mesh target-lookup) since app/sitemap.ts emits one entry per EN canonical carrying the full locale cluster inline — RESEARCH.md's code example assumed a sitemap with one entry per locale; the real structure only has EN-keyed entries, so a literal target-lookup would spuriously fail on every non-EN alternate
+- [Phase 75]: switcher_audit.py locates the LocaleSwitcher trigger/menu by stable id prefix and waits for aria-expanded=true before clicking a menuitem, instead of aria-haspopup + fixed sleep — aria-haspopup also matches the signed-in NAV-02 account-menu trigger; the dropdown menu is always mounted (opacity-toggled) so a fixed sleep raced React state updates and produced intermittent false failures
+- [Phase 75]: R4 findings (object-literal title/body/q/a/name/description leaves) are review-only and never fail the CLI exit code, keeping the auto-gate scoped to proven R1/R2/R3 defects
+- [Phase 75]: es/fr rendered-scan leak rule requires 3-word byte-identical-to-EN match (both Latin-script); ru/ar/hi/zh use a looser 2-word any-Latin-run rule (Latin script itself is inherently suspicious there)
+- [Phase 75]: components/admin/** findings are bucketed under an explicit UNOWNED heading in 75-EN-LEAK-AUDIT.md rather than assigned to a Phase 75 fix plan (admin panel is out of i18n scope per STATE.md)
+- [Phase 75]: 75-03: booking_e2e.py drives the guest wizard on production using messages/<locale>.json for every locator so an English label on a localized page fails the run (D-01/D-07 leak-detector-by-construction) — Locale-agnostic selectors would hide EN leaks in the wizard itself; resolving text from the real catalog makes the E2E script double as a regression check
+- [Phase 75]: 75-03: EntryBar actually uses the legacy AddressInput.tsx (not AddressInputNew.tsx as read_first assumed); both call the same places.googleapis.com v1 Places RPC so the language-capture logic is unaffected — Corrects a stale planning assumption before plan 75-05 touches the same files
+- [Phase 75]: 75-03: pre-fix baseline confirmed live on production for all 7 locales -- Stripe Elements locale and Google Places language are both hardcoded to 'en' regardless of site locale; hi is an accepted Stripe-locale exception (no hi locale exists in Stripe) but not exempted on the Places-language check — Gives plan 75-05 a concrete, script-verified before-state and regression check
+- [Phase 75]: 75-04: site_locale derived only from pathname (siteLocaleFromPathname), never navigator.language, matching D-10
+- [Phase 75]: 75-04: GoogleAnalytics.tsx/MetaPixel.tsx compute site_locale inline from window.location.pathname rather than a server-passed locale prop
+- [Phase 75]: 75-04: analytics_locale_audit.py poll window widened 8s->25s (Rule 1) -- production Consent Mode v2 wait_for_update:20000 queues GA4 hits in a ~21s quiet period
+- [Phase 75]: 75-06: /book localized via content model — hero/how-it-works/after-you-book/why-book-direct/FAQ/metadata moved into content/pages/<locale>/book.json, translated in-session into all 6 non-EN locales, EN byte-parity proven via a pre-refactor golden snapshot
+- [Phase 75]: 75-06: entity-handling split preserved on /book — dangerouslySetInnerHTML fields keep literal HTML-entity text (matches about.json convention); plain-JSX-text fields converted to literal Unicode characters, since {expr} interpolation doesn't decode entities the way JSX text children did
+- [Phase 75]: 75-07: translated the TRANSFER/HOURLY example-day badge (not in must_haves) reusing messages/*.json's Booking.dayCard terms, to close an EN-leak the plan's own success criterion required
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -220,10 +234,11 @@ None yet.
   - `GET /api/admin/bookings` → `admin_search_bookings` RPC currently defaults to an empty date range (shows all bookings). Phase 65 changes this client/server-side default to future-only; KPI counters already pass explicit date ranges so should be unaffected by the change, but must be re-verified once the default filter ships (DISP-04).
   - `driver_assignments` (booking_id, driver_id, status, token, token_expires_at) is a SINGLE-USE EXPIRING token today, created by `POST /api/admin/bookings/[id]/assign`; driver responds at `app/driver/response/page.tsx` → `POST /api/driver/respond`. Phase 66's permanent trip-link token is a distinct, longer-lived credential that must coexist with this token, not replace it.
   - Booking status machine lives in `lib/booking-transitions.ts` (`VALID_TRANSITIONS`) and GNet push in `lib/gnet-client.ts` (`pushGnetStatus`). Phase 67's trip-progress field must NOT hook into either — DTRIP-04 requires it to be a fully separate column with no transition validation and no GNet call.
-- Anthropic API credit is empty (checked 2026-09-24). All 282 content locale files are genuinely translated (none identical to EN), so the old 73-11 gap is closed. The `i18n Translate` GitHub workflow is DISABLED (gh workflow disable) — new EN strings are translated in-session until credit is topped up; the translation manifest may be out of sync for hand-translated keys (a future pipeline run would re-translate them).
+- Anthropic API credit is empty (checked 2026-09-24). All 282 content locale files are genuinely translated (identical to EN), so the old 73-11 gap is closed. The `i18n Translate` GitHub workflow is DISABLED (gh workflow disable) — new EN strings are translated in-session until credit is topped up; the translation manifest may be out of sync for hand-translated keys (a future pipeline run would re-translate them).
 - [Phase 75 input] Known EN leaks on localized pages (found 2026-09-24, not yet translated): /book "How it works" steps (app/[locale]/book/page.tsx), /book/multi-day "Example itineraries" section (EXAMPLES const + headings), /services/airport-transfer booking block ("Book your chauffeur now", bullet list), CorporateForm notes placeholder, /book hero ("Your transfer, confirmed in seconds.", "Instant booking"). Phase 75 VER-01 "no EN leakage" needs a systematic hardcoded-EN audit, not just these.
 - [Phase 75 input] Responsive overflow audit script (Playwright, 7 locales x 21 pages x 320/375/768/1024/1280) returned 0 issues on 2026-09-24 — reuse it as a Phase 75 regression check.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
+- 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
 
 ## Deferred Items
 
@@ -262,9 +277,9 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-21T15:54:34.823Z
-Stopped at: Phase 74 complete, ready to plan Phase 75
-Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/74-seo-hreflang-localized-metadata-sitemap-structured-data-swit/74-UI-SPEC.md
+Last session: 2026-09-25T13:31:00.403Z
+Stopped at: Completed 75-07-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -329,6 +344,12 @@ Resume file: /Users/romanustyugov/Desktop/Prestigo/.planning/phases/74-seo-hrefl
 | Phase 73 P09 | ~15min | 2 tasks | 32 files |
 | Phase 73 P13 | 30min | 2 tasks | 32 files |
 | Phase 73 P14 | 20min | 2 tasks | 3 files |
+| Phase 75 P01 | 45min | 3 tasks | 8 files |
+| Phase 75 P02 | 48min | 2 tasks | 8 files |
+| Phase 75 P03 | 30min | 2 tasks | 1 files |
+| Phase 75 P04 | 40min | 3 tasks | 11 files |
+| Phase 75 P06 | 16min | 2 tasks | 11 files |
+| Phase 75-e2e-verification-launch P07 | 25min | 2 tasks | 11 files |
 
 ## Operator Next Steps
 
