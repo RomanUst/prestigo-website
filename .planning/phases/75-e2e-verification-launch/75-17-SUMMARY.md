@@ -9,7 +9,7 @@ requires:
     provides: "PaymentIntent metadata.locale (normalizeSiteLocale) already threaded through create-payment-intent's meta map and the Phase-62 unpaid-capture row input — this plan's buildBookingRow/buildBookingRows locale field reads from that same meta.locale"
 provides:
   - "D-11 storage decision recorded: option-a (column + metadata), human-confirmed verbatim"
-  - "supabase/migrations/062_bookings_locale.sql — additive nullable bookings.locale text column + bookings_locale_format_check CHECK constraint; no RPC/GRANT touched. NOT YET APPLIED to the live database — Task 3 is pending the orchestrator (see below)."
+  - "supabase/migrations/062_bookings_locale.sql — additive nullable bookings.locale text column + bookings_locale_format_check CHECK constraint; no RPC/GRANT touched. APPLIED to the live database 2026-09-26 by the orchestrator via Supabase MCP (Task 3, verified)."
   - "buildBookingRow/buildBookingRows (lib/supabase.ts) write locale: meta.locale || null on every leg — unpaid capture, confirmed, and both round-trip legs get the same value; admin-created bookings never set meta.locale so they store null"
   - "types/database.types.ts bookings.locale (Row/Insert/Update)"
   - "components/admin/BookingsTable.tsx — LANGUAGE detail field (uppercase code or em dash) in both the desktop and mobile expanded row views"
@@ -48,14 +48,14 @@ completed: 2026-09-26
 status: halted
 ---
 
-# Phase 75 Plan 17: Booking Locale Storage — D-11 Decision + Column (Task 3 pending) Summary
+# Phase 75 Plan 17: Booking Locale Storage — D-11 Decision + Column Summary
 
-**D-11 resolved as option-a (column + metadata); migration 062, buildBookingRow/buildBookingRows, types, and admin display all implemented and unit-tested — but the live schema push (Task 3) has NOT yet happened, so this plan halts pending the orchestrator's Supabase MCP application of the migration.**
+**D-11 resolved as option-a (column + metadata); migration 062, buildBookingRow/buildBookingRows, types, and admin display all implemented and unit-tested ; migration 062 applied to production by the orchestrator via Supabase MCP and verified (Task 3).**
 
 ## Performance
 
 - **Duration:** ~35 min (Tasks 1–2 only; Task 3 is pending)
-- **Tasks:** 2 of 3 complete (Task 3 requires orchestrator action — no Supabase MCP access from this executor)
+- **Tasks:** 3 of 3 complete (Task 3 performed by the orchestrator via Supabase MCP)
 - **Files modified:** 6 (1 created, 5 modified)
 
 ## Task 1: D-11 Storage Decision (RESOLVED)
@@ -102,7 +102,7 @@ grep -vE '^\s*--' supabase/migrations/062_bookings_locale.sql | grep -iE "DROP|C
 
 **Plan metadata:** this SUMMARY commit (see below).
 
-## Task 3: Apply migration 062 to the live database — **PENDING (orchestrator)**
+## Task 3: Apply migration 062 to the live database — **DONE (orchestrator, 2026-09-26)**
 
 **Status: NOT DONE.** Executor subagents have no Supabase MCP access (per the plan's own instructions and this executor's dispatch prompt). The orchestrator must:
 
@@ -115,11 +115,11 @@ grep -vE '^\s*--' supabase/migrations/062_bookings_locale.sql | grep -iE "DROP|C
 
 | Check | Expected | Actual result |
 |---|---|---|
-| `information_schema.columns` (locale column) | 1 row: `text`, `YES` | _pending_ |
-| `pg_constraint` (`bookings_locale_format_check`) | 1 row | _pending_ |
-| `routine_privileges` (`admin_search_bookings` PUBLIC/anon/authenticated grants) | `0` | _pending_ |
+| `information_schema.columns` (locale column) | 1 row: `text`, `YES` | `locale text nullable=YES` ✓ |
+| `pg_constraint` (`bookings_locale_format_check`) | 1 row | `bookings_locale_format_check` ✓ |
+| `routine_privileges` (`admin_search_bookings` PUBLIC/anon/authenticated grants) | `0` | `0` ✓ |
 
-This plan is **not complete** until the table above is filled in with real query results and this SUMMARY is amended/re-committed by the orchestrator (or a continuation executor) confirming the live schema matches the migration file. Plan 75-19 has a hard precondition on this: deploying the code from Task 2 before Task 3's live application succeeds would make every booking-capture insert fail on an unknown column (T-75-34 in the plan's threat register).
+Pre-check: the column did not exist before application. Applied via Supabase MCP `apply_migration` name `062_bookings_locale` with the exact SQL of the migration file. The plan was previously incomplete until the table above was filled in with real query results and this SUMMARY is amended/re-committed by the orchestrator (or a continuation executor) confirming the live schema matches the migration file. Plan 75-19 has a hard precondition on this: deploying the code from Task 2 before Task 3's live application succeeds would make every booking-capture insert fail on an unknown column (T-75-34 in the plan's threat register).
 
 ## Files Created/Modified
 
@@ -152,7 +152,7 @@ None — no external service configuration required. (Task 3's Supabase MCP appl
 - Once Task 3 completes, Plan 75-20's post-deploy verification can spot-check the admin BookingsTable's LANGUAGE field against a real non-EN booking.
 - `PaymentLinkReconciledRow.locale` (added in Plan 75-05) will start returning real values with zero further code changes once the column exists and any reconciliation SELECT includes it — no action needed here, already forward-compatible.
 
-## Self-Check: PASSED (Tasks 1–2 only; Task 3 explicitly incomplete)
+## Self-Check: PASSED (Tasks 1–3; Task 3 verified by orchestrator)
 
 - `supabase/migrations/062_bookings_locale.sql` confirmed on disk.
 - `lib/supabase.ts`, `types/database.types.ts`, `components/admin/BookingsTable.tsx` confirmed modified on disk.
@@ -162,4 +162,4 @@ None — no external service configuration required. (Task 3's Supabase MCP appl
 
 ---
 *Phase: 75-e2e-verification-launch*
-*Completed: 2026-09-26 (Tasks 1–2 only — Task 3 pending orchestrator)*
+*Completed: 2026-09-26 (Task 3 applied + verified by orchestrator)*
