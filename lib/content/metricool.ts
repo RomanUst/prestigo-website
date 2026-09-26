@@ -75,19 +75,28 @@ export type CreatePostInput = {
   format?: MetricoolFormat;
   /** ISO timestamp → scheduled then. Omit → published ~2 minutes from now. */
   dueAt?: string;
+  /**
+   * `true` → create as a Metricool draft (never auto-published; the owner
+   * approves and publishes manually from the Metricool UI). Omit/`false` →
+   * today's behavior unchanged (autoPublish true, draft false). D-14/Pitfall
+   * 9: an announcement can never publish live by default-path accident —
+   * the caller must explicitly opt in with `draft: true`.
+   */
+  draft?: boolean;
 };
 
 function buildBody(input: CreatePostInput, timezone: string): Record<string, unknown> {
   const type = postType(input.format ?? "post");
   const dateTime = localDateTime(input.dueAt, timezone);
+  const draft = input.draft === true;
 
   const body: Record<string, unknown> = {
     text: input.text,
     media: [input.mediaUrl],
     mediaAltText: [],
     providers: [{ network: input.channel }],
-    autoPublish: true,
-    draft: false,
+    autoPublish: !draft,
+    draft,
     shortener: false,
     smartLinkData: { ids: [] },
     publicationDate: { dateTime, timezone },

@@ -98,6 +98,45 @@ describe('lib/content/metricool', () => {
     expect(mockFetch).toHaveBeenCalledTimes(2)
   })
 
+  it('draft: true sends draft true and autoPublish false (D-14/Pitfall 9 — never publishes live by accident)', async () => {
+    mockFetch.mockResolvedValueOnce(ok({ data: { id: 5 } }))
+    await createMetricoolPost({ channel: 'instagram', text: 't', mediaUrl: 'u', mediaKind: 'image', draft: true })
+    const body = callBody()
+    expect(body.draft).toBe(true)
+    expect(body.autoPublish).toBe(false)
+  })
+
+  it('omitting draft keeps today\'s body byte-identical: autoPublish true, draft false', async () => {
+    mockFetch.mockResolvedValueOnce(ok({ data: { id: 6 } }))
+    await createMetricoolPost({ channel: 'instagram', text: 't', mediaUrl: 'u', mediaKind: 'image' })
+    const body = callBody()
+    expect(body.draft).toBe(false)
+    expect(body.autoPublish).toBe(true)
+  })
+
+  it('draft: false is equivalent to omitting draft (autoPublish true, draft false)', async () => {
+    mockFetch.mockResolvedValueOnce(ok({ data: { id: 7 } }))
+    await createMetricoolPost({ channel: 'instagram', text: 't', mediaUrl: 'u', mediaKind: 'image', draft: false })
+    const body = callBody()
+    expect(body.draft).toBe(false)
+    expect(body.autoPublish).toBe(true)
+  })
+
+  it('createMetricoolPosts passes draft through to every per-channel call', async () => {
+    mockFetch.mockResolvedValueOnce(ok({ data: { id: 'ig' } })).mockResolvedValueOnce(ok({ data: { id: 'fb' } }))
+
+    await createMetricoolPosts(['instagram', 'facebook'], {
+      text: 't',
+      mediaUrl: 'u',
+      mediaKind: 'image',
+      draft: true,
+    })
+    expect(callBody(0).draft).toBe(true)
+    expect(callBody(0).autoPublish).toBe(false)
+    expect(callBody(1).draft).toBe(true)
+    expect(callBody(1).autoPublish).toBe(false)
+  })
+
   it('throws with the Metricool error body on a non-OK response', async () => {
     mockFetch.mockResolvedValueOnce({
       ok: false,
