@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useId, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import TripTypeTabs from '@/components/booking/TripTypeTabs'
