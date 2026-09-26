@@ -580,6 +580,24 @@
     "stepOfSix": "第 {step} 步（共 6 步）",
     "body": "完善您的行程详情 — 即将推出。"
   },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "这条路",
+    "headingItalic": "无法通向任何地方。",
+    "body": "您要查找的页面不存在 — 但您的接送服务依然可以进行。",
+    "bookButton": "预订接送服务",
+    "servicesButton": "查看服务",
+    "homeButton": "返回首页"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "无需排队等出租车。",
+      "headingItalic": "司机已在到达大厅等候。",
+      "body": "Mercedes E-Class 座驾。免费航班追踪。延误免费等候。24/7 全天候服务。",
+      "primaryButton": "预订您的接送服务",
+      "secondaryButton": "机场接送详情"
+    }
+  },
   "Fleet": {
     "label": "车队",
     "headingLine1": "只选 Mercedes-Benz。",
@@ -833,6 +851,7 @@
     "allRoutes": "所有路线"
   },
   "Common": {
+    "loadingBooking": "正在加载预订表单",
     "skipToContent": "跳转到主要内容",
     "firstVisitBanner": {
       "suggestion": "本网站也提供{endonym}版本。",

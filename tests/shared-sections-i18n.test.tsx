@@ -18,12 +18,24 @@ import arMessages from '@/messages/ar.json'
 import hiMessages from '@/messages/hi.json'
 import zhMessages from '@/messages/zh.json'
 import enMessages from '@/messages/en.json'
+import esMessages from '@/messages/es.json'
+import frMessages from '@/messages/fr.json'
 import type { AbstractIntlMessages } from 'next-intl'
 
 const ruMessagesTyped = ruMessages as unknown as AbstractIntlMessages
 const arMessagesTyped = arMessages as unknown as AbstractIntlMessages
 const hiMessagesTyped = hiMessages as unknown as AbstractIntlMessages
 const zhMessagesTyped = zhMessages as unknown as AbstractIntlMessages
+
+const ALL_MESSAGES: Record<string, Record<string, unknown>> = {
+  en: enMessages as unknown as Record<string, unknown>,
+  ru: ruMessages as unknown as Record<string, unknown>,
+  es: esMessages as unknown as Record<string, unknown>,
+  fr: frMessages as unknown as Record<string, unknown>,
+  ar: arMessages as unknown as Record<string, unknown>,
+  hi: hiMessages as unknown as Record<string, unknown>,
+  zh: zhMessages as unknown as Record<string, unknown>,
+}
 
 // BookingWidget pulls in Stripe/Places/etc — mocked out, this suite only
 // proves the surrounding text block, not the widget itself.
@@ -40,12 +52,68 @@ vi.mock('@googlemaps/js-api-loader', () => ({
   importLibrary: vi.fn().mockResolvedValue(undefined),
 }))
 
+// Task 3 — not-found / blog CTA / author page all mount the real Nav/Footer;
+// mocked out here (same pattern as tests/static-pages-locale.test.tsx) so
+// this suite proves only the text this plan owns, not Nav's own auth/router
+// wiring or Footer's content.
+vi.mock('@/components/Nav', () => ({ default: () => null }))
+vi.mock('@/components/Footer', () => ({ default: () => null }))
+// ArticleByline's own next/link href is a real, unrelated locale-dropping
+// defect (75-EN-LEAK-AUDIT.md R3, row attributed to 75-13 but out of this
+// plan's files_modified/task list — logged to deferred-items.md) — mocked
+// out so it doesn't drown out this suite's own CTA assertions.
+vi.mock('@/components/ArticleByline', () => ({ default: () => null }))
+// The page's dynamic `await import(\`../../../../content/blog/${dir}/${slug}.mdx\`)`
+// has no MDX-to-JSX vite transform configured for vitest — mocked to a stub
+// component so the CTA-rendering test below exercises the real page
+// component and real locale resolution without needing an MDX compiler in
+// the test environment. content/blog/ar/<slug>.mdx genuinely exists (a real
+// ar translation), so resolveLocalizedMdx resolves 'ar' (not an EN
+// fallback) — mock both dirs so the test works regardless.
+vi.mock('../content/blog/en/premium-airport-transfer-prague-shortcut.mdx', () => ({
+  default: () => null,
+}))
+vi.mock('../content/blog/ar/premium-airport-transfer-prague-shortcut.mdx', () => ({
+  default: () => null,
+}))
+
+// blog/[slug]/page.tsx's default export calls `await getLocale()` once, then
+// `await getTranslations({ locale, namespace: 'BlogPost.cta' })` reusing that
+// value — mocked directly against the real messages/<locale>.json catalogs
+// (same technique as tests/route-page-render.test.tsx's worktree-safe
+// next-intl/server mock note), since there is no real Next.js request
+// context / AsyncLocalStorage in vitest for the genuine package to resolve
+// requestLocale against.
+const { mockGetLocale } = vi.hoisted(() => ({ mockGetLocale: vi.fn(async () => 'en') }))
+vi.mock('next-intl/server', () => ({
+  getLocale: mockGetLocale,
+  getTranslations: vi.fn(async (opts: { locale: string; namespace: string } | string) => {
+    const { locale, namespace } =
+      typeof opts === 'string' ? { locale: 'en', namespace: opts } : opts
+    const messages = ALL_MESSAGES[locale] ?? ALL_MESSAGES.en
+    const ns = namespace
+      .split('.')
+      .reduce<Record<string, unknown>>((acc, k) => (acc?.[k] as Record<string, unknown>) ?? {}, messages)
+    return (key: string) => {
+      const value = key
+        .split('.')
+        .reduce<unknown>((acc, k) => (acc as Record<string, unknown>)?.[k], ns)
+      if (typeof value !== 'string') {
+        throw new Error(`Missing translation for ${namespace}.${key}`)
+      }
+      return value
+    }
+  }),
+}))
+
 import BookingSection from '@/components/BookingSection'
 import HourlyBookingSection from '@/components/HourlyBookingSection'
 import Routes from '@/components/Routes'
 import RoutesBento, { type BentoTile } from '@/components/RoutesBento'
 import RoutesMap, { type MapCity } from '@/components/RoutesMap'
 import StepStub from '@/components/booking/steps/StepStub'
+import NotFound from '@/app/[locale]/not-found'
+import BookLoading from '@/app/[locale]/book/loading'
 
 beforeEach(() => {
   // jsdom does not implement IntersectionObserver — Routes.tsx renders
@@ -247,5 +315,93 @@ describe('messages/hi.json Booking.entryBar.flightNumberAriaLabel (75-13 Task 2 
     const hi = (hiMessagesTyped as unknown as { Booking: { entryBar: { flightNumberAriaLabel: string } } })
       .Booking.entryBar.flightNumberAriaLabel
     expect(hi).not.toBe(en)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Task 3
+// ---------------------------------------------------------------------------
+
+describe('NotFound (75-13 Task 3)', () => {
+  it('renders en unchanged with unprefixed links', () => {
+    renderWithIntl(<NotFound />)
+    expect(screen.getByText("This road doesn't")).toBeTruthy()
+    expect(screen.getByText('lead anywhere.')).toBeTruthy()
+    const bookLink = screen.getByRole('link', { name: 'Book a Transfer' }) as HTMLAnchorElement
+    expect(bookLink.getAttribute('href')).toBe('/book')
+    const homeLink = screen.getByRole('link', { name: 'Back to Home' }) as HTMLAnchorElement
+    expect(homeLink.getAttribute('href')).toBe('/')
+  })
+
+  it('renders ru text with /ru/-prefixed links and no EN string', () => {
+    const { container } = renderWithIntl(<NotFound />, { locale: 'ru', messages: ruMessagesTyped })
+    expect(container.innerHTML).not.toContain("This road doesn't")
+    const ruHeading = (ruMessagesTyped as unknown as { NotFound: { headingLine1: string } }).NotFound
+      .headingLine1
+    expect(screen.getByText(ruHeading)).toBeTruthy()
+    const bookLink = screen.getAllByRole('link')[0] as HTMLAnchorElement
+    expect(bookLink.getAttribute('href')).toBe('/ru/book')
+  })
+})
+
+describe('/book loading aria-label (75-13 Task 3)', () => {
+  it('is "Loading booking form" in en', () => {
+    renderWithIntl(<BookLoading />)
+    expect(screen.getByLabelText('Loading booking form')).toBeTruthy()
+  })
+
+  it('is localized under ru (not the EN string)', () => {
+    const { container } = renderWithIntl(<BookLoading />, { locale: 'ru', messages: ruMessagesTyped })
+    expect(container.innerHTML).not.toContain('Loading booking form')
+    const ruLabel = (ruMessagesTyped as unknown as { Common: { loadingBooking: string } }).Common
+      .loadingBooking
+    expect(screen.getByLabelText(ruLabel)).toBeTruthy()
+  })
+})
+
+describe('Blog post bottom CTA (75-13 Task 3)', () => {
+  it('renders ar text and both CTA buttons link to /ar/book and /ar/services/airport-transfer', async () => {
+    mockGetLocale.mockResolvedValueOnce('ar')
+    const { default: BlogArticlePage } = await import('@/app/[locale]/blog/[slug]/page')
+    const PageElement = await BlogArticlePage({
+      params: Promise.resolve({ slug: 'premium-airport-transfer-prague-shortcut' }),
+    })
+    const { render } = await import('@testing-library/react')
+    const { container } = render(PageElement)
+
+    const arCta = (arMessagesTyped as unknown as {
+      BlogPost: { cta: { headingLine1: string; primaryButton: string; secondaryButton: string } }
+    }).BlogPost.cta
+    expect(container.innerHTML).toContain(arCta.headingLine1)
+    expect(container.innerHTML).not.toContain('Skip the taxi rank.')
+
+    const primaryLink = screen.getByRole('link', { name: arCta.primaryButton }) as HTMLAnchorElement
+    expect(primaryLink.getAttribute('href')).toBe('/ar/book')
+    const secondaryLink = screen.getByRole('link', { name: arCta.secondaryButton }) as HTMLAnchorElement
+    expect(secondaryLink.getAttribute('href')).toBe('/ar/services/airport-transfer')
+  })
+})
+
+describe('Author page — roman-ustyugov (75-13 Task 3)', () => {
+  it('renders zh section labels and bio text; JSON-LD Person stays unchanged from EN', async () => {
+    const { default: RomanUstyugovPage } = await import('@/app/[locale]/authors/roman-ustyugov/page')
+    const PageElement = await RomanUstyugovPage({ params: Promise.resolve({ locale: 'zh' }) })
+    const { render } = await import('@testing-library/react')
+    const { container } = render(PageElement)
+
+    expect(container.innerHTML).toContain('作者简介')
+    expect(container.innerHTML).toContain('关于')
+    expect(container.innerHTML).toContain('专业领域')
+    expect(container.innerHTML).not.toContain('Author profile')
+    expect(container.innerHTML).not.toContain('Areas of expertise')
+
+    const ld = container.querySelector('script[type="application/ld+json"]')
+    expect(ld).not.toBeNull()
+    const parsed = JSON.parse(ld!.innerHTML) as { '@graph': Array<Record<string, unknown>> }
+    const person = parsed['@graph'].find((n) => n['@type'] === 'Person') as { name: string; description: string }
+    expect(person.name).toBe('Roman Ustyugov')
+    expect(person.description).toBe(
+      'Founder of PRESTIGO. 10+ years in luxury transportation and 5★ hospitality in Prague.'
+    )
   })
 })

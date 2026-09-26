@@ -580,6 +580,24 @@
     "stepOfSix": "الخطوة {step} من 6",
     "body": "أكمل تفاصيل رحلتك — قريبًا."
   },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "هذا الطريق لا يؤدي",
+    "headingItalic": "إلى أي مكان.",
+    "body": "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك لا تزال ممكنة.",
+    "bookButton": "احجز مشوارًا",
+    "servicesButton": "عرض الخدمات",
+    "homeButton": "العودة للرئيسية"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "تجاوز طابور التاكسي.",
+      "headingItalic": "سائقك بانتظارك داخل صالة الوصول.",
+      "body": "مرسيدس الفئة E. تتبع مجاني للرحلة. انتظار مجاني عند التأخير. على مدار الساعة.",
+      "primaryButton": "احجز مشوارك",
+      "secondaryButton": "تفاصيل نقل المطار"
+    }
+  },
   "Fleet": {
     "label": "الأسطول",
     "headingLine1": "Mercedes فقط.",
@@ -833,6 +851,7 @@
     "allRoutes": "جميع المسارات"
   },
   "Common": {
+    "loadingBooking": "جارٍ تحميل نموذج الحجز",
     "skipToContent": "تخطَّ إلى المحتوى",
     "firstVisitBanner": {
       "suggestion": "هذا الموقع متاح أيضًا باللغة {endonym}.",

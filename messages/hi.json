@@ -580,6 +580,24 @@
     "stepOfSix": "चरण {step} / 6",
     "body": "अपनी यात्रा का विवरण पूरा करें — जल्द ही उपलब्ध।"
   },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "यह रास्ता कहीं",
+    "headingItalic": "नहीं जाता।",
+    "body": "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन आपकी यात्रा अभी भी संभव है।",
+    "bookButton": "ट्रांसफर बुक करें",
+    "servicesButton": "सेवाएं देखें",
+    "homeButton": "होम पर वापस जाएं"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "टैक्सी लाइन में मत लगिए।",
+      "headingItalic": "आगमन क्षेत्र के भीतर ही शोफर तैयार।",
+      "body": "Mercedes E-Class। मुफ़्त फ्लाइट ट्रैकिंग। देरी होने पर मुफ़्त प्रतीक्षा। 24/7।",
+      "primaryButton": "अपना ट्रांसफर बुक करें",
+      "secondaryButton": "एयरपोर्ट ट्रांसफर विवरण"
+    }
+  },
   "Fleet": {
     "label": "हमारी फ्लीट",
     "headingLine1": "केवल Mercedes।",
@@ -833,6 +851,7 @@
     "allRoutes": "सभी रूट"
   },
   "Common": {
+    "loadingBooking": "बुकिंग फ़ॉर्म लोड हो रहा है",
     "skipToContent": "सामग्री पर जाएँ",
     "firstVisitBanner": {
       "suggestion": "यह साइट {endonym} में भी उपलब्ध है।",

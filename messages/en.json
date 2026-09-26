@@ -545,6 +545,24 @@
     "stepOfSix": "Step {step} of 6",
     "body": "Complete your journey details — coming next."
   },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "This road doesn't",
+    "headingItalic": "lead anywhere.",
+    "body": "The page you're looking for doesn't exist — but your transfer still can.",
+    "bookButton": "Book a Transfer",
+    "servicesButton": "View Services",
+    "homeButton": "Back to Home"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "Skip the taxi rank.",
+      "headingItalic": "Chauffeur inside Arrivals.",
+      "body": "Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.",
+      "primaryButton": "Book your transfer",
+      "secondaryButton": "Airport transfer details"
+    }
+  },
   "Fleet": {
     "label": "The fleet",
     "headingLine1": "Mercedes only.",
@@ -783,6 +801,7 @@
     "allRoutes": "All Routes"
   },
   "Common": {
+    "loadingBooking": "Loading booking form",
     "skipToContent": "Skip to content",
     "firstVisitBanner": {
       "suggestion": "This site is also available in {endonym}.",

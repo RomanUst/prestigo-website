@@ -580,6 +580,24 @@
     "stepOfSix": "Étape {step} sur 6",
     "body": "Complétez les détails de votre trajet — bientôt disponible."
   },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "Cette route ne mène",
+    "headingItalic": "nulle part.",
+    "body": "La page que vous recherchez n'existe pas — mais votre trajet, lui, peut toujours avoir lieu.",
+    "bookButton": "Réserver un transfert",
+    "servicesButton": "Voir les services",
+    "homeButton": "Retour à l'accueil"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "Oubliez la file de taxis.",
+      "headingItalic": "Chauffeur à l'intérieur des Arrivées.",
+      "body": "Mercedes E-Class. Suivi de vol gratuit. Attente gratuite en cas de retard. 24/7.",
+      "primaryButton": "Réservez votre transfert",
+      "secondaryButton": "Détails du transfert aéroport"
+    }
+  },
   "Fleet": {
     "label": "La flotte",
     "headingLine1": "Uniquement Mercedes-Benz.",
@@ -833,6 +851,7 @@
     "allRoutes": "Tous les itinéraires"
   },
   "Common": {
+    "loadingBooking": "Chargement du formulaire de réservation",
     "skipToContent": "Aller au contenu",
     "firstVisitBanner": {
       "suggestion": "Ce site est également disponible en {endonym}.",
