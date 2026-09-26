@@ -1,6 +1,8 @@
 import { getAdminUser } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
+import { z } from 'zod'
+import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
 
 export interface AdminAccount {
   user_id: string
@@ -91,4 +93,99 @@ export async function GET() {
   }))
 
   return NextResponse.json({ accounts })
+}
+
+const optionalText = (max: number) =>
+  safeString(max).trim().optional().transform((v) => (v ? v : null))
+
+const accountCreateSchema = z
+  .object({
+    email: safeEmail(200).trim().toLowerCase(),
+    account_type: z.enum(['personal', 'corporate']),
+    company_name: optionalText(200),
+    full_name: optionalText(200),
+    phone: optionalText(50),
+    ico: optionalText(50),
+    vat_id: optionalText(50),
+    // Multi-line postal address is allowed here (matches the profile form).
+    billing_address: z.string().max(500).trim().optional().transform((v) => (v ? v : null)),
+  })
+  .refine((d) => d.account_type !== 'corporate' || !!d.company_name, {
+    message: 'Company name is required for corporate accounts',
+    path: ['company_name'],
+  })
+
+/**
+ * Admin-side account creation. Creates the auth user via the Admin API (never
+ * raw SQL — raw auth.users inserts leave token columns NULL and break GoTrue
+ * login) with the email pre-confirmed, so the customer can later sign in via
+ * magic link / password reset. No password is set or returned.
+ */
+export async function POST(request: Request) {
+  const tooBig = enforceMaxBody(request, 20_000)
+  if (tooBig) return tooBig
+
+  const { error } = await getAdminUser()
+  if (error === '401') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (error === '403') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
+  let body: unknown
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+  }
+  const parsed = accountCreateSchema.safeParse(body)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? 'Invalid payload', issues: parsed.error.issues },
+      { status: 400 },
+    )
+  }
+  const d = parsed.data
+
+  const supabase = createSupabaseServiceClient()
+
+  const { data: created, error: cErr } = await supabase.auth.admin.createUser({
+    email: d.email,
+    email_confirm: true,
+    user_metadata: {
+      account_type: d.account_type,
+      company_name: d.company_name,
+      created_by_admin: true,
+    },
+  })
+
+  if (cErr || !created?.user) {
+    const msg = cErr?.message ?? ''
+    if (/already|registered|exists/i.test(msg)) {
+      return NextResponse.json({ error: 'An account with this email already exists' }, { status: 409 })
+    }
+    console.error('[admin/accounts.POST] createUser failed:', msg)
+    return NextResponse.json({ error: 'Could not create user' }, { status: 500 })
+  }
+
+  const userId = created.user.id
+  const { error: pErr } = await supabase.from('customer_profiles').upsert(
+    {
+      user_id: userId,
+      account_type: d.account_type,
+      company_name: d.company_name,
+      full_name: d.full_name,
+      phone: d.phone,
+      ico: d.ico,
+      vat_id: d.vat_id,
+      billing_address: d.billing_address,
+    },
+    { onConflict: 'user_id' },
+  )
+
+  if (pErr) {
+    console.error('[admin/accounts.POST] profile upsert failed:', pErr.message)
+    // Roll back the orphaned auth user so the admin can retry cleanly.
+    await supabase.auth.admin.deleteUser(userId)
+    return NextResponse.json({ error: 'Could not create profile' }, { status: 500 })
+  }
+
+  return NextResponse.json({ user_id: userId }, { status: 201 })
 }
