@@ -115,7 +115,20 @@
       "paymentGenericError": "Une erreur est survenue. Les détails de votre réservation sont enregistrés — veuillez réessayer.",
       "paymentFormLoadError": "Le formulaire de paiement n'a pas pu se charger. Veuillez actualiser la page et réessayer.",
       "paymentInitFailed": "Échec de l'initialisation du paiement",
-      "networkError": "Erreur réseau — veuillez actualiser la page et réessayer"
+      "networkError": "Erreur réseau — veuillez actualiser la page et réessayer",
+      "errors": {
+        "RATE_LIMITED": "Trop de requêtes",
+        "INVALID_REQUEST": "Requête invalide. Vérifiez les détails de votre réservation et réessayez.",
+        "TOO_MANY_PASSENGERS": "Trop de passagers pour le véhicule sélectionné",
+        "CUSTOM_QUOTE_REQUIRED": "Cet itinéraire nécessite un devis personnalisé.",
+        "LEAD_TIME": "Les réservations doivent être effectuées au moins 12 heures à l'avance.",
+        "ROUND_TRIP_DATES": "Un aller-retour nécessite une date et une heure de départ et de retour.",
+        "RETURN_BEFORE_PICKUP": "La date et l'heure de retour doivent être postérieures à celles du départ",
+        "PROMO_INVALID": "Le code promo est invalide, expiré ou a atteint sa limite d'utilisation.",
+        "PRICING_UNAVAILABLE": "La configuration des tarifs est temporairement indisponible",
+        "INTERNAL": "Impossible de créer le paiement. Veuillez réessayer.",
+        "NO_CODE": "Aucun code fourni."
+      }
     },
     "tripTypeTabs": {
       "ariaLabel": "Type de trajet",
@@ -708,7 +721,16 @@
     "fullNameRequired": "Le nom complet est requis.",
     "phoneRequired": "Le numéro de téléphone est requis.",
     "duplicateDefaultPassenger": "Un autre passager par défaut existe déjà. Veuillez réessayer.",
-    "invalidAccountType": "Type de compte invalide."
+    "invalidAccountType": "Type de compte invalide.",
+    "auth": {
+      "userExists": "Un compte avec cet e-mail existe déjà.",
+      "weakPassword": "Le mot de passe est trop faible. Choisissez un mot de passe plus sûr.",
+      "emailRateLimited": "Trop de demandes d'e-mail. Veuillez patienter un instant puis réessayer.",
+      "invalidEmail": "Veuillez saisir une adresse e-mail valide.",
+      "signupDisabled": "Les nouvelles inscriptions sont actuellement désactivées.",
+      "sessionExpired": "Votre session a expiré. Veuillez vous reconnecter.",
+      "generic": "Une erreur s'est produite. Veuillez réessayer."
+    }
   },
   "Auth": {
     "login": {

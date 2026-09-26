@@ -1,0 +1,7 @@
+# 75-16: Booking.step6.errors (create-payment-intent/validate-promo stable
+# error codes) and Errors.auth (Supabase authErrorKey mapping) -- hand
+# translated in-session (D-08) into ru/es/fr/ar/hi/zh. Plan 75-18 applies
+# this pattern to i18n/translation-manifest.json so a future pipeline run
+# neither overwrites these units nor re-spends tokens on them.
+messages/en.json::Booking.step6.errors
+messages/en.json::Errors.auth

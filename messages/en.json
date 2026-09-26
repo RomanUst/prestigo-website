@@ -115,7 +115,20 @@
       "paymentGenericError": "Something went wrong. Your booking details are saved — please try again.",
       "paymentFormLoadError": "Payment form failed to load. Please refresh and try again.",
       "paymentInitFailed": "Failed to initialise payment",
-      "networkError": "Network error — please refresh and try again"
+      "networkError": "Network error — please refresh and try again",
+      "errors": {
+        "RATE_LIMITED": "Too many requests",
+        "INVALID_REQUEST": "Invalid request. Please check your booking details and try again.",
+        "TOO_MANY_PASSENGERS": "Too many passengers for the selected vehicle",
+        "CUSTOM_QUOTE_REQUIRED": "This route requires a custom quote.",
+        "LEAD_TIME": "Bookings must be made at least 12 hours in advance.",
+        "ROUND_TRIP_DATES": "Round-trip bookings need both a pickup and a return date and time.",
+        "RETURN_BEFORE_PICKUP": "Return datetime must be after pickup datetime",
+        "PROMO_INVALID": "Promo code is invalid, expired, or has reached its usage limit.",
+        "PRICING_UNAVAILABLE": "Pricing configuration unavailable",
+        "INTERNAL": "Failed to create payment intent. Please try again.",
+        "NO_CODE": "No code provided."
+      }
     },
     "tripTypeTabs": {
       "ariaLabel": "Trip type",
@@ -658,7 +671,16 @@
     "fullNameRequired": "Full name is required.",
     "phoneRequired": "Phone number is required.",
     "duplicateDefaultPassenger": "Another default passenger already exists. Please try again.",
-    "invalidAccountType": "Invalid account type."
+    "invalidAccountType": "Invalid account type.",
+    "auth": {
+      "userExists": "An account with this email already exists.",
+      "weakPassword": "Password is too weak. Please choose a stronger password.",
+      "emailRateLimited": "Too many email requests. Please wait a moment and try again.",
+      "invalidEmail": "Please enter a valid email address.",
+      "signupDisabled": "New sign-ups are currently disabled.",
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "generic": "Something went wrong. Please try again."
+    }
   },
   "Auth": {
     "login": {

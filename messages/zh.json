@@ -115,7 +115,20 @@
       "paymentGenericError": "出现错误。您的预订信息已保存，请重试。",
       "paymentFormLoadError": "支付表单加载失败。请刷新页面后重试。",
       "paymentInitFailed": "支付初始化失败",
-      "networkError": "网络错误 — 请刷新页面后重试"
+      "networkError": "网络错误 — 请刷新页面后重试",
+      "errors": {
+        "RATE_LIMITED": "请求过多",
+        "INVALID_REQUEST": "请求无效。请检查您的预订信息后重试。",
+        "TOO_MANY_PASSENGERS": "所选车型的乘客人数超出限制",
+        "CUSTOM_QUOTE_REQUIRED": "此路线需要定制报价。",
+        "LEAD_TIME": "预订必须提前至少12小时进行。",
+        "ROUND_TRIP_DATES": "往返行程需要提供出发和返程的日期与时间。",
+        "RETURN_BEFORE_PICKUP": "返程日期和时间必须晚于出发日期和时间",
+        "PROMO_INVALID": "优惠码无效、已过期或已达到使用次数上限。",
+        "PRICING_UNAVAILABLE": "定价配置暂时不可用",
+        "INTERNAL": "创建付款失败,请重试。",
+        "NO_CODE": "未提供优惠码。"
+      }
     },
     "tripTypeTabs": {
       "ariaLabel": "行程类型",
@@ -708,7 +721,16 @@
     "fullNameRequired": "请填写全名。",
     "phoneRequired": "请填写电话号码。",
     "duplicateDefaultPassenger": "已存在另一位默认乘客,请重试。",
-    "invalidAccountType": "账户类型无效。"
+    "invalidAccountType": "账户类型无效。",
+    "auth": {
+      "userExists": "该邮箱已注册账户。",
+      "weakPassword": "密码强度不足,请选择更安全的密码。",
+      "emailRateLimited": "邮件请求过多,请稍后再试。",
+      "invalidEmail": "请输入有效的电子邮箱地址。",
+      "signupDisabled": "新用户注册目前已关闭。",
+      "sessionExpired": "您的登录已过期,请重新登录。",
+      "generic": "出现问题,请重试。"
+    }
   },
   "Auth": {
     "login": {
