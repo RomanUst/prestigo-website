@@ -222,12 +222,12 @@ describe('checkout.session.completed webhook (ANEW-04, T-64-02/03)', () => {
     expect(sendGa4Purchase).toHaveBeenCalledWith(expect.objectContaining({ siteLocale: 'es' }))
   })
 
-  it('D-11: reconciled row with no locale field (pre-75-17 schema) falls back to "en" via normalizeSiteLocale', async () => {
+  it('D-11: reconciled row with no locale field (pre-75-17 schema) passes siteLocale undefined — sendGa4Purchase itself normalizes to "en" (see tests/analytics-server.test.ts)', async () => {
     ;(reconcileBookingByIdToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([RECONCILED_ROW])
 
     const res = await POST(makeRequest())
     expect(res.status).toBe(200)
-    expect(sendGa4Purchase).toHaveBeenCalledWith(expect.objectContaining({ siteLocale: 'en' }))
+    expect(sendGa4Purchase).toHaveBeenCalledWith(expect.objectContaining({ siteLocale: undefined }))
   })
 
   it('(b) duplicate event delivery short-circuits on the stripe_processed_events read-check — reconcile never called, no double email', async () => {

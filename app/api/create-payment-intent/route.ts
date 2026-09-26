@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { z } from 'zod'
+import { normalizeSiteLocale } from '@/i18n/locales'
 import { dateDiffDays, VEHICLE_CLASSES } from '@/lib/pricing'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { computeExtrasTotal } from '@/lib/extras'
@@ -303,8 +304,12 @@ export async function POST(req: Request) {
     // Enumerate only the keys the webhook handler and email builder consume.
     // Never spread the full client payload — Stripe has a 50-key / 500-char limit
     // and arbitrary client keys should not reach Stripe.
+    // `locale` (D-11): consumed by the webhook's three sendGa4Purchase call
+    // sites (siteLocale) — always the normalizeSiteLocale allow-list output,
+    // never the raw client value.
     const meta: Record<string, string> = {
       bookingReference,
+      locale: normalizeSiteLocale(bookingData.locale),
       returnBookingReference, // empty string for one-way
       tripType: bookingData.tripType ?? '',
       originAddress: clamp500(bookingData.originAddress ?? ''),

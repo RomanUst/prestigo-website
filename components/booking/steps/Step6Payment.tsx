@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CheckCircle2 } from 'lucide-react'
@@ -188,6 +188,7 @@ function PaymentForm({
 export default function Step6Payment() {
   const t = useTranslations('Booking.step6')
   const tb = useTranslations('Booking')
+  const locale = useLocale()
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const extras = useBookingStore((s) => s.extras)
@@ -345,6 +346,7 @@ export default function Step6Payment() {
               specialRequests: (passengerDetails?.specialRequests ?? '').slice(0, 490),
               currency: selectedCurrency,
               promoCode: promoCode || '',
+              locale,
             },
           }),
         })
@@ -365,7 +367,7 @@ export default function Step6Payment() {
 
     fetchPaymentIntent()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalEur, selectedCurrency, promoCode, tripType, returnTime, roundTripPriceBreakdown])
+  }, [totalEur, selectedCurrency, promoCode, tripType, returnTime, roundTripPriceBreakdown, locale])
 
   const options = useMemo(
     () =>

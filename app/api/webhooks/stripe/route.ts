@@ -252,6 +252,10 @@ type PaymentLinkReconciledRow = {
   terminal?: string | null
   special_requests?: string | null
   pickup_utc?: string | null
+  // D-11: absent until plan 75-17 adds the `bookings.locale` column — read
+  // through this narrow typed accessor rather than an `as` cast; missing
+  // falls through to normalizeSiteLocale's 'en' default at the call site.
+  locale?: string | null
 }
 
 /**
@@ -416,6 +420,10 @@ async function handlePaymentLinkSucceeded(
         quantity: 1,
       },
     ],
+    // D-11: reconciled row's own locale field when present (admin-created
+    // payment-link bookings have no locale until 75-17 adds the column —
+    // sendGa4Purchase's normalizeSiteLocale falls back to 'en').
+    siteLocale: row.locale ?? undefined,
   }))
 }
 
@@ -592,6 +600,7 @@ async function handleOneWaySucceeded(
         quantity: 1,
       },
     ],
+    siteLocale: meta.locale,
   }))
 }
 
@@ -787,6 +796,7 @@ async function handleRoundTripSucceeded(
         quantity: 1,
       },
     ],
+    siteLocale: meta.locale,
   }))
 }
 
