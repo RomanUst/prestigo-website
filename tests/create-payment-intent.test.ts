@@ -751,6 +751,130 @@ describe('ABND-06: attempt_id dedup + round-trip capture (Phase 62-02)', () => {
   })
 })
 
+describe('D-07: create-payment-intent error responses carry a stable machine code', () => {
+  it('rate limited (429) -> code RATE_LIMITED, English error text unchanged', async () => {
+    const { checkRateLimit } = await import('@/lib/rate-limit')
+    vi.mocked(checkRateLimit).mockResolvedValueOnce({ allowed: false, remaining: 0, limit: 10 })
+    const res = await POST(makePostRequest({ bookingData: makeBookingData() }))
+    expect(res.status).toBe(429)
+    const json = await res.json()
+    expect(json.code).toBe('RATE_LIMITED')
+    expect(json.error).toBe('Too many requests')
+  })
+
+  it('invalid tripType (400) -> code INVALID_REQUEST', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ tripType: 'invalid' }) })
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.code).toBe('INVALID_REQUEST')
+  })
+
+  it('too many passengers (400) -> code TOO_MANY_PASSENGERS', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ vehicleClass: 'business', passengers: '4' }) })
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.code).toBe('TOO_MANY_PASSENGERS')
+  })
+
+  it('round trip requires a custom quote (400) -> code CUSTOM_QUOTE_REQUIRED', async () => {
+    const res = await POST(
+      makePostRequest({
+        bookingData: makeBookingData({
+          tripType: 'round_trip',
+          distanceKm: '10',
+          returnDate: futureDate(34),
+          returnTime: '15:00',
+          quoteMode: 'true',
+        }),
+      })
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.code).toBe('CUSTOM_QUOTE_REQUIRED')
+  })
+
+  it('missing returnDate/returnTime (400) -> code ROUND_TRIP_DATES', async () => {
+    const res = await POST(
+      makePostRequest({
+        bookingData: makeBookingData({
+          tripType: 'round_trip',
+          distanceKm: '10',
+          returnDate: '',
+          returnTime: '',
+          quoteMode: 'false',
+        }),
+      })
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.code).toBe('ROUND_TRIP_DATES')
+  })
+
+  it('return datetime before pickup datetime (400) -> code RETURN_BEFORE_PICKUP', async () => {
+    const res = await POST(
+      makePostRequest({
+        bookingData: makeBookingData({
+          tripType: 'round_trip',
+          distanceKm: '10',
+          pickupDate: '2026-06-05',
+          pickupTime: '15:00',
+          returnDate: '2026-06-01',
+          returnTime: '10:00',
+          quoteMode: 'false',
+        }),
+      })
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.code).toBe('RETURN_BEFORE_PICKUP')
+  })
+
+  it('pickup less than 12h ahead (422) -> code LEAD_TIME, English error text unchanged', async () => {
+    const soon = new Date(Date.now() + 2 * 60 * 60 * 1000)
+    const pickupDate = soon.toISOString().slice(0, 10)
+    const pickupTime = soon.toISOString().slice(11, 16)
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ pickupDate, pickupTime }) })
+    )
+    expect(res.status).toBe(422)
+    const json = await res.json()
+    expect(json.code).toBe('LEAD_TIME')
+    expect(json.error).toBe('Bookings must be made at least 12 hours in advance.')
+  })
+
+  it('pricing config load failure (503) -> code PRICING_UNAVAILABLE', async () => {
+    pricingConfigMock.mockRejectedValueOnce(new Error('config down'))
+    const res = await POST(makePostRequest({ bookingData: makeBookingData() }))
+    expect(res.status).toBe(503)
+    const json = await res.json()
+    expect(json.code).toBe('PRICING_UNAVAILABLE')
+  })
+
+  it('invalid promo code (400) -> code PROMO_INVALID', async () => {
+    mockPromoLookup(null)
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ promoCode: 'BADCODE' }) })
+    )
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.code).toBe('PROMO_INVALID')
+  })
+
+  it('unhandled internal error (500) -> code INTERNAL', async () => {
+    // Stripe rejecting is not caught by any inner try/catch in the route —
+    // it falls through to the outer catch-all, which is what INTERNAL covers.
+    stripeMock.paymentIntents.create.mockRejectedValueOnce(new Error('stripe down'))
+    const res = await POST(makePostRequest({ bookingData: makeBookingData() }))
+    expect(res.status).toBe(500)
+    const json = await res.json()
+    expect(json.code).toBe('INTERNAL')
+  })
+})
+
 describe('Passenger seat limit per vehicle class (server-side)', () => {
   it.each([
     ['business', '3', 200],

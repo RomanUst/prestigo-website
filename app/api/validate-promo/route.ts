@@ -6,14 +6,14 @@ export async function GET(request: Request) {
   const { allowed } = await checkRateLimit('/api/validate-promo', getClientIp(request))
   if (!allowed) {
     return NextResponse.json(
-      { valid: false, error: 'Too many requests. Please try again later.' },
+      { valid: false, error: 'Too many requests. Please try again later.', code: 'RATE_LIMITED' },
       { status: 429, headers: { 'Retry-After': '60' } }
     )
   }
 
   const code = new URL(request.url).searchParams.get('code')?.trim().toUpperCase()
   if (!code) {
-    return NextResponse.json({ valid: false, error: 'No code provided.' })
+    return NextResponse.json({ valid: false, error: 'No code provided.', code: 'NO_CODE' })
   }
 
   const today = new Date().toISOString().split('T')[0]
@@ -28,13 +28,13 @@ export async function GET(request: Request) {
 
   if (error) {
     console.error('validate-promo error:', error)
-    return NextResponse.json({ valid: false, error: 'Something went wrong. Please try again.' })
+    return NextResponse.json({ valid: false, error: 'Something went wrong. Please try again.', code: 'INTERNAL' })
   }
 
   // SEC-12: uniform error regardless of reason (invalid, exhausted, expired)
   // to prevent oracle enumeration of valid/exhausted code states.
   if (!data || (data.max_uses !== null && data.current_uses >= data.max_uses)) {
-    return NextResponse.json({ valid: false, error: 'Invalid or unavailable code.' })
+    return NextResponse.json({ valid: false, error: 'Invalid or unavailable code.', code: 'PROMO_INVALID' })
   }
 
   return NextResponse.json({ valid: true, discountPct: Number(data.discount_value) })

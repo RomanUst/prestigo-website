@@ -17,6 +17,25 @@ import BookingSummaryBlock from '../BookingSummaryBlock'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
+// D-07: stable machine codes returned by create-payment-intent/validate-promo
+// (app/api/create-payment-intent/route.ts, app/api/validate-promo/route.ts)
+// that have a matching Booking.step6.errors.<code> catalog message. An
+// unknown/missing code falls back to the existing generic key — never the
+// raw server error text.
+const KNOWN_STEP6_ERROR_CODES = new Set([
+  'RATE_LIMITED',
+  'INVALID_REQUEST',
+  'TOO_MANY_PASSENGERS',
+  'CUSTOM_QUOTE_REQUIRED',
+  'LEAD_TIME',
+  'ROUND_TRIP_DATES',
+  'RETURN_BEFORE_PICKUP',
+  'PROMO_INVALID',
+  'PRICING_UNAVAILABLE',
+  'INTERNAL',
+  'NO_CODE',
+])
+
 // Stripe Elements renders inside a cross-origin iframe and cannot read the
 // page's CSS custom properties, so these must be literal hex — kept in sync
 // with the navy + champagne-gold tokens in globals.css.
@@ -285,7 +304,12 @@ export default function Step6Payment() {
         setPromoDiscount(data.discountPct)
         setPromoError(null)
       } else {
-        setPromoError(data.error || t('promoInvalid'))
+        const errCode = data.code as string | undefined
+        setPromoError(
+          errCode && KNOWN_STEP6_ERROR_CODES.has(errCode)
+            ? t(`errors.${errCode}`)
+            : t('promoInvalid')
+        )
         setPromoCode(null)
         setPromoDiscount(0)
       }
@@ -363,7 +387,12 @@ export default function Step6Payment() {
         const data = await res.json()
         if (!res.ok || data.error) {
           console.error('create-payment-intent error:', data.error)
-          setPaymentError(data.error || t('paymentInitFailed'))
+          const errCode = data.code as string | undefined
+          setPaymentError(
+            errCode && KNOWN_STEP6_ERROR_CODES.has(errCode)
+              ? t(`errors.${errCode}`)
+              : t('paymentInitFailed')
+          )
           return
         }
         setClientSecret(data.clientSecret)

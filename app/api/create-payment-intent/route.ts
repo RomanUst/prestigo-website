@@ -87,7 +87,7 @@ export async function POST(req: Request) {
   const { allowed, remaining, limit } = await checkRateLimit('/api/create-payment-intent', getClientIp(req))
   if (!allowed) {
     return NextResponse.json(
-      { error: 'Too many requests' },
+      { error: 'Too many requests', code: 'RATE_LIMITED' },
       {
         status: 429,
         headers: {
@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     const rawBody = await req.json()
     const parsed = createPaymentIntentSchema.safeParse(rawBody)
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid request body', code: 'INVALID_REQUEST' }, { status: 400 })
     }
     // SEC-16: use inferred Zod type directly — no cast to Record<string,string>
     const bookingData = parsed.data.bookingData
@@ -118,10 +118,10 @@ export async function POST(req: Request) {
     const paymentCurrency = bookingData.currency === 'czk' ? 'czk' : 'eur'
 
     if (!TRIP_TYPES.includes(tripType)) {
-      return NextResponse.json({ error: 'Invalid tripType' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid tripType', code: 'INVALID_REQUEST' }, { status: 400 })
     }
     if (!VEHICLE_CLASSES.includes(vehicleClass)) {
-      return NextResponse.json({ error: 'Invalid vehicleClass' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid vehicleClass', code: 'INVALID_REQUEST' }, { status: 400 })
     }
     // Seat limit per class (E/S-Class 3, V-Class 6) — the step-5 stepper caps
     // this client-side; enforce it here so a crafted request can't exceed it.
@@ -129,7 +129,10 @@ export async function POST(req: Request) {
       const pax = parseInt(bookingData.passengers, 10)
       const maxPax = VEHICLE_CONFIG.find((v) => v.key === vehicleClass)?.maxPassengers ?? 0
       if (!(pax >= 1 && pax <= maxPax)) {
-        return NextResponse.json({ error: 'Too many passengers for the selected vehicle' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Too many passengers for the selected vehicle', code: 'TOO_MANY_PASSENGERS' },
+          { status: 400 }
+        )
       }
     }
 
@@ -141,29 +144,41 @@ export async function POST(req: Request) {
         : 1
 
     if (tripType === 'transfer' && (distanceKm === null || !isFinite(distanceKm) || distanceKm <= 0)) {
-      return NextResponse.json({ error: 'Invalid distanceKm for transfer' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid distanceKm for transfer', code: 'INVALID_REQUEST' }, { status: 400 })
     }
 
     // Round-trip specific validation (T-26-01, T-26-06, T-26-09)
     if (tripType === 'round_trip') {
       if (distanceKm === null || !isFinite(distanceKm) || distanceKm <= 0) {
-        return NextResponse.json({ error: 'Invalid distanceKm for round_trip' }, { status: 400 })
+        return NextResponse.json({ error: 'Invalid distanceKm for round_trip', code: 'INVALID_REQUEST' }, { status: 400 })
       }
       if (!bookingData.returnDate || !bookingData.returnTime) {
-        return NextResponse.json({ error: 'Round trip requires returnDate and returnTime' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Round trip requires returnDate and returnTime', code: 'ROUND_TRIP_DATES' },
+          { status: 400 }
+        )
       }
       if (!bookingData.pickupDate || !bookingData.pickupTime) {
-        return NextResponse.json({ error: 'Round trip requires pickupDate and pickupTime' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Round trip requires pickupDate and pickupTime', code: 'ROUND_TRIP_DATES' },
+          { status: 400 }
+        )
       }
       // Strict ordering: return datetime must be AFTER pickup datetime (ISO string compare)
       const pickupDT = `${bookingData.pickupDate}T${bookingData.pickupTime}`
       const returnDT = `${bookingData.returnDate}T${bookingData.returnTime}`
       if (returnDT <= pickupDT) {
-        return NextResponse.json({ error: 'Return datetime must be after pickup datetime' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'Return datetime must be after pickup datetime', code: 'RETURN_BEFORE_PICKUP' },
+          { status: 400 }
+        )
       }
       // T-26-06: quoteMode bypass defense — require client to explicitly set quoteMode='false'
       if (bookingData.quoteMode === 'true') {
-        return NextResponse.json({ error: 'This route requires a custom quote.' }, { status: 400 })
+        return NextResponse.json(
+          { error: 'This route requires a custom quote.', code: 'CUSTOM_QUOTE_REQUIRED' },
+          { status: 400 }
+        )
       }
     }
 
@@ -176,7 +191,7 @@ export async function POST(req: Request) {
       const minAllowedDT = new Date(Date.now() + 12 * 60 * 60 * 1000)
       if (!isFinite(pickupDT.getTime()) || pickupDT < minAllowedDT) {
         return NextResponse.json(
-          { error: 'Bookings must be made at least 12 hours in advance.' },
+          { error: 'Bookings must be made at least 12 hours in advance.', code: 'LEAD_TIME' },
           { status: 422 }
         )
       }
@@ -187,7 +202,10 @@ export async function POST(req: Request) {
       rates = await getPricingConfig()
     } catch (err) {
       console.error('Failed to load pricing config:', err)
-      return NextResponse.json({ error: 'Pricing configuration unavailable' }, { status: 503 })
+      return NextResponse.json(
+        { error: 'Pricing configuration unavailable', code: 'PRICING_UNAVAILABLE' },
+        { status: 503 }
+      )
     }
 
     const extrasTotalEur = computeExtrasTotal(
@@ -238,7 +256,7 @@ export async function POST(req: Request) {
     const totalEur = outboundLegEur + extrasTotalEur + returnLegEur
 
     if (totalEur <= 0) {
-      return NextResponse.json({ error: 'Computed amount must be positive' }, { status: 400 })
+      return NextResponse.json({ error: 'Computed amount must be positive', code: 'INVALID_REQUEST' }, { status: 400 })
     }
 
     // Promo code atomic claim (PROMO-04 / T-26-09: claimed AFTER input validation and combined-total computation)
@@ -260,13 +278,13 @@ export async function POST(req: Request) {
 
       if (promoError || !promoRow) {
         return NextResponse.json(
-          { error: 'Promo code is invalid, expired, or has reached its usage limit.' },
+          { error: 'Promo code is invalid, expired, or has reached its usage limit.', code: 'PROMO_INVALID' },
           { status: 400 }
         )
       }
       if (promoRow.max_uses !== null && promoRow.current_uses >= promoRow.max_uses) {
         return NextResponse.json(
-          { error: 'Promo code is invalid, expired, or has reached its usage limit.' },
+          { error: 'Promo code is invalid, expired, or has reached its usage limit.', code: 'PROMO_INVALID' },
           { status: 400 }
         )
       }
@@ -407,7 +425,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error('create-payment-intent error:', error instanceof Error ? error.message : String(error))
     return NextResponse.json(
-      { error: 'Failed to create payment intent. Please try again.' },
+      { error: 'Failed to create payment intent. Please try again.', code: 'INTERNAL' },
       { status: 500 }
     )
   }

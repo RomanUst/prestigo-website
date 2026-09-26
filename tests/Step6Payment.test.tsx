@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { act, waitFor, fireEvent } from '@testing-library/react'
+import { act, waitFor, fireEvent, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type { AbstractIntlMessages } from 'next-intl'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
@@ -194,6 +194,125 @@ describe('D-07: Step6Payment Stripe return_url keeps the booking locale', () => 
     expect(callArg.confirmParams.return_url).toBe(
       `${window.location.origin}/book/confirmation?ref=PRG-20260101-ABC123`
     )
+  })
+})
+
+describe('D-07: Step6Payment shows translated errors keyed by the server code, never raw English text', () => {
+  it('LEAD_TIME code under ru -> shows the ru LEAD_TIME catalog message, not the English server text', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({
+        error: 'Bookings must be made at least 12 hours in advance.',
+        code: 'LEAD_TIME',
+      }),
+    } as Response)
+
+    render(<Step6Payment />, { locale: 'ru', messages: ruMessages })
+
+    const expected = (ruMessagesRaw as { Booking: { step6: { errors: { LEAD_TIME: string } } } })
+      .Booking.step6.errors.LEAD_TIME
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeTruthy()
+    })
+    expect(screen.queryByText('Bookings must be made at least 12 hours in advance.')).toBeNull()
+  })
+
+  it('missing code under ru -> falls back to the ru paymentInitFailed generic message', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({ error: 'Something server-side went wrong.' }),
+    } as Response)
+
+    render(<Step6Payment />, { locale: 'ru', messages: ruMessages })
+
+    const expected = (ruMessagesRaw as { Booking: { step6: { paymentInitFailed: string } } })
+      .Booking.step6.paymentInitFailed
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeTruthy()
+    })
+    expect(screen.queryByText('Something server-side went wrong.')).toBeNull()
+  })
+
+  it('unknown code "SOMETHING_NEW" under ru -> falls back to the ru paymentInitFailed generic message', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      json: () => Promise.resolve({
+        error: 'A brand new server error string.',
+        code: 'SOMETHING_NEW',
+      }),
+    } as Response)
+
+    render(<Step6Payment />, { locale: 'ru', messages: ruMessages })
+
+    const expected = (ruMessagesRaw as { Booking: { step6: { paymentInitFailed: string } } })
+      .Booking.step6.paymentInitFailed
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeTruthy()
+    })
+    expect(screen.queryByText('A brand new server error string.')).toBeNull()
+  })
+})
+
+describe('D-07: Step6Payment promo error shows translated message keyed by the server code', () => {
+  it('PROMO_INVALID code under ru -> shows the ru PROMO_INVALID catalog message', async () => {
+    render(<Step6Payment />, { locale: 'ru', messages: ruMessages })
+
+    await waitFor(() => {
+      const last = elementsOptionsCapture[elementsOptionsCapture.length - 1]
+      expect(last).not.toBeNull()
+    })
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        valid: false,
+        error: 'Promo code is invalid, expired, or has reached its usage limit.',
+        code: 'PROMO_INVALID',
+      }),
+    } as Response)
+
+    const input = document.querySelector('input[type="text"]') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'BADCODE' } })
+    const applyButton = screen.getByText('Применить код')
+    fireEvent.click(applyButton)
+
+    const expected = (ruMessagesRaw as { Booking: { step6: { errors: { PROMO_INVALID: string } } } })
+      .Booking.step6.errors.PROMO_INVALID
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeTruthy()
+    })
+    expect(screen.queryByText('Promo code is invalid, expired, or has reached its usage limit.')).toBeNull()
+  })
+
+  it('unknown code under ru -> falls back to the ru promoInvalid generic message', async () => {
+    render(<Step6Payment />, { locale: 'ru', messages: ruMessages })
+
+    await waitFor(() => {
+      const last = elementsOptionsCapture[elementsOptionsCapture.length - 1]
+      expect(last).not.toBeNull()
+    })
+
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ valid: false, error: 'Some new server text.', code: 'UNKNOWN_XYZ' }),
+    } as Response)
+
+    const input = document.querySelector('input[type="text"]') as HTMLInputElement
+    fireEvent.change(input, { target: { value: 'WHATEVER' } })
+    const applyButton = screen.getByText('Применить код')
+    fireEvent.click(applyButton)
+
+    const expected = (ruMessagesRaw as { Booking: { step6: { promoInvalid: string } } })
+      .Booking.step6.promoInvalid
+
+    await waitFor(() => {
+      expect(screen.getByText(expected)).toBeTruthy()
+    })
+    expect(screen.queryByText('Some new server text.')).toBeNull()
   })
 })
 
