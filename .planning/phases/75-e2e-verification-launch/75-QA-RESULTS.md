@@ -122,3 +122,54 @@ Observation for 75-20: `/zh/<nonexistent>` renders an English "Page not found" h
 - **B) E2E test account:** the user reported it as created, but `scripts/qa/.e2e-account.json` was not present when checked (the path is git-ignored, verified with `git check-ignore`). Plan 75-20 runs the D-04 RU/AR account path only if the file exists at run time; otherwise it records the path as SKIPPED.
 - **Delete test account after QA:** YES (user decision). Delete only the E2E TEST account, after 75-20.
 - **User directive "no data may be lost":** QA cleanup (the 16 E2E booking refs and the test account) must delete only records verified as E2E/TEST, unpaid, and with no Stripe payment. Show the list to the user before any deletion.
+
+## Production QA — ar tracer (Plan 75-20, Task 1)
+
+Run date (UTC): 2026-09-26. Target: `https://rideprestigo.com`. This is the
+first post-deploy production run — Phase 75's other plans (75-02..75-18) have
+now landed on `main` (PR #37, merge `960e4e0f`). Every script below ran with
+`--locales ar` (or is locale-independent) and is compared against
+`75-QA-BASELINE.md`'s pre-change numbers.
+
+| Script | Command | Exit | Baseline (all 7 / all-locale) | Now (ar / locale-independent) | Delta |
+|---|---|---|---|---|---|
+| `render_audit.py` | `--locales ar` | 1 | 7 findings (`/login` missing canonical, all 7 locales) | 1 finding: `/ar/login` missing canonical | Matches baseline exactly — same pre-existing, unfixed defect, ar's one row of the 7 |
+| `switcher_audit.py` | `--locales ar` | 0 | 63 ops, 0 findings (all 7 sources) | 9 ops (ar source: 6 target pairs on `/routes/prague-vienna` + 3 rotating on `/`, `/book`, `/fleet`), 0 findings | Clean, consistent with baseline |
+| `en_leak_rendered.py` | `--locales ar` | 1 | 373 text leaks, 234 link leaks (pre-fix, ar only) | 58 text leaks, 15 link leaks (post-fix, ar only) | Large reduction (373→58 text, 234→15 link) — Phase 75's fix plans (75-06..75-16) closed the great majority of ar's pre-fix leaks. Remaining findings recorded below (real gaps, not patched in this plan per Task 1's "do not patch and redeploy" rule) |
+| `jsonld_audit.py` | `--locales ar` | 0 | 84 blocks (7 locales x 7 pages), 0 findings | 12 blocks (ar x 7 pages), 0 findings | Clean, consistent with baseline |
+| `analytics_locale_audit.py` | `--locales ar` | 1 | N/A (script did not exist pre-change; D-10/D-12 built in Phase 75) | ar `/` and `/book`: `ga4SiteLocale=True` (PASS), `metaSiteLocale=False` (FAIL, `metaHits=0`) | New gap: Meta Pixel never fires at all on production (`metaHits=0`) — this is the pre-known WINDOWS.md #15 defect (`NEXT_PUBLIC_META_PIXEL_ID`/`META_PIXEL_ID` env var has a trailing newline breaking the `fbq` init script), not a Phase 75 regression. GA4 `site_locale` passes. |
+| `booking_e2e.py` (guest) | `--locales ar` | 0 | N/A (script did not exist pre-change) | 1 run: `reachedStripe=true`, `bookingReference=PRG-20260926-5BEA0C`, `stripeLocaleParam=ar` (expected `ar`), `placesLanguage=ar` (expected `ar`), `htmlLang=ar`, `htmlDir=rtl`, `localeChecksPassed=true`, `durationMs=11406` | PASS — RTL guest booking reaches Stripe with correct locale on both Stripe Elements and Google Places |
+| `hreflang_reciprocity.py` | (locale-independent) | 1 | 63 clusters, 417 alternates, 4 reciprocity errors (3 EN-only blog posts + `/authors/roman-ustyugov`, D-09 intentional allowlist) | 63 clusters, 423 alternates, 3 reciprocity errors (same 3 EN-only blog posts; `/authors/roman-ustyugov` no longer in the failure list) | Improvement — the author page picked up a full hreflang cluster somewhere in Phase 75 (75-11 externalized `/authors/roman-ustyugov`); remaining 3 failures are the same D-09 intentional EN-only `JSX_POSTS` exclusion, not a regression |
+| `csp_regression.py --compare` | (locale-independent) | 0 | 11 route classes, 0 findings (self-consistency check right after capture) | 11 route classes, 0 findings | No CSP drift — the golden pre-change baseline still holds after all Phase 75 code landed |
+
+**Acceptance criteria check (Task 1):**
+- Every script ran for `ar` and its exit code is recorded above. ✓
+- The `ar` guest booking run shows `reachedStripe=true`, `stripeLocaleParam=ar`, `htmlDir=rtl`. ✓
+- Comparison against `75-QA-BASELINE.md` baseline numbers is recorded per-script above. ✓
+
+**ar text-leak findings detail** (`en_leak_rendered.py --locales ar`, 58 text leaks / 15 link leaks across 26 pages) — recorded as a verification gap, not fixed in this plan:
+
+| Page | Leaks | Link leaks | Sample finding |
+|---|---|---|---|
+| `/` | 3 | 0 | English testimonial quote text ("Our driver was waiting before we even cleared customs...") |
+| `/fleet` | 3 | 0 | Arabic sentence containing an unallowlisted Latin brand/model run |
+| `/services` | 4 | 0 | Arabic sentence containing an unallowlisted Latin run |
+| `/services/airport-transfer` | 5 | 0 | Arabic sentence containing an unallowlisted Latin run |
+| `/services/city-rides` | 7 | 0 | Arabic sentence containing an unallowlisted Latin run |
+| `/services/intercity-routes` | 3 | 0 | Arabic sentence mentioning USB-A/USB-C/Wi-Fi (DNT-adjacent tech terms, not yet allowlisted) |
+| `/services/vip-events` | 2 | 0 | Arabic sentence containing an unallowlisted Latin run |
+| `/services/concierge` | 2 | 0 | Arabic sentence containing an unallowlisted Latin run (place name "Malá...") |
+| `/routes` | 2 | 0 | Arabic sentence mentioning "Mercedes E-Class" (brand/model DNT terms embedded mid-sentence) |
+| `/routes/prague-ceske-budejovice` | 2 | 0 | Arabic sentence, RTL mark + place name |
+| `/contact` | 1 | 0 | Placeholder email example `ahmed@email.com` (Latin, expected — email format) |
+| `/faq` | 2 | 0 | Arabic sentence mentioning "Wi-Fi" |
+| `/book` | 1 | 0 | Arabic sentence mentioning payment methods (Visa etc.) |
+| `/book/multi-day` | 1 | 0 | Arabic sentence mentioning "Mercedes E-Class"/"Mercedes S-Class" vehicle-class DNT terms |
+| `/blog` | 2 | 0 | "Intercity Routes" (English link/heading text) |
+| `/login` | 4 | 0 | "PRESTIGO — Premium Chauffeur Service Prague" (metadata/title, EN) |
+| `/authors/roman-ustyugov` | 6 | 0 | "Roman Ustyugov" (person name, not translatable — likely allowlist gap for names) |
+| `/blog/beyond-transport-luxury-chauffeur-service-prague` | 5 | 3 | "Roman Ustyugov" author name + 3 link leaks (`/blog/prague-airport-meet-and-greet`, `/services/corporate-accounts`, `/services/intercity-routes` missing `/ar/` prefix) |
+| `/blog/prague-airport-to-city-center` | 0 | 3 | D-09 EN-only post — text correctly allowlisted; 3 link leaks are its own internal nav dropping the locale prefix (pre-known 75-13 finding) |
+| `/this-page-does-not-exist` | 3 | 1 | "Page not found" (404 page, `app/[locale]/not-found.tsx` not localized — pre-known 75-16 finding) |
+
+Most remaining ar leaks are either (a) brand/model/tech-term Latin runs embedded mid-Arabic-sentence that the DNT allowlist does not yet cover mid-sentence, (b) person names (not translatable), or (c) two already-known, already-owned findings (404 page not localized — 75-16; blog post internal nav dropping locale prefix — 75-13). None of these were fixed in this Task-1 tracer per the plan's explicit "do not patch and redeploy" instruction — they carry into Task 2's full-locale sweep and VER-01 facet summary as concrete gap evidence.
