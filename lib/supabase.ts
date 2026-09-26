@@ -81,6 +81,11 @@ export function buildBookingRow(
     // that reached the payment step but has not (yet) paid (D-02/ABND-02).
     status: bookingType === 'confirmed' ? 'confirmed' : bookingType === 'unpaid' ? 'unpaid' : 'pending',
     trip_type: meta.tripType,
+    // Site locale the customer was on at checkout (Phase 75-05's
+    // normalizeSiteLocale already validated this before it reached
+    // metadata.locale on the PaymentIntent; admin-created bookings never
+    // set meta.locale, so they store null here) — D-11.
+    locale: meta.locale || null,
     origin_address: meta.originAddress ?? meta.origin ?? null,
     origin_lat: meta.originLat ? parseFloat(meta.originLat) : null,
     origin_lng: meta.originLng ? parseFloat(meta.originLng) : null,
@@ -372,6 +377,9 @@ export function buildBookingRows(
     booking_type: 'confirmed' as const,
     status: bookingType, // 'confirmed' | 'unpaid' — Phase 62 D-07
     trip_type: 'round_trip',
+    // Same site locale as the outbound leg — D-11 (Phase 75-17), see
+    // buildBookingRow's locale field for the source.
+    locale: meta.locale || null,
     // Origin ↔ destination SWAPPED: return trip goes destination → origin
     origin_address: meta.destinationAddress ?? null,
     origin_lat: meta.destinationLat ? parseFloat(meta.destinationLat) : null,

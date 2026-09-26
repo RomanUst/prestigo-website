@@ -72,6 +72,9 @@ interface Booking {
   flight_departure_airport: string | null
   flight_arrival_airport: string | null
   flight_terminal: string | null
+  // Phase 75-17 D-11: site locale at checkout (migration 062). Null for
+  // admin-created bookings and any row created before the column existed.
+  locale?: string | null
 }
 
 const vehicleClassMap: Record<string, string> = {
@@ -1931,6 +1934,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                         {booking.flight_number && <DetailField label="FLIGHT" value={booking.flight_number} />}
                         {booking.terminal && <DetailField label="TERMINAL" value={booking.terminal} />}
                         {booking.special_requests && <DetailField label="REQUESTS" value={booking.special_requests} />}
+                        <DetailField label="LANGUAGE" value={booking.locale ? booking.locale.toUpperCase() : '—'} />
                         <DetailField
                           label="CHILD SEAT"
                           value={booking.extra_child_seat ? <StatusBadge variant="active" label="Yes" /> : '—'}
@@ -2268,6 +2272,7 @@ export default function BookingsTable({ defaultHorizon = 'future', horizonDays: 
                           <DetailField label="TERMINAL" value={row.original.terminal ?? '—'} />
                           <DetailField label="RETURN" value={row.original.return_date ?? '—'} />
                           <DetailField label="NOTES" value={row.original.special_requests ?? '—'} />
+                          <DetailField label="LANGUAGE" value={row.original.locale ? row.original.locale.toUpperCase() : '—'} />
                           <DetailField
                             label="PAYMENT ID"
                             value={
