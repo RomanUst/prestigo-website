@@ -274,10 +274,10 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     expect(rowEl).not.toBeNull()
     if (rowEl) fireEvent.click(rowEl)
 
-    await waitFor(() => {
-      expect(within(rowEl as HTMLElement).getByText('LANGUAGE')).toBeDefined()
-    })
-    expect(within(rowEl as HTMLElement).getByText('RU')).toBeDefined()
+    // The expanded detail panel renders as a SIBLING <tr> (colSpan row), not
+    // nested inside the clicked row's own <tr> — query at document level.
+    const languageLabel = await screen.findByText('LANGUAGE')
+    expect(languageLabel.nextElementSibling?.textContent).toBe('RU')
   })
 
   it('desktop: expanded row shows an em dash when locale is null', async () => {
@@ -293,10 +293,8 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     expect(rowEl).not.toBeNull()
     if (rowEl) fireEvent.click(rowEl)
 
-    await waitFor(() => {
-      expect(within(rowEl as HTMLElement).getByText('LANGUAGE')).toBeDefined()
-    })
-    expect(within(rowEl as HTMLElement).getByText('—')).toBeDefined()
+    const languageLabel = await screen.findByText('LANGUAGE')
+    expect(languageLabel.nextElementSibling?.textContent).toBe('—')
   })
 
   it('mobile: expanded card shows uppercase locale code for locale "zh"', async () => {
@@ -313,13 +311,15 @@ describe('BookingsTable booking language — Phase 75-17 D-11', () => {
     await waitFor(() => {
       expect(screen.getByTestId('mobile-cards')).toBeDefined()
     })
-    const refCell = await screen.findByText('PRE-LOCALE-ZH-M')
+    const mobileCards = screen.getByTestId('mobile-cards')
+    // Both the desktop table and the mobile card list render in the DOM
+    // simultaneously in jsdom (viewport switching is CSS-only, md:hidden) —
+    // scope every query to the mobile-cards container to avoid ambiguity.
+    const refCell = await within(mobileCards).findByText('PRE-LOCALE-ZH-M')
     fireEvent.click(refCell)
 
-    await waitFor(() => {
-      expect(within(screen.getByTestId('mobile-cards')).getByText('LANGUAGE')).toBeDefined()
-    })
-    expect(within(screen.getByTestId('mobile-cards')).getByText('ZH')).toBeDefined()
+    const languageLabel = await within(mobileCards).findByText('LANGUAGE')
+    expect(languageLabel.nextElementSibling?.textContent).toBe('ZH')
   })
 })
 

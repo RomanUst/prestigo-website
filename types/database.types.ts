@@ -46,6 +46,7 @@ export type Database = {
           id: string
           leg: string
           linked_booking_id: string | null
+          locale: string | null
           luggage: number
           operator_notes: string | null
           origin_address: string | null
@@ -97,6 +98,7 @@ export type Database = {
           id?: string
           leg?: string
           linked_booking_id?: string | null
+          locale?: string | null
           luggage: number
           operator_notes?: string | null
           origin_address?: string | null
@@ -148,6 +150,7 @@ export type Database = {
           id?: string
           leg?: string
           linked_booking_id?: string | null
+          locale?: string | null
           luggage?: number
           operator_notes?: string | null
           origin_address?: string | null
