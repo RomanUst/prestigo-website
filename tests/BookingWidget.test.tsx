@@ -4,9 +4,10 @@ import { renderWithIntl as render } from './helpers/renderWithIntl'
 import { useBookingStore } from '@/lib/booking-store'
 import type { PlaceResult } from '@/types/booking'
 
-// Mock next/navigation
+// Mock the i18n-aware router (@/i18n/routing) — BookingWidget's hand-off to
+// /book must keep the visitor's locale, which only the i18n router applies.
 const mockPush = vi.fn()
-vi.mock('next/navigation', () => ({
+vi.mock('@/i18n/routing', () => ({
   useRouter: () => ({ push: mockPush }),
 }))
 

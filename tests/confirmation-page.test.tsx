@@ -18,8 +18,12 @@ vi.mock('next/navigation', () => ({
   useRouter: vi.fn(() => ({ push: vi.fn(), replace: vi.fn() })),
 }))
 
-vi.mock('next/link', () => ({
-  default: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
+// 75-14: the confirmation page's "BOOK NOW" link now uses the i18n Link
+// (@/i18n/routing) instead of next/link's default import, so it keeps the
+// visitor's locale on a session-expired re-entry. Mock only the named Link
+// export the page actually imports.
+vi.mock('@/i18n/routing', () => ({
+  Link: ({ children, href }: { children: ReactNode; href: string }) => <a href={href}>{children}</a>,
 }))
 
 const { buildIcsMock } = vi.hoisted(() => {

@@ -6,7 +6,7 @@ import TripTypeTabs from '@/components/booking/TripTypeTabs'
 import { useBookingStore } from '@/lib/booking-store'
 
 const pushMock = vi.fn()
-vi.mock('next/navigation', () => ({
+vi.mock('@/i18n/routing', () => ({
   useRouter: () => ({
     push: pushMock,
     replace: vi.fn(),
@@ -65,9 +65,17 @@ describe('TripTypeTabs', () => {
     expect(tabs[0]).toHaveAttribute('aria-selected', 'true')
   })
 
-  it('clicking MULTI-DAY tab calls router.push("/book/multi-day")', async () => {
+  it('clicking MULTI-DAY tab calls the i18n router push("/book/multi-day")', async () => {
     const user = userEvent.setup()
     render(<TripTypeTabs />)
+    await user.click(screen.getByRole('tab', { name: 'MULTI-DAY' }))
+    expect(pushMock).toHaveBeenCalledTimes(1)
+    expect(pushMock).toHaveBeenCalledWith('/book/multi-day')
+  })
+
+  it('clicking MULTI-DAY tab under the ru locale still calls the i18n router push("/book/multi-day") (the i18n router applies the locale prefix, not the component)', async () => {
+    const user = userEvent.setup()
+    render(<TripTypeTabs />, { locale: 'ru' })
     await user.click(screen.getByRole('tab', { name: 'MULTI-DAY' }))
     expect(pushMock).toHaveBeenCalledTimes(1)
     expect(pushMock).toHaveBeenCalledWith('/book/multi-day')

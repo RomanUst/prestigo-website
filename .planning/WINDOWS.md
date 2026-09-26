@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 7
+open_count: 6
 waived_count: 0
-fixed_count: 13
+fixed_count: 14
 total_count: 20
-last_updated: 2026-09-26T16:26:15.319Z
+last_updated: 2026-09-26T19:44:16.722Z
 ---
 
 # Broken Windows Ledger
@@ -34,7 +34,7 @@ last_updated: 2026-09-26T16:26:15.319Z
 | 17 | 75 | deviation | tests/account-trips.test.tsx |  | Pre-existing ERR_MODULE_NOT_FOUND at import (next-intl/server.react-server.js hardcoded relative path) on 5 test files unrelated to plan 75-12's scope; not fixed per scope boundary | open |  | 2026-09-25T19:30:56.319Z |  |
 | 18 | 75 | unrun-verify | tests/login-actions.test.ts |  | Known worktree-only next-intl/server import failure (relative vi.importActual path resolves outside the worktree's next/headers export map) prevents running this suite in-worktree; logic independently verified via a scratch composition check and will run/pass on main (matches 75-11-SUMMARY.md precedent). | open |  | 2026-09-25T21:05:40.466Z |  |
 | 19 | 75 | unrun-verify | tests/account-trips.test.tsx |  | Same known worktree-only next-intl/server import failure (see entry #18) — this file IS in plan 75-15's own scope (extended with new D-04 locale-redirect test cases), so the new assertions could not be executed in-worktree either; logic independently verified via a scratch mock-composition check and will run/pass on main. | open |  | 2026-09-25T21:08:17.526Z |  |
-| 20 | 75 | deviation | components/ArticleByline.tsx |  | next/link default import drops locale prefix on the byline link (75-EN-LEAK-AUDIT.md R3, attributed to 75-13 but out of files_modified scope) - deferred, see deferred-items.md | open |  | 2026-09-26T16:26:15.319Z |  |
+| 20 | 75 | deviation | components/ArticleByline.tsx |  | next/link default import drops locale prefix on the byline link (75-EN-LEAK-AUDIT.md R3, attributed to 75-13 but out of files_modified scope) - deferred, see deferred-items.md | fixed |  | 2026-09-26T16:26:15.319Z | 2026-09-26T19:44:16.722Z |
 
 ````json
 [
@@ -273,10 +273,10 @@ last_updated: 2026-09-26T16:26:15.319Z
     "file": "components/ArticleByline.tsx",
     "line": null,
     "description": "next/link default import drops locale prefix on the byline link (75-EN-LEAK-AUDIT.md R3, attributed to 75-13 but out of files_modified scope) - deferred, see deferred-items.md",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-26T16:26:15.319Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-26T19:44:16.722Z"
   }
 ]
 ````
