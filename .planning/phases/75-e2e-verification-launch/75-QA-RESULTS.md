@@ -1,0 +1,99 @@
+# Phase 75, Plan 18 — Pre-deploy Gate Results (D-15)
+
+Run date (UTC): 2026-09-26
+Base: `v2.2` (`b62ebee1`) → this worktree's HEAD after plan 75-18 Task 3.
+Environment: git worktree (symlinked `node_modules` — see "Known environment-only failures" below).
+
+## Pre-deploy gate
+
+Commands run in order, each recorded with exit code and totals.
+
+### 1. `npx vitest run` (full suite)
+
+**Exit code:** 1 (5 failed suites — see "Known environment-only failures")
+**Totals:** 159 test files (152 passed, 5 failed, 2 skipped) · 2788 tests (2639 passed, 10 skipped, 139 todo)
+
+**Failing files (all pre-existing, worktree-environment-only — see below):**
+- `tests/account-trips.test.tsx`
+- `tests/auth-customer.test.ts`
+- `tests/login-actions.test.ts`
+- `tests/passenger-actions.test.ts`
+- `tests/profile-actions.test.ts`
+
+**D-15 classification of the 5 failing files:**
+
+`git diff --name-only v2.2..HEAD` shows all 5 test files (and the 3 server-action modules they cover — `app/[locale]/account/trips/page.tsx`, `app/[locale]/login/actions.ts`, `app/[locale]/account/actions.ts`) ARE v3.0-touched (modified by earlier Phase 75 plans, e.g. 75-15). Per D-15 this would normally require a fix. The failure itself, however, is not a code regression: every one of the 5 fails at **import time** with `Cannot find module '.../node_modules/next-intl/dist/esm/development/server.react-server.js'` — a relative path into `node_modules` that only resolves from the **main checkout's** `node_modules` tree, not this worktree's symlinked stub (`ln -s <main-repo>/node_modules node_modules`, per this executor's setup instructions). This is identical to the issue independently documented in `75-10-SUMMARY.md` and `75-11-SUMMARY.md` ("5 suites, worktree-environment-specific, not introduced by this plan... none of the 5 failing files were touched by this plan['s own task]"). On the main checkout at this same base commit, the full suite is reported 100% green. **Written justification (D-15): not fixed, not removed** — the failure is an artifact of worktree-relative module resolution that does not reproduce after merge to `main`, and none of the 5 files were modified by plan 75-18 itself. No test was skipped or deleted to reach this state.
+
+**No other failures.** Every other test file — including this plan's own `tests/i18n-freeze-manifest.test.ts` (32 tests), `tests/content-metricool.test.ts` (9 tests), and `tests/content-locale-parity.test.ts` (313 tests, new) — passes.
+
+### 2. `node scripts/i18n-translate.mjs --check`
+
+**Exit code:** 0
+**Output:** `✓ i18n-translate --check: PASSED — [ru, es, fr, ar, hi, zh] complete vs messages/en.json, EN unchanged, no API calls made`
+
+Run after committing Task 3's changes (the check asserts EN sources are clean per `git diff`).
+
+### 3. `npx tsc --noEmit`
+
+**Exit code:** 2
+**Errors:** 8, across 3 files — all pre-existing, none in a file this plan modified:
+
+| File | Errors | v2.2..HEAD touched? |
+|---|---|---|
+| `tests/i18n-translate-dnt.test.ts` | 2 (`TS2339`) | yes (by an earlier phase-75 plan, not 75-18) |
+| `tests/nav-auth.test.tsx` | 5 (`TS2502`) | yes (by an earlier phase-75 plan, not 75-18) |
+| `tests/passenger-actions.test.ts` | 1 (`TS2493`) | yes (by an earlier phase-75 plan, not 75-18) |
+
+Identical to the set independently documented in `75-10-SUMMARY.md` and `75-11-SUMMARY.md` ("Zero tsc errors exist under any file this plan modified"). D-15 (the vitest baseline rule) does not extend to `tsc`; per the executor's Scope Boundary rule these are pre-existing, unrelated-file issues left for whichever plan owns them (or a dedicated cleanup). Zero `tsc --noEmit` errors in any file plan 75-18 created or modified (`scripts/i18n-freeze-manifest.mjs`, `tests/i18n-freeze-manifest.test.ts`, `tests/content-locale-parity.test.ts`, `tests/content-metricool.test.ts`, `lib/content/metricool.ts`, `app/[locale]/contact/page.tsx`) — confirmed by filtering `tsc`'s output against this plan's `files_modified`.
+
+### 4. `npm run lint`
+
+**Exit code:** 1
+**Totals:** 60 problems (42 errors, 18 warnings) across ~22 files — all pre-existing, none in a file this plan modified.
+
+Breakdown: the errors are almost entirely `@next/next/no-html-link-for-pages` (raw `<a>` navigation) across several `app/[locale]/**` route/blog pages and `components/**` files, plus `@typescript-eslint/no-explicit-any` / `@typescript-eslint/ban-ts-comment` in 3 unrelated test files (`tests/cron-purge.test.ts`, `tests/gnet-client.test.ts`, `tests/gnet-farmin.test.ts`). None of these files are in plan 75-18's `files_modified`. Per the same Scope Boundary rule applied to `tsc` above (Rule N/A — out-of-scope, pre-existing, unrelated files), this is recorded, not fixed, here. Fixing ~20 unrelated files' lint debt is a scope decision for a dedicated cleanup plan, not an in-place auto-fix under this plan's Rules 1-3. Zero lint errors/warnings in any file plan 75-18 created or modified.
+
+### 5. `node scripts/qa/en_leak_static.mjs`
+
+**Exit code:** 1 (raw) — see classification below.
+**Totals:** 19 files with findings, 149 findings (R1=118, R2=25, R3=1, R4=1... see file-by-file table).
+
+**Two genuine, customer-facing leaks were found and fixed** before this final run (both outside the pre-documented UNOWNED admin bucket):
+
+1. **`app/[locale]/contact/page.tsx`** (R2) — the hero background `<Image>`'s `alt` attribute was hardcoded English: `alt="Contact PRESTIGO — Premium Chauffeur Prague"`. Externalized to `content.hero.imageAlt` in `content/pages/en/contact.json`, hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh, wired into the component, and frozen into `i18n/translation-manifest.json` via a new `freeze/75-18.freeze` pattern (`content/pages/en/contact.json::hero.imageAlt`). `node scripts/i18n-freeze-manifest.mjs --verify` now reports 355 frozen units (was 354).
+2. **`components/Footer.tsx`** + the same contact page (R1) — both hardcode the `chelautotrans s.r.o.` legal entity's physical postal address (`"Spojovací 685, Vysoký Újezd"`). A postal address must never be translated (mail must reach the actual physical location) — the same treatment the DNT registry already gives the legal entity name itself. Added to `scripts/qa/en_leak_allowlist.json`'s `dnt` category with that reasoning, rather than "translating" a street address into 6 scripts, which would be actively incorrect.
+
+**Remaining 149 findings — all in the pre-documented UNOWNED bucket, no action taken:**
+
+`components/admin/**` (18 files, 148 R1/R2/R3 findings) plus one R4 in `app/[locale]/page.tsx` (a person's name in JSON-LD — R4 never affects the exit code, and a name is not translatable content). Every `components/admin/*` finding matches — file-for-file, closely matching finding-count-for-finding-count — the `### UNOWNED (admin panel — explicitly out of i18n scope per STATE.md)` bucket already recorded in `75-EN-LEAK-AUDIT.md` by an earlier phase-75 plan, and `tests/locale-links-backstop.test.ts` already filters this exact directory out of its own R3 assertion with the comment *"`components/admin/**` is explicitly OUT of i18n scope (STATE.md: 'Do NOT localize...')"*. `app/(internal)/admin/**` itself sits entirely outside the `app/[locale]` tree and is never localized; `components/admin/**` is only reachable from that internal, English-only dashboard (`grep -rl "components/admin/" app/[locale]` returns nothing) — confirmed no customer-facing route imports any admin component.
+
+**Effective (non-admin) result:** filtering `components/admin/**` out — the same filter `tests/locale-links-backstop.test.ts` already applies — leaves **zero** actionable R1/R2/R3 findings (one R4, review-only). The raw CLI exit code of 1 is entirely attributable to the pre-existing, already-classified UNOWNED bucket; scoping `en_leak_static.mjs`'s own `scanTree()` to skip `components/admin` the way it already skips `app/[locale]/admin` was considered but rejected as out of this plan's scope — the existing, human-approved convention (STATE.md + `75-EN-LEAK-AUDIT.md`) is to record and exclude at the consuming-test level, not to modify the shared scanner.
+
+### 6. `npx vitest run tests/locale-links-backstop.test.ts`
+
+**Exit code:** 0
+**Totals:** 2/2 passed.
+
+### 7. `npx next build` (recorded, environment-limited)
+
+**Exit code:** 1 — but only after `✓ Compiled successfully` and `Finished TypeScript` (the Next.js build's own type-check pass, separate from `tsc --noEmit` above) both succeed. The build then fails during **static page prerendering** for locale pages that reach Supabase-backed code paths (`/en/terms`, `/es/faq`, `/en/blog/prague-vienna-transfer-vs-train`, ...) with:
+
+```
+Error: @supabase/ssr: Your project's URL and API key are required to create a Supabase client!
+```
+
+`.env.local` is sandbox-denied to this executor and carries no usable Supabase credentials in this worktree (matches the project's own documented Vercel Preview failure mode — "missing Supabase env → /_not-found prerender error"). **Classification: environment-limited**, per this plan's own action ("a failure caused only by missing server-only env vars locally is recorded as environment-limited; a code/type/route-export failure must be fixed"). No code, type, or route-export failure was observed — compilation and typechecking both pass.
+
+## Summary
+
+| Command | Exit | Status |
+|---|---|---|
+| `npx vitest run` | 1 | 5 pre-existing worktree-only import failures (D-15 written justification above); all other 2639 tests pass |
+| `node scripts/i18n-translate.mjs --check` | 0 | PASS |
+| `npx tsc --noEmit` | 2 | 8 pre-existing errors, 3 unrelated files, none touched by this plan |
+| `npm run lint` | 1 | 42 pre-existing errors + 18 warnings, ~22 unrelated files, none touched by this plan |
+| `node scripts/qa/en_leak_static.mjs` | 1 | 149 findings, all in the pre-documented UNOWNED admin bucket (+1 review-only R4); 0 actionable non-admin findings after 2 genuine leaks fixed |
+| `npx vitest run tests/locale-links-backstop.test.ts` | 0 | PASS (2/2) |
+| `npx next build` | 1 | environment-limited (missing Supabase env only); compiles + typechecks clean |
+
+The tree is frozen (355 units, `--verify` PASSED), content/locale parity is proven (313 cases), the Metricool client is draft-capable, and the two genuine customer-facing EN leaks the gate surfaced are fixed and translated. Every remaining non-zero exit is either a documented worktree-only artifact (vitest), a pre-existing/unrelated-file issue this plan is out of scope to fix (tsc, lint, admin-panel leak findings), or an environment limitation (next build, missing local Supabase credentials) — none block the deploy in plan 75-19.
