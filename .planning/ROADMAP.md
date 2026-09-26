@@ -309,7 +309,7 @@ Plans:
 **Wave 2** *(blocked on Wave 1 completion)*
 
 - [x] 75-05-PLAN.md — Booking locale: Stripe Elements/Places locale, PaymentIntent metadata, webhook server GA4
-- [ ] 75-13-PLAN.md — Shared components, 404, loading, blog CTA, author page (messages #2)
+- [x] 75-13-PLAN.md — Shared components, 404, loading, blog CTA, author page (messages #2)
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
@@ -423,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 13/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 14/21 | In Progress|  |
