@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { act, screen, waitFor, fireEvent } from '@testing-library/react'
+import { act, waitFor, fireEvent } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import type { AbstractIntlMessages } from 'next-intl'
 import { renderWithIntl as render } from './helpers/renderWithIntl'
