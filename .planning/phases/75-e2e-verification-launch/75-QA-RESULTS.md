@@ -97,3 +97,21 @@ Error: @supabase/ssr: Your project's URL and API key are required to create a Su
 | `npx next build` | 1 | environment-limited (missing Supabase env only); compiles + typechecks clean |
 
 The tree is frozen (355 units, `--verify` PASSED), content/locale parity is proven (313 cases), the Metricool client is draft-capable, and the two genuine customer-facing EN leaks the gate surfaced are fixed and translated. Every remaining non-zero exit is either a documented worktree-only artifact (vitest), a pre-existing/unrelated-file issue this plan is out of scope to fix (tsc, lint, admin-panel leak findings), or an environment limitation (next build, missing local Supabase credentials) — none block the deploy in plan 75-19.
+
+## Deploy & smoke (plan 75-19, 2026-09-26)
+
+- **Decision (Task 1):** human chose "Через PR (Recommended)", i.e. deploy-via-pr.
+- **Pre-push secret scan:** 6809 added lines scanned for sk_live_/rk_live_/sk_test_/whsec_/JWT/private key/AKIA/re_/SERVICE_ROLE_KEY=/password literals and .env paths. 0 hits.
+- **Precondition:** 75-17-SUMMARY records option-a plus the migration 062 MCP verification (column, constraint, 0 grants). Satisfied.
+- **Deploy:** PR https://github.com/RomanUst/prestigo-website/pull/37 (branch `release/phase-75-i18n`, merge commit `960e4e0f`). The Vercel Production deployment reported `success`.
+- Wave 1 (75-01..12, 75-15) had already reached production earlier via PR #35 / #36 (branches created from local main).
+
+| # | Smoke check | Result |
+|---|-------------|--------|
+| 1 | `/ru/fleet` `<title>` | `Наш автопарк — автомобили Mercedes с водителем в Праге \| PRESTIGO`. PASS |
+| 2 | `/ru/routes/prague-berlin` links | 8× `href="/ru/book"`, 0× `href="/book"`. PASS |
+| 3 | `/` HTML contains ga-init `site_locale` | 1 occurrence. PASS |
+| 4 | `csp_regression.py --compare https://rideprestigo.com` | exit 0, 11 route classes, 0 findings. PASS |
+| 5 | `render_audit.py https://rideprestigo.com --locales ar` | exit 1: 21 URLs, 1 finding: `/ar/login` missing canonical. This is a **pre-existing baseline** finding (75-QA-BASELINE.md rows 24-30, all 7 locales; page is `noindex`), not a regression. Deferred to 75-20. |
+
+Observation for 75-20: `/zh/<nonexistent>` renders an English "Page not found" h1. Check whether the root `app/not-found.tsx` vs `app/[locale]/not-found.tsx` (localized in 75-13) is reached for unknown locale paths.
