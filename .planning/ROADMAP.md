@@ -322,7 +322,7 @@ Plans:
 
 **Wave 5** *(blocked on Wave 4 completion)*
 
-- [ ] 75-18-PLAN.md — Manifest freeze, Metricool draft support, content parity, full pre-deploy gate (D-15)
+- [x] 75-18-PLAN.md — Manifest freeze, Metricool draft support, content parity, full pre-deploy gate (D-15)
 
 **Wave 6** *(blocked on Wave 5 completion)*
 
@@ -423,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 17/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 18/21 | In Progress|  |
