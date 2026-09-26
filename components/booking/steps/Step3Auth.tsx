@@ -1,10 +1,13 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
 import OAuthButtons from '@/components/auth/OAuthButtons'
+import { getPathname } from '@/i18n/routing'
+import type { AppLocale } from '@/i18n/locales'
+import { authErrorKey } from '@/lib/auth-error-code'
 
 declare global { interface Window { gtag?: (...args: unknown[]) => void } }
 
@@ -101,6 +104,8 @@ export default function Step3Auth() {
   const t = useTranslations('Auth.inWizard')
   const tLogin = useTranslations('Auth.login')
   const tErr = useTranslations('Errors')
+  const tAuthErr = useTranslations('Errors.auth')
+  const locale = useLocale() as AppLocale
   const { nextStep, prevStep, setGuestMode } = useBookingStore()
 
   const [topTab, setTopTab] = useState<TopTab>('signin')
@@ -164,11 +169,17 @@ export default function Step3Auth() {
     const email = fd.get('email') as string
     setOtpEmail(email)
 
+    // D-07: keep the locale on the magic-link return — build the return-to
+    // through the i18n getPathname bridge (never hand-rolled `/book`) so a
+    // /ru wizard sign-in returns to /ru/book, not the English root. Uses the
+    // same URL + searchParams.set pattern as OAuthButtons.tsx for consistency.
+    const redirectUrl = new URL('/auth/callback', window.location.origin)
+    redirectUrl.searchParams.set('return-to', getPathname({ locale, href: '/book' }))
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: `${window.location.origin}/auth/callback?return-to=/book`,
+        emailRedirectTo: redirectUrl.toString(),
       },
     })
 
@@ -243,7 +254,8 @@ export default function Step3Auth() {
     setSending(false)
 
     if (error) {
-      setRegError(t('registerError', { message: error.message }))
+      console.error('Step3Auth register error:', error.message)
+      setRegError(tAuthErr(authErrorKey(error.code)))
       return
     }
 
