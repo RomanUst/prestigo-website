@@ -313,7 +313,7 @@ Plans:
 
 **Wave 3** *(blocked on Wave 2 completion)*
 
-- [ ] 75-16-PLAN.md — Coded API/auth errors rendered translated (messages #3)
+- [x] 75-16-PLAN.md — Coded API/auth errors rendered translated (messages #3)
 - [ ] 75-17-PLAN.md — D-11 storage decision; optional bookings.locale migration 062 + admin display (MCP apply)
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -423,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 14/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 15/21 | In Progress|  |
