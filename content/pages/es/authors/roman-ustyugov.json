@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "authorProfile": "Perfil del autor",
+    "about": "Sobre él",
+    "expertise": "Áreas de especialización"
+  },
+  "jobTitle": "Fundador y Director de Experiencia",
+  "bio": [
+    "Roman Ustyugov es el fundador de PRESTIGO, un servicio de chófer premium en Praga. Con más de 10 años de experiencia en transporte de lujo y en la industria hotelera 5★, Roman se especializa en transporte terrestre impecable para clientes corporativos, misiones diplomáticas y huéspedes de hotel — donde cada detalle del viaje importa.",
+    "Roman supervisa personalmente los estándares de calidad de PRESTIGO: desde la selección de la flota Mercedes-Benz hasta la formación de los chóferes en protocolo VIP, selección de rutas en el tráfico de Praga y discreción de principio a fin. Su enfoque es lujo discreto, puntualidad y absoluta discreción — el mismo estándar que conoció por primera vez como huésped habitual de los hoteles 5★ de Praga hace una década."
+  ],
+  "knowsAbout": [
+    "Servicio de chófer de lujo",
+    "Transporte terrestre en Praga",
+    "Operaciones de viajes corporativos",
+    "Hostelería de hoteles 5 estrellas",
+    "Logística de traslados al aeropuerto",
+    "Protocolo de clientes VIP"
+  ],
+  "imageAlt": "Roman Ustyugov — Fundador del servicio de chófer PRESTIGO en Praga",
+  "cta": {
+    "headingLine1": "Reserve directamente con",
+    "headingItalic": "nuestro equipo.",
+    "body": "Cada reserva de PRESTIGO es supervisada personalmente por el equipo del fundador — despacho, briefing del chófer y seguimiento posterior al trayecto.",
+    "primaryButton": "Reservar un traslado",
+    "secondaryButton": "Sobre PRESTIGO"
+  }
+}

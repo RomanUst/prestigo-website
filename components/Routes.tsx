@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 import Reveal from '@/components/Reveal'
 import RoutesMap, { type MapCity } from '@/components/RoutesMap'
 import RoutesBento, { type BentoTile } from '@/components/RoutesBento'
@@ -59,6 +61,7 @@ const TILES: BentoTile[] = [
 type Props = { routes: RoutePrice[] }
 
 export default function Routes({ routes }: Props) {
+  const t = useTranslations('RoutesSection')
   const priceOf = (slug: string) => routes.find((r) => r.slug === slug)?.eClassEur
   return (
     <section
@@ -70,23 +73,21 @@ export default function Routes({ routes }: Props) {
       <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 items-end mb-12 md:mb-16">
           <Reveal variant="up">
-            <p className="label mb-6">Popular routes</p>
+            <p className="label mb-6">{t('label')}</p>
             <span className="copper-line mb-8 block" />
             <h2 id="routes-heading" className="display text-[36px] md:text-[44px]">
-              Central Europe.<br />
-              <span className="display-italic">Connected.</span>
+              {t('headingLine1')}<br />
+              <span className="display-italic">{t('headingItalic')}</span>
             </h2>
           </Reveal>
 
           <Reveal variant="up" delay={120}>
             <p className="body-text max-w-md mb-8">
-              Point to point or multi-city. We connect the key destinations of Central
-              Europe — with comfort, discretion and precision. One chauffeur, one fixed
-              fare, door to door.
+              {t('intro')}
             </p>
-            <a href="/routes" className="btn-primary">
-              Explore routes
-            </a>
+            <Link href="/routes" className="btn-primary">
+              {t('exploreRoutes')}
+            </Link>
           </Reveal>
         </div>
       </div>
@@ -102,8 +103,7 @@ export default function Routes({ routes }: Props) {
 
         <Reveal variant="fade" delay={150}>
           <p className="body-text text-[11px] mt-10 text-center">
-            All fares include tolls, vignettes, waiting time and meet &amp; greet — fixed
-            and guaranteed at booking.
+            {t('footnote')}
           </p>
         </Reveal>
       </div>

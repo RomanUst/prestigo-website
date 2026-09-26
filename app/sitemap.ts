@@ -120,13 +120,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }),
     entry('/terms', 'app/[locale]/terms/page.tsx', { indexable: true, content: { kind: 'page', key: 'terms' } }),
     // CR-02: content ref must match the page's own generateMetadata() call
-    // exactly (app/[locale]/authors/roman-ustyugov/page.tsx) — no
-    // content/pages/<locale>/authors/roman-ustyugov.json exists for any
-    // locale, so this collapses to en + x-default only (D-07 EN-fallback),
-    // matching what the page itself already declares. Previously this entry
-    // omitted the content ref, which produced a full 7-locale hreflang
+    // exactly (app/[locale]/authors/roman-ustyugov/page.tsx). Previously this
+    // entry omitted the content ref, which produced a full 7-locale hreflang
     // cluster here while the page declared itself EN-only — a
-    // non-reciprocal, self-contradicting hreflang divergence.
+    // non-reciprocal, self-contradicting hreflang divergence. 75-13 added
+    // content/pages/<locale>/authors/roman-ustyugov.json for all 7 locales,
+    // so this D-07 fs-probe now legitimately expands to the full cluster,
+    // matching the page's own generateMetadata() output.
     entry('/authors/roman-ustyugov', 'app/[locale]/authors/roman-ustyugov/page.tsx', {
       indexable: true,
       content: { kind: 'page', key: 'authors/roman-ustyugov' },

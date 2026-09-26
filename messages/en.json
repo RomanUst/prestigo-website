@@ -503,6 +503,66 @@
     "bookTransfer": "Book a transfer",
     "new": "NEW"
   },
+  "BookingSection": {
+    "label": "Instant booking",
+    "headlineLine1": "Book your",
+    "headlineItalic": "chauffeur now.",
+    "subhead": "Fixed price. Instant confirmation. Your driver tracks your flight automatically.",
+    "trust": [
+        "Flight tracking included",
+        "Fixed price — no surprises",
+        "Free cancellation up to 1 hour",
+        "Meet & greet at Arrivals"
+    ]
+  },
+  "HourlyBookingSection": {
+    "label": "Hourly booking",
+    "headlineLine1": "Hire a car with",
+    "headlineItalic": "chauffeur by the hour.",
+    "subhead": "Minimum 2 hours. One chauffeur, one vehicle — yours for as long as you need, across Prague and beyond.",
+    "trust": [
+        "Minimum 2-hour booking",
+        "Multiple stops included",
+        "Chauffeur waits throughout",
+        "Fixed hourly rate — no surprises"
+    ]
+  },
+  "RoutesSection": {
+    "label": "Popular routes",
+    "headingLine1": "Central Europe.",
+    "headingItalic": "Connected.",
+    "intro": "Point to point or multi-city. We connect the key destinations of Central Europe — with comfort, discretion and precision. One chauffeur, one fixed fare, door to door.",
+    "exploreRoutes": "Explore routes",
+    "footnote": "All fares include tolls, vignettes, waiting time and meet & greet — fixed and guaranteed at booking.",
+    "viewRoute": "View route",
+    "fromPrice": "from €{price}",
+    "mapAriaLabel": "Map of Prestigo chauffeur routes radiating from Prague across Central Europe"
+  },
+  "BlogCard": {
+    "readArticle": "Read article →"
+  },
+  "StepStub": {
+    "stepOfSix": "Step {step} of 6",
+    "body": "Complete your journey details — coming next."
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "This road doesn't",
+    "headingItalic": "lead anywhere.",
+    "body": "The page you're looking for doesn't exist — but your transfer still can.",
+    "bookButton": "Book a Transfer",
+    "servicesButton": "View Services",
+    "homeButton": "Back to Home"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "Skip the taxi rank.",
+      "headingItalic": "Chauffeur inside Arrivals.",
+      "body": "Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.",
+      "primaryButton": "Book your transfer",
+      "secondaryButton": "Airport transfer details"
+    }
+  },
   "Fleet": {
     "label": "The fleet",
     "headingLine1": "Mercedes only.",
@@ -741,6 +801,7 @@
     "allRoutes": "All Routes"
   },
   "Common": {
+    "loadingBooking": "Loading booking form",
     "skipToContent": "Skip to content",
     "firstVisitBanner": {
       "suggestion": "This site is also available in {endonym}.",

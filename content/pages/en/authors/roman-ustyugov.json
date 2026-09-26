@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "authorProfile": "Author profile",
+    "about": "About",
+    "expertise": "Areas of expertise"
+  },
+  "jobTitle": "Founder & Chief Experience Officer",
+  "bio": [
+    "Roman Ustyugov is the founder of PRESTIGO, a premium chauffeur service in Prague. With over 10 years of experience in luxury transportation and the 5★ hospitality industry, Roman specialises in flawless ground transport for corporate clients, diplomatic missions, and hotel guests — where every detail of the journey matters.",
+    "Roman personally oversees PRESTIGO’s quality standards: from curating the Mercedes-Benz fleet to training chauffeurs in VIP client protocol, route selection in Prague’s traffic, and end-to-end discretion. His approach is quiet luxury, punctuality, and absolute discretion — the same standard he first encountered as a frequent guest of Prague’s 5★ hotels a decade ago."
+  ],
+  "knowsAbout": [
+    "Luxury chauffeur service",
+    "Prague ground transportation",
+    "Corporate travel operations",
+    "5-star hotel hospitality",
+    "Airport transfer logistics",
+    "VIP client protocol"
+  ],
+  "imageAlt": "Roman Ustyugov — Founder of PRESTIGO chauffeur service in Prague",
+  "cta": {
+    "headingLine1": "Book directly with",
+    "headingItalic": "our team.",
+    "body": "Every PRESTIGO booking is overseen personally by the founder’s team — dispatch, chauffeur briefing, and post-ride follow-up.",
+    "primaryButton": "Book a Transfer",
+    "secondaryButton": "About PRESTIGO"
+  }
+}

@@ -1,0 +1,17 @@
+# 75-13: BookingSection/HourlyBookingSection/RoutesSection/BlogCard/StepStub/
+# NotFound/BlogPost.cta/Common.loadingBooking catalog namespaces, the hi
+# Booking.entryBar.flightNumberAriaLabel D-07/D-08 fix, and the new
+# content/pages/<locale>/authors/roman-ustyugov.json content unit --
+# hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh. Plan 75-18
+# applies this pattern to i18n/translation-manifest.json so a future
+# pipeline run neither overwrites these units nor re-spends tokens on them.
+messages/en.json::BookingSection
+messages/en.json::HourlyBookingSection
+messages/en.json::RoutesSection
+messages/en.json::BlogCard
+messages/en.json::StepStub
+messages/en.json::NotFound
+messages/en.json::BlogPost.cta
+messages/en.json::Common.loadingBooking
+messages/en.json::Booking.entryBar.flightNumberAriaLabel
+content/pages/en/authors/roman-ustyugov.json

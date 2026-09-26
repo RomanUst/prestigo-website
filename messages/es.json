@@ -538,6 +538,66 @@
     "bookTransfer": "Reservar un traslado",
     "new": "NUEVO"
   },
+  "BookingSection": {
+    "label": "Reserva instantánea",
+    "headlineLine1": "Reserve su",
+    "headlineItalic": "chófer ahora.",
+    "subhead": "Precio fijo. Confirmación instantánea. Su chófer sigue su vuelo automáticamente.",
+    "trust": [
+        "Seguimiento de vuelo incluido",
+        "Precio fijo, sin sorpresas",
+        "Cancelación gratuita hasta 1 hora antes",
+        "Recepción en la sala de llegadas"
+    ]
+  },
+  "HourlyBookingSection": {
+    "label": "Reserva por horas",
+    "headlineLine1": "Alquile un coche con",
+    "headlineItalic": "chófer por horas.",
+    "subhead": "Mínimo 2 horas. Un chófer, un vehículo — a su disposición todo el tiempo que necesite, en Praga y más allá.",
+    "trust": [
+        "Reserva mínima de 2 horas",
+        "Varias paradas incluidas",
+        "El chófer espera durante todo el trayecto",
+        "Tarifa por hora fija — sin sorpresas"
+    ]
+  },
+  "RoutesSection": {
+    "label": "Rutas populares",
+    "headingLine1": "Europa Central.",
+    "headingItalic": "Conectada.",
+    "intro": "De punto a punto o multi-ciudad. Conectamos los destinos clave de Europa Central — con comodidad, discreción y precisión. Un chófer, una tarifa fija, de puerta a puerta.",
+    "exploreRoutes": "Explorar rutas",
+    "footnote": "Todas las tarifas incluyen peajes, viñetas, tiempo de espera y recepción — fijas y garantizadas en el momento de la reserva.",
+    "viewRoute": "Ver ruta",
+    "fromPrice": "desde {price} €",
+    "mapAriaLabel": "Mapa de las rutas de chófer de PRESTIGO que salen de Praga por toda Europa Central"
+  },
+  "BlogCard": {
+    "readArticle": "Leer artículo →"
+  },
+  "StepStub": {
+    "stepOfSix": "Paso {step} de 6",
+    "body": "Complete los detalles de su viaje — disponible próximamente."
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "Este camino no lleva",
+    "headingItalic": "a ningún lugar.",
+    "body": "La página que busca no existe — pero su traslado todavía puede realizarse.",
+    "bookButton": "Reservar un traslado",
+    "servicesButton": "Ver servicios",
+    "homeButton": "Volver al inicio"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "Olvídese de la fila de taxis.",
+      "headingItalic": "Chófer dentro de Llegadas.",
+      "body": "Mercedes E-Class. Seguimiento de vuelo gratuito. Espera gratuita en retrasos. 24/7.",
+      "primaryButton": "Reserve su traslado",
+      "secondaryButton": "Detalles del traslado al aeropuerto"
+    }
+  },
   "Fleet": {
     "label": "La flota",
     "headingLine1": "Solo Mercedes-Benz.",
@@ -791,6 +851,7 @@
     "allRoutes": "Todas las rutas"
   },
   "Common": {
+    "loadingBooking": "Cargando formulario de reserva",
     "skipToContent": "Ir al contenido principal",
     "firstVisitBanner": {
       "suggestion": "Este sitio también está disponible en {endonym}.",

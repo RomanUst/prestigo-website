@@ -1,4 +1,7 @@
+import { useTranslations } from 'next-intl'
+
 export default function BookLoading() {
+  const t = useTranslations('Common')
   return (
     <main
       style={{
@@ -19,7 +22,7 @@ export default function BookLoading() {
           gap: '16px',
         }}
         aria-busy="true"
-        aria-label="Loading booking form"
+        aria-label={t('loadingBooking')}
       >
         <div className="skeleton-bar" style={{ height: '36px', width: '60%' }} />
         <div className="skeleton-bar" style={{ height: '52px' }} />
