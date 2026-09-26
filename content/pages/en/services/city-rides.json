@@ -10,7 +10,8 @@
     "headlineItalic": "Prague, by the hour.",
     "intro": "Rent a car with a private chauffeur in Prague by the hour — a Mercedes-Benz E-Class, S-Class, or V-Class with a 2-hour minimum and no upper limit. Your driver and vehicle stay with you for the full duration: business meetings, theatre, shopping, private dining, or airport waits. The hourly rate is fixed at booking.",
     "ctaPrimary": "Book a City Ride",
-    "ctaSecondary": "All Services"
+    "ctaSecondary": "All Services",
+    "imageAlt": "Prague City Rides — PRESTIGO"
   },
   "priceCallout": {
     "label": "Starting from",

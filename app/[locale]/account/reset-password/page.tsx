@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createBrowserClient } from '@supabase/ssr'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import Nav from '@/components/Nav'
 

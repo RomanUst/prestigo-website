@@ -139,7 +139,9 @@ export async function POST(request: Request) {
     // the payment-link reconcile so confirmation never depends on the endpoint also
     // being subscribed to checkout.session.completed. Both paths are status-gated,
     // so whichever event arrives second is a no-op.
-    if (meta.bookingId) {
+    if (meta.groupBookingIds) {
+      await handleGroupPaymentSucceeded(meta.groupBookingIds, paymentIntent.id)
+    } else if (meta.bookingId) {
       await handlePaymentLinkSucceeded(meta.bookingId, meta.linkedBookingId || null, paymentIntent.id)
     } else if (isRoundTrip) {
       await handleRoundTripSucceeded(paymentIntent, meta)
@@ -194,7 +196,9 @@ export async function POST(request: Request) {
     // clears. payment_method_types is restricted to ['card'] at link-creation
     // time (lib/stripe-payment-links.ts), making this effectively always
     // true, but keep the check as defense in depth.
-    if (session.payment_status === 'paid' && meta.bookingId && paymentIntentId) {
+    if (session.payment_status === 'paid' && meta.groupBookingIds && paymentIntentId) {
+      await handleGroupPaymentSucceeded(meta.groupBookingIds, paymentIntentId)
+    } else if (session.payment_status === 'paid' && meta.bookingId && paymentIntentId) {
       await handlePaymentLinkSucceeded(meta.bookingId, meta.linkedBookingId ?? null, paymentIntentId)
     }
 
@@ -418,6 +422,49 @@ async function handlePaymentLinkSucceeded(
 // ─────────────────────────────────────────────────────────────────────────
 // ONE-WAY HANDLER — extracted from original route.ts lines 53-124, unchanged (D-04)
 // ─────────────────────────────────────────────────────────────────────────
+
+/**
+ * Group payment link (one Stripe Payment Link covering several manual B2B
+ * bookings — e.g. a multi-day itinerary billed as a single total). Metadata
+ * carries `groupBookingIds` (comma-separated booking UUIDs). Each row is
+ * flipped unpaid → confirmed and stamped paid_at, status-gated so Stripe
+ * retries / the second of payment_intent.succeeded + checkout.session.completed
+ * are no-ops. payment_intent_id is NOT written: the (payment_intent_id, leg)
+ * unique index would reject it on the 2nd row; the PI id goes to operator_notes.
+ * No client emails — the operator handles B2B comms for these itineraries.
+ */
+async function handleGroupPaymentSucceeded(groupBookingIds: string, paymentIntentId: string): Promise<void> {
+  const ids = groupBookingIds
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => /^[0-9a-f-]{36}$/i.test(s))
+  if (ids.length === 0) return
+  const supabase = createSupabaseServiceClient()
+  const { data: rows, error: readErr } = await supabase
+    .from('bookings')
+    .select('id, operator_notes')
+    .in('id', ids)
+    .eq('status', 'unpaid')
+  if (readErr) {
+    console.error('[webhook] group payment read failed:', readErr.message)
+    return
+  }
+  const paidAt = new Date().toISOString()
+  for (const r of rows ?? []) {
+    const note = `Paid via group payment link (PI ${paymentIntentId}).`
+    const { error } = await supabase
+      .from('bookings')
+      .update({
+        status: 'confirmed',
+        paid_at: paidAt,
+        operator_notes: r.operator_notes ? `${r.operator_notes}\n${note}` : note,
+      })
+      .eq('id', r.id)
+      .eq('status', 'unpaid')
+    if (error) console.error('[webhook] group payment update failed:', { bookingId: r.id, message: error.message })
+  }
+  console.log('[webhook] group payment reconciled', { paymentIntentId, count: rows?.length ?? 0 })
+}
 
 async function handleOneWaySucceeded(
   paymentIntent: Stripe.PaymentIntent,

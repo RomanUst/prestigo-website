@@ -10,7 +10,8 @@
     "headlineItalic": "每一次抵达，都有人相迎。",
     "intro": "Prestigo 布拉格机场接送是从瓦茨拉夫·哈维尔机场（PRG）前往布拉格任意地址的固定价格专车服务，€{businessPrice} 起。您的司机将实时追踪您的航班，在抵达大厅举牌免费等候最长 60 分钟，为您搬运行李，并驾驶 Mercedes-Benz E-Class、S-Class 或 V-Class 送您抵达目的地。",
     "ctaPrimary": "预订机场接送",
-    "ctaSecondary": "全部服务"
+    "ctaSecondary": "全部服务",
+    "imageAlt": "布拉格机场迎接与专属司机接送服务 — PRESTIGO"
   },
   "featuresHeading": "服务包含内容",
   "features": [

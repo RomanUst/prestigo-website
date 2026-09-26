@@ -5,16 +5,16 @@ milestone_name: Site Internationalization (i18n)
 current_phase: 75
 current_phase_name: E2E Verification & Launch
 status: executing
-stopped_at: Completed 75-07-PLAN.md
-last_updated: "2026-09-25T13:31:00.964Z"
+stopped_at: Completed 75-08-PLAN.md
+last_updated: "2026-09-25T19:35:09.219Z"
 last_activity: 2026-09-25
 last_activity_desc: Phase 75 execution started
-state_head: cefb340e06b30f9cda44797f77ccccf3cf2bb536
+state_head: 0f29bf80f5de5ff1c1c8266742297973d33f60c8
 progress:
   total_phases: 8
   completed_phases: 7
   total_plans: 70
-  completed_plans: 55
+  completed_plans: 60
 ---
 
 # Project State
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-20)
 ## Current Position
 
 Phase: 75 (E2E Verification & Launch) — EXECUTING
-Plan: 7 of 21
+Plan: 12 of 21
 Status: Ready to execute
 Last activity: 2026-09-25 — Phase 75 execution started
 
@@ -165,6 +165,7 @@ Recent decisions affecting current work:
 - [Phase 75]: 75-06: /book localized via content model — hero/how-it-works/after-you-book/why-book-direct/FAQ/metadata moved into content/pages/<locale>/book.json, translated in-session into all 6 non-EN locales, EN byte-parity proven via a pre-refactor golden snapshot
 - [Phase 75]: 75-06: entity-handling split preserved on /book — dangerouslySetInnerHTML fields keep literal HTML-entity text (matches about.json convention); plain-JSX-text fields converted to literal Unicode characters, since {expr} interpolation doesn't decode entities the way JSX text children did
 - [Phase 75]: 75-07: translated the TRANSFER/HOURLY example-day badge (not in must_haves) reusing messages/*.json's Booking.dayCard terms, to close an EN-leak the plan's own success criterion required
+- [Phase 75]: 75-08: /fleet localized via content model — structural VehicleSpec array (model/photo/specs + EN-only categoryEn/descriptionEn for JSON-LD) zipped by index with translated content.vehicles; entity-decoding rule empirically confirmed (JS string literal entities stay literal, JSX-text-child entities need decoded Unicode) — Matches 75-06/75-07 content-model pattern; extends split one level further for per-vehicle structural vs translated data; Phase 74 D-09 JSON-LD-stays-English preserved via dedicated EN-only fields
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -239,6 +240,7 @@ None yet.
 - [Phase 75 input] Responsive overflow audit script (Playwright, 7 locales x 21 pages x 320/375/768/1024/1280) returned 0 issues on 2026-09-24 — reuse it as a Phase 75 regression check.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
 - 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
+- 75-08: no worktree isolation on this repo — an external concurrent git checkout (fix/payment-link-pi-succeeded) moved HEAD mid-plan and stranded a commit off main; recovered via cherry-pick (no data lost). Future sequential plans on this repo should verify 'git branch --show-current' before every commit, not just at plan start.
 
 ## Deferred Items
 
@@ -277,8 +279,8 @@ v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.
 
 ## Session Continuity
 
-Last session: 2026-09-25T13:31:00.403Z
-Stopped at: Completed 75-07-PLAN.md
+Last session: 2026-09-25T14:00:46.769Z
+Stopped at: Completed 75-08-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -350,6 +352,7 @@ Resume file: None
 | Phase 75 P04 | 40min | 3 tasks | 11 files |
 | Phase 75 P06 | 16min | 2 tasks | 11 files |
 | Phase 75-e2e-verification-launch P07 | 25min | 2 tasks | 11 files |
+| Phase 75 P08 | 20min | 2 tasks | 11 files |
 
 ## Operator Next Steps
 

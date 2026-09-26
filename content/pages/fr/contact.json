@@ -78,5 +78,17 @@
         "desc": "Annulation, sièges enfant, temps d'attente et bien plus encore."
       }
     ]
+  },
+  "details": {
+    "phoneLabel": "Téléphone",
+    "emailLabel": "E-mail",
+    "locationLabel": "Localisation",
+    "locationLines": [
+      "Prague, République tchèque",
+      "Zone de service : Europe centrale"
+    ],
+    "availabilityLabel": "Disponibilité",
+    "availability": "24 / 7 — 365 jours par an",
+    "legalEntityLabel": "Entité juridique"
   }
 }

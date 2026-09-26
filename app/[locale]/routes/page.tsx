@@ -8,13 +8,70 @@ import Footer from '@/components/Footer'
 import { ROUTES } from '@/lib/routes'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
-import { getLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { getPageContent } from '@/lib/page-content'
+import { interpolate } from '@/lib/content-interpolate'
+import { getPathname } from '@/i18n/routing'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+type RoutesContent = {
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  imageAlt: string
+  fromToLabel: string
+  popular: {
+    label: string
+    headingLine1: string
+    headingItalic: string
+    fromLabels: { eClass: string; vClass: string; sClass: string }
+    viewRoute: string
+  }
+  whyPrivate: { label: string; headingLine1: string; headingItalic: string; paragraphs: string[] }
+  countries: {
+    label: string
+    headingOne: string
+    headingMany: string
+    introOne: string
+    introMany: string
+    introSuffix: string
+    cardLabels: { distance: string; duration: string; price: string }
+    bookButton: string
+    routeDetails: string
+  }
+  destinationNames: Record<string, string>
+  countryNames: Record<string, string>
+  howItWorks: { heading: string; steps: { title: string; body: string }[] }
+  borders: { label: string; headingLine1: string; headingItalic: string; items: { title: string; body: string }[] }
+  luggage: {
+    label: string
+    headingLine1: string
+    headingItalic: string
+    intro: string
+    items: { t: string; b: string }[]
+  }
+  longDistance: { label: string; headingLine1: string; headingItalic: string; intro: string; destinations: string[] }
+  faq: { heading: string; items: { q: string; a: string }[] }
+  cta: { headingLine1: string; headingItalic: string; intro: string; bookButton: string; contactButton: string }
+  metadata: { title: string; description: string; ogTitle: string; ogDescription: string }
+}
+
+// Structural, locale-invariant long-distance destination list (D-08
+// prohibition: slugs/structural data stay in code) — the href query param
+// always carries the EN city name; only the visible label is localized via
+// content.longDistance.destinations, zipped by index with this array.
+const LONG_DISTANCE_CITIES_EN = [
+  'Erfurt', 'Frankfurt', 'Augsburg', 'Stuttgart', 'Cologne',
+  'Düsseldorf', 'Hamburg', 'Innsbruck', 'Košice', 'Basel',
+  'Zürich', 'Bern', 'Geneva', 'Venice', 'Verona',
+  'Milan', 'Strasbourg', 'Paris', 'Brussels', 'Amsterdam',
+]
+
+// 75-09: /routes now has a content model (content/pages/<locale>/routes.json)
+// -> content: { kind: 'page', key: 'routes' } makes the hreflang cluster
+// translation-aware (Phase 74 D-07), not "all locales assumed valid".
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  const content = getPageContent('routes', locale) as RoutesContent
   const routes = await getAllRoutes('display_order')
   const vienna = routes.find((r) => r.slug === 'prague-vienna')
   const berlin = routes.find((r) => r.slug === 'prague-berlin')
@@ -24,16 +81,17 @@ export async function generateMetadata(): Promise<Metadata> {
   const berlinPrice = berlin?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const munichPrice = munich?.eClassEur ?? ROUTE_FALLBACK.eClassEur
   const budapestPrice = budapest?.eClassEur ?? ROUTE_FALLBACK.eClassEur
-  const description = `Private chauffeur from Prague to 30 Central European destinations. Vienna from €${viennaPrice}, Berlin from €${berlinPrice}, Munich from €${munichPrice}, Budapest from €${budapestPrice}. Fixed price, door-to-door.`
-  const alternates = getAlternates('/routes', { indexable: true, locale })
+  const priceValues = { viennaPrice, berlinPrice, munichPrice, budapestPrice }
+  const description = interpolate(content.metadata.description, priceValues)
+  const alternates = getAlternates('/routes', { indexable: true, content: { kind: 'page', key: 'routes' }, locale })
   return {
-    title: 'Prague Private Chauffeur — 30 Intercity Routes',
+    title: content.metadata.title,
     description,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
-      title: 'Prague Private Chauffeur — 30 Intercity Routes',
-      description,
+      title: content.metadata.ogTitle,
+      description: interpolate(content.metadata.ogDescription, priceValues),
       images: [{ url: 'https://rideprestigo.com/hero-intercity-routes.png', width: 1200, height: 630 }],
     },
   }
@@ -41,33 +99,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Route data is sourced from lib/routes.ts — single source of truth for the
 // 30 indexed intercity routes. See that file to add/remove/reorder routes.
-
-const faqs = [
-  {
-    q: 'Can I stop en route between Prague and my destination?',
-    a: 'Yes — stops are included at no extra cost on every intercity route and can be added at booking or requested on the day directly with the chauffeur. Typical stops include a lunch break at a roadside restaurant, a scenic viewpoint, or a secondary city on the way (Brno between Prague and Vienna, Dresden between Prague and Berlin, Bratislava between Prague and Budapest). Waiting time at each stop is included up to 30 minutes; beyond that we bill at a clear hourly waiting rate agreed in advance. If you need a longer stop — for example, a three-hour visit to Karlovy Vary on the way to Munich — book it as a multi-stop itinerary and we quote a single fixed fare for the whole journey. For corporate clients we can build recurring multi-stop itineraries into the account so your travellers can select them with one click.',
-  },
-  {
-    q: 'What if my plans change after I book?',
-    a: 'Cancellations are free up to two hours before the scheduled pickup time — no questions asked, refund processed to the original payment method within one business day. Changes to pickup time, pickup or drop-off address, vehicle class, or passenger name are free at any time, including on the day of travel: just call dispatch on +420 725 986 855 or message us on WhatsApp. For intercity routes booked more than 48 hours in advance, you can postpone the trip to any future date without penalty, and the original payment carries over. For last-minute cancellations inside the two-hour window we charge a minimum fee of 50 % to cover the driver&rsquo;s dispatched position, except when the cancellation is due to a flight cancellation — in which case the booking is cancelled at no charge and we help rebook for your next scheduled arrival.',
-  },
-  {
-    q: 'Can I book a return journey from the destination back to Prague?',
-    a: 'Yes — return bookings are available on every route and receive a 10 % discount on the return leg when both legs are booked together. The discount applies automatically at checkout when you select a return date and time. Same-day returns (for example, a morning drive from Prague to Dresden and an evening return) are the most common use case and work particularly well for day trips to Karlovy Vary, Kutná Hora, Dresden, or Vienna. Multi-day returns work equally well for business trips — book both legs now and the same vehicle (or at least the same class) is dispatched for each. For flight-connected returns — a transfer to Vienna, a flight elsewhere, and a pickup back in Vienna days later — the return is tracked against your flight number exactly like an airport pickup.',
-  },
-  {
-    q: 'What vehicle will I travel in and can I upgrade?',
-    a: 'You choose the vehicle class at booking. The Mercedes E-Class is our business sedan: up to 3 passengers, 3 large suitcases plus cabin bags, leather interior, onboard Wi-Fi, and the baseline price for every route. The S-Class is our executive sedan with the same capacity but rear massage seats, executive legroom, and ambient lighting — priced roughly 50 % higher than the E-Class on any given route. The V-Class is our six-passenger van, priced between E-Class and S-Class, and is the right choice whenever you have more than three passengers, six or more pieces of luggage, or want a more comfortable group experience. Upgrades after booking are possible subject to availability: contact dispatch and we confirm within minutes. Every vehicle is 2022 model year or newer.',
-  },
-  {
-    q: 'Are tolls, vignettes, and fuel included in the quoted price?',
-    a: 'Yes — every cost associated with the journey is included in the fixed quoted fare. That covers fuel, the Czech dálniční známka (motorway vignette), the Austrian and Slovak vignettes where relevant, every German motorway toll, every bridge or tunnel charge, and any urban congestion fee along the route. It also covers the driver&rsquo;s time on the full journey plus the included waiting allowance at your pickup and drop-off addresses. There is nothing added at the end of the trip: no service charge, no fuel surcharge, no border surcharge, no late-night surcharge, no weekend premium. The only thing that can change the total after booking is if you add a stop, extend a waiting period, or request an additional service (for example, a second drop-off in a different city) — and in those cases the adjusted quote is always confirmed with you before the change happens.',
-  },
-  {
-    q: 'How far in advance should I book an intercity route?',
-    a: 'We recommend booking at least 24 hours in advance for peace of mind, and 48–72 hours for major destinations (Vienna, Berlin, Munich, Budapest) during peak travel periods (Easter, Christmas markets, major trade fairs, Formula 1 weekends). That said, PRESTIGO accepts same-day bookings on every route up to two hours before pickup, subject to driver availability, and for corporate accounts we guarantee same-day availability with priority dispatch. Last-minute bookings inside the two-hour window are best handled by phone on +420 725 986 855 — dispatch can often find a car when the online system suggests no availability. For complex multi-stop itineraries, weekend or holiday travel, or V-Class bookings during peak season we do recommend booking at least 72 hours out to guarantee your exact preferred vehicle and driver.',
-  },
-]
+// Per-route h2/description/notes stay English (structural, code-owned) —
+// only the surrounding chrome (labels, headings, buttons) and the
+// destination/country display names are localized via the content model.
 
 const routesBreadcrumbSchema = {
   '@type': 'BreadcrumbList',
@@ -78,22 +112,26 @@ const routesBreadcrumbSchema = {
   ],
 }
 
-const routesFaqSchema = {
-  '@type': 'FAQPage',
-  '@id': 'https://rideprestigo.com/routes#faq',
-  mainEntity: faqs.map((f) => ({
-    '@type': 'Question',
-    name: f.q,
-    acceptedAnswer: { '@type': 'Answer', text: f.a },
-  })),
-}
+export default async function RoutesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const content = getPageContent('routes', locale) as RoutesContent
+  const { destinationNames, countryNames } = content
 
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@graph': [routesBreadcrumbSchema, routesFaqSchema],
-}
+  const routesFaqSchema = {
+    '@type': 'FAQPage',
+    '@id': 'https://rideprestigo.com/routes#faq',
+    mainEntity: content.faq.items.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  }
 
-export default async function RoutesPage() {
+  const breadcrumbSchema = {
+    '@context': 'https://schema.org',
+    '@graph': [routesBreadcrumbSchema, routesFaqSchema],
+  }
+
   const dbRoutes = await getAllRoutes('display_order')
   const top10 = dbRoutes.slice(0, 10)
 
@@ -105,17 +143,17 @@ export default async function RoutesPage() {
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-intercity-routes.png" alt="PRESTIGO intercity routes — private chauffeur Central Europe" fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
+          <Image src="/hero-intercity-routes.png" alt={content.imageAlt} fill priority sizes="100vw" style={{ objectFit: 'cover', filter: 'brightness(0.38)' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
-          <p className="label mb-6">Intercity Routes</p>
+          <p className="label mb-6">{content.hero.label}</p>
           <span className="copper-line mb-8 block" />
           <h1 className="display text-[length:clamp(30px,10vw,40px)] md:text-[56px] max-w-xl">
-            Central Europe, <br />
-            <span className="display-italic">door to door.</span>
+            {content.hero.headlineLine1}<br />
+            <span className="display-italic">{content.hero.headlineItalic}</span>
           </h1>
           <p className="body-text text-[13px] mt-6 max-w-lg" style={{ lineHeight: '1.9' }}>
-            Prague is the centre of Central Europe. Vienna, Berlin, Munich, Budapest — all within a day&rsquo;s drive. PRESTIGO chauffeurs cover 30 routes with fixed pricing, premium vehicles, and zero surprises.
+            {content.hero.intro}
           </p>
         </div>
       </section>
@@ -128,38 +166,41 @@ export default async function RoutesPage() {
           <section className="bg-anthracite py-16 md:py-20">
             <div className="max-w-7xl mx-auto px-6 md:px-12">
               <Reveal variant="up"><div className="mb-10">
-                <p className="label mb-4">Most popular routes</p>
+                <p className="label mb-4">{content.popular.label}</p>
                 <span className="copper-line mb-6 block" />
-                <h2 className="display text-[28px] md:text-[36px]">Top routes from Prague, <br /><span className="display-italic">live pricing.</span></h2>
+                <h2 className="display text-[28px] md:text-[36px]">{content.popular.headingLine1}<br /><span className="display-italic">{content.popular.headingItalic}</span></h2>
               </div></Reveal>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {top10.map((r, i) => (
+                {top10.map((r, i) => {
+                  const cityName = destinationNames[r.slug] ?? r.toLabel
+                  return (
                   <Reveal key={r.slug} variant="up" delay={i * 60}>
-                    <a href={`/routes/${r.slug}`} className="border border-anthracite-light p-6 flex flex-col gap-4 hover:border-[var(--copper)] transition-colors group">
+                    <a href={getPathname({ locale, href: `/routes/${r.slug}` })} className="border border-anthracite-light p-6 flex flex-col gap-4 hover:border-[var(--copper)] transition-colors group">
                       <div>
-                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>Prague → {r.toLabel}</p>
-                        <p className="font-display font-light text-[20px] text-offwhite">{r.toLabel}</p>
+                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-2" style={{ color: 'var(--copper)' }}>{interpolate(content.fromToLabel, { city: cityName })}</p>
+                        <p className="font-display font-light text-[20px] text-offwhite">{cityName}</p>
                       </div>
                       <div className="flex flex-col gap-1">
                         <div className="flex justify-between items-center">
-                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">E-Class from</span>
+                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">{content.popular.fromLabels.eClass}</span>
                           <span className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>€{r.eClassEur}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">V-Class from</span>
+                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">{content.popular.fromLabels.vClass}</span>
                           <span className="font-body font-light text-[11px] text-offwhite">€{r.vClassEur}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">S-Class from</span>
+                          <span className="font-body font-light text-[10px] text-warmgrey tracking-[0.05em]">{content.popular.fromLabels.sClass}</span>
                           <span className="font-body font-light text-[11px] text-offwhite">€{r.sClassEur}</span>
                         </div>
                       </div>
                       <p className="font-body font-light text-[10px] tracking-[0.1em] uppercase mt-auto" style={{ color: 'var(--copper)' }}>
-                        View route →
+                        {content.popular.viewRoute}
                       </p>
                     </a>
                   </Reveal>
-                ))}
+                  )
+                })}
               </div>
             </div>
           </section>
@@ -171,20 +212,16 @@ export default async function RoutesPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-16">
           <Reveal variant="up" className="md:col-span-2"><div>
-            <p className="label mb-6">Planning intercity travel</p>
+            <p className="label mb-6">{content.whyPrivate.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">Why a private transfer <span className="display-italic">beats the train.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">{content.whyPrivate.headingLine1}<span className="display-italic">{content.whyPrivate.headingItalic}</span></h2>
           </div></Reveal>
           <Reveal variant="up" delay={150} className="md:col-span-3"><div className="flex flex-col gap-5">
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Intercity rail in Central Europe is excellent — but it stops at the station, not at your hotel door. For most of our clients, the hidden cost of a Prague&ndash;Vienna or Prague&ndash;Berlin trip isn&rsquo;t the ticket. It&rsquo;s the two taxis on either side, the hour spent dragging luggage through a terminus, the rigid departure window, and the wasted time between meetings when the schedule slips.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              A PRESTIGO private transfer replaces all of that with a single fixed-price journey. Your chauffeur collects you from your address in Prague, loads your luggage, clears the city on the fastest route of the day, and delivers you to the exact entrance of your destination — hotel, office, embassy, conference centre, airport. If you need to take a phone call the whole way, you can. If you need to sleep, you can. If you need to stop for lunch in Brno, Bratislava or Dresden, you simply tell the driver.
-            </p>
-            <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Every intercity route on this page is operated with the same fleet, the same vetted chauffeurs, and the same service standard as our airport transfers. Prices are quoted per vehicle, not per passenger — so two people share the same fare as one, and a V-Class with six passengers and full luggage still travels for a single fixed total.
-            </p>
+            {content.whyPrivate.paragraphs.map((p, i) => (
+              <p key={i} className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
+                {p}
+              </p>
+            ))}
           </div></Reveal>
         </div>
       </section>
@@ -215,29 +252,37 @@ export default async function RoutesPage() {
             return order.map((country) => {
               const routes = byCountry[country].slice().sort((a, b) => a.distanceKm - b.distanceKm)
               const countryId = country.toLowerCase().replace(/\s+/g, '-')
+              const countryLabel = countryNames[country] ?? country
+              const headingSuffix =
+                routes.length === 1
+                  ? content.countries.headingOne
+                  : interpolate(content.countries.headingMany, { count: routes.length })
+              const introText =
+                routes.length === 1
+                  ? interpolate(content.countries.introOne, { country: countryLabel })
+                  : interpolate(content.countries.introMany, { count: routes.length, country: countryLabel })
               return (
                 <div key={country} className="flex flex-col">
                   {/* Country H2 */}
                   <Reveal variant="up"><div className="mb-10" id={`routes-${countryId}`}>
-                    <p className="label mb-4">Destination country</p>
+                    <p className="label mb-4">{content.countries.label}</p>
                     <span className="copper-line mb-6 block" />
                     <h2 className="display text-[32px] md:text-[44px]">
-                      {country}<span className="display-italic"> — {routes.length} {routes.length === 1 ? 'route' : 'routes'} from Prague</span>
+                      {countryLabel}<span className="display-italic"> — {headingSuffix}</span>
                     </h2>
                     <p className="body-text text-[13px] mt-4 max-w-2xl" style={{ lineHeight: '1.9' }}>
-                      {routes.length === 1
-                        ? `One private chauffeur route from Prague into ${country}.`
-                        : `${routes.length} private chauffeur routes from Prague into ${country}, sorted by distance.`}
-                      {' '}Every route is a single fixed fare, door-to-door, with flight tracking on the return leg where applicable.
+                      {introText}
+                      {' '}{content.countries.introSuffix}
                     </p>
                   </div></Reveal>
                   <div className="flex flex-col gap-0">
           {routes.map((r, i) => {
             const hasImage = Boolean(r.image)
+            const cityName = destinationNames[r.slug] ?? r.city
             const cardContent = (
               <>
                 <div>
-                  <p className="label mb-4">{r.from} → {r.city}</p>
+                  <p className="label mb-4">{interpolate(content.fromToLabel, { city: cityName })}</p>
                   <h3 className="display text-[26px] md:text-[32px] mb-4">{r.h2}</h3>
                   <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>{r.description}</p>
                 </div>
@@ -245,15 +290,15 @@ export default async function RoutesPage() {
                   <div className="flex flex-col gap-3">
                     <div className="flex gap-6">
                       <div>
-                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Distance</p>
+                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.distance}</p>
                         <p className="font-body font-light text-[13px] text-offwhite">{r.distance}</p>
                       </div>
                       <div>
-                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Duration</p>
+                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.duration}</p>
                         <p className="font-body font-light text-[13px] text-offwhite">{r.duration}</p>
                       </div>
                       <div>
-                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>Price</p>
+                        <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.price}</p>
                         <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>{r.priceFrom}</p>
                       </div>
                     </div>
@@ -269,11 +314,11 @@ export default async function RoutesPage() {
                     )}
                   </div>
                   <div className="flex flex-wrap gap-3">
-                    <a href="/book" className="btn-primary self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
-                      Book Prague → {r.city}
+                    <a href={getPathname({ locale, href: '/book' })} className="btn-primary self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                      {interpolate(content.countries.bookButton, { city: cityName })}
                     </a>
-                    <a href={`/routes/${r.slug}`} className="btn-ghost self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
-                      Route Details
+                    <a href={getPathname({ locale, href: `/routes/${r.slug}` })} className="btn-ghost self-start" style={{ padding: '10px 24px', fontSize: '9px' }}>
+                      {content.countries.routeDetails}
                     </a>
                   </div>
                 </div>
@@ -322,19 +367,18 @@ export default async function RoutesPage() {
       {/* How it works */}
       <section className="theme-light bg-anthracite-mid py-16 md:py-20">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-14">How it works</h2></Reveal>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[36px] mb-14">{content.howItWorks.heading}</h2></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              { step: '01', title: 'Book', body: 'Select your route and vehicle. Fixed price confirmed instantly.' },
-              { step: '02', title: 'Travel', body: 'Your chauffeur collects you at the agreed time and location.' },
-              { step: '03', title: 'Arrive', body: 'Door-to-door delivery. No transfers, no terminals, no waiting.' },
-            ].map((s, i) => (
-              <Reveal key={s.step} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8">
-                <p className="font-body font-light text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: 'var(--copper)' }}>{s.step}</p>
+            {['01', '02', '03'].map((step, i) => {
+              const s = content.howItWorks.steps[i]
+              return (
+              <Reveal key={step} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8">
+                <p className="font-body font-light text-[9px] tracking-[0.3em] uppercase mb-4" style={{ color: 'var(--copper)' }}>{step}</p>
                 <h3 className="font-display font-light text-[22px] text-offwhite mb-3">{s.title}</h3>
                 <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{s.body}</p>
               </div></Reveal>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>
@@ -345,25 +389,12 @@ export default async function RoutesPage() {
       <section className="bg-anthracite py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
           <Reveal variant="up"><div className="mb-14">
-            <p className="label mb-6">Borders, tolls &amp; paperwork</p>
+            <p className="label mb-6">{content.borders.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px]">Crossing borders <br /><span className="display-italic">without the friction.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px]">{content.borders.headingLine1}<br /><span className="display-italic">{content.borders.headingItalic}</span></h2>
           </div></Reveal>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-            {[
-              {
-                title: 'Schengen as standard',
-                body: 'Every route we operate is within the Schengen area — Czechia, Austria, Germany, Slovakia, Hungary, Poland. There is no passport control at the border and no document inspection during the journey. Non-EU passport holders should still carry their passport, as occasional spot checks do happen during major events.',
-              },
-              {
-                title: 'All tolls and vignettes included',
-                body: 'The fixed price on each route covers every motorway toll, tunnel fee, Austrian and Slovak vignette, Czech dálniční známka, and city congestion charge along the way. There are no surcharges for fuel, waiting at the border, or driver overtime.',
-              },
-              {
-                title: 'Documentation for corporate travel',
-                body: 'For corporate and diplomatic clients we can prepare a detailed trip confirmation in advance, including vehicle plate, driver name and licence number, insurance reference, and estimated route — useful for security teams, embassies, and venues with advance-notification requirements.',
-              },
-            ].map((item, i) => (
+            {content.borders.items.map((item, i) => (
               <Reveal key={item.title} variant="up" delay={i * 120}><div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-5 block" />
                 <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
@@ -380,22 +411,15 @@ export default async function RoutesPage() {
       <section className="theme-light bg-anthracite-mid py-16 md:py-24">
         <div className="max-w-7xl mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-14 md:gap-24">
           <Reveal variant="up"><div>
-            <p className="label mb-6">Luggage, pets &amp; children</p>
+            <p className="label mb-6">{content.luggage.label}</p>
             <span className="copper-line mb-8 block" />
-            <h2 className="display text-[28px] md:text-[36px] mb-6">Travel with everything <span className="display-italic">you need.</span></h2>
+            <h2 className="display text-[28px] md:text-[36px] mb-6">{content.luggage.headingLine1}<span className="display-italic">{content.luggage.headingItalic}</span></h2>
             <p className="body-text text-[13px]" style={{ lineHeight: '1.9' }}>
-              Intercity transfers usually mean more luggage than a city run — ski bags, golf clubs, sample cases, presentation materials, or the full suitcase complement of a family relocating between capitals. Every PRESTIGO class is matched to a realistic luggage load, and when in doubt we upgrade you at the same price rather than squeeze a trip.
+              {content.luggage.intro}
             </p>
           </div></Reveal>
           <Reveal variant="up" delay={150}><ul className="flex flex-col gap-4">
-            {[
-              { t: 'E-Class luggage', b: '2 large suitcases + 2 cabin bags.' },
-              { t: 'S-Class luggage', b: '2 large suitcases + 2 cabin bags. Same capacity, with executive rear legroom and massage seats.' },
-              { t: 'V-Class luggage', b: 'Up to 6 large suitcases and 6 cabin bags with all seats occupied — effectively unlimited for 2 or 3 passengers.' },
-              { t: 'Pets welcome', b: 'Small pets travel free in a carrier; larger dogs accepted by arrangement in the V-Class. Please note at booking.' },
-              { t: 'Child &amp; booster seats', b: 'EU-certified infant, toddler and booster seats available at no charge. Just confirm age and weight when you book.' },
-              { t: 'Oversized items', b: 'Skis, golf bags, bicycles (partially dismantled) and musical instruments carried on request — V-Class is almost always the right answer.' },
-            ].map((item) => (
+            {content.luggage.items.map((item) => (
               <li key={item.t} className="flex items-start gap-4 py-3 border-b border-anthracite-light last:border-0">
                 <span className="mt-[8px] w-1 h-1 rounded-full flex-shrink-0" style={{ background: 'var(--copper)' }} />
                 <div>
@@ -413,35 +437,30 @@ export default async function RoutesPage() {
       {/* Long-distance / red routes — noindex, quote on request */}
       <section className="theme-light bg-anthracite-mid py-14 md:py-16">
         <div className="max-w-7xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Long-distance transfers</p>
+          <p className="label mb-6">{content.longDistance.label}</p>
           <span className="copper-line mb-8 block" />
           <h2 className="display text-[24px] md:text-[30px] mb-4">
-            Quote on <span className="display-italic">request.</span>
+            {content.longDistance.headingLine1}<span className="display-italic">{content.longDistance.headingItalic}</span>
           </h2>
           <p className="body-text text-[13px] mb-10 max-w-2xl" style={{ lineHeight: '1.9' }}>
-            The following destinations are priced individually based on route, timing, and overnight requirements. Expect a written quote within 2 hours.
+            {content.longDistance.intro}
           </p>
           <ul className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-            {[
-              // Long-distance destinations have no fixed-price landing page — the
-              // dedicated route pages were removed 2026-04-09 (see next.config.ts,
-              // redirects to /routes). These are quote-on-request, so each links to
-              // the contact form rather than a removed URL that 301s back here.
-              'Erfurt', 'Frankfurt', 'Augsburg', 'Stuttgart', 'Cologne',
-              'Düsseldorf', 'Hamburg', 'Innsbruck', 'Košice', 'Basel',
-              'Zürich', 'Bern', 'Geneva', 'Venice', 'Verona',
-              'Milan', 'Strasbourg', 'Paris', 'Brussels', 'Amsterdam',
-            ].map((label) => (
-              <li key={label}>
+            {LONG_DISTANCE_CITIES_EN.map((enLabel, i) => {
+              const displayLabel = content.longDistance.destinations[i] ?? enLabel
+              const contactPath = getPathname({ locale, href: '/contact' })
+              return (
+              <li key={enLabel}>
                 <a
-                  href={`/contact?destination=${encodeURIComponent(label)}`}
+                  href={`${contactPath}?destination=${encodeURIComponent(enLabel)}`}
                   className="flex items-center justify-between border border-anthracite-light px-4 py-3 hover:border-copper/40 transition-colors group"
                 >
-                  <span className="font-body font-light text-[12px] text-warmgrey group-hover:text-offwhite transition-colors">Prague → {label}</span>
+                  <span className="font-body font-light text-[12px] text-warmgrey group-hover:text-offwhite transition-colors">{interpolate(content.fromToLabel, { city: displayLabel })}</span>
                   <span className="font-body text-[10px]" style={{ color: 'var(--copper)' }}>→</span>
                 </a>
               </li>
-            ))}
+              )
+            })}
           </ul>
         </div>
       </section>
@@ -451,9 +470,9 @@ export default async function RoutesPage() {
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-20">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">Common questions</h2></Reveal>
+          <Reveal variant="up"><h2 className="display text-[28px] md:text-[34px] mb-12">{content.faq.heading}</h2></Reveal>
           <div className="flex flex-col gap-0">
-            {faqs.map((faq, i) => (
+            {content.faq.items.map((faq, i) => (
               <Reveal key={faq.q} variant="up" delay={i * 60}><div
                 className={`py-7 border-b border-anthracite-light ${i === 0 ? 'border-t' : ''}`}
               >
@@ -472,14 +491,14 @@ export default async function RoutesPage() {
         <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
           <Reveal variant="up"><div>
             <h2 className="display text-[28px] md:text-[36px]">
-              Not seeing your destination? <br />
-              <span className="display-italic">We go anywhere.</span>
+              {content.cta.headingLine1}<br />
+              <span className="display-italic">{content.cta.headingItalic}</span>
             </h2>
-            <p className="body-text text-[13px] mt-4">PRESTIGO covers all destinations across Central Europe.</p>
+            <p className="body-text text-[13px] mt-4">{content.cta.intro}</p>
           </div></Reveal>
           <Reveal variant="fade" delay={100}><div className="flex flex-col sm:flex-row gap-4">
-            <a href="/book" className="btn-primary">Book a Route</a>
-            <a href="/contact" className="btn-ghost">Request Custom Route</a>
+            <a href={getPathname({ locale, href: '/book' })} className="btn-primary">{content.cta.bookButton}</a>
+            <a href={getPathname({ locale, href: '/contact' })} className="btn-ghost">{content.cta.contactButton}</a>
           </div></Reveal>
         </div>
       </section>

@@ -299,11 +299,11 @@ Plans:
 - [x] 75-04-PLAN.md — site_locale on GA4 (gtag set) + Meta Pixel/CAPI (identical, strict schema fixed) + analytics QA script
 - [x] 75-06-PLAN.md — /book page chrome -> content model, translated x6
 - [x] 75-07-PLAN.md — /book/multi-day -> content model, translated x6
-- [ ] 75-08-PLAN.md — /fleet -> content model, translated x6
-- [ ] 75-09-PLAN.md — /routes hub -> content model with localized names + locale links, translated x6
-- [ ] 75-10-PLAN.md — 30 route pages: translated hero alts, locale-preserving links, hi DNT headings (WINDOWS #6)
-- [ ] 75-11-PLAN.md — Services + static pages: localizedHref links, translated alts, hi/zh content fixes
-- [ ] 75-12-PLAN.md — CorporateForm + ContactForm + contact details externalized (messages #1)
+- [x] 75-08-PLAN.md — /fleet -> content model, translated x6
+- [x] 75-09-PLAN.md — /routes hub -> content model with localized names + locale links, translated x6
+- [x] 75-10-PLAN.md — 30 route pages: translated hero alts, locale-preserving links, hi DNT headings (WINDOWS #6)
+- [x] 75-11-PLAN.md — Services + static pages: localizedHref links, translated alts, hi/zh content fixes
+- [x] 75-12-PLAN.md — CorporateForm + ContactForm + contact details externalized (messages #1)
 - [ ] 75-15-PLAN.md — Sign-in/account/sign-out locale continuity (RU/AR account path)
 
 **Wave 2** *(blocked on Wave 1 completion)*
@@ -423,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 5/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 11/21 | In Progress|  |

@@ -1,11 +1,12 @@
 import { createClient } from '@/lib/supabase/server'
-import { getTranslations } from 'next-intl/server'
-import Link from 'next/link'
+import { getTranslations, getLocale } from 'next-intl/server'
+import { localizedHref } from '@/lib/localized-href'
 import Nav from '@/components/Nav'
 
 export const dynamic = 'force-dynamic'
 
 export default async function AccountPage() {
+  const locale = await getLocale()
   const supabase = await createClient()
   const {
     data: { user },
@@ -94,13 +95,13 @@ export default async function AccountPage() {
               {t('tripsBody')}
             </p>
 
-            <Link
-              href="/account/trips"
+            <a
+              href={localizedHref(locale, '/account/trips')}
               className="btn-ghost"
               style={{ display: 'inline-block', padding: '10px 24px', fontSize: '10px', marginTop: '20px' }}
             >
               {t('tripsCta')}
-            </Link>
+            </a>
           </div>
 
           {/* Card 2 — Profile */}
@@ -132,13 +133,13 @@ export default async function AccountPage() {
               {t('profileBody')}
             </p>
 
-            <Link
-              href="/account/profile"
+            <a
+              href={localizedHref(locale, '/account/profile')}
               className="btn-ghost"
               style={{ display: 'inline-block', padding: '10px 24px', fontSize: '10px', marginTop: '20px' }}
             >
               {t('profileCta')}
-            </Link>
+            </a>
           </div>
 
         </div>

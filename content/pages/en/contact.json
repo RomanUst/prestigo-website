@@ -62,5 +62,17 @@
       { "label": "Corporate accounts", "href": "/corporate", "desc": "Monthly invoicing and dedicated management for companies." },
       { "label": "Full FAQ", "href": "/faq", "desc": "Cancellation, child seats, waiting time, and more." }
     ]
+  },
+  "details": {
+    "phoneLabel": "Phone",
+    "emailLabel": "Email",
+    "locationLabel": "Location",
+    "locationLines": [
+      "Prague, Czech Republic",
+      "Service area: Central Europe"
+    ],
+    "availabilityLabel": "Availability",
+    "availability": "24 / 7 — 365 days a year",
+    "legalEntityLabel": "Legal entity"
   }
 }

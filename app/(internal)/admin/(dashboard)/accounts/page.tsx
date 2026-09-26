@@ -1,6 +1,9 @@
 'use client'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { Modal } from '@/components/admin/Modal'
+import { AccountForm } from '@/components/admin/AccountForm'
 import type { AdminAccount } from '@/app/api/admin/accounts/route'
 
 const vehicleFormatCZK = (value: number) =>
@@ -10,6 +13,8 @@ export default function AccountsPage() {
   const [accounts, setAccounts] = useState<AdminAccount[]>([])
   const [loading, setLoading] = useState(true)
   const [hoveredRow, setHoveredRow] = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     fetch('/api/admin/accounts')
@@ -23,18 +28,47 @@ export default function AccountsPage() {
 
   return (
     <div>
-      <h1
-        style={{
-          fontFamily: 'var(--font-cormorant)',
-          fontSize: '28px',
-          fontWeight: 400,
-          color: 'var(--offwhite)',
-          letterSpacing: '0.08em',
-          margin: '0 0 24px',
-        }}
-      >
-        Accounts
-      </h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '0 0 24px' }}>
+        <h1
+          style={{
+            fontFamily: 'var(--font-cormorant)',
+            fontSize: '28px',
+            fontWeight: 400,
+            color: 'var(--offwhite)',
+            letterSpacing: '0.08em',
+            margin: 0,
+          }}
+        >
+          Accounts
+        </h1>
+        <button
+          onClick={() => setModalOpen(true)}
+          style={{
+            backgroundColor: '#B87333',
+            color: '#F5F2EE',
+            border: 'none',
+            borderRadius: '4px',
+            padding: '8px 24px',
+            fontFamily: 'var(--font-montserrat)',
+            fontSize: '13px',
+            fontWeight: 400,
+            cursor: 'pointer',
+            minHeight: '44px',
+          }}
+        >
+          Add Account
+        </button>
+      </div>
+
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title="Add Account">
+        <AccountForm
+          onCreated={(id) => {
+            setModalOpen(false)
+            router.push(`/admin/accounts/${id}`)
+          }}
+          onClose={() => setModalOpen(false)}
+        />
+      </Modal>
 
       <div
         style={{

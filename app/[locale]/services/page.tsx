@@ -13,6 +13,7 @@ import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 interface ServiceEntry {
   label: string
@@ -199,10 +200,10 @@ export default async function ServicesPage() {
                     ))}
                   </ul>
                   <div className="flex flex-wrap gap-3">
-                    <a href={s.href} className="btn-primary self-start">
+                    <a href={localizedHref(locale, s.href)} className="btn-primary self-start">
                       {s.cta}
                     </a>
-                    <a href={s.bookHref} className="btn-secondary self-start">
+                    <a href={localizedHref(locale, s.bookHref)} className="btn-secondary self-start">
                       {s.bookCta}
                     </a>
                   </div>
@@ -306,7 +307,7 @@ export default async function ServicesPage() {
           </Reveal>
           <Reveal variant="fade" delay={150}>
           <div className="mt-10">
-            <a href="/book" className="btn-primary">{content.cta.buttonText}</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.cta.buttonText}</a>
           </div>
           </Reveal>
         </div>

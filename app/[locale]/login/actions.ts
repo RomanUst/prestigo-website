@@ -3,10 +3,12 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { headers } from 'next/headers'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
 import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
+import { getPathname } from '@/i18n/routing'
+import type { AppLocale } from '@/i18n/locales'
 
 // Note: safeReturnTo and buildOAuthOptions are pure (synchronous) helpers and
 // live in ./auth-helpers — a 'use server' module may only export async
@@ -49,12 +51,19 @@ export async function sendMagicLink(
 
   const email = formData.get('email') as string
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  // D-04: the confirmation email must land the visitor back on their own
+  // locale's /account, not the English one — the provided return-to (if
+  // any) wins, else the locale's localized /account path.
+  const returnTo = safeReturnTo(
+    formData.get('return-to') as string | null,
+    getPathname({ locale: locale as AppLocale, href: '/account' })
+  )
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback`,
+      emailRedirectTo: `${siteUrl}/auth/callback?return-to=${encodeURIComponent(returnTo)}`,
     },
   })
 
@@ -87,7 +96,13 @@ export async function signInWithPassword(
 
   const email = formData.get('email') as string
   const password = formData.get('password') as string
-  const returnTo = safeReturnTo(formData.get('return-to') as string | null)
+  // D-04: default to the visitor's own locale's /account, not the English
+  // one — fallback is computed server-side via getPathname (open-redirect
+  // guard in safeReturnTo is untouched, only the fallback value changes).
+  const returnTo = safeReturnTo(
+    formData.get('return-to') as string | null,
+    getPathname({ locale: locale as AppLocale, href: '/account' })
+  )
 
   const supabase = await createClient()
   const { error } = await supabase.auth.signInWithPassword({ email, password })
@@ -120,13 +135,19 @@ export async function signUpWithPassword(
   const account_type = (formData.get('account_type') as string) || 'personal'
   const company_name = (formData.get('company_name') as string) || null
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
+  // D-04: the signup confirmation email must land the visitor back on their
+  // own locale's /account, not the English one.
+  const returnTo = safeReturnTo(
+    formData.get('return-to') as string | null,
+    getPathname({ locale: locale as AppLocale, href: '/account' })
+  )
 
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${siteUrl}/auth/callback`,
+      emailRedirectTo: `${siteUrl}/auth/callback?return-to=${encodeURIComponent(returnTo)}`,
       data: { account_type, company_name },
     },
   })
@@ -189,6 +210,11 @@ export async function sendPasswordReset(
 // ---------------------------------------------------------------------------
 
 export async function customerSignOut(): Promise<void> {
+  // D-04: sign-out from a localized page must land back on that locale's
+  // home, not the English root. getLocale() reads the current REQUEST
+  // locale (this is a dynamic Server Action invocation, not the
+  // static-render case WINDOWS #7 warns about).
+  const locale = (await getLocale()) as AppLocale
   const supabase = await createClient()
   await supabase.auth.signOut()
   try {
@@ -196,7 +222,7 @@ export async function customerSignOut(): Promise<void> {
   } catch {
     // revalidatePath throws outside Next.js request scope (e.g. in tests)
   }
-  redirect('/')
+  redirect(getPathname({ locale, href: '/' }))
 }
 
 // ---------------------------------------------------------------------------

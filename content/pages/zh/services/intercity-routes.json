@@ -12,7 +12,8 @@
     "headlineItalic": "乘坐 Mercedes。",
     "intro": "Prestigo 城际线路为固定价格的门到门私人接送服务，从布拉格通往奥地利、德国、波兰、匈牙利、斯洛伐克及捷克的 30 多座城市。所有过路费与高速通行贴纸均已包含，全程使用 Mercedes-Benz 车队，无需中转。",
     "ctaPrimary": "查看全部线路",
-    "ctaSecondary": "预订接送"
+    "ctaSecondary": "预订接送",
+    "imageAlt": "从布拉格出发的城际路线 — PRESTIGO"
   },
   "popularRoutesHeading": "热门线路",
   "viewAllRoutesText": "查看全部 50+ 条线路 →",

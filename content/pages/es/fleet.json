@@ -1,0 +1,134 @@
+{
+  "metadata": {
+    "title": "Nuestra flota — Coches Mercedes con chófer en Praga",
+    "description": "Mercedes E-Class, S-Class y V-Class con chófer para traslados ejecutivos por Praga y Europa Central. Totalmente asegurados, impecablemente preparados.",
+    "ogTitle": "Nuestra flota — Coches Mercedes con chófer en Praga",
+    "ogDescription": "Mercedes E-Class, S-Class y V-Class con chófer para traslados ejecutivos por Praga y Europa Central. Totalmente asegurados, impecablemente preparados."
+  },
+  "imageAlts": {
+    "hero": "Flota Mercedes PRESTIGO — chófer en Praga",
+    "vehicleTemplate": "{model} — servicio de chófer PRESTIGO en Praga"
+  },
+  "hero": {
+    "label": "Flota Mercedes · Praga",
+    "headlineLine1": "Flota Mercedes con chófer.",
+    "headlineItalic": "Parte de la experiencia.",
+    "intro": "Cada vehículo PRESTIGO es un Mercedes-Benz de última generación, mantenido con los máximos estándares, totalmente asegurado y preparado antes de cada trayecto. El interior es su espacio para pensar, trabajar o simplemente llegar."
+  },
+  "vehicles": [
+    {
+      "category": "Sedán Business",
+      "description": "La primera opción para traslados al aeropuerto y trayectos urbanos. Cómodo, discreto, eficiente. Capacidad: 3 pasajeros y equipaje.",
+      "features": ["Interior de piel", "Climatizador de dos zonas", "Wi-Fi a bordo", "Carga rápida USB-C", "Agua embotellada"],
+      "idealFor": "Aeropuerto, ciudad, viajes de negocios individuales"
+    },
+    {
+      "category": "Sedán Executive",
+      "description": "Para quienes viajan al más alto nivel. Asientos traseros con masaje, iluminación ambiental, techo panorámico. El silencio como estándar.",
+      "features": ["Piel Nappa premium", "Asientos traseros con masaje", "Iluminación ambiental", "Paquete trasero executive", "Champán bajo petición"],
+      "idealFor": "VIP, diplomáticos, trayectos interurbanos largos"
+    },
+    {
+      "category": "Furgoneta Executive",
+      "description": "Hasta 6 pasajeros. Capacidad de equipaje completa. Mampara de privacidad disponible. La elección para familias, grupos y viajeros con mucho equipaje que no aceptan compromisos.",
+      "features": ["6 asientos capitán", "Capacidad de equipaje completa", "Cristales traseros tintados", "Mesa plegable", "Luces de lectura individuales"],
+      "idealFor": "Grupos, familias, traslados para conferencias"
+    }
+  ],
+  "specsLabels": {
+    "seatsLabel": "Plazas",
+    "luggageLabel": "Equipaje",
+    "passengersTemplate": "{n} pasajeros",
+    "luggageTemplate": "{cases} maletas grandes + {bags} bolsas de mano"
+  },
+  "idealForPrefix": "Ideal para:",
+  "bookButtonTemplate": "Reservar {className}",
+  "standards": {
+    "heading": "Cada vehículo, cada vez",
+    "items": [
+      { "title": "Inspección previa al viaje", "body": "Comprobado antes de cada trayecto" },
+      { "title": "Interior limpiado", "body": "Cabina impecable para cada cliente" },
+      { "title": "Clima preconfigurado", "body": "Ajustado a su preferencia" },
+      { "title": "Cargadores y Wi-Fi", "body": "Conectado durante el trayecto" }
+    ]
+  },
+  "marque": {
+    "label": "Por qué exclusivamente Mercedes-Benz",
+    "headingLine1": "Una marca. Tres siluetas.",
+    "headingItalic": "Cero compromisos.",
+    "paragraphs": [
+      "PRESTIGO opera una flota exclusivamente Mercedes-Benz — no porque sea la opción fácil, sino porque es la correcta. Para el transporte ejecutivo en Europa Central, Mercedes sigue siendo el estándar indiscutible: el E-Class es el sedán de negocios de referencia en cada capital desde Praga hasta Varsovia, el S-Class define el nivel superior del lujo terrestre, y el V-Class es la única furgoneta premium que nuestros clientes corporativos reconocen a simple vista.",
+      "Una flota de una sola marca también significa consistencia. Cada chófer ya conoce los mandos, los intervalos de servicio y las particularidades de cada chasis. Cada pasajero entra en un interior que ya sabe usar — la misma lógica de climatización, los mismos controles de asiento, la misma calidad de piel y costura. No hay sorpresas, y en los viajes ejecutivos, las sorpresas son el enemigo.",
+      "Renovamos los vehículos según un calendario planificado, mucho antes de que el estándar estético o mecánico empiece a decaer. Nuestros clientes viajan en un coche que se siente actual — porque lo es."
+    ]
+  },
+  "maintenance": {
+    "label": "Mantenimiento y seguridad",
+    "headingLine1": "Preparado antes de",
+    "headingItalic": "cada trayecto.",
+    "items": [
+      { "title": "Servicio según el calendario del fabricante", "body": "Cada vehículo es revisado por técnicos autorizados de Mercedes-Benz según el calendario recomendado por fábrica. Mantenemos un historial de servicio completo y sustituimos los consumibles (neumáticos, pastillas de freno, escobillas) mucho antes del mínimo legal." },
+      { "title": "Seguro comercial, totalmente completo", "body": "Cada trayecto está cubierto por responsabilidad civil comercial de pasajeros y seguro de vehículo a todo riesgo, suscrito en la UE. La documentación está disponible bajo petición para los equipos de compras corporativas." },
+      { "title": "Inspección diaria previa al viaje", "body": "La presión de los neumáticos, los niveles de líquidos, las luces y la limpieza de la cabina se comprueban antes del primer servicio del día — y de nuevo entre reservas ejecutivas consecutivas." }
+    ]
+  },
+  "technology": {
+    "label": "Tecnología a bordo",
+    "headingLine1": "Una oficina rodante.",
+    "headingItalic": "Un santuario silencioso.",
+    "intro": "Nuestros pasajeros a menudo llegan al coche con trabajo pendiente por terminar — o nervios por calmar tras un vuelo largo. La cabina de cada vehículo PRESTIGO está preparada para ambos casos. Ya sea que necesite atender una videollamada entre reuniones o simplemente cerrar los ojos durante una hora, el interior se adapta a usted, no al revés.",
+    "items": [
+      { "t": "Wi-Fi móvil ilimitado", "b": "Router 5G de nivel empresarial en cada vehículo. Múltiples dispositivos, ancho de banda completo, sin límites de datos." },
+      { "t": "Carga rápida para cada dispositivo", "b": "Puertos USB-C y USB-A al alcance de cada asiento. Compatible con carga rápida Apple y Samsung." },
+      { "t": "Clima preconfigurado a su llegada", "b": "Su temperatura de cabina preferida se ajusta antes de que el coche llegue a usted — se anota una vez y se recuerda para cada reserva futura." },
+      { "t": "Agua con y sin gas", "b": "Agua mineral fría de cortesía en cada traslado. Té, café y champán disponibles bajo petición para reservas executive y VIP." },
+      { "t": "Sillas infantiles &amp; elevadores", "b": "Gama completa de sillas infantiles certificadas por la UE disponibles sin coste adicional — solo indique la edad y el peso del niño al reservar." },
+      { "t": "Privacidad discreta", "b": "El S-Class y el V-Class ofrecen cristales de privacidad y mamparas traseras opcionales. Lo que ocurre en la cabina, se queda en la cabina." }
+    ]
+  },
+  "selection": {
+    "label": "Cómo elegimos la clase para su trayecto",
+    "headingLine1": "Ajustar el vehículo a la",
+    "headingItalic": "ocasión.",
+    "paragraphs": [
+      "El vehículo adecuado depende del trayecto, no de la lista de precios. Un ejecutivo que llega solo desde London City con un maletín y una bolsa de mano está mejor servido por un E-Class — eficiente, silencioso y perfectamente equipado para un trayecto de aeropuerto de noventa minutos. Un dignatario visitante con requisitos de protocolo y un asistente preferirá el S-Class, donde el espacio para las piernas traseras, los asientos con masaje y la cabina casi silenciosa se vuelven realmente útiles. Una familia de cinco con esquís y equipaje, o una junta directiva de cuatro personas que llega para un roadshow de medio día, pertenece al V-Class — el único vehículo de la flota que acomoda cómodamente a seis adultos con todo su equipaje.",
+      "Si no está seguro de qué clase se ajusta a su reserva, indique el número de pasajeros, el equipaje y la duración del trayecto en el formulario de reserva, y nuestro despachador confirmará la combinación correcta en minutos. Para viajes corporativos recurrentes, mantenemos sus preferencias de vehículo en su perfil de cuenta para que cada trayecto se asigne automáticamente."
+    ]
+  },
+  "faq": {
+    "label": "Preguntas sobre la flota",
+    "heading": "Sobre los vehículos.",
+    "items": [
+      {
+        "q": "¿Qué modelos Mercedes-Benz opera PRESTIGO?",
+        "a": "PRESTIGO opera una flota de tres clases Mercedes-Benz en Praga: el E-Class (E 220 d o E 300 de Hybrid) como sedán business, el S-Class (S 450 4MATIC o S 580 e Hybrid) como sedán executive, y el V-Class (V 300 d Extralong AVANTGARDE) como furgoneta para seis pasajeros. Cada vehículo es del año modelo 2022 o posterior, con transmisión automática de 9 velocidades, y configurado en exterior negro con interior de piel negra o Nappa. Cada chasis se revisa según el calendario recomendado por fábrica por técnicos autorizados de Mercedes-Benz en Praga, y renovamos la flota en un ciclo continuo para que ningún coche permanezca en servicio el tiempo suficiente como para que su estándar estético o mecánico decaiga. Operamos deliberadamente una sola marca y tres siluetas — significa que cada chófer conoce los mandos, cada pasajero reconoce el interior, y no hay sorpresas."
+      },
+      {
+        "q": "¿Cuántos pasajeros y cuánto equipaje entran en cada clase?",
+        "a": "El Mercedes E-Class acomoda hasta 3 pasajeros y lleva cómodamente 2 maletas grandes más 2 bolsas de mano en su maletero de 540 litros — la elección adecuada para un viajero solo o una pareja con todo su equipaje de aeropuerto. El S-Class tiene el mismo límite de 3 pasajeros, pero añade el paquete executive con más espacio para las piernas traseras y asientos con masaje; el maletero es de 550 litros, por lo que la capacidad de equipaje es prácticamente idéntica a la del E-Class. El V-Class acomoda hasta 6 pasajeros en asientos capitán individuales y lleva 6 maletas grandes más 6 bolsas de mano sin compromisos gracias a su compartimento de carga de 1.410 litros — la única opción de la flota para familias, traslados de juntas directivas y viajes interurbanos con mucho equipaje. Si lleva esquís, bolsas de golf u objetos de gran tamaño, reserve el V-Class e infórmenos al reservar."
+      },
+      {
+        "q": "¿Están los vehículos asegurados y autorizados para viajes internacionales?",
+        "a": "Sí. Cada vehículo PRESTIGO está completamente registrado en la República Checa, dispone de seguro de responsabilidad civil comercial de pasajeros y cobertura integral del vehículo suscrita por una aseguradora de la UE, y cuenta con la licencia checa de transporte comercial de pasajeros (koncese) requerida para la operación comercial con chófer. Para rutas interurbanas llevamos la viñeta checa de autopistas (dálniční známka), las viñetas austriaca y eslovaca, y pagamos cada peaje de autopista alemán y cada cargo de puente o túnel en el camino — todo incluido en la tarifa cotizada. Los chóferes tienen cualificaciones profesionales internacionales válidas (ŘPZD), verificación de antecedentes y un nivel de inglés fluido de al menos B2. Con gusto proporcionamos certificados de seguro y documentación del vehículo con antelación para equipos de compras corporativas o requisitos de seguridad diplomática — escriba a info@rideprestigo.com y le enviaremos el dosier en un día hábil."
+      },
+      {
+        "q": "¿Puedo solicitar un vehículo, color o configuración de interior específicos?",
+        "a": "La clase de vehículo (E, S o V) siempre es su elección y está garantizada al reservar. Dentro de una clase, cada coche PRESTIGO tiene exterior negro con interior de piel negra o Nappa y la misma especificación, por lo que rara vez es necesario solicitar un chasis específico — la experiencia es coherente en toda la flota. Si tiene una preferencia genuina (por ejemplo, un cliente que ha viajado antes con un chófer concreto y desea el mismo vehículo), indíquelo en el formulario de reserva y atenderemos la solicitud cuando el calendario lo permita. Para reservas VIP, diplomáticas o de eventos con varios vehículos, podemos coordinar coches a juego, situarlos con antelación en una hora de llegada específica y proporcionar un único punto de contacto de despacho. Las sillas infantiles, los cargadores de teléfono y el agua embotellada son estándar en cada coche."
+      },
+      {
+        "q": "¿Con qué frecuencia se revisa y se renueva la flota?",
+        "a": "Los vehículos PRESTIGO se revisan por técnicos autorizados de Mercedes-Benz según el calendario recomendado por el fabricante — normalmente cada 25.000 km o 12 meses, lo que ocurra primero, para el E-Class y el S-Class, y cada 20.000 km o 12 meses para el V-Class. Entre los servicios programados realizamos inspecciones diarias previas al viaje que cubren la presión y el desgaste de los neumáticos, los niveles de líquidos, la iluminación, la respuesta de los frenos y la limpieza de la cabina. Los consumibles (neumáticos, pastillas de freno, escobillas, filtros de cabina) se sustituyen mucho antes del mínimo legal. Retiramos y sustituimos los vehículos en un ciclo continuo de 3-4 años para que ningún coche en servicio parezca o se sienta anticuado. Si un vehículo necesita una reparación imprevista durante un servicio, el despacho lo sustituye de inmediato por un coche de la misma clase — no debería notarlo, y en la práctica nuestros clientes rara vez lo hacen."
+      },
+      {
+        "q": "¿Realmente están incluidos el Wi-Fi, la carga del teléfono y las sillas infantiles en cada coche?",
+        "a": "Sí, incluidos sin coste adicional en cada vehículo PRESTIGO. El Wi-Fi funciona con un router móvil 5G de nivel empresarial con datos ilimitados — el ancho de banda es suficiente para mantener una videollamada de Praga a Viena sin cortes. Los puertos de carga rápida USB-C y USB-A están al alcance de cada asiento, y son compatibles los protocolos de carga rápida de Apple y Samsung. Disponemos de una gama completa de sillas infantiles y elevadores certificados por la UE (R129/i-Size) — orientadas hacia atrás para bebés, hacia delante para niños pequeños y elevadores — e instalamos la adecuada antes de la recogida siempre que confirme la edad y el peso del niño al reservar. El agua embotellada con y sin gas es estándar; el té, el café y el champán están disponibles bajo petición para reservas executive y VIP. Si necesita un adaptador o alguna comodidad específica, simplemente pídalo al reservar."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Elija su vehículo.",
+    "headingItalic": "Reserve online.",
+    "intro": "Seleccione su clase preferida al finalizar la reserva.",
+    "button": "Reservar un traslado"
+  }
+}

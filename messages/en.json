@@ -746,5 +746,70 @@
       "suggestion": "This site is also available in {endonym}.",
       "switchTo": "Switch to {endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "Set up your account",
+      "subheading": "We’ll review your requirements and have your account ready within 24 hours.",
+      "companyLabel": "Company name",
+      "companyPlaceholder": "ACME Corp",
+      "contactNameLabel": "Contact name & role",
+      "contactNamePlaceholder": "John Smith, CFO",
+      "emailLabel": "Email",
+      "emailPlaceholder": "john@company.com",
+      "tripsLabel": "Estimated monthly trips",
+      "tripsPlaceholder": "Select range…",
+      "tripsPerMonth": "{count} trips/month",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Preferred vehicles, recurring routes, special requirements…",
+      "submit": "Submit Request",
+      "sending": "Sending…",
+      "success": {
+        "heading": "Request received.",
+        "body": "Your corporate account request has been forwarded to our team.",
+        "followUp": "We will have your account ready within 24 hours.",
+        "another": "Submit another request →"
+      },
+      "errors": {
+        "rateLimited": "Too many requests, please try again in a minute",
+        "invalidInput": "Please check your input and try again",
+        "generic": "Something went wrong — please try again later"
+      }
+    }
+  },
+  "ContactForm": {
+    "heading": "Send us a message",
+    "responseNote": "We respond within 30 minutes during business hours.",
+    "nameLabel": "Name",
+    "namePlaceholder": "Your full name",
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "phoneLabel": "Phone",
+    "serviceLabel": "Service",
+    "serviceOptionPrompt": "Select service…",
+    "services": {
+      "airportTransfer": "Airport Transfer",
+      "intercityRoute": "Intercity Route",
+      "corporateAccount": "Corporate Account",
+      "vipEvents": "VIP & Events",
+      "groupTransfer": "Group Transfer",
+      "other": "Other"
+    },
+    "messageLabel": "Message",
+    "messagePlaceholder": "Describe your transfer, dates, number of passengers…",
+    "prefillMessage": "I'd like a quote for a private transfer from Prague to {destination}. Please include date and passenger details in your reply.",
+    "submit": "Send message",
+    "sending": "Sending…",
+    "success": {
+      "heading": "Message sent.",
+      "body": "Your message has been received by our team.",
+      "followUp": "We will get back to you shortly.",
+      "another": "Send another message →"
+    },
+    "errors": {
+      "heading": "Something went wrong.",
+      "body": "We could not send your message. Please try again or contact us directly at",
+      "retry": "Try again →"
+    }
   }
 }

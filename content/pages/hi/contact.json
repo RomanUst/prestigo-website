@@ -78,5 +78,17 @@
         "desc": "रद्दीकरण, शिशु सीट, प्रतीक्षा समय, एवं अन्य जानकारी।"
       }
     ]
+  },
+  "details": {
+    "phoneLabel": "फॉन",
+    "emailLabel": "ईमेल",
+    "locationLabel": "स्थान",
+    "locationLines": [
+      "प्राग, चेक गणराज्य",
+      "सेवा क्षेत्र: मध्य यूरोप"
+    ],
+    "availabilityLabel": "उपलब्धता",
+    "availability": "24 / 7 — वर्ष के 365 दिन",
+    "legalEntityLabel": "कानूनी संस्था"
   }
 }

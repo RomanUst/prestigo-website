@@ -796,5 +796,70 @@
       "suggestion": "Ce site est également disponible en {endonym}.",
       "switchTo": "Passer en {endonym}"
     }
+  },
+  "Corporate": {
+    "form": {
+      "heading": "Configurez votre compte",
+      "subheading": "Nous examinerons vos besoins et votre compte sera prêt sous 24 heures.",
+      "companyLabel": "Nom de l’entreprise",
+      "companyPlaceholder": "Exemple SARL",
+      "contactNameLabel": "Nom du contact et fonction",
+      "contactNamePlaceholder": "Jean Dupont, Directeur financier",
+      "emailLabel": "E-mail",
+      "emailPlaceholder": "jean@entreprise.com",
+      "tripsLabel": "Trajets mensuels estimés",
+      "tripsPlaceholder": "Sélectionnez une tranche…",
+      "tripsPerMonth": "{count} trajets/mois",
+      "notesLabel": "Remarques",
+      "notesPlaceholder": "Véhicules préférés, trajets récurrents, exigences particulières…",
+      "submit": "Envoyer la demande",
+      "sending": "Envoi…",
+      "success": {
+        "heading": "Demande reçue.",
+        "body": "Votre demande de compte professionnel a été transmise à notre équipe.",
+        "followUp": "Votre compte sera prêt sous 24 heures.",
+        "another": "Envoyer une nouvelle demande →"
+      },
+      "errors": {
+        "rateLimited": "Trop de requêtes, veuillez réessayer dans une minute.",
+        "invalidInput": "Veuillez vérifier vos informations et réessayer.",
+        "generic": "Une erreur est survenue — veuillez réessayer plus tard."
+      }
+    }
+  },
+  "ContactForm": {
+    "heading": "Envoyez-nous un message",
+    "responseNote": "Nous répondons sous 30 minutes pendant les heures ouvrables.",
+    "nameLabel": "Nom",
+    "namePlaceholder": "Votre nom complet",
+    "emailLabel": "E-mail",
+    "emailPlaceholder": "votre@email.com",
+    "phoneLabel": "Téléphone",
+    "serviceLabel": "Service",
+    "serviceOptionPrompt": "Sélectionnez un service…",
+    "services": {
+      "airportTransfer": "Transfert aéroport",
+      "intercityRoute": "Trajet intercité",
+      "corporateAccount": "Compte professionnel",
+      "vipEvents": "VIP & Événements",
+      "groupTransfer": "Transfert de groupe",
+      "other": "Autre"
+    },
+    "messageLabel": "Message",
+    "messagePlaceholder": "Décrivez votre trajet, les dates, le nombre de passagers…",
+    "prefillMessage": "Je souhaite un devis pour un transfert privé de Prague à {destination}. Merci d'indiquer la date et les détails des passagers dans votre réponse.",
+    "submit": "Envoyer le message",
+    "sending": "Envoi…",
+    "success": {
+      "heading": "Message envoyé.",
+      "body": "Votre message a été reçu par notre équipe.",
+      "followUp": "Nous vous recontacterons rapidement.",
+      "another": "Envoyer un autre message →"
+    },
+    "errors": {
+      "heading": "Une erreur est survenue.",
+      "body": "Nous n'avons pas pu envoyer votre message. Veuillez réessayer ou nous contacter directement à",
+      "retry": "Réessayer →"
+    }
   }
 }

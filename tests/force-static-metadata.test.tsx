@@ -26,6 +26,9 @@
 import { describe, it, expect, vi } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
+import { NextIntlClientProvider, type AbstractIntlMessages } from "next-intl";
+import enMessages from "@/messages/en.json";
+import frMessages from "@/messages/fr.json";
 
 function readContentJson(locale: string, page: string): Record<string, unknown> {
   const file = path.join(process.cwd(), "content", "pages", locale, `${page}.json`);
@@ -102,7 +105,13 @@ describe("force-static pages — page body resolves the params locale (SEO-02, c
     vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
     const PageElement = await CorporatePage({ params: Promise.resolve({ locale: "fr" }) });
-    const { container } = render(PageElement);
+    // CorporateForm (rendered inside the page body) calls useTranslations
+    // client-side, which requires a NextIntlClientProvider ancestor.
+    const { container } = render(
+      <NextIntlClientProvider locale="fr" messages={frMessages as unknown as AbstractIntlMessages}>
+        {PageElement}
+      </NextIntlClientProvider>
+    );
 
     expect(container.innerHTML).toContain(fr.hero.headlineLine1);
     expect(container.innerHTML).not.toContain(en.hero.headlineLine1);
@@ -121,7 +130,11 @@ describe("force-static pages — page body resolves the params locale (SEO-02, c
     vi.stubGlobal("IntersectionObserver", MockIntersectionObserver);
 
     const PageElement = await CorporatePage({ params: Promise.resolve({ locale: "en" }) });
-    const { container } = render(PageElement);
+    const { container } = render(
+      <NextIntlClientProvider locale="en" messages={enMessages as unknown as AbstractIntlMessages}>
+        {PageElement}
+      </NextIntlClientProvider>
+    );
 
     expect(container.innerHTML).toContain(en.hero.headlineLine1);
   });

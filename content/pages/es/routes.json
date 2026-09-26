@@ -1,0 +1,181 @@
+{
+  "hero": {
+    "label": "Rutas interurbanas",
+    "headlineLine1": "Europa Central, ",
+    "headlineItalic": "puerta a puerta.",
+    "intro": "Praga es el centro de Europa Central. Viena, Berlín, Múnich, Budapest — todas a un día de trayecto. Los chóferes de PRESTIGO cubren 30 rutas con precios fijos, vehículos premium y sin sorpresas."
+  },
+  "imageAlt": "PRESTIGO — rutas interurbanas, chófer privado por Europa Central",
+  "fromToLabel": "Praga → {city}",
+  "popular": {
+    "label": "Rutas más populares",
+    "headingLine1": "Las mejores rutas desde Praga, ",
+    "headingItalic": "precios en vivo.",
+    "fromLabels": {
+      "eClass": "E-Class desde",
+      "vClass": "V-Class desde",
+      "sClass": "S-Class desde"
+    },
+    "viewRoute": "Ver ruta →"
+  },
+  "whyPrivate": {
+    "label": "Planificar un viaje interurbano",
+    "headingLine1": "Por qué un traslado privado ",
+    "headingItalic": "supera al tren.",
+    "paragraphs": [
+      "El tren interurbano en Europa Central es excelente, pero se detiene en la estación, no en la puerta de su hotel. Para la mayoría de nuestros clientes, el coste oculto de un trayecto Praga–Viena o Praga–Berlín no es el billete. Son los dos taxis en cada extremo, la hora arrastrando el equipaje por una terminal, el horario de salida rígido y el tiempo perdido entre reuniones cuando el horario se retrasa.",
+      "Un traslado privado de PRESTIGO sustituye todo eso por un único trayecto a precio fijo. Su chófer le recoge en su dirección en Praga, se encarga de su equipaje, atraviesa la ciudad por la ruta más rápida del día y le entrega justo en la entrada de su destino — hotel, oficina, embajada, centro de conferencias, aeropuerto. Si necesita hacer llamadas durante todo el trayecto, puede. Si necesita dormir, puede. Si necesita parar a comer en Brno, Bratislava o Dresde, simplemente se lo indica al conductor.",
+      "Cada ruta interurbana de esta página se opera con la misma flota, los mismos chóferes verificados y el mismo estándar de servicio que nuestros traslados de aeropuerto. Los precios se cotizan por vehículo, no por pasajero — así que dos personas pagan lo mismo que una, y un V-Class con seis pasajeros y equipaje completo sigue viajando por un único importe fijo."
+    ]
+  },
+  "countries": {
+    "label": "País de destino",
+    "headingOne": "1 ruta desde Praga",
+    "headingMany": "{count} rutas desde Praga",
+    "introOne": "Una ruta con chófer privado desde Praga hasta {country}.",
+    "introMany": "{count} rutas con chófer privado desde Praga hasta {country}, ordenadas por distancia.",
+    "introSuffix": "Cada ruta tiene una única tarifa fija, puerta a puerta, con seguimiento de vuelo en el trayecto de regreso cuando corresponde.",
+    "cardLabels": {
+      "distance": "Distancia",
+      "duration": "Duración",
+      "price": "Precio"
+    },
+    "bookButton": "Reservar Praga → {city}",
+    "routeDetails": "Detalles de la ruta"
+  },
+  "destinationNames": {
+    "prague-kutna-hora": "Kutná Hora",
+    "prague-plzen": "Pilsen",
+    "prague-liberec": "Liberec",
+    "prague-pardubice": "Pardubice",
+    "prague-hradec-kralove": "Hradec Králové",
+    "prague-karlovy-vary": "Karlovy Vary",
+    "prague-dresden": "Dresde",
+    "prague-ceske-budejovice": "České Budějovice",
+    "prague-marianske-lazne": "Mariánské Lázně",
+    "prague-cesky-krumlov": "Český Krumlov",
+    "prague-frantiskovy-lazne": "Františkovy Lázně",
+    "prague-linz": "Linz",
+    "prague-brno": "Brno",
+    "prague-passau": "Passau",
+    "prague-leipzig": "Leipzig",
+    "prague-olomouc": "Olomouc",
+    "prague-regensburg": "Ratisbona",
+    "prague-wroclaw": "Breslavia",
+    "prague-vienna": "Viena",
+    "prague-salzburg": "Salzburgo",
+    "prague-zlin": "Zlín",
+    "prague-bratislava": "Bratislava",
+    "prague-berlin": "Berlín",
+    "prague-nuremberg": "Núremberg",
+    "prague-ostrava": "Ostrava",
+    "prague-krakow": "Cracovia",
+    "prague-munich": "Múnich",
+    "prague-graz": "Graz",
+    "prague-budapest": "Budapest",
+    "prague-warsaw": "Varsovia"
+  },
+  "countryNames": {
+    "Czech Republic": "República Checa",
+    "Germany": "Alemania",
+    "Austria": "Austria",
+    "Poland": "Polonia",
+    "Slovakia": "Eslovaquia",
+    "Hungary": "Hungría"
+  },
+  "howItWorks": {
+    "heading": "Cómo funciona",
+    "steps": [
+      { "title": "Reserve", "body": "Seleccione su ruta y vehículo. Precio fijo confirmado al instante." },
+      { "title": "Viaje", "body": "Su chófer le recoge en la hora y el lugar acordados." },
+      { "title": "Llegada", "body": "Entrega puerta a puerta. Sin transbordos, sin terminales, sin esperas." }
+    ]
+  },
+  "borders": {
+    "label": "Fronteras, peajes y trámites",
+    "headingLine1": "Cruzar fronteras ",
+    "headingItalic": "sin complicaciones.",
+    "items": [
+      {
+        "title": "Espacio Schengen de serie",
+        "body": "Todas nuestras rutas transcurren dentro del espacio Schengen — Chequia, Austria, Alemania, Eslovaquia, Hungría, Polonia. No hay control de pasaportes en la frontera ni inspección de documentos durante el trayecto. Los titulares de pasaportes no comunitarios deben llevar igualmente su pasaporte, ya que ocasionalmente se realizan controles puntuales durante grandes eventos."
+      },
+      {
+        "title": "Todos los peajes y viñetas incluidos",
+        "body": "El precio fijo de cada ruta cubre todos los peajes de autopista, tasas de túnel, la viñeta austriaca y eslovaca, la viñeta checa dálniční známka y cualquier tasa de congestión urbana en el camino. No hay recargos por combustible, espera en la frontera ni horas extra del conductor."
+      },
+      {
+        "title": "Documentación para viajes corporativos",
+        "body": "Para clientes corporativos y diplomáticos podemos preparar con antelación una confirmación de viaje detallada, incluyendo matrícula del vehículo, nombre y número de licencia del conductor, referencia del seguro y ruta estimada — útil para equipos de seguridad, embajadas y recintos con requisitos de notificación previa."
+      }
+    ]
+  },
+  "luggage": {
+    "label": "Equipaje, mascotas y niños",
+    "headingLine1": "Viaje con todo ",
+    "headingItalic": "lo que necesita.",
+    "intro": "Los traslados interurbanos suelen implicar más equipaje que un trayecto urbano — bolsas de esquí, palos de golf, maletines de muestras, material de presentación o el equipaje completo de una familia que se traslada entre capitales. Cada clase de PRESTIGO está ajustada a una carga de equipaje realista, y en caso de duda le subimos de categoría al mismo precio en lugar de apretar el viaje.",
+    "items": [
+      { "t": "Equipaje E-Class", "b": "2 maletas grandes + 2 bolsas de cabina." },
+      { "t": "Equipaje S-Class", "b": "2 maletas grandes + 2 bolsas de cabina. Misma capacidad, con más espacio para las piernas en la parte trasera y asientos con masaje." },
+      { "t": "Equipaje V-Class", "b": "Hasta 6 maletas grandes y 6 bolsas de cabina con todos los asientos ocupados — prácticamente ilimitado para 2 o 3 pasajeros." },
+      { "t": "Mascotas bienvenidas", "b": "Las mascotas pequeñas viajan gratis en transportín; los perros grandes se aceptan por acuerdo previo en el V-Class. Indíquelo al reservar." },
+      { "t": "Sillas infantiles y elevadores", "b": "Sillas para bebé, para niños pequeños y alzadores homologados por la UE disponibles sin coste. Solo confirme la edad y el peso del niño al reservar." },
+      { "t": "Objetos voluminosos", "b": "Esquís, bolsas de golf, bicicletas (parcialmente desmontadas) e instrumentos musicales se transportan a petición — el V-Class es casi siempre la mejor opción." }
+    ]
+  },
+  "longDistance": {
+    "label": "Traslados de larga distancia",
+    "headingLine1": "Presupuesto ",
+    "headingItalic": "a petición.",
+    "intro": "Los siguientes destinos se cotizan de forma individual según la ruta, los horarios y las necesidades de pernoctación. Presupuesto por escrito en un plazo de 2 horas.",
+    "destinations": [
+      "Erfurt", "Fráncfort", "Augsburgo", "Stuttgart", "Colonia",
+      "Düsseldorf", "Hamburgo", "Innsbruck", "Košice", "Basilea",
+      "Zúrich", "Berna", "Ginebra", "Venecia", "Verona",
+      "Milán", "Estrasburgo", "París", "Bruselas", "Ámsterdam"
+    ]
+  },
+  "faq": {
+    "heading": "Preguntas frecuentes",
+    "items": [
+      {
+        "q": "¿Puedo hacer una parada en el camino entre Praga y mi destino?",
+        "a": "Sí — las paradas están incluidas sin coste adicional en cualquier ruta interurbana y se pueden añadir al reservar o solicitarse el mismo día directamente al chófer. Las paradas habituales incluyen un almuerzo en un restaurante de carretera, un mirador panorámico o una ciudad intermedia (Brno entre Praga y Viena, Dresde entre Praga y Berlín, Bratislava entre Praga y Budapest). El tiempo de espera en cada parada está incluido hasta 30 minutos; a partir de ahí facturamos una tarifa horaria clara acordada previamente. Si necesita una parada más larga — por ejemplo, una visita de tres horas a Karlovy Vary en el camino a Múnich — resérvela como un itinerario con varias paradas y le daremos una única tarifa fija para todo el trayecto. Para clientes corporativos podemos configurar itinerarios recurrentes con varias paradas en la cuenta, para que sus viajeros los seleccionen con un solo clic."
+      },
+      {
+        "q": "¿Qué ocurre si mis planes cambian después de reservar?",
+        "a": "Las cancelaciones son gratuitas hasta dos horas antes de la hora de recogida programada — sin preguntas, con reembolso al método de pago original en un día hábil. Los cambios de hora de recogida, dirección de recogida o destino, clase de vehículo o nombre del pasajero son gratuitos en cualquier momento, incluso el día del viaje: solo tiene que llamar a central en el +420 725 986 855 o escribirnos por WhatsApp. En rutas interurbanas reservadas con más de 48 horas de antelación, puede posponer el viaje a cualquier fecha futura sin penalización, y el pago original se traslada. En cancelaciones de última hora dentro de la ventana de dos horas cobramos una tarifa mínima del 50 % para cubrir la posición ya asignada del conductor, excepto cuando la cancelación se debe a la anulación de un vuelo — en cuyo caso la reserva se cancela sin coste y le ayudamos a reprogramarla para su próxima llegada."
+      },
+      {
+        "q": "¿Puedo reservar el trayecto de vuelta desde el destino hasta Praga?",
+        "a": "Sí — las reservas de ida y vuelta están disponibles en todas las rutas y reciben un 10 % de descuento en el trayecto de regreso cuando ambos tramos se reservan juntos. El descuento se aplica automáticamente al finalizar la reserva cuando selecciona fecha y hora de regreso. Los regresos el mismo día (por ejemplo, un trayecto matutino de Praga a Dresde y un regreso por la tarde) son el caso más habitual y funcionan especialmente bien para excursiones de un día a Karlovy Vary, Kutná Hora, Dresde o Viena. Los regresos de varios días funcionan igual de bien para viajes de negocios — reserve ambos trayectos ahora y se le asignará el mismo vehículo (o al menos la misma clase) para cada uno. Para regresos vinculados a un vuelo — un traslado a Viena, un vuelo a otro destino y una recogida de vuelta en Viena días después — el regreso se sigue por su número de vuelo exactamente igual que una recogida de aeropuerto."
+      },
+      {
+        "q": "¿En qué vehículo viajaré y puedo mejorar de categoría?",
+        "a": "Usted elige la clase de vehículo al reservar. El Mercedes E-Class es nuestro sedán de negocios: hasta 3 pasajeros, 3 maletas grandes más bolsas de cabina, interior de cuero, Wi-Fi a bordo y el precio base en cualquier ruta. El S-Class es nuestro sedán ejecutivo con la misma capacidad pero con asientos con masaje en la parte trasera, más espacio para las piernas e iluminación ambiental — con un precio aproximadamente un 50 % superior al E-Class en la misma ruta. El V-Class es nuestra furgoneta para seis pasajeros, con un precio entre el E-Class y el S-Class, y es la opción adecuada siempre que tenga más de tres pasajeros, seis o más piezas de equipaje o desee una experiencia de grupo más cómoda. Las mejoras de categoría tras la reserva son posibles según disponibilidad: contacte con central y le confirmaremos en minutos. Todos nuestros vehículos son del año 2022 o posteriores."
+      },
+      {
+        "q": "¿Están incluidos los peajes, las viñetas y el combustible en el precio cotizado?",
+        "a": "Sí — todos los costes asociados al viaje están incluidos en la tarifa fija cotizada. Eso cubre el combustible, la viñeta checa dálniční známka (viñeta de autopista), las viñetas austriaca y eslovaca cuando corresponda, todos los peajes de autopista alemanes, cualquier tasa de puente o túnel, y cualquier tasa de congestión urbana en el camino. También cubre el tiempo del conductor durante todo el trayecto más la franja de espera incluida en sus direcciones de recogida y destino. No se añade nada al final del viaje: sin cargo por servicio, sin recargo de combustible, sin recargo de frontera, sin recargo nocturno, sin recargo de fin de semana. Lo único que puede cambiar el importe total después de reservar es si añade una parada, amplía un periodo de espera o solicita un servicio adicional (por ejemplo, una segunda parada en otra ciudad) — y en esos casos el presupuesto ajustado siempre se confirma con usted antes de que se aplique el cambio."
+      },
+      {
+        "q": "¿Con cuánta antelación debo reservar una ruta interurbana?",
+        "a": "Recomendamos reservar con al menos 24 horas de antelación para mayor tranquilidad, y entre 48 y 72 horas para los destinos principales (Viena, Berlín, Múnich, Budapest) durante periodos de máxima demanda (Semana Santa, mercados navideños, grandes ferias comerciales, fines de semana de Fórmula 1). Aun así, PRESTIGO acepta reservas el mismo día en cualquier ruta hasta dos horas antes de la recogida, según disponibilidad de conductores, y para cuentas corporativas garantizamos disponibilidad el mismo día con despacho prioritario. Las reservas de última hora dentro de la ventana de dos horas se gestionan mejor por teléfono en el +420 725 986 855 — central a menudo puede encontrar un vehículo cuando el sistema en línea indica falta de disponibilidad. Para itinerarios complejos con varias paradas, viajes de fin de semana o festivos, o reservas de V-Class en temporada alta, sí recomendamos reservar con al menos 72 horas de antelación para garantizar exactamente el vehículo y el conductor que prefiere."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "¿No encuentra su destino? ",
+    "headingItalic": "Vamos a cualquier lugar.",
+    "intro": "PRESTIGO cubre todos los destinos de Europa Central.",
+    "bookButton": "Reservar una ruta",
+    "contactButton": "Solicitar ruta personalizada"
+  },
+  "metadata": {
+    "title": "Chófer privado desde Praga — 30 rutas interurbanas",
+    "description": "Chófer privado desde Praga a 30 destinos de Europa Central. Viena desde €{viennaPrice}, Berlín desde €{berlinPrice}, Múnich desde €{munichPrice}, Budapest desde €{budapestPrice}. Precio fijo, puerta a puerta.",
+    "ogTitle": "Chófer privado desde Praga — 30 rutas interurbanas",
+    "ogDescription": "Chófer privado desde Praga a 30 destinos de Europa Central. Viena desde €{viennaPrice}, Berlín desde €{berlinPrice}, Múnich desde €{munichPrice}, Budapest desde €{budapestPrice}. Precio fijo, puerta a puerta."
+  }
+}

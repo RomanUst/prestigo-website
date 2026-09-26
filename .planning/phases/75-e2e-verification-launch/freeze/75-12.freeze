@@ -1,0 +1,9 @@
+# 75-12: CorporateForm (Corporate.form) + ContactForm (ContactForm) i18n
+# namespaces, and the /contact page's details block (phone/email/location/
+# availability/legal-entity labels) -- hand-translated in-session (D-08)
+# into ru/es/fr/ar/hi/zh. Plan 75-18 applies this pattern to
+# i18n/translation-manifest.json so a future pipeline run neither
+# overwrites these units nor re-spends tokens on them.
+messages/en.json::Corporate.form
+messages/en.json::ContactForm
+content/pages/en/contact.json::details
