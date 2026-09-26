@@ -115,3 +115,10 @@ The tree is frozen (355 units, `--verify` PASSED), content/locale parity is prov
 | 5 | `render_audit.py https://rideprestigo.com --locales ar` | exit 1: 21 URLs, 1 finding: `/ar/login` missing canonical. This is a **pre-existing baseline** finding (75-QA-BASELINE.md rows 24-30, all 7 locales; page is `noindex`), not a regression. Deferred to 75-20. |
 
 Observation for 75-20: `/zh/<nonexistent>` renders an English "Page not found" h1. Check whether the root `app/not-found.tsx` vs `app/[locale]/not-found.tsx` (localized in 75-13) is reached for unknown locale paths.
+
+### Human setup (plan 75-19 Task 3)
+
+- **A) GA4 custom dimension "Site Locale" (event-scoped, parameter `site_locale`):** the user confirmed on 2026-09-26 that it is registered. Could not be cross-checked: the analytics MCP returned `invalid_grant`.
+- **B) E2E test account:** the user reported it as created, but `scripts/qa/.e2e-account.json` was not present when checked (the path is git-ignored, verified with `git check-ignore`). Plan 75-20 runs the D-04 RU/AR account path only if the file exists at run time; otherwise it records the path as SKIPPED.
+- **Delete test account after QA:** YES (user decision). Delete only the E2E TEST account, after 75-20.
+- **User directive "no data may be lost":** QA cleanup (the 16 E2E booking refs and the test account) must delete only records verified as E2E/TEST, unpaid, and with no Stripe payment. Show the list to the user before any deletion.
