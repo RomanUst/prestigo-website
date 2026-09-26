@@ -1,0 +1,28 @@
+{
+  "labels": {
+    "authorProfile": "作者简介",
+    "about": "关于",
+    "expertise": "专业领域"
+  },
+  "jobTitle": "创始人兼首席体验官",
+  "bio": [
+    "Roman Ustyugov 是 PRESTIGO 的创始人，这是一家总部位于布拉格的高端专属司机服务公司。凭借在豪华交通和五星级酒店业超过10年的经验，Roman 专注于为企业客户、外交使团和酒店贵宾提供无可挑剔的地面交通服务 — 旅程中的每一个细节都至关重要。",
+    "Roman 亲自监督 PRESTIGO 的质量标准：从精选 Mercedes-Benz 车队，到培训司机遵循贵宾客户礼仪、在布拉格繁忙的交通中规划路线，以及全程保密。他的理念是低调的奢华、准时和绝对的谨慎 — 这正是他十年前作为布拉格五星级酒店常客时首次体会到的标准。"
+  ],
+  "knowsAbout": [
+    "豪华专属司机服务",
+    "布拉格地面交通",
+    "企业出行管理",
+    "五星级酒店款待",
+    "机场接送物流",
+    "贵宾客户礼仪"
+  ],
+  "imageAlt": "Roman Ustyugov — 布拉格 PRESTIGO 专属司机服务创始人",
+  "cta": {
+    "headingLine1": "直接与我们的团队",
+    "headingItalic": "预订。",
+    "body": "每一笔 PRESTIGO 预订都由创始人团队亲自监督 — 调度、司机简报以及行程结束后的跟进。",
+    "primaryButton": "预订接送服务",
+    "secondaryButton": "关于 PRESTIGO"
+  }
+}

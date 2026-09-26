@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getLocale } from 'next-intl/server'
+import { getLocale, getTranslations } from 'next-intl/server'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -10,6 +10,7 @@ import ArticleByline from '@/components/ArticleByline'
 import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '@/lib/blog'
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { localizedHref } from '@/lib/localized-href'
 
 export const dynamic = 'force-static'
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
@@ -102,6 +103,8 @@ export default async function BlogArticlePage({
     notFound()
   }
 
+  const tCta = await getTranslations({ locale, namespace: 'BlogPost.cta' })
+
   // Relative path is mandatory — webpack/Turbopack cannot resolve @/ in
   // dynamic import template strings. See RESEARCH.md Pitfall 3. resolved.dir
   // is constrained to a validated locale or the literal 'en' by
@@ -175,20 +178,20 @@ export default async function BlogArticlePage({
         <section className="bg-anthracite py-20 border-t border-anthracite-light">
           <div className="max-w-3xl mx-auto px-6 md:px-12 text-center">
             <h2 className="font-display font-light text-[28px] md:text-[36px] text-offwhite leading-[1.15]">
-              Skip the taxi rank.{' '}
+              {tCta('headingLine1')}{' '}
               <span className="italic" style={{ color: 'var(--copper-pale)' }}>
-                Chauffeur inside Arrivals.
+                {tCta('headingItalic')}
               </span>
             </h2>
             <p className="body-text mt-5 mb-8">
-              Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.
+              {tCta('body')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/book" className="btn-primary">
-                Book your transfer
+              <a href={localizedHref(locale, '/book')} className="btn-primary">
+                {tCta('primaryButton')}
               </a>
-              <a href="/services/airport-transfer" className="btn-ghost">
-                Airport transfer details
+              <a href={localizedHref(locale, '/services/airport-transfer')} className="btn-ghost">
+                {tCta('secondaryButton')}
               </a>
             </div>
           </div>

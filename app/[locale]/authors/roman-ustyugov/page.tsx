@@ -6,6 +6,8 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import { getAuthor, personSchemaFor } from '@/lib/authors'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { getPageContent } from '@/lib/page-content'
+import { localizedHref } from '@/lib/localized-href'
 
 // Author profile page — E-E-A-T Experience signal for YMYL (transport).
 // Google's 2022+ Experience update expects a named, bio'd human behind
@@ -13,21 +15,32 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 // byline on /guides, /compare, and /routes — it backs up the Person schema
 // that sits inside their Article graphs.
 
+type AuthorContent = {
+  labels: { authorProfile: string; about: string; expertise: string }
+  jobTitle: string
+  bio: string[]
+  knowsAbout: string[]
+  imageAlt: string
+  cta: {
+    headingLine1: string
+    headingItalic: string
+    body: string
+    primaryButton: string
+    secondaryButton: string
+  }
+}
+
 const author = getAuthor('roman-ustyugov')
-const CANONICAL = `https://rideprestigo.com/authors/${author.slug}`
 
 const DESCRIPTION =
   'Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides.'
 
 // CR-01: converted from a static `metadata` export to generateMetadata()
 // so the current locale is available for the self-referencing canonical.
-// EN-only page (D-08) — no content/pages/<locale>/authors/roman-ustyugov.json
-// exists for this key in any locale, so the D-07 fs-probe naturally
-// collapses the cluster to an EN-only fallback (no non-EN alternate
-// claimed) regardless of which locale is passed — canonical and og:url
-// stay pinned to the EN URL for every locale, matching the six statically
-// generated locale URLs which currently all render the same hardcoded
-// English JSX (a separate, deferred content gap — see CR-02 in 74-REVIEW.md).
+// 75-13: content/pages/<locale>/authors/roman-ustyugov.json now exists for
+// all 7 locales (visible section labels + bio/expertise text), so the D-07
+// fs-probe below picks up every locale into the hreflang cluster instead of
+// the previous EN-only fallback.
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
   const alternates = getAlternates(`/authors/${author.slug}`, {
@@ -56,8 +69,8 @@ const breadcrumbSchema = {
   '@type': 'BreadcrumbList',
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rideprestigo.com' },
-    { '@type': 'ListItem', position: 2, name: 'Authors', item: CANONICAL },
-    { '@type': 'ListItem', position: 3, name: author.name, item: CANONICAL },
+    { '@type': 'ListItem', position: 2, name: 'Authors', item: `https://rideprestigo.com/authors/${author.slug}` },
+    { '@type': 'ListItem', position: 3, name: author.name, item: `https://rideprestigo.com/authors/${author.slug}` },
   ],
 }
 
@@ -66,7 +79,10 @@ const pageSchemaGraph = {
   '@graph': [personSchema, breadcrumbSchema],
 }
 
-export default function RomanUstyugovPage() {
+export default async function RomanUstyugovPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  const content = getPageContent('authors/roman-ustyugov', locale) as AuthorContent
+
   return (
     <main id="main-content">
       <Nav />
@@ -84,7 +100,7 @@ export default function RomanUstyugovPage() {
               <source srcSet="/roman-ustyugov-founder.webp" type="image/webp" />
               <img
                 src={author.image}
-                alt={author.imageAlt}
+                alt={content.imageAlt}
                 width={220}
                 height={220}
                 className="w-[180px] h-[180px] md:w-[220px] md:h-[220px] rounded-full object-cover border border-anthracite-light"
@@ -92,13 +108,13 @@ export default function RomanUstyugovPage() {
             </picture>
           </div>
           <div>
-            <p className="label mb-6">Author profile</p>
+            <p className="label mb-6">{content.labels.authorProfile}</p>
             <span className="copper-line mb-6 block" />
             <h1 className="display text-[36px] md:text-[48px] leading-tight">
               {author.name}
             </h1>
             <p className="font-body text-[12px] tracking-[0.12em] uppercase text-copper mt-3">
-              {author.jobTitle}
+              {content.jobTitle}
             </p>
             <p className="body-text text-[13px] mt-5 max-w-xl" style={{ lineHeight: '1.9' }}>
               {author.bioShort}
@@ -132,10 +148,10 @@ export default function RomanUstyugovPage() {
       {/* Bio */}
       <section className="bg-anthracite-mid py-16 md:py-20 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">About</p>
+          <p className="label mb-6">{content.labels.about}</p>
           <span className="copper-line mb-8 block" />
           <div className="flex flex-col gap-6">
-            {author.bio.map((para, i) => (
+            {content.bio.map((para, i) => (
               <p
                 key={i}
                 className="body-text text-[14px]"
@@ -151,10 +167,10 @@ export default function RomanUstyugovPage() {
       {/* Expertise */}
       <section className="bg-anthracite py-14 md:py-16 border-b border-anthracite-light">
         <div className="max-w-3xl mx-auto px-6 md:px-12">
-          <p className="label mb-6">Areas of expertise</p>
+          <p className="label mb-6">{content.labels.expertise}</p>
           <span className="copper-line mb-8 block" />
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-10 gap-y-3">
-            {author.knowsAbout.map((topic) => (
+            {content.knowsAbout.map((topic) => (
               <li
                 key={topic}
                 className="flex items-start gap-3 py-2 border-b border-anthracite-light"
@@ -177,16 +193,15 @@ export default function RomanUstyugovPage() {
         <div className="max-w-4xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
             <h2 className="display text-[24px] md:text-[30px]">
-              Book directly with <span className="display-italic">our team.</span>
+              {content.cta.headingLine1} <span className="display-italic">{content.cta.headingItalic}</span>
             </h2>
             <p className="body-text text-[12px] mt-2 max-w-lg">
-              Every PRESTIGO booking is overseen personally by the founder&rsquo;s
-              team — dispatch, chauffeur briefing, and post-ride follow-up.
+              {content.cta.body}
             </p>
           </div>
           <div className="flex flex-col sm:flex-row gap-3">
-            <a href="/book" className="btn-primary">Book a Transfer</a>
-            <a href="/about" className="btn-ghost">About PRESTIGO</a>
+            <a href={localizedHref(locale, '/book')} className="btn-primary">{content.cta.primaryButton}</a>
+            <a href={localizedHref(locale, '/about')} className="btn-ghost">{content.cta.secondaryButton}</a>
           </div>
         </div>
       </section>

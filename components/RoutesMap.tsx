@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import { useTranslations } from 'next-intl'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 
 export type MapCity = {
@@ -51,6 +52,7 @@ const DOT_DURATION = 3600
 const DOT_STAGGER = 260
 
 export default function RoutesMap({ hub, cities }: Props) {
+  const t = useTranslations('RoutesSection')
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -216,7 +218,7 @@ export default function RoutesMap({ hub, cities }: Props) {
       className="w-full h-[420px] sm:h-[500px] lg:h-[560px] outline-none [&_*]:outline-none"
       style={{ background: '#17293B' }}
       role="img"
-      aria-label="Map of Prestigo chauffeur routes radiating from Prague across Central Europe"
+      aria-label={t('mapAriaLabel')}
     />
   )
 }

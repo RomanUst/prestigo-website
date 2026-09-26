@@ -14,7 +14,7 @@ import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type ContactContent = {
   metadata: { title: string; description: string; ogTitle: string }
-  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
+  hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; imageAlt: string }
   whatsapp: { messageUsInstantly: string }
   whatHappensNext: { heading: string; steps: { step: string; title: string; body: string }[] }
   commonEnquiries: { heading: string; faqs: { q: string; a: string }[] }
@@ -74,7 +74,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
       {/* Hero */}
       <section className="relative overflow-hidden" style={{ minHeight: '560px' }}>
         <div className="absolute inset-0">
-          <Image src="/hero-contact.webp" alt="Contact PRESTIGO — Premium Chauffeur Prague" fill style={{ objectFit: 'cover', filter: 'brightness(0.38)', objectPosition: '30% 15%' }} />
+          <Image src="/hero-contact.webp" alt={content.hero.imageAlt} fill style={{ objectFit: 'cover', filter: 'brightness(0.38)', objectPosition: '30% 15%' }} />
         </div>
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 pt-40 pb-20">
           <p className="label mb-6">{content.hero.label}</p>

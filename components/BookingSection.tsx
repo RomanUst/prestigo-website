@@ -1,8 +1,12 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import BookingWidget from '@/components/booking/BookingWidget'
 
 export default function BookingSection() {
+  const t = useTranslations('BookingSection')
+  const trust = t.raw('trust') as string[]
+
   return (
     <section id="book" className="theme-light bg-anthracite-mid py-20 md:py-28 border-t border-anthracite-light">
       <div className="max-w-7xl mx-auto px-6 md:px-12">
@@ -11,26 +15,21 @@ export default function BookingSection() {
 
           {/* Left — text */}
           <div className="lg:col-span-2">
-            <p className="label mb-6">Instant booking</p>
+            <p className="label mb-6">{t('label')}</p>
             <span className="copper-line mb-8 block" />
 
             <h2 className="display text-[36px] md:text-[44px] mb-4">
-              Book your<br />
-              <span className="display-italic">chauffeur now.</span>
+              {t('headlineLine1')}<br />
+              <span className="display-italic">{t('headlineItalic')}</span>
             </h2>
 
             <p className="body-text mb-8 max-w-xs">
-              Fixed price. Instant confirmation. Your driver tracks your flight automatically.
+              {t('subhead')}
             </p>
 
             {/* Trust signals */}
             <ul className="flex flex-col gap-3">
-              {[
-                'Flight tracking included',
-                'Fixed price — no surprises',
-                'Free cancellation up to 1 hour',
-                'Meet & greet at Arrivals',
-              ].map((item) => (
+              {trust.map((item) => (
                 <li key={item} className="flex items-center gap-3">
                   <span
                     className="w-1 h-1 rounded-full flex-shrink-0"

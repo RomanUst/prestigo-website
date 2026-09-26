@@ -411,6 +411,30 @@ describe('/api/webhooks/stripe', () => {
       expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
     })
 
+    it('D-11: handleOneWaySucceeded passes siteLocale from metadata.locale, missing metadata.locale defaults through normalizeSiteLocale to "en"', async () => {
+      ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([{ id: 'unpaid-row-id' }])
+      supabaseServiceStub.from.mockImplementation((table: string) => {
+        if (table === 'stripe_processed_events') {
+          const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+          const eq = vi.fn().mockReturnValue({ maybeSingle })
+          const select = vi.fn().mockReturnValue({ eq })
+          return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+        }
+        const single = vi.fn().mockResolvedValue({ data: { pickup_utc: '2026-04-15T12:00:00Z' }, error: null })
+        const selectEq = vi.fn().mockReturnValue({ single })
+        const select = vi.fn().mockReturnValue({ eq: selectEq })
+        return { select }
+      })
+      stripeStub.constructEvent.mockReturnValue({
+        type: 'payment_intent.succeeded',
+        data: { object: { ...mockPaymentIntent, metadata: { ...mockPaymentIntent.metadata, locale: 'ru' } } },
+      })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+      expect(sendGa4Purchase).toHaveBeenCalledWith(expect.objectContaining({ siteLocale: 'ru' }))
+    })
+
     it('(b) duplicate/late webhook on an already-confirmed row fires zero side-effects, inserts nothing new', async () => {
       ;(reconcileBookingToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([])
       ;(saveBooking as ReturnType<typeof vi.fn>).mockResolvedValue([])
@@ -480,6 +504,38 @@ describe('/api/webhooks/stripe', () => {
       expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-out', expect.any(Number))
       expect(scheduleQStashReminder).toHaveBeenCalledWith('uuid-ret', expect.any(Number))
       expect(sendGa4Purchase).toHaveBeenCalledTimes(1)
+    })
+
+    it('D-11: handleRoundTripSucceeded passes siteLocale "zh" from metadata.locale', async () => {
+      ;(reconcileRoundTripToConfirmed as ReturnType<typeof vi.fn>).mockResolvedValue([
+        { id: 'uuid-out' },
+        { id: 'uuid-ret' },
+      ])
+      supabaseServiceStub.from.mockImplementation((table: string) => {
+        if (table === 'stripe_processed_events') {
+          const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null })
+          const eq = vi.fn().mockReturnValue({ maybeSingle })
+          const select = vi.fn().mockReturnValue({ eq })
+          return { select, insert: vi.fn().mockResolvedValue({ error: null }) }
+        }
+        const inFn = vi.fn().mockResolvedValue({
+          data: [
+            { id: 'uuid-out', pickup_utc: '2026-04-15T12:00:00Z' },
+            { id: 'uuid-ret', pickup_utc: '2026-04-17T16:30:00Z' },
+          ],
+          error: null,
+        })
+        const select = vi.fn().mockReturnValue({ in: inFn })
+        return { select }
+      })
+      stripeStub.constructEvent.mockReturnValue({
+        type: 'payment_intent.succeeded',
+        data: { object: { ...mockPaymentIntentRoundTrip, metadata: { ...mockPaymentIntentRoundTrip.metadata, locale: 'zh' } } },
+      })
+
+      const res = await POST(makeRequest())
+      expect(res.status).toBe(200)
+      expect(sendGa4Purchase).toHaveBeenCalledWith(expect.objectContaining({ siteLocale: 'zh' }))
     })
 
     it('(b) redelivery (both legs already confirmed) fires zero side-effects and creates zero rows', async () => {

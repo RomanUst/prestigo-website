@@ -45,6 +45,7 @@ type PartialBooking = {
   outbound_amount_czk: number | null
   return_amount_czk: number | null
   linked_booking: { booking_reference: string } | null
+  locale?: string | null
 }
 
 function makeBooking(overrides: Partial<PartialBooking> = {}): PartialBooking {
@@ -251,6 +252,74 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
     expect(screen.getByText(/PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG/)).toBeDefined()
     // Confirm button stays as-is
     expect(screen.getByRole('button', { name: /Confirm Cancel \+ Refund/i })).toBeDefined()
+  })
+})
+
+describe('BookingsTable booking language — Phase 75-17 D-11', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  it('desktop: expanded row shows uppercase locale code for locale "ru"', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-locale-ru', booking_reference: 'PRE-LOCALE-RU', locale: 'ru' }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-LOCALE-RU')
+    const rowEl = refCell.closest('tr')
+    expect(rowEl).not.toBeNull()
+    if (rowEl) fireEvent.click(rowEl)
+
+    // The expanded detail panel renders as a SIBLING <tr> (colSpan row), not
+    // nested inside the clicked row's own <tr> — query at document level.
+    const languageLabel = await screen.findByText('LANGUAGE')
+    expect(languageLabel.nextElementSibling?.textContent).toBe('RU')
+  })
+
+  it('desktop: expanded row shows an em dash when locale is null', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-locale-null', booking_reference: 'PRE-LOCALE-NULL', locale: null }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-LOCALE-NULL')
+    const rowEl = refCell.closest('tr')
+    expect(rowEl).not.toBeNull()
+    if (rowEl) fireEvent.click(rowEl)
+
+    const languageLabel = await screen.findByText('LANGUAGE')
+    expect(languageLabel.nextElementSibling?.textContent).toBe('—')
+  })
+
+  it('mobile: expanded card shows uppercase locale code for locale "zh"', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-locale-zh-mobile', booking_reference: 'PRE-LOCALE-ZH-M', locale: 'zh' }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mobile-cards')).toBeDefined()
+    })
+    const mobileCards = screen.getByTestId('mobile-cards')
+    // Both the desktop table and the mobile card list render in the DOM
+    // simultaneously in jsdom (viewport switching is CSS-only, md:hidden) —
+    // scope every query to the mobile-cards container to avoid ambiguity.
+    const refCell = await within(mobileCards).findByText('PRE-LOCALE-ZH-M')
+    fireEvent.click(refCell)
+
+    const languageLabel = await within(mobileCards).findByText('LANGUAGE')
+    expect(languageLabel.nextElementSibling?.textContent).toBe('ZH')
   })
 })
 

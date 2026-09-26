@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useMemo } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { CheckCircle2 } from 'lucide-react'
@@ -10,9 +10,31 @@ import { computeExtrasTotal } from '@/lib/extras'
 import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'
 import { eurToCzk, formatCZK, formatEUR } from '@/lib/currency'
 import { writePurchaseSnapshot } from '@/lib/analytics-snapshot'
+import { STRIPE_ELEMENTS_LOCALE } from '@/lib/booking-locale'
+import { getPathname } from '@/i18n/routing'
+import type { AppLocale } from '@/i18n/locales'
 import BookingSummaryBlock from '../BookingSummaryBlock'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+// D-07: stable machine codes returned by create-payment-intent/validate-promo
+// (app/api/create-payment-intent/route.ts, app/api/validate-promo/route.ts)
+// that have a matching Booking.step6.errors.<code> catalog message. An
+// unknown/missing code falls back to the existing generic key — never the
+// raw server error text.
+const KNOWN_STEP6_ERROR_CODES = new Set([
+  'RATE_LIMITED',
+  'INVALID_REQUEST',
+  'TOO_MANY_PASSENGERS',
+  'CUSTOM_QUOTE_REQUIRED',
+  'LEAD_TIME',
+  'ROUND_TRIP_DATES',
+  'RETURN_BEFORE_PICKUP',
+  'PROMO_INVALID',
+  'PRICING_UNAVAILABLE',
+  'INTERNAL',
+  'NO_CODE',
+])
 
 // Stripe Elements renders inside a cross-origin iframe and cannot read the
 // page's CSS custom properties, so these must be literal hex — kept in sync
@@ -70,6 +92,7 @@ function PaymentForm({
   analyticsItems,
 }: PaymentFormProps) {
   const t = useTranslations('Booking.step6')
+  const locale = useLocale() as AppLocale
   const stripe = useStripe()
   const elements = useElements()
   const [isProcessing, setIsProcessing] = useState(false)
@@ -108,10 +131,16 @@ function PaymentForm({
       ? `/book/confirmation?ref=${bookingRef}&returnRef=${returnBookingRef}`
       : `/book/confirmation?ref=${bookingRef}`
 
+    // D-07: keep the booking locale on the Stripe return — build the path
+    // through the i18n getPathname bridge (never hand-rolled `${locale}${href}`
+    // concatenation) so a /ru booking returns to /ru/book/confirmation, not
+    // the EN root.
+    const localizedConfirmPath = getPathname({ locale, href: confirmPath })
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}${confirmPath}`,
+        return_url: `${window.location.origin}${localizedConfirmPath}`,
       },
       redirect: 'if_required',
     })
@@ -124,7 +153,7 @@ function PaymentForm({
       )
       setIsProcessing(false)
     } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-      window.location.href = `${window.location.origin}${confirmPath}`
+      window.location.href = `${window.location.origin}${localizedConfirmPath}`
     }
   }
 
@@ -188,6 +217,7 @@ function PaymentForm({
 export default function Step6Payment() {
   const t = useTranslations('Booking.step6')
   const tb = useTranslations('Booking')
+  const locale = useLocale() as AppLocale
   const vehicleClass = useBookingStore((s) => s.vehicleClass)
   const priceBreakdown = useBookingStore((s) => s.priceBreakdown)
   const extras = useBookingStore((s) => s.extras)
@@ -274,7 +304,12 @@ export default function Step6Payment() {
         setPromoDiscount(data.discountPct)
         setPromoError(null)
       } else {
-        setPromoError(data.error || t('promoInvalid'))
+        const errCode = data.code as string | undefined
+        setPromoError(
+          errCode && KNOWN_STEP6_ERROR_CODES.has(errCode)
+            ? t(`errors.${errCode}`)
+            : t('promoInvalid')
+        )
         setPromoCode(null)
         setPromoDiscount(0)
       }
@@ -345,13 +380,19 @@ export default function Step6Payment() {
               specialRequests: (passengerDetails?.specialRequests ?? '').slice(0, 490),
               currency: selectedCurrency,
               promoCode: promoCode || '',
+              locale,
             },
           }),
         })
         const data = await res.json()
         if (!res.ok || data.error) {
           console.error('create-payment-intent error:', data.error)
-          setPaymentError(data.error || t('paymentInitFailed'))
+          const errCode = data.code as string | undefined
+          setPaymentError(
+            errCode && KNOWN_STEP6_ERROR_CODES.has(errCode)
+              ? t(`errors.${errCode}`)
+              : t('paymentInitFailed')
+          )
           return
         }
         setClientSecret(data.clientSecret)
@@ -365,7 +406,7 @@ export default function Step6Payment() {
 
     fetchPaymentIntent()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalEur, selectedCurrency, promoCode, tripType, returnTime, roundTripPriceBreakdown])
+  }, [totalEur, selectedCurrency, promoCode, tripType, returnTime, roundTripPriceBreakdown, locale])
 
   const options = useMemo(
     () =>
@@ -373,13 +414,13 @@ export default function Step6Payment() {
         ? {
             clientSecret,
             appearance,
-            locale: 'en' as const,
+            locale: STRIPE_ELEMENTS_LOCALE[locale],
             paymentMethodOrder: ['apple_pay', 'google_pay', 'card'],
             wallets: { applePay: 'auto' as const, googlePay: 'auto' as const },
             fields: { billingDetails: { address: 'never' as const } },
           }
         : null,
-    [clientSecret]
+    [clientSecret, locale]
   )
 
   return (

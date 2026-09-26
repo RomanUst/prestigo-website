@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import type { TripType } from '@/types/booking'

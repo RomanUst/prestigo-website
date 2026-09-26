@@ -8,7 +8,8 @@
     "label": "联系我们 · 布拉格专车服务",
     "headlineLine1": "联系 PRESTIGO 布拉格。",
     "headlineItalic": "我们始终在您身边。",
-    "intro": "每日 24 小时、每周 7 天为您服务。您可通过表单、电子邮件与我们联系，或在 WhatsApp 上即时沟通。"
+    "intro": "每日 24 小时、每周 7 天为您服务。您可通过表单、电子邮件与我们联系，或在 WhatsApp 上即时沟通。",
+    "imageAlt": "联系 PRESTIGO — 布拉格高端专属司机"
   },
   "whatsapp": {
     "messageUsInstantly": "立即给我们发消息"

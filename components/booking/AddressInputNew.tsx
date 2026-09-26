@@ -20,10 +20,12 @@
  */
 
 import { useState, useEffect, useRef, useCallback, useId } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Plane, X } from 'lucide-react'
 import { usePlacesAutocomplete } from 'places-autocomplete-hook'
 import type { PlaceResult } from '@/types/booking'
+import type { AppLocale } from '@/i18n/locales'
+import { PLACES_LANGUAGE } from '@/lib/booking-locale'
 
 /**
  * Generate a random UUID v4 for Google Places session tokens.
@@ -74,6 +76,7 @@ export default function AddressInputNew({
   required = false,
 }: AddressInputNewProps) {
   const t = useTranslations('Booking.addressInput')
+  const locale = useLocale() as AppLocale
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [activeIndex, setActiveIndex] = useState(-1)
   const [sessionToken, setSessionToken] = useState<string>(() => makeSessionToken())
@@ -96,7 +99,7 @@ export default function AddressInputNew({
   } = usePlacesAutocomplete({
     apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
     debounceMs: 300,
-    language: 'en',
+    language: PLACES_LANGUAGE[locale],
     includedRegionCodes: ['cz', 'at', 'de', 'sk', 'hu', 'pl'],
     sessionToken,
   })

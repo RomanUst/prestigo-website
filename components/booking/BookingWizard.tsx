@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import { useBookingStore } from '@/lib/booking-store'
 import { isAirportPlace, VEHICLE_CLASS_KEY } from '@/types/booking'

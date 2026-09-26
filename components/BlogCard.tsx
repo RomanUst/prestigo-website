@@ -1,3 +1,5 @@
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 import type { BlogPost } from '@/lib/blog'
 import { formatBylineDate } from '@/lib/authors'
 
@@ -15,8 +17,9 @@ type Props = { post: BlogPost }
  *   against --anthracite-mid (navy); the base --copper gold sits lower.
  */
 export default function BlogCard({ post }: Props) {
+  const t = useTranslations('BlogCard')
   return (
-    <a
+    <Link
       href={`/blog/${post.slug}`}
       aria-label={post.title}
       className="block border border-anthracite-light hover:border-[var(--copper)] transition-colors group"
@@ -50,10 +53,10 @@ export default function BlogCard({ post }: Props) {
             className="font-body font-light text-[10px] tracking-[0.15em] uppercase"
             style={{ color: 'var(--copper)' }}
           >
-            Read article →
+            {t('readArticle')}
           </p>
         </div>
       </div>
-    </a>
+    </Link>
   )
 }

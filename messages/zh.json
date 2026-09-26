@@ -115,7 +115,20 @@
       "paymentGenericError": "出现错误。您的预订信息已保存，请重试。",
       "paymentFormLoadError": "支付表单加载失败。请刷新页面后重试。",
       "paymentInitFailed": "支付初始化失败",
-      "networkError": "网络错误 — 请刷新页面后重试"
+      "networkError": "网络错误 — 请刷新页面后重试",
+      "errors": {
+        "RATE_LIMITED": "请求过多",
+        "INVALID_REQUEST": "请求无效。请检查您的预订信息后重试。",
+        "TOO_MANY_PASSENGERS": "所选车型的乘客人数超出限制",
+        "CUSTOM_QUOTE_REQUIRED": "此路线需要定制报价。",
+        "LEAD_TIME": "预订必须提前至少12小时进行。",
+        "ROUND_TRIP_DATES": "往返行程需要提供出发和返程的日期与时间。",
+        "RETURN_BEFORE_PICKUP": "返程日期和时间必须晚于出发日期和时间",
+        "PROMO_INVALID": "优惠码无效、已过期或已达到使用次数上限。",
+        "PRICING_UNAVAILABLE": "定价配置暂时不可用",
+        "INTERNAL": "创建付款失败,请重试。",
+        "NO_CODE": "未提供优惠码。"
+      }
     },
     "tripTypeTabs": {
       "ariaLabel": "行程类型",
@@ -538,6 +551,66 @@
     "bookTransfer": "预订接送服务",
     "new": "全新"
   },
+  "BookingSection": {
+    "label": "即时预订",
+    "headlineLine1": "立即预订您的",
+    "headlineItalic": "专属司机。",
+    "subhead": "固定价格。即时确认。您的司机会自动追踪您的航班。",
+    "trust": [
+        "包含航班追踪",
+        "固定价格 — 无隐藏费用",
+        "预订前1小时内可免费取消",
+        "在抵达大厅迎接"
+    ]
+  },
+  "HourlyBookingSection": {
+    "label": "按小时预订",
+    "headlineLine1": "按小时租用",
+    "headlineItalic": "配司机的车辆。",
+    "subhead": "最低2小时起。一位司机，一辆车 — 在布拉格及周边地区，随您所需时长使用。",
+    "trust": [
+        "最低2小时起订",
+        "包含多个停靠点",
+        "司机全程等候",
+        "固定小时费率 — 无隐藏费用"
+    ]
+  },
+  "RoutesSection": {
+    "label": "热门路线",
+    "headingLine1": "中欧。",
+    "headingItalic": "紧密相连。",
+    "intro": "点对点或多城市连接。我们连接中欧的主要目的地 — 提供舒适、私密和精准的服务。一位司机，一个固定价格，全程门到门。",
+    "exploreRoutes": "探索路线",
+    "footnote": "所有价格均已包含道路通行费、通行证、等候时间和迎接服务 — 预订时即固定并保证。",
+    "viewRoute": "查看路线",
+    "fromPrice": "€{price} 起",
+    "mapAriaLabel": "PRESTIGO 司机路线地图，从布拉格辐射至整个中欧"
+  },
+  "BlogCard": {
+    "readArticle": "阅读文章 →"
+  },
+  "StepStub": {
+    "stepOfSix": "第 {step} 步（共 6 步）",
+    "body": "完善您的行程详情 — 即将推出。"
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "这条路",
+    "headingItalic": "无法通向任何地方。",
+    "body": "您要查找的页面不存在 — 但您的接送服务依然可以进行。",
+    "bookButton": "预订接送服务",
+    "servicesButton": "查看服务",
+    "homeButton": "返回首页"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "无需排队等出租车。",
+      "headingItalic": "司机已在到达大厅等候。",
+      "body": "Mercedes E-Class 座驾。免费航班追踪。延误免费等候。24/7 全天候服务。",
+      "primaryButton": "预订您的接送服务",
+      "secondaryButton": "机场接送详情"
+    }
+  },
   "Fleet": {
     "label": "车队",
     "headingLine1": "只选 Mercedes-Benz。",
@@ -648,7 +721,16 @@
     "fullNameRequired": "请填写全名。",
     "phoneRequired": "请填写电话号码。",
     "duplicateDefaultPassenger": "已存在另一位默认乘客,请重试。",
-    "invalidAccountType": "账户类型无效。"
+    "invalidAccountType": "账户类型无效。",
+    "auth": {
+      "userExists": "该邮箱已注册账户。",
+      "weakPassword": "密码强度不足,请选择更安全的密码。",
+      "emailRateLimited": "邮件请求过多,请稍后再试。",
+      "invalidEmail": "请输入有效的电子邮箱地址。",
+      "signupDisabled": "新用户注册目前已关闭。",
+      "sessionExpired": "您的登录已过期,请重新登录。",
+      "generic": "出现问题,请重试。"
+    }
   },
   "Auth": {
     "login": {
@@ -791,6 +873,7 @@
     "allRoutes": "所有路线"
   },
   "Common": {
+    "loadingBooking": "正在加载预订表单",
     "skipToContent": "跳转到主要内容",
     "firstVisitBanner": {
       "suggestion": "本网站也提供{endonym}版本。",

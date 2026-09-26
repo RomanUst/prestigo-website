@@ -118,6 +118,35 @@ describe('lib/supabase — round-trip', () => {
     })
   })
 
+  describe('buildBookingRow / buildBookingRows — locale (Phase 75-17, D-11)', () => {
+    it('Test 15: buildBookingRow writes locale from meta.locale for an unpaid capture row', () => {
+      const row = buildBookingRow({ ...BASE_META, locale: 'ru' }, 'pi_xyz', 'unpaid')
+      expect((row as Record<string, unknown>).locale).toBe('ru')
+    })
+
+    it('Test 16: buildBookingRow writes locale from meta.locale for a confirmed row', () => {
+      const row = buildBookingRow({ ...BASE_META, locale: 'zh' }, 'pi_xyz', 'confirmed')
+      expect((row as Record<string, unknown>).locale).toBe('zh')
+    })
+
+    it('Test 17: buildBookingRow stores null when meta has no locale key (empty edge)', () => {
+      const row = buildBookingRow({ ...BASE_META }, 'pi_xyz', 'confirmed')
+      expect((row as Record<string, unknown>).locale).toBeNull()
+    })
+
+    it('Test 18: buildBookingRows sets the same locale on both outbound and return legs', () => {
+      const { outbound, return: ret } = buildBookingRows({ ...BASE_META, locale: 'ar' }, 'pi_xyz')
+      expect((outbound as Record<string, unknown>).locale).toBe('ar')
+      expect((ret as Record<string, unknown>).locale).toBe('ar')
+    })
+
+    it('Test 19: buildBookingRows stores null on both legs when meta has no locale key', () => {
+      const { outbound, return: ret } = buildBookingRows({ ...BASE_META }, 'pi_xyz')
+      expect((outbound as Record<string, unknown>).locale).toBeNull()
+      expect((ret as Record<string, unknown>).locale).toBeNull()
+    })
+  })
+
   describe('saveRoundTripBookings — idempotency contract', () => {
     const outbound = buildBookingRow(
       { ...BASE_META },

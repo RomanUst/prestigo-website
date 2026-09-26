@@ -5,12 +5,13 @@ import { createBrowserClient } from '@supabase/ssr'
 import { useRouter } from '@/i18n/routing'
 import { useTranslations } from 'next-intl'
 import Nav from '@/components/Nav'
+import { authErrorKey } from '@/lib/auth-error-code'
 
 export const dynamic = 'force-dynamic'
 
 export default function ResetPasswordPage() {
   const t = useTranslations('Account.resetPassword')
-  const tErr = useTranslations('Errors')
+  const tAuthErr = useTranslations('Errors.auth')
   const [password, setPassword] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [errorMsg, setErrorMsg] = useState('')
@@ -73,8 +74,9 @@ export default function ResetPasswordPage() {
     const { error } = await supabase.auth.updateUser({ password })
 
     if (error) {
+      console.error('reset-password update error:', error.message)
       setStatus('error')
-      setErrorMsg(error.message ?? tErr('genericRetry'))
+      setErrorMsg(tAuthErr(authErrorKey(error.code)))
       return
     }
 

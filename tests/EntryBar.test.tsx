@@ -6,9 +6,19 @@ import { useBookingStore } from '@/lib/booking-store'
 import { PRG_CONFIG } from '@/types/booking'
 import EntryBar from '@/components/booking/EntryBar'
 
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: vi.fn() }),
-}))
+// 75-14: EntryBar renders TripTypeTabs, which now imports useRouter from
+// @/i18n/routing instead of next/navigation. @/i18n/routing's createNavigation()
+// call needs next/navigation's real redirect/permanentRedirect exports at
+// module-load time, so a full mock replacement of next/navigation (dropping
+// those exports) breaks it — mock only the i18n router import instead,
+// matching the pattern in tests/BookingWizard.test.tsx / tests/TripTypeTabs.test.tsx.
+vi.mock('@/i18n/routing', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/i18n/routing')>()
+  return {
+    ...actual,
+    useRouter: () => ({ push: vi.fn() }),
+  }
+})
 
 // Prevent next/image from throwing in jsdom
 vi.mock('next/image', () => ({

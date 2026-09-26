@@ -115,7 +115,20 @@
       "paymentGenericError": "Something went wrong. Your booking details are saved — please try again.",
       "paymentFormLoadError": "Payment form failed to load. Please refresh and try again.",
       "paymentInitFailed": "Failed to initialise payment",
-      "networkError": "Network error — please refresh and try again"
+      "networkError": "Network error — please refresh and try again",
+      "errors": {
+        "RATE_LIMITED": "Too many requests",
+        "INVALID_REQUEST": "Invalid request. Please check your booking details and try again.",
+        "TOO_MANY_PASSENGERS": "Too many passengers for the selected vehicle",
+        "CUSTOM_QUOTE_REQUIRED": "This route requires a custom quote.",
+        "LEAD_TIME": "Bookings must be made at least 12 hours in advance.",
+        "ROUND_TRIP_DATES": "Round-trip bookings need both a pickup and a return date and time.",
+        "RETURN_BEFORE_PICKUP": "Return datetime must be after pickup datetime",
+        "PROMO_INVALID": "Promo code is invalid, expired, or has reached its usage limit.",
+        "PRICING_UNAVAILABLE": "Pricing configuration unavailable",
+        "INTERNAL": "Failed to create payment intent. Please try again.",
+        "NO_CODE": "No code provided."
+      }
     },
     "tripTypeTabs": {
       "ariaLabel": "Trip type",
@@ -503,6 +516,66 @@
     "bookTransfer": "Book a transfer",
     "new": "NEW"
   },
+  "BookingSection": {
+    "label": "Instant booking",
+    "headlineLine1": "Book your",
+    "headlineItalic": "chauffeur now.",
+    "subhead": "Fixed price. Instant confirmation. Your driver tracks your flight automatically.",
+    "trust": [
+        "Flight tracking included",
+        "Fixed price — no surprises",
+        "Free cancellation up to 1 hour",
+        "Meet & greet at Arrivals"
+    ]
+  },
+  "HourlyBookingSection": {
+    "label": "Hourly booking",
+    "headlineLine1": "Hire a car with",
+    "headlineItalic": "chauffeur by the hour.",
+    "subhead": "Minimum 2 hours. One chauffeur, one vehicle — yours for as long as you need, across Prague and beyond.",
+    "trust": [
+        "Minimum 2-hour booking",
+        "Multiple stops included",
+        "Chauffeur waits throughout",
+        "Fixed hourly rate — no surprises"
+    ]
+  },
+  "RoutesSection": {
+    "label": "Popular routes",
+    "headingLine1": "Central Europe.",
+    "headingItalic": "Connected.",
+    "intro": "Point to point or multi-city. We connect the key destinations of Central Europe — with comfort, discretion and precision. One chauffeur, one fixed fare, door to door.",
+    "exploreRoutes": "Explore routes",
+    "footnote": "All fares include tolls, vignettes, waiting time and meet & greet — fixed and guaranteed at booking.",
+    "viewRoute": "View route",
+    "fromPrice": "from €{price}",
+    "mapAriaLabel": "Map of Prestigo chauffeur routes radiating from Prague across Central Europe"
+  },
+  "BlogCard": {
+    "readArticle": "Read article →"
+  },
+  "StepStub": {
+    "stepOfSix": "Step {step} of 6",
+    "body": "Complete your journey details — coming next."
+  },
+  "NotFound": {
+    "eyebrow": "404",
+    "headingLine1": "This road doesn't",
+    "headingItalic": "lead anywhere.",
+    "body": "The page you're looking for doesn't exist — but your transfer still can.",
+    "bookButton": "Book a Transfer",
+    "servicesButton": "View Services",
+    "homeButton": "Back to Home"
+  },
+  "BlogPost": {
+    "cta": {
+      "headingLine1": "Skip the taxi rank.",
+      "headingItalic": "Chauffeur inside Arrivals.",
+      "body": "Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.",
+      "primaryButton": "Book your transfer",
+      "secondaryButton": "Airport transfer details"
+    }
+  },
   "Fleet": {
     "label": "The fleet",
     "headingLine1": "Mercedes only.",
@@ -598,7 +671,16 @@
     "fullNameRequired": "Full name is required.",
     "phoneRequired": "Phone number is required.",
     "duplicateDefaultPassenger": "Another default passenger already exists. Please try again.",
-    "invalidAccountType": "Invalid account type."
+    "invalidAccountType": "Invalid account type.",
+    "auth": {
+      "userExists": "An account with this email already exists.",
+      "weakPassword": "Password is too weak. Please choose a stronger password.",
+      "emailRateLimited": "Too many email requests. Please wait a moment and try again.",
+      "invalidEmail": "Please enter a valid email address.",
+      "signupDisabled": "New sign-ups are currently disabled.",
+      "sessionExpired": "Your session has expired. Please sign in again.",
+      "generic": "Something went wrong. Please try again."
+    }
   },
   "Auth": {
     "login": {
@@ -741,6 +823,7 @@
     "allRoutes": "All Routes"
   },
   "Common": {
+    "loadingBooking": "Loading booking form",
     "skipToContent": "Skip to content",
     "firstVisitBanner": {
       "suggestion": "This site is also available in {endonym}.",
