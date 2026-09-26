@@ -548,6 +548,63 @@ describe('PAY26-META: round-trip metadata contract', () => {
   })
 })
 
+describe('D-11: bookingData.locale normalized into PaymentIntent metadata.locale', () => {
+  it('bookingData.locale "ru" -> metadata.locale "ru"', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ locale: 'ru' }) })
+    )
+    expect(res.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(call.metadata.locale).toBe('ru')
+  })
+
+  it('missing locale -> metadata.locale "en"', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData() }) // no locale field
+    )
+    expect(res.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(call.metadata.locale).toBe('en')
+  })
+
+  it('empty-string locale -> metadata.locale "en"', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ locale: '' }) })
+    )
+    expect(res.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(call.metadata.locale).toBe('en')
+  })
+
+  it('unknown locale "xx" -> metadata.locale "en"', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ locale: 'xx' }) })
+    )
+    expect(res.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(call.metadata.locale).toBe('en')
+  })
+
+  it('script-like locale value -> metadata.locale "en", never forwarded raw', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ locale: '<script>alert(1)</script>' }) })
+    )
+    expect(res.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(call.metadata.locale).toBe('en')
+  })
+
+  it('metadata stays <= 50 keys after adding locale', async () => {
+    const res = await POST(
+      makePostRequest({ bookingData: makeBookingData({ locale: 'zh' }) })
+    )
+    expect(res.status).toBe(200)
+    const call = stripeMock.paymentIntents.create.mock.calls[0][0]
+    expect(Object.keys(call.metadata).length).toBeLessThanOrEqual(50)
+    expect(call.metadata).toHaveProperty('locale')
+  })
+})
+
 describe('ABND-01/02/05: Phase 62 unpaid capture — no attemptId fallback (62-01 path)', () => {
   it('a valid one-way POST without attemptId captures exactly one unpaid row keyed to the PaymentIntent', async () => {
     const res = await POST(

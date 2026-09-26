@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback, useId } from 'react'
-import { useTranslations } from 'next-intl'
+import { useTranslations, useLocale } from 'next-intl'
 import { Plane, X } from 'lucide-react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'
 import type { PlaceResult } from '@/types/booking'
+import type { AppLocale } from '@/i18n/locales'
+import { PLACES_LANGUAGE } from '@/lib/booking-locale'
 
 // Module-level singleton — shared across all AddressInput instances
 let loaderPromise: Promise<void> | null = null
@@ -63,6 +65,7 @@ export default function AddressInput({
   required = false,
 }: AddressInputProps) {
   const t = useTranslations('Booking.addressInput')
+  const locale = useLocale() as AppLocale
   const [mapsLoaded, setMapsLoaded] = useState(false)
   const [inputValue, setInputValue] = useState(() => value?.address ?? '')
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
@@ -117,7 +120,7 @@ export default function AddressInput({
           input: text,
           sessionToken: sessionTokenRef.current ?? undefined,
           includedRegionCodes: ['cz', 'at', 'de', 'sk', 'hu', 'pl'],
-          language: 'en',
+          language: PLACES_LANGUAGE[locale],
         })
       // Store raw predictions for toPlace() access on select
       rawPredictionsRef.current = raw
@@ -147,7 +150,7 @@ export default function AddressInput({
       setShowSuggestions(false)
       rawPredictionsRef.current = []
     }
-  }, [mapsLoaded])
+  }, [mapsLoaded, locale])
 
   const handleSelect = useCallback(
     async (suggestion: Suggestion) => {

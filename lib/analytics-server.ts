@@ -17,6 +17,8 @@
  * non-critical and must not block booking confirmation.
  */
 
+import { normalizeSiteLocale } from '@/i18n/locales'
+
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect'
 
 export interface Ga4PurchaseItem {
@@ -35,6 +37,8 @@ export interface Ga4PurchaseParams {
   items: Ga4PurchaseItem[]
   /** Optional GA4 client_id if we captured it at payment-intent time (not currently persisted). */
   clientId?: string
+  /** D-11: the booking's site locale — normalized (allow-list) before it reaches GA4. */
+  siteLocale?: string
 }
 
 /**
@@ -68,6 +72,7 @@ export async function sendGa4Purchase(params: Ga4PurchaseParams): Promise<boolea
           currency: params.currency ?? 'EUR',
           affiliation: 'PRESTIGO',
           engagement_time_msec: 100,
+          site_locale: normalizeSiteLocale(params.siteLocale),
           items: params.items,
         },
       },
