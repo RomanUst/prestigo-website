@@ -17,3 +17,9 @@ covers; log everything else here instead of silently expanding scope).
   in `tests/shared-sections-i18n.test.tsx`'s blog-CTA test so it doesn't
   interfere with that test's own assertions. Needs its own task/plan (or
   folding into 75-20's final EN-leak re-verify) to fix.
+
+  **RESOLVED in 75-14** (Task 2, `09b5d6ad`): swapped
+  `import Link from 'next/link'` to `import { Link } from '@/i18n/routing'`
+  in `components/ArticleByline.tsx`. `tests/shared-sections-i18n.test.tsx`'s
+  mock of the whole component is unaffected (it renders `null` regardless of
+  the import). WINDOWS.md ledger entry #20 marked `fixed`.
