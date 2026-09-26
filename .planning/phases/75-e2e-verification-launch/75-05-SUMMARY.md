@@ -15,13 +15,14 @@ provides:
   - "Ga4PurchaseParams.siteLocale -- always emitted as events[0].params.site_locale (normalizeSiteLocale, default 'en') on the server-side GA4 Measurement Protocol purchase event"
   - "All three webhook sendGa4Purchase call sites (handleOneWaySucceeded, handleRoundTripSucceeded, handlePaymentLinkSucceeded) now pass siteLocale through -- one-way/round-trip from meta.locale, payment-link from the reconciled row's optional locale field"
   - "Step6Payment's Stripe Elements options.locale and AddressInputNew's Places `language` follow useLocale() through the new maps instead of a hardcoded 'en'"
+  - "components/booking/AddressInput.tsx (the legacy component the live wizard actually calls) Places `language` also follows useLocale() through PLACES_LANGUAGE -- fixed post-completion, see Deviations"
   - "Stripe confirmPayment return_url built via the i18n getPathname bridge -- a /ru booking returns to /ru/book/confirmation, not the EN root"
 affects: [75-17 (bookings.locale column, if chosen, feeds the payment-link row.locale accessor added here), 75-20 (re-run scripts/qa/booking_e2e.py post-deploy -- localeChecksPassed should flip true for all 7 locales)]
 
 actuals:
-  tokens: 9400
+  tokens: 10800
   tasks: 2
-  commits: 5
+  commits: 6
 
 tech-stack:
   added: []
@@ -40,6 +41,7 @@ key-files:
   modified:
     - components/booking/steps/Step6Payment.tsx
     - components/booking/AddressInputNew.tsx
+    - components/booking/AddressInput.tsx
     - app/api/create-payment-intent/route.ts
     - lib/analytics-server.ts
     - app/api/webhooks/stripe/route.ts
@@ -47,6 +49,7 @@ key-files:
     - tests/webhooks-stripe.test.ts
     - tests/webhooks-stripe-checkout-session.test.ts
     - tests/Step6Payment.test.tsx
+    - tests/AddressInput.test.tsx
 
 key-decisions:
   - "PaymentLinkReconciledRow gained an optional `locale?: string | null` field read via a narrow typed accessor (row.locale ?? undefined) rather than an `as` cast -- the DB column does not exist yet (deferred to 75-17's human checkpoint), so the accessor is currently always undefined in production and normalizeSiteLocale's 'en' default carries the reconciliation path until the column ships."
@@ -71,7 +74,7 @@ coverage:
         status: pass
     human_judgment: false
   - id: D2
-    description: "Stripe Elements options.locale and Google Places `language` follow the site locale via lib/booking-locale.ts maps (hi -> Stripe 'auto', zh -> Places 'zh-CN'); no hardcoded 'en' remains in either component (D-07)"
+    description: "Stripe Elements options.locale and Google Places `language` follow the site locale via lib/booking-locale.ts maps (hi -> Stripe 'auto', zh -> Places 'zh-CN'); no hardcoded 'en' remains in any booking component -- including components/booking/AddressInput.tsx, the legacy component the live wizard actually calls, fixed in the post-completion deviation below (D-07)"
     requirement: VER-01
     verification:
       - kind: unit
@@ -81,10 +84,16 @@ coverage:
         ref: "tests/Step6Payment.test.tsx -- 3 Elements-locale tests (ru/hi-auto/en), all pass"
         status: pass
       - kind: unit
-        ref: "tests/address-input-locale.test.tsx -- 3 tests (zh/ar/en language), all pass"
+        ref: "tests/address-input-locale.test.tsx -- 3 tests (zh/ar/en language, AddressInputNew), all pass"
+        status: pass
+      - kind: unit
+        ref: "tests/AddressInput.test.tsx -- 3 tests (zh/ar/en language, legacy AddressInput used by the live wizard), all pass"
         status: pass
       - kind: other
-        ref: "grep -nE \"locale:\\s*'en'\" components/booking/steps/Step6Payment.tsx and grep -nE \"language:\\s*'en'\" components/booking/AddressInputNew.tsx -- both return nothing (exit 1)"
+        ref: "grep -rnE \"language:\\s*'en'\" components/booking/ -- returns nothing (exit 1), covers both AddressInputNew.tsx and AddressInput.tsx"
+        status: pass
+      - kind: other
+        ref: "grep -nE \"locale:\\s*'en'\" components/booking/steps/Step6Payment.tsx -- returns nothing (exit 1)"
         status: pass
     human_judgment: false
   - id: D3
@@ -136,6 +145,7 @@ Each task was committed atomically (RED then GREEN per `tdd="true"`):
 3. **Task 2 RED — failing tests for Stripe Elements locale, Places language, localized return_url** — `73cca4d5` (test)
 4. **Task 2 GREEN — Stripe Elements/Places/return_url follow the site locale (D-07)** — `9821d371` (feat)
 5. **Test cleanup — removed unused `screen` import (eslint) in Step6Payment.test.tsx** — `87b02f5d` (test)
+6. **Post-completion fix — legacy AddressInput.tsx Places `language` follows site locale** — `de762ea0` (fix)
 
 **Plan metadata:** committed alongside this SUMMARY.
 
@@ -147,8 +157,9 @@ Each task was committed atomically (RED then GREEN per `tdd="true"`):
 - `app/api/create-payment-intent/route.ts` — `meta.locale = normalizeSiteLocale(bookingData.locale)`
 - `lib/analytics-server.ts` — `Ga4PurchaseParams.siteLocale`, `site_locale` MP param
 - `app/api/webhooks/stripe/route.ts` — `siteLocale` threaded through all 3 `sendGa4Purchase` call sites; `PaymentLinkReconciledRow.locale?`
+- `components/booking/AddressInput.tsx` — Places `language: PLACES_LANGUAGE[locale]` (legacy component, live-wizard fix, see Deviations)
 - `tests/booking-locale.test.ts`, `tests/analytics-server.test.ts`, `tests/address-input-locale.test.tsx` — new
-- `tests/create-payment-intent.test.ts`, `tests/webhooks-stripe.test.ts`, `tests/webhooks-stripe-checkout-session.test.ts`, `tests/Step6Payment.test.tsx` — extended
+- `tests/create-payment-intent.test.ts`, `tests/webhooks-stripe.test.ts`, `tests/webhooks-stripe-checkout-session.test.ts`, `tests/Step6Payment.test.tsx`, `tests/AddressInput.test.tsx` — extended
 
 ## Decisions Made
 
@@ -168,10 +179,18 @@ Each task was committed atomically (RED then GREEN per `tdd="true"`):
 - **Verification:** `tests/Step6Payment.test.tsx`'s return_url tests exercise this exact branch (mocked `confirmPayment` resolves `{ paymentIntent: { status: 'succeeded' } }`, no `error`) and assert the localized URL.
 - **Committed in:** `9821d371` (Task 2 GREEN commit)
 
+**2. [Rule 1 - Bug, found post-completion] Task 2 fixed the wrong Places component — the live wizard calls `AddressInput.tsx`, not `AddressInputNew.tsx`**
+- **Found during:** Coordinator follow-up review, after this plan's own completion report.
+- **Issue:** `AddressInputNew.tsx` (fixed in Task 2, `9821d371`) is a Places-API-(New) replacement gated behind `NEXT_PUBLIC_USE_NEW_PLACES_API` and only wired into the homepage `BookingWidget`/`DayCard`. The actual booking wizard's Step 1 (`EntryBar.tsx`, and the shared `Step1TripType.tsx`/`Step3Vehicle.tsx`/`StopItem.tsx`/`DayCard.tsx` call sites) imports the legacy `components/booking/AddressInput.tsx` — confirmed by Plan 75-03's `booking_e2e.py` network-level capture (75-03-SUMMARY.md key-decisions) and by the coordinator. That file's `fetchAutocompleteSuggestions` call still hardcoded `language: 'en'`, so D-07's Google Places half did NOT actually hold in production for the live wizard after this plan's original completion — only the currently-dormant `AddressInputNew.tsx` path was fixed.
+- **Fix:** Added `useLocale()` + `PLACES_LANGUAGE[locale]` to `AddressInput.tsx` (same map from `lib/booking-locale.ts`, same pattern as `AddressInputNew.tsx`), added `locale` to the `fetchSuggestions` `useCallback` dependency array. Admin usages (`ManualBookingForm`, `BookingsTable`) render under the non-localized `(internal)` route group, where `SiteChrome` resolves `getLocale()` to `'en'` — `PLACES_LANGUAGE['en'] === 'en'`, so their behavior is unchanged with zero special-casing.
+- **Files modified:** `components/booking/AddressInput.tsx`, `tests/AddressInput.test.tsx`
+- **Verification:** Extended `tests/AddressInput.test.tsx` with 3 tests (zh -> 'zh-CN', ar -> 'ar', en -> 'en') against `AddressInput`, mocking `@googlemaps/js-api-loader` and stubbing `window.google.maps.places`. Sanity-checked the tests actually catch the regression by temporarily reverting the fix locally (zh/ar tests failed as expected, en test still passed) before restoring and committing. `grep -rnE "language:\s*'en'" components/booking/` now returns nothing across BOTH Places components. Broader regression sweep (`EntryBar`, `BookingWidget`, `Step1TripType`, `Step3Vehicle`, `StopList`, `DurationSelector`, `BookingWizard` test files) — 74 passed, 0 new failures. `npx tsc --noEmit` and `npx eslint` clean on both changed files.
+- **Committed in:** `de762ea0` (post-completion fix commit)
+
 ---
 
-**Total deviations:** 1 auto-fixed (1 missing-critical fix).
-**Impact on plan:** Necessary for D-07 to actually hold for the common (non-3DS) payment success path, not just the rarer 3DS-redirect path. No scope creep — same file, same variable, no new surface.
+**Total deviations:** 2 auto-fixed (1 missing-critical fix, 1 bug found post-completion via coordinator follow-up).
+**Impact on plan:** Deviation 1 was necessary for D-07 to actually hold for the common (non-3DS) payment success path. Deviation 2 was necessary for D-07 to hold at all in production — without it, the plan's Task 2 fix targeted a component the live wizard does not use, and the original completion report would have incorrectly claimed the Google Places half of D-07 was live. No scope creep in either case — same map, same pattern, no new surface.
 
 ## Issues Encountered
 
@@ -185,12 +204,13 @@ None — no external service configuration required.
 ## Next Phase Readiness
 
 - `lib/booking-locale.ts`, `meta.locale`, and `Ga4PurchaseParams.siteLocale` are ready inputs for Plan 75-17's `bookings.locale` column decision (if chosen) — the `PaymentLinkReconciledRow.locale` accessor added here will start returning real values with zero further code changes once that column exists and the reconciliation SELECT includes it.
-- `scripts/qa/booking_e2e.py` (Plan 75-03) is the concrete regression check for D-07 — its pre-fix baseline (`localeChecksPassed: false` for every non-EN locale, both Stripe and Places locale hardcoded to `'en'`) is exactly what this plan's code should flip to `true` on a post-deploy re-run (Plan 75-20).
+- `scripts/qa/booking_e2e.py` (Plan 75-03) is the concrete regression check for D-07 — its pre-fix baseline (`localeChecksPassed: false` for every non-EN locale, both Stripe and Places locale hardcoded to `'en'`) is exactly what this plan's code should flip to `true` on a post-deploy re-run (Plan 75-20). With the post-completion fix to the legacy `AddressInput.tsx`, that check now targets the component the live wizard actually calls.
 - The 3DS-redirect branch of the localized `return_url` (as opposed to the non-3DS success branch, which is unit-tested here) has not been exercised against a live Stripe test card that triggers 3D Secure — flagged as `human_judgment: true` on coverage D3. Low risk (same code path, same variable) but worth a QA pass in Plan 75-20's post-deploy verification.
+- `AddressInputNew.tsx` (Places API New) remains dormant behind `NEXT_PUBLIC_USE_NEW_PLACES_API`, wired only into the homepage `BookingWidget`/`DayCard`; it was still fixed in Task 2 and is correct for when/if it's promoted to the wizard's Step 1.
 
 ## Self-Check: PASSED
 
-All created files confirmed on disk (`lib/booking-locale.ts`, `tests/booking-locale.test.ts`, `tests/analytics-server.test.ts`, `tests/address-input-locale.test.tsx`, this SUMMARY.md). All 5 task commit hashes (`69b61cd9`, `8bda15d6`, `73cca4d5`, `9821d371`, `87b02f5d`) confirmed in `git log`. Plan-level `<verification>` re-run clean: all 6 test files pass (95 passed, 25 pre-existing `it.todo` unaffected), `npx tsc --noEmit` shows only pre-existing unrelated errors in 3 other test files.
+All created files confirmed on disk (`lib/booking-locale.ts`, `tests/booking-locale.test.ts`, `tests/analytics-server.test.ts`, `tests/address-input-locale.test.tsx`, this SUMMARY.md). All 6 task commit hashes (`69b61cd9`, `8bda15d6`, `73cca4d5`, `9821d371`, `87b02f5d`, `de762ea0`) confirmed in `git log`. Plan-level `<verification>` re-run clean: all 8 relevant test files pass (112 passed, 33 pre-existing `it.todo` unaffected), `npx tsc --noEmit` shows only pre-existing unrelated errors in 3 other test files, `npx eslint` clean on all touched files, `grep -rnE "language:\s*'en'" components/booking/` returns nothing.
 
 ---
 *Phase: 75-e2e-verification-launch*
