@@ -104,9 +104,10 @@ vi.mock('@/lib/rate-limit', () => ({
   checkRateLimit: mockCheckRateLimit,
 }))
 
-vi.mock('next/navigation', () => ({
-  redirect: mockRedirect,
-}))
+vi.mock('next/navigation', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/navigation')>()
+  return { ...actual, redirect: mockRedirect }
+})
 
 // ---------------------------------------------------------------------------
 // Imports (from Plan 02 modules — not yet implemented; tests are RED)
@@ -143,7 +144,7 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
       expect(mockSignInWithOtp).toHaveBeenCalledOnce()
       const call = mockSignInWithOtp.mock.calls[0][0]
       expect(call.email).toBe('test@example.com')
-      expect(call.options?.emailRedirectTo).toMatch(/\/auth\/callback$/)
+      expect(call.options?.emailRedirectTo).toMatch(/\/auth\/callback\?return-to=%2Faccount$/)
       expect(result).toEqual({ success: true })
     })
 
