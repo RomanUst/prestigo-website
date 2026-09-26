@@ -550,6 +550,36 @@
         "Recepción en la sala de llegadas"
     ]
   },
+  "HourlyBookingSection": {
+    "label": "Reserva por horas",
+    "headlineLine1": "Alquile un coche con",
+    "headlineItalic": "chófer por horas.",
+    "subhead": "Mínimo 2 horas. Un chófer, un vehículo — a su disposición todo el tiempo que necesite, en Praga y más allá.",
+    "trust": [
+        "Reserva mínima de 2 horas",
+        "Varias paradas incluidas",
+        "El chófer espera durante todo el trayecto",
+        "Tarifa por hora fija — sin sorpresas"
+    ]
+  },
+  "RoutesSection": {
+    "label": "Rutas populares",
+    "headingLine1": "Europa Central.",
+    "headingItalic": "Conectada.",
+    "intro": "De punto a punto o multi-ciudad. Conectamos los destinos clave de Europa Central — con comodidad, discreción y precisión. Un chófer, una tarifa fija, de puerta a puerta.",
+    "exploreRoutes": "Explorar rutas",
+    "footnote": "Todas las tarifas incluyen peajes, viñetas, tiempo de espera y recepción — fijas y garantizadas en el momento de la reserva.",
+    "viewRoute": "Ver ruta",
+    "fromPrice": "desde {price} €",
+    "mapAriaLabel": "Mapa de las rutas de chófer de PRESTIGO que salen de Praga por toda Europa Central"
+  },
+  "BlogCard": {
+    "readArticle": "Leer artículo →"
+  },
+  "StepStub": {
+    "stepOfSix": "Paso {step} de 6",
+    "body": "Complete los detalles de su viaje — disponible próximamente."
+  },
   "Fleet": {
     "label": "La flota",
     "headingLine1": "Solo Mercedes-Benz.",

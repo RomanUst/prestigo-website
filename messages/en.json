@@ -515,6 +515,36 @@
         "Meet & greet at Arrivals"
     ]
   },
+  "HourlyBookingSection": {
+    "label": "Hourly booking",
+    "headlineLine1": "Hire a car with",
+    "headlineItalic": "chauffeur by the hour.",
+    "subhead": "Minimum 2 hours. One chauffeur, one vehicle — yours for as long as you need, across Prague and beyond.",
+    "trust": [
+        "Minimum 2-hour booking",
+        "Multiple stops included",
+        "Chauffeur waits throughout",
+        "Fixed hourly rate — no surprises"
+    ]
+  },
+  "RoutesSection": {
+    "label": "Popular routes",
+    "headingLine1": "Central Europe.",
+    "headingItalic": "Connected.",
+    "intro": "Point to point or multi-city. We connect the key destinations of Central Europe — with comfort, discretion and precision. One chauffeur, one fixed fare, door to door.",
+    "exploreRoutes": "Explore routes",
+    "footnote": "All fares include tolls, vignettes, waiting time and meet & greet — fixed and guaranteed at booking.",
+    "viewRoute": "View route",
+    "fromPrice": "from €{price}",
+    "mapAriaLabel": "Map of Prestigo chauffeur routes radiating from Prague across Central Europe"
+  },
+  "BlogCard": {
+    "readArticle": "Read article →"
+  },
+  "StepStub": {
+    "stepOfSix": "Step {step} of 6",
+    "body": "Complete your journey details — coming next."
+  },
   "Fleet": {
     "label": "The fleet",
     "headingLine1": "Mercedes only.",

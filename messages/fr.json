@@ -550,6 +550,36 @@
         "Accueil personnalisé à l'arrivée"
     ]
   },
+  "HourlyBookingSection": {
+    "label": "Réservation à l'heure",
+    "headlineLine1": "Louez une voiture avec",
+    "headlineItalic": "chauffeur à l'heure.",
+    "subhead": "Minimum 2 heures. Un chauffeur, un véhicule — à votre disposition aussi longtemps que nécessaire, à Prague et au-delà.",
+    "trust": [
+        "Réservation minimum de 2 heures",
+        "Plusieurs arrêts inclus",
+        "Le chauffeur attend pendant tout le trajet",
+        "Tarif horaire fixe — sans surprise"
+    ]
+  },
+  "RoutesSection": {
+    "label": "Itinéraires populaires",
+    "headingLine1": "Europe centrale.",
+    "headingItalic": "Connectée.",
+    "intro": "D'un point à un autre ou multi-villes. Nous relions les destinations clés de l'Europe centrale — avec confort, discrétion et précision. Un chauffeur, un tarif fixe, porte à porte.",
+    "exploreRoutes": "Découvrir les itinéraires",
+    "footnote": "Tous les tarifs incluent péages, vignettes, temps d'attente et accueil personnalisé — fixes et garantis dès la réservation.",
+    "viewRoute": "Voir l'itinéraire",
+    "fromPrice": "à partir de {price} €",
+    "mapAriaLabel": "Carte des itinéraires PRESTIGO avec chauffeur, au départ de Prague à travers toute l’Europe centrale"
+  },
+  "BlogCard": {
+    "readArticle": "Lire l'article →"
+  },
+  "StepStub": {
+    "stepOfSix": "Étape {step} sur 6",
+    "body": "Complétez les détails de votre trajet — bientôt disponible."
+  },
   "Fleet": {
     "label": "La flotte",
     "headingLine1": "Uniquement Mercedes-Benz.",

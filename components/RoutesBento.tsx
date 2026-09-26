@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/routing'
 
 export type BentoRoute = { slug: string; to: string; time: string; price?: number }
 export type BentoTile = { span: string; feature?: boolean; img?: string }
@@ -13,6 +15,7 @@ const MIN_DELAY = 5000
 const MAX_DELAY = 7000
 
 export default function RoutesBento({ pool, tiles }: Props) {
+  const t = useTranslations('RoutesSection')
   // Which pool index each tile currently shows (start with distinct routes).
   const [assign, setAssign] = useState<number[]>(() => tiles.map((_, i) => i % pool.length))
   const [fading, setFading] = useState<boolean[]>(() => tiles.map(() => false))
@@ -66,11 +69,11 @@ export default function RoutesBento({ pool, tiles }: Props) {
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-[150px] lg:auto-rows-[172px]">
-      {tiles.map((tile, t) => {
-        const r = pool[assign[t]]
+      {tiles.map((tile, i) => {
+        const r = pool[assign[i]]
         return (
-          <a
-            key={t}
+          <Link
+            key={i}
             href={`/routes/${r.slug}`}
             className={`group relative flex overflow-hidden border border-anthracite-light bg-anthracite transition-[transform,border-color] duration-500 ease-out hover:-translate-y-1 hover:border-copper/60 ${tile.span}`}
           >
@@ -100,8 +103,8 @@ export default function RoutesBento({ pool, tiles }: Props) {
             <div
               className="relative z-10 flex h-full w-full flex-col justify-between p-6"
               style={{
-                opacity: fading[t] ? 0 : 1,
-                transform: fading[t] ? 'translateY(8px)' : 'translateY(0)',
+                opacity: fading[i] ? 0 : 1,
+                transform: fading[i] ? 'translateY(8px)' : 'translateY(0)',
                 transition: `opacity ${FADE_MS}ms ease, transform ${FADE_MS}ms ease`,
               }}
             >
@@ -110,7 +113,7 @@ export default function RoutesBento({ pool, tiles }: Props) {
                 {r.price != null && (
                   <>
                     <span className="w-1 h-1 rounded-full" style={{ background: 'var(--copper)' }} />
-                    <span className="label" style={{ fontSize: '10px' }}>from €{r.price}</span>
+                    <span className="label" style={{ fontSize: '10px' }}>{t('fromPrice', { price: r.price })}</span>
                   </>
                 )}
               </div>
@@ -120,12 +123,12 @@ export default function RoutesBento({ pool, tiles }: Props) {
                   Prague <span style={{ color: 'var(--warmgrey)' }}>→</span> {r.to}
                 </h3>
                 <span className="inline-flex items-center gap-2 font-body font-light text-[10px] tracking-[0.2em] uppercase text-warmgrey transition-colors group-hover:text-offwhite">
-                  View route
+                  {t('viewRoute')}
                   <span className="transition-transform duration-500 ease-out group-hover:translate-x-1">→</span>
                 </span>
               </div>
             </div>
-          </a>
+          </Link>
         )
       })}
     </div>
