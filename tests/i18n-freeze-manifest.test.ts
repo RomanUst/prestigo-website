@@ -15,8 +15,23 @@ import { freezeUnits, readFreezePatterns, selectUnits, verifyFrozen } from '../s
 
 const LOCALES = ['ru', 'es', 'fr', 'ar', 'hi', 'zh']
 
+type Manifest = { version: number; units: Record<string, { enHash: string; lastTranslatedAt: string }> }
+
+/** A fresh empty manifest — explicitly typed so `manifest.units[key]` indexing type-checks. */
+function makeEmptyManifest(): Manifest {
+  return { version: 1, units: {} }
+}
+
+type LocaleOverride = { b?: string; c?: string; omitB?: boolean }
+type FixtureOptions = {
+  enB?: string
+  enC?: string
+  localeOverrides?: Record<string, LocaleOverride>
+  omitLocaleFiles?: string[]
+}
+
 /** Builds a temp rootDir with `content/pages/en/test.json` = {a:{b,c}} plus 6 locale siblings, per `overrides[locale]`. */
-function makeFixtureRoot({ enB = 'Hello world', enC = 'PRESTIGO', localeOverrides = {}, omitLocaleFiles = [] } = {}) {
+function makeFixtureRoot({ enB = 'Hello world', enC = 'PRESTIGO', localeOverrides = {}, omitLocaleFiles = [] }: FixtureOptions = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'i18n-freeze-'))
   mkdirSync(join(dir, 'content/pages/en'), { recursive: true })
   writeFileSync(join(dir, 'content/pages/en/test.json'), JSON.stringify({ a: { b: enB, c: enC } }), 'utf8')
@@ -24,11 +39,11 @@ function makeFixtureRoot({ enB = 'Hello world', enC = 'PRESTIGO', localeOverride
   for (const locale of LOCALES) {
     if (omitLocaleFiles.includes(locale)) continue
     mkdirSync(join(dir, `content/pages/${locale}`), { recursive: true })
-    const override = localeOverrides[locale] ?? {}
+    const override: LocaleOverride = localeOverrides[locale] ?? {}
     const b = 'b' in override ? override.b : `[${locale.toUpperCase()}] ${enB}`
     const c = 'c' in override ? override.c : enC // DNT — identical by default
-    const value = { a: {} }
-    if (!('omitB' in override)) value.a.b = b
+    const value: { a: { b?: string; c?: string } } = { a: {} }
+    if (!override.omitB) value.a.b = b
     value.a.c = c
     writeFileSync(join(dir, `content/pages/${locale}/test.json`), JSON.stringify(value), 'utf8')
   }
@@ -111,7 +126,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
     try {
       const glossary = loadGlossary()
       const units = selectUnits([{ pattern: 'content/pages/en/test.json', file: 'x.freeze' }], dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
       const result = freezeUnits(units, manifest, glossary, '2026-09-26T00:00:00.000Z')
 
       expect(result.frozen).toBe(2)
@@ -132,7 +147,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
     try {
       const glossary = loadGlossary()
       const units = selectUnits([{ pattern: 'content/pages/en/test.json::a.b', file: 'x.freeze' }], dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
       const result = freezeUnits(units, manifest, glossary)
       expect(result.frozen).toBe(1)
     } finally {
@@ -148,7 +163,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
     try {
       const glossary = loadGlossary()
       const units = selectUnits([{ pattern: 'content/pages/en/test.json::a.b', file: 'x.freeze' }], dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
       const result = freezeUnits(units, manifest, glossary)
       expect(result.frozen).toBe(1)
     } finally {
@@ -161,7 +176,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
     try {
       const glossary = loadGlossary()
       const units = selectUnits([{ pattern: 'content/pages/en/test.json', file: 'x.freeze' }], dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
 
       let threw = false
       try {
@@ -184,7 +199,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
     try {
       const glossary = loadGlossary()
       const units = selectUnits([{ pattern: 'content/pages/en/test.json', file: 'x.freeze' }], dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
 
       let threw = false
       try {
@@ -207,7 +222,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
     try {
       const glossary = loadGlossary()
       const units = selectUnits([{ pattern: 'content/pages/en/test.json', file: 'x.freeze' }], dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
 
       let threw = false
       try {
@@ -232,7 +247,7 @@ describe('freezeUnits — validation + write (D-08)', () => {
         ...selectUnits([{ pattern: 'content/pages/en/test.json::a', file: 'p1.freeze' }], dir),
         ...selectUnits([{ pattern: 'content/pages/en/test.json::a.b', file: 'p2.freeze' }], dir),
       ]
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
       const result = freezeUnits(units, manifest, glossary)
       expect(result.frozen).toBe(2) // a.b + a.c, not double-counted for a.b
     } finally {
@@ -248,7 +263,7 @@ describe('verifyFrozen — --verify semantics', () => {
       const glossary = loadGlossary()
       const patterns = [{ pattern: 'content/pages/en/test.json', file: 'x.freeze' }]
       const units = selectUnits(patterns, dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
       freezeUnits(units, manifest, glossary)
 
       const result = verifyFrozen(patterns, manifest, dir)
@@ -266,7 +281,7 @@ describe('verifyFrozen — --verify semantics', () => {
       const glossary = loadGlossary()
       const patterns = [{ pattern: 'content/pages/en/test.json', file: 'x.freeze' }]
       const units = selectUnits(patterns, dir)
-      const manifest = { version: 1, units: {} }
+      const manifest = makeEmptyManifest()
       freezeUnits(units, manifest, glossary)
 
       // Simulate the EN source changing after the freeze.

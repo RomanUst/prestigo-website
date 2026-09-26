@@ -243,6 +243,7 @@ export function freezeUnits(units, manifest, glossary, now = new Date().toISOStr
     )
   }
 
+  /** @type {Record<string, number>} */
   const byPattern = {}
   for (const unit of uniqueUnits) {
     manifest.units[unit.unitKey] = { enHash: sha256(unit.value), lastTranslatedAt: now }

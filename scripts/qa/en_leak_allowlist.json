@@ -3,6 +3,7 @@
     { "value": "Prestigo", "reason": "i18n/glossary.json doNotTranslate.brand" },
     { "value": "PRESTIGO", "reason": "i18n/glossary.json doNotTranslate.brand" },
     { "value": "chelautotrans s.r.o.", "reason": "i18n/glossary.json doNotTranslate.brand (legal entity name)" },
+    { "value": "Spojovací 685, Vysoký Újezd", "reason": "physical business address (components/Footer.tsx, app/[locale]/contact/page.tsx) — never translated across locales, required verbatim for correct mail delivery, same treatment as the chelautotrans s.r.o. legal entity name" },
     { "value": "Mercedes-Benz", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
     { "value": "E-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
     { "value": "S-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
