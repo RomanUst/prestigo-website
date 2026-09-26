@@ -538,6 +538,18 @@
     "bookTransfer": "Reservar un traslado",
     "new": "NUEVO"
   },
+  "BookingSection": {
+    "label": "Reserva instantánea",
+    "headlineLine1": "Reserve su",
+    "headlineItalic": "chófer ahora.",
+    "subhead": "Precio fijo. Confirmación instantánea. Su chófer sigue su vuelo automáticamente.",
+    "trust": [
+        "Seguimiento de vuelo incluido",
+        "Precio fijo, sin sorpresas",
+        "Cancelación gratuita hasta 1 hora antes",
+        "Recepción en la sala de llegadas"
+    ]
+  },
   "Fleet": {
     "label": "La flota",
     "headingLine1": "Solo Mercedes-Benz.",

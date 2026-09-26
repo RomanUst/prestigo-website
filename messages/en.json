@@ -503,6 +503,18 @@
     "bookTransfer": "Book a transfer",
     "new": "NEW"
   },
+  "BookingSection": {
+    "label": "Instant booking",
+    "headlineLine1": "Book your",
+    "headlineItalic": "chauffeur now.",
+    "subhead": "Fixed price. Instant confirmation. Your driver tracks your flight automatically.",
+    "trust": [
+        "Flight tracking included",
+        "Fixed price — no surprises",
+        "Free cancellation up to 1 hour",
+        "Meet & greet at Arrivals"
+    ]
+  },
   "Fleet": {
     "label": "The fleet",
     "headingLine1": "Mercedes only.",

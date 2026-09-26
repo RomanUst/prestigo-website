@@ -538,6 +538,18 @@
     "bookTransfer": "预订接送服务",
     "new": "全新"
   },
+  "BookingSection": {
+    "label": "即时预订",
+    "headlineLine1": "立即预订您的",
+    "headlineItalic": "专属司机。",
+    "subhead": "固定价格。即时确认。您的司机会自动追踪您的航班。",
+    "trust": [
+        "包含航班追踪",
+        "固定价格 — 无隐藏费用",
+        "预订前1小时内可免费取消",
+        "在抵达大厅迎接"
+    ]
+  },
   "Fleet": {
     "label": "车队",
     "headingLine1": "只选 Mercedes-Benz。",
