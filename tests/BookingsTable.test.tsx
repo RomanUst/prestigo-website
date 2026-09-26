@@ -45,6 +45,7 @@ type PartialBooking = {
   outbound_amount_czk: number | null
   return_amount_czk: number | null
   linked_booking: { booking_reference: string } | null
+  locale?: string | null
 }
 
 function makeBooking(overrides: Partial<PartialBooking> = {}): PartialBooking {
@@ -251,6 +252,74 @@ describe('BookingsTable cancel modal round-trip variant — RTAD-04', () => {
     expect(screen.getByText(/PARTIAL STRIPE REFUND WILL BE ISSUED FOR THIS LEG/)).toBeDefined()
     // Confirm button stays as-is
     expect(screen.getByRole('button', { name: /Confirm Cancel \+ Refund/i })).toBeDefined()
+  })
+})
+
+describe('BookingsTable booking language — Phase 75-17 D-11', () => {
+  beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1024, writable: true })
+    window.dispatchEvent(new Event('resize'))
+  })
+
+  it('desktop: expanded row shows uppercase locale code for locale "ru"', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-locale-ru', booking_reference: 'PRE-LOCALE-RU', locale: 'ru' }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-LOCALE-RU')
+    const rowEl = refCell.closest('tr')
+    expect(rowEl).not.toBeNull()
+    if (rowEl) fireEvent.click(rowEl)
+
+    await waitFor(() => {
+      expect(within(rowEl as HTMLElement).getByText('LANGUAGE')).toBeDefined()
+    })
+    expect(within(rowEl as HTMLElement).getByText('RU')).toBeDefined()
+  })
+
+  it('desktop: expanded row shows an em dash when locale is null', async () => {
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-locale-null', booking_reference: 'PRE-LOCALE-NULL', locale: null }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    const refCell = await screen.findByText('PRE-LOCALE-NULL')
+    const rowEl = refCell.closest('tr')
+    expect(rowEl).not.toBeNull()
+    if (rowEl) fireEvent.click(rowEl)
+
+    await waitFor(() => {
+      expect(within(rowEl as HTMLElement).getByText('LANGUAGE')).toBeDefined()
+    })
+    expect(within(rowEl as HTMLElement).getByText('—')).toBeDefined()
+  })
+
+  it('mobile: expanded card shows uppercase locale code for locale "zh"', async () => {
+    Object.defineProperty(window, 'innerWidth', { value: 375, writable: true })
+    window.dispatchEvent(new Event('resize'))
+
+    stubFetchWithBookings([
+      makeBooking({ id: 'b-locale-zh-mobile', booking_reference: 'PRE-LOCALE-ZH-M', locale: 'zh' }),
+    ])
+
+    const { default: BookingsTable } = await import('@/components/admin/BookingsTable')
+    render(<BookingsTable />)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('mobile-cards')).toBeDefined()
+    })
+    const refCell = await screen.findByText('PRE-LOCALE-ZH-M')
+    fireEvent.click(refCell)
+
+    await waitFor(() => {
+      expect(within(screen.getByTestId('mobile-cards')).getByText('LANGUAGE')).toBeDefined()
+    })
+    expect(within(screen.getByTestId('mobile-cards')).getByText('ZH')).toBeDefined()
   })
 })
 
