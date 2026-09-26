@@ -1,0 +1,8 @@
+# 75-18: content/pages/en/contact.json hero.imageAlt -- the /contact hero
+# background <Image> alt text was still hardcoded English (found by
+# scripts/qa/en_leak_static.mjs R2 during this plan's pre-deploy gate,
+# 75-QA-RESULTS.md) -- externalized to the content model and hand-translated
+# in-session (D-08) into ru/es/fr/ar/hi/zh. Plan 75-18 applies this pattern
+# to i18n/translation-manifest.json so a future pipeline run neither
+# overwrites this unit nor re-spends tokens on it.
+content/pages/en/contact.json::hero.imageAlt

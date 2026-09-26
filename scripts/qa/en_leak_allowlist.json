@@ -3,6 +3,7 @@
     { "value": "Prestigo", "reason": "i18n/glossary.json doNotTranslate.brand" },
     { "value": "PRESTIGO", "reason": "i18n/glossary.json doNotTranslate.brand" },
     { "value": "chelautotrans s.r.o.", "reason": "i18n/glossary.json doNotTranslate.brand (legal entity name)" },
+    { "value": "Spojovací 685, Vysoký Újezd", "reason": "physical business address (components/Footer.tsx, app/[locale]/contact/page.tsx) — never translated across locales, required verbatim for correct mail delivery, same treatment as the chelautotrans s.r.o. legal entity name" },
     { "value": "Mercedes-Benz", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
     { "value": "E-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
     { "value": "S-Class", "reason": "i18n/glossary.json doNotTranslate.vehicleClasses" },
@@ -52,7 +53,8 @@
     { "value": "Germany", "reason": "lib/routes.ts destination country" },
     { "value": "Slovakia", "reason": "lib/routes.ts destination country" },
     { "value": "Poland", "reason": "lib/routes.ts destination country" },
-    { "value": "Hungary", "reason": "lib/routes.ts destination country" }
+    { "value": "Hungary", "reason": "lib/routes.ts destination country" },
+    { "value": "Prague → {city}", "reason": "content/pages/en/routes.json fromToLabel — French exonym for Prague is 'Prague' itself (unlike ru/es/ar/hi/zh); nothing else in the template is translatable text" }
   ],
   "tierNames": [
     { "value": "First Class", "reason": "vehicle tier name accepted in EN across all locales" },
@@ -60,6 +62,9 @@
     { "value": "PRG · VIE · BER · MUC", "reason": "airport code shorthand, never translated" },
     { "value": "EUR — €", "reason": "currency label, never translated" },
     { "value": "CZK — Kč", "reason": "currency label, never translated" },
+    { "value": "Service", "reason": "French cognate — messages/en.json ContactForm.serviceLabel translates identically in French" },
+    { "value": "Message", "reason": "French cognate — messages/en.json ContactForm.messageLabel translates identically in French" },
+    { "value": "Distance", "reason": "French cognate — content/pages/en/routes.json countries.cardLabels.distance translates identically in French" },
     { "value": "DIČ / VAT ID", "reason": "invoicing/legal field label, never translated" }
   ],
   "enFallbackPaths": [
