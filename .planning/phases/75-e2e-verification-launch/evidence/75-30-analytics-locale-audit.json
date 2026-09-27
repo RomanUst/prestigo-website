@@ -1,0 +1,114 @@
+{
+ "en": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 3,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "ru": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "es": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "fr": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "ar": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "hi": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "zh": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ }
+}

@@ -424,3 +424,38 @@ Run date (UTC): 2026-09-27. Target: `https://rideprestigo.com`.
 | GAP-4b/c (EN leak) | `en_leak_rendered.py https://rideprestigo.com --locales ru --pages /blog/beyond-transport-luxury-chauffeur-service-prague,/this-page-does-not-exist` | 1 | MDX post: 0 text leaks, 0 link leaks (before: 5 text / 9 link). 404: 0 link leaks (before: 1). **3 text leaks remain on `/ru/this-page-does-not-exist`, all `kind: meta`**: the English site-default `description`, `og:title` and `og:description` (twitter tags carry the same values) |
 
 **Tracer finding (new, not classified):** the localized 404 now renders inside `LocaleLayout`. Its `generateMetadata` (`app/[locale]/[...rest]/page.tsx`, plan 75-25) overrides only `title` and `robots`. The page inherits the rest from `app/[locale]/layout.tsx`, which exports the static English `siteMetadata` from `components/SiteChrome.tsx`: description "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. ..." and og/twitter title "PRESTIGO — Premium Chauffeur Service Prague". This is real untranslated text on a non-EN page. Under this plan's rules it is **not** added to `classifiedResidual`. It is recorded as a remaining GAP-4 item: an app-code fix is needed, and this plan does not edit app code. The 75-20 run could not show it, because the old root `app/not-found.tsx` had its own metadata.
+
+### Full production sweep (Task 2)
+
+All runs target `https://rideprestigo.com` after the deploy. Raw outputs are committed under `evidence/`. The 75-23 `analytics_locale_audit.json` was gitignored and stale; it is replaced by the committed `75-30-analytics-locale-audit.json`.
+
+#### Per-gap table
+
+| Gap | Check | Before (75-20) | After (75-30) | Result | Evidence |
+|---|---|---|---|---|---|
+| GAP-1 (D-04 RU/AR signed-in account path) | `booking_e2e.py --account ru,ar` (plan 75-22) | SKIPPED: credentials file absent | **Not run: plan 75-22 skipped by user decision (2026-09-27)** | **SKIPPED (user decision), open** | `75-22-SUMMARY.md` |
+| GAP-2 (Meta Pixel + `site_locale`) | `analytics_locale_audit.py` (7 locales x `/`, `/book`) | metaHits 0 and metaSiteLocale false on 14/14; GA4 pass 14/14 | **14/14 pass**: metaHits 1, metaSiteLocale true, ga4SiteLocale true on every locale x page; `all_pass: True`, exit 0 | **PASS** | `evidence/75-30-analytics-locale-audit.json` |
+| GAP-3 (overflow) | `overflow_audit.py` at 320 / 375 / 768 / 1024 / 1280 (7 locales x 21 pages) | 768px: 1 page with issues (`/ru/fleet`, 2 `<p>`); other widths 0 | **pages with issues: 0 at all five widths**, each exit 0, each JSON `{}` | **PASS** | `evidence/75-30-overflow-{320,375,768,1024,1280}.json` |
+| GAP-4a (localized 404) | `notfound_audit.py` (7 locales x 2 unmatched paths + 12 non-shadowing probes) | 0/14 localized (75-25 baseline: status 404 but `lang=en`, EN h1/title) | **localized 14/14 PASS** (status 404, lang, `dir=rtl` on ar only, localized h1 and title); **non-shadowing 12/12 PASS**; exit 0 | **PASS** | `evidence/75-30-notfound-audit.json` |
+| GAP-4b/c/d (rendered EN leaks) | `en_leak_rendered.py` (ru/es/fr/ar/hi/zh x 26 pages) | 329 text / 90 link | **20 text / 0 link** (ru 5, es 0, fr 0, ar 5, hi 5, zh 5), 1530 allowlisted with reasons; `classifiedResidual` `[]`; exit 1 | **FAIL (partial)**: link leaks closed; 20 meta findings remain | `evidence/75-30-en-leak-rendered.json` |
+
+**GAP-4 remaining items.** These are real untranslated text, so they are not classified. Every one is `kind: meta`.
+
+| Locale | Page | Remaining values |
+|---|---|---|
+| ru, ar, hi, zh | `/login` | og:title "PRESTIGO — Premium Chauffeur Service Prague"; og:description "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. …" (twitter:* carry the same values) |
+| ru, ar, hi, zh | `/this-page-does-not-exist` | meta description, og:title and og:description with the same English site-default values |
+
+Root cause: `app/[locale]/layout.tsx` exports the static English `siteMetadata` (`components/SiteChrome.tsx`). `/login` overrides only title and description, and the 404's `generateMetadata` overrides only title and robots. es and fr serve the same English values, but the scanner does not flag them. The fix is app code, so it is out of scope here and recorded in `deferred-items.md` (75-30).
+
+#### Regression table (vs 75-20)
+
+| Script | 75-20 | 75-30 | Result |
+|---|---|---|---|
+| `render_audit.py` | 147 URLs, 7 findings (`/login` missing canonical x 7) | 147 URLs, 7 findings: the same `/login` missing canonical x 7, exit 1 | No regression (pre-existing) |
+| `switcher_audit.py` | 63 ops, 0 findings | 63 ops, 0 findings, exit 0 | No regression |
+| `csp_regression.py --compare` | 11 route classes, 0 findings | 11 route classes, 0 findings, exit 0 | No regression |
+| `hreflang_reciprocity.py` | 63 clusters, 423 alternates, 3 errors (D-09 EN-only posts) | 63 URLs, 423 alternates, 3 errors: `prague-airport-to-city-center`, `prague-airport-taxi-vs-chauffeur`, `prague-vienna-transfer-vs-train` (D-09), exit 1 | No regression (by design) |
+| `jsonld_audit.py` | 84 blocks, 0 findings | 84 blocks, 0 findings, exit 0 | No regression |
+
+Evidence files committed: `evidence/75-30-analytics-locale-audit.json`, `75-30-notfound-audit.json`, `75-30-en-leak-rendered.json`, and `75-30-overflow-{320,375,768,1024,1280}.json` (8 files). The regression outputs remain in the gitignored `scripts/qa/out/`.

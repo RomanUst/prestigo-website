@@ -127,3 +127,33 @@ covers; log everything else here instead of silently expanding scope).
   updated` to `content/pages/*/authors/roman-ustyugov.json` and a
   locale-aware date formatter (pick Latin vs native digits for ar/hi
   deliberately). lib/authors.ts must stay unchanged for the Person JSON-LD.
+
+## 75-30 (gap-closure production re-verification, recorded not fixed: this plan may not edit app code)
+
+- **GAP-1: RU/AR signed-in account path (D-04) is still unverified. SKIPPED by user decision, open.**
+  - Plan 75-22 was skipped on 2026-09-27 ("пропускаем"). The E2E test account and the git-ignored `scripts/qa/.e2e-account.json` were never created.
+  - The guest path is proven for ru and ar. Only the signed-in "My trips" and booking variant is unproven.
+  - WINDOWS #25 stays open.
+  - To close: the user creates the account and the credentials file, then re-run 75-22 (delete its SUMMARY and run `/gsd-execute-phase 75 --gaps-only`), or run `python3 scripts/qa/booking_e2e.py --locales "" --account ru,ar` and do the strict-marker cleanup.
+
+- **GAP-4 remainder: English og/twitter (and 404 description) metadata on `/login` and the localized 404.**
+  - On production there are 20 `meta` findings: ru/ar/hi/zh x (2 on `/login` + 3 on `/this-page-does-not-exist`).
+  - es and fr serve the same English values, but the scanner does not flag them.
+  - Cause: `app/[locale]/layout.tsx` exports the static English `siteMetadata` (`components/SiteChrome.tsx`). `app/[locale]/login/layout.tsx` (75-28) overrides only title and description. `app/[locale]/[...rest]/page.tsx` `generateMetadata` (75-25) overrides only title and robots.
+  - Fix: add localized `description`, `openGraph.title/description` and `twitter.title/description` in both places, or make the locale layout's default metadata locale-aware via `generateMetadata`.
+  - Also extend `en_leak_rendered.py` so the es/fr identical-to-EN check covers meta.
+  - Both pages are noindex, so SEO impact is low. The English text is visible only in link previews and shares. WINDOWS #24 stays open until this is fixed and re-scanned.
+
+- **Unscanned-page catalog inventory (content follow-up).**
+  - Figures from `75-EN-LEAK-RESIDUAL.md` "Unscanned-page catalog inventory", via `en_leak_catalog.py`, before 75-29. The whole catalog has 212 files / 401 leaf findings. Pages outside the audited rendered set account for 72 files / 293 leaf findings: ru 51, ar 33, hi 129, zh 80.
+  - Most of it is on route pages (`content/routes/<loc>/prague-*.json`) and on `/privacy`, `/terms` and `/data-deletion`.
+  - Two kinds of finding:
+    - Proper nouns that are allowlist candidates (venues, border crossings, Czech/German place names, tech vendors on the privacy page).
+    - Latin loanwords of the same families as the 75-29 rows. For hi, many of these are now intentional under the 75-29 keep-per-glossary decision (airport, flight, terminal, pickup, driver, chauffeur and so on). The rest are genuinely untranslated fragments: ru `fast-track`, English airport names such as `Prague Airport`, `Old Town`, `WiFi`, cookie/consent terms.
+  - Follow-up: run `python3 scripts/qa/en_leak_catalog.py` against the post-75-29 allowlist. Then triage per locale into allowlist additions and catalog rewrites (translated in-session, then frozen), and extend `en_leak_rendered.py` PAGES with a sample of route pages.
+
+- **Content rule conflict: Uber comparison in the airport-transfer copy (content follow-up, not changed here).**
+  - The English `/services/airport-transfer` copy (`content/pages/en/services/airport-transfer.json`, FAQ "How does PRESTIGO compare to taking an Uber from the airport?") compares the service with the Uber taxi rank at PRG, including a fare comparison. All six translations carry the same entry (`content/pages/{ru,es,fr,ar,hi,zh}/services/airport-transfer.json`).
+  - This conflicts with the project's content rule: never compare against Uber or ride-hailing, compare with the train or a budget flight, or sell on value.
+  - The same theme appears in blog content: `content/blog/<loc>/premium-airport-transfer-prague-shortcut.mdx`, `content/blog/<loc>/prague-airport-arrivals-guide.mdx`, and the EN-only JSX posts `app/[locale]/blog/prague-airport-taxi-vs-chauffeur/page.tsx` and `prague-airport-to-city-center/page.tsx`.
+  - Follow-up: rewrite the FAQ entry in EN and re-translate it into all six locales in-session, then freeze. Review the blog posts against the rule too. Any rewrite must also avoid stating prices (no-prices content rule).
