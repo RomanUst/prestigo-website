@@ -24,7 +24,7 @@
 - [x] **Phase 72: AI Translation Pipeline & Catalogs** — Build re-runnable `scripts/i18n-translate.mjs` (glossary + do-not-translate); generate RU/ES/FR catalogs + content; QA sampling. — TR-01/02 (completed 2026-09-17)
 - [x] **Phase 73: Non-Latin & RTL Infra (AR, HI, ZH)** — `dir="rtl"` for AR, logical-property audit + fixes (~42 files), Noto Arabic/Devanagari/SC via next/font, generate + render AR/HI/ZH, RTL visual QA. — RTL-01, FONT-01, TR-02 (completed 2026-09-20)
 - [x] **Phase 74: SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher** — `getAlternates`→6+`x-default`, locale-aware `generateMetadata`, sitemap all-locale URLs + alternates, JSON-LD `inLanguage`, language switcher + `NEXT_LOCALE` cookie, Accept-Language detection. — SEO-01/02/03/04, UX-01/02 (completed 2026-09-24)
-- [ ] **Phase 75: E2E Verification & Launch** — Cross-locale E2E (render, switcher, per-locale booking incl. RTL, analytics locale dimension, no EN leakage, hreflang validator, Rich Results, no CSP regression, guest checkout intact); clear red baseline in touched files. — VER-01
+- [x] **Phase 75: E2E Verification & Launch** — Cross-locale E2E (render, switcher, per-locale booking incl. RTL, analytics locale dimension, no EN leakage, hreflang validator, Rich Results, no CSP regression, guest checkout intact); clear red baseline in touched files. — VER-01 (completed 2026-09-27)
 
 **Proposed execution order:** 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69 and 70 may run in parallel after 68; 71 and 72 pipeline can overlap once the content model from 71 is stable).
 
@@ -288,7 +288,7 @@ Plans:
   6. vitest is green for all v3.0-touched files; pre-existing unrelated failures are listed.
   7. Launch: sitemap resubmitted in GSC with a per-locale indexing baseline recorded; Metricool announcement created as drafts only; milestone v3.0 audited and closed.
 
-**Plans:** 36 plans (21 + 15 gap closure)
+**Plans:** 36/36 plans complete
 
 Plans:
 **Wave 1**
@@ -466,4 +466,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 36/36 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
