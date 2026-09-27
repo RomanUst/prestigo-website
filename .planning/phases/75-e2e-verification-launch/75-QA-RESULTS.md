@@ -484,3 +484,39 @@ Both items are logged in `deferred-items.md` (75-30).
 - GAP-4 link leaks are closed.
 - GAP-1 and the GAP-4 meta remainder are open, as listed above.
 - WINDOWS ids closed by plan 75-30: **#15, #22, #23**.
+
+## Gap closure re-verification (plans 75-31..75-36)
+
+Run date (UTC): 2026-09-27. Target: `https://rideprestigo.com`.
+
+### Pre-deploy gate, deploy and smoke (plan 75-35)
+
+#### Pre-deploy gate (main checkout, HEAD `78b61bba`)
+
+| Check | Exit | Result |
+|---|---|---|
+| `npx vitest run --exclude '.claude/**'` | 0 | 165 files passed (2 skipped) / 2905 tests passed (10 skipped, 139 todo) |
+| `node scripts/i18n-translate.mjs --check` | 0 | PASSED: ru, es, fr, ar, hi, zh complete vs `messages/en.json`, no API calls |
+| `node scripts/i18n-freeze-manifest.mjs --verify` | 0 | PASSED (397 frozen units; was 390 at 75-30) |
+| `python3 -m unittest discover -s scripts/qa -p 'test_*.py'` | 0 | 67 tests OK (was 29 at 75-30; 75-32 added scanner/share-meta tests) |
+| `node scripts/qa/en_leak_static.mjs` | 1 | 18 files / 148 findings, all in the documented UNOWNED `components/admin/**` bucket. 0 customer-facing findings. Same as 75-30 |
+| `npx tsc --noEmit` filtered to the `.ts`/`.tsx` files_modified of 75-31..75-34 | 2 (unfiltered) | Filtered output: **nothing**. The unfiltered run has 8 errors, all in unrelated test files (`tests/i18n-translate-dnt.test.ts`, `tests/nav-auth.test.tsx`, `tests/passenger-actions.test.ts`) |
+| 75-32 UNMAPPED list (`75-EN-LEAK-RESIDUAL.md`, "Extended-scanner pre-fix baseline") | n/a | **none**, so the deploy is allowed |
+
+#### Guards
+
+| Guard | Result |
+|---|---|
+| Concurrency (`git fetch origin`; `git rev-list --count HEAD..origin/main`) | 0 at the start and 0 again right before the push. HEAD was 40 commits ahead. Nothing to merge |
+| Scope (`git diff --name-only origin/main...HEAD`) | 72 paths. Every one is under `.planning/**` or `scripts/qa/**`, or is listed in a files_modified of 75-31..75-34. Checked with a script against the union of the four plans' files_modified: 0 `OUT-OF-SCOPE` lines. No foreign path |
+| Secret scan (added lines of that diff; 75-19 pattern list: `sk_live_`/`rk_live_`/`sk_test_`/`rk_test_`/`whsec_`/JWT `eyJhbGciOi`/`BEGIN ... PRIVATE KEY`/`AKIA`/`re_` Resend keys/`SERVICE_ROLE_KEY=`/`service_role`/password literals) | 28351 added lines, **0 real hits**. One false positive: the 75-35-PLAN.md doc line that names the pattern list |
+| Forbidden paths | No `.env*`, `.e2e-account.json` or `scripts/qa/out/**` path in the diff. `git ls-files scripts/qa/.e2e-account.json scripts/qa/out` prints nothing |
+
+#### Deploy (via PR, decided in 75-19)
+
+- Branch `release/phase-75-gaps-2` was created at `78b61bba3a24e06396954e090c47329c0d633d6f` and pushed.
+- PR: **https://github.com/RomanUst/prestigo-website/pull/39** (`release/phase-75-gaps-2` into `main`).
+  - `gh pr view release/phase-75-gaps-2 --json state` returns `OPEN`.
+  - The PR body lists WR-01, WR-02, WR-03, WR-04, WR-05, IN-05 and WINDOWS #24/#26, and ends with the Claude Code attribution line.
+- **Not merged by the agent.** Waiting for the user to merge at the plan 75-35 Task 2 checkpoint (merge commit, not squash or rebase). The Vercel Preview check is expected to be red; it is non-blocking.
+- Merge sha, Production deployment id/status, local fast-forward and the smoke table are added by Task 3 after the merge.
