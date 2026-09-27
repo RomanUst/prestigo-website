@@ -19,11 +19,26 @@ loads the rendered production page after hydration and flags:
     internal link that would drop the locale prefix.
 
 Reads scripts/qa/en_leak_allowlist.json (the same allowlist the static
-scanner in en_leak_static.mjs reads) for dnt/placeNames/tierNames text
-stripping and enFallbackPaths/recordedAsIs page-level allowlisting.
+scanner in en_leak_static.mjs reads) for dnt/placeNames/tierNames/properNouns
+text stripping and enFallbackPaths/recordedAsIs page-level allowlisting.
+
+Token stripping is boundary-aware (Plan 75-26): an allowlist token is removed
+only where it is not directly preceded or followed by a Latin letter, so the
+tier token 'Service' is never cut out of 'Services', while a token glued to a
+non-Latin connector (Arabic و, Cyrillic case endings, CJK) is still removed.
+properNouns / inlineTerms / classifiedResidual entries may carry an optional
+"locales" array restricting them to those locales (default: all locales).
+Before token stripping, structural tokens that are not language content are
+removed: email addresses, http(s) URLs and single-slash path tokens (/book).
+classifiedResidual entries ({value, reason, pages?, locales?}) are applied
+after leak collection: an exact-value match (page-scoped when "pages" is set)
+is moved to the page's `allowlisted` list with its reason — never dropped.
 
 Usage: python3 scripts/qa/en_leak_rendered.py [base_url] [--locales ru,es,fr,ar,hi,zh]
-Requires Python Playwright. Writes scripts/qa/out/en_leak_rendered.json.
+                                              [--pages /faq,/book]
+Requires Python Playwright (imported lazily, so the pure helpers can be unit
+tested with stdlib only — see test_en_leak_rendered.py).
+Writes scripts/qa/out/en_leak_rendered.json.
 
 Exit codes: 0 = clean, 1 = non-allowlisted leak/linkLeak present,
 2 = infrastructure error (browser launch / network failure).
@@ -33,8 +48,6 @@ import json
 import os
 import re
 import sys
-
-from playwright.sync_api import sync_playwright
 
 # Copied verbatim from scripts/qa/overflow_audit.py for coverage parity,
 # plus the extras named in the plan (D-07/D-09 surfaces + a negative control).
@@ -63,9 +76,62 @@ def _values(key):
     return [e.get('value') for e in ALLOWLIST.get(key, []) if e.get('value')]
 
 
-TEXT_ALLOW_TOKENS = sorted(
-    _values('dnt') + _values('placeNames') + _values('tierNames'), key=len, reverse=True
-)
+def _entry_applies(entry: dict, locale) -> bool:
+    """True when an allowlist entry applies to `locale` (no/empty "locales" array = all locales)."""
+    locs = entry.get('locales')
+    if not locs:
+        return True
+    if locale is None:
+        return False  # locale-scoped entries never apply to a locale-agnostic strip
+    return locale in locs
+
+
+# Categories whose values are stripped from text before counting Latin words.
+# dnt/placeNames/tierNames are unscoped (also read by the freeze tool and
+# booking_e2e.py — never change their shape); the newer categories may be
+# locale-scoped via an optional "locales" array.
+UNSCOPED_TEXT_CATEGORIES = ('dnt', 'placeNames', 'tierNames')
+SCOPED_TEXT_CATEGORIES = ('properNouns', 'inlineTerms')
+
+# Latin letters for the token boundary: ASCII + Latin-1 Supplement letters +
+# Latin Extended-A/B (covers Czech/German/Polish diacritics such as ě, ř, ł).
+LATIN_LETTER_CLASS = 'A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u024F'
+
+
+def text_allow_tokens(locale=None) -> list:
+    """Every allowlisted text token that applies to `locale`, longest first."""
+    toks = []
+    for key in UNSCOPED_TEXT_CATEGORIES:
+        toks += _values(key)
+    for key in SCOPED_TEXT_CATEGORIES:
+        toks += [e.get('value') for e in ALLOWLIST.get(key, []) if e.get('value') and _entry_applies(e, locale)]
+    # de-duplicate, keep longest-first order so multi-word tokens win over their parts
+    return sorted(set(toks), key=len, reverse=True)
+
+
+def _compile_token_re(tokens: list):
+    if not tokens:
+        return None
+    alternation = '|'.join(re.escape(t) for t in tokens)
+    return re.compile(f'(?<![{LATIN_LETTER_CLASS}])(?:{alternation})(?![{LATIN_LETTER_CLASS}])')
+
+
+_TOKEN_RE_CACHE: dict = {}
+
+
+def reset_caches() -> None:
+    """Drops compiled per-locale token regexes (tests patch ALLOWLIST and call this)."""
+    _TOKEN_RE_CACHE.clear()
+
+
+def token_re(locale=None):
+    if locale not in _TOKEN_RE_CACHE:
+        _TOKEN_RE_CACHE[locale] = _compile_token_re(text_allow_tokens(locale))
+    return _TOKEN_RE_CACHE[locale]
+
+
+# Kept for backwards compatibility with any importer: the locale-agnostic token list.
+TEXT_ALLOW_TOKENS = text_allow_tokens(None)
 EN_FALLBACK_PATHS = set(_values('enFallbackPaths'))
 RECORDED_AS_IS_PATHS = set(_values('recordedAsIs'))
 
@@ -188,15 +254,38 @@ EXTRACT_JS = """() => {
 }"""
 
 
-def strip_allow(text: str) -> str:
-    for tok in TEXT_ALLOW_TOKENS:
-        if tok:
-            text = text.replace(tok, ' ')
+# Structural (non-language) tokens, stripped before allowlist tokens.
+EMAIL_RE = re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+')
+URL_RE = re.compile(r'https?://[^\s<>"\')\]）]+')
+# A single-slash path token such as /book or /book/multi-day: must not be
+# glued to a preceding letter/digit/slash/dot/colon, so 'and/or', 'km/h',
+# '24/7' and 'USB-A/USB-C' are NOT treated as paths.
+PATH_RE = re.compile(r'(?<![A-Za-z0-9_/.:])/[a-z0-9][a-z0-9_\-/]*')
+
+
+def strip_structural(text: str) -> str:
+    text = EMAIL_RE.sub(' ', text)
+    text = URL_RE.sub(' ', text)
+    text = PATH_RE.sub(' ', text)
     return text
 
 
-def has_significant_words(text: str, min_words: int) -> bool:
-    stripped = strip_allow(text)
+def strip_allow(text: str, locale=None) -> str:
+    """Structural strip, then boundary-aware removal of every allowlisted token that applies to `locale`.
+
+    A single alternation regex (longest token first — Python's re tries
+    alternatives left to right) replaces each match with a space; a token is
+    only matched where it is not directly preceded/followed by a Latin letter.
+    """
+    text = strip_structural(text)
+    rx = token_re(locale)
+    if rx is None:
+        return text
+    return rx.sub(' ', text)
+
+
+def has_significant_words(text: str, min_words: int, locale=None) -> bool:
+    stripped = strip_allow(text, locale)
     words = LATIN_WORD_RE.findall(stripped)
     if len(words) < min_words:
         return False
@@ -258,34 +347,61 @@ def collect_page_data(page, url: str) -> dict:
         return {'error': str(e)[:200], 'texts': [], 'attrs': [], 'meta': [], 'faqStrings': [], 'serviceStrings': [], 'links': []}
 
 
-def collect_leaks(data: dict, path: str) -> list:
+def collect_leaks(data: dict, path: str, locale=None) -> list:
     leaks = []
     for text in data.get('texts', []):
-        if has_significant_words(text, 2):
+        if has_significant_words(text, 2, locale):
             leaks.append({'kind': 'text', 'value': text[:200]})
     for text in data.get('attrs', []):
-        if has_significant_words(text, 2):
+        if has_significant_words(text, 2, locale):
             leaks.append({'kind': 'attr', 'value': text[:200]})
     for text in data.get('meta', []):
-        if has_significant_words(text, 2):
+        if has_significant_words(text, 2, locale):
             leaks.append({'kind': 'meta', 'value': text[:200]})
     for text in data.get('faqStrings', []):
-        if has_significant_words(text, 2):
+        if has_significant_words(text, 2, locale):
             leaks.append({'kind': 'faq', 'value': text[:200]})
     if is_route_page(path):
         for text in data.get('serviceStrings', []):
-            if has_significant_words(text, 2):
+            if has_significant_words(text, 2, locale):
                 leaks.append({'kind': 'service', 'value': text[:200]})
     return leaks
 
 
-def collect_es_fr_leaks(data: dict, en_strings: set) -> list:
+def collect_es_fr_leaks(data: dict, en_strings: set, locale=None) -> list:
     leaks = []
     candidates = list(data.get('texts', [])) + list(data.get('attrs', []))
     for text in candidates:
-        if text in en_strings and has_significant_words(text, 3):
+        if text in en_strings and has_significant_words(text, 3, locale):
             leaks.append({'kind': 'identical-to-en', 'value': text[:200]})
     return leaks
+
+
+def apply_classified_residual(leaks: list, locale, path: str, entries=None):
+    """Moves leaks matching a classifiedResidual entry into an allowlisted list.
+
+    Match = exact value (the finding value, which is truncated to 200 chars,
+    or the entry value truncated the same way). An entry with "pages" only
+    applies on those paths; one with "locales" only on those locales.
+    Returns (remaining_leaks, moved_allowlisted_items).
+    """
+    if entries is None:
+        entries = ALLOWLIST.get('classifiedResidual', [])
+    applicable = [
+        e for e in entries
+        if e.get('value') and e.get('reason') and _entry_applies(e, locale)
+        and (not e.get('pages') or path in e['pages'])
+    ]
+    if not applicable:
+        return list(leaks), []
+    remaining, moved = [], []
+    for item in leaks:
+        hit = next((e for e in applicable if item.get('value') in (e['value'], e['value'][:200])), None)
+        if hit:
+            moved.append({**item, 'reason': f"classified: {hit['reason']}"})
+        else:
+            remaining.append(item)
+    return remaining, moved
 
 
 def collect_link_leaks(data: dict, locale: str) -> list:
@@ -296,12 +412,24 @@ def collect_link_leaks(data: dict, locale: str) -> list:
     return out
 
 
+def parse_pages(arg) -> list:
+    """`--pages` comma filter: a list of paths, or the full PAGES list when empty/None."""
+    if not arg:
+        return PAGES
+    pages = [p.strip() for p in arg.split(',') if p.strip()]
+    return pages or PAGES
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description='en_leak_rendered — D-06 rendered-layer EN-leak scan')
     parser.add_argument('base_url', nargs='?', default='https://rideprestigo.com')
     parser.add_argument('--locales', default=','.join(DEFAULT_LOCALES))
+    parser.add_argument('--pages', default='', help='comma-separated paths (default: the full PAGES list)')
     args = parser.parse_args()
 
+    from playwright.sync_api import sync_playwright  # lazy: helpers stay stdlib-testable
+
+    pages_to_scan = parse_pages(args.pages)
     requested_locales = [l.strip() for l in args.locales.split(',') if l.strip()]
     base = args.base_url.rstrip('/')
     needs_en_baseline = any(l in ('es', 'fr') for l in requested_locales)
@@ -328,21 +456,21 @@ def main() -> int:
             page = context.new_page()
 
             if needs_en_baseline:
-                for path in PAGES:
+                for path in pages_to_scan:
                     url = build_url(base, 'en', path)
                     data = collect_page_data(page, url)
                     en_baseline[path] = set(data.get('texts', [])) | set(data.get('attrs', []))
 
             for loc in requested_locales:
                 results[loc] = {}
-                for path in PAGES:
+                for path in pages_to_scan:
                     url = build_url(base, loc, path)
                     data = collect_page_data(page, url)
 
                     if loc in ('es', 'fr'):
-                        leaks = collect_es_fr_leaks(data, en_baseline.get(path, set()))
+                        leaks = collect_es_fr_leaks(data, en_baseline.get(path, set()), loc)
                     else:
-                        leaks = collect_leaks(data, path)
+                        leaks = collect_leaks(data, path, loc)
                     link_leaks = collect_link_leaks(data, loc)
 
                     reason = en_fallback_reason(path, loc)
@@ -350,6 +478,8 @@ def main() -> int:
                     if reason and leaks:
                         allowlisted = [{**item, 'reason': reason} for item in leaks]
                         leaks = []
+                    leaks, classified = apply_classified_residual(leaks, loc, path)
+                    allowlisted += classified
 
                     results[loc][path] = {
                         'leaks': leaks,
@@ -378,7 +508,7 @@ def main() -> int:
                 total_link_leaks += len(r['linkLeaks'])
                 print(f"LINK-LEAK {loc} {path}: {r['linkLeaks'][:3]}")
 
-    print(f'en_leak_rendered: {len(requested_locales)} locales x {len(PAGES)} pages checked, '
+    print(f'en_leak_rendered: {len(requested_locales)} locales x {len(pages_to_scan)} pages checked, '
           f'{total_leaks} text leaks, {total_link_leaks} link leaks')
     return 1 if (total_leaks or total_link_leaks) else 0
 

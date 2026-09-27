@@ -42,10 +42,37 @@ const ALLOWLIST_PATH = path.join(__dirname, 'en_leak_allowlist.json')
 /** Loaded once at module scope — the single allowlist both audit layers read (Task 2 / en_leak_rendered.py). */
 export const allowlist = JSON.parse(readFileSync(ALLOWLIST_PATH, 'utf8'))
 
-const TEXT_ALLOW_TOKENS = [...(allowlist.dnt ?? []), ...(allowlist.placeNames ?? []), ...(allowlist.tierNames ?? [])]
-  .map((e) => e.value)
-  .filter(Boolean)
-  .sort((a, b) => b.length - a.length)
+/**
+ * Text-token categories, mirroring en_leak_rendered.py (Plan 75-26):
+ * dnt/placeNames/tierNames are unscoped; properNouns entries may carry an
+ * optional `locales` array. This layer scans EN source, which belongs to no
+ * target locale, so locale-restricted entries are skipped here.
+ */
+const UNSCOPED_TEXT_CATEGORIES = ['dnt', 'placeNames', 'tierNames']
+const SCOPED_TEXT_CATEGORIES = ['properNouns', 'inlineTerms']
+
+const TEXT_ALLOW_TOKENS = [
+  ...new Set(
+    [
+      ...UNSCOPED_TEXT_CATEGORIES.flatMap((k) => allowlist[k] ?? []),
+      ...SCOPED_TEXT_CATEGORIES.flatMap((k) => allowlist[k] ?? []).filter(
+        (e) => !Array.isArray(e.locales) || e.locales.length === 0,
+      ),
+    ]
+      .map((e) => e.value)
+      .filter(Boolean),
+  ),
+].sort((a, b) => b.length - a.length)
+
+/** Latin letters for the token boundary: ASCII + Latin-1 letters + Latin Extended-A/B (same class as en_leak_rendered.py). */
+const LATIN_LETTER_CLASS = 'A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u024F'
+const escapeRegExp = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+const TOKEN_RE = TEXT_ALLOW_TOKENS.length
+  ? new RegExp(
+      `(?<![${LATIN_LETTER_CLASS}])(?:${TEXT_ALLOW_TOKENS.map(escapeRegExp).join('|')})(?![${LATIN_LETTER_CLASS}])`,
+      'g',
+    )
+  : null
 
 const STATIC_IGNORE = allowlist.staticIgnoreFiles ?? []
 
@@ -54,17 +81,33 @@ const R4_KEY_NAMES = new Set(['title', 'body', 'q', 'a', 'name', 'description'])
 const EXCLUDED_NAME_PATTERN = /schema|jsonld|ld|graph|metadata/i
 const ASSET_EXT_RE = /\.[a-zA-Z0-9]{1,5}$/
 
-/** Removes every allowlisted DNT/place/tier token from `text` (plain substring removal — values may contain regex metacharacters). */
-function stripAllowlistedTokens(text) {
-  let result = text
-  for (const tok of TEXT_ALLOW_TOKENS) {
-    if (tok) result = result.split(tok).join(' ')
-  }
-  return result
+/**
+ * Boundary-aware removal of every allowlisted token from `text`: a token is
+ * only removed where it is not directly preceded/followed by a Latin letter
+ * (so 'Service' is never cut out of 'Services'). Values are regex-escaped;
+ * the alternation is longest-first so multi-word tokens win over their parts.
+ */
+export function stripAllowlistedTokens(text) {
+  const structural = stripStructural(text)
+  return TOKEN_RE ? structural.replace(TOKEN_RE, ' ') : structural
+}
+
+/*
+ * Structural (non-language) tokens, removed before allowlist tokens — same
+ * patterns as en_leak_rendered.py: email addresses, http(s) URLs, and
+ * single-slash path tokens (/book) not glued to a preceding letter/digit/
+ * slash/dot/colon (so 'and/or', 'km/h', '24/7', 'USB-A/USB-C' still count).
+ */
+const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g
+const URL_RE = /https?:\/\/[^\s<>"')\]）]+/g
+const PATH_RE = /(?<![A-Za-z0-9_/.:])\/[a-z0-9][a-z0-9_\-/]*/g
+
+export function stripStructural(text) {
+  return text.replace(EMAIL_RE, ' ').replace(URL_RE, ' ').replace(PATH_RE, ' ')
 }
 
 /** True when, after allowlist stripping, `text` still contains 2+ Latin words (2+ letters) and at least one lowercase letter. */
-function isEnglishLeak(rawText) {
+export function isEnglishLeak(rawText) {
   const stripped = stripAllowlistedTokens(rawText)
   const words = stripped.match(/[A-Za-z]{2,}/g) || []
   if (words.length < 2) return false
