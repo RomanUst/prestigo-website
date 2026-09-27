@@ -181,5 +181,65 @@ class LocaleScopedTokensTest(unittest.TestCase):
         self.assertEqual(len(text_leaks('zzqx wwvy', 'ru')), 1)
 
 
+EN_DEFAULT_TITLE = 'PRESTIGO — Premium Chauffeur Service Prague'
+EN_DEFAULT_DESCRIPTION = (
+    'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. '
+    'Fixed prices, flight tracking, meet & greet.'
+)
+
+
+class TwitterMetaTest(unittest.TestCase):
+    """Plan 75-32 Task 1 (WR-02/WR-03): twitter:* meta is read and English X cards are findings."""
+
+    def test_extract_js_reads_twitter_meta(self):
+        self.assertIn('twitter:title', scanner.EXTRACT_JS)
+        self.assertIn('twitter:description', scanner.EXTRACT_JS)
+
+    def test_english_twitter_title_is_meta_leak_ru(self):
+        leaks = scanner.collect_leaks({'meta': [EN_DEFAULT_TITLE]}, '/fleet', 'ru')
+        self.assertEqual([l['kind'] for l in leaks], ['meta'])
+
+    def test_localized_title_not_a_leak_ru(self):
+        s = 'Автопарк Mercedes — PRESTIGO'
+        self.assertEqual(scanner.collect_leaks({'meta': [s]}, '/fleet', 'ru'), [])
+
+
+class EsFrMetaIdenticalTest(unittest.TestCase):
+    """Plan 75-32 Task 1: es/fr meta identical to the EN page's meta (2+ significant words)."""
+
+    def test_identical_en_description_is_flagged_es(self):
+        data = {'texts': [], 'meta': [EN_DEFAULT_DESCRIPTION]}
+        leaks = scanner.collect_es_fr_leaks(data, set(), 'es', en_meta={EN_DEFAULT_DESCRIPTION})
+        self.assertEqual([l['kind'] for l in leaks], ['meta-identical-to-en'])
+
+    def test_spanish_description_not_flagged(self):
+        s = 'Servicio de chófer premium en Praga. Traslados al aeropuerto y rutas interurbanas.'
+        data = {'meta': [s]}
+        self.assertEqual(scanner.collect_es_fr_leaks(data, set(), 'es', en_meta={EN_DEFAULT_DESCRIPTION}), [])
+
+    def test_two_word_identical_meta_is_flagged_fr(self):
+        # The legacy default title strips to 'Premium Chauffeur' (2 words) —
+        # a 3-word threshold would miss it; the meta rule uses 2.
+        self.assertFalse(scanner.has_significant_words(EN_DEFAULT_TITLE, 3, 'fr'))
+        leaks = scanner.collect_es_fr_leaks({'meta': [EN_DEFAULT_TITLE]}, set(), 'fr', en_meta={EN_DEFAULT_TITLE})
+        self.assertEqual([l['kind'] for l in leaks], ['meta-identical-to-en'])
+
+    def test_brand_only_identical_meta_not_flagged(self):
+        self.assertEqual(scanner.collect_es_fr_leaks({'meta': ['PRESTIGO']}, set(), 'es', en_meta={'PRESTIGO'}), [])
+
+    def test_meta_not_in_en_meta_not_flagged(self):
+        # An English-looking meta that differs from EN is not an identical-to-EN finding.
+        self.assertEqual(
+            scanner.collect_es_fr_leaks({'meta': ['Some other English words']}, set(), 'es', en_meta={EN_DEFAULT_TITLE}),
+            [],
+        )
+
+    def test_positional_call_without_en_meta_unchanged(self):
+        s = 'Founder of PRESTIGO. 10+ years in luxury transportation and 5★ hospitality in Prague.'
+        self.assertEqual(len(scanner.collect_es_fr_leaks({'texts': [s]}, {s}, 'es')), 1)
+        # meta is ignored when en_meta is not given
+        self.assertEqual(scanner.collect_es_fr_leaks({'meta': [EN_DEFAULT_DESCRIPTION]}, set(), 'es'), [])
+
+
 if __name__ == '__main__':
     unittest.main()
