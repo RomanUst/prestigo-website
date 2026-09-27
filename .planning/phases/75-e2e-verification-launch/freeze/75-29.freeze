@@ -1,0 +1,9 @@
+# 75-29 (GAP-4e): Latin-script English fragments inside translated hi/ru
+# catalogs on the audited pages. User decision (2026-09-27): keep-per-glossary
+# — hi keeps Latin travel/tech loanwords per i18n/glossary.json
+# locales.hi.toneGuide (hi-scoped inlineTerms in scripts/qa/en_leak_allowlist.json);
+# only genuinely untranslated words/phrases were rewritten in-session (D-08).
+# ru follows the ru toneGuide (Latin loanwords rewritten in Russian).
+#
+# content/pages/en/book.json is already frozen as a whole by 75-06.freeze, so
+# the hi /book edits need no extra pattern here.

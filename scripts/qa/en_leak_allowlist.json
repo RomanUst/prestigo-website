@@ -168,7 +168,22 @@
     { "value": "Apple Pay", "reason": "payment product name — never translated" },
     { "value": "Google Pay", "reason": "payment product name — never translated" },
     { "value": "(Business)", "reason": "parenthesised vehicle tier label (Business tier, sibling of tierNames 'First Class'/'Business Van') shown next to a translated class name" },
-    { "value": "(First)", "reason": "parenthesised vehicle tier label (First Class tier) shown next to a translated class name" }
+    { "value": "(First)", "reason": "parenthesised vehicle tier label (First Class tier) shown next to a translated class name" },
+    { "value": "airport", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide ('common English tech/travel terms (airport, flight, terminal) stay as-is') — user decision keep-per-glossary (75-29)" },
+    { "value": "Airport", "locales": ["hi"], "reason": "hi travel loanword (sentence-initial / airport-name form) kept in Latin per i18n/glossary.json locales.hi.toneGuide — user decision keep-per-glossary (75-29)" },
+    { "value": "flight", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide ('common English tech/travel terms (airport, flight, terminal) stay as-is') — user decision keep-per-glossary (75-29)" },
+    { "value": "terminal", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide ('common English tech/travel terms (airport, flight, terminal) stay as-is') — user decision keep-per-glossary (75-29)" },
+    { "value": "Terminal", "locales": ["hi"], "reason": "hi travel loanword (airport signage form, 'Terminal 1/2') kept in Latin per i18n/glossary.json locales.hi.toneGuide — user decision keep-per-glossary (75-29)" },
+    { "value": "Arrivals", "locales": ["hi"], "reason": "hi travel loanword (PRG airport signage 'Arrivals' hall) kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "arrivals", "locales": ["hi"], "reason": "hi travel loanword (lower-case 'arrivals' hall/board) kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "pickup", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "drop-off", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "driver", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "chauffeur", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "door-to-door", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "vignette", "locales": ["hi"], "reason": "hi travel loanword (Czech/Austrian motorway toll sticker) kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "checkout", "locales": ["hi"], "reason": "hi tech loanword (online booking checkout step) kept in Latin per i18n/glossary.json locales.hi.toneGuide tech-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "live", "locales": ["hi"], "reason": "hi tech loanword ('live' status link / live flight data) kept in Latin per i18n/glossary.json locales.hi.toneGuide tech-term rule — user decision keep-per-glossary (75-29)" }
   ],
   "classifiedResidual": []
 }

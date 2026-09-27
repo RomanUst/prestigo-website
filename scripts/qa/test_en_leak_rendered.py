@@ -109,8 +109,21 @@ class OverMaskingGuardTest(unittest.TestCase):
     def test_flight_tracking_still_leaks_ru(self):
         self.assertEqual(len(text_leaks('Flight tracking included', 'ru')), 1)
 
-    def test_hi_latin_loanwords_still_leak(self):
-        self.assertEqual(len(text_leaks('airport pickup के लिए फ़्लाइट ट्रैकिंग', 'hi')), 1)
+    def test_hi_kept_loanwords_are_hi_scoped_only(self):
+        # 75-29 user decision keep-per-glossary: hi keeps Latin travel/tech
+        # loanwords (hi-scoped inlineTerms). They must NOT be masked in any
+        # other locale.
+        self.assertEqual(text_leaks('airport pickup के लिए फ़्लाइट ट्रैकिंग', 'hi'), [])
+        self.assertEqual(len(text_leaks('airport pickup для отслеживания рейса', 'ru')), 1)
+        self.assertEqual(len(text_leaks('airport pickup 的航班追踪', 'zh')), 1)
+
+    def test_hi_untranslated_english_still_leaks_next_to_kept_loanwords(self):
+        # Genuine English phrases inside Hindi stay flagged even when they
+        # sit next to kept loanwords.
+        self.assertEqual(len(text_leaks('आपका driver live air-traffic-control डेटा देखता है', 'hi')), 1)
+        self.assertEqual(len(text_leaks('अंतिम घंटे के भीतर last-minute रद्दीकरण', 'hi')), 1)
+        self.assertEqual(len(text_leaks('Seamless from landing to hotel', 'hi')), 1)
+        self.assertEqual(len(text_leaks('Flight tracking included', 'hi')), 1)
 
     def test_page_not_found_still_leaks_everywhere(self):
         for loc in ('ru', 'ar', 'hi', 'zh'):
