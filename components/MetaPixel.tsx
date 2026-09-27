@@ -4,8 +4,12 @@ import Script from 'next/script'
 import { useEffect, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import { locales, siteLocaleFromPathname } from '@/i18n/locales'
+import { normalizeMetaPixelId } from '@/lib/meta-pixel-id'
 
-const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID
+// WINDOWS #15: trim + digits-only so a whitespace-polluted env value can't
+// break the inline fbq init script (an invalid ID renders no pixel at all).
+// Keep the literal static property access — Next.js only inlines that form.
+const PIXEL_ID = normalizeMetaPixelId(process.env.NEXT_PUBLIC_META_PIXEL_ID)
 // Static locale allow-list serialized into the inline init script below
 // (T-75-12 pattern, mirrors GoogleAnalytics.tsx) — only this constant
 // literal is interpolated, no request-derived value.
