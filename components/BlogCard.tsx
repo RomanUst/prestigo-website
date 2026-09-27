@@ -1,7 +1,7 @@
-import { useTranslations } from 'next-intl'
+import { useLocale, useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import type { BlogPost } from '@/lib/blog'
-import { formatBylineDate } from '@/lib/authors'
+import { formatLocaleDate } from '@/lib/locale-date'
 import { blogCategoryKey } from '@/lib/blog-categories'
 
 type Props = { post: BlogPost }
@@ -20,6 +20,10 @@ type Props = { post: BlogPost }
 export default function BlogCard({ post }: Props) {
   const t = useTranslations('BlogCard')
   const tCategory = useTranslations('BlogCategories')
+  // 75-34 (WR-04): the locale comes from the same next-intl request config as
+  // the category / CTA translations above (production-verified on the
+  // force-static /blog page in 75-30), so card dates follow the page locale.
+  const locale = useLocale()
   // 75-28: EN frontmatter value -> localized label (raw value if unmapped).
   const categoryKey = blogCategoryKey(post.category)
   const categoryLabel = categoryKey ? tCategory(categoryKey) : post.category
@@ -52,7 +56,7 @@ export default function BlogCard({ post }: Props) {
         </p>
         <div className="flex items-center justify-between mt-2">
           <p className="font-body font-light text-[11px] tracking-[0.1em] uppercase text-warmgrey">
-            {formatBylineDate(post.date)}
+            {formatLocaleDate(post.date, locale)}
           </p>
           <p
             className="font-body font-light text-[10px] tracking-[0.15em] uppercase"
