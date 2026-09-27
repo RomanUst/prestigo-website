@@ -357,7 +357,7 @@ Wave 3 *(blocked on 75-26, 75-28)*
 
 Wave 4 *(blocked on 75-22..75-29 — deploy + re-verification gate)*
 
-- [ ] 75-30-PLAN.md — Gated PR → main → Vercel prod deploy; full post-deploy re-run with committed evidence; WINDOWS #15/#22-#25; VER-01 only if all 4 gaps pass
+- [x] 75-30-PLAN.md — Gated PR → main → Vercel prod deploy; full post-deploy re-run with committed evidence; WINDOWS #15/#22-#25; VER-01 only if all 4 gaps pass
 
 </details>
 
@@ -446,4 +446,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 29/30 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 30/30 | In Progress|  |
