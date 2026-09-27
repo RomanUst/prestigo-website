@@ -1,0 +1,109 @@
+{
+  "mode": "baseline",
+  "timestamp": "2026-09-27T23:22:50Z",
+  "hostname": "srv2015189",
+  "canarySha256": "909a552013971d320323f3ccba7fc4ce41c0f09070a579bb2f12b10bb113e603",
+  "chatwoot": {
+    "counts": {
+      "accounts": 1,
+      "users": 1,
+      "inboxes": 1,
+      "contacts": 1,
+      "contact_inboxes": 1,
+      "conversations": 1,
+      "messages": 2,
+      "attachments": 1,
+      "active_storage_blobs": 1
+    },
+    "orphans": {
+      "conversations_missing_contact_inbox": 0,
+      "messages_missing_conversation": 0,
+      "attachments_missing_message": 0,
+      "active_storage_attachments_missing_blob": 0
+    },
+    "canary": {
+      "conversation_display_id": "1",
+      "message_id": "1",
+      "blob_key": "fbv2rb2g557vnklbjw4vy13xcq3u",
+      "sha256": "909a552013971d320323f3ccba7fc4ce41c0f09070a579bb2f12b10bb113e603"
+    }
+  },
+  "espocrm": {
+    "counts": {
+      "account": 1,
+      "document": 1,
+      "attachment": 1,
+      "user": 3
+    },
+    "documents_missing_attachment": 0,
+    "canary": {
+      "account_id": "6ab9a4c030376f9aa",
+      "document_id": "6ab9a52ec6e670dd9",
+      "attachment_id": "6ab9a52ebaff225ca",
+      "sha256": "909a552013971d320323f3ccba7fc4ce41c0f09070a579bb2f12b10bb113e603"
+    }
+  },
+  "checks": [
+    {
+      "name": "chatwoot-counts",
+      "status": "OK",
+      "detail": "accounts=1 users=1 inboxes=1 contacts=1 contact_inboxes=1 conversations=1 messages=2 attachments=1 active_storage_blobs=1"
+    },
+    {
+      "name": "chatwoot-orphan-conversations",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "chatwoot-orphan-messages",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "chatwoot-orphan-attachments",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "chatwoot-orphan-storage-attachments",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "chatwoot-display-id-sequences",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "chatwoot-canary-present",
+      "status": "OK",
+      "detail": "conversation_display_id=1 message_id=1"
+    },
+    {
+      "name": "chatwoot-canary-checksum",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "espocrm-counts",
+      "status": "OK",
+      "detail": "account=1 document=1 attachment=1 user=3"
+    },
+    {
+      "name": "espocrm-documents-missing-attachment",
+      "status": "OK",
+      "detail": ""
+    },
+    {
+      "name": "espocrm-canary-present",
+      "status": "OK",
+      "detail": "account_id=6ab9a4c030376f9aa document_id=6ab9a52ec6e670dd9"
+    },
+    {
+      "name": "espocrm-canary-checksum",
+      "status": "OK",
+      "detail": ""
+    }
+  ],
+  "ok": true
+}

@@ -2,15 +2,20 @@
 # infra/vps/scripts/backup.sh
 #
 # Nightly (or manual) backup job for Chatwoot + EspoCRM (D-06):
-#   1. pg_dump Chatwoot's Postgres
-#   2. mariadb-dump EspoCRM's MariaDB
-#   3. ONE restic snapshot of the dumps + the four data volumes + the app env
-#      files + /opt/prestigo (backup.env itself is deliberately never
-#      included) — captured immediately after the dumps so DB and files
-#      match (Pitfall 14)
-#   4. restic forget --prune with the D-07 retention shape
-#   5. On Sundays, a partial `restic check --read-data-subset=5%`
-#   6. Healthchecks.io ping: start / success / fail (D-03) — a no-op with a
+#   1. Pre-dump D-09 integrity baseline (drill-verify.sh --baseline), written
+#      into the dump dir so it travels inside this run's snapshot. A failure
+#      here does NOT abort the backup (the data is still worth capturing) —
+#      it is logged, remembered, and turned into a Healthchecks /fail ping
+#      at the very end instead of /success (plan 08).
+#   2. pg_dump Chatwoot's Postgres
+#   3. mariadb-dump EspoCRM's MariaDB
+#   4. ONE restic snapshot of the dumps (baseline + DB dumps) + the four
+#      data volumes + the app env files + /opt/prestigo (backup.env itself
+#      is deliberately never included) — captured immediately after the
+#      dumps so DB and files match (Pitfall 14)
+#   5. restic forget --prune with the D-07 retention shape
+#   6. On Sundays, a partial `restic check --read-data-subset=5%`
+#   7. Healthchecks.io ping: start / success / fail (D-03) — a no-op with a
 #      log line when HC_PING_BACKUP is unset (plan 06 wires it)
 #
 # Usage:
@@ -21,9 +26,11 @@ set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 RESTIC="${SCRIPT_DIR}/restic.sh"
+DRILL_VERIFY="${SCRIPT_DIR}/drill-verify.sh"
 
 DUMP_DIR=/var/backups/prestigo/dumps
 LOCK_FILE=/run/prestigo-backup.lock
+INTEGRITY_BASELINE_FAILED=false
 
 INIT_REPO=false
 for arg in "$@"; do
@@ -94,9 +101,22 @@ if [ "${INIT_REPO}" = "true" ]; then
   fi
 fi
 
-CURRENT_STEP="dump-chatwoot"
+CURRENT_STEP="integrity-baseline"
 mkdir -p "${DUMP_DIR}"
 chmod 0700 "${DUMP_DIR}"
+if [ -x "${DRILL_VERIFY}" ]; then
+  log "running pre-dump integrity baseline (drill-verify.sh --baseline)"
+  if "${DRILL_VERIFY}" --baseline --out "${DUMP_DIR}/drill-baseline.json"; then
+    log "integrity baseline OK"
+  else
+    log "integrity baseline FAILED (see lines above) — continuing backup, will ping fail at the end (D-03/plan 08)"
+    INTEGRITY_BASELINE_FAILED=true
+  fi
+else
+  log "drill-verify.sh not present or not executable — skipping pre-dump integrity baseline (plan 08 not yet deployed)"
+fi
+
+CURRENT_STEP="dump-chatwoot"
 log "dumping Chatwoot Postgres (chatwoot_production)"
 docker exec chatwoot-postgres-1 pg_dump -Fc -U postgres chatwoot_production > "${DUMP_DIR}/chatwoot.dump.tmp"
 mv "${DUMP_DIR}/chatwoot.dump.tmp" "${DUMP_DIR}/chatwoot.dump"
@@ -154,5 +174,10 @@ else
 fi
 
 CURRENT_STEP="done"
-hc success "backup OK: snapshot ${SNAPSHOT_ID}, data_added=${DATA_ADDED} bytes, duration=${BACKUP_DURATION}s"
-log "backup complete: snapshot ${SNAPSHOT_ID}"
+if [ "${INTEGRITY_BASELINE_FAILED}" = "true" ]; then
+  hc fail "backup ok but integrity baseline failed: snapshot ${SNAPSHOT_ID}, data_added=${DATA_ADDED} bytes, duration=${BACKUP_DURATION}s"
+  log "backup complete (snapshot ${SNAPSHOT_ID}) but pinged FAIL: integrity baseline failed — data was still captured, see log above"
+else
+  hc success "backup OK: snapshot ${SNAPSHOT_ID}, data_added=${DATA_ADDED} bytes, duration=${BACKUP_DURATION}s"
+  log "backup complete: snapshot ${SNAPSHOT_ID}"
+fi
