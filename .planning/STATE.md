@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
-stopped_at: Completed 76-05-PLAN.md Tasks 1-2 (Task 3 deferred, complete-pending-owner)
-last_updated: "2026-09-27T22:49:10.172Z"
+stopped_at: Completed 76-06-PLAN.md Tasks 2-3 (Task 1 deferred, complete-pending-owner)
+last_updated: "2026-09-27T23:07:12.947Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 76 execution started
-state_head: b466dfa2924fd48c56b710165ba997abd3b9ba43
+state_head: 0f879ebe1c67460efac899d33483baa160543a0f
 progress:
   total_phases: 10
   completed_phases: 22
   total_plans: 9
-  completed_plans: 5
-  percent: 56
+  completed_plans: 6
+  percent: 67
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 ## Current Position
 
 Phase: 76 (VPS Infrastructure) — EXECUTING
-Plan: 6 of 9
+Plan: 7 of 9
 Status: Ready to execute
 Last activity: 2026-09-27 — Phase 76 execution started
 
@@ -176,6 +176,7 @@ Recent decisions affecting current work:
 - [Phase 76]: 76-04: EspoCRM volume layout follows the current (non-legacy) espocrm-docker contract - data/custom/client-custom mounted as three separate volumes, confirmed by reading docker-entrypoint.sh/entrypoint-utils.sh from espocrm/espocrm-docker@master; mounting the whole /var/www/html tree is now a deprecated legacy method that can hard-abort on a fresh mount.
 - [Phase 76]: 76-04: found and worked around two real upstream/procedural defects - (1) Caddyfile single-file bind mounts go stale after rsync's temp-file+rename, need a container restart not just caddy reload; (2) espocrm-docker's actionInstall hardcodes set-password admin regardless of ESPOCRM_ADMIN_USERNAME, restart-looping the install forever with a non-default admin username. Both fixed live and documented as standing procedures in infra/vps/runbooks/app-deploy.md for plans 76-06/76-09.
 - [Phase 76]: restic to Backblaze B2 (us-east-005, owner-approved) via a single pinned restic/restic:0.19.1 container wrapper; nightly systemd timer 02:30 Europe/Prague, 7d/4w/6m retention; Task 3 owner-custody checkpoint deliberately deferred to end-of-phase, SUMMARY status complete-pending-owner
+- [Phase 76]: 76-06: external monitor definitions (UptimeRobot+Healthchecks) versioned repo-side with idempotent provisioner; owner-account provisioning (Task 1) deferred to end-of-phase alongside 76-05's Task 3. All five on-VPS depth checks (disk/mem, KVM4 trigger, Sidekiq, EspoCRM internals, TLS expiry) live on a 5-min systemd timer, gracefully skipping pings until monitor.env exists. Discovered (not fixed, out of scope): Chatwoot /api data_services intermittently reports failing in self-resolving bursts, suspected Puma/AR connection-pool reaping - recorded WINDOWS.md #30 for a later phase.
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -316,8 +317,8 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-27T22:49:10.109Z
-Stopped at: Completed 76-05-PLAN.md Tasks 1-2 (Task 3 deferred, complete-pending-owner)
+Last session: 2026-09-27T23:07:12.884Z
+Stopped at: Completed 76-06-PLAN.md Tasks 2-3 (Task 1 deferred, complete-pending-owner)
 Resume file: None
 
 ## Performance Metrics
@@ -394,6 +395,7 @@ Resume file: None
 | Phase 76 P03 | 35min | 2 tasks | 6 files |
 | Phase 76 P04 | ~2h20m | 3 tasks | 9 files |
 | Phase 76 P05 | 50min | 2 tasks | 7 files |
+| Phase 76 P06 | ~35min | 2 tasks | 8 files |
 
 ## Operator Next Steps
 
