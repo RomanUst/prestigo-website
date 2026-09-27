@@ -411,7 +411,7 @@
     "subhead1": "आपका शॉफ़र पहले से ही आपकी flight को ट्रैक कर रहा है।",
     "subhead2": "आप बस पहुँचिए।",
     "bookRide": "राइड बुक करें",
-    "priceAnchor": "Airport transfers <price>€{amount}</price> से — निश्चित मूल्य, कोई अतिरिक्त शुल्क नहीं",
+    "priceAnchor": "एयरपोर्ट ट्रांसफ़र <price>€{amount}</price> से — निश्चित मूल्य, कोई अतिरिक्त शुल्क नहीं",
     "scroll": "स्क्रॉल करें",
     "ratingAria": "{count} Google समीक्षाओं के आधार पर 5 में से {rating} रेटिंग",
     "googleReviews": "Google समीक्षाएँ",
@@ -499,7 +499,7 @@
       {
         "label": "Airport",
         "title": "Airport ट्रांसफर",
-        "body": "प्राग Václav Havel Airport. Flight ट्रैकिंग, meet & greet, निर्धारित मूल्य।",
+        "body": "प्राग Václav Havel Airport. फ़्लाइट ट्रैकिंग, मीट एंड ग्रीट, निर्धारित मूल्य।",
         "detail": "PRG · VIE · BER · MUC"
       },
       {
