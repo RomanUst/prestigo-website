@@ -129,3 +129,45 @@ export async function getLocaleSiteMetadata(rawLocale: string): Promise<Metadata
     twitter: DEFAULT_TWITTER,
   }
 }
+
+/**
+ * Localized share metadata for a single page: absolute <title>, description
+ * and a full openGraph block. Intentionally has NO twitter key — the locale
+ * layout default mirrors og into twitter:* (DEFAULT_TWITTER).
+ *
+ * Takes only the locale and already-translated strings; never a request path,
+ * slug or query value (no reflected content in share cards, T-75-G33).
+ */
+export function buildShareMetadata(
+  rawLocale: string,
+  title: string,
+  description: string
+): Metadata {
+  const locale = toSiteLocale(rawLocale)
+  return {
+    title: { absolute: title },
+    description,
+    openGraph: {
+      type: 'website',
+      siteName: 'PRESTIGO',
+      locale: OG_LOCALE[locale],
+      title,
+      description,
+      images: [{ ...OG_IMAGE, alt: title }],
+    },
+  }
+}
+
+/**
+ * Localized 404 metadata (NotFound.metaTitle / metaDescription) with
+ * noindex/nofollow. Shared by every not-found path (wired in plan 75-33).
+ * Takes only the locale — never the requested path or slug.
+ */
+export async function getNotFoundMetadata(rawLocale: string): Promise<Metadata> {
+  const locale = toSiteLocale(rawLocale)
+  const t = await getTranslations({ locale, namespace: 'NotFound' })
+  return {
+    ...buildShareMetadata(locale, t('metaTitle'), t('metaDescription')),
+    robots: { index: false, follow: false },
+  }
+}
