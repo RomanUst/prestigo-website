@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -82,10 +82,12 @@ export async function generateMetadata({
 export default async function BlogArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; locale: string }>
 }) {
-  const { slug } = await params
-  const locale = await getLocale()
+  // 75-28 / CR-01: locale comes from the route's own dynamic segment (as in
+  // generateMetadata above), never a bare request-scoped lookup on this
+  // force-static route — it is also threaded into ArticleByline.
+  const { slug, locale } = await params
 
   // Allowlist preserved from Phase 54 scaffold — defence in depth even
   // with dynamicParams=true. Path-traversal safe.
@@ -144,6 +146,7 @@ export default async function BlogArticlePage({
             <p className="body-text mt-6">{post.description}</p>
             <div className="mt-8">
               <ArticleByline
+                locale={locale}
                 authorSlug={post.author}
                 datePublished={post.date}
                 dateModified={post.dateModified}

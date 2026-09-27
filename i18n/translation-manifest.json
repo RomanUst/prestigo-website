@@ -10176,6 +10176,26 @@
     "messages/en.json::Auth.login.metaDescription": {
       "enHash": "sha256:2e94ded4440bcd6c0b5e803aeb2f9845a0d9387d101be6d2f940ed4ddc263115",
       "lastTranslatedAt": "2026-09-27T11:20:12.076Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::labels.aboutAuthorAria": {
+      "enHash": "sha256:df6a7c3556e5bacc350a7905ebd1f783ebb9abdb9799d60344496c626aa0b883",
+      "lastTranslatedAt": "2026-09-27T11:24:08.573Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::bioShort": {
+      "enHash": "sha256:6023b9e4841a237ac08603628b8df4b262c5d2d228b4ecad1287a030858a64b5",
+      "lastTranslatedAt": "2026-09-27T11:24:08.573Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::metadata.title": {
+      "enHash": "sha256:478bfb0390d91ffc91495000bd17ac29107fc61ccc9416d81662c4077e18e13d",
+      "lastTranslatedAt": "2026-09-27T11:24:08.573Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::metadata.description": {
+      "enHash": "sha256:d636e2d60af1832ee1031d6b741851f6c2738f05999da5fdabe3b6869cd4425a",
+      "lastTranslatedAt": "2026-09-27T11:24:08.573Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::metadata.ogTitle": {
+      "enHash": "sha256:5722992fc2b61a8c2e4d3efede6fd36cc65198e00a52cf3ebd12e1c19a81ff68",
+      "lastTranslatedAt": "2026-09-27T11:24:08.573Z"
     }
   }
 }

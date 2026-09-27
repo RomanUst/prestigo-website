@@ -5,3 +5,6 @@
 # future pipeline run neither overwrites these units nor re-spends tokens.
 messages/en.json::Auth.login.metaTitle
 messages/en.json::Auth.login.metaDescription
+content/pages/en/authors/roman-ustyugov.json::bioShort
+content/pages/en/authors/roman-ustyugov.json::metadata
+content/pages/en/authors/roman-ustyugov.json::labels.aboutAuthorAria

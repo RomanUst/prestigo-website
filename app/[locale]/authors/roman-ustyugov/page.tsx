@@ -16,8 +16,10 @@ import { localizedHref } from '@/lib/localized-href'
 // that sits inside their Article graphs.
 
 type AuthorContent = {
-  labels: { authorProfile: string; about: string; expertise: string }
+  labels: { authorProfile: string; about: string; expertise: string; aboutAuthorAria: string }
   jobTitle: string
+  bioShort: string
+  metadata: { title: string; description: string; ogTitle: string }
   bio: string[]
   knowsAbout: string[]
   imageAlt: string
@@ -32,30 +34,31 @@ type AuthorContent = {
 
 const author = getAuthor('roman-ustyugov')
 
-const DESCRIPTION =
-  'Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides.'
-
 // CR-01: converted from a static `metadata` export to generateMetadata()
 // so the current locale is available for the self-referencing canonical.
 // 75-13: content/pages/<locale>/authors/roman-ustyugov.json now exists for
 // all 7 locales (visible section labels + bio/expertise text), so the D-07
 // fs-probe below picks up every locale into the hreflang cluster instead of
 // the previous EN-only fallback.
+// 75-28 (GAP-4d): title/description/OG title come from the localized
+// author content (metadata.*) instead of EN constants; the EN values are
+// byte-identical to the former constants.
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params
+  const { metadata } = getPageContent('authors/roman-ustyugov', locale) as AuthorContent
   const alternates = getAlternates(`/authors/${author.slug}`, {
     indexable: true,
     content: { kind: 'page', key: `authors/${author.slug}` },
     locale,
   })
   return {
-    title: { absolute: 'Roman Ustyugov — Founder, PRESTIGO Prague' },
-    description: DESCRIPTION,
+    title: { absolute: metadata.title },
+    description: metadata.description,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
-      title: 'Roman Ustyugov — Founder of PRESTIGO Chauffeur Service',
-      description: DESCRIPTION,
+      title: metadata.ogTitle,
+      description: metadata.description,
       images: [author.imageUrl],
       type: 'profile',
     },
@@ -117,7 +120,7 @@ export default async function RomanUstyugovPage({ params }: { params: Promise<{ 
               {content.jobTitle}
             </p>
             <p className="body-text text-[13px] mt-5 max-w-xl" style={{ lineHeight: '1.9' }}>
-              {author.bioShort}
+              {content.bioShort}
             </p>
             {/* Social / entity links — populated from authors.ts sameAs array */}
             {author.sameAs.length > 0 && (

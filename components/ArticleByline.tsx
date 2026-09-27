@@ -1,10 +1,24 @@
 import { Link } from '@/i18n/routing'
 import { AUTHORS, type AuthorSlug, formatBylineDate } from '@/lib/authors'
+import { getPageContent } from '@/lib/page-content'
 
 type Props = {
   authorSlug: AuthorSlug
   datePublished: string
   dateModified?: string
+  /**
+   * The ROUTE locale (from the calling page's `params`). 75-28 / CR-01:
+   * every call site sits on a force-static route, so the locale must be
+   * threaded in explicitly — never resolved from the request scope here.
+   */
+  locale: string
+}
+
+/** Localized author strings from content/pages/<locale>/authors/<slug>.json. */
+type AuthorBylineContent = {
+  labels: { aboutAuthorAria: string }
+  jobTitle: string
+  imageAlt: string
 }
 
 /**
@@ -14,14 +28,21 @@ type Props = {
  * E-E-A-T crawl — and any AI answer engine summarising the page — sees a
  * named, bio'd expert behind the content. The corresponding Person schema is
  * produced separately via `personSchemaFor()` in lib/authors.ts and nested in
- * the page's Article node.
+ * the page's Article node (and stays English by design — Phase 74 D-09).
+ *
+ * 75-28: the job title, portrait alt and link aria-label come from the
+ * localized author content for `locale`; name, image and dates still come
+ * from lib/authors.ts.
  */
 export default function ArticleByline({
   authorSlug,
   datePublished,
   dateModified,
+  locale,
 }: Props) {
   const a = AUTHORS[authorSlug]
+  const content = getPageContent(`authors/${a.slug}`, locale) as AuthorBylineContent
+  const aboutAuthorAria = content.labels.aboutAuthorAria.replace('{name}', a.name)
   const showUpdated = dateModified && dateModified !== datePublished
 
   return (
@@ -29,14 +50,14 @@ export default function ArticleByline({
       <Link
         href={`/authors/${a.slug}`}
         className="flex-shrink-0 block"
-        aria-label={`About the author, ${a.name}`}
+        aria-label={aboutAuthorAria}
       >
         <picture>
           <source srcSet={a.image.replace(/\.jpg$/, '.avif')} type="image/avif" />
           <source srcSet={a.image.replace(/\.jpg$/, '.webp')} type="image/webp" />
           <img
             src={a.image}
-            alt={a.imageAlt}
+            alt={content.imageAlt}
             width={56}
             height={56}
             loading="lazy"
@@ -55,7 +76,7 @@ export default function ArticleByline({
             {a.name}
           </Link>
           {' · '}
-          <span>{a.jobTitle}</span>
+          <span>{content.jobTitle}</span>
         </p>
         <p className="font-body text-[11px] text-warmgrey tracking-[0.05em]">
           Published {formatBylineDate(datePublished)}

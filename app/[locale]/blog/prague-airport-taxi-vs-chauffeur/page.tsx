@@ -271,7 +271,9 @@ const pageSchemaGraph = {
 export default async function CompareAirportTaxiPage({ params }: { params: Promise<{ locale: string }> }) {
   // 75-27: the i18n Link resolves the locale via next-intl's request config;
   // pin it for this force-static route before any Link renders.
-  setRequestLocale((await params).locale)
+  // 75-28: the same route locale is threaded into ArticleByline (CR-01).
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <main id="main-content">
       <Nav />
@@ -295,6 +297,7 @@ export default async function CompareAirportTaxiPage({ params }: { params: Promi
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline
+              locale={locale}
               authorSlug="roman-ustyugov"
               datePublished={ARTICLE_PUBLISHED}
               dateModified={ARTICLE_MODIFIED}

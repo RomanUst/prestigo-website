@@ -77,7 +77,8 @@ vi.mock('../content/blog/ar/premium-airport-transfer-prague-shortcut.mdx', () =>
   default: () => null,
 }))
 
-// blog/[slug]/page.tsx's default export calls `await getLocale()` once, then
+// blog/[slug]/page.tsx's default export reads its locale from `params`
+// (75-28, CR-01 — formerly `await getLocale()`), then
 // `await getTranslations({ locale, namespace: 'BlogPost.cta' })` reusing that
 // value — mocked directly against the real messages/<locale>.json catalogs
 // (same technique as tests/route-page-render.test.tsx's worktree-safe
@@ -361,10 +362,11 @@ describe('/book loading aria-label (75-13 Task 3)', () => {
 
 describe('Blog post bottom CTA (75-13 Task 3)', () => {
   it('renders ar text and both CTA buttons link to /ar/book and /ar/services/airport-transfer', async () => {
-    mockGetLocale.mockResolvedValueOnce('ar')
+    // 75-28 (CR-01): the page now reads its locale from the route params,
+    // not getLocale() — pass it the way Next.js does.
     const { default: BlogArticlePage } = await import('@/app/[locale]/blog/[slug]/page')
     const PageElement = await BlogArticlePage({
-      params: Promise.resolve({ slug: 'premium-airport-transfer-prague-shortcut' }),
+      params: Promise.resolve({ slug: 'premium-airport-transfer-prague-shortcut', locale: 'ar' }),
     })
     const { render } = await import('@testing-library/react')
     const { container } = render(PageElement)
