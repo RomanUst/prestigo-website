@@ -370,3 +370,16 @@ Both surfaces render English regardless of the booking's site locale. Logged to 
 | Overflow (5 widths) | **PASS (4/5) / GAP (1/5)** | 320/375/1024/1280px: 0 issues. 768px: 1 new issue — `/ru/fleet` two paragraphs overflow their container with the translated (longer) Russian maintenance copy |
 
 **Overall VER-01 disposition:** the phase's core proof — every locale renders correctly, the switcher works, guest booking (including RTL) reaches a real Stripe form with the correct sub-locale on both Stripe Elements and Google Places, no CSP drift, and hreflang/JSON-LD are clean — is **PASS**. Five concrete, evidenced gaps remain open for follow-up (none are Phase-75-introduced regressions; all are either pre-existing/out-of-Phase-75-scope defects or newly-surfaced-by-translation edge cases): (1) Meta Pixel never fires (WINDOWS #15, pre-existing env config); (2) RU/AR signed-in account path unverified (missing test credentials, a verification gap not a code defect); (3) residual person-name/mid-sentence-brand-term EN-leak allowlist gaps; (4) the systemic English-404-on-unmatched-path defect (missing `[locale]` catch-all route); (5) `/ru/fleet` text overflow at 768px. All five are logged to `deferred-items.md` below.
+
+## E2E cleanup (plan 75-20 Task 3, orchestrator via Supabase MCP, 2026-09-27)
+
+- **Pre-delete marker set** (`client_email like 'e2e+%@rideprestigo.com'`, first `E2E`, last `TEST`): 18 rows total.
+  - 17 `unpaid`: 14 recorded refs + 3 unrecorded early 75-03 debug runs (`PRG-20260925-6A73BB`, `-D49762`, `-DB8330`), all carrying the full marker.
+  - 1 `cancelled` (`PRG-20260925-65B2CC`).
+- 8 recorded refs never produced a bookings row (the reference was issued, but no row was created). Nothing to delete for those.
+- Dependencies checked before deletion: 0 driver_assignments, 0 gnet_bookings, 0 audit rows, 0 non-marker bookings linking to these rows. The cancelled row has 1 email_log entry.
+- **User decision:** "17 unpaid с бэкапом (Recommended)". Delete the 17 unpaid rows. Keep the cancelled test row and the user's own `PRG-20260828-954109` (no E2E marker).
+- **Backup:** `.planning/phases/75-e2e-verification-launch/e2e-cleanup-backup.json`, full column data for all 17 rows, committed before the delete (`4ac008a2`).
+- **Delete** (marker AND `paid_at is null` AND explicit id list) returned 17 references, equal to the pre-delete unpaid set, which contains every recorded ref that has a row.
+- **Post-delete** unpaid marker count: **0**. Verified kept: `PRG-20260925-65B2CC`, `PRG-20260828-954109`.
+- **Test account:** the user answered "delete after QA: yes", but no auth user matching E2E exists (0 rows), and the credentials file was never provided. Nothing to delete. The RU/AR account path (D-04) remains UNVERIFIED.

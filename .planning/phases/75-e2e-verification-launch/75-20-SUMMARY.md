@@ -216,3 +216,7 @@ None — no external service configuration required by this plan.
 ---
 *Phase: 75-e2e-verification-launch*
 *Completed: 2026-09-27*
+
+
+## Task 3 (orchestrator) — DONE 2026-09-27
+17 E2E/TEST unpaid rows removed after a full backup (e2e-cleanup-backup.json) and explicit user approval. Post-delete marker count is 0. The cancelled test row and the user's own test booking were kept. There was no test account to delete (none exists). Details: 75-QA-RESULTS.md, "E2E cleanup".
