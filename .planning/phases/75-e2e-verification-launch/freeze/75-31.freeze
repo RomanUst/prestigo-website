@@ -1,0 +1,9 @@
+# 75-31 (GAP-4 metadata half: WR-02 + WINDOWS #24/#26 /login part): locale-
+# aware site default metadata (title/description/keywords consumed by
+# app/[locale]/layout.tsx generateMetadata via lib/site-metadata.ts) and the
+# localized 404 meta description (getNotFoundMetadata, wired in 75-33).
+# Hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh; PRESTIGO kept in
+# Latin (glossary DNT). Frozen so a future pipeline run neither overwrites
+# these units nor re-spends tokens.
+messages/en.json::SiteMetadata
+messages/en.json::NotFound.metaDescription

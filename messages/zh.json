@@ -606,7 +606,8 @@
     "bookButton": "预订接送服务",
     "servicesButton": "查看服务",
     "homeButton": "返回首页",
-    "metaTitle": "页面未找到 — PRESTIGO"
+    "metaTitle": "页面未找到 — PRESTIGO",
+    "metaDescription": "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
   },
   "BlogPost": {
     "cta": {
@@ -969,5 +970,10 @@
       "body": "我们无法发送您的留言，请重试或直接联系我们，邮箱为",
       "retry": "重试 →"
     }
+  },
+  "SiteMetadata": {
+    "defaultTitle": "PRESTIGO — 布拉格高端专车司机服务",
+    "defaultDescription": "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。",
+    "keywords": "布拉格专车,布拉格机场接送,布拉格私人司机,布拉格豪华接送,布拉格出租车服务,布拉格商务接送"
   }
 }

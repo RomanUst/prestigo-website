@@ -50,6 +50,14 @@ describe('/login generateMetadata', () => {
       expect(meta.title).toEqual({ absolute: title })
       expect(meta.description).toBe(description)
       expect(meta.robots).toEqual({ index: false, follow: true })
+      // 75-31: localized openGraph; no twitter key (the locale layout default
+      // mirrors og:* into twitter:*).
+      const og = meta.openGraph as Record<string, unknown>
+      expect(og.title).toBe(title)
+      expect(og.description).toBe(description)
+      expect(og.type).toBe('website')
+      expect(og.siteName).toBe('PRESTIGO')
+      expect(meta).not.toHaveProperty('twitter')
     })
   }
 

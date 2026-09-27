@@ -606,7 +606,8 @@
     "bookButton": "Réserver un transfert",
     "servicesButton": "Voir les services",
     "homeButton": "Retour à l'accueil",
-    "metaTitle": "Page introuvable — PRESTIGO"
+    "metaTitle": "Page introuvable — PRESTIGO",
+    "metaDescription": "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
   },
   "BlogPost": {
     "cta": {
@@ -969,5 +970,10 @@
       "body": "Nous n'avons pas pu envoyer votre message. Veuillez réessayer ou nous contacter directement à",
       "retry": "Réessayer →"
     }
+  },
+  "SiteMetadata": {
+    "defaultTitle": "PRESTIGO — Service de chauffeur privé haut de gamme à Prague",
+    "defaultDescription": "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé.",
+    "keywords": "chauffeur privé Prague,transfert aéroport Prague,VTC Prague,transfert de luxe Prague,taxi Prague,transfert affaires Prague"
   }
 }
