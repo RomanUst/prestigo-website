@@ -1,8 +1,8 @@
 import type { Metadata } from 'next'
 import { hasLocale } from 'next-intl'
-import { getTranslations } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import { locales } from '@/i18n/locales'
+import { getNotFoundMetadata } from '@/lib/site-metadata'
 
 // Phase 75-25 (GAP-4a / WINDOWS #22): catch every unmatched path under a
 // locale — and every unmatched EN-root path, which next-intl's as-needed
@@ -27,13 +27,12 @@ export async function generateMetadata({
   // CR-01: locale comes from the route's own dynamic segment, never a bare
   // getLocale(). A non-locale first segment (e.g. `api`) is rejected by
   // LocaleLayout's own hasLocale guard; return no metadata for it here.
+  // 75-33: the shared localized 404 metadata — absolute title, description,
+  // openGraph (twitter mirrored by Next.js) and noindex. Only the validated
+  // locale reaches it; the `rest` path segments are never interpolated.
   const { locale } = await params
   if (!hasLocale(locales, locale)) return {}
-  const t = await getTranslations({ locale, namespace: 'NotFound' })
-  return {
-    title: { absolute: t('metaTitle') },
-    robots: { index: false, follow: false },
-  }
+  return getNotFoundMetadata(locale)
 }
 
 export default function LocaleCatchAllNotFound(): never {
