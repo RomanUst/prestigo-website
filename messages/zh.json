@@ -600,7 +600,8 @@
     "body": "您要查找的页面不存在 — 但您的接送服务依然可以进行。",
     "bookButton": "预订接送服务",
     "servicesButton": "查看服务",
-    "homeButton": "返回首页"
+    "homeButton": "返回首页",
+    "metaTitle": "页面未找到 — PRESTIGO"
   },
   "BlogPost": {
     "cta": {

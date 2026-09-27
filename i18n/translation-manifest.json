@@ -10164,6 +10164,10 @@
     "content/pages/en/contact.json::hero.imageAlt": {
       "enHash": "sha256:d1c0c19bcf647e86c4a23ea70514dae311a05f44956dcdee61002c30b3657fc1",
       "lastTranslatedAt": "2026-09-26T20:26:07.991Z"
+    },
+    "messages/en.json::NotFound.metaTitle": {
+      "enHash": "sha256:5d9c3d1e2b47bbc4b0e020fe055d6b0fdd5c51f993c98fbabf335f4505db6985",
+      "lastTranslatedAt": "2026-09-27T10:45:07.567Z"
     }
   }
 }

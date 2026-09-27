@@ -565,7 +565,8 @@
     "body": "The page you're looking for doesn't exist — but your transfer still can.",
     "bookButton": "Book a Transfer",
     "servicesButton": "View Services",
-    "homeButton": "Back to Home"
+    "homeButton": "Back to Home",
+    "metaTitle": "Page Not Found — PRESTIGO"
   },
   "BlogPost": {
     "cta": {
