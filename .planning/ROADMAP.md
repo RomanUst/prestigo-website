@@ -13,7 +13,7 @@
 
 ### v4.0 Helpdesk + CRM (Phases 76-85) — IN PROGRESS
 
-- [ ] **Phase 76: VPS Infrastructure** - Hostinger VPS (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down
+- [ ] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down
 - [ ] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/booking@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation
 - [ ] **Phase 78: WhatsApp Cloud API Channel (Coexistence)** - WhatsApp Business Coexistence onboarding for the existing +420 number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
@@ -107,11 +107,11 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 **Depends on**: Nothing (first phase of v4.0)
 **Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, INFRA-05
 **Success Criteria** (what must be TRUE):
-  1. Owner reaches `chat.rideprestigo.com` and `crm.rideprestigo.com` over valid, auto-renewing HTTPS (Hostinger KVM 4, Docker Compose, Caddy, EU region).
+  1. Owner reaches `chat.rideprestigo.com` and `crm.rideprestigo.com` over valid, auto-renewing HTTPS (Hostinger KVM 2 with documented upgrade trigger to KVM 4, Docker Compose, Caddy, EU region).
   2. A restore drill onto a clean host, from the nightly encrypted offsite backup (databases + attachment storage), succeeds and is documented.
   3. Owner receives an alert on a channel independent of the VPS within minutes when Chatwoot or EspoCRM is down, or a nightly backup did not run.
   4. The VPS applies unattended security OS updates; a documented runbook (backup → upgrade → smoke check) governs Chatwoot/EspoCRM version upgrades.
-  5. With the VPS fully offline, the public site, booking wizard, Stripe payment and all emails keep working, and no lead or booking event is lost — delivered to Chatwoot/EspoCRM once the VPS is back.
+  5. With the VPS fully offline, the public site, booking wizard, Stripe payment and all emails keep working (real outage test + repo guard test). The "no lead or booking event is lost — delivered once the VPS is back" half is verified in Phases 81/82 where the outbox exists.
 **Plans**: TBD
 
 ### Phase 77: Chatwoot Deployment + Core Channels
