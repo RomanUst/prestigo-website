@@ -571,7 +571,8 @@
     "bookButton": "Book a Transfer",
     "servicesButton": "View Services",
     "homeButton": "Back to Home",
-    "metaTitle": "Page Not Found — PRESTIGO"
+    "metaTitle": "Page Not Found — PRESTIGO",
+    "metaDescription": "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
   },
   "BlogPost": {
     "cta": {
@@ -919,5 +920,10 @@
       "body": "We could not send your message. Please try again or contact us directly at",
       "retry": "Try again →"
     }
+  },
+  "SiteMetadata": {
+    "defaultTitle": "PRESTIGO — Premium Chauffeur Service Prague",
+    "defaultDescription": "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.",
+    "keywords": "chauffeur Prague,airport transfer Prague,private driver Prague,luxury transfer Prague,Prague taxi service,executive transfer Prague"
   }
 }
