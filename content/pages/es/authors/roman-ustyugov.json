@@ -3,7 +3,10 @@
     "authorProfile": "Perfil del autor",
     "about": "Sobre él",
     "expertise": "Áreas de especialización",
-    "aboutAuthorAria": "Sobre el autor, {name}"
+    "aboutAuthorAria": "Sobre el autor, {name}",
+    "by": "Por",
+    "published": "Publicado el {date}",
+    "updated": "Actualizado el {date}"
   },
   "jobTitle": "Fundador y Director de Experiencia",
   "bioShort": "Fundador de PRESTIGO. Más de 10 años en el transporte de lujo y la hostelería de 5★ en Praga.",

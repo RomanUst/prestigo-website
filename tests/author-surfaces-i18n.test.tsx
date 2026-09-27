@@ -15,12 +15,13 @@ import type { AbstractIntlMessages } from 'next-intl'
 import { renderWithIntl, screen } from './helpers/renderWithIntl'
 import ArticleByline from '@/components/ArticleByline'
 import { AUTHORS } from '@/lib/authors'
+import { formatLocaleDate } from '@/lib/locale-date'
 
 const ROOT = path.resolve(__dirname, '..')
 const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
 
 type AuthorContent = {
-  labels: { aboutAuthorAria: string }
+  labels: { aboutAuthorAria: string; by: string; published: string; updated: string }
   jobTitle: string
   imageAlt: string
   bioShort: string
@@ -106,6 +107,87 @@ describe('ArticleByline — localized author surfaces', () => {
       expect(usages.length, site).toBeGreaterThan(0)
       for (const u of usages) expect(u, site).toMatch(/locale=\{locale\}/)
     }
+  })
+})
+
+// ─── 75-34 (WR-04): byline "By" / "Published" / "Updated" + locale dates ────
+
+const EN_MONTHS =
+  /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/
+
+describe('ArticleByline — localized byline labels and dates (75-34)', () => {
+  it('EN renders "By", "Published 9 April 2026" and "Updated 1 May 2026" exactly as before', () => {
+    const { container } = renderWithIntl(
+      <ArticleByline
+        locale="en"
+        authorSlug="roman-ustyugov"
+        datePublished="2026-04-09"
+        dateModified="2026-05-01"
+      />,
+    )
+    const [nameLine, datesLine] = Array.from(container.querySelectorAll('p'))
+    expect(nameLine.textContent).toBe(`By ${NAME} · Founder & Chief Experience Officer`)
+    expect(datesLine.textContent).toBe('Published 9 April 2026 · Updated 1 May 2026')
+  })
+
+  it('EN without a distinct dateModified renders only the Published line', () => {
+    const { container } = renderWithIntl(
+      <ArticleByline
+        locale="en"
+        authorSlug="roman-ustyugov"
+        datePublished="2026-04-09"
+        dateModified="2026-04-09"
+      />,
+    )
+    const datesLine = container.querySelectorAll('p')[1]
+    expect(datesLine.textContent).toBe('Published 9 April 2026')
+  })
+
+  for (const locale of LOCALES.filter((l) => l !== 'en')) {
+    it(`${locale} renders the localized By / Published / Updated labels and locale dates`, () => {
+      const c = loadAuthor(locale)
+      const { container } = renderWithIntl(
+        <ArticleByline
+          locale={locale}
+          authorSlug="roman-ustyugov"
+          datePublished="2026-04-09"
+          dateModified="2026-05-01"
+        />,
+        { locale, messages: loadMessages(locale) },
+      )
+      const [nameLine, datesLine] = Array.from(container.querySelectorAll('p'))
+      expect(nameLine.textContent).toBe(`${c.labels.by} ${NAME} · ${c.jobTitle}`)
+      const published = c.labels.published.replace('{date}', formatLocaleDate('2026-04-09', locale))
+      const updated = c.labels.updated.replace('{date}', formatLocaleDate('2026-05-01', locale))
+      expect(datesLine.textContent).toBe(`${published} · ${updated}`)
+      const text = container.textContent ?? ''
+      expect(text).not.toContain('Published')
+      expect(text).not.toContain('Updated')
+      expect(text).not.toMatch(/(^|\s)By\s/)
+      expect(text).not.toMatch(EN_MONTHS)
+    })
+  }
+
+  it('every non-EN author file translates by/published/updated and keeps the {date} placeholder', () => {
+    const en = loadAuthor('en')
+    expect(en.labels.by).toBe('By')
+    expect(en.labels.published).toBe('Published {date}')
+    expect(en.labels.updated).toBe('Updated {date}')
+    for (const locale of LOCALES.filter((l) => l !== 'en')) {
+      const c = loadAuthor(locale)
+      for (const k of ['by', 'published', 'updated'] as const) {
+        expect(c.labels[k], `${locale}.${k}`).toBeTruthy()
+        expect(c.labels[k], `${locale}.${k}`).not.toBe(en.labels[k])
+      }
+      expect(c.labels.published, locale).toContain('{date}')
+      expect(c.labels.updated, locale).toContain('{date}')
+    }
+  })
+
+  it('no longer uses the en-GB-only lib/authors date helper', () => {
+    const src = readFileSync(path.join(ROOT, 'components', 'ArticleByline.tsx'), 'utf8')
+    expect(src).not.toContain('formatBylineDate')
+    expect(src).toContain('formatLocaleDate')
   })
 })
 

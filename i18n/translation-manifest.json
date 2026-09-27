@@ -10260,6 +10260,18 @@
     "messages/en.json::SiteMetadata.keywords": {
       "enHash": "sha256:ea505e34b22f678d1fb97c74d93be19e6b7d48863030cce4a6524c29d2014987",
       "lastTranslatedAt": "2026-09-27T14:54:29.392Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::labels.by": {
+      "enHash": "sha256:125466b821c6448a68d22c6ddbdbbc921f6b174a620f0fcbc3d219afd7d22b47",
+      "lastTranslatedAt": "2026-09-27T15:09:14.846Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::labels.published": {
+      "enHash": "sha256:8d403ca9e9dd360a9c12edb76547deee9c10cae0e7569284543fe67f198fc10d",
+      "lastTranslatedAt": "2026-09-27T15:09:14.846Z"
+    },
+    "content/pages/en/authors/roman-ustyugov.json::labels.updated": {
+      "enHash": "sha256:328a4d4c6ba2b1acfac3808c3ca8623f892b30f8088b7a0e4299abe560c0f98e",
+      "lastTranslatedAt": "2026-09-27T15:09:14.846Z"
     }
   }
 }

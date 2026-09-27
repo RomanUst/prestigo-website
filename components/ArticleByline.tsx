@@ -1,5 +1,6 @@
 import { Link } from '@/i18n/routing'
-import { AUTHORS, type AuthorSlug, formatBylineDate } from '@/lib/authors'
+import { AUTHORS, type AuthorSlug } from '@/lib/authors'
+import { formatLocaleDate } from '@/lib/locale-date'
 import { getPageContent } from '@/lib/page-content'
 
 type Props = {
@@ -16,7 +17,15 @@ type Props = {
 
 /** Localized author strings from content/pages/<locale>/authors/<slug>.json. */
 type AuthorBylineContent = {
-  labels: { aboutAuthorAria: string }
+  labels: {
+    aboutAuthorAria: string
+    /** 75-34 (WR-04): byline prefix before the author name ("By"). */
+    by: string
+    /** 75-34 (WR-04): "Published {date}" — {date} filled via formatLocaleDate. */
+    published: string
+    /** 75-34 (WR-04): "Updated {date}" — {date} filled via formatLocaleDate. */
+    updated: string
+  }
   jobTitle: string
   imageAlt: string
 }
@@ -33,6 +42,10 @@ type AuthorBylineContent = {
  * 75-28: the job title, portrait alt and link aria-label come from the
  * localized author content for `locale`; name, image and dates still come
  * from lib/authors.ts.
+ *
+ * 75-34 (WR-04): the "By" / "Published {date}" / "Updated {date}" labels
+ * also come from the author content, and dates are formatted for `locale`
+ * via formatLocaleDate (EN stays byte-identical: en-GB "9 April 2026").
  */
 export default function ArticleByline({
   authorSlug,
@@ -44,6 +57,13 @@ export default function ArticleByline({
   const content = getPageContent(`authors/${a.slug}`, locale) as AuthorBylineContent
   const aboutAuthorAria = content.labels.aboutAuthorAria.replace('{name}', a.name)
   const showUpdated = dateModified && dateModified !== datePublished
+  const publishedText = content.labels.published.replace(
+    '{date}',
+    formatLocaleDate(datePublished, locale),
+  )
+  const updatedText = showUpdated
+    ? content.labels.updated.replace('{date}', formatLocaleDate(dateModified!, locale))
+    : ''
 
   return (
     <div className="flex items-center gap-4 py-5 border-y border-anthracite-light">
@@ -68,7 +88,7 @@ export default function ArticleByline({
       </Link>
       <div className="flex flex-col gap-0.5 min-w-0">
         <p className="font-body text-[11px] tracking-[0.1em] uppercase text-warmgrey">
-          By{' '}
+          {content.labels.by}{' '}
           <Link
             href={`/authors/${a.slug}`}
             className="text-offwhite hover:text-copper transition-colors"
@@ -79,8 +99,8 @@ export default function ArticleByline({
           <span>{content.jobTitle}</span>
         </p>
         <p className="font-body text-[11px] text-warmgrey tracking-[0.05em]">
-          Published {formatBylineDate(datePublished)}
-          {showUpdated ? ` · Updated ${formatBylineDate(dateModified!)}` : ''}
+          {publishedText}
+          {showUpdated ? ` · ${updatedText}` : ''}
         </p>
       </div>
     </div>

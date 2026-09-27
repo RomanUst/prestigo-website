@@ -4,6 +4,7 @@ import ruMessages from '@/messages/ru.json'
 import type { AbstractIntlMessages } from 'next-intl'
 import BlogCard from '@/components/BlogCard'
 import { formatBylineDate } from '@/lib/authors'
+import { formatLocaleDate } from '@/lib/locale-date'
 import type { BlogPost } from '@/lib/blog'
 
 const ruMessagesTyped = ruMessages as unknown as AbstractIntlMessages
@@ -118,5 +119,38 @@ describe('BlogCard category label (75-28)', () => {
       messages: ruMessagesTyped,
     })
     expect(screen.getByText('Travel Notes')).toBeTruthy()
+  })
+})
+
+// ─── 75-34 (WR-04): card dates render in the page locale's own format ──────
+
+describe('BlogCard date (75-34)', () => {
+  const LOCALES = ['ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
+  const EN_MONTHS =
+    /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/
+
+  it('en provider: card date equals formatLocaleDate(date, "en") (unchanged en-GB)', () => {
+    renderWithIntl(<BlogCard post={post} />)
+    expect(formatLocaleDate(post.date, 'en')).toBe(formatBylineDate(post.date))
+    expect(screen.getByText(formatLocaleDate(post.date, 'en'))).toBeTruthy()
+  })
+
+  for (const locale of LOCALES) {
+    it(`${locale} provider: card date is formatLocaleDate(date, "${locale}") with no English month`, async () => {
+      const messages = (await import(`@/messages/${locale}.json`)).default as unknown as AbstractIntlMessages
+      const { container } = renderWithIntl(<BlogCard post={post} />, { locale, messages })
+      const expected = formatLocaleDate(post.date, locale)
+      expect(screen.getByText(expected)).toBeTruthy()
+      expect(screen.queryByText(formatBylineDate(post.date))).toBeNull()
+      expect(container.textContent ?? '').not.toMatch(EN_MONTHS)
+    })
+  }
+
+  it('reads the locale via next-intl useLocale, not the en-GB-only lib/authors helper', async () => {
+    const { readFileSync } = await import('node:fs')
+    const path = await import('node:path')
+    const src = readFileSync(path.resolve(__dirname, '..', 'components', 'BlogCard.tsx'), 'utf8')
+    expect(src).not.toContain('formatBylineDate')
+    expect(src).toContain('useLocale')
   })
 })
