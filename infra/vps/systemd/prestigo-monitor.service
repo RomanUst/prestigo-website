@@ -1,0 +1,9 @@
+[Unit]
+Description=Prestigo on-VPS depth checks (disk/mem, KVM4 trigger, Sidekiq, EspoCRM internals, TLS expiry)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/prestigo/scripts/monitor.sh
+TimeoutStartSec=4min

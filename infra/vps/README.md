@@ -68,7 +68,7 @@ these names exact.
 | `runbooks/app-deploy.md` | Deploying/upgrading the Chatwoot + EspoCRM + Caddy Compose stacks | Plan 76-04 |
 | `runbooks/backup-restore.md` | Nightly restic->B2 backup job, retention, manual restore | Plan 76-05 |
 | `runbooks/upgrade.md` | Pinned-version upgrade procedure (backup -> snapshot -> pull/up -> migrate -> smoke check -> rollback) | Plan 76-05 |
-| `runbooks/monitoring.md` | External uptime/health monitoring + Healthchecks.io dead-man's-switch setup | Plan 76-07 |
+| `runbooks/monitoring.md` | External uptime/health monitoring + Healthchecks.io dead-man's-switch setup | Plan 76-06 |
 | `runbooks/outage-test.md` | The D-19(a) real outage test procedure (VPS offline, public site/wizard/Stripe/email still work) | Plan 76-08 |
 | `runbooks/restore-drill.md` | The D-09 restore drill onto a temporary host, checklist and dated log | Plan 76-09 |
 
