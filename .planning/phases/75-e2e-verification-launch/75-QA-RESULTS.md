@@ -520,3 +520,22 @@ Run date (UTC): 2026-09-27. Target: `https://rideprestigo.com`.
   - The PR body lists WR-01, WR-02, WR-03, WR-04, WR-05, IN-05 and WINDOWS #24/#26, and ends with the Claude Code attribution line.
 - **Not merged by the agent.** Waiting for the user to merge at the plan 75-35 Task 2 checkpoint (merge commit, not squash or rebase). The Vercel Preview check is expected to be red; it is non-blocking.
 - Merge sha, Production deployment id/status, local fast-forward and the smoke table are added by Task 3 after the merge.
+
+#### Merge and Production deployment (Task 3)
+
+| Item | Value |
+|---|---|
+| PR state | `gh pr view 39 --json state,mergeCommit` returns `MERGED 04a591a193a3eba935a87d4e9125b03fd1aedb84`. The user merged it with a merge commit |
+| Production deployment | `gh api "repos/RomanUst/prestigo-website/deployments?sha=04a591a1..."` returns id `6694162361`, environment `Production`, created 2026-09-27T15:33:21Z |
+| Deployment status | `gh api .../deployments/6694162361/statuses` returns **`success`** (environment_url `https://prestigo-site-aoubqinyf-romanusts-projects.vercel.app`). It was already `success` on the first poll (15:34:23Z), so no wait loop was needed. The Preview check was ignored |
+| Local main sync | `git merge --ff-only origin/main` could not fast-forward, because local main held `b9bb7ae1` (the Task 1 docs commit), which is not on origin. Used `git merge --no-ff origin/main` instead, creating `176676d1` "merge: origin/main after PR #39 (75-35)". No conflicts, no force, no reset. `git merge-base --is-ancestor 04a591a1 HEAD` is true. Local main was **not pushed**; the orchestrator decides how to push it |
+
+#### Production smoke (one check per fix class, run 2026-09-27 ~15:35Z)
+
+| Check | Command | Expected | Actual | Result |
+|---|---|---|---|---|
+| (a) WR-02 / #26: twitter mirrors og, /login is localized, raw-HTML 404 title | `python3 scripts/qa/share_meta_audit.py https://rideprestigo.com --locales ru,zh --pages /fleet,/login,/blog/this-post-does-not-exist` | exit 0, 0 findings | `share_meta_audit: 2 locales x 3 pages checked, 0 findings` / `wrote scripts/qa/out/share_meta_audit.json` / `EXIT=0` | **PASS** |
+| (b) WR-01 / IN-05: localized 404 for an unknown blog slug | `curl -s -o /dev/null -w '%{http_code}' https://rideprestigo.com/ru/blog/totally-made-up-slug-zzz999`, then `curl -s <same> \| grep -o '<title>[^<]*</title>'` | `404`, title = ru `NotFound.metaTitle` "Страница не найдена — PRESTIGO" | `404` / `<title>Страница не найдена — PRESTIGO</title>` | **PASS** |
+| (c) WR-04: ru byline label and date | `curl -s https://rideprestigo.com/ru/blog/beyond-transport-luxury-chauffeur-service-prague`, then count occurrences | ru `labels.published` prefix "Опубликовано" present. 0 × `Published `, 0 × `13 July 2026` | HTTP 200. `Опубликовано` × 2 (`Опубликовано 13 июля 2026 г.` in the HTML and in the RSC payload). `Published ` × 0. `13 July 2026` × 0 | **PASS** |
+
+All 3 smoke checks pass. The GAP-4 residual fixes are live in production. The full regression set runs in 75-36.
