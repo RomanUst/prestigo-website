@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
-stopped_at: Phase 76 context gathered
-last_updated: "2026-09-27T21:16:49.427Z"
+stopped_at: Completed 76-02-PLAN.md
+last_updated: "2026-09-27T21:37:43.242Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 76 execution started
-state_head: 8f460e96393548a5ccc6f123f642920ecbd936d6
+state_head: 950a48ec25b1db14be95d82991b58347afda611d
 progress:
   total_phases: 10
   completed_phases: 22
   total_plans: 9
-  completed_plans: 1
-  percent: 11
+  completed_plans: 2
+  percent: 22
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 ## Current Position
 
 Phase: 76 (VPS Infrastructure) — EXECUTING
-Plan: 2 of 9
+Plan: 3 of 9
 Status: Ready to execute
 Last activity: 2026-09-27 — Phase 76 execution started
 
@@ -168,6 +168,8 @@ Recent decisions affecting current work:
 - [Phase 75]: 75-06: entity-handling split preserved on /book — dangerouslySetInnerHTML fields keep literal HTML-entity text (matches about.json convention); plain-JSX-text fields converted to literal Unicode characters, since {expr} interpolation doesn't decode entities the way JSX text children did
 - [Phase 75]: 75-07: translated the TRANSFER/HOURLY example-day badge (not in must_haves) reusing messages/*.json's Booking.dayCard terms, to close an EN-leak the plan's own success criterion required
 - [Phase 75]: 75-08: /fleet localized via content model — structural VehicleSpec array (model/photo/specs + EN-only categoryEn/descriptionEn for JSON-LD) zipped by index with translated content.vehicles; entity-decoding rule empirically confirmed (JS string literal entities stay literal, JSX-text-child entities need decoded Unicode) — Matches 75-06/75-07 content-model pattern; extends split one level further for per-vehicle structural vs translated data; Phase 74 D-09 JSON-LD-stays-English preserved via dedicated EN-only fields
+- [Phase 76]: 76-02: sshd_hardening's own precondition check (non-empty deploy authorized_keys) enforces the lockout-safe order structurally, so Task 1 ran the full bootstrap.sh invocation in one command; the plan's "second connection proves deploy access" step is the human-verifiable proof done immediately after the script returns, before root access is treated as retired.
+- [Phase 76]: 76-02: config files written via mktemp+mv need an explicit chmod 0644 - mktemp defaults to 0600, which broke the plan's own unprivileged verify commands (apt-config dump, cat /etc/docker/daemon.json) on the first bootstrap run; fixed and re-verified end-to-end (Rule 1 auto-fix).
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -308,9 +310,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-27T19:38:43.298Z
-Stopped at: Phase 76 context gathered
-Resume file: .planning/phases/76-vps-infrastructure/76-CONTEXT.md
+Last session: 2026-09-27T21:37:43.180Z
+Stopped at: Completed 76-02-PLAN.md
+Resume file: None
 
 ## Performance Metrics
 
@@ -382,6 +384,7 @@ Resume file: .planning/phases/76-vps-infrastructure/76-CONTEXT.md
 | Phase 75 P06 | 16min | 2 tasks | 11 files |
 | Phase 75-e2e-verification-launch P07 | 25min | 2 tasks | 11 files |
 | Phase 75 P08 | 20min | 2 tasks | 11 files |
+| Phase 76 P02 | 39min | 2 tasks | 3 files |
 
 ## Operator Next Steps
 
