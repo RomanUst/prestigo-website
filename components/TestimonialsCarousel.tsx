@@ -25,10 +25,17 @@ function StarBadge({ rating }: { rating: number }) {
 }
 
 function ReviewCard({ review }: { review: Review }) {
+  const t = useTranslations('Testimonials')
   const isGoogle = review.source === 'google'
-  const quote = isGoogle ? review.text : review.quote
+  // 75-28: hardcoded testimonials render from Testimonials.hardcoded.<id>
+  // (falls back to the raw EN fields for an id missing from the catalog).
+  // Live Google review text is rendered as-is, in its original language.
+  const catalogKey = isGoogle ? null : `hardcoded.${review.id}`
+  const localized = catalogKey !== null && t.has(`${catalogKey}.quote`)
+  const quote = isGoogle ? review.text : localized ? t(`${catalogKey}.quote`) : review.quote
   const name = isGoogle ? review.author : review.name
-  const role = isGoogle ? review.relativeTime : review.role
+  const role = isGoogle ? review.relativeTime : localized ? t(`${catalogKey}.role`) : review.role
+  const sourceLabel = isGoogle ? null : localized ? t(`${catalogKey}.sourceLabel`) : review.sourceLabel
   return (
     <div className="border-s-2 border-anthracite-light ps-6 py-2 max-w-3xl mx-auto">
       <p className="font-display font-light italic text-lg text-offwhite leading-snug mb-6">
@@ -42,7 +49,7 @@ function ReviewCard({ review }: { review: Review }) {
             <StarBadge rating={review.rating} />
           ) : (
             <p className="font-body font-light text-[10px] tracking-[0.08em]" style={{ color: 'var(--copper)' }}>
-              {review.sourceLabel}
+              {sourceLabel}
             </p>
           )}
         </div>

@@ -589,6 +589,11 @@
   "BlogCard": {
     "readArticle": "阅读文章 →"
   },
+  "BlogCategories": {
+    "airportTransfer": "机场接送",
+    "intercityRoutes": "城际线路",
+    "chauffeurService": "专属司机服务"
+  },
   "StepStub": {
     "stepOfSix": "第 {step} 步（共 6 步）",
     "body": "完善您的行程详情 — 即将推出。"
@@ -688,7 +693,24 @@
     "googleReview": "Google 评价",
     "carouselAria": "客户评价",
     "paginationAria": "评价分页",
-    "goToSlide": "前往第 {n} 张幻灯片"
+    "goToSlide": "前往第 {n} 张幻灯片",
+    "hardcoded": {
+      "michaelH": {
+        "quote": "我们还没出海关，司机就已经在等候了。从落地到酒店，一路顺畅无缝。",
+        "role": "首席财务官 · 法兰克福",
+        "sourceLabel": "已验证预订 · 机场接送"
+      },
+      "stepanN": {
+        "quote": "今年往返布拉格和维也纳四次，每次都非常出色。S-Class 更是无可挑剔。",
+        "role": "高级合伙人 · 布拉格",
+        "sourceLabel": "已验证预订 · 城际线路"
+      },
+      "linhC": {
+        "quote": "企业账户为我们节省了大量行政工作时间。开票、报表——一切都顺畅运转。",
+        "role": "运营总监",
+        "sourceLabel": "已验证预订 · 企业账户"
+      }
+    }
   },
   "CookieBanner": {
     "wordmarkAria": "PRESTIGO",

@@ -589,6 +589,11 @@
   "BlogCard": {
     "readArticle": "Lire l'article →"
   },
+  "BlogCategories": {
+    "airportTransfer": "Transferts aéroport",
+    "intercityRoutes": "Trajets interurbains",
+    "chauffeurService": "Service de chauffeur"
+  },
   "StepStub": {
     "stepOfSix": "Étape {step} sur 6",
     "body": "Complétez les détails de votre trajet — bientôt disponible."
@@ -688,7 +693,24 @@
     "googleReview": "Avis Google",
     "carouselAria": "Témoignages",
     "paginationAria": "Pagination des témoignages",
-    "goToSlide": "Aller à la diapositive {n}"
+    "goToSlide": "Aller à la diapositive {n}",
+    "hardcoded": {
+      "michaelH": {
+        "quote": "Notre chauffeur nous attendait avant même que nous ayons passé la douane. Impeccable, de l'atterrissage jusqu'à l'hôtel.",
+        "role": "Directeur financier · Francfort",
+        "sourceLabel": "Réservation vérifiée · Transfert aéroport"
+      },
+      "stepanN": {
+        "quote": "J'ai fait le trajet Prague–Vienne quatre fois cette année. Toujours excellent. La S-Class est exceptionnelle.",
+        "role": "Associé principal · Prague",
+        "sourceLabel": "Réservation vérifiée · Trajet interurbain"
+      },
+      "linhC": {
+        "quote": "Notre compte entreprise nous fait gagner des heures de gestion administrative. Facturation, rapports — tout fonctionne, tout simplement.",
+        "role": "Directeur des opérations",
+        "sourceLabel": "Réservation vérifiée · Compte entreprise"
+      }
+    }
   },
   "CookieBanner": {
     "wordmarkAria": "PRESTIGO",

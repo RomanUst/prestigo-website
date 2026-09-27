@@ -10196,6 +10196,54 @@
     "content/pages/en/authors/roman-ustyugov.json::metadata.ogTitle": {
       "enHash": "sha256:5722992fc2b61a8c2e4d3efede6fd36cc65198e00a52cf3ebd12e1c19a81ff68",
       "lastTranslatedAt": "2026-09-27T11:24:08.573Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.michaelH.quote": {
+      "enHash": "sha256:fdfeac2473d9950052766a9a9807612e9f831705ad92e262ad286c3c1b43aa21",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.michaelH.role": {
+      "enHash": "sha256:fb7312f01df08eb01334b1d8b76bf073c547d38b7f8af83fea9b05a09374ced1",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.michaelH.sourceLabel": {
+      "enHash": "sha256:4ac9349fc48e9ef97f1b34e4605fd9368fe26b4ebe0288d65acb471e520ae65b",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.stepanN.quote": {
+      "enHash": "sha256:72eec3fcf096b0604accd69a36d07d440e7dbbfdc7ceed6a19c06349300a45a5",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.stepanN.role": {
+      "enHash": "sha256:84580912c97dee585ebcd63101f32c7ee93b036e219ae00f8623e43c4483a7c4",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.stepanN.sourceLabel": {
+      "enHash": "sha256:cca87f044f8d24cc44b633381d7a1df32a1aa55c4351c5f5a7be9e1c6436c310",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.linhC.quote": {
+      "enHash": "sha256:24609b22fdea510b73a501c012e33f924625ee86198db50e10aac4199737b925",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.linhC.role": {
+      "enHash": "sha256:c9910c3cc6773d3a1321ec3dcdc19a14afa637bbe8c95c1e19b35103c668ace0",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::Testimonials.hardcoded.linhC.sourceLabel": {
+      "enHash": "sha256:19d0fbd60200ddb95d90b519625d4f1ebcf46f3754944b0841c243599264e22e",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::BlogCategories.airportTransfer": {
+      "enHash": "sha256:63d56a7a221c1d4c24a92e4f7c37a3f5b6b5c96517894ae53fe4c86de8f0b442",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::BlogCategories.intercityRoutes": {
+      "enHash": "sha256:455779d0957b6a7a82f1202cd716991b5638e90c818078cdc728b36e3602dd83",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
+    },
+    "messages/en.json::BlogCategories.chauffeurService": {
+      "enHash": "sha256:8c25582b0c7ffc8c21e17f9cace4b2b8626797a0605186f3ddba6270be6a055c",
+      "lastTranslatedAt": "2026-09-27T11:28:35.490Z"
     }
   }
 }

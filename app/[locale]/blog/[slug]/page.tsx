@@ -11,6 +11,7 @@ import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { blogCategoryKey } from '@/lib/blog-categories'
 
 export const dynamic = 'force-static'
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
@@ -106,6 +107,11 @@ export default async function BlogArticlePage({
   }
 
   const tCta = await getTranslations({ locale, namespace: 'BlogPost.cta' })
+  // 75-28: hero category label — EN frontmatter value mapped to the
+  // localized BlogCategories label (raw value if unmapped).
+  const tCategory = await getTranslations({ locale, namespace: 'BlogCategories' })
+  const categoryKey = blogCategoryKey(post.category)
+  const categoryLabel = categoryKey ? tCategory(categoryKey) : post.category
 
   // Relative path is mandatory — webpack/Turbopack cannot resolve @/ in
   // dynamic import template strings. See RESEARCH.md Pitfall 3. resolved.dir
@@ -137,7 +143,7 @@ export default async function BlogArticlePage({
         <section className="bg-anthracite pt-32 pb-12 md:pt-40 md:pb-16 border-b border-anthracite-light">
           <div className="max-w-3xl mx-auto px-6 md:px-12">
             <p className="label" style={{ color: 'var(--copper-light)' }}>
-              {post.category}
+              {categoryLabel}
             </p>
             <div className="copper-line my-6" />
             <h1 className="font-display font-light text-[40px] md:text-[56px] text-offwhite leading-[1.1]">

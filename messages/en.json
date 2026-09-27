@@ -554,6 +554,11 @@
   "BlogCard": {
     "readArticle": "Read article →"
   },
+  "BlogCategories": {
+    "airportTransfer": "Airport Transfer",
+    "intercityRoutes": "Intercity Routes",
+    "chauffeurService": "Chauffeur Service"
+  },
   "StepStub": {
     "stepOfSix": "Step {step} of 6",
     "body": "Complete your journey details — coming next."
@@ -638,7 +643,24 @@
     "googleReview": "Google Review",
     "carouselAria": "Testimonials",
     "paginationAria": "Testimonial pagination",
-    "goToSlide": "Go to slide {n}"
+    "goToSlide": "Go to slide {n}",
+    "hardcoded": {
+      "michaelH": {
+        "quote": "Our driver was waiting before we even cleared customs. Seamless from landing to hotel.",
+        "role": "CFO · Frankfurt",
+        "sourceLabel": "Verified booking · Airport transfer"
+      },
+      "stepanN": {
+        "quote": "Travelled Prague–Vienna four times this year. Consistently excellent. The S-Class is exceptional.",
+        "role": "Senior Partner · Prague",
+        "sourceLabel": "Verified booking · Intercity route"
+      },
+      "linhC": {
+        "quote": "Our corporate account saves hours of admin. Invoicing, reporting — everything just works.",
+        "role": "Operations Director",
+        "sourceLabel": "Verified booking · Corporate account"
+      }
+    }
   },
   "CookieBanner": {
     "wordmarkAria": "PRESTIGO",

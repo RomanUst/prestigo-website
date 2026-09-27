@@ -8,3 +8,5 @@ messages/en.json::Auth.login.metaDescription
 content/pages/en/authors/roman-ustyugov.json::bioShort
 content/pages/en/authors/roman-ustyugov.json::metadata
 content/pages/en/authors/roman-ustyugov.json::labels.aboutAuthorAria
+messages/en.json::Testimonials.hardcoded
+messages/en.json::BlogCategories
