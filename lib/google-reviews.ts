@@ -15,6 +15,12 @@ export interface GoogleReview {
 
 export interface HardcodedReview {
   source: 'hardcoded'
+  /**
+   * Stable catalog id (75-28): TestimonialsCarousel renders the localized
+   * quote/role/sourceLabel from messages Testimonials.hardcoded.<id>.*; the
+   * EN fields below stay the data source for anything else that reads them.
+   */
+  id: string
   quote: string
   name: string
   role: string
@@ -26,6 +32,7 @@ export type Review = GoogleReview | HardcodedReview
 export const HARDCODED_TESTIMONIALS: HardcodedReview[] = [
   {
     source: 'hardcoded',
+    id: 'michaelH',
     quote: 'Our driver was waiting before we even cleared customs. Seamless from landing to hotel.',
     name: 'Michael H.',
     role: 'CFO · Frankfurt',
@@ -33,6 +40,7 @@ export const HARDCODED_TESTIMONIALS: HardcodedReview[] = [
   },
   {
     source: 'hardcoded',
+    id: 'stepanN',
     quote: 'Travelled Prague–Vienna four times this year. Consistently excellent. The S-Class is exceptional.',
     name: 'Štěpán N.',
     role: 'Senior Partner · Prague',
@@ -40,6 +48,7 @@ export const HARDCODED_TESTIMONIALS: HardcodedReview[] = [
   },
   {
     source: 'hardcoded',
+    id: 'linhC',
     quote: 'Our corporate account saves hours of admin. Invoicing, reporting — everything just works.',
     name: 'Linh C.',
     role: 'Operations Director',

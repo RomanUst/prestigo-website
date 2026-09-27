@@ -65,3 +65,58 @@ describe('BlogCard', () => {
     expect(screen.getByText(ruLabel)).toBeTruthy()
   })
 })
+
+// ─── 75-28 (GAP-4d): blog category labels render in the page locale ─────────
+
+describe('BlogCard category label (75-28)', () => {
+  const LOCALES = ['ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
+  const CATEGORY_KEYS = {
+    'Airport Transfer': 'airportTransfer',
+    'Intercity Routes': 'intercityRoutes',
+    'Chauffeur Service': 'chauffeurService',
+  } as const
+
+  it('EN catalog labels equal the EN frontmatter values verbatim', async () => {
+    const en = (await import('@/messages/en.json')).default as unknown as {
+      BlogCategories: Record<string, string>
+    }
+    for (const [value, key] of Object.entries(CATEGORY_KEYS)) {
+      expect(en.BlogCategories[key]).toBe(value)
+    }
+  })
+
+  for (const locale of LOCALES) {
+    it(`renders the ${locale} BlogCategories label for each known category`, async () => {
+      const messages = (await import(`@/messages/${locale}.json`)).default as unknown as AbstractIntlMessages
+      const cats = (messages as unknown as { BlogCategories: Record<string, string> }).BlogCategories
+      for (const [value, key] of Object.entries(CATEGORY_KEYS)) {
+        const { unmount } = renderWithIntl(<BlogCard post={{ ...post, category: value }} />, {
+          locale,
+          messages,
+        })
+        expect(cats[key], `${locale}:${key}`).toBeTruthy()
+        expect(cats[key]).not.toBe(value)
+        expect(screen.getByText(cats[key])).toBeTruthy()
+        expect(screen.queryByText(value)).toBeNull()
+        unmount()
+      }
+    })
+  }
+
+  it('renders the ru label for "Intercity Routes" (ledger row)', () => {
+    renderWithIntl(<BlogCard post={{ ...post, category: 'Intercity Routes' }} />, {
+      locale: 'ru',
+      messages: ruMessagesTyped,
+    })
+    const ru = (ruMessagesTyped as unknown as { BlogCategories: { intercityRoutes: string } }).BlogCategories
+    expect(screen.getByText(ru.intercityRoutes)).toBeTruthy()
+  })
+
+  it('falls back to the raw category value for an unknown category', () => {
+    renderWithIntl(<BlogCard post={{ ...post, category: 'Travel Notes' }} />, {
+      locale: 'ru',
+      messages: ruMessagesTyped,
+    })
+    expect(screen.getByText('Travel Notes')).toBeTruthy()
+  })
+})

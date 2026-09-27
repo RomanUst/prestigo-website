@@ -2,6 +2,7 @@ import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
 import type { BlogPost } from '@/lib/blog'
 import { formatBylineDate } from '@/lib/authors'
+import { blogCategoryKey } from '@/lib/blog-categories'
 
 type Props = { post: BlogPost }
 
@@ -18,6 +19,10 @@ type Props = { post: BlogPost }
  */
 export default function BlogCard({ post }: Props) {
   const t = useTranslations('BlogCard')
+  const tCategory = useTranslations('BlogCategories')
+  // 75-28: EN frontmatter value -> localized label (raw value if unmapped).
+  const categoryKey = blogCategoryKey(post.category)
+  const categoryLabel = categoryKey ? tCategory(categoryKey) : post.category
   return (
     <Link
       href={`/blog/${post.slug}`}
@@ -37,7 +42,7 @@ export default function BlogCard({ post }: Props) {
       </div>
       <div className="p-6 md:p-8 flex flex-col gap-4">
         <p className="label" style={{ color: 'var(--copper-light)' }}>
-          {post.category}
+          {categoryLabel}
         </p>
         <h2 className="font-display font-light text-[24px] md:text-[28px] text-offwhite group-hover:text-[var(--copper-light)] transition-colors leading-[1.25]">
           {post.title}

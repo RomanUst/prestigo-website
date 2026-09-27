@@ -589,6 +589,11 @@
   "BlogCard": {
     "readArticle": "Leer artículo →"
   },
+  "BlogCategories": {
+    "airportTransfer": "Traslados al aeropuerto",
+    "intercityRoutes": "Rutas interurbanas",
+    "chauffeurService": "Servicio de chófer"
+  },
   "StepStub": {
     "stepOfSix": "Paso {step} de 6",
     "body": "Complete los detalles de su viaje — disponible próximamente."
@@ -688,7 +693,24 @@
     "googleReview": "Reseña de Google",
     "carouselAria": "Testimonios",
     "paginationAria": "Paginación de testimonios",
-    "goToSlide": "Ir a la diapositiva {n}"
+    "goToSlide": "Ir a la diapositiva {n}",
+    "hardcoded": {
+      "michaelH": {
+        "quote": "Nuestro chófer ya nos esperaba antes de que pasáramos la aduana. Impecable desde el aterrizaje hasta el hotel.",
+        "role": "Director financiero · Fráncfort",
+        "sourceLabel": "Reserva verificada · Traslado al aeropuerto"
+      },
+      "stepanN": {
+        "quote": "He hecho el trayecto Praga–Viena cuatro veces este año. Siempre excelente. El S-Class es excepcional.",
+        "role": "Socio sénior · Praga",
+        "sourceLabel": "Reserva verificada · Ruta interurbana"
+      },
+      "linhC": {
+        "quote": "Nuestra cuenta de empresa nos ahorra horas de gestión administrativa. Facturación, informes: todo funciona sin complicaciones.",
+        "role": "Director de operaciones",
+        "sourceLabel": "Reserva verificada · Cuenta de empresa"
+      }
+    }
   },
   "CookieBanner": {
     "wordmarkAria": "PRESTIGO",
@@ -756,7 +778,9 @@
       "alreadyHaveAccountPrompt": "¿Ya tiene una cuenta?",
       "resetSentMessage": "Enlace de restablecimiento enviado. Consulte su correo electrónico.",
       "sendResetLinkButton": "Enviar enlace de restablecimiento",
-      "backToSignIn": "Volver al inicio de sesión"
+      "backToSignIn": "Volver al inicio de sesión",
+      "metaTitle": "Iniciar sesión — PRESTIGO",
+      "metaDescription": "Inicie sesión en su cuenta de PRESTIGO para consultar y gestionar sus reservas y sus próximos viajes."
     },
     "oauth": {
       "googleLabel": "Iniciar sesión con Google",
