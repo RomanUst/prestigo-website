@@ -539,3 +539,15 @@ Run date (UTC): 2026-09-27. Target: `https://rideprestigo.com`.
 | (c) WR-04: ru byline label and date | `curl -s https://rideprestigo.com/ru/blog/beyond-transport-luxury-chauffeur-service-prague`, then count occurrences | ru `labels.published` prefix "Опубликовано" present. 0 × `Published `, 0 × `13 July 2026` | HTTP 200. `Опубликовано` × 2 (`Опубликовано 13 июля 2026 г.` in the HTML and in the RSC payload). `Published ` × 0. `13 July 2026` × 0 | **PASS** |
 
 All 3 smoke checks pass. The GAP-4 residual fixes are live in production. The full regression set runs in 75-36.
+
+### Tracer checks (plan 75-36)
+
+Run 2026-09-27 ~15:37Z against `https://rideprestigo.com` (Production deployment `6694162361`, merge `04a591a1`). Each check is the detector that was red in the 75-32 pre-fix baseline. "Before" values come from `evidence/75-32-*-prefix.json` for the same locale/page subset.
+
+| Fix class | Command | Exit | After (75-36) | Before (75-32 prefix, same subset) | Result |
+|---|---|---|---|---|---|
+| WR-02 twitter + es meta, #26 /login + 404 meta, WR-04 joined byline + en-date, WR-05 MDX link leaks | `python3 scripts/qa/en_leak_rendered.py https://rideprestigo.com --locales ru,es --pages /fleet,/login,/this-page-does-not-exist,/blog,/blog/beyond-transport-luxury-chauffeur-service-prague` | 0 | `2 locales x 5 pages checked, 0 text leaks, 0 link leaks` | 39 text / 0 link. ru 20: `meta` 15 (/fleet 2, /login 4, 404 5, /blog 2, post 2), `en-date` 4, `joined-text` 1 ("Published 13 July 2026"). es 19: `meta-identical-to-en` 15, `en-date` 4 | **PASS** |
+| Raw-HTML twitter mirror, EN site default, 404 `<title>` (IN-05) | `python3 scripts/qa/share_meta_audit.py https://rideprestigo.com --locales ru,es` | 0 | `2 locales x 12 pages checked, 0 findings` | 118 findings: `en-site-default` 43 + 43, `twitter-mirror` 14 + 14, `notfound-title` 2 + 2 | **PASS** |
+| Hydrated 404 incl. blog unknown slug (WR-01) | `python3 scripts/qa/notfound_audit.py https://rideprestigo.com --locales ru,ar` | 0 | non-shadowing 12/12 PASS; localized 404 6/6 PASS. `/blog/this-post-does-not-exist`: 404, ru title "Страница не найдена — PRESTIGO", ar title "الصفحة غير موجودة — PRESTIGO", ar `dir=rtl` | 4/6 localized: `/blog/this-post-does-not-exist` had the title "Not Found — Prestigo \| PRESTIGO" on ru and ar | **PASS** |
+
+Each fix class now passes on production through the detector that was red before the fix. No failure is carried into Task 2.
