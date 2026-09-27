@@ -4,7 +4,12 @@ verified: 2026-09-27T15:00:00Z
 status: gaps_found
 score: 8/10 must-haves verified
 behavior_unverified: 0
-overrides_applied: 0
+overrides_applied: 1
+overrides:
+  - must_have: "RU and AR sign-in + account ('My trips') booking path is verified (ROADMAP SC #2)"
+    reason: "No E2E test account was created; user explicitly decided to skip this verification step and accept the guest-path proof (7/7 locales incl. /ar RTL reaching a localized Stripe form) as sufficient for launch."
+    accepted_by: "Roman"
+    accepted_at: "2026-09-27T16:00:00Z"
 re_verification:
   previous_status: gaps_found
   previous_score: 6/10
