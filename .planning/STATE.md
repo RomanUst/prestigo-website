@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
-stopped_at: Completed 76-06-PLAN.md Tasks 2-3 (Task 1 deferred, complete-pending-owner)
-last_updated: "2026-09-27T23:07:12.947Z"
+stopped_at: Completed 76-08-PLAN.md
+last_updated: "2026-09-27T23:39:39.429Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 76 execution started
-state_head: 0f879ebe1c67460efac899d33483baa160543a0f
+state_head: c0b236a9443d27984ebf64d8149136dbd4278c2c
 progress:
   total_phases: 10
   completed_phases: 22
   total_plans: 9
-  completed_plans: 6
-  percent: 67
+  completed_plans: 7
+  percent: 78
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 ## Current Position
 
 Phase: 76 (VPS Infrastructure) — EXECUTING
-Plan: 7 of 9
+Plan: 8 of 9
 Status: Ready to execute
 Last activity: 2026-09-27 — Phase 76 execution started
 
@@ -177,6 +177,9 @@ Recent decisions affecting current work:
 - [Phase 76]: 76-04: found and worked around two real upstream/procedural defects - (1) Caddyfile single-file bind mounts go stale after rsync's temp-file+rename, need a container restart not just caddy reload; (2) espocrm-docker's actionInstall hardcodes set-password admin regardless of ESPOCRM_ADMIN_USERNAME, restart-looping the install forever with a non-default admin username. Both fixed live and documented as standing procedures in infra/vps/runbooks/app-deploy.md for plans 76-06/76-09.
 - [Phase 76]: restic to Backblaze B2 (us-east-005, owner-approved) via a single pinned restic/restic:0.19.1 container wrapper; nightly systemd timer 02:30 Europe/Prague, 7d/4w/6m retention; Task 3 owner-custody checkpoint deliberately deferred to end-of-phase, SUMMARY status complete-pending-owner
 - [Phase 76]: 76-06: external monitor definitions (UptimeRobot+Healthchecks) versioned repo-side with idempotent provisioner; owner-account provisioning (Task 1) deferred to end-of-phase alongside 76-05's Task 3. All five on-VPS depth checks (disk/mem, KVM4 trigger, Sidekiq, EspoCRM internals, TLS expiry) live on a 5-min systemd timer, gracefully skipping pings until monitor.env exists. Discovered (not fixed, out of scope): Chatwoot /api data_services intermittently reports failing in self-resolving bursts, suspected Puma/AR connection-pool reaping - recorded WINDOWS.md #30 for a later phase.
+- [Phase 76]: Ordering deviation (orchestrator-directed): ran 76-08 before 76-07 since 76-07 (controlled outage test) is deliberately deferred to end of phase for owner-held accounts; no real content dependency on 76-07 was found.
+- [Phase 76]: EspoCRM Document.accounts is ACL-gated (directUpdateDisabled/noLoad linkMultiple), so the account_document join row is written directly via root MariaDB instead of widening the least-privilege canary API role's ACL.
+- [Phase 76]: Fixed restic.sh: /var/backups/prestigo mount changed from read-only to read-write since it is also the restore/rehearsal target, not just a backup source.
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -317,8 +320,8 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-27T23:07:12.884Z
-Stopped at: Completed 76-06-PLAN.md Tasks 2-3 (Task 1 deferred, complete-pending-owner)
+Last session: 2026-09-27T23:39:39.363Z
+Stopped at: Completed 76-08-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -396,6 +399,7 @@ Resume file: None
 | Phase 76 P04 | ~2h20m | 3 tasks | 9 files |
 | Phase 76 P05 | 50min | 2 tasks | 7 files |
 | Phase 76 P06 | ~35min | 2 tasks | 8 files |
+| Phase 76 P08 | 32min | 2 tasks | 9 files |
 
 ## Operator Next Steps
 
