@@ -122,6 +122,47 @@ Future-first admin bookings list with a persistent default-horizon setting (Futu
 
 ---
 
+## Milestone: v3.0 — Site Internationalization (i18n)
+
+**Shipped:** 2026-09-27
+**Phases:** 8 (68-75) | **Plans:** 85 | **Tasks:** 176
+
+### What Was Built
+next-intl `app/[locale]/` routing with EN at root and every EN URL byte-identical, composed into the CSP/Supabase/CSRF middleware (68); UI chrome and the whole booking/account/auth surface moved into message catalogs (69-70); route, service, marketing, legal pages and blog moved into a per-locale content model (71); a re-runnable AI translation pipeline with glossary, DNT list, hash manifest and fail-closed verifier, producing RU/ES/FR (72) and AR/HI/ZH with RTL logical properties, bidi-isolated prices and per-locale Noto fonts (73); hreflang/sitemap/metadata/JSON-LD from one `getAlternates()`, language switcher and consent-modal language suggestion (74); a production E2E + EN-leak QA harness across 7 locales with two gap rounds (75).
+
+### What Worked
+- **Byte-parity as the safety net** — every externalization plan proved English output unchanged (snapshot/golden HTML), so a 133k-line restructure never regressed the ranked EN site.
+- **One source for alternates** — pages and sitemap both call `getAlternates()`, so hreflang clusters cannot diverge.
+- **Measuring leaks on production, not in theory** — the rendered EN-leak, share-meta and 404 scanners found classes of leaks (twitter meta, JSX-split text, English dates, raw-SSR 404 titles) that code review missed, and then proved them gone (0/0).
+- **Fail-closed translation verifier** — broken DNT/ICU/rich-tag output is excluded from both the tree and the manifest, so re-runs self-heal.
+
+### What Was Inefficient
+- **Phase 75 ballooned to 36 plans** — E2E "verification" turned into two rounds of fixing; leak classes should have been scanned per-phase (71-74) instead of discovered at launch.
+- **Middleware matcher bit three times** — .avif photos, then robots/sitemap/llms.txt 404'd in prod since Phase 68; static-extension exclusions needed a test from day one.
+- **Array-leaf catalog corruption** — JSON-parse-back turned arrays into strings in RU/ES/FR (`pillars.map is not a function`); value-type parity should have been a gate, not a gap.
+- **External dependency on API credit** — the translation pipeline and GH workflow stalled when Anthropic credit ran out; later translations were done in-session and the remaining debt is blocked on billing.
+- **`--dry-run` wrote stub placeholders** over real content — a footgun in our own tool.
+
+### Patterns Established
+- `interpolateBidi()` + `<bdi>` for DNT tokens (prices, durations) in RTL prose; JSON-LD stays plain strings.
+- Force-static pages take locale from `params`, never `getLocale()` (WINDOWS #7).
+- next-intl sets `NEXT_LOCALE` on every response — never treat it as a user choice.
+- QA harness under `scripts/qa/` (en_leak_rendered, share_meta_audit, notfound_audit, booking_e2e, analytics_locale_audit) with a reasoned allowlist.
+- Deviation ledger (`.planning/WINDOWS.md`) for everything recorded-not-fixed.
+
+### Key Lessons
+- For i18n, add a rendered-leak scan to every externalization phase's gate, not only to the launch phase.
+- Any middleware matcher change needs a test that curls every static/metadata extension.
+- Tools that write to the repo must have a true no-write preview mode.
+- Budget external API credit for the whole milestone, including follow-up re-runs.
+
+### Cost Observations
+- Model mix: Opus orchestration/execution, Sonnet integration checker and some executors.
+- Sessions: many; Phase 75 alone consumed the largest share (36 plans, two gap rounds).
+- Notable: in-session translation replaced the pipeline once credit ran out — slower but unblocked launch.
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -132,11 +173,13 @@ Future-first admin bookings list with a persistent default-horizon setting (Futu
 | v2.0 Booking + Auth | 5 (57-61) | 22 | Wave-0 TDD + Supabase MCP live verification |
 | v2.1 Admin Booking + Payment | 3 (62-64) | 13 | Tracer-first phases + one webhook, two reconcile paths |
 | v2.2 Dispatch + Driver Portal | 3 (65-67) | 8 | Isolation-by-omission + single shared validity predicate |
+| v3.0 Site i18n | 8 (68-75) | 85 | Byte-parity EN safety net + production leak-scanning harness |
 
 ### Recurring Issues
 
 - **Live environment testing** — OAuth, OTP, payment, and now on-device/visual UAT always block automated verification; accept `blocked_by: third-party`/`release-build` and run UAT post-deploy
 - **Under-specified requirement adjectives** — "live" (DTRIP-05) shipped as on-load fetch; nail observable behavior at plan time
+- **Launch-phase bloat** — verification phases that discover defects turn into fix phases (v3.0 Phase 75: 36 plans); push scanners earlier
 - **Temp filesystem space** — ENOSPC recurred; keep `CLAUDE_CODE_TMPDIR=/tmp` in muscle memory
 
 ### Improving Each Milestone
@@ -144,3 +187,4 @@ Future-first admin bookings list with a persistent default-horizon setting (Futu
 - v1.0 → v2.0: Added Wave-0 TDD, security review gate, Supabase MCP verification
 - v2.0 → v2.1: Plan: run milestone audit after all phases, create Phase 60-style single-commit docs for small scoped fixes
 - v2.1 → v2.2: Isolation contracts enforced by grep gates; token-gated write-route hardening as a reusable checklist; human UAT harvested into VERIFICATION and run post-deploy
+- v2.2 → v3.0: Byte-parity snapshots as a regression gate for large restructures; production QA scanners + deviation ledger; override closeouts recorded explicitly
