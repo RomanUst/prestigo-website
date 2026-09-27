@@ -3,7 +3,10 @@
     "authorProfile": "लेखक प्रोफ़ाइल",
     "about": "परिचय",
     "expertise": "विशेषज्ञता के क्षेत्र",
-    "aboutAuthorAria": "लेखक के बारे में, {name}"
+    "aboutAuthorAria": "लेखक के बारे में, {name}",
+    "by": "लेखक",
+    "published": "प्रकाशित: {date}",
+    "updated": "अपडेट: {date}"
   },
   "jobTitle": "संस्थापक एवं मुख्य अनुभव अधिकारी",
   "bioShort": "PRESTIGO के संस्थापक। प्राग में लक्जरी परिवहन और 5★ आतिथ्य में 10 वर्षों से अधिक का अनुभव।",

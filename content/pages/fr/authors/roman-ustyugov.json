@@ -3,7 +3,10 @@
     "authorProfile": "Profil de l'auteur",
     "about": "À propos",
     "expertise": "Domaines d'expertise",
-    "aboutAuthorAria": "À propos de l'auteur, {name}"
+    "aboutAuthorAria": "À propos de l'auteur, {name}",
+    "by": "Par",
+    "published": "Publié le {date}",
+    "updated": "Mis à jour le {date}"
   },
   "jobTitle": "Fondateur et directeur de l'expérience client",
   "bioShort": "Fondateur de PRESTIGO. Plus de 10 ans dans le transport de luxe et l'hôtellerie 5★ à Prague.",
