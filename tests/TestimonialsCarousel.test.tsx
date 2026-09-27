@@ -2,7 +2,15 @@ import { act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderWithIntl as render, screen, fireEvent } from '@/tests/helpers/renderWithIntl'
 import TestimonialsCarousel from '@/components/TestimonialsCarousel'
-import type { Review } from '@/lib/google-reviews'
+import { HARDCODED_TESTIMONIALS, type Review } from '@/lib/google-reviews'
+import type { AbstractIntlMessages } from 'next-intl'
+import enMessages from '@/messages/en.json'
+import ruMessages from '@/messages/ru.json'
+import esMessages from '@/messages/es.json'
+import frMessages from '@/messages/fr.json'
+import arMessages from '@/messages/ar.json'
+import hiMessages from '@/messages/hi.json'
+import zhMessages from '@/messages/zh.json'
 
 const googleReview = (overrides: Partial<Extract<Review, { source: 'google' }>> = {}): Review => ({
   source: 'google',
@@ -16,6 +24,8 @@ const googleReview = (overrides: Partial<Extract<Review, { source: 'google' }>> 
 
 const hardcodedReview = (overrides: Partial<Extract<Review, { source: 'hardcoded' }>> = {}): Review => ({
   source: 'hardcoded',
+  // not a catalog id -> the component falls back to the raw EN fields
+  id: 'testFixture',
   quote: 'Reliable, discreet, on time.',
   name: 'Michael H.',
   role: 'CFO · Frankfurt',
@@ -185,5 +195,77 @@ describe('GRVW-06 cleanup: timer cleared on unmount', () => {
     unmount()
     act(() => vi.advanceTimersByTime(10000))
     expect(vi.getTimerCount()).toBe(0)
+  })
+})
+
+// ─── 75-28 (GAP-4d): hardcoded testimonials render in the page locale ────────
+
+type HardcodedEntry = { quote: string; role: string; sourceLabel: string }
+const CATALOGS: Record<string, AbstractIntlMessages> = {
+  en: enMessages as unknown as AbstractIntlMessages,
+  ru: ruMessages as unknown as AbstractIntlMessages,
+  es: esMessages as unknown as AbstractIntlMessages,
+  fr: frMessages as unknown as AbstractIntlMessages,
+  ar: arMessages as unknown as AbstractIntlMessages,
+  hi: hiMessages as unknown as AbstractIntlMessages,
+  zh: zhMessages as unknown as AbstractIntlMessages,
+}
+function hardcodedCatalog(locale: string): Record<string, HardcodedEntry> {
+  return (CATALOGS[locale] as unknown as { Testimonials: { hardcoded: Record<string, HardcodedEntry> } })
+    .Testimonials.hardcoded
+}
+
+describe('75-28: hardcoded testimonials are localized via Testimonials.hardcoded.<id>', () => {
+  it('every HARDCODED_TESTIMONIALS entry has a unique stable id present in the EN catalog with the verbatim EN text', () => {
+    const ids = HARDCODED_TESTIMONIALS.map((t) => t.id)
+    expect(new Set(ids).size).toBe(ids.length)
+    const en = hardcodedCatalog('en')
+    for (const t of HARDCODED_TESTIMONIALS) {
+      expect(en[t.id], t.id).toEqual({ quote: t.quote, role: t.role, sourceLabel: t.sourceLabel })
+    }
+  })
+
+  it('renders the EN text byte-identically under en', () => {
+    const michael = HARDCODED_TESTIMONIALS[0]
+    render(<TestimonialsCarousel reviews={[michael]} />)
+    expect(screen.getByText(`\u201c${michael.quote}\u201d`)).toBeTruthy()
+    expect(screen.getByText(michael.role)).toBeTruthy()
+    expect(screen.getByText(michael.sourceLabel)).toBeTruthy()
+    expect(screen.getByText(michael.name)).toBeTruthy()
+  })
+
+  for (const locale of ['ru', 'es', 'fr', 'ar', 'hi', 'zh']) {
+    it(`renders the ${locale} quote, role and source label (name unchanged, no EN leak)`, () => {
+      const cat = hardcodedCatalog(locale)
+      for (const t of HARDCODED_TESTIMONIALS) {
+        const { unmount, container } = render(<TestimonialsCarousel reviews={[t]} />, {
+          locale,
+          messages: CATALOGS[locale],
+        })
+        const entry = cat[t.id]
+        expect(entry, `${locale}:${t.id}`).toBeTruthy()
+        expect(entry.quote).not.toBe(t.quote)
+        expect(entry.role).not.toBe(t.role)
+        expect(entry.sourceLabel).not.toBe(t.sourceLabel)
+        expect(screen.getByText(`\u201c${entry.quote}\u201d`)).toBeTruthy()
+        expect(screen.getByText(entry.role)).toBeTruthy()
+        expect(screen.getByText(entry.sourceLabel)).toBeTruthy()
+        expect(screen.getByText(t.name)).toBeTruthy()
+        expect(container.innerHTML).not.toContain(t.quote)
+        unmount()
+      }
+    })
+  }
+
+  it('renders a Google review text and relative time unchanged under ru', () => {
+    const g = googleReview({ text: 'Excellent service end to end.', relativeTime: '3 months ago' })
+    render(<TestimonialsCarousel reviews={[g]} />, { locale: 'ru', messages: CATALOGS.ru })
+    expect(screen.getByText('\u201cExcellent service end to end.\u201d')).toBeTruthy()
+    expect(screen.getByText('3 months ago')).toBeTruthy()
+  })
+
+  it('falls back to the raw fields for a hardcoded review whose id is not in the catalog', () => {
+    render(<TestimonialsCarousel reviews={[hardcodedReview()]} />, { locale: 'ru', messages: CATALOGS.ru })
+    expect(screen.getByText('\u201cReliable, discreet, on time.\u201d')).toBeTruthy()
   })
 })
