@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { scanSource } from '../scripts/qa/en_leak_static.mjs'
+import { scanSource, isEnglishLeak, stripAllowlistedTokens } from '../scripts/qa/en_leak_static.mjs'
 
 const FIXTURES_DIR = path.join(process.cwd(), 'tests/fixtures/en-leak')
 
@@ -76,5 +76,25 @@ describe('en_leak_static.mjs scanSource', () => {
 
   it('yields zero findings on clean.tsx (useTranslations output, DNT-only text, i18n Link/getPathname hrefs, external/mailto hrefs)', () => {
     expect(cleanFindings).toEqual([])
+  })
+})
+
+describe('en_leak_static.mjs allowlist strip (Plan 75-26 parity with en_leak_rendered.py)', () => {
+  it('strips tokens boundary-aware: tier token "Service" is not cut out of "Services"', () => {
+    expect(stripAllowlistedTokens('Our Services')).toContain('Services')
+    expect(stripAllowlistedTokens('Service client')).not.toContain('Service')
+  })
+
+  it('honors properNouns and inlineTerms, and strips structural email/path tokens', () => {
+    expect(isEnglishLeak('Roman Ustyugov')).toBe(false)
+    expect(isEnglishLeak('Visa, Mastercard, American Express, Apple Pay')).toBe(false)
+    expect(isEnglishLeak('ivan@email.com')).toBe(false)
+    expect(isEnglishLeak('/book/multi-day')).toBe(false)
+  })
+
+  it('still flags genuine English next to allowlisted terms (no over-masking)', () => {
+    expect(isEnglishLeak('Free Wi-Fi and USB-C charging on board')).toBe(true)
+    expect(isEnglishLeak('Page not found')).toBe(true)
+    expect(isEnglishLeak('pickup and/or dropoff')).toBe(true)
   })
 })

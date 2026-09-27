@@ -49,7 +49,7 @@ export const allowlist = JSON.parse(readFileSync(ALLOWLIST_PATH, 'utf8'))
  * target locale, so locale-restricted entries are skipped here.
  */
 const UNSCOPED_TEXT_CATEGORIES = ['dnt', 'placeNames', 'tierNames']
-const SCOPED_TEXT_CATEGORIES = ['properNouns']
+const SCOPED_TEXT_CATEGORIES = ['properNouns', 'inlineTerms']
 
 const TEXT_ALLOW_TOKENS = [
   ...new Set(
@@ -88,7 +88,22 @@ const ASSET_EXT_RE = /\.[a-zA-Z0-9]{1,5}$/
  * the alternation is longest-first so multi-word tokens win over their parts.
  */
 export function stripAllowlistedTokens(text) {
-  return TOKEN_RE ? text.replace(TOKEN_RE, ' ') : text
+  const structural = stripStructural(text)
+  return TOKEN_RE ? structural.replace(TOKEN_RE, ' ') : structural
+}
+
+/*
+ * Structural (non-language) tokens, removed before allowlist tokens — same
+ * patterns as en_leak_rendered.py: email addresses, http(s) URLs, and
+ * single-slash path tokens (/book) not glued to a preceding letter/digit/
+ * slash/dot/colon (so 'and/or', 'km/h', '24/7', 'USB-A/USB-C' still count).
+ */
+const EMAIL_RE = /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+/g
+const URL_RE = /https?:\/\/[^\s<>"')\]）]+/g
+const PATH_RE = /(?<![A-Za-z0-9_/.:])\/[a-z0-9][a-z0-9_\-/]*/g
+
+export function stripStructural(text) {
+  return text.replace(EMAIL_RE, ' ').replace(URL_RE, ' ').replace(PATH_RE, ' ')
 }
 
 /** True when, after allowlist stripping, `text` still contains 2+ Latin words (2+ letters) and at least one lowercase letter. */

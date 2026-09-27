@@ -126,5 +126,27 @@
     { "value": "dálniční známka", "reason": "official Czech term for the motorway vignette, quoted verbatim so travellers recognise it on signage" },
     { "value": "Christkindlesmarkt", "reason": "official German name of the Nuremberg Christmas market — proper noun" },
     { "value": "Striezelmarkt", "reason": "official German name of the Dresden Christmas market — proper noun" }
-  ]
+  ],
+  "inlineTerms": [
+    { "value": "Mercedes", "reason": "vehicle brand (bare form of dnt 'Mercedes-Benz'), used inline before E-Class/S-Class/V-Class in translated sentences" },
+    { "value": "E 300 de Hybrid", "reason": "Mercedes-Benz model designation — product name, never translated" },
+    { "value": "S 580 e Hybrid", "reason": "Mercedes-Benz model designation — product name, never translated" },
+    { "value": "S 450 4MATIC", "reason": "Mercedes-Benz model designation — product name, never translated" },
+    { "value": "E 220 d", "reason": "Mercedes-Benz model designation — product name, never translated" },
+    { "value": "4MATIC", "reason": "Mercedes-Benz all-wheel-drive trademark — product name, never translated" },
+    { "value": "Nappa", "reason": "leather grade trademark (Nappa leather) — product term kept verbatim" },
+    { "value": "Wi-Fi", "reason": "Wi-Fi Alliance trademark — tech term kept verbatim in every locale" },
+    { "value": "USB-A", "reason": "connector standard name — tech term kept verbatim" },
+    { "value": "USB-C", "reason": "connector standard name — tech term kept verbatim" },
+    { "value": "5G", "reason": "mobile network standard name — tech term kept verbatim" },
+    { "value": "SMS", "reason": "messaging standard acronym — tech term kept verbatim" },
+    { "value": "American Express", "reason": "payment card brand — never translated" },
+    { "value": "Mastercard", "reason": "payment card brand — never translated" },
+    { "value": "Visa", "reason": "payment card brand (capitalised brand form only; matching is case-sensitive) — never translated" },
+    { "value": "Apple Pay", "reason": "payment product name — never translated" },
+    { "value": "Google Pay", "reason": "payment product name — never translated" },
+    { "value": "(Business)", "reason": "parenthesised vehicle tier label (Business tier, sibling of tierNames 'First Class'/'Business Van') shown next to a translated class name" },
+    { "value": "(First)", "reason": "parenthesised vehicle tier label (First Class tier) shown next to a translated class name" }
+  ],
+  "classifiedResidual": []
 }

@@ -26,8 +26,13 @@ Token stripping is boundary-aware (Plan 75-26): an allowlist token is removed
 only where it is not directly preceded or followed by a Latin letter, so the
 tier token 'Service' is never cut out of 'Services', while a token glued to a
 non-Latin connector (Arabic و, Cyrillic case endings, CJK) is still removed.
-properNouns entries may carry an optional "locales" array restricting them to
-those locales (default: all locales).
+properNouns / inlineTerms / classifiedResidual entries may carry an optional
+"locales" array restricting them to those locales (default: all locales).
+Before token stripping, structural tokens that are not language content are
+removed: email addresses, http(s) URLs and single-slash path tokens (/book).
+classifiedResidual entries ({value, reason, pages?, locales?}) are applied
+after leak collection: an exact-value match (page-scoped when "pages" is set)
+is moved to the page's `allowlisted` list with its reason — never dropped.
 
 Usage: python3 scripts/qa/en_leak_rendered.py [base_url] [--locales ru,es,fr,ar,hi,zh]
                                               [--pages /faq,/book]
@@ -86,7 +91,7 @@ def _entry_applies(entry: dict, locale) -> bool:
 # booking_e2e.py — never change their shape); the newer categories may be
 # locale-scoped via an optional "locales" array.
 UNSCOPED_TEXT_CATEGORIES = ('dnt', 'placeNames', 'tierNames')
-SCOPED_TEXT_CATEGORIES = ('properNouns',)
+SCOPED_TEXT_CATEGORIES = ('properNouns', 'inlineTerms')
 
 # Latin letters for the token boundary: ASCII + Latin-1 Supplement letters +
 # Latin Extended-A/B (covers Czech/German/Polish diacritics such as ě, ř, ł).
@@ -112,6 +117,11 @@ def _compile_token_re(tokens: list):
 
 
 _TOKEN_RE_CACHE: dict = {}
+
+
+def reset_caches() -> None:
+    """Drops compiled per-locale token regexes (tests patch ALLOWLIST and call this)."""
+    _TOKEN_RE_CACHE.clear()
 
 
 def token_re(locale=None):
@@ -244,13 +254,30 @@ EXTRACT_JS = """() => {
 }"""
 
 
+# Structural (non-language) tokens, stripped before allowlist tokens.
+EMAIL_RE = re.compile(r'[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+')
+URL_RE = re.compile(r'https?://[^\s<>"\')\]）]+')
+# A single-slash path token such as /book or /book/multi-day: must not be
+# glued to a preceding letter/digit/slash/dot/colon, so 'and/or', 'km/h',
+# '24/7' and 'USB-A/USB-C' are NOT treated as paths.
+PATH_RE = re.compile(r'(?<![A-Za-z0-9_/.:])/[a-z0-9][a-z0-9_\-/]*')
+
+
+def strip_structural(text: str) -> str:
+    text = EMAIL_RE.sub(' ', text)
+    text = URL_RE.sub(' ', text)
+    text = PATH_RE.sub(' ', text)
+    return text
+
+
 def strip_allow(text: str, locale=None) -> str:
-    """Boundary-aware removal of every allowlisted token that applies to `locale`.
+    """Structural strip, then boundary-aware removal of every allowlisted token that applies to `locale`.
 
     A single alternation regex (longest token first — Python's re tries
     alternatives left to right) replaces each match with a space; a token is
     only matched where it is not directly preceded/followed by a Latin letter.
     """
+    text = strip_structural(text)
     rx = token_re(locale)
     if rx is None:
         return text
@@ -350,6 +377,33 @@ def collect_es_fr_leaks(data: dict, en_strings: set, locale=None) -> list:
     return leaks
 
 
+def apply_classified_residual(leaks: list, locale, path: str, entries=None):
+    """Moves leaks matching a classifiedResidual entry into an allowlisted list.
+
+    Match = exact value (the finding value, which is truncated to 200 chars,
+    or the entry value truncated the same way). An entry with "pages" only
+    applies on those paths; one with "locales" only on those locales.
+    Returns (remaining_leaks, moved_allowlisted_items).
+    """
+    if entries is None:
+        entries = ALLOWLIST.get('classifiedResidual', [])
+    applicable = [
+        e for e in entries
+        if e.get('value') and e.get('reason') and _entry_applies(e, locale)
+        and (not e.get('pages') or path in e['pages'])
+    ]
+    if not applicable:
+        return list(leaks), []
+    remaining, moved = [], []
+    for item in leaks:
+        hit = next((e for e in applicable if item.get('value') in (e['value'], e['value'][:200])), None)
+        if hit:
+            moved.append({**item, 'reason': f"classified: {hit['reason']}"})
+        else:
+            remaining.append(item)
+    return remaining, moved
+
+
 def collect_link_leaks(data: dict, locale: str) -> list:
     out = []
     for href in data.get('links', []):
@@ -424,6 +478,8 @@ def main() -> int:
                     if reason and leaks:
                         allowlisted = [{**item, 'reason': reason} for item in leaks]
                         leaks = []
+                    leaks, classified = apply_classified_residual(leaks, loc, path)
+                    allowlisted += classified
 
                     results[loc][path] = {
                         'leaks': leaks,
