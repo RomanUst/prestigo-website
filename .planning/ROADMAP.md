@@ -377,7 +377,7 @@ Wave 3 *(blocked on 75-31..75-34)*
 
 Wave 4 *(blocked on 75-35)*
 
-- [ ] 75-36-PLAN.md — Production re-verification (en_leak_rendered / share_meta_audit / notfound_audit exit 0, verifier curl reproductions, regressions) with committed evidence; WINDOWS #24/#26 + WR-01/02/04 rows; explicit deferrals (WR-06, IN-01..IN-04)
+- [x] 75-36-PLAN.md — Production re-verification (en_leak_rendered / share_meta_audit / notfound_audit exit 0, verifier curl reproductions, regressions) with committed evidence; WINDOWS #24/#26 + WR-01/02/04 rows; explicit deferrals (WR-06, IN-01..IN-04)
 
 </details>
 
@@ -466,4 +466,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 35/36 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 36/36 | In Progress|  |
