@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 9
 waived_count: 0
 fixed_count: 17
-total_count: 25
-last_updated: 2026-09-27T13:16:24.566Z
+total_count: 26
+last_updated: 2026-09-27T13:16:47.097Z
 ---
 
 # Broken Windows Ledger
@@ -40,6 +40,7 @@ last_updated: 2026-09-27T13:16:24.566Z
 | 23 | 75 | deviation | app/[locale]/fleet/page.tsx |  | overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08 | fixed |  | 2026-09-26T22:18:25.711Z | 2026-09-27T13:16:24.566Z |
 | 24 | 75 | deviation | scripts/qa/en_leak_allowlist.json |  | en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope) | open |  | 2026-09-26T22:18:26.259Z |  |
 | 25 | 75 | unrun-verify | scripts/qa/booking_e2e.py |  | D-04 RU/AR signed-in account booking path unverified in 75-20: scripts/qa/.e2e-account.json never provided (75-19-SUMMARY.md), both locales auto-skipped. Guest-path locale-following is proven for both ru/ar; only the signed-in variant is unverified. Re-run booking_e2e.py --locales "" --account ru,ar once credentials file exists. | open |  | 2026-09-26T22:18:26.809Z |  |
+| 26 | 75 | deviation | app/[locale]/[...rest]/page.tsx |  | 75-30: localized /login and catch-all 404 still inherit EN siteMetadata (components/SiteChrome.tsx) for og/twitter (+404 description) on every non-EN locale -- 20 en_leak_rendered meta findings ru/ar/hi/zh, es/fr unflagged; needs localized description/openGraph/twitter overrides (app code), not fixed in 75-30 | open |  | 2026-09-27T13:16:47.097Z |  |
 
 ````json
 [
@@ -341,6 +342,18 @@ last_updated: 2026-09-27T13:16:24.566Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-26T22:18:26.809Z",
+    "resolved_at": null
+  },
+  {
+    "id": 26,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "app/[locale]/[...rest]/page.tsx",
+    "line": null,
+    "description": "75-30: localized /login and catch-all 404 still inherit EN siteMetadata (components/SiteChrome.tsx) for og/twitter (+404 description) on every non-EN locale -- 20 en_leak_rendered meta findings ru/ar/hi/zh, es/fr unflagged; needs localized description/openGraph/twitter overrides (app code), not fixed in 75-30",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-27T13:16:47.097Z",
     "resolved_at": null
   }
 ]
