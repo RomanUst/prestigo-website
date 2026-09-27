@@ -389,3 +389,38 @@ Both surfaces render English regardless of the booking's site locale. Logged to 
 - GSC baseline: 24/42 key URLs indexed (see 75-LAUNCH.md).
 - The user reported sitemap resubmitted OK, all 10 URLs accepted for indexing, and Rich Results valid on all 5 sampled URLs ("все ок").
 - Metricool announcement: skipped by user decision.
+
+## Gap closure re-verification (plan 75-30)
+
+Run date (UTC): 2026-09-27. Target: `https://rideprestigo.com`.
+
+### Pre-deploy gate (main checkout, HEAD `42058b28`)
+
+| Check | Result |
+|---|---|
+| `npx vitest run` | 162 files / 2796 tests, exit 0 |
+| `node scripts/i18n-translate.mjs --check` | PASSED |
+| `node scripts/i18n-freeze-manifest.mjs --verify` | PASSED (390 frozen units) |
+| `python3 -m unittest discover -s scripts/qa -p 'test_*.py'` | 29 tests OK |
+| `node scripts/qa/en_leak_static.mjs` | exit 1: 18 files / 148 findings, all in the documented UNOWNED `components/admin/**` bucket. The review-only R4 in `app/[locale]/page.tsx` is gone (fixed by 75-28). 0 actionable customer-facing findings |
+| Concurrency guard | `git rev-list --count HEAD..origin/main` = 0 at start and again before push (HEAD was 72 commits ahead) |
+| Scope guard (`git diff --name-only origin/main...HEAD`) | 94 paths, all allowed: `.planning/**`, `scripts/qa/**`, the files_modified of 75-22..75-29, the 75-28 deviations `lib/blog-categories.ts` and `tests/shared-sections-i18n.test.tsx`, and `content/pages/ru/corporate.json` (75-29's own commit `453f34c3`, ledger row 15). No foreign path |
+| Secret scan (added lines of the diff; 75-19 pattern list) | 7445 added lines, 0 real hits. One false positive: a doc line in this file that names the pattern list. No `.env*`, `.e2e-account.json` or `scripts/qa/out/**` path in the diff |
+
+### Deploy
+
+- Branch `release/phase-75-gaps` pushed. PR: https://github.com/RomanUst/prestigo-website/pull/38
+- **Merged by the user** (checkpoint) at 2026-09-27T12:44:47Z. Merge commit `65a1eb4d9836e1ccb6a57271e63519c9d6ac64bd`. Local main fast-forwarded to it by the orchestrator. `gh pr view 38` state: `MERGED`.
+- Vercel deployment `6692380135` for that sha, environment **Production**, status **success** (created 12:46:59Z; checked with `gh api .../deployments?sha=...` and `.../statuses`).
+- `git ls-files scripts/qa/.e2e-account.json scripts/qa/out` prints nothing.
+
+### Tracer checks (one per gap, production, after the deploy)
+
+| Gap | Command | Exit | Result |
+|---|---|---|---|
+| GAP-4a (404) | `notfound_audit.py https://rideprestigo.com --locales zh,ar` | 0 | non-shadowing 12/12 PASS; localized 404 4/4 PASS (status 404, `lang`, `dir=rtl` on ar, localized h1 and title). Before (75-25 baseline): 0/14 localized |
+| GAP-2 (Meta) | `analytics_locale_audit.py https://rideprestigo.com --locales ar` | 0 | ar `/`: ga4Hits 1, metaHits 1, ga4SiteLocale and metaSiteLocale true. ar `/book`: ga4Hits 2, metaHits 1, both true. `all_pass: True`. Before (75-20): metaHits 0 |
+| GAP-3 (overflow) | from `scripts/qa/out`: `overflow_audit.py https://rideprestigo.com 768 --pages /fleet --locales ru` | 0 | pages with issues: 0. Before (75-20): `/ru/fleet` had 2 overflowing `<p>` at 768px |
+| GAP-4b/c (EN leak) | `en_leak_rendered.py https://rideprestigo.com --locales ru --pages /blog/beyond-transport-luxury-chauffeur-service-prague,/this-page-does-not-exist` | 1 | MDX post: 0 text leaks, 0 link leaks (before: 5 text / 9 link). 404: 0 link leaks (before: 1). **3 text leaks remain on `/ru/this-page-does-not-exist`, all `kind: meta`**: the English site-default `description`, `og:title` and `og:description` (twitter tags carry the same values) |
+
+**Tracer finding (new, not classified):** the localized 404 now renders inside `LocaleLayout`. Its `generateMetadata` (`app/[locale]/[...rest]/page.tsx`, plan 75-25) overrides only `title` and `robots`. The page inherits the rest from `app/[locale]/layout.tsx`, which exports the static English `siteMetadata` from `components/SiteChrome.tsx`: description "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. ..." and og/twitter title "PRESTIGO — Premium Chauffeur Service Prague". This is real untranslated text on a non-EN page. Under this plan's rules it is **not** added to `classifiedResidual`. It is recorded as a remaining GAP-4 item: an app-code fix is needed, and this plan does not edit app code. The 75-20 run could not show it, because the old root `app/not-found.tsx` had its own metadata.
