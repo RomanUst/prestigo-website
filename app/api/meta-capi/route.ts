@@ -3,11 +3,17 @@ import { createHash } from 'crypto'
 import { z } from 'zod'
 import { enforceMaxBody, safeString, safeEmail } from '@/lib/request-guards'
 import { locales } from '@/i18n/locales'
+import { normalizeMetaPixelId } from '@/lib/meta-pixel-id'
 
 // SEC-06: prefer server-only META_PIXEL_ID; fall back to NEXT_PUBLIC_ for compat.
 // To stop the pixel ID from being bundled in client JS, add META_PIXEL_ID to server env.
-const PIXEL_ID = process.env.META_PIXEL_ID ?? process.env.NEXT_PUBLIC_META_PIXEL_ID
-const CAPI_TOKEN = process.env.META_CAPI_TOKEN
+// WINDOWS #15 / T-75-G07: both IDs are normalized (trim + digits-only) and the
+// token trimmed, so a stray newline never reaches the Graph API URL. An
+// invalid/blank value counts as not configured.
+const PIXEL_ID =
+  normalizeMetaPixelId(process.env.META_PIXEL_ID) ??
+  normalizeMetaPixelId(process.env.NEXT_PUBLIC_META_PIXEL_ID)
+const CAPI_TOKEN = process.env.META_CAPI_TOKEN?.trim() || undefined
 
 function sha256(value: string): string {
   return createHash('sha256').update(value.toLowerCase().trim()).digest('hex')

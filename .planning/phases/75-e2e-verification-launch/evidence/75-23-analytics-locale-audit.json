@@ -1,0 +1,34 @@
+{
+ "en": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ },
+ "ar": {
+  "/": {
+   "ga4Hits": 1,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  },
+  "/book": {
+   "ga4Hits": 2,
+   "ga4SiteLocale": true,
+   "metaHits": 1,
+   "metaSiteLocale": true,
+   "pass": true
+  }
+ }
+}

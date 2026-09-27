@@ -589,6 +589,11 @@
   "BlogCard": {
     "readArticle": "Lire l'article →"
   },
+  "BlogCategories": {
+    "airportTransfer": "Transferts aéroport",
+    "intercityRoutes": "Trajets interurbains",
+    "chauffeurService": "Service de chauffeur"
+  },
   "StepStub": {
     "stepOfSix": "Étape {step} sur 6",
     "body": "Complétez les détails de votre trajet — bientôt disponible."
@@ -600,7 +605,8 @@
     "body": "La page que vous recherchez n'existe pas — mais votre trajet, lui, peut toujours avoir lieu.",
     "bookButton": "Réserver un transfert",
     "servicesButton": "Voir les services",
-    "homeButton": "Retour à l'accueil"
+    "homeButton": "Retour à l'accueil",
+    "metaTitle": "Page introuvable — PRESTIGO"
   },
   "BlogPost": {
     "cta": {
@@ -687,7 +693,24 @@
     "googleReview": "Avis Google",
     "carouselAria": "Témoignages",
     "paginationAria": "Pagination des témoignages",
-    "goToSlide": "Aller à la diapositive {n}"
+    "goToSlide": "Aller à la diapositive {n}",
+    "hardcoded": {
+      "michaelH": {
+        "quote": "Notre chauffeur nous attendait avant même que nous ayons passé la douane. Impeccable, de l'atterrissage jusqu'à l'hôtel.",
+        "role": "Directeur financier · Francfort",
+        "sourceLabel": "Réservation vérifiée · Transfert aéroport"
+      },
+      "stepanN": {
+        "quote": "J'ai fait le trajet Prague–Vienne quatre fois cette année. Toujours excellent. La S-Class est exceptionnelle.",
+        "role": "Associé principal · Prague",
+        "sourceLabel": "Réservation vérifiée · Trajet interurbain"
+      },
+      "linhC": {
+        "quote": "Notre compte entreprise nous fait gagner des heures de gestion administrative. Facturation, rapports — tout fonctionne, tout simplement.",
+        "role": "Directeur des opérations",
+        "sourceLabel": "Réservation vérifiée · Compte entreprise"
+      }
+    }
   },
   "CookieBanner": {
     "wordmarkAria": "PRESTIGO",
@@ -755,7 +778,9 @@
       "alreadyHaveAccountPrompt": "Vous avez déjà un compte ?",
       "resetSentMessage": "Lien de réinitialisation envoyé. Consultez votre messagerie.",
       "sendResetLinkButton": "Envoyer le lien de réinitialisation",
-      "backToSignIn": "Retour à la connexion"
+      "backToSignIn": "Retour à la connexion",
+      "metaTitle": "Connexion — PRESTIGO",
+      "metaDescription": "Connectez-vous à votre compte PRESTIGO pour consulter et gérer vos réservations et vos prochains trajets."
     },
     "oauth": {
       "googleLabel": "Se connecter avec Google",

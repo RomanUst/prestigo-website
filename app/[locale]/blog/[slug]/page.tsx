@@ -2,7 +2,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -11,6 +11,7 @@ import { getAllPosts, resolveLocalizedMdx, blogCanonical, type BlogPost } from '
 import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { blogCategoryKey } from '@/lib/blog-categories'
 
 export const dynamic = 'force-static'
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
@@ -82,10 +83,12 @@ export async function generateMetadata({
 export default async function BlogArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string; locale: string }>
 }) {
-  const { slug } = await params
-  const locale = await getLocale()
+  // 75-28 / CR-01: locale comes from the route's own dynamic segment (as in
+  // generateMetadata above), never a bare request-scoped lookup on this
+  // force-static route — it is also threaded into ArticleByline.
+  const { slug, locale } = await params
 
   // Allowlist preserved from Phase 54 scaffold — defence in depth even
   // with dynamicParams=true. Path-traversal safe.
@@ -104,6 +107,11 @@ export default async function BlogArticlePage({
   }
 
   const tCta = await getTranslations({ locale, namespace: 'BlogPost.cta' })
+  // 75-28: hero category label — EN frontmatter value mapped to the
+  // localized BlogCategories label (raw value if unmapped).
+  const tCategory = await getTranslations({ locale, namespace: 'BlogCategories' })
+  const categoryKey = blogCategoryKey(post.category)
+  const categoryLabel = categoryKey ? tCategory(categoryKey) : post.category
 
   // Relative path is mandatory — webpack/Turbopack cannot resolve @/ in
   // dynamic import template strings. See RESEARCH.md Pitfall 3. resolved.dir
@@ -135,7 +143,7 @@ export default async function BlogArticlePage({
         <section className="bg-anthracite pt-32 pb-12 md:pt-40 md:pb-16 border-b border-anthracite-light">
           <div className="max-w-3xl mx-auto px-6 md:px-12">
             <p className="label" style={{ color: 'var(--copper-light)' }}>
-              {post.category}
+              {categoryLabel}
             </p>
             <div className="copper-line my-6" />
             <h1 className="font-display font-light text-[40px] md:text-[56px] text-offwhite leading-[1.1]">
@@ -144,6 +152,7 @@ export default async function BlogArticlePage({
             <p className="body-text mt-6">{post.description}</p>
             <div className="mt-8">
               <ArticleByline
+                locale={locale}
                 authorSlug={post.author}
                 datePublished={post.date}
                 dateModified={post.dateModified}

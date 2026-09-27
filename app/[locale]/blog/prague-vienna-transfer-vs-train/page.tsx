@@ -7,6 +7,8 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { Link } from '@/i18n/routing'
+import { setRequestLocale } from 'next-intl/server'
 
 const CANONICAL_PATH = '/blog/prague-vienna-transfer-vs-train'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
@@ -280,7 +282,12 @@ const pageSchemaGraph = {
   ],
 }
 
-export default function ComparePragueViennaPage() {
+export default async function ComparePragueViennaPage({ params }: { params: Promise<{ locale: string }> }) {
+  // 75-27: the i18n Link resolves the locale via next-intl's request config;
+  // pin it for this force-static route before any Link renders.
+  // 75-28: the same route locale is threaded into ArticleByline (CR-01).
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <main id="main-content">
       <Nav />
@@ -305,6 +312,7 @@ export default function ComparePragueViennaPage() {
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline
+              locale={locale}
               authorSlug="roman-ustyugov"
               datePublished={ARTICLE_PUBLISHED}
               dateModified={ARTICLE_MODIFIED}
@@ -415,9 +423,9 @@ export default function ComparePragueViennaPage() {
             at no extra cost beyond reasonable waiting time. A train trip effectively locks you out of all of
             them unless you buy a flex fare and plan a multi-stop day. If Brno itself is your destination,
             we run a dedicated{' '}
-            <a href="/routes/prague-brno" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Prague to Brno transfer</a>;
+            <Link href="/routes/prague-brno" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Prague to Brno transfer</Link>;
             for overnight combinations — Vienna plus Lednice and the Moravian wine country — see our{' '}
-            <a href="/book/multi-day" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>multi-day chauffeur itineraries</a>.
+            <Link href="/book/multi-day" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>multi-day chauffeur itineraries</Link>.
           </p>
           <div className="border border-anthracite-light overflow-x-auto">
             <table className="w-full text-start">
@@ -461,9 +469,9 @@ export default function ComparePragueViennaPage() {
                 never book Sparschiene. Pay €10–€15 more for the Komfort or flex version, or use RegioJet which
                 is refundable as standard. The same logic applies to connecting trains. And if your Vienna trip
                 starts the moment you land in Prague, an{' '}
-                <a href="/services/airport-transfer" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>airport pickup with flight tracking</a>{' '}
+                <Link href="/services/airport-transfer" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>airport pickup with flight tracking</Link>{' '}
                 removes the missed-connection risk entirely — the driver simply waits (see our{' '}
-                <a href="/blog/prague-airport-to-city-center" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Prague Airport to city centre guide</a>).
+                <Link href="/blog/prague-airport-to-city-center" style={{ color: 'var(--copper-light)', textDecoration: 'underline', textUnderlineOffset: '3px' }}>Prague Airport to city centre guide</Link>).
               </p>
             </div>
             <div>
@@ -551,8 +559,8 @@ export default function ComparePragueViennaPage() {
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Flight tracking on return. 10 % off round trips within 24 h.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="/routes/prague-vienna" className="btn-primary">See the Vienna route</a>
-            <a href="/book" className="btn-ghost">Book now</a>
+            <Link href="/routes/prague-vienna" className="btn-primary">See the Vienna route</Link>
+            <Link href="/book" className="btn-ghost">Book now</Link>
           </div>
         </div>
       </section>

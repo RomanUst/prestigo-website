@@ -375,8 +375,8 @@ export default async function FleetPage({ params }: { params: Promise<{ locale: 
               <Reveal key={item.title} variant="up" delay={i * 120}>
               <div className="border border-anthracite-light p-8">
                 <span className="copper-line mb-5 block" />
-                <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{item.title}</h3>
-                <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{item.body}</p>
+                <h3 className="font-display font-light text-[20px] text-offwhite mb-3 [overflow-wrap:anywhere] hyphens-auto">{item.title}</h3>
+                <p className="body-text text-[12px] [overflow-wrap:anywhere] hyphens-auto" style={{ lineHeight: '1.9' }}>{item.body}</p>
               </div>
               </Reveal>
             ))}

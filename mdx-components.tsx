@@ -1,5 +1,21 @@
 import type { MDXComponents } from 'mdx/types'
 import type { ReactNode } from 'react'
+import { Link } from '@/i18n/routing'
+
+/**
+ * 75-27 (GAP-4c): true only for first-party page paths that should keep the
+ * visitor's locale — a single leading slash (protocol-relative `//host` is
+ * external, T-75-G20), not an API/build-asset path, and no file extension on
+ * the last path segment. Everything else (https:, mailto:, tel:, #hash,
+ * /api/, /_next/, /file.pdf) keeps the original plain anchor untouched.
+ */
+function isInternalPagePath(href: string | undefined): href is string {
+  if (!href || !href.startsWith('/') || href.startsWith('//')) return false
+  if (href.startsWith('/api/') || href.startsWith('/_next/')) return false
+  const pathname = href.split(/[?#]/)[0]
+  const lastSegment = pathname.slice(pathname.lastIndexOf('/') + 1)
+  return !lastSegment.includes('.')
+}
 
 /**
  * Required by @next/mdx App Router. Maps HTML elements rendered from MDX
@@ -45,15 +61,24 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
     strong: ({ children }: { children?: ReactNode }) => (
       <strong className="text-offwhite font-normal">{children}</strong>
     ),
-    a: ({ href, children }: { href?: string; children?: ReactNode }) => (
-      <a
-        href={href}
-        className="underline underline-offset-2 transition-colors"
-        style={{ color: 'var(--copper-light)' }}
-      >
-        {children}
-      </a>
-    ),
+    a: ({ href, children }: { href?: string; children?: ReactNode }) =>
+      isInternalPagePath(href) ? (
+        <Link
+          href={href}
+          className="underline underline-offset-2 transition-colors"
+          style={{ color: 'var(--copper-light)' }}
+        >
+          {children}
+        </Link>
+      ) : (
+        <a
+          href={href}
+          className="underline underline-offset-2 transition-colors"
+          style={{ color: 'var(--copper-light)' }}
+        >
+          {children}
+        </a>
+      ),
     blockquote: ({ children }: { children?: ReactNode }) => (
       <blockquote
         className="pl-6 py-2 my-8 font-display font-light text-[18px] text-offwhite italic leading-[1.5]"

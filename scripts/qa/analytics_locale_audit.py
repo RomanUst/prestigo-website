@@ -1,4 +1,4 @@
-import sys, json, argparse
+import sys, json, argparse, re
 from urllib.parse import urlparse, unquote
 from playwright.sync_api import sync_playwright
 
@@ -16,6 +16,11 @@ OUT_PATH = 'scripts/qa/out/analytics_locale_audit.json'
 # 25s, not the originally spec'd 8s — see the Rule 1 fix comment at the poll
 # loop below (GA4 Consent Mode v2 wait_for_update: 20000 quiet period).
 WAIT_MS = 25000
+# Regular (non-headless) desktop Chrome UA — see the Rule 3 note in audit().
+BROWSER_UA = (
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '
+    '(KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36'
+)
 
 
 def parse_args():
@@ -48,17 +53,34 @@ def contains_param(haystack: str | None, key_eq_value: str) -> bool:
     if key_eq_value in haystack:
         return True
     try:
-        return key_eq_value in unquote(haystack)
+        if key_eq_value in unquote(haystack):
+            return True
     except Exception:
-        return False
+        pass
+    # Rule 1 fix (plan 75-23): when the Meta /tr URL would be too long (e.g.
+    # the Arabic pages) fbevents.js sends the hit as a sendBeacon POST with a
+    # multipart/form-data body, where the pair is encoded as
+    #   name="cd[site_locale]"\r\n\r\nar
+    # rather than cd[site_locale]=ar.
+    key, _, value = key_eq_value.partition('=')
+    return re.search(
+        r'name="' + re.escape(key) + r'"\r?\n\r?\n' + re.escape(value) + r'\r?\n',
+        haystack,
+    ) is not None
 
 
 def audit(base_url: str, locales: list[str]) -> dict:
     results: dict[str, dict] = {}
 
     with sync_playwright() as p:
-        browser = p.chromium.launch()
-        context = browser.new_context(locale='en-US')
+        # Rule 3 fix (plan 75-23): Meta's fbevents.js processes the PageView
+        # (fbq.getState().pixels[0].eventCount === 1) but silently never
+        # sends the /tr hit from an automated headless browser
+        # (navigator.webdriver === true / "HeadlessChrome" UA) — which made
+        # metaHits permanently 0 regardless of the site. Present as a regular
+        # desktop Chrome so the real hit is emitted (and then aborted below).
+        browser = p.chromium.launch(args=['--disable-blink-features=AutomationControlled'])
+        context = browser.new_context(locale='en-US', user_agent=BROWSER_UA)
         # Grant both analytics and marketing consent (per-category v2 key +
         # legacy enum) so GA4 and the Meta Pixel both load and fire.
         context.add_init_script(
@@ -67,25 +89,41 @@ def audit(base_url: str, locales: list[str]) -> dict:
             "localStorage.setItem('prestigo_cookie_consent','granted');"
         )
 
-        captured: list[dict] = []
+        # Rule 1 fix (plan 75-23): a fresh page per URL, and only hits issued
+        # by that page are counted. Reusing one page let the previous page's
+        # unload beacon (a GA4 time_on_page event carrying the previous dl,
+        # no site_locale) land first in the next URL's window, and the early
+        # break below then stopped before the real page_view arrived.
+        current: dict = {'page': None, 'hits': []}
 
         def matcher(url: str) -> bool:
             return is_ga4_collect(url) or is_meta_tr(url)
 
         def handler(route, request):
-            captured.append({
-                'url': request.url,
-                'body': request.post_data,
-                'kind': 'ga4' if is_ga4_collect(request.url) else 'meta',
-            })
+            try:
+                own = request.frame.page == current['page']
+            except Exception:
+                own = False
+            if own:
+                current['hits'].append({
+                    'url': request.url,
+                    'body': request.post_data,
+                    'kind': 'ga4' if is_ga4_collect(request.url) else 'meta',
+                })
+            # Context-level route: every GA4/Meta hit from any page is
+            # aborted, so nothing reaches Google/Meta (T-75-13).
             route.abort()
 
-        page = context.new_page()
-        page.route(matcher, handler)
+        context.route(matcher, handler)
 
         for locale in locales:
             for path in PAGES:
-                captured.clear()
+                if current['page'] is not None:
+                    current['page'].close()
+                page = context.new_page()
+                current['page'] = page
+                current['hits'] = []
+                captured = current['hits']
                 url = (
                     base_url
                     + ('' if locale == 'en' else '/' + locale)

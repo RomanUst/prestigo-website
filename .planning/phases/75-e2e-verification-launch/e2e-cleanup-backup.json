@@ -1,0 +1,40 @@
+{
+  "description": "Full pre-delete backup of the 17 E2E/TEST unpaid bookings rows removed from production (plan 75-20 Task 3, D-03). Marker: client_email like 'e2e+%@rideprestigo.com' AND client_first_name='E2E' AND client_last_name='TEST' AND status='unpaid'. All rows: paid_at null, no driver/gnet/audit/linked rows. Restore: INSERT the objects back into public.bookings.",
+  "exported_at": "2026-09-27",
+  "project": "enakcryrtxlnjvjutfpv",
+  "common_fields": {
+    "booking_type": "confirmed", "trip_type": "transfer", "origin_lat": 50.0875692, "origin_lng": 14.4211874,
+    "destination_lat": 50.0910966, "destination_lng": 14.4016165, "hours": 2, "passengers": 1, "luggage": 0,
+    "pickup_time": "14:00", "return_date": null, "vehicle_class": "business", "distance_km": 3.377,
+    "amount_czk": 1475, "amount_eur": 59, "extra_child_seat": false, "extra_meet_greet": true, "extra_luggage": false,
+    "client_first_name": "E2E", "client_last_name": "TEST", "client_phone": "+420700000000",
+    "flight_number": null, "terminal": null, "special_requests": null, "status": "unpaid", "operator_notes": null,
+    "booking_source": "online", "leg": "outbound", "linked_booking_id": null, "outbound_amount_czk": null,
+    "return_amount_czk": null, "flight_iata": null, "flight_status": null, "flight_estimated_arrival": null,
+    "flight_delay_minutes": null, "flight_departure_airport": null, "flight_arrival_airport": null,
+    "flight_terminal": null, "driver_id": null, "user_id": null, "paid_at": null, "invoice_number": null,
+    "driver_price_czk": null, "payment_link_url": null, "payment_link_id": null,
+    "origin_address": "Old Town Square, Old Town Square, Old Town, Czechia",
+    "destination_address": "Prague Castle, Hradčany, Prague 1, Czechia",
+    "locale": null
+  },
+  "rows": [
+    {"id":"bb00179b-cce5-44aa-8de4-db86410ef5c8","created_at":"2026-09-25T11:56:32.223382+00:00","booking_reference":"PRG-20260925-6A73BB","payment_intent_id":"pi_3UJXjvFoizgdF9t91WKddfAM","pickup_date":"2026-09-29","pickup_utc":"2026-09-29T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"c87a819b-1c56-41e6-a553-a316e7e89204"},
+    {"id":"22d2b9a1-0e21-437d-b771-36d83eba0a56","created_at":"2026-09-25T11:57:10.694375+00:00","booking_reference":"PRG-20260925-D49762","payment_intent_id":"pi_3UJXkYFoizgdF9t90t6BFenp","pickup_date":"2026-09-29","pickup_utc":"2026-09-29T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"02c047ed-b538-4cd5-a91a-a2d51264cce0"},
+    {"id":"00757384-a009-4018-a0ec-71a2ab6fa358","created_at":"2026-09-25T11:57:56.868424+00:00","booking_reference":"PRG-20260925-DB8330","payment_intent_id":"pi_3UJXlIFoizgdF9t919mA9fG3","pickup_date":"2026-09-29","pickup_utc":"2026-09-29T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"a08745d1-0e92-475d-8b70-0e81e5a00e53"},
+    {"id":"c4b41f60-6aea-4c01-ae1f-cc44860d8767","created_at":"2026-09-25T11:59:15.370649+00:00","booking_reference":"PRG-20260925-0B86E1","payment_intent_id":"pi_3UJXmYFoizgdF9t91iO3ULo6","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"5f4052e4-8db3-4c4e-b6a1-7eaaa9e98e05"},
+    {"id":"d7810553-8459-47e9-8f81-c5896948e7c4","created_at":"2026-09-25T12:01:25.919634+00:00","booking_reference":"PRG-20260925-5AF603","payment_intent_id":"pi_3UJXoIFoizgdF9t91RJqWOim","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"1f6ffdce-d636-487b-836c-fd231c856193"},
+    {"id":"c23189e9-4057-4b55-99bc-eb60c83d0b7f","created_at":"2026-09-25T12:02:56.186083+00:00","booking_reference":"PRG-20260925-647415","payment_intent_id":"pi_3UJXq7FoizgdF9t90rWvlpCL","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"c81e9802-14f6-422d-8794-42ad376c07eb"},
+    {"id":"94d96aae-cc7d-4372-aa9e-6ef6ca5a435d","created_at":"2026-09-25T12:03:10.166021+00:00","booking_reference":"PRG-20260925-7E451C","payment_intent_id":"pi_3UJXqKFoizgdF9t908k9Vu66","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"b76bdb58-2384-40d5-8c6e-a95ec314f4d5"},
+    {"id":"b848ccf8-c146-4b80-aa9f-28511a2fb1e6","created_at":"2026-09-25T12:03:21.85461+00:00","booking_reference":"PRG-20260925-8E2F78","payment_intent_id":"pi_3UJXqXFoizgdF9t90C4N9qyc","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"0dc00327-a94c-40f6-8008-e6ce657ad874"},
+    {"id":"1319058f-349c-4009-aeed-c1efb4a6f4b5","created_at":"2026-09-25T12:07:31.37431+00:00","booking_reference":"PRG-20260925-09A6ED","payment_intent_id":"pi_3UJXuYFoizgdF9t905K6Uqwb","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+ru@rideprestigo.com","attempt_id":"7682498b-0bc2-4fda-a177-6e9c3007d708"},
+    {"id":"1f7fa9ab-8b98-4d86-9266-dc4134b2900f","created_at":"2026-09-25T12:07:49.485708+00:00","booking_reference":"PRG-20260925-BD0A24","payment_intent_id":"pi_3UJXurFoizgdF9t91ghSkhkF","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+en@rideprestigo.com","attempt_id":"897ccd12-910e-4318-a7d7-bf32f354804b"},
+    {"id":"f0eb6087-f27e-4ccf-b0a6-cc784abdc9a2","created_at":"2026-09-25T12:08:25.254798+00:00","booking_reference":"PRG-20260925-CBEFC5","payment_intent_id":"pi_3UJXvQFoizgdF9t91yMIeuU0","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+ar@rideprestigo.com","attempt_id":"e1289052-021a-478a-942d-b05342e9a7e3"},
+    {"id":"9e4acce9-6160-492b-b406-b7314ce51b9d","created_at":"2026-09-25T12:08:42.80451+00:00","booking_reference":"PRG-20260925-98E72E","payment_intent_id":"pi_3UJXviFoizgdF9t91Ct3cUjv","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+hi@rideprestigo.com","attempt_id":"351e35c2-dc15-4b8f-93f4-91b323e1ce7a"},
+    {"id":"0797f6ec-e401-4ad5-a459-ee80397a55e7","created_at":"2026-09-25T12:09:06.792908+00:00","booking_reference":"PRG-20260925-2C283E","payment_intent_id":"pi_3UJXx3FoizgdF9t91m0486Iu","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+zh@rideprestigo.com","attempt_id":"68f1642f-5d46-4864-9185-71e9af94b6df"},
+    {"id":"b233f1df-a1a4-4b9a-95a6-0af6f85e5896","created_at":"2026-09-25T12:10:30.67358+00:00","booking_reference":"PRG-20260925-9E46A0","payment_intent_id":"pi_3UJXxvFoizgdF9t90nBumDZY","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+ru@rideprestigo.com","attempt_id":"1da54088-1eee-4326-85d3-5befd7e3abb7"},
+    {"id":"6c70e781-e9ec-4fef-a023-2a44959932f3","created_at":"2026-09-25T12:11:20.325356+00:00","booking_reference":"PRG-20260925-58EF01","payment_intent_id":"pi_3UJXyFFoizgdF9t90duy1GXV","pickup_date":"2026-09-28","pickup_utc":"2026-09-28T12:00:00+00:00","client_email":"e2e+ru@rideprestigo.com","attempt_id":"bbd024f5-097d-476d-9bcf-8230a171283d"},
+    {"id":"7839becf-4fbc-433c-a5da-b3a7df5d7cb2","created_at":"2026-09-26T21:28:44.180447+00:00","booking_reference":"PRG-20260926-5BEA0C","payment_intent_id":"pi_3UK39DFoizgdF9t91tOTtUn8","pickup_date":"2026-09-29","pickup_utc":"2026-09-29T12:00:00+00:00","client_email":"e2e+ar@rideprestigo.com","attempt_id":"5198ccc7-4f50-452d-aa56-ff6e6b08a484","origin_address":"Old Town Square, ساحة البلدة القديمة، Old Town, تشيكيا","destination_address":"Prague Castle, هارادشاني، Prague 1, تشيكيا","locale":"ar"},
+    {"id":"674cd775-c6c3-4d09-87eb-21127882955e","created_at":"2026-09-26T22:01:10.303209+00:00","booking_reference":"PRG-20260926-5233B0","payment_intent_id":"pi_3UK3gwFoizgdF9t91ar9MWSY","pickup_date":"2026-09-29","pickup_utc":"2026-09-29T12:00:00+00:00","client_email":"e2e+zh@rideprestigo.com","attempt_id":"576cbd7f-acba-44d7-9c74-a157d05da1c0","origin_address":"Old Town Square, 老城广场布拉格老城捷克","destination_address":"Prague Castle, 城堡区 Prague 1, 捷克","locale":"zh"}
+  ]
+}

@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 6
+open_count: 11
 waived_count: 0
 fixed_count: 14
-total_count: 20
-last_updated: 2026-09-26T19:44:16.722Z
+total_count: 25
+last_updated: 2026-09-26T22:18:26.809Z
 ---
 
 # Broken Windows Ledger
@@ -35,6 +35,11 @@ last_updated: 2026-09-26T19:44:16.722Z
 | 18 | 75 | unrun-verify | tests/login-actions.test.ts |  | Known worktree-only next-intl/server import failure (relative vi.importActual path resolves outside the worktree's next/headers export map) prevents running this suite in-worktree; logic independently verified via a scratch composition check and will run/pass on main (matches 75-11-SUMMARY.md precedent). | open |  | 2026-09-25T21:05:40.466Z |  |
 | 19 | 75 | unrun-verify | tests/account-trips.test.tsx |  | Same known worktree-only next-intl/server import failure (see entry #18) — this file IS in plan 75-15's own scope (extended with new D-04 locale-redirect test cases), so the new assertions could not be executed in-worktree either; logic independently verified via a scratch mock-composition check and will run/pass on main. | open |  | 2026-09-25T21:08:17.526Z |  |
 | 20 | 75 | deviation | components/ArticleByline.tsx |  | next/link default import drops locale prefix on the byline link (75-EN-LEAK-AUDIT.md R3, attributed to 75-13 but out of files_modified scope) - deferred, see deferred-items.md | fixed |  | 2026-09-26T16:26:15.319Z | 2026-09-26T19:44:16.722Z |
+| 21 | 75 | deviation | lib/email.ts |  | D-05 recorded: client emails (email.ts/email-corporate.ts/email-bespoke.ts) are 100% English-only, locale never threaded through -- new capability, not fixed in 75-20 | open |  | 2026-09-26T22:18:07.075Z |  |
+| 22 | 75 | deviation | app/[locale]/not-found.tsx |  | Systemic gap: every locale's unmatched-path 404 renders un-localized root app/not-found.tsx (English) because no catch-all route exists under app/[locale]/ to reach the already-localized boundary -- root-caused in 75-20, explains 75-19-SUMMARY.md's zh/<unknown> observation (universal, not zh-specific) | open |  | 2026-09-26T22:18:13.476Z |  |
+| 23 | 75 | deviation | app/[locale]/fleet/page.tsx |  | overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08 | open |  | 2026-09-26T22:18:25.711Z |  |
+| 24 | 75 | deviation | scripts/qa/en_leak_allowlist.json |  | en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope) | open |  | 2026-09-26T22:18:26.259Z |  |
+| 25 | 75 | unrun-verify | scripts/qa/booking_e2e.py |  | D-04 RU/AR signed-in account booking path unverified in 75-20: scripts/qa/.e2e-account.json never provided (75-19-SUMMARY.md), both locales auto-skipped. Guest-path locale-following is proven for both ru/ar; only the signed-in variant is unverified. Re-run booking_e2e.py --locales "" --account ru,ar once credentials file exists. | open |  | 2026-09-26T22:18:26.809Z |  |
 
 ````json
 [
@@ -277,6 +282,66 @@ last_updated: 2026-09-26T19:44:16.722Z
     "reason": "",
     "recorded_at": "2026-09-26T16:26:15.319Z",
     "resolved_at": "2026-09-26T19:44:16.722Z"
+  },
+  {
+    "id": 21,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "lib/email.ts",
+    "line": null,
+    "description": "D-05 recorded: client emails (email.ts/email-corporate.ts/email-bespoke.ts) are 100% English-only, locale never threaded through -- new capability, not fixed in 75-20",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-26T22:18:07.075Z",
+    "resolved_at": null
+  },
+  {
+    "id": 22,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "app/[locale]/not-found.tsx",
+    "line": null,
+    "description": "Systemic gap: every locale's unmatched-path 404 renders un-localized root app/not-found.tsx (English) because no catch-all route exists under app/[locale]/ to reach the already-localized boundary -- root-caused in 75-20, explains 75-19-SUMMARY.md's zh/<unknown> observation (universal, not zh-specific)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-26T22:18:13.476Z",
+    "resolved_at": null
+  },
+  {
+    "id": 23,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "app/[locale]/fleet/page.tsx",
+    "line": null,
+    "description": "overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-26T22:18:25.711Z",
+    "resolved_at": null
+  },
+  {
+    "id": 24,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "scripts/qa/en_leak_allowlist.json",
+    "line": null,
+    "description": "en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope)",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-26T22:18:26.259Z",
+    "resolved_at": null
+  },
+  {
+    "id": 25,
+    "kind": "unrun-verify",
+    "phase": "75",
+    "file": "scripts/qa/booking_e2e.py",
+    "line": null,
+    "description": "D-04 RU/AR signed-in account booking path unverified in 75-20: scripts/qa/.e2e-account.json never provided (75-19-SUMMARY.md), both locales auto-skipped. Guest-path locale-following is proven for both ru/ar; only the signed-in variant is unverified. Re-run booking_e2e.py --locales \"\" --account ru,ar once credentials file exists.",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-26T22:18:26.809Z",
+    "resolved_at": null
   }
 ]
 ````

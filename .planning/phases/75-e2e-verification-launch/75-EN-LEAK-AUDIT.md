@@ -313,3 +313,31 @@ Per the plan's allowlist design, three files are fully excluded (D-09 EN-only `J
 - **Stripe Elements locale / Google Places `language` (D-07 scope)** are NOT verifiable by this static-DOM rendered scan (both render inside third-party iframes/widgets whose internal locale is not exposed via `document.title`/text-node inspection) — confirmed out of this layer's reach per RESEARCH.md; verified instead at the booking E2E layer (plan 75-03/75-05).
 
 **Deviation note:** the first rendered run against production surfaced every `LocaleSwitcher` endonym label (`Español`, `Français`, `العربية`, …) as a false-positive leak on every single page, because `components/LocaleSwitcher.tsx`'s dropdown menu is always mounted in the DOM (opacity/pointer-events toggle, not conditional render — the same underlying fact 75-01's `switcher_audit.py` had to work around). Fixed (Rule 1) by walking the full ancestor chain in `EXTRACT_JS`'s `isHiddenByAncestor()` — checking `display`/`visibility`/`opacity` at every ancestor level plus a defensive `role="menu"` check — since `getComputedStyle(el).opacity` only reports an element's OWN opacity, not an ancestor's composited effective opacity.
+
+## Post-fix production result (Plan 75-20, Task 2)
+
+Run date (UTC): 2026-09-26/27. Target: `https://rideprestigo.com` (post-deploy, PR #37 / merge `960e4e0f`). Full command outputs and per-locale/per-page tables are recorded in `75-QA-RESULTS.md` "Production QA — ar tracer" and "Production QA — all locales" — this section is the EN-leak-specific summary cross-referenced from there.
+
+**Static layer:** `node scripts/qa/en_leak_static.mjs` — exit 1, 19 files, 149 findings (R1=118, R2=25, R3=1, R4=1... — see `75-QA-RESULTS.md`). Every finding is either in the pre-documented `components/admin/**` UNOWNED bucket (explicitly out of i18n scope per STATE.md, 18 files / 148 findings) or the single review-only R4 in `app/[locale]/page.tsx` (a person's name in JSON-LD — never translatable, never affects exit code). **Effective customer-facing result: 0 actionable findings.** Identical to the pre-deploy gate's own `en_leak_static.mjs` run recorded in `75-QA-BASELINE.md`'s companion pre-deploy-gate doc — confirms no static-layer regression was introduced between the gate check and this post-deploy verification.
+
+**Rendered layer:** `python3 scripts/qa/en_leak_rendered.py https://rideprestigo.com` — exit 1, 6 locales x 26 pages, 329 text leaks (was 2003 pre-fix), 90 link leaks (was 1404 pre-fix). Per-locale breakdown:
+
+| Locale | Pre-fix text | Post-fix text | Pre-fix link | Post-fix link |
+|---|---|---|---|---|
+| ru | 380 | 69 | 234 | 15 |
+| es | 232 | 10 | 234 | 15 |
+| fr | 232 | 10 | 234 | 15 |
+| ar | 373 | 58 | 234 | 15 |
+| hi | 405 | 111 | 234 | 15 |
+| zh | 381 | 71 | 234 | 15 |
+
+The fix plans (75-06..75-16) closed 83.6% of text leaks and 93.6% of link leaks in aggregate. The residual findings fall into four classes, none patched in this plan per the plan's "do not patch and redeploy" instruction (recorded as verification gaps for follow-up):
+
+1. **Person names** (`Roman Ustyugov` on `/authors/roman-ustyugov` and the one translated MDX blog post) — flagged as Latin-run leaks on ru/ar/hi/zh. A name is not translatable content; the allowlist needs a dedicated "proper noun" category.
+2. **Mid-sentence brand/tech-term Latin runs** in otherwise-fully-translated ar/ru/hi/zh copy (`Mercedes E-Class`, `USB-A`/`USB-C`, `Wi-Fi`, `Visa`) — these terms are already DNT-allowlisted as standalone tokens, but the scanner's 2+/3+-word Latin-run heuristic still catches them when embedded inline with adjacent connector words.
+3. **`/blog/beyond-transport-luxury-chauffeur-service-prague` internal nav** — 9 link leaks per locale, all pre-existing raw `href` CTAs inside the blog post body (distinct from the `ArticleByline` import already fixed in 75-14 per this file's own 75-13 deferred-items entry).
+4. **`/this-page-does-not-exist` (404 for any unmatched path)** — 3 text leaks + 1 link leak per locale, root-caused in `75-QA-RESULTS.md`: `app/[locale]/not-found.tsx` IS fully localized, but no catch-all route exists under `app/[locale]/`, so Next.js's router falls through to the un-localized root `app/not-found.tsx` for any unmatched path. Reproduces identically on every locale (explains the 75-19-SUMMARY.md "`/zh/<unknown>` renders English 'Page not found'" observation — it is universal, not zh-specific).
+
+**Stripe Elements locale / Google Places language (D-07 surface 4):** not verifiable by the rendered-DOM scanner (third-party iframe/widget internals) — proven instead by `booking_e2e.py` in `75-QA-RESULTS.md` "Booking E2E": all 7 guest checkouts show `localeChecksPassed=true`.
+
+**Overall D-06/D-07 disposition:** the systematic two-layer audit confirms the Phase 75 fix plans closed the overwhelming majority of both static and rendered EN leaks. Zero actionable static findings remain outside the explicitly out-of-scope admin panel. Rendered leaks are down >80% and the remaining findings are concrete, evidenced, and traceable to specific root causes (2 allowlist gaps, 1 residual nav-link cleanup, 1 systemic 404-routing gap) rather than diffuse untranslated content.

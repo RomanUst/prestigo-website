@@ -1,12 +1,25 @@
-import sys, json
+import argparse, json
 from playwright.sync_api import sync_playwright
 """Text-overflow audit: every locale x key page at one viewport width.
-Usage: python3 scripts/qa/overflow_audit.py [base_url] [width]
-Requires Python Playwright. Writes overflow_<width>.json to the cwd."""
-B=sys.argv[1] if len(sys.argv)>1 else 'https://rideprestigo.com'
-W=int(sys.argv[2]) if len(sys.argv)>2 else 375
+Usage: python3 scripts/qa/overflow_audit.py [base_url] [width] [--pages /a,/b] [--locales en,ru]
+Requires Python Playwright. Writes overflow_<width>.json to the cwd.
+--pages/--locales are optional comma-list filters restricting the default
+sweep to a subset; omitted = full 7-locale x 21-page sweep (unchanged)."""
 PAGES=['/','/about','/fleet','/services','/services/airport-transfer','/services/city-rides','/services/intercity-routes','/services/vip-events','/services/group-transfers','/services/concierge','/routes','/routes/prague-vienna','/routes/prague-ceske-budejovice','/routes/prague-marianske-lazne','/corporate','/contact','/faq','/book','/book/multi-day','/blog','/login']
 LOCS=['en','ru','es','fr','ar','hi','zh']
+
+parser=argparse.ArgumentParser(add_help=True)
+parser.add_argument('base_url', nargs='?', default='https://rideprestigo.com')
+parser.add_argument('width', nargs='?', type=int, default=375)
+parser.add_argument('--pages', default=None, help='comma-separated list of paths to restrict the sweep to (default: all)')
+parser.add_argument('--locales', default=None, help='comma-separated list of locales to restrict the sweep to (default: all)')
+args=parser.parse_args()
+B=args.base_url
+W=args.width
+if args.pages:
+    PAGES=[(p if p.startswith('/') else '/'+p) for p in (s.strip() for s in args.pages.split(',')) if p]
+if args.locales:
+    LOCS=[l.strip() for l in args.locales.split(',') if l.strip()]
 JS="""(vw)=>{
  const out=[];
  const all=document.querySelectorAll('h1,h2,h3,h4,p,a,span,button,li,label,div');

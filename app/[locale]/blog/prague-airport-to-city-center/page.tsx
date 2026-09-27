@@ -7,6 +7,8 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { Link } from '@/i18n/routing'
+import { setRequestLocale } from 'next-intl/server'
 
 const CANONICAL_PATH = '/blog/prague-airport-to-city-center'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
@@ -363,7 +365,12 @@ const pageSchemaGraph = {
   ],
 }
 
-export default function GuidePragueAirportPage() {
+export default async function GuidePragueAirportPage({ params }: { params: Promise<{ locale: string }> }) {
+  // 75-27: the i18n Link resolves the locale via next-intl's request config;
+  // pin it for this force-static route before any Link renders.
+  // 75-28: the same route locale is threaded into ArticleByline (CR-01).
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <main id="main-content">
       <Nav />
@@ -388,6 +395,7 @@ export default function GuidePragueAirportPage() {
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline
+              locale={locale}
               authorSlug="roman-ustyugov"
               datePublished={ARTICLE_PUBLISHED}
               dateModified={ARTICLE_MODIFIED}
@@ -473,8 +481,8 @@ export default function GuidePragueAirportPage() {
                 </p>
                 {opt.name.includes('PRESTIGO') && (
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <a href="/services/airport-transfer" className="font-body font-light text-[11px] tracking-[0.12em] uppercase border border-anthracite-light px-4 py-2 text-offwhite hover:border-copper transition-colors">Airport transfer details</a>
-                    <a href="/book" className="font-body font-light text-[11px] tracking-[0.12em] uppercase border border-anthracite-light px-4 py-2 text-offwhite hover:border-copper transition-colors">Book your transfer</a>
+                    <Link href="/services/airport-transfer" className="font-body font-light text-[11px] tracking-[0.12em] uppercase border border-anthracite-light px-4 py-2 text-offwhite hover:border-copper transition-colors">Airport transfer details</Link>
+                    <Link href="/book" className="font-body font-light text-[11px] tracking-[0.12em] uppercase border border-anthracite-light px-4 py-2 text-offwhite hover:border-copper transition-colors">Book your transfer</Link>
                   </div>
                 )}
               </div>
@@ -489,7 +497,7 @@ export default function GuidePragueAirportPage() {
           <p className="body-text text-[14px]">
             Want the no-decision option? A PRESTIGO chauffeur meets you inside Arrivals — <span style={{ color: 'var(--copper-light)' }}>fixed price</span>, flight tracked, straight to your door.
           </p>
-          <a href="/book" className="btn-primary whitespace-nowrap">Book a transfer</a>
+          <Link href="/book" className="btn-primary whitespace-nowrap">Book a transfer</Link>
         </div>
       </section>
 
@@ -611,8 +619,8 @@ export default function GuidePragueAirportPage() {
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Free flight tracking. Free waiting on delays. 24/7.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="/services/airport-transfer" className="btn-primary">Airport transfer details</a>
-            <a href="/book" className="btn-ghost">Book your transfer</a>
+            <Link href="/services/airport-transfer" className="btn-primary">Airport transfer details</Link>
+            <Link href="/book" className="btn-ghost">Book your transfer</Link>
           </div>
         </div>
       </section>

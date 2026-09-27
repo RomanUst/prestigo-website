@@ -1,0 +1,6 @@
+# 75-25: NotFound.metaTitle — the localized document title for the new
+# app/[locale]/[...rest] catch-all 404 route (GAP-4a / WINDOWS #22).
+# Hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh, PRESTIGO kept
+# in Latin (glossary DNT). Frozen so a future pipeline run neither
+# overwrites it nor re-spends tokens on it.
+messages/en.json::NotFound.metaTitle

@@ -7,6 +7,8 @@ import Footer from '@/components/Footer'
 import ArticleByline from '@/components/ArticleByline'
 import { personSchemaFor } from '@/lib/authors'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
+import { Link } from '@/i18n/routing'
+import { setRequestLocale } from 'next-intl/server'
 
 const CANONICAL_PATH = '/blog/prague-airport-taxi-vs-chauffeur'
 const CANONICAL_ABS = `https://rideprestigo.com${CANONICAL_PATH}`
@@ -266,7 +268,12 @@ const pageSchemaGraph = {
   ],
 }
 
-export default function CompareAirportTaxiPage() {
+export default async function CompareAirportTaxiPage({ params }: { params: Promise<{ locale: string }> }) {
+  // 75-27: the i18n Link resolves the locale via next-intl's request config;
+  // pin it for this force-static route before any Link renders.
+  // 75-28: the same route locale is threaded into ArticleByline (CR-01).
+  const { locale } = await params
+  setRequestLocale(locale)
   return (
     <main id="main-content">
       <Nav />
@@ -290,6 +297,7 @@ export default function CompareAirportTaxiPage() {
           </p>
           <div className="mt-10 max-w-2xl">
             <ArticleByline
+              locale={locale}
               authorSlug="roman-ustyugov"
               datePublished={ARTICLE_PUBLISHED}
               dateModified={ARTICLE_MODIFIED}
@@ -407,7 +415,7 @@ export default function CompareAirportTaxiPage() {
           <p className="body-text text-[14px]">
             Skip the comparison — a PRESTIGO chauffeur is <bdi style={{ color: 'var(--copper-light)' }}>€69 fixed</bdi>, met inside Arrivals with your name board, flight tracked, no surge.
           </p>
-          <a href="/book" className="btn-primary whitespace-nowrap">Book a transfer</a>
+          <Link href="/book" className="btn-primary whitespace-nowrap">Book a transfer</Link>
         </div>
       </section>
 
@@ -498,8 +506,8 @@ export default function CompareAirportTaxiPage() {
             <p className="body-text text-[13px] mt-4">Mercedes E-Class. Free flight tracking. Free waiting on delays.</p>
           </div>
           <div className="flex flex-col sm:flex-row gap-4">
-            <a href="/services/airport-transfer" className="btn-primary">Airport transfer details</a>
-            <a href="/book" className="btn-ghost">Book now</a>
+            <Link href="/services/airport-transfer" className="btn-primary">Airport transfer details</Link>
+            <Link href="/book" className="btn-ghost">Book now</Link>
           </div>
         </div>
       </section>
