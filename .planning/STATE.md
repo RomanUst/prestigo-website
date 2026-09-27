@@ -1,19 +1,16 @@
 ---
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Site Internationalization (i18n)
-status: Awaiting next milestone
-stopped_at: Phase 75 complete — all phases complete
-last_updated: "2026-09-27T18:01:15.546Z"
+gsd_state_version: "1.0"
+milestone: v4.0
+milestone_name: Helpdesk + CRM
+status: planning
+last_updated: "2026-09-27T18:39:11.638Z"
 last_activity: 2026-09-27
-last_activity_desc: Milestone v3.0 completed and archived
-state_head: 1937b331a4dda945487b1455ad223c4be28f181b
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 85
-  completed_plans: 85
-current_phase: 75
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
@@ -27,10 +24,10 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 
 ## Current Position
 
-Phase: Milestone v3.0 complete
+Phase: Not started (defining requirements)
 Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-27 — Milestone v3.0 completed and archived
+Status: Defining requirements
+Last activity: 2026-09-27 — Milestone v4.0 started
 
 ## Accumulated Context
 
