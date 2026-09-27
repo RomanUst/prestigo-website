@@ -1,0 +1,293 @@
+{
+  "base_url": "https://rideprestigo.com",
+  "localized": {
+    "en": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "en",
+        "dir": "ltr",
+        "h1": "This road doesn'tlead anywhere.",
+        "title": "Page Not Found — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "en",
+        "dir": "ltr",
+        "h1": "This road doesn'tlead anywhere.",
+        "title": "Page Not Found — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "en",
+        "dir": "ltr",
+        "h1": "This road doesn'tlead anywhere.",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected 'Page Not Found — PRESTIGO')"
+        ]
+      }
+    },
+    "ru": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "ru",
+        "dir": "ltr",
+        "h1": "Эта дорога никудане ведёт.",
+        "title": "Страница не найдена — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "ru",
+        "dir": "ltr",
+        "h1": "Эта дорога никудане ведёт.",
+        "title": "Страница не найдена — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "ru",
+        "dir": "ltr",
+        "h1": "Эта дорога никудане ведёт.",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected 'Страница не найдена — PRESTIGO')"
+        ]
+      }
+    },
+    "es": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "es",
+        "dir": "ltr",
+        "h1": "Este camino no llevaa ningún lugar.",
+        "title": "Página no encontrada — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "es",
+        "dir": "ltr",
+        "h1": "Este camino no llevaa ningún lugar.",
+        "title": "Página no encontrada — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "es",
+        "dir": "ltr",
+        "h1": "Este camino no llevaa ningún lugar.",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected 'Página no encontrada — PRESTIGO')"
+        ]
+      }
+    },
+    "fr": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "fr",
+        "dir": "ltr",
+        "h1": "Cette route ne mènenulle part.",
+        "title": "Page introuvable — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "fr",
+        "dir": "ltr",
+        "h1": "Cette route ne mènenulle part.",
+        "title": "Page introuvable — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "fr",
+        "dir": "ltr",
+        "h1": "Cette route ne mènenulle part.",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected 'Page introuvable — PRESTIGO')"
+        ]
+      }
+    },
+    "ar": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "ar",
+        "dir": "rtl",
+        "h1": "هذا الطريق لا يؤديإلى أي مكان.",
+        "title": "الصفحة غير موجودة — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "ar",
+        "dir": "rtl",
+        "h1": "هذا الطريق لا يؤديإلى أي مكان.",
+        "title": "الصفحة غير موجودة — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "ar",
+        "dir": "rtl",
+        "h1": "هذا الطريق لا يؤديإلى أي مكان.",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected 'الصفحة غير موجودة — PRESTIGO')"
+        ]
+      }
+    },
+    "hi": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "hi",
+        "dir": "ltr",
+        "h1": "यह रास्ता कहींनहीं जाता।",
+        "title": "पेज नहीं मिला — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "hi",
+        "dir": "ltr",
+        "h1": "यह रास्ता कहींनहीं जाता।",
+        "title": "पेज नहीं मिला — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "hi",
+        "dir": "ltr",
+        "h1": "यह रास्ता कहींनहीं जाता।",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected 'पेज नहीं मिला — PRESTIGO')"
+        ]
+      }
+    },
+    "zh": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "zh",
+        "dir": "ltr",
+        "h1": "这条路无法通向任何地方。",
+        "title": "页面未找到 — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "zh",
+        "dir": "ltr",
+        "h1": "这条路无法通向任何地方。",
+        "title": "页面未找到 — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/blog/this-post-does-not-exist": {
+        "status": 404,
+        "lang": "zh",
+        "dir": "ltr",
+        "h1": "这条路无法通向任何地方。",
+        "title": "Not Found — Prestigo | PRESTIGO",
+        "pass": false,
+        "findings": [
+          "title='Not Found — Prestigo | PRESTIGO' (expected '页面未找到 — PRESTIGO')"
+        ]
+      }
+    }
+  },
+  "shadowing": {
+    "/": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru/fleet": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru/routes/prague-vienna": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru/blog/beyond-transport-luxury-chauffeur-service-prague": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/sitemap.xml": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/robots.txt": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/llms.txt": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/favicon.ico": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/e-class-photo.avif": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/api/does-not-exist": {
+      "status": 404,
+      "expected": 404,
+      "pass": true
+    },
+    "/de/foo": {
+      "status": 404,
+      "expected": 404,
+      "pass": true
+    }
+  },
+  "findings": [
+    "localized https://rideprestigo.com/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected 'Page Not Found — PRESTIGO')",
+    "localized https://rideprestigo.com/ru/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected 'Страница не найдена — PRESTIGO')",
+    "localized https://rideprestigo.com/es/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected 'Página no encontrada — PRESTIGO')",
+    "localized https://rideprestigo.com/fr/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected 'Page introuvable — PRESTIGO')",
+    "localized https://rideprestigo.com/ar/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected 'الصفحة غير موجودة — PRESTIGO')",
+    "localized https://rideprestigo.com/hi/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected 'पेज नहीं मिला — PRESTIGO')",
+    "localized https://rideprestigo.com/zh/blog/this-post-does-not-exist: title='Not Found — Prestigo | PRESTIGO' (expected '页面未找到 — PRESTIGO')"
+  ]
+}
