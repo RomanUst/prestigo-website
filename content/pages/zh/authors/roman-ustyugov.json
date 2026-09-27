@@ -3,7 +3,10 @@
     "authorProfile": "作者简介",
     "about": "关于",
     "expertise": "专业领域",
-    "aboutAuthorAria": "关于作者：{name}"
+    "aboutAuthorAria": "关于作者：{name}",
+    "by": "作者",
+    "published": "发布于 {date}",
+    "updated": "更新于 {date}"
   },
   "jobTitle": "创始人兼首席体验官",
   "bioShort": "PRESTIGO 创始人。在布拉格豪华出行与五星级酒店服务领域拥有 10 年以上经验。",

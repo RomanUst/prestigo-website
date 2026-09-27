@@ -341,3 +341,40 @@ The fix plans (75-06..75-16) closed 83.6% of text leaks and 93.6% of link leaks 
 **Stripe Elements locale / Google Places language (D-07 surface 4):** not verifiable by the rendered-DOM scanner (third-party iframe/widget internals) — proven instead by `booking_e2e.py` in `75-QA-RESULTS.md` "Booking E2E": all 7 guest checkouts show `localeChecksPassed=true`.
 
 **Overall D-06/D-07 disposition:** the systematic two-layer audit confirms the Phase 75 fix plans closed the overwhelming majority of both static and rendered EN leaks. Zero actionable static findings remain outside the explicitly out-of-scope admin panel. Rendered leaks are down >80% and the remaining findings are concrete, evidenced, and traceable to specific root causes (2 allowlist gaps, 1 residual nav-link cleanup, 1 systemic 404-routing gap) rather than diffuse untranslated content.
+
+## Post-gap-closure production result (Plan 75-30)
+
+Run date (UTC): 2026-09-27. Target: `https://rideprestigo.com`, after the gap-closure deploy (PR #38, merge `65a1eb4d`, Vercel Production `success`). Evidence: `evidence/75-30-en-leak-rendered.json` and `evidence/75-30-notfound-audit.json`.
+
+**Static layer:** `node scripts/qa/en_leak_static.mjs` (pre-deploy gate) exits 1 with 18 files / 148 findings. All of them are in the UNOWNED `components/admin/**` bucket. The review-only R4 in `app/[locale]/page.tsx` is gone. 0 actionable customer-facing findings.
+
+**Rendered layer:** `python3 scripts/qa/en_leak_rendered.py https://rideprestigo.com` exits 1 (6 locales x 26 pages).
+
+| Locale | 75-20 text | 75-30 text | 75-20 link | 75-30 link | Allowlisted (with reason) |
+|---|---|---|---|---|---|
+| ru | 69 | 5 | 15 | 0 | 274 |
+| es | 10 | 0 | 15 | 0 | 218 |
+| fr | 10 | 0 | 15 | 0 | 218 |
+| ar | 58 | 5 | 15 | 0 | 274 |
+| hi | 111 | 5 | 15 | 0 | 272 |
+| zh | 71 | 5 | 15 | 0 | 274 |
+| **total** | **329** | **20** | **90** | **0** | 1530 |
+
+What closed:
+
+- The four 75-20 residual classes are closed on production:
+  1. Person names: `properNouns` (75-26) plus the localized author surfaces (75-28).
+  2. Mid-sentence brand and tech terms: `inlineTerms` (75-26).
+  3. MDX and JSX blog-post link leaks: 75-27.
+  4. The 404 routing: catch-all (75-25). `notfound_audit.py` gives 14/14 localized and 12/12 non-shadowing.
+- The hi/ru catalog loanwords are resolved by 75-29 (keep-per-glossary).
+- Link leaks are 0 on every locale.
+
+**What remains (GAP-4, not classified):** 20 `meta` findings, 5 per locale on ru/ar/hi/zh. They are all on two pages.
+
+- **`/login`:** og:title and og:description. The `<title>` and meta description were localized in 75-28.
+- **`/this-page-does-not-exist`:** meta description, og:title and og:description. The `<title>` was localized in 75-25.
+
+Root cause: `app/[locale]/layout.tsx` exports the static English `siteMetadata` from `components/SiteChrome.tsx`. Neither page overrides `openGraph`/`twitter`, and the 404 also does not override `description`, so those fields inherit the English default. es and fr serve the same English og/twitter values, but the scanner's Latin-script check does not look at meta, so they are not flagged.
+
+Fix (follow-up, app code): set localized `description`, `openGraph` and `twitter` in `app/[locale]/login/layout.tsx` and in `generateMetadata` of `app/[locale]/[...rest]/page.tsx`. Better still, make the locale layout's default metadata locale-aware. Full row list: `75-EN-LEAK-RESIDUAL.md` "Final status (plan 75-30)".

@@ -3,7 +3,9 @@
 GAP-4a / WINDOWS #22).
 
 Localized-404 block (Playwright, per locale; EN has no prefix): loads
-/this-page-does-not-exist and /qa/nested/missing-page under the locale and
+/this-page-does-not-exist, /qa/nested/missing-page and the dynamic-segment
+miss /blog/this-post-does-not-exist (Plan 75-32, WR-01 — an unknown blog slug
+404s through blog/[slug]'s notFound(), not the catch-all) under the locale and
 asserts
   - the navigation response status is 404 (no soft-404),
   - after hydration (load + 1500 ms) document.documentElement.lang equals the
@@ -12,6 +14,9 @@ asserts
   - document.title equals that catalog's NotFound.metaTitle.
 The raw SSR HTML of a notFound() response is Next's error shell, so these
 checks are made in a real browser after hydration, never with curl.
+The raw server HTML <title>/<meta> of these 404 paths (what crawlers and
+link-preview bots see, incl. the brand-doubled title class) is checked by
+scripts/qa/share_meta_audit.py, not here.
 
 Non-shadowing block (plain HTTP status, no browser): the required
 app/[locale]/[...rest] catch-all must shadow nothing — pages, static and
@@ -46,7 +51,7 @@ except ImportError:
 LOCS = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh']
 RTL_LOCALES = {'ar'}
 
-MISSING_PATHS = ['/this-page-does-not-exist', '/qa/nested/missing-page']
+MISSING_PATHS = ['/this-page-does-not-exist', '/qa/nested/missing-page', '/blog/this-post-does-not-exist']
 
 # (path, expected status). Plain HTTP, redirects NOT followed — a redirect is
 # reported as its own 3xx status, never silently resolved to a 200.

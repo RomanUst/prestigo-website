@@ -288,7 +288,7 @@ Plans:
   6. vitest is green for all v3.0-touched files; pre-existing unrelated failures are listed.
   7. Launch: sitemap resubmitted in GSC with a per-locale indexing baseline recorded; Metricool announcement created as drafts only; milestone v3.0 audited and closed.
 
-**Plans:** 30 plans (21 + 9 gap closure)
+**Plans:** 36 plans (21 + 15 gap closure)
 
 Plans:
 **Wave 1**
@@ -357,7 +357,27 @@ Wave 3 *(blocked on 75-26, 75-28)*
 
 Wave 4 *(blocked on 75-22..75-29 — deploy + re-verification gate)*
 
-- [ ] 75-30-PLAN.md — Gated PR → main → Vercel prod deploy; full post-deploy re-run with committed evidence; WINDOWS #15/#22-#25; VER-01 only if all 4 gaps pass
+- [x] 75-30-PLAN.md — Gated PR → main → Vercel prod deploy; full post-deploy re-run with committed evidence; WINDOWS #15/#22-#25; VER-01 only if all 4 gaps pass
+
+**Gap closure round 2** *(from 75-VERIFICATION.md re-verification — 8/10; GAP-1 closed by user override; GAP-4 partial: WINDOWS #24/#26 + review WR-01..WR-05, IN-05)*
+
+Wave 1 *(file-disjoint)*
+
+- [x] 75-31-PLAN.md — WR-02 + /login (#24/#26): locale-aware layout default metadata, sitewide twitter:* mirroring of og via one central mechanism (Next.js contract test), localized /login share meta, getNotFoundMetadata helper (x7 frozen)
+- [x] 75-32-PLAN.md — WR-03: en_leak_rendered reads twitter:*, es/fr meta vs EN, JSX-joined text, English dates; new share_meta_audit.py (raw HTML); notfound_audit covers /blog/<unknown>; committed pre-fix prod baseline
+
+Wave 2 *(blocked on 75-31)*
+
+- [x] 75-33-PLAN.md — WR-01 + IN-05 + WR-05: localized 404 metadata on blog unknown slug, catch-all and not-found boundary (raw error shell), setRequestLocale on blog/[slug]
+- [x] 75-34-PLAN.md — WR-04: localized byline By/Published/Updated + locale date format (Latin digits) on posts and /blog cards (x7 frozen)
+
+Wave 3 *(blocked on 75-31..75-34)*
+
+- [ ] 75-35-PLAN.md — Gated PR → user merge (checkpoint) → Vercel prod; one production smoke per fix class
+
+Wave 4 *(blocked on 75-35)*
+
+- [ ] 75-36-PLAN.md — Production re-verification (en_leak_rendered / share_meta_audit / notfound_audit exit 0, verifier curl reproductions, regressions) with committed evidence; WINDOWS #24/#26 + WR-01/02/04 rows; explicit deferrals (WR-06, IN-01..IN-04)
 
 </details>
 
@@ -446,4 +466,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 29/30 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 34/36 | In Progress|  |

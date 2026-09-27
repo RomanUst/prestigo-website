@@ -3,7 +3,10 @@
     "authorProfile": "الملف الشخصي للكاتب",
     "about": "نبذة",
     "expertise": "مجالات الخبرة",
-    "aboutAuthorAria": "نبذة عن الكاتب، {name}"
+    "aboutAuthorAria": "نبذة عن الكاتب، {name}",
+    "by": "بقلم",
+    "published": "نُشر في {date}",
+    "updated": "حُدّث في {date}"
   },
   "jobTitle": "المؤسس ورئيس تجربة العملاء",
   "bioShort": "مؤسس PRESTIGO. أكثر من 10 سنوات من الخبرة في النقل الفاخر والضيافة بمستوى 5 نجوم في براغ.",

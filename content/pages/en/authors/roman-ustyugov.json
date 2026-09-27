@@ -3,7 +3,10 @@
     "authorProfile": "Author profile",
     "about": "About",
     "expertise": "Areas of expertise",
-    "aboutAuthorAria": "About the author, {name}"
+    "aboutAuthorAria": "About the author, {name}",
+    "by": "By",
+    "published": "Published {date}",
+    "updated": "Updated {date}"
   },
   "jobTitle": "Founder & Chief Experience Officer",
   "bioShort": "Founder of PRESTIGO. 10+ years in luxury transportation and 5★ hospitality in Prague.",

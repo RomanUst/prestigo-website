@@ -1,0 +1,208 @@
+{
+  "base_url": "https://rideprestigo.com",
+  "localized": {
+    "en": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "en",
+        "dir": "ltr",
+        "h1": "This road doesn'tlead anywhere.",
+        "title": "Page Not Found — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "en",
+        "dir": "ltr",
+        "h1": "This road doesn'tlead anywhere.",
+        "title": "Page Not Found — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    },
+    "ru": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "ru",
+        "dir": "ltr",
+        "h1": "Эта дорога никудане ведёт.",
+        "title": "Страница не найдена — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "ru",
+        "dir": "ltr",
+        "h1": "Эта дорога никудане ведёт.",
+        "title": "Страница не найдена — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    },
+    "es": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "es",
+        "dir": "ltr",
+        "h1": "Este camino no llevaa ningún lugar.",
+        "title": "Página no encontrada — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "es",
+        "dir": "ltr",
+        "h1": "Este camino no llevaa ningún lugar.",
+        "title": "Página no encontrada — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    },
+    "fr": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "fr",
+        "dir": "ltr",
+        "h1": "Cette route ne mènenulle part.",
+        "title": "Page introuvable — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "fr",
+        "dir": "ltr",
+        "h1": "Cette route ne mènenulle part.",
+        "title": "Page introuvable — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    },
+    "ar": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "ar",
+        "dir": "rtl",
+        "h1": "هذا الطريق لا يؤديإلى أي مكان.",
+        "title": "الصفحة غير موجودة — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "ar",
+        "dir": "rtl",
+        "h1": "هذا الطريق لا يؤديإلى أي مكان.",
+        "title": "الصفحة غير موجودة — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    },
+    "hi": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "hi",
+        "dir": "ltr",
+        "h1": "यह रास्ता कहींनहीं जाता।",
+        "title": "पेज नहीं मिला — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "hi",
+        "dir": "ltr",
+        "h1": "यह रास्ता कहींनहीं जाता।",
+        "title": "पेज नहीं मिला — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    },
+    "zh": {
+      "/this-page-does-not-exist": {
+        "status": 404,
+        "lang": "zh",
+        "dir": "ltr",
+        "h1": "这条路无法通向任何地方。",
+        "title": "页面未找到 — PRESTIGO",
+        "pass": true,
+        "findings": []
+      },
+      "/qa/nested/missing-page": {
+        "status": 404,
+        "lang": "zh",
+        "dir": "ltr",
+        "h1": "这条路无法通向任何地方。",
+        "title": "页面未找到 — PRESTIGO",
+        "pass": true,
+        "findings": []
+      }
+    }
+  },
+  "shadowing": {
+    "/": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru/fleet": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru/routes/prague-vienna": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/ru/blog/beyond-transport-luxury-chauffeur-service-prague": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/sitemap.xml": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/robots.txt": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/llms.txt": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/favicon.ico": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/e-class-photo.avif": {
+      "status": 200,
+      "expected": 200,
+      "pass": true
+    },
+    "/api/does-not-exist": {
+      "status": 404,
+      "expected": 404,
+      "pass": true
+    },
+    "/de/foo": {
+      "status": 404,
+      "expected": 404,
+      "pass": true
+    }
+  },
+  "findings": []
+}

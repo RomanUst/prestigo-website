@@ -11,7 +11,9 @@
  *     status stays a real 404 (no streamed/locked 200, no soft-404);
  *   - generateMetadata returns the locale's NotFound.metaTitle as an absolute
  *     title + noindex for every locale, and {} (no throw, no title) for a
- *     non-locale first segment such as `api`;
+ *     non-locale first segment such as `api`; since 75-33 it returns the full
+ *     getNotFoundMetadata(locale) shape (localized description + openGraph,
+ *     twitter mirrored from og by Next.js);
  *   - route shape: required `[...rest]` (never an optional `[[...rest]]`
  *     sibling that would shadow the locale home) and no generateStaticParams.
  */
@@ -88,6 +90,18 @@ describe('catch-all generateMetadata', () => {
       expect(expected.length).toBeGreaterThan(0)
       expect(meta.title).toEqual({ absolute: expected })
       expect(meta.robots).toEqual({ index: false, follow: false })
+    })
+
+    it(`returns the full ${locale} getNotFoundMetadata shape (description + og, 75-33)`, async () => {
+      const { generateMetadata } = await import('@/app/[locale]/[...rest]/page')
+      const { getNotFoundMetadata } = await import('@/lib/site-metadata')
+      const meta = await generateMetadata({ params: Promise.resolve({ locale, rest: ['x'] }) })
+      expect(meta).toEqual(await getNotFoundMetadata(locale))
+      const catalog = loadCatalog(locale).NotFound
+      expect(meta.description).toBe(catalog.metaDescription)
+      expect(meta.openGraph?.title).toBe(catalog.metaTitle)
+      expect(meta.openGraph?.description).toBe(catalog.metaDescription)
+      expect(meta).not.toHaveProperty('twitter')
     })
   }
 

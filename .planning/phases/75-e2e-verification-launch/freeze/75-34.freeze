@@ -1,0 +1,8 @@
+# 75-34 (WR-04): blog byline "By" / "Published {date}" / "Updated {date}"
+# labels localized on every non-EN locale (dates via lib/locale-date.ts).
+# Hand-translated in-session (D-08) into ru/es/fr/ar/hi/zh; {date} placeholder
+# kept. Frozen so a future pipeline run neither overwrites these units nor
+# re-spends tokens.
+content/pages/en/authors/roman-ustyugov.json::labels.by
+content/pages/en/authors/roman-ustyugov.json::labels.published
+content/pages/en/authors/roman-ustyugov.json::labels.updated

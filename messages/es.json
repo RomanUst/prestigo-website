@@ -606,7 +606,8 @@
     "bookButton": "Reservar un traslado",
     "servicesButton": "Ver servicios",
     "homeButton": "Volver al inicio",
-    "metaTitle": "Página no encontrada — PRESTIGO"
+    "metaTitle": "Página no encontrada — PRESTIGO",
+    "metaDescription": "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
   },
   "BlogPost": {
     "cta": {
@@ -969,5 +970,10 @@
       "body": "No pudimos enviar su mensaje. Inténtelo de nuevo o contáctenos directamente en",
       "retry": "Intentar de nuevo →"
     }
+  },
+  "SiteMetadata": {
+    "defaultTitle": "PRESTIGO — Servicio de chófer premium en Praga",
+    "defaultDescription": "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada.",
+    "keywords": "chófer Praga,traslado aeropuerto Praga,conductor privado Praga,traslado de lujo Praga,servicio de taxi Praga,traslado ejecutivo Praga"
   }
 }

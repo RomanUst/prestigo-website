@@ -85,9 +85,14 @@ vi.mock('../content/blog/ar/premium-airport-transfer-prague-shortcut.mdx', () =>
 // next-intl/server mock note), since there is no real Next.js request
 // context / AsyncLocalStorage in vitest for the genuine package to resolve
 // requestLocale against.
-const { mockGetLocale } = vi.hoisted(() => ({ mockGetLocale: vi.fn(async () => 'en') }))
+const { mockGetLocale, mockSetRequestLocale } = vi.hoisted(() => ({
+  mockGetLocale: vi.fn(async () => 'en'),
+  mockSetRequestLocale: vi.fn(),
+}))
 vi.mock('next-intl/server', () => ({
   getLocale: mockGetLocale,
+  // 75-33 (WR-05): blog/[slug] pins its request locale from params.
+  setRequestLocale: mockSetRequestLocale,
   getTranslations: vi.fn(async (opts: { locale: string; namespace: string } | string) => {
     const { locale, namespace } =
       typeof opts === 'string' ? { locale: 'en', namespace: opts } : opts
@@ -368,6 +373,8 @@ describe('Blog post bottom CTA (75-13 Task 3)', () => {
     const PageElement = await BlogArticlePage({
       params: Promise.resolve({ slug: 'premium-airport-transfer-prague-shortcut', locale: 'ar' }),
     })
+    // 75-33 (WR-05): the post route pins its own request locale.
+    expect(mockSetRequestLocale).toHaveBeenCalledWith('ar')
     const { render } = await import('@testing-library/react')
     const { container } = render(PageElement)
 

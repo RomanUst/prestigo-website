@@ -1,4 +1,3 @@
-import type { Metadata } from 'next'
 import { Fraunces, Inter, Noto_Sans_Arabic, Noto_Sans_Devanagari, Noto_Sans_SC } from 'next/font/google'
 import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getMessages, getTranslations } from 'next-intl/server'
@@ -61,62 +60,11 @@ const notoSC = Noto_Sans_SC({
   display: 'swap',
 })
 
-export const siteMetadata: Metadata = {
-  metadataBase: new URL('https://rideprestigo.com'),
-  title: {
-    default: 'PRESTIGO — Premium Chauffeur Service Prague',
-    template: '%s | PRESTIGO',
-  },
-  description:
-    'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
-  keywords: [
-    'chauffeur Prague',
-    'airport transfer Prague',
-    'private driver Prague',
-    'luxury transfer Prague',
-    'Prague taxi service',
-    'executive transfer Prague',
-  ],
-  authors: [{ name: 'PRESTIGO' }],
-  creator: 'PRESTIGO',
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    siteName: 'PRESTIGO',
-    title: 'PRESTIGO — Premium Chauffeur Service Prague',
-    description:
-      'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'PRESTIGO — Premium Chauffeur Service Prague',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'PRESTIGO — Premium Chauffeur Service Prague',
-    description:
-      'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet.',
-    images: ['/og-image.jpg'],
-  },
-  icons: {
-    apple: '/apple-touch-icon.png',
-  },
-  other: {
-    'facebook-domain-verification': 'ka67mchks8rv6d7vd0mxut21zt3lc5',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
-  },
-}
+// The site-wide English default metadata lives in lib/site-metadata.ts
+// (Phase 75, Plan 31) so generateMetadata functions and unit tests can import
+// it without this module's next/font + globals.css graph. Re-exported here so
+// app/(internal)/layout.tsx keeps its existing import unchanged.
+export { siteMetadata } from '@/lib/site-metadata'
 
 // No headers()/cookies() read here on purpose: any dynamic API in the root
 // layout opts the ENTIRE route tree into dynamic rendering, defeating the
