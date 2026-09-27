@@ -6,6 +6,9 @@ covers; log everything else here instead of silently expanding scope).
 
 ## 75-13
 
+- **Status:** resolved
+- **Resolved-in:** 75-14 (09b5d6ad)
+
 - **`components/ArticleByline.tsx` uses `next/link`'s default import instead
   of the i18n `Link`.** `.planning/phases/75-e2e-verification-launch/75-EN-LEAK-AUDIT.md`
   row 85 attributes this finding to plan 75-13, but the plan's own
@@ -25,6 +28,9 @@ covers; log everything else here instead of silently expanding scope).
   the import). WINDOWS.md ledger entry #20 marked `fixed`.
 
 ## 75-20 (Task 2 — full production QA sweep, recorded not fixed per Task 1's "do not patch and redeploy" rule)
+
+- **Status:** acknowledged
+- **Acknowledged:** v3.0 close 2026-09-27 — deferred to backlog
 
 - **D-05 deferred capability — localized client emails.** `lib/email.ts`,
   `lib/email-corporate.ts`, `lib/email-bespoke.ts` are 100% English-only
@@ -130,6 +136,9 @@ covers; log everything else here instead of silently expanding scope).
 
 ## 75-30 (gap-closure production re-verification, recorded not fixed: this plan may not edit app code)
 
+- **Status:** acknowledged
+- **Acknowledged:** v3.0 close 2026-09-27 — deferred to backlog
+
 - **GAP-1: RU/AR signed-in account path (D-04) is still unverified. SKIPPED by user decision, open.**
   - Plan 75-22 was skipped on 2026-09-27 ("пропускаем"). The E2E test account and the git-ignored `scripts/qa/.e2e-account.json` were never created.
   - The guest path is proven for ru and ar. Only the signed-in "My trips" and booking variant is unproven.
@@ -159,6 +168,9 @@ covers; log everything else here instead of silently expanding scope).
   - Follow-up: rewrite the FAQ entry in EN and re-translate it into all six locales in-session, then freeze. Review the blog posts against the rule too. Any rewrite must also avoid stating prices (no-prices content rule).
 
 ## 75-36 (gap round 2 production re-verification: explicit deferrals, none of them an English leak)
+
+- **Status:** acknowledged
+- **Acknowledged:** v3.0 close 2026-09-27 — deferred to backlog
 
 GAP-4 is closed on production (see 75-QA-RESULTS.md "Full production sweep (plan 75-36)"). The review items below are not fixed in gap round 2. Each is deferred on purpose, with the reason.
 

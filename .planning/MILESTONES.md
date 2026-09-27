@@ -1,5 +1,26 @@
 # Milestones
 
+## v3.0 Site Internationalization (i18n) (Shipped: 2026-09-27)
+
+**Phases completed:** 8 phases (68–75), 85 plans, 176 tasks
+**Timeline:** 2026-09-03 → 2026-09-27 (25 days), 569 commits, 841 files changed (+133k / −18k, excluding .planning/)
+**Audit:** tech_debt — 20/20 requirements, 8/8 phases, 18/18 integration chains (see milestones/v3.0-MILESTONE-AUDIT.md)
+**Closeout type:** override_closeout
+**Known verification overrides:** 4 newly acknowledged, 8 carried forward from a prior close (see STATE.md Deferred Items); VER-01 RU/AR signed-in path accepted by owner 2026-09-27
+
+**Key accomplishments:**
+
+- next-intl `app/[locale]/` routing with EN at root (every existing EN URL byte-identical), composed non-destructively into the CSP-nonce / Supabase / CSRF middleware chain; admin/api/auth/driver stay non-localized.
+- Full string + content externalization: UI chrome, booking wizard, account/auth, 30 route pages, 8 service pages, home/about/faq/contact/corporate/legal, and blog under `content/blog/<locale>/`.
+- Re-runnable AI translation pipeline (`scripts/i18n-translate.mjs`) with locked glossary, DNT list, hash manifest, fail-closed DNT/ICU verifier, MDX branch and QA report; complete ru/es/fr/ar/hi/zh translations.
+- Arabic RTL via logical properties + `interpolateBidi`/`<bdi>` price isolation; Noto Arabic/Devanagari/SC loaded only for their locales.
+- SEO wiring: hreflang (6 + x-default) from one `getAlternates()` shared by pages and sitemap, localized metadata/OG/twitter, JSON-LD `inLanguage`, language switcher with `NEXT_LOCALE`, no-cloaking locale suggestion.
+- Production E2E proof across 7 locales: guest booking to localized Stripe incl. /ar RTL, 0 EN leaks (6×26 pages), share-meta 0 findings, 404 33/33, GA4/Meta `site_locale`, no CSP regression.
+
+**Deferred to backlog (until Anthropic API credits are topped up):** see ROADMAP.md `## Backlog` (999.1–999.8).
+
+---
+
 ## v2.2 Dispatch & Driver Trip Portal (Shipped: 2026-09-02)
 
 **Phases completed:** 3 phases, 8 plans, 23 tasks

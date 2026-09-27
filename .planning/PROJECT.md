@@ -2,29 +2,21 @@
 
 ## What This Is
 
-Prestigo is a premium chauffeur service based in Prague, Czech Republic. The site (rideprestigo.com) is a Next.js 14+ App Router marketing and booking platform that handles airport transfers, intercity routes, corporate accounts, and VIP events for English-speaking travellers and corporate clients across Central Europe. Customers can sign in with email or OAuth to access a personal account with trip history and pre-filled passenger details; guest checkout is always available without registration.
+Prestigo is a premium chauffeur service based in Prague, Czech Republic. The site (rideprestigo.com) is a Next.js 14+ App Router marketing and booking platform that handles airport transfers, intercity routes, corporate accounts, and VIP events for international travellers and corporate clients across Central Europe. The public site is served in seven languages — English at the root plus Russian, Spanish, French, Arabic (RTL), Hindi and Chinese under `/ru/`, `/es/`, `/fr/`, `/ar/`, `/hi/`, `/zh/`. Customers can sign in with email or OAuth to access a personal account with trip history and pre-filled passenger details; guest checkout is always available without registration.
 
 ## Core Value
 
 Every page — booking, content, or service — must convert a visitor into a confirmed booking or a qualified lead without friction.
 
-## Current State: v3.0 In Planning — Site Internationalization (i18n)
+## Current State: v3.0 shipped — Site Internationalization (i18n)
 
-**Active milestone (v3.0):** Make the whole public site multilingual without sacrificing English SEO positions. English stays the default at the site root (existing URLs unchanged → zero ranking risk); six locales — **Russian, Spanish, French, Arabic (RTL), Hindi, Chinese (Simplified)** — are served under URL subpaths (`/ru/`, `/es/`, `/fr/`, `/ar/`, `/hi/`, `/zh/`) with full SEO wiring (hreflang, localized metadata, per-locale sitemap entries). Scope covers the entire public surface — UI chrome, booking flow, account, and the complete SEO content set (29–30 route pages, 8 service pages, blog, legal) — translated by an AI-only, re-runnable pipeline. Stack: `next-intl` + `app/[locale]/` with `localePrefix: 'as-needed'`. Phases 68–75. See REQUIREMENTS.md / ROADMAP.md.
+v3.0 (shipped 2026-09-27) made the whole public site multilingual without touching English SEO: English stays at the root with every existing URL unchanged, and six locales (RU, ES, FR, AR RTL, HI, ZH) are served under subpaths. next-intl `app/[locale]/` routing is composed into the CSP/Supabase/CSRF middleware; UI chrome, booking wizard, account/auth, 30 route pages, 8 service pages, marketing/legal pages and blog are externalized and translated by a re-runnable AI pipeline (`scripts/i18n-translate.mjs`, glossary + DNT + fail-closed verifier). Arabic renders RTL with bidi-isolated prices; Noto Arabic/Devanagari/SC load per locale. hreflang/sitemap/metadata/JSON-LD are localized from one `getAlternates()`. Production E2E proven across all 7 locales (guest booking to localized Stripe incl. /ar, 0 English leaks). Audit: tech_debt, 20/20 requirements; RU/AR signed-in booking path accepted by owner as unverified.
 
----
+v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin list, permanent driver trip link + trip sheet, trip-progress marking). v2.1 delivered admin booking lifecycle control. v2.0 delivered Blacklane-style booking with customer accounts.
 
-v2.2 (shipped 2026-09-02) delivered dispatcher and driver tooling: a future-first admin bookings list with a persistent default-horizon setting (Future only / Last N days / All) plus in-session past/all filter overrides that never touch the saved default, with KPI counters kept accurate (Phase 65); a permanent, unguessable per-assignment driver trip link opening a `noindex` trip sheet presentable to police control, coexisting byte-for-byte with the existing accept/decline flow (Phase 66); and driver trip-progress marking (en route → arrived → on board → completed / no-show) plus an optional note, both written to dedicated `driver_assignments` columns that are structurally isolated from `booking.status` and GNet, surfaced live to admin (Phase 67). Milestone audit passed (12/12 requirements, cross-phase integration INTEGRATED). Live and deployed on production.
+## Next Milestone Goals
 
-v2.1 (prior) delivered full operator control of the booking lifecycle inside the admin panel: abandoned/unpaid checkout capture, admin booking editing with change-notification email + audit log, and admin-created bookings with an optional Stripe payment link.
-
-v2.0 (earlier) delivered Blacklane-style booking UX with full customer authentication and account management, all GA4 + Meta Pixel/CAPI analytics signals preserved.
-
-## Next Milestone: v3.0 Site Internationalization (planning)
-
-Active. See REQUIREMENTS.md (I18N-/STR-/CNT-/TR-/RTL-/FONT-/SEO-/UX-/VER- IDs) and ROADMAP.md (Phases 68–75). Next step: `/gsd-plan-phase 68`.
-
-Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth dashboard credential config (AUTH-02/03), corporate "book for a guest" step (BOOK-06), clearing the pre-existing red test baseline, and the v2.2 tech-debt items (driver trip-progress live-refresh, Phase 65 row-order + horizon-clamp regression tests). Note: the old "multilingual account UI (Czech, Russian)" item is **superseded and expanded** by the v3.0 full-site i18n milestone.
+Not yet defined — start with `/gsd-new-milestone`. v3.0 tech debt is parked in ROADMAP.md `## Backlog` (999.1–999.8) until Anthropic API credits are topped up (AI translation workflow is disabled). Other carried-forward candidates: CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth credential config (AUTH-02/03), corporate "book for a guest" (BOOK-06), pre-existing red test baseline, v2.2 tech debt.
 
 ## Requirements
 
@@ -58,6 +50,12 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 - ✓ DISP-01..04: Future-first admin bookings list, persistent default-horizon setting (Future/Last N days/All), in-session past/all override, KPI counters accurate — v2.2 (Phase 65)
 - ✓ DTRIP-01/02/07/08: Permanent unguessable per-assignment trip link, noindex police-presentable trip sheet, coexists with accept/decline, token invalid on terminal status/reassignment — v2.2 (Phase 66)
 - ✓ DTRIP-03/04/05/06: Driver trip-progress marking (en route/arrived/on board/completed/no-show) + optional note in dedicated columns isolated from `booking.status`/GNet, surfaced to admin — v2.2 (Phase 67)
+- ✓ I18N-01..04: next-intl `app/[locale]/` routing, EN at root with unchanged URLs, middleware composed with CSP/Supabase/CSRF, dynamic `lang`/`dir`, typed 7-locale config — v3.0 (Phase 68)
+- ✓ STR-01/02: UI chrome, booking flow, account/auth, forms and validation text in message catalogs — v3.0 (Phases 69–70)
+- ✓ CNT-01..03: Route pages, service/marketing/legal pages and blog in a per-locale content model — v3.0 (Phase 71)
+- ✓ TR-01/02: Re-runnable AI translation pipeline with glossary/DNT; complete RU/ES/FR/AR/HI/ZH translations — v3.0 (Phases 72–73)
+- ✓ RTL-01, FONT-01: Arabic RTL via logical properties + bidi-isolated prices; Noto Arabic/Devanagari/SC per locale — v3.0 (Phase 73)
+- ✓ VER-01: Cross-locale production E2E (render, switcher, guest booking incl. RTL, analytics `site_locale`, no CSP regression, 0 EN leaks); RU/AR signed-in path accepted as unverified — v3.0 (Phase 75)
 - ✓ SEO-01..04, UX-01/02: Multilingual SEO — centralized translation/index-aware `getAlternates()` (hreflang incl. `zh-Hans`, self-referencing canonical + og:url per locale), sitemap cluster, localized metadata, JSON-LD `inLanguage`, header LocaleSwitcher, language suggestion inside the consent modal; prod-verified 417 localized URLs, 0 hreflang problems — v3.0 (Phase 74)
 
 ### Active
@@ -76,7 +74,7 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 - [ ] BOOK-06: Booking-method step — "Book for myself / Book as guest"; corporate also "Book for a guest" (deferred from v2.0)
 - [ ] Corporate invoicing, monthly billing, cost-centre fields — basic corporate profile only in v2.0
 - [ ] Email notifications — booking confirmation, reminder, driver assignment
-- [ ] **v3.0 (active): Full-site internationalization** — next-intl + `app/[locale]/`, EN at root, 6 locales (RU/ES/FR/AR/HI/ZH) under subpaths, AI-translated UI + booking + account + all SEO content, hreflang/sitemap/RTL. Tracked in REQUIREMENTS.md (Phases 68–75). Supersedes the earlier "multilingual account UI (Czech, Russian)" item and expands it to the whole public site.
+- [ ] v3.0 i18n tech debt — localized client emails + confirmation page, /routes hub blurbs, byline dates, catalog residual, Uber-comparison FAQ rewrite, RU/AR signed-in E2E, share-meta polish, Meta/CAPI robustness, test/QA infra; parked in ROADMAP.md Backlog 999.1–999.8 until API credits are topped up
 
 ### Out of Scope
 
@@ -84,6 +82,9 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 - Facebook OAuth — Google + Apple priority
 - Multi-user corporate accounts, role permissions — single profile per company in v2.0
 - Replacing admin auth or changing admin session model
+- CS / DE / JA / KO content — i18n infra supports them; content deferred to a later milestone
+- Human translation / proofreading — AI-only translation chosen for v3.0
+- Per-locale ccTLDs or subdomains — single-domain subpath strategy preserves EN ranking
 
 ## Context
 
@@ -93,9 +94,11 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 
 **Auth stack:** Admin auth (password-only) and customer auth (email + OAuth) both use Supabase GoTrue — isolated via middleware checks on `user_metadata.role`. Customer profiles in `customer_profiles` table with RLS. Bookings carry nullable `user_id` FK; guest checkout always valid.
 
-**Blog:** MDX articles in `content/blog/` plus 3 legacy JSX articles in `app/blog/[slug]/page.tsx`. Hybrid model — static dirs take precedence over dynamic MDX route. `/guides/*` and `/compare/*` redirect 308 to `/blog/*`.
+**Blog:** MDX articles in `content/blog/<locale>/` (11 posts × 7 locales) plus legacy JSX articles under `app/[locale]/blog/`. Hybrid model — static dirs take precedence over dynamic MDX route. `/guides/*` and `/compare/*` redirect 308 to `/blog/*`.
 
-**Codebase size:** 14 milestones/phases shipped (54–67); latest migrations 055–061 (booking audit log, payment link, RLS hardening, dispatch horizon columns, driver_assignments `trip_token` + `trip_progress`/`trip_note`/`trip_progress_updated_at`).
+**i18n:** next-intl 4.x, `i18n/locales.ts` single source, catalogs `messages/<locale>.json`, content `content/{routes,pages,blog}/<locale>/`, translation via `scripts/i18n-translate.mjs` (GH workflow disabled while API credit is empty — translate in-session; never run `--dry-run` on the repo tree). v3.0 added ~133k lines across 841 files.
+
+**Codebase size:** phases 54–75 shipped; latest migrations 055–061 (booking audit log, payment link, RLS hardening, dispatch horizon columns, driver_assignments `trip_token` + `trip_progress`/`trip_note`/`trip_progress_updated_at`).
 
 **Driver portal:** `driver_assignments` carries both the legacy single-use accept/decline token (`token`/`token_used_at`/`token_expires_at`) and the permanent `trip_token` (migration 060). Trip sheet at `/driver/trip/[token]` (noindex); token-gated write route `/api/driver/trip/[token]/progress` updates only trip-progress/note columns, CSRF-protected and rate-limited, structurally isolated from `booking.status`/GNet.
 
@@ -130,14 +133,16 @@ Carried forward, NOT scheduled into v3.0 (candidates for a later milestone): CR-
 | `isTripLinkValid()` single predicate shared by trip-sheet render and write route | DTRIP-08 — no drift between what renders and what a write accepts; validity re-checked live (TOCTOU-closed) | ✓ Shipped v2.2 (Phase 66/67) |
 | DTRIP-04 isolation-by-omission: write route imports no GNet/status module, touches only `driver_assignments` | Trip-progress must never mutate `booking.status` or push to GNet; grep gates enforce it structurally | ✓ Shipped v2.2 (Phase 67) |
 | Driver note rendered as React JSX text (no `dangerouslySetInnerHTML`) | XSS — untrusted driver free text auto-escaped in the admin DOM | ✓ Shipped v2.2 (Phase 67) |
-| v3.0: `next-intl` + `app/[locale]/` with `localePrefix: 'as-needed'` | EN stays at root with unchanged URLs → zero SEO-ranking risk; de-facto App Router i18n standard | — Pending (Phase 68) |
-| v3.0: EN default at root, other locales in subpaths (not `/en` prefix, not ccTLD) | Preserve existing ranked English URLs; single domain; avoids a site-wide 301 | — Pending (Phase 68) |
-| v3.0 locale set: RU, ES, FR, AR, HI, ZH (owner choice; no CS/DE this milestone) | World-language reach + premium Prague segments; CS/DE/JA/KO deferred, infra ready | — Pending |
-| v3.0: locale-middleware composed INTO existing middleware (not replacing it) | CSP nonce + Supabase session + CSRF must survive byte-for-byte | — Pending (Phase 68) |
-| v3.0: AI-only translation via a re-runnable pipeline with glossary + do-not-translate | Owner chose AI-only; prices/brand/vehicle-class/proper-nouns must never be translated | — Pending (Phase 72) |
-| v3.0: long-form content → per-locale content files, UI strings → message catalogs | Abstract prose does not belong in JSON catalogs; keeps SEO bodies maintainable | — Pending (Phase 71) |
+| v3.0: `next-intl` + `app/[locale]/` with `localePrefix: 'as-needed'` | EN stays at root with unchanged URLs → zero SEO-ranking risk; de-facto App Router i18n standard | ✓ Good — shipped v3.0 |
+| v3.0: EN default at root, other locales in subpaths (not `/en` prefix, not ccTLD) | Preserve existing ranked English URLs; single domain; avoids a site-wide 301 | ✓ Good — EN URLs unchanged |
+| v3.0 locale set: RU, ES, FR, AR, HI, ZH (owner choice; no CS/DE this milestone) | World-language reach + premium Prague segments; CS/DE/JA/KO deferred, infra ready | ✓ Shipped v3.0 |
+| v3.0: locale-middleware composed INTO existing middleware (not replacing it) | CSP nonce + Supabase session + CSRF must survive byte-for-byte | ✓ Good — CSP/CSRF intact (Phase 75 E2E) |
+| v3.0: AI-only translation via a re-runnable pipeline with glossary + do-not-translate | Owner chose AI-only; prices/brand/vehicle-class/proper-nouns must never be translated | ⚠️ Revisit — works, but blocked when API credit runs out |
+| v3.0: long-form content → per-locale content files, UI strings → message catalogs | Abstract prose does not belong in JSON catalogs; keeps SEO bodies maintainable | ✓ Good |
 | v3.0: first-visit language suggestion lives inside the cookie consent modal, not a separate banner | One prompt instead of two; consent text readable in visitor's language; standalone banner never rendered in prod (next-intl sets NEXT_LOCALE on every response) and clashed with /book price bar | ✓ Good (Phase 74 UAT) |
 | v3.0: middleware matcher skips static-file extensions only outside api/admin/driver/auth/account | txt/xml had to be excluded (robots/sitemap/llms 404'd since Phase 68) but a blanket suffix exclusion let crafted admin API paths skip CSRF | ✓ Good (Phase 74, 8821d8b8) |
+| v3.0: close with accepted override for RU/AR signed-in booking path (no test account) | Guest path proven on 7/7 locales; signed-in variant shares the same locale logic | — Pending (Backlog 999.5) |
+| v3.0: accept tech debt at close, defer to backlog until API credits return | Translation-dependent fixes need the AI pipeline | — Pending |
 
 ## Evolution
 
@@ -157,4 +162,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-24 after Phase 74. Milestone v3.0 Site Internationalization (i18n): Phases 68–74 shipped. Phase 74 delivered multilingual SEO (hreflang/canonical/sitemap/metadata/JSON-LD), header LocaleSwitcher and consent-modal language suggestion; UAT + security verified (18/18 threats closed). Also fixed during Phase 74: robots.txt/sitemap.xml/llms.txt were 404 in prod since Phase 68 (middleware matcher), and the WINDOWS #7 static-page EN leak. i18n Translate GitHub workflow disabled (Anthropic API credit empty; translations done in-session). Next: Phase 75 (E2E verification & launch).*
+*Last updated: 2026-09-27 after v3.0 milestone (Site Internationalization) — shipped, archived to milestones/v3.0-*. Next: `/gsd-new-milestone`.*

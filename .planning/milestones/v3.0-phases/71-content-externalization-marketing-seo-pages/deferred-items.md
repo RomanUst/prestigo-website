@@ -6,6 +6,9 @@ task's changes).
 
 ## Worktree-local node_modules deficiency breaks 5 pre-existing test files
 
+- **Status:** acknowledged
+- **Acknowledged:** v3.0 close 2026-09-27 — deferred to backlog
+
 **Found during:** 71-01, Task 3 (full-suite verification run)
 
 **Files affected (pre-existing, last touched Phase 70-08, untouched by 71-01):**

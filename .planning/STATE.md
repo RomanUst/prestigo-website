@@ -2,35 +2,35 @@
 gsd_state_version: 1.0
 milestone: v3.0
 milestone_name: Site Internationalization (i18n)
-current_phase: 75
-status: completed
+status: Awaiting next milestone
 stopped_at: Phase 75 complete — all phases complete
-last_updated: "2026-09-27T16:07:36.089Z"
+last_updated: "2026-09-27T18:01:15.546Z"
 last_activity: 2026-09-27
-last_activity_desc: Phase 75 complete
-state_head: d66d32e4c5e5e1854509769fcf88574846a3689d
+last_activity_desc: Milestone v3.0 completed and archived
+state_head: 1937b331a4dda945487b1455ad223c4be28f181b
 progress:
   total_phases: 8
   completed_phases: 8
   total_plans: 85
   completed_plans: 85
+current_phase: 75
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-09-20)
+See: .planning/PROJECT.md (updated 2026-09-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Phase 75 — E2E Verification & Launch
+**Current focus:** Planning next milestone (v3.0 shipped 2026-09-27; tech debt parked in ROADMAP Backlog 999.1–999.8)
 
 ## Current Position
 
-Phase: 75
-Plan: Not started
-Status: All phases complete
-Last activity: 2026-09-27 — Phase 75 complete
+Phase: Milestone v3.0 complete
+Plan: —
+Status: Awaiting next milestone
+Last activity: 2026-09-27 — Milestone v3.0 completed and archived
 
 ## Accumulated Context
 
@@ -200,7 +200,7 @@ Recent decisions affecting current work:
 - Phase 67: Driver Trip Portal — Status Marking, Notes & Admin Visibility — DTRIP-03, DTRIP-04, DTRIP-05, DTRIP-06
 - Execution: (65 ∥ 66) → 67
 
-### v3.0 roadmap (Phases 68-75, planning)
+### v3.0 roadmap (Phases 68-75, shipped 2026-09-27)
 
 - Milestone: Site Internationalization — EN at root (unchanged URLs), 6 locales under subpaths (RU/ES/FR/AR/HI/ZH), full-site scope, AI-only translation. Stack: next-intl + app/[locale] (`localePrefix: 'as-needed'`).
 - Phase 68: i18n Foundation & Routing — I18N-01/02/03/04 (risk-first: middleware composition + route-tree move under [locale], EN unchanged)
@@ -275,6 +275,18 @@ Items acknowledged and deferred at milestone v2.1 close on 2026-08-25 (8 newly a
 | verification_gaps | Phase 59: 59-VERIFICATION.md (archived v2.0) | human_needed | 2026-08-25 | v2.1 |
 
 v2.1 carried-forward items now tracked as v2.2 Active requirements (per PROJECT.md/REQUIREMENTS.md): FOLLOW-01, CR-02 follow-up, Nyquist validation gap (62/63/64), red test baseline, AUTH-02/03 OAuth config, BOOK-06 — none scheduled into the v2.2 roadmap (Phases 65-67 cover only DISP-*/DTRIP-*); remain candidates for a future milestone.
+
+Items acknowledged and deferred at milestone v3.0 close on 2026-09-27 (4 newly acknowledged, 8 carried forward):
+
+| Category | Item | Status | Deferred At | Milestone |
+|----------|------|--------|-------------|-----------|
+| deferred_items | Phase 71: deferred-items.md — worktree-local node_modules breaks 5 next-intl/server test files | acknowledged | 2026-09-27 | v3.0 |
+| deferred_items | Phase 75: deferred-items.md — 75-20 production QA sweep (localized emails/confirmation page, allowlist gaps, /ru/fleet overflow, byline dates, RU/AR signed-in path) | acknowledged | 2026-09-27 | v3.0 |
+| deferred_items | Phase 75: deferred-items.md — 75-30 (GAP-1 RU/AR signed-in path, catalog residual inventory, Uber-comparison FAQ) | acknowledged | 2026-09-27 | v3.0 |
+| deferred_items | Phase 75: deferred-items.md — 75-36 (WR-06, IN-01..IN-05, share-meta notes) | acknowledged | 2026-09-27 | v3.0 |
+| deferred_items | Phase 75: deferred-items.md — 75-13 ArticleByline Link | resolved (75-14) | 2026-09-27 | v3.0 |
+
+Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topped up — see ROADMAP.md `## Backlog` 999.1–999.8.
 
 ## Session Continuity
 
@@ -355,5 +367,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Phase 73 (all 14 plans) is complete; GAP-1/GAP-2/GAP-3 from the 2026-09-19 `73-VERIFICATION.md` `gaps_found` re-review are closed. Re-run phase 73 verification to confirm the score upgrades. The one remaining item is FONT-01's glyph-tofu visual sign-off, which is routed to independent human review (not a code gap) and does not block re-verification.
-- Next phase to plan: /gsd-plan-phase 74 (SEO — hreflang, Localized Metadata, Sitemap, Structured Data, Switcher)
+- Start the next milestone with /gsd-new-milestone
