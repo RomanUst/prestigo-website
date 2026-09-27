@@ -1,0 +1,2296 @@
+{
+ "base_url": "https://rideprestigo.com",
+ "counts": {
+  "en": {},
+  "ru": {},
+  "es": {},
+  "fr": {},
+  "ar": {},
+  "hi": {},
+  "zh": {}
+ },
+ "results": {
+  "en": {
+   "/": {
+    "url": "https://rideprestigo.com/",
+    "status": 200,
+    "titles": [
+     "Prague Chauffeur Service — Fixed-Price Transfers | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Prague chauffeur service with fixed prices, flight tracking and meet & greet. Executive Mercedes, English-speaking drivers, 24/7. Book online in 60 seconds."
+     ],
+     "og:title": [
+      "Prague Chauffeur Service | PRESTIGO — Premium Private Transfers"
+     ],
+     "og:description": [
+      "Prague chauffeur service with fixed prices, flight tracking and meet & greet. Executive Mercedes, English-speaking drivers, 24/7. Book online in 60 seconds."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "Prague Chauffeur Service | PRESTIGO — Premium Private Transfers"
+     ],
+     "twitter:description": [
+      "Prague chauffeur service with fixed prices, flight tracking and meet & greet. Executive Mercedes, English-speaking drivers, 24/7. Book online in 60 seconds."
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/fleet",
+    "status": 200,
+    "titles": [
+     "Our Fleet — Mercedes Chauffeur Cars Prague | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared."
+     ],
+     "og:title": [
+      "Our Fleet — Mercedes Chauffeur Cars Prague"
+     ],
+     "og:description": [
+      "Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Our Fleet — Mercedes Chauffeur Cars Prague"
+     ],
+     "twitter:description": [
+      "Mercedes E-Class, S-Class and V-Class chauffeur cars for executive transfers across Prague and Central Europe. Fully insured, immaculately prepared."
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/login",
+    "status": 200,
+    "titles": [
+     "Sign in — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Sign in to your PRESTIGO account to view and manage your bookings and upcoming trips."
+     ],
+     "og:title": [
+      "Sign in — PRESTIGO"
+     ],
+     "og:description": [
+      "Sign in to your PRESTIGO account to view and manage your bookings and upcoming trips."
+     ],
+     "og:image:alt": [
+      "Sign in — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Sign in — PRESTIGO"
+     ],
+     "twitter:description": [
+      "Sign in to your PRESTIGO account to view and manage your bookings and upcoming trips."
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/blog",
+    "status": 200,
+    "titles": [
+     "Prague Chauffeur Blog — Airport, Routes & Transfer Guides | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Practical guides on Prague airport transfers, intercity routes, and luxury chauffeur services — verified 2026 fares and local knowledge from Prestigo."
+     ],
+     "og:title": [
+      "Prague Chauffeur Blog — Airport, Routes & Transfer Guides"
+     ],
+     "og:description": [
+      "Practical guides on Prague airport transfers, intercity routes, and luxury chauffeur services — verified 2026 fares and local knowledge from Prestigo."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Prague Chauffeur Blog — Airport, Routes & Transfer Guides"
+     ],
+     "twitter:description": [
+      "Practical guides on Prague airport transfers, intercity routes, and luxury chauffeur services — verified 2026 fares and local knowledge from Prestigo."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "Beyond Transport: What a Luxury Chauffeur Service in Prague Really Buys You — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "A car moves you across Prague. A luxury chauffeur service moves your whole day. Here is what sits beyond the vehicle — the craft, the anticipation, and the discretion that make the difference."
+     ],
+     "og:title": [
+      "Beyond Transport: What a Luxury Chauffeur Service in Prague Really Buys You"
+     ],
+     "og:description": [
+      "A car moves you across Prague. A luxury chauffeur service moves your whole day. Here is what sits beyond the vehicle — the craft, the anticipation, and the discretion that make the difference."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Beyond Transport: What a Luxury Chauffeur Service in Prague Really Buys You"
+     ],
+     "twitter:description": [
+      "A car moves you across Prague. A luxury chauffeur service moves your whole day. Here is what sits beyond the vehicle — the craft, the anticipation, and the discretion that make the difference."
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — Founder, PRESTIGO Prague"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides."
+     ],
+     "og:title": [
+      "Roman Ustyugov — Founder of PRESTIGO Chauffeur Service"
+     ],
+     "og:description": [
+      "Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — Founder of PRESTIGO Chauffeur Service"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — Founder & Chief Experience Officer at PRESTIGO, Prague. 10+ years in luxury ground transport and 5★ hospitality. Author of the PRESTIGO travel guides."
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "Prague to Vienna Chauffeur — From €455 | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €455, stops en route, flexible timing."
+     ],
+     "og:title": [
+      "Prague to Vienna Private Chauffeur Transfer — From €455"
+     ],
+     "og:description": [
+      "Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €455, stops en route, flexible timing."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Prague to Vienna Private Chauffeur Transfer — From €455"
+     ],
+     "twitter:description": [
+      "Private Prague to Vienna chauffeur transfer — 330 km door-to-door in a Mercedes E, S or V-Class. Fixed price from €455, stops en route, flexible timing."
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "Prague Airport Transfer & Meet & Greet — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €59, 24/7."
+     ],
+     "og:title": [
+      "Prague Airport Meet & Greet & Transfer — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €59, 24/7."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Prague Airport Meet & Greet & Transfer — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "Prague airport meet & greet and chauffeur transfer from PRG. Name-board welcome at Arrivals, flight tracking, VIP & fast-track on request. From €59, 24/7."
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/data-deletion",
+    "status": 200,
+    "titles": [
+     "Data Deletion — PRESTIGO Premium Chauffeur Prague"
+    ],
+    "meta": {
+     "description": [
+      "How to request deletion of your personal data from PRESTIGO. GDPR data erasure request instructions."
+     ],
+     "og:title": [
+      "PRESTIGO — Premium Chauffeur Service Prague"
+     ],
+     "og:description": [
+      "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — Premium Chauffeur Service Prague"
+     ],
+     "twitter:title": [
+      "PRESTIGO — Premium Chauffeur Service Prague"
+     ],
+     "twitter:description": [
+      "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet."
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — Premium Chauffeur Service Prague"
+    ],
+    "meta": {
+     "description": [
+      "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet."
+     ],
+     "og:title": [
+      "PRESTIGO — Premium Chauffeur Service Prague"
+     ],
+     "og:description": [
+      "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — Premium Chauffeur Service Prague"
+     ],
+     "twitter:title": [
+      "PRESTIGO — Premium Chauffeur Service Prague"
+     ],
+     "twitter:description": [
+      "Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. Fixed prices, flight tracking, meet & greet."
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Page Not Found — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
+     ],
+     "og:title": [
+      "Page Not Found — PRESTIGO"
+     ],
+     "og:description": [
+      "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Page Not Found — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Page Not Found — PRESTIGO"
+     ],
+     "twitter:description": [
+      "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Page Not Found — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
+     ],
+     "og:title": [
+      "Page Not Found — PRESTIGO"
+     ],
+     "og:description": [
+      "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Page Not Found — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Page Not Found — PRESTIGO"
+     ],
+     "twitter:description": [
+      "The page you're looking for doesn't exist — but your Prague chauffeur transfer still can. Book online with PRESTIGO."
+     ]
+    },
+    "findings": []
+   }
+  },
+  "ru": {
+   "/": {
+    "url": "https://rideprestigo.com/ru",
+    "status": 200,
+    "titles": [
+     "Услуги личного водителя в Праге — трансферы по фиксированной цене | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Услуги личного водителя в Праге: фиксированные цены, отслеживание рейсов и встреча в аэропорту с табличкой. Представительские Mercedes, англоговорящие водители, круглосуточно. Бронирование онлайн за 60 секунд."
+     ],
+     "og:title": [
+      "Услуги личного водителя в Праге | PRESTIGO — премиальные индивидуальные трансферы"
+     ],
+     "og:description": [
+      "Услуги личного водителя в Праге: фиксированные цены, отслеживание рейсов и встреча в аэропорту с табличкой. Представительские Mercedes, англоговорящие водители, круглосуточно. Бронирование онлайн за 60 секунд."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "Услуги личного водителя в Праге | PRESTIGO — премиальные индивидуальные трансферы"
+     ],
+     "twitter:description": [
+      "Услуги личного водителя в Праге: фиксированные цены, отслеживание рейсов и встреча в аэропорту с табличкой. Представительские Mercedes, англоговорящие водители, круглосуточно. Бронирование онлайн за 60 секунд."
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/ru/fleet",
+    "status": 200,
+    "titles": [
+     "Наш автопарк — автомобили Mercedes с водителем в Праге | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Mercedes E-Class, S-Class и V-Class с личным водителем для деловых поездок по Праге и Центральной Европе. Полностью застрахованы, безупречно подготовлены."
+     ],
+     "og:title": [
+      "Наш автопарк — автомобили Mercedes с водителем в Праге"
+     ],
+     "og:description": [
+      "Mercedes E-Class, S-Class и V-Class с личным водителем для деловых поездок по Праге и Центральной Европе. Полностью застрахованы, безупречно подготовлены."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Наш автопарк — автомобили Mercedes с водителем в Праге"
+     ],
+     "twitter:description": [
+      "Mercedes E-Class, S-Class и V-Class с личным водителем для деловых поездок по Праге и Центральной Европе. Полностью застрахованы, безупречно подготовлены."
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/ru/login",
+    "status": 200,
+    "titles": [
+     "Вход — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Войдите в свою учётную запись PRESTIGO, чтобы просматривать бронирования и предстоящие поездки и управлять ими."
+     ],
+     "og:title": [
+      "Вход — PRESTIGO"
+     ],
+     "og:description": [
+      "Войдите в свою учётную запись PRESTIGO, чтобы просматривать бронирования и предстоящие поездки и управлять ими."
+     ],
+     "og:image:alt": [
+      "Вход — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Вход — PRESTIGO"
+     ],
+     "twitter:description": [
+      "Войдите в свою учётную запись PRESTIGO, чтобы просматривать бронирования и предстоящие поездки и управлять ими."
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/ru/blog",
+    "status": 200,
+    "titles": [
+     "Блог о трансферах с водителем в Праге — аэропорт, маршруты и руководства | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Практические руководства по трансферам из аэропорта Праги, междугородным маршрутам и услугам водителя премиум-класса — проверенные тарифы на 2026 год и знание местных особенностей от Prestigo."
+     ],
+     "og:title": [
+      "Блог о трансферах с водителем в Праге — аэропорт, маршруты и руководства"
+     ],
+     "og:description": [
+      "Практические руководства по трансферам из аэропорта Праги, междугородным маршрутам и услугам водителя премиум-класса — проверенные тарифы на 2026 год и знание местных особенностей от Prestigo."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Блог о трансферах с водителем в Праге — аэропорт, маршруты и руководства"
+     ],
+     "twitter:description": [
+      "Практические руководства по трансферам из аэропорта Праги, междугородным маршрутам и услугам водителя премиум-класса — проверенные тарифы на 2026 год и знание местных особенностей от Prestigo."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/ru/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "Больше, чем перевозка: что на самом деле даёт услуга премиального автомобиля с водителем в Праге — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "Автомобиль просто перевозит Вас по Праге. Услуга премиального автомобиля с водителем организует весь Ваш день. Вот что стоит за самим автомобилем — мастерство, предупредительность и деликатность, в которых и заключается разница."
+     ],
+     "og:title": [
+      "Больше, чем перевозка: что на самом деле даёт услуга премиального автомобиля с водителем в Праге"
+     ],
+     "og:description": [
+      "Автомобиль просто перевозит Вас по Праге. Услуга премиального автомобиля с водителем организует весь Ваш день. Вот что стоит за самим автомобилем — мастерство, предупредительность и деликатность, в которых и заключается разница."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Больше, чем перевозка: что на самом деле даёт услуга премиального автомобиля с водителем в Праге"
+     ],
+     "twitter:description": [
+      "Автомобиль просто перевозит Вас по Праге. Услуга премиального автомобиля с водителем организует весь Ваш день. Вот что стоит за самим автомобилем — мастерство, предупредительность и деликатность, в которых и заключается разница."
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/ru/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — основатель PRESTIGO, Прага"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — основатель и директор по клиентскому опыту PRESTIGO, Прага. Более 10 лет в сфере люксовых наземных перевозок и 5-звёздочного гостеприимства. Автор путеводителей PRESTIGO."
+     ],
+     "og:title": [
+      "Roman Ustyugov — основатель шофёрского сервиса PRESTIGO"
+     ],
+     "og:description": [
+      "Roman Ustyugov — основатель и директор по клиентскому опыту PRESTIGO, Прага. Более 10 лет в сфере люксовых наземных перевозок и 5-звёздочного гостеприимства. Автор путеводителей PRESTIGO."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — основатель шофёрского сервиса PRESTIGO"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — основатель и директор по клиентскому опыту PRESTIGO, Прага. Более 10 лет в сфере люксовых наземных перевозок и 5-звёздочного гостеприимства. Автор путеводителей PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/ru/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "Водитель из Праги в Вену — от €455 | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Индивидуальный трансфер с водителем из Праги в Вену — 330 км от двери до двери на Mercedes E-, S- или V-Class. Фиксированная цена от €455, остановки в пути, гибкий график."
+     ],
+     "og:title": [
+      "Индивидуальный трансфер с водителем из Праги в Вену — от €455"
+     ],
+     "og:description": [
+      "Индивидуальный трансфер с водителем из Праги в Вену — 330 км от двери до двери на Mercedes E-, S- или V-Class. Фиксированная цена от €455, остановки в пути, гибкий график."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Индивидуальный трансфер с водителем из Праги в Вену — от €455"
+     ],
+     "twitter:description": [
+      "Индивидуальный трансфер с водителем из Праги в Вену — 330 км от двери до двери на Mercedes E-, S- или V-Class. Фиксированная цена от €455, остановки в пути, гибкий график."
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/ru/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "Трансфер из аэропорта Праги и встреча с табличкой — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Встреча с табличкой в аэропорту Праги и трансфер с личным водителем из PRG. Встреча в зоне прилёта, отслеживание рейса, VIP-обслуживание и ускоренное прохождение контроля по запросу. От €59, круглосуточно."
+     ],
+     "og:title": [
+      "Встреча и трансфер в аэропорту Праги — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "Встреча с табличкой в аэропорту Праги и трансфер с личным водителем из PRG. Встреча в зоне прилёта, отслеживание рейса, VIP-обслуживание и ускоренное прохождение контроля по запросу. От €59, круглосуточно."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Встреча и трансфер в аэропорту Праги — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "Встреча с табличкой в аэропорту Праги и трансфер с личным водителем из PRG. Встреча в зоне прилёта, отслеживание рейса, VIP-обслуживание и ускоренное прохождение контроля по запросу. От €59, круглосуточно."
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/ru/data-deletion",
+    "status": 200,
+    "titles": [
+     "Удаление данных — PRESTIGO, премиальные трансферы с водителем в Праге"
+    ],
+    "meta": {
+     "description": [
+      "Как запросить удаление ваших персональных данных из PRESTIGO. Инструкции по подаче запроса на удаление данных согласно GDPR."
+     ],
+     "og:title": [
+      "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+     ],
+     "og:description": [
+      "Премиальный сервис трансферов с личным водителем в Праге. Трансферы из аэропорта, междугородние поездки, корпоративное обслуживание. Фиксированные цены, отслеживание рейса, встреча с табличкой."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+     ],
+     "twitter:title": [
+      "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+     ],
+     "twitter:description": [
+      "Премиальный сервис трансферов с личным водителем в Праге. Трансферы из аэропорта, междугородние поездки, корпоративное обслуживание. Фиксированные цены, отслеживание рейса, встреча с табличкой."
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/ru/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+    ],
+    "meta": {
+     "description": [
+      "Премиальный сервис трансферов с личным водителем в Праге. Трансферы из аэропорта, междугородние поездки, корпоративное обслуживание. Фиксированные цены, отслеживание рейса, встреча с табличкой."
+     ],
+     "og:title": [
+      "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+     ],
+     "og:description": [
+      "Премиальный сервис трансферов с личным водителем в Праге. Трансферы из аэропорта, междугородние поездки, корпоративное обслуживание. Фиксированные цены, отслеживание рейса, встреча с табличкой."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+     ],
+     "twitter:title": [
+      "PRESTIGO — премиальный сервис трансферов с водителем в Праге"
+     ],
+     "twitter:description": [
+      "Премиальный сервис трансферов с личным водителем в Праге. Трансферы из аэропорта, междугородние поездки, корпоративное обслуживание. Фиксированные цены, отслеживание рейса, встреча с табличкой."
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/ru/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Страница не найдена — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Страница, которую вы ищете, не существует — но ваш трансфер с водителем в Праге всё ещё может состояться. Забронируйте онлайн в PRESTIGO."
+     ],
+     "og:title": [
+      "Страница не найдена — PRESTIGO"
+     ],
+     "og:description": [
+      "Страница, которую вы ищете, не существует — но ваш трансфер с водителем в Праге всё ещё может состояться. Забронируйте онлайн в PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Страница не найдена — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Страница не найдена — PRESTIGO"
+     ],
+     "twitter:description": [
+      "Страница, которую вы ищете, не существует — но ваш трансфер с водителем в Праге всё ещё может состояться. Забронируйте онлайн в PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/ru/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Страница не найдена — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Страница, которую вы ищете, не существует — но ваш трансфер с водителем в Праге всё ещё может состояться. Забронируйте онлайн в PRESTIGO."
+     ],
+     "og:title": [
+      "Страница не найдена — PRESTIGO"
+     ],
+     "og:description": [
+      "Страница, которую вы ищете, не существует — но ваш трансфер с водителем в Праге всё ещё может состояться. Забронируйте онлайн в PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Страница не найдена — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Страница не найдена — PRESTIGO"
+     ],
+     "twitter:description": [
+      "Страница, которую вы ищете, не существует — но ваш трансфер с водителем в Праге всё ещё может состояться. Забронируйте онлайн в PRESTIGO."
+     ]
+    },
+    "findings": []
+   }
+  },
+  "es": {
+   "/": {
+    "url": "https://rideprestigo.com/es",
+    "status": 200,
+    "titles": [
+     "Servicio de chófer en Praga — Traslados a precio fijo | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Servicio de chófer en Praga con precios fijos, seguimiento de vuelos y recibimiento personalizado. Mercedes ejecutivos, conductores que hablan inglés, 24/7. Reserve online en 60 segundos."
+     ],
+     "og:title": [
+      "Servicio de chófer en Praga | PRESTIGO — Traslados privados premium"
+     ],
+     "og:description": [
+      "Servicio de chófer en Praga con precios fijos, seguimiento de vuelos y recibimiento personalizado. Mercedes ejecutivos, conductores que hablan inglés, 24/7. Reserve online en 60 segundos."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "Servicio de chófer en Praga | PRESTIGO — Traslados privados premium"
+     ],
+     "twitter:description": [
+      "Servicio de chófer en Praga con precios fijos, seguimiento de vuelos y recibimiento personalizado. Mercedes ejecutivos, conductores que hablan inglés, 24/7. Reserve online en 60 segundos."
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/es/fleet",
+    "status": 200,
+    "titles": [
+     "Nuestra flota — Coches Mercedes con chófer en Praga | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Mercedes E-Class, S-Class y V-Class con chófer para traslados ejecutivos por Praga y Europa Central. Totalmente asegurados, impecablemente preparados."
+     ],
+     "og:title": [
+      "Nuestra flota — Coches Mercedes con chófer en Praga"
+     ],
+     "og:description": [
+      "Mercedes E-Class, S-Class y V-Class con chófer para traslados ejecutivos por Praga y Europa Central. Totalmente asegurados, impecablemente preparados."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Nuestra flota — Coches Mercedes con chófer en Praga"
+     ],
+     "twitter:description": [
+      "Mercedes E-Class, S-Class y V-Class con chófer para traslados ejecutivos por Praga y Europa Central. Totalmente asegurados, impecablemente preparados."
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/es/login",
+    "status": 200,
+    "titles": [
+     "Iniciar sesión — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Inicie sesión en su cuenta de PRESTIGO para consultar y gestionar sus reservas y sus próximos viajes."
+     ],
+     "og:title": [
+      "Iniciar sesión — PRESTIGO"
+     ],
+     "og:description": [
+      "Inicie sesión en su cuenta de PRESTIGO para consultar y gestionar sus reservas y sus próximos viajes."
+     ],
+     "og:image:alt": [
+      "Iniciar sesión — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Iniciar sesión — PRESTIGO"
+     ],
+     "twitter:description": [
+      "Inicie sesión en su cuenta de PRESTIGO para consultar y gestionar sus reservas y sus próximos viajes."
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/es/blog",
+    "status": 200,
+    "titles": [
+     "Blog de chófer en Praga — Guías de aeropuerto, rutas y traslados | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Guías prácticas sobre traslados al aeropuerto de Praga, rutas interurbanas y servicios de chófer de lujo: tarifas verificadas para 2026 y conocimiento local de Prestigo."
+     ],
+     "og:title": [
+      "Blog de chófer en Praga — Guías de aeropuerto, rutas y traslados"
+     ],
+     "og:description": [
+      "Guías prácticas sobre traslados al aeropuerto de Praga, rutas interurbanas y servicios de chófer de lujo: tarifas verificadas para 2026 y conocimiento local de Prestigo."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Blog de chófer en Praga — Guías de aeropuerto, rutas y traslados"
+     ],
+     "twitter:description": [
+      "Guías prácticas sobre traslados al aeropuerto de Praga, rutas interurbanas y servicios de chófer de lujo: tarifas verificadas para 2026 y conocimiento local de Prestigo."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/es/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "Más que transporte: lo que realmente le aporta un servicio de chófer de lujo en Praga — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "Un coche le desplaza por Praga. Un servicio de chófer de lujo transforma su jornada completa. Esto es lo que hay más allá del vehículo: el oficio, la anticipación y la discreción que marcan la diferencia."
+     ],
+     "og:title": [
+      "Más que transporte: lo que realmente le aporta un servicio de chófer de lujo en Praga"
+     ],
+     "og:description": [
+      "Un coche le desplaza por Praga. Un servicio de chófer de lujo transforma su jornada completa. Esto es lo que hay más allá del vehículo: el oficio, la anticipación y la discreción que marcan la diferencia."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Más que transporte: lo que realmente le aporta un servicio de chófer de lujo en Praga"
+     ],
+     "twitter:description": [
+      "Un coche le desplaza por Praga. Un servicio de chófer de lujo transforma su jornada completa. Esto es lo que hay más allá del vehículo: el oficio, la anticipación y la discreción que marcan la diferencia."
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/es/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — Fundador de PRESTIGO, Praga"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — Fundador y Director de Experiencia de PRESTIGO, Praga. Más de 10 años en el transporte terrestre de lujo y la hostelería de 5★. Autor de las guías de viaje de PRESTIGO."
+     ],
+     "og:title": [
+      "Roman Ustyugov — Fundador del servicio de chófer PRESTIGO"
+     ],
+     "og:description": [
+      "Roman Ustyugov — Fundador y Director de Experiencia de PRESTIGO, Praga. Más de 10 años en el transporte terrestre de lujo y la hostelería de 5★. Autor de las guías de viaje de PRESTIGO."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — Fundador del servicio de chófer PRESTIGO"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — Fundador y Director de Experiencia de PRESTIGO, Praga. Más de 10 años en el transporte terrestre de lujo y la hostelería de 5★. Autor de las guías de viaje de PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/es/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "Chófer de Praga a Viena — Desde 455 € | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde 455 €, paradas en ruta y horarios flexibles."
+     ],
+     "og:title": [
+      "Traslado privado con chófer de Praga a Viena — Desde 455 €"
+     ],
+     "og:description": [
+      "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde 455 €, paradas en ruta y horarios flexibles."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Traslado privado con chófer de Praga a Viena — Desde 455 €"
+     ],
+     "twitter:description": [
+      "Traslado privado con chófer de Praga a Viena: 330 km de puerta a puerta en un Mercedes E-Class, S-Class o V-Class. Precio fijo desde 455 €, paradas en ruta y horarios flexibles."
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/es/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "Traslado y recepción personalizada en el aeropuerto de Praga — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Recepción personalizada y traslado con chófer desde el aeropuerto de Praga (PRG). Bienvenida con cartel con su nombre en Llegadas, seguimiento del vuelo, servicio VIP y fast-track a petición. Desde €59, 24/7."
+     ],
+     "og:title": [
+      "Recepción y traslado en el aeropuerto de Praga — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "Recepción personalizada y traslado con chófer desde el aeropuerto de Praga (PRG). Bienvenida con cartel con su nombre en Llegadas, seguimiento del vuelo, servicio VIP y fast-track a petición. Desde €59, 24/7."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Recepción y traslado en el aeropuerto de Praga — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "Recepción personalizada y traslado con chófer desde el aeropuerto de Praga (PRG). Bienvenida con cartel con su nombre en Llegadas, seguimiento del vuelo, servicio VIP y fast-track a petición. Desde €59, 24/7."
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/es/data-deletion",
+    "status": 200,
+    "titles": [
+     "Eliminación de datos — PRESTIGO Chófer Premium Praga"
+    ],
+    "meta": {
+     "description": [
+      "Cómo solicitar la eliminación de sus datos personales de PRESTIGO. Instrucciones para solicitar la supresión de datos según el RGPD."
+     ],
+     "og:title": [
+      "PRESTIGO — Servicio de chófer premium en Praga"
+     ],
+     "og:description": [
+      "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — Servicio de chófer premium en Praga"
+     ],
+     "twitter:title": [
+      "PRESTIGO — Servicio de chófer premium en Praga"
+     ],
+     "twitter:description": [
+      "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada."
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/es/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — Servicio de chófer premium en Praga"
+    ],
+    "meta": {
+     "description": [
+      "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada."
+     ],
+     "og:title": [
+      "PRESTIGO — Servicio de chófer premium en Praga"
+     ],
+     "og:description": [
+      "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — Servicio de chófer premium en Praga"
+     ],
+     "twitter:title": [
+      "PRESTIGO — Servicio de chófer premium en Praga"
+     ],
+     "twitter:description": [
+      "Servicio de chófer premium en Praga. Traslados al aeropuerto, rutas interurbanas y cuentas corporativas. Precios fijos, seguimiento de vuelos y recepción personalizada."
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/es/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Página no encontrada — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
+     ],
+     "og:title": [
+      "Página no encontrada — PRESTIGO"
+     ],
+     "og:description": [
+      "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Página no encontrada — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Página no encontrada — PRESTIGO"
+     ],
+     "twitter:description": [
+      "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/es/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Página no encontrada — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
+     ],
+     "og:title": [
+      "Página no encontrada — PRESTIGO"
+     ],
+     "og:description": [
+      "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Página no encontrada — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Página no encontrada — PRESTIGO"
+     ],
+     "twitter:description": [
+      "La página que busca no existe, pero su traslado con chófer en Praga todavía puede realizarse. Reserve en línea con PRESTIGO."
+     ]
+    },
+    "findings": []
+   }
+  },
+  "fr": {
+   "/": {
+    "url": "https://rideprestigo.com/fr",
+    "status": 200,
+    "titles": [
+     "Service de chauffeur à Prague — Transferts à prix fixe | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Service de chauffeur à Prague avec prix fixes, suivi des vols et accueil personnalisé. Mercedes de direction, chauffeurs anglophones, 24h/24 et 7j/7. Réservez en ligne en 60 secondes."
+     ],
+     "og:title": [
+      "Service de chauffeur à Prague | PRESTIGO — Transferts privés premium"
+     ],
+     "og:description": [
+      "Service de chauffeur à Prague avec prix fixes, suivi des vols et accueil personnalisé. Mercedes de direction, chauffeurs anglophones, 24h/24 et 7j/7. Réservez en ligne en 60 secondes."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "Service de chauffeur à Prague | PRESTIGO — Transferts privés premium"
+     ],
+     "twitter:description": [
+      "Service de chauffeur à Prague avec prix fixes, suivi des vols et accueil personnalisé. Mercedes de direction, chauffeurs anglophones, 24h/24 et 7j/7. Réservez en ligne en 60 secondes."
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/fr/fleet",
+    "status": 200,
+    "titles": [
+     "Notre flotte — Voitures Mercedes avec chauffeur à Prague | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Mercedes E-Class, S-Class et V-Class avec chauffeur pour vos trajets professionnels à Prague et en Europe centrale. Entièrement assurées, minutieusement préparées."
+     ],
+     "og:title": [
+      "Notre flotte — Voitures Mercedes avec chauffeur à Prague"
+     ],
+     "og:description": [
+      "Mercedes E-Class, S-Class et V-Class avec chauffeur pour vos trajets professionnels à Prague et en Europe centrale. Entièrement assurées, minutieusement préparées."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Notre flotte — Voitures Mercedes avec chauffeur à Prague"
+     ],
+     "twitter:description": [
+      "Mercedes E-Class, S-Class et V-Class avec chauffeur pour vos trajets professionnels à Prague et en Europe centrale. Entièrement assurées, minutieusement préparées."
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/fr/login",
+    "status": 200,
+    "titles": [
+     "Connexion — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Connectez-vous à votre compte PRESTIGO pour consulter et gérer vos réservations et vos prochains trajets."
+     ],
+     "og:title": [
+      "Connexion — PRESTIGO"
+     ],
+     "og:description": [
+      "Connectez-vous à votre compte PRESTIGO pour consulter et gérer vos réservations et vos prochains trajets."
+     ],
+     "og:image:alt": [
+      "Connexion — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Connexion — PRESTIGO"
+     ],
+     "twitter:description": [
+      "Connectez-vous à votre compte PRESTIGO pour consulter et gérer vos réservations et vos prochains trajets."
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/fr/blog",
+    "status": 200,
+    "titles": [
+     "Blog chauffeur à Prague — Aéroport, itinéraires et guides de transfert | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Des guides pratiques sur les transferts aéroport à Prague, les liaisons interurbaines et les services de chauffeur de luxe — tarifs 2026 vérifiés et connaissance du terrain signés Prestigo."
+     ],
+     "og:title": [
+      "Blog chauffeur à Prague — Aéroport, itinéraires et guides de transfert"
+     ],
+     "og:description": [
+      "Des guides pratiques sur les transferts aéroport à Prague, les liaisons interurbaines et les services de chauffeur de luxe — tarifs 2026 vérifiés et connaissance du terrain signés Prestigo."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Blog chauffeur à Prague — Aéroport, itinéraires et guides de transfert"
+     ],
+     "twitter:description": [
+      "Des guides pratiques sur les transferts aéroport à Prague, les liaisons interurbaines et les services de chauffeur de luxe — tarifs 2026 vérifiés et connaissance du terrain signés Prestigo."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/fr/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "Au-delà du transport : ce qu'un service de chauffeur de luxe à Prague vous apporte réellement — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "Une voiture vous déplace dans Prague. Un service de chauffeur de luxe orchestre toute votre journée. Voici ce qui se trouve au-delà du véhicule — le savoir-faire, l'anticipation et la discrétion qui font toute la différence."
+     ],
+     "og:title": [
+      "Au-delà du transport : ce qu'un service de chauffeur de luxe à Prague vous apporte réellement"
+     ],
+     "og:description": [
+      "Une voiture vous déplace dans Prague. Un service de chauffeur de luxe orchestre toute votre journée. Voici ce qui se trouve au-delà du véhicule — le savoir-faire, l'anticipation et la discrétion qui font toute la différence."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Au-delà du transport : ce qu'un service de chauffeur de luxe à Prague vous apporte réellement"
+     ],
+     "twitter:description": [
+      "Une voiture vous déplace dans Prague. Un service de chauffeur de luxe orchestre toute votre journée. Voici ce qui se trouve au-delà du véhicule — le savoir-faire, l'anticipation et la discrétion qui font toute la différence."
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/fr/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — Fondateur de PRESTIGO, Prague"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — Fondateur et directeur de l'expérience client de PRESTIGO, à Prague. Plus de 10 ans dans le transport terrestre de luxe et l'hôtellerie 5★. Auteur des guides de voyage PRESTIGO."
+     ],
+     "og:title": [
+      "Roman Ustyugov — Fondateur du service de chauffeur PRESTIGO"
+     ],
+     "og:description": [
+      "Roman Ustyugov — Fondateur et directeur de l'expérience client de PRESTIGO, à Prague. Plus de 10 ans dans le transport terrestre de luxe et l'hôtellerie 5★. Auteur des guides de voyage PRESTIGO."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — Fondateur du service de chauffeur PRESTIGO"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — Fondateur et directeur de l'expérience client de PRESTIGO, à Prague. Plus de 10 ans dans le transport terrestre de luxe et l'hôtellerie 5★. Auteur des guides de voyage PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/fr/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "Chauffeur Prague – Vienne — à partir de 455 € | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de 455 €, arrêts en route, horaires flexibles."
+     ],
+     "og:title": [
+      "Transfert privé avec chauffeur de Prague à Vienne — à partir de 455 €"
+     ],
+     "og:description": [
+      "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de 455 €, arrêts en route, horaires flexibles."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Transfert privé avec chauffeur de Prague à Vienne — à partir de 455 €"
+     ],
+     "twitter:description": [
+      "Transfert privé avec chauffeur de Prague à Vienne — 330 km de porte à porte en Mercedes E-Class, S-Class ou V-Class. Prix fixe à partir de 455 €, arrêts en route, horaires flexibles."
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/fr/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "Transfert aéroport de Prague & accueil personnalisé — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "Accueil personnalisé et transfert avec chauffeur depuis l'aéroport de Prague (PRG). Accueil avec pancarte nominative aux arrivées, suivi des vols, services VIP et coupe-file sur demande. À partir de €59, 24h/24 et 7j/7."
+     ],
+     "og:title": [
+      "Accueil personnalisé & transfert aéroport de Prague — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "Accueil personnalisé et transfert avec chauffeur depuis l'aéroport de Prague (PRG). Accueil avec pancarte nominative aux arrivées, suivi des vols, services VIP et coupe-file sur demande. À partir de €59, 24h/24 et 7j/7."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Accueil personnalisé & transfert aéroport de Prague — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "Accueil personnalisé et transfert avec chauffeur depuis l'aéroport de Prague (PRG). Accueil avec pancarte nominative aux arrivées, suivi des vols, services VIP et coupe-file sur demande. À partir de €59, 24h/24 et 7j/7."
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/fr/data-deletion",
+    "status": 200,
+    "titles": [
+     "Suppression des données — PRESTIGO Chauffeur Privé Premium Prague"
+    ],
+    "meta": {
+     "description": [
+      "Comment demander la suppression de vos données personnelles auprès de PRESTIGO. Instructions pour une demande d'effacement au titre du RGPD."
+     ],
+     "og:title": [
+      "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+     ],
+     "og:description": [
+      "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+     ],
+     "twitter:title": [
+      "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+     ],
+     "twitter:description": [
+      "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé."
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/fr/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+    ],
+    "meta": {
+     "description": [
+      "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé."
+     ],
+     "og:title": [
+      "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+     ],
+     "og:description": [
+      "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+     ],
+     "twitter:title": [
+      "PRESTIGO — Service de chauffeur privé haut de gamme à Prague"
+     ],
+     "twitter:description": [
+      "Service de chauffeur privé haut de gamme à Prague. Transferts aéroport, trajets interurbains, comptes entreprises. Prix fixes, suivi des vols, accueil personnalisé."
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/fr/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Page introuvable — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
+     ],
+     "og:title": [
+      "Page introuvable — PRESTIGO"
+     ],
+     "og:description": [
+      "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Page introuvable — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Page introuvable — PRESTIGO"
+     ],
+     "twitter:description": [
+      "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/fr/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "Page introuvable — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
+     ],
+     "og:title": [
+      "Page introuvable — PRESTIGO"
+     ],
+     "og:description": [
+      "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
+     ],
+     "og:image:alt": [
+      "Page introuvable — PRESTIGO"
+     ],
+     "twitter:title": [
+      "Page introuvable — PRESTIGO"
+     ],
+     "twitter:description": [
+      "La page que vous recherchez n'existe pas — mais votre transfert avec chauffeur à Prague, lui, peut toujours avoir lieu. Réservez en ligne avec PRESTIGO."
+     ]
+    },
+    "findings": []
+   }
+  },
+  "ar": {
+   "/": {
+    "url": "https://rideprestigo.com/ar",
+    "status": 200,
+    "titles": [
+     "خدمة سائق خاص في براغ — خدمات نقل بأسعار ثابتة | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "خدمة سائق خاص في براغ بأسعار ثابتة وتتبُّع للرحلات الجوية واستقبال شخصي. سيارات Mercedes تنفيذية، وسائقون يتحدثون الإنجليزية، على مدار الساعة طوال أيام الأسبوع. احجز عبر الإنترنت في 60 ثانية."
+     ],
+     "og:title": [
+      "خدمة سائق خاص في براغ | PRESTIGO — خدمات نقل خاصة فاخرة"
+     ],
+     "og:description": [
+      "خدمة سائق خاص في براغ بأسعار ثابتة وتتبُّع للرحلات الجوية واستقبال شخصي. سيارات Mercedes تنفيذية، وسائقون يتحدثون الإنجليزية، على مدار الساعة طوال أيام الأسبوع. احجز عبر الإنترنت في 60 ثانية."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "خدمة سائق خاص في براغ | PRESTIGO — خدمات نقل خاصة فاخرة"
+     ],
+     "twitter:description": [
+      "خدمة سائق خاص في براغ بأسعار ثابتة وتتبُّع للرحلات الجوية واستقبال شخصي. سيارات Mercedes تنفيذية، وسائقون يتحدثون الإنجليزية، على مدار الساعة طوال أيام الأسبوع. احجز عبر الإنترنت في 60 ثانية."
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/ar/fleet",
+    "status": 200,
+    "titles": [
+     "أسطولنا — سيارات مرسيدس بسائق خاص في براغ | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "سيارات Mercedes E-Class و S-Class و V-Class بسائق خاص للتنقلات التنفيذية في براغ وأوروبا الوسطى. مؤمَّنة بالكامل ومُجهَّزة بعناية فائقة."
+     ],
+     "og:title": [
+      "أسطولنا — سيارات مرسيدس بسائق خاص في براغ"
+     ],
+     "og:description": [
+      "سيارات Mercedes E-Class و S-Class و V-Class بسائق خاص للتنقلات التنفيذية في براغ وأوروبا الوسطى. مؤمَّنة بالكامل ومُجهَّزة بعناية فائقة."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "أسطولنا — سيارات مرسيدس بسائق خاص في براغ"
+     ],
+     "twitter:description": [
+      "سيارات Mercedes E-Class و S-Class و V-Class بسائق خاص للتنقلات التنفيذية في براغ وأوروبا الوسطى. مؤمَّنة بالكامل ومُجهَّزة بعناية فائقة."
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/ar/login",
+    "status": 200,
+    "titles": [
+     "تسجيل الدخول — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "سجّل الدخول إلى حسابك في PRESTIGO لعرض حجوزاتك ورحلاتك القادمة وإدارتها."
+     ],
+     "og:title": [
+      "تسجيل الدخول — PRESTIGO"
+     ],
+     "og:description": [
+      "سجّل الدخول إلى حسابك في PRESTIGO لعرض حجوزاتك ورحلاتك القادمة وإدارتها."
+     ],
+     "og:image:alt": [
+      "تسجيل الدخول — PRESTIGO"
+     ],
+     "twitter:title": [
+      "تسجيل الدخول — PRESTIGO"
+     ],
+     "twitter:description": [
+      "سجّل الدخول إلى حسابك في PRESTIGO لعرض حجوزاتك ورحلاتك القادمة وإدارتها."
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/ar/blog",
+    "status": 200,
+    "titles": [
+     "مدونة خدمة السائق الخاص في براغ — أدلة المطار والمسارات والتنقلات | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "أدلة عملية حول التنقلات من وإلى مطار براغ، والمسارات بين المدن، وخدمات السائق الخاص الفاخرة — أسعار موثّقة لعام 2026 ومعرفة محلية من Prestigo."
+     ],
+     "og:title": [
+      "مدونة خدمة السائق الخاص في براغ — أدلة المطار والمسارات والتنقلات"
+     ],
+     "og:description": [
+      "أدلة عملية حول التنقلات من وإلى مطار براغ، والمسارات بين المدن، وخدمات السائق الخاص الفاخرة — أسعار موثّقة لعام 2026 ومعرفة محلية من Prestigo."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "مدونة خدمة السائق الخاص في براغ — أدلة المطار والمسارات والتنقلات"
+     ],
+     "twitter:description": [
+      "أدلة عملية حول التنقلات من وإلى مطار براغ، والمسارات بين المدن، وخدمات السائق الخاص الفاخرة — أسعار موثّقة لعام 2026 ومعرفة محلية من Prestigo."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/ar/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "أبعد من مجرّد تنقّل: ما الذي تمنحك إيّاه حقًّا خدمة السائق الخاص الفاخرة في براغ — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "السيارة تنقلك عبر براغ، أمّا خدمة السائق الخاص الفاخرة فتُدير يومك بأكمله. وفي ما يلي ما يتجاوز حدود المركبة — الإتقان، واستباق الاحتياجات، والتكتّم الذي يصنع الفارق."
+     ],
+     "og:title": [
+      "أبعد من مجرّد تنقّل: ما الذي تمنحك إيّاه حقًّا خدمة السائق الخاص الفاخرة في براغ"
+     ],
+     "og:description": [
+      "السيارة تنقلك عبر براغ، أمّا خدمة السائق الخاص الفاخرة فتُدير يومك بأكمله. وفي ما يلي ما يتجاوز حدود المركبة — الإتقان، واستباق الاحتياجات، والتكتّم الذي يصنع الفارق."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "أبعد من مجرّد تنقّل: ما الذي تمنحك إيّاه حقًّا خدمة السائق الخاص الفاخرة في براغ"
+     ],
+     "twitter:description": [
+      "السيارة تنقلك عبر براغ، أمّا خدمة السائق الخاص الفاخرة فتُدير يومك بأكمله. وفي ما يلي ما يتجاوز حدود المركبة — الإتقان، واستباق الاحتياجات، والتكتّم الذي يصنع الفارق."
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/ar/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — مؤسس PRESTIGO، براغ"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — المؤسس ورئيس تجربة العملاء في PRESTIGO، براغ. أكثر من 10 سنوات من الخبرة في النقل البري الفاخر والضيافة بمستوى 5 نجوم. مؤلف أدلة السفر من PRESTIGO."
+     ],
+     "og:title": [
+      "Roman Ustyugov — مؤسس خدمة السائق الخاص PRESTIGO"
+     ],
+     "og:description": [
+      "Roman Ustyugov — المؤسس ورئيس تجربة العملاء في PRESTIGO، براغ. أكثر من 10 سنوات من الخبرة في النقل البري الفاخر والضيافة بمستوى 5 نجوم. مؤلف أدلة السفر من PRESTIGO."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — مؤسس خدمة السائق الخاص PRESTIGO"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — المؤسس ورئيس تجربة العملاء في PRESTIGO، براغ. أكثر من 10 سنوات من الخبرة في النقل البري الفاخر والضيافة بمستوى 5 نجوم. مؤلف أدلة السفر من PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/ar/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "سائق خاص من براغ إلى فيينا — ابتداءً من 455 يورو | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "انتقال خاص بسائق من براغ إلى فيينا — 330 كم من الباب إلى الباب في سيارة Mercedes من فئة E أو S أو V-Class. سعر ثابت ابتداءً من 455 يورو، وتوقفات على الطريق، ومواعيد مرنة."
+     ],
+     "og:title": [
+      "انتقال خاص بسائق من براغ إلى فيينا — ابتداءً من 455 يورو"
+     ],
+     "og:description": [
+      "انتقال خاص بسائق من براغ إلى فيينا — 330 كم من الباب إلى الباب في سيارة Mercedes من فئة E أو S أو V-Class. سعر ثابت ابتداءً من 455 يورو، وتوقفات على الطريق، ومواعيد مرنة."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "انتقال خاص بسائق من براغ إلى فيينا — ابتداءً من 455 يورو"
+     ],
+     "twitter:description": [
+      "انتقال خاص بسائق من براغ إلى فيينا — 330 كم من الباب إلى الباب في سيارة Mercedes من فئة E أو S أو V-Class. سعر ثابت ابتداءً من 455 يورو، وتوقفات على الطريق، ومواعيد مرنة."
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/ar/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "نقل من مطار براغ واستقبال شخصي — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "استقبال شخصي في مطار براغ وخدمة نقل مع سائق خاص من PRG. ترحيب بلوحة اسم في صالة الوصول، تتبّع للرحلات، وخدمات VIP والمسار السريع عند الطلب. ابتداءً من €59، على مدار الساعة طوال أيام الأسبوع."
+     ],
+     "og:title": [
+      "استقبال شخصي ونقل من مطار براغ — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "استقبال شخصي في مطار براغ وخدمة نقل مع سائق خاص من PRG. ترحيب بلوحة اسم في صالة الوصول، تتبّع للرحلات، وخدمات VIP والمسار السريع عند الطلب. ابتداءً من €59، على مدار الساعة طوال أيام الأسبوع."
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "استقبال شخصي ونقل من مطار براغ — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "استقبال شخصي في مطار براغ وخدمة نقل مع سائق خاص من PRG. ترحيب بلوحة اسم في صالة الوصول، تتبّع للرحلات، وخدمات VIP والمسار السريع عند الطلب. ابتداءً من €59، على مدار الساعة طوال أيام الأسبوع."
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/ar/data-deletion",
+    "status": 200,
+    "titles": [
+     "حذف البيانات — PRESTIGO خدمة سائق خاص فاخرة في براغ"
+    ],
+    "meta": {
+     "description": [
+      "كيفية طلب حذف بياناتك الشخصية من PRESTIGO. إرشادات تقديم طلب محو البيانات وفقًا للائحة العامة لحماية البيانات (GDPR)."
+     ],
+     "og:title": [
+      "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+     ],
+     "og:description": [
+      "خدمة سائق خاص فاخرة في براغ. نقل من وإلى المطار، ورحلات بين المدن، وحسابات للشركات. أسعار ثابتة، وتتبع الرحلات الجوية، واستقبال شخصي."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+     ],
+     "twitter:title": [
+      "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+     ],
+     "twitter:description": [
+      "خدمة سائق خاص فاخرة في براغ. نقل من وإلى المطار، ورحلات بين المدن، وحسابات للشركات. أسعار ثابتة، وتتبع الرحلات الجوية، واستقبال شخصي."
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/ar/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+    ],
+    "meta": {
+     "description": [
+      "خدمة سائق خاص فاخرة في براغ. نقل من وإلى المطار، ورحلات بين المدن، وحسابات للشركات. أسعار ثابتة، وتتبع الرحلات الجوية، واستقبال شخصي."
+     ],
+     "og:title": [
+      "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+     ],
+     "og:description": [
+      "خدمة سائق خاص فاخرة في براغ. نقل من وإلى المطار، ورحلات بين المدن، وحسابات للشركات. أسعار ثابتة، وتتبع الرحلات الجوية، واستقبال شخصي."
+     ],
+     "og:image:alt": [
+      "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+     ],
+     "twitter:title": [
+      "PRESTIGO — خدمة سائق خاص فاخرة في براغ"
+     ],
+     "twitter:description": [
+      "خدمة سائق خاص فاخرة في براغ. نقل من وإلى المطار، ورحلات بين المدن، وحسابات للشركات. أسعار ثابتة، وتتبع الرحلات الجوية، واستقبال شخصي."
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/ar/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "الصفحة غير موجودة — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك مع سائق خاص في براغ لا تزال ممكنة. احجز عبر الإنترنت مع PRESTIGO."
+     ],
+     "og:title": [
+      "الصفحة غير موجودة — PRESTIGO"
+     ],
+     "og:description": [
+      "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك مع سائق خاص في براغ لا تزال ممكنة. احجز عبر الإنترنت مع PRESTIGO."
+     ],
+     "og:image:alt": [
+      "الصفحة غير موجودة — PRESTIGO"
+     ],
+     "twitter:title": [
+      "الصفحة غير موجودة — PRESTIGO"
+     ],
+     "twitter:description": [
+      "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك مع سائق خاص في براغ لا تزال ممكنة. احجز عبر الإنترنت مع PRESTIGO."
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/ar/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "الصفحة غير موجودة — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك مع سائق خاص في براغ لا تزال ممكنة. احجز عبر الإنترنت مع PRESTIGO."
+     ],
+     "og:title": [
+      "الصفحة غير موجودة — PRESTIGO"
+     ],
+     "og:description": [
+      "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك مع سائق خاص في براغ لا تزال ممكنة. احجز عبر الإنترنت مع PRESTIGO."
+     ],
+     "og:image:alt": [
+      "الصفحة غير موجودة — PRESTIGO"
+     ],
+     "twitter:title": [
+      "الصفحة غير موجودة — PRESTIGO"
+     ],
+     "twitter:description": [
+      "الصفحة التي تبحث عنها غير موجودة — لكن رحلتك مع سائق خاص في براغ لا تزال ممكنة. احجز عبر الإنترنت مع PRESTIGO."
+     ]
+    },
+    "findings": []
+   }
+  },
+  "hi": {
+   "/": {
+    "url": "https://rideprestigo.com/hi",
+    "status": 200,
+    "titles": [
+     "प्राग शोफर सेवा — निश्चित मूल्य ट्रांसफर | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "प्राग में शोफर सेवा — निश्चित मूल्य, फ्लाइट ट्रैकिंग तथा मीट एंड ग्रीट के साथ। एग्ज़ीक्यूटिव Mercedes, अंग्रेज़ी बोलने वाले चालक, 24/7। 60 सेकंड में ऑनलाइन बुकिंग करें।"
+     ],
+     "og:title": [
+      "प्राग शोफर सेवा | PRESTIGO — प्रीमियम निजी ट्रांसफर"
+     ],
+     "og:description": [
+      "प्राग में शोफर सेवा — निश्चित मूल्य, फ्लाइट ट्रैकिंग तथा मीट एंड ग्रीट के साथ। एग्ज़ीक्यूटिव Mercedes, अंग्रेज़ी बोलने वाले चालक, 24/7। 60 सेकंड में ऑनलाइन बुकिंग करें।"
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "प्राग शोफर सेवा | PRESTIGO — प्रीमियम निजी ट्रांसफर"
+     ],
+     "twitter:description": [
+      "प्राग में शोफर सेवा — निश्चित मूल्य, फ्लाइट ट्रैकिंग तथा मीट एंड ग्रीट के साथ। एग्ज़ीक्यूटिव Mercedes, अंग्रेज़ी बोलने वाले चालक, 24/7। 60 सेकंड में ऑनलाइन बुकिंग करें।"
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/hi/fleet",
+    "status": 200,
+    "titles": [
+     "हमारी फ्लीट — प्राग में शॉफ़र-चालित Mercedes कारें | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "प्राग और मध्य यूरोप में एग्ज़ीक्यूटिव यात्राओं के लिए शॉफ़र-चालित Mercedes E-Class, S-Class और V-Class। पूर्णतः बीमाकृत, बेदाग रूप से तैयार।"
+     ],
+     "og:title": [
+      "हमारी फ्लीट — प्राग में शॉफ़र-चालित Mercedes कारें"
+     ],
+     "og:description": [
+      "प्राग और मध्य यूरोप में एग्ज़ीक्यूटिव यात्राओं के लिए शॉफ़र-चालित Mercedes E-Class, S-Class और V-Class। पूर्णतः बीमाकृत, बेदाग रूप से तैयार।"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "हमारी फ्लीट — प्राग में शॉफ़र-चालित Mercedes कारें"
+     ],
+     "twitter:description": [
+      "प्राग और मध्य यूरोप में एग्ज़ीक्यूटिव यात्राओं के लिए शॉफ़र-चालित Mercedes E-Class, S-Class और V-Class। पूर्णतः बीमाकृत, बेदाग रूप से तैयार।"
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/hi/login",
+    "status": 200,
+    "titles": [
+     "साइन इन — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "अपनी बुकिंग और आगामी यात्राएँ देखने और प्रबंधित करने के लिए अपने PRESTIGO खाते में साइन इन करें।"
+     ],
+     "og:title": [
+      "साइन इन — PRESTIGO"
+     ],
+     "og:description": [
+      "अपनी बुकिंग और आगामी यात्राएँ देखने और प्रबंधित करने के लिए अपने PRESTIGO खाते में साइन इन करें।"
+     ],
+     "og:image:alt": [
+      "साइन इन — PRESTIGO"
+     ],
+     "twitter:title": [
+      "साइन इन — PRESTIGO"
+     ],
+     "twitter:description": [
+      "अपनी बुकिंग और आगामी यात्राएँ देखने और प्रबंधित करने के लिए अपने PRESTIGO खाते में साइन इन करें।"
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/hi/blog",
+    "status": 200,
+    "titles": [
+     "प्राग शॉफ़र ब्लॉग — Airport, रूट और ट्रांसफर गाइड | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "प्राग airport ट्रांसफर, अंतर-नगरीय रूट और लक्ज़री शॉफ़र सेवाओं पर व्यावहारिक मार्गदर्शिकाएँ — Prestigo द्वारा सत्यापित 2026 के किराए और स्थानीय जानकारी।"
+     ],
+     "og:title": [
+      "प्राग शॉफ़र ब्लॉग — Airport, रूट और ट्रांसफर गाइड"
+     ],
+     "og:description": [
+      "प्राग airport ट्रांसफर, अंतर-नगरीय रूट और लक्ज़री शॉफ़र सेवाओं पर व्यावहारिक मार्गदर्शिकाएँ — Prestigo द्वारा सत्यापित 2026 के किराए और स्थानीय जानकारी।"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "प्राग शॉफ़र ब्लॉग — Airport, रूट और ट्रांसफर गाइड"
+     ],
+     "twitter:description": [
+      "प्राग airport ट्रांसफर, अंतर-नगरीय रूट और लक्ज़री शॉफ़र सेवाओं पर व्यावहारिक मार्गदर्शिकाएँ — Prestigo द्वारा सत्यापित 2026 के किराए और स्थानीय जानकारी।"
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/hi/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "परिवहन से परे: प्राग में एक लक्ज़री शॉफ़र सेवा वास्तव में आपको क्या प्रदान करती है — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "एक कार आपको प्राग में एक स्थान से दूसरे स्थान तक पहुँचाती है। एक लक्ज़री शॉफ़र सेवा आपके पूरे दिन को संचालित करती है। वाहन से परे जो कुछ निहित है, वह यह है — वह कुशलता, दूरदर्शिता और विवेकशीलता, जो सारा अंतर उत्पन्न करती है।"
+     ],
+     "og:title": [
+      "परिवहन से परे: प्राग में एक लक्ज़री शॉफ़र सेवा वास्तव में आपको क्या प्रदान करती है"
+     ],
+     "og:description": [
+      "एक कार आपको प्राग में एक स्थान से दूसरे स्थान तक पहुँचाती है। एक लक्ज़री शॉफ़र सेवा आपके पूरे दिन को संचालित करती है। वाहन से परे जो कुछ निहित है, वह यह है — वह कुशलता, दूरदर्शिता और विवेकशीलता, जो सारा अंतर उत्पन्न करती है।"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "परिवहन से परे: प्राग में एक लक्ज़री शॉफ़र सेवा वास्तव में आपको क्या प्रदान करती है"
+     ],
+     "twitter:description": [
+      "एक कार आपको प्राग में एक स्थान से दूसरे स्थान तक पहुँचाती है। एक लक्ज़री शॉफ़र सेवा आपके पूरे दिन को संचालित करती है। वाहन से परे जो कुछ निहित है, वह यह है — वह कुशलता, दूरदर्शिता और विवेकशीलता, जो सारा अंतर उत्पन्न करती है।"
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/hi/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — PRESTIGO के संस्थापक, प्राग"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — PRESTIGO, प्राग के संस्थापक एवं मुख्य अनुभव अधिकारी। लक्जरी भू-परिवहन और 5★ आतिथ्य में 10 वर्षों से अधिक का अनुभव। PRESTIGO यात्रा मार्गदर्शिकाओं के लेखक।"
+     ],
+     "og:title": [
+      "Roman Ustyugov — PRESTIGO शोफर सेवा के संस्थापक"
+     ],
+     "og:description": [
+      "Roman Ustyugov — PRESTIGO, प्राग के संस्थापक एवं मुख्य अनुभव अधिकारी। लक्जरी भू-परिवहन और 5★ आतिथ्य में 10 वर्षों से अधिक का अनुभव। PRESTIGO यात्रा मार्गदर्शिकाओं के लेखक।"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — PRESTIGO शोफर सेवा के संस्थापक"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — PRESTIGO, प्राग के संस्थापक एवं मुख्य अनुभव अधिकारी। लक्जरी भू-परिवहन और 5★ आतिथ्य में 10 वर्षों से अधिक का अनुभव। PRESTIGO यात्रा मार्गदर्शिकाओं के लेखक।"
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/hi/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "प्राग से वियना Chauffeur — €455 से | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "प्राग से वियना निजी chauffeur ट्रांसफर — Mercedes E, S अथवा V-Class में 330 किमी door-to-door। €455 से निर्धारित मूल्य, मार्ग में ठहराव, लचीला समय।"
+     ],
+     "og:title": [
+      "प्राग से वियना निजी Chauffeur ट्रांसफर — €455 से"
+     ],
+     "og:description": [
+      "प्राग से वियना निजी chauffeur ट्रांसफर — Mercedes E, S अथवा V-Class में 330 किमी door-to-door। €455 से निर्धारित मूल्य, मार्ग में ठहराव, लचीला समय।"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "प्राग से वियना निजी Chauffeur ट्रांसफर — €455 से"
+     ],
+     "twitter:description": [
+      "प्राग से वियना निजी chauffeur ट्रांसफर — Mercedes E, S अथवा V-Class में 330 किमी door-to-door। €455 से निर्धारित मूल्य, मार्ग में ठहराव, लचीला समय।"
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/hi/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "प्राग एयरपोर्ट ट्रांसफर व मीट एंड ग्रीट — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "PRG से प्राग एयरपोर्ट मीट एंड ग्रीट तथा शोफ़र ट्रांसफर। Arrivals पर नेम-बोर्ड के साथ स्वागत, फ्लाइट ट्रैकिंग, अनुरोध पर VIP व फ़ास्ट-ट्रैक। €59 से आरंभ, 24/7।"
+     ],
+     "og:title": [
+      "प्राग एयरपोर्ट मीट एंड ग्रीट व ट्रांसफर — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "PRG से प्राग एयरपोर्ट मीट एंड ग्रीट तथा शोफ़र ट्रांसफर। Arrivals पर नेम-बोर्ड के साथ स्वागत, फ्लाइट ट्रैकिंग, अनुरोध पर VIP व फ़ास्ट-ट्रैक। €59 से आरंभ, 24/7।"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "प्राग एयरपोर्ट मीट एंड ग्रीट व ट्रांसफर — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "PRG से प्राग एयरपोर्ट मीट एंड ग्रीट तथा शोफ़र ट्रांसफर। Arrivals पर नेम-बोर्ड के साथ स्वागत, फ्लाइट ट्रैकिंग, अनुरोध पर VIP व फ़ास्ट-ट्रैक। €59 से आरंभ, 24/7।"
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/hi/data-deletion",
+    "status": 200,
+    "titles": [
+     "डेटा विलोपन — PRESTIGO प्रीमियम शोफ़र प्राग"
+    ],
+    "meta": {
+     "description": [
+      "PRESTIGO से अपने व्यक्तिगत डेटा के विलोपन का अनुरोध कैसे करें। GDPR डेटा मिटाने के अनुरोध संबंधी निर्देश।"
+     ],
+     "og:title": [
+      "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+     ],
+     "og:description": [
+      "प्राग में प्रीमियम शोफ़र सेवा। एयरपोर्ट ट्रांसफ़र, इंटरसिटी यात्राएँ, कॉर्पोरेट अकाउंट। तय कीमतें, फ़्लाइट ट्रैकिंग, मीट एंड ग्रीट।"
+     ],
+     "og:image:alt": [
+      "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+     ],
+     "twitter:title": [
+      "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+     ],
+     "twitter:description": [
+      "प्राग में प्रीमियम शोफ़र सेवा। एयरपोर्ट ट्रांसफ़र, इंटरसिटी यात्राएँ, कॉर्पोरेट अकाउंट। तय कीमतें, फ़्लाइट ट्रैकिंग, मीट एंड ग्रीट।"
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/hi/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+    ],
+    "meta": {
+     "description": [
+      "प्राग में प्रीमियम शोफ़र सेवा। एयरपोर्ट ट्रांसफ़र, इंटरसिटी यात्राएँ, कॉर्पोरेट अकाउंट। तय कीमतें, फ़्लाइट ट्रैकिंग, मीट एंड ग्रीट।"
+     ],
+     "og:title": [
+      "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+     ],
+     "og:description": [
+      "प्राग में प्रीमियम शोफ़र सेवा। एयरपोर्ट ट्रांसफ़र, इंटरसिटी यात्राएँ, कॉर्पोरेट अकाउंट। तय कीमतें, फ़्लाइट ट्रैकिंग, मीट एंड ग्रीट।"
+     ],
+     "og:image:alt": [
+      "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+     ],
+     "twitter:title": [
+      "PRESTIGO — प्राग में प्रीमियम शोफ़र सेवा"
+     ],
+     "twitter:description": [
+      "प्राग में प्रीमियम शोफ़र सेवा। एयरपोर्ट ट्रांसफ़र, इंटरसिटी यात्राएँ, कॉर्पोरेट अकाउंट। तय कीमतें, फ़्लाइट ट्रैकिंग, मीट एंड ग्रीट।"
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/hi/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "पेज नहीं मिला — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन प्राग में आपका शोफ़र ट्रांसफ़र अभी भी संभव है। PRESTIGO के साथ ऑनलाइन बुक करें।"
+     ],
+     "og:title": [
+      "पेज नहीं मिला — PRESTIGO"
+     ],
+     "og:description": [
+      "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन प्राग में आपका शोफ़र ट्रांसफ़र अभी भी संभव है। PRESTIGO के साथ ऑनलाइन बुक करें।"
+     ],
+     "og:image:alt": [
+      "पेज नहीं मिला — PRESTIGO"
+     ],
+     "twitter:title": [
+      "पेज नहीं मिला — PRESTIGO"
+     ],
+     "twitter:description": [
+      "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन प्राग में आपका शोफ़र ट्रांसफ़र अभी भी संभव है। PRESTIGO के साथ ऑनलाइन बुक करें।"
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/hi/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "पेज नहीं मिला — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन प्राग में आपका शोफ़र ट्रांसफ़र अभी भी संभव है। PRESTIGO के साथ ऑनलाइन बुक करें।"
+     ],
+     "og:title": [
+      "पेज नहीं मिला — PRESTIGO"
+     ],
+     "og:description": [
+      "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन प्राग में आपका शोफ़र ट्रांसफ़र अभी भी संभव है। PRESTIGO के साथ ऑनलाइन बुक करें।"
+     ],
+     "og:image:alt": [
+      "पेज नहीं मिला — PRESTIGO"
+     ],
+     "twitter:title": [
+      "पेज नहीं मिला — PRESTIGO"
+     ],
+     "twitter:description": [
+      "आप जिस पेज को खोज रहे हैं वह मौजूद नहीं है — लेकिन प्राग में आपका शोफ़र ट्रांसफ़र अभी भी संभव है। PRESTIGO के साथ ऑनलाइन बुक करें।"
+     ]
+    },
+    "findings": []
+   }
+  },
+  "zh": {
+   "/": {
+    "url": "https://rideprestigo.com/zh",
+    "status": 200,
+    "titles": [
+     "布拉格专车司机服务 — 固定价格接送 | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "布拉格专车司机服务，价格固定，提供航班追踪与举牌接机。行政级 Mercedes 轿车，英语司机，全天候服务。60 秒在线预订。"
+     ],
+     "og:title": [
+      "布拉格专车司机服务 | PRESTIGO — 高端私人接送"
+     ],
+     "og:description": [
+      "布拉格专车司机服务，价格固定，提供航班追踪与举牌接机。行政级 Mercedes 轿车，英语司机，全天候服务。60 秒在线预订。"
+     ],
+     "og:image:alt": [
+      "PRESTIGO — premium chauffeur service in Prague"
+     ],
+     "twitter:title": [
+      "布拉格专车司机服务 | PRESTIGO — 高端私人接送"
+     ],
+     "twitter:description": [
+      "布拉格专车司机服务，价格固定，提供航班追踪与举牌接机。行政级 Mercedes 轿车，英语司机，全天候服务。60 秒在线预订。"
+     ]
+    },
+    "findings": []
+   },
+   "/fleet": {
+    "url": "https://rideprestigo.com/zh/fleet",
+    "status": 200,
+    "titles": [
+     "我们的车队 — 布拉格专属司机 Mercedes 座驾 | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "配备专属司机的 Mercedes E-Class、S-Class 与 V-Class，服务于布拉格及中欧地区的高端商务出行。全程保险，精心打理。"
+     ],
+     "og:title": [
+      "我们的车队 — 布拉格专属司机 Mercedes 座驾"
+     ],
+     "og:description": [
+      "配备专属司机的 Mercedes E-Class、S-Class 与 V-Class，服务于布拉格及中欧地区的高端商务出行。全程保险，精心打理。"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "我们的车队 — 布拉格专属司机 Mercedes 座驾"
+     ],
+     "twitter:description": [
+      "配备专属司机的 Mercedes E-Class、S-Class 与 V-Class，服务于布拉格及中欧地区的高端商务出行。全程保险，精心打理。"
+     ]
+    },
+    "findings": []
+   },
+   "/login": {
+    "url": "https://rideprestigo.com/zh/login",
+    "status": 200,
+    "titles": [
+     "登录 — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "登录您的 PRESTIGO 账户，查看并管理您的预订和即将开始的行程。"
+     ],
+     "og:title": [
+      "登录 — PRESTIGO"
+     ],
+     "og:description": [
+      "登录您的 PRESTIGO 账户，查看并管理您的预订和即将开始的行程。"
+     ],
+     "og:image:alt": [
+      "登录 — PRESTIGO"
+     ],
+     "twitter:title": [
+      "登录 — PRESTIGO"
+     ],
+     "twitter:description": [
+      "登录您的 PRESTIGO 账户，查看并管理您的预订和即将开始的行程。"
+     ]
+    },
+    "findings": []
+   },
+   "/blog": {
+    "url": "https://rideprestigo.com/zh/blog",
+    "status": 200,
+    "titles": [
+     "布拉格专车博客 — 机场、路线与接送指南 | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "关于布拉格机场接送、城际路线及豪华专车服务的实用指南 — Prestigo 提供经核实的 2026 年价格与本地资讯。"
+     ],
+     "og:title": [
+      "布拉格专车博客 — 机场、路线与接送指南"
+     ],
+     "og:description": [
+      "关于布拉格机场接送、城际路线及豪华专车服务的实用指南 — Prestigo 提供经核实的 2026 年价格与本地资讯。"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "布拉格专车博客 — 机场、路线与接送指南"
+     ],
+     "twitter:description": [
+      "关于布拉格机场接送、城际路线及豪华专车服务的实用指南 — Prestigo 提供经核实的 2026 年价格与本地资讯。"
+     ]
+    },
+    "findings": []
+   },
+   "/blog/beyond-transport-luxury-chauffeur-service-prague": {
+    "url": "https://rideprestigo.com/zh/blog/beyond-transport-luxury-chauffeur-service-prague",
+    "status": 200,
+    "titles": [
+     "超越出行：布拉格的豪华专车服务真正为您带来什么 — Prestigo"
+    ],
+    "meta": {
+     "description": [
+      "一辆车载您穿行布拉格；而一项豪华专车服务，承载的是您的一整天。以下便是车辆之外的所在——匠心、预见与审慎，正是这些成就了与众不同。"
+     ],
+     "og:title": [
+      "超越出行：布拉格的豪华专车服务真正为您带来什么"
+     ],
+     "og:description": [
+      "一辆车载您穿行布拉格；而一项豪华专车服务，承载的是您的一整天。以下便是车辆之外的所在——匠心、预见与审慎，正是这些成就了与众不同。"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "超越出行：布拉格的豪华专车服务真正为您带来什么"
+     ],
+     "twitter:description": [
+      "一辆车载您穿行布拉格；而一项豪华专车服务，承载的是您的一整天。以下便是车辆之外的所在——匠心、预见与审慎，正是这些成就了与众不同。"
+     ]
+    },
+    "findings": []
+   },
+   "/authors/roman-ustyugov": {
+    "url": "https://rideprestigo.com/zh/authors/roman-ustyugov",
+    "status": 200,
+    "titles": [
+     "Roman Ustyugov — PRESTIGO 创始人，布拉格"
+    ],
+    "meta": {
+     "description": [
+      "Roman Ustyugov — 布拉格 PRESTIGO 创始人兼首席体验官。在豪华地面交通与五星级酒店服务领域拥有 10 年以上经验。PRESTIGO 旅行指南作者。"
+     ],
+     "og:title": [
+      "Roman Ustyugov — PRESTIGO 专属司机服务创始人"
+     ],
+     "og:description": [
+      "Roman Ustyugov — 布拉格 PRESTIGO 创始人兼首席体验官。在豪华地面交通与五星级酒店服务领域拥有 10 年以上经验。PRESTIGO 旅行指南作者。"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "Roman Ustyugov — PRESTIGO 专属司机服务创始人"
+     ],
+     "twitter:description": [
+      "Roman Ustyugov — 布拉格 PRESTIGO 创始人兼首席体验官。在豪华地面交通与五星级酒店服务领域拥有 10 年以上经验。PRESTIGO 旅行指南作者。"
+     ]
+    },
+    "findings": []
+   },
+   "/routes/prague-vienna": {
+    "url": "https://rideprestigo.com/zh/routes/prague-vienna",
+    "status": 200,
+    "titles": [
+     "布拉格至维也纳专车司机 — €455 起 | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "布拉格至维也纳私人专车接送 — 乘 Mercedes E-Class、S-Class 或 V-Class 门到门直达 330 公里。固定价格 €455 起，可途中停靠，时间灵活。"
+     ],
+     "og:title": [
+      "布拉格至维也纳私人专车接送 — €455 起"
+     ],
+     "og:description": [
+      "布拉格至维也纳私人专车接送 — 乘 Mercedes E-Class、S-Class 或 V-Class 门到门直达 330 公里。固定价格 €455 起，可途中停靠，时间灵活。"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "布拉格至维也纳私人专车接送 — €455 起"
+     ],
+     "twitter:description": [
+      "布拉格至维也纳私人专车接送 — 乘 Mercedes E-Class、S-Class 或 V-Class 门到门直达 330 公里。固定价格 €455 起，可途中停靠，时间灵活。"
+     ]
+    },
+    "findings": []
+   },
+   "/services/airport-transfer": {
+    "url": "https://rideprestigo.com/zh/services/airport-transfer",
+    "status": 200,
+    "titles": [
+     "布拉格机场接送与举牌接机服务 — PRG | PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "布拉格机场举牌接机与专车接送服务，从 PRG 出发。抵达大厅举牌迎接、航班实时追踪，可应требование安排 VIP 与快速通道。€59 起，全天候 24/7 服务。"
+     ],
+     "og:title": [
+      "布拉格机场举牌接机与接送服务 — PRG | PRESTIGO"
+     ],
+     "og:description": [
+      "布拉格机场举牌接机与专车接送服务，从 PRG 出发。抵达大厅举牌迎接、航班实时追踪，可应требование安排 VIP 与快速通道。€59 起，全天候 24/7 服务。"
+     ],
+     "og:image:alt": [],
+     "twitter:title": [
+      "布拉格机场举牌接机与接送服务 — PRG | PRESTIGO"
+     ],
+     "twitter:description": [
+      "布拉格机场举牌接机与专车接送服务，从 PRG 出发。抵达大厅举牌迎接、航班实时追踪，可应требование安排 VIP 与快速通道。€59 起，全天候 24/7 服务。"
+     ]
+    },
+    "findings": []
+   },
+   "/data-deletion": {
+    "url": "https://rideprestigo.com/zh/data-deletion",
+    "status": 200,
+    "titles": [
+     "数据删除 — PRESTIGO 布拉格高端专车服务"
+    ],
+    "meta": {
+     "description": [
+      "如何申请从 PRESTIGO 删除您的个人数据。GDPR 数据删除申请指南。"
+     ],
+     "og:title": [
+      "PRESTIGO — 布拉格高端专车司机服务"
+     ],
+     "og:description": [
+      "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。"
+     ],
+     "og:image:alt": [
+      "PRESTIGO — 布拉格高端专车司机服务"
+     ],
+     "twitter:title": [
+      "PRESTIGO — 布拉格高端专车司机服务"
+     ],
+     "twitter:description": [
+      "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。"
+     ]
+    },
+    "findings": []
+   },
+   "/book/confirmation": {
+    "url": "https://rideprestigo.com/zh/book/confirmation",
+    "status": 200,
+    "titles": [
+     "PRESTIGO — 布拉格高端专车司机服务"
+    ],
+    "meta": {
+     "description": [
+      "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。"
+     ],
+     "og:title": [
+      "PRESTIGO — 布拉格高端专车司机服务"
+     ],
+     "og:description": [
+      "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。"
+     ],
+     "og:image:alt": [
+      "PRESTIGO — 布拉格高端专车司机服务"
+     ],
+     "twitter:title": [
+      "PRESTIGO — 布拉格高端专车司机服务"
+     ],
+     "twitter:description": [
+      "布拉格高端专车司机服务。机场接送、城际线路、企业账户。固定价格、航班跟踪、接机举牌服务。"
+     ]
+    },
+    "findings": []
+   },
+   "/this-page-does-not-exist": {
+    "url": "https://rideprestigo.com/zh/this-page-does-not-exist",
+    "status": 404,
+    "titles": [
+     "页面未找到 — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
+     ],
+     "og:title": [
+      "页面未找到 — PRESTIGO"
+     ],
+     "og:description": [
+      "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
+     ],
+     "og:image:alt": [
+      "页面未找到 — PRESTIGO"
+     ],
+     "twitter:title": [
+      "页面未找到 — PRESTIGO"
+     ],
+     "twitter:description": [
+      "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
+     ]
+    },
+    "findings": []
+   },
+   "/blog/this-post-does-not-exist": {
+    "url": "https://rideprestigo.com/zh/blog/this-post-does-not-exist",
+    "status": 404,
+    "titles": [
+     "页面未找到 — PRESTIGO"
+    ],
+    "meta": {
+     "description": [
+      "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
+     ],
+     "og:title": [
+      "页面未找到 — PRESTIGO"
+     ],
+     "og:description": [
+      "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
+     ],
+     "og:image:alt": [
+      "页面未找到 — PRESTIGO"
+     ],
+     "twitter:title": [
+      "页面未找到 — PRESTIGO"
+     ],
+     "twitter:description": [
+      "您要查找的页面不存在 — 但您在布拉格的专车接送服务依然可以进行。立即通过 PRESTIGO 在线预订。"
+     ]
+    },
+    "findings": []
+   }
+  }
+ }
+}

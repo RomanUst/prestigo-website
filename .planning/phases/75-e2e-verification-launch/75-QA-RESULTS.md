@@ -551,3 +551,55 @@ Run 2026-09-27 ~15:37Z against `https://rideprestigo.com` (Production deployment
 | Hydrated 404 incl. blog unknown slug (WR-01) | `python3 scripts/qa/notfound_audit.py https://rideprestigo.com --locales ru,ar` | 0 | non-shadowing 12/12 PASS; localized 404 6/6 PASS. `/blog/this-post-does-not-exist`: 404, ru title "Страница не найдена — PRESTIGO", ar title "الصفحة غير موجودة — PRESTIGO", ar `dir=rtl` | 4/6 localized: `/blog/this-post-does-not-exist` had the title "Not Found — Prestigo \| PRESTIGO" on ru and ar | **PASS** |
 
 Each fix class now passes on production through the detector that was red before the fix. No failure is carried into Task 2.
+
+### Full production sweep (plan 75-36)
+
+Run 2026-09-27 ~15:38–15:52Z against `https://rideprestigo.com` (Production deployment `6694162361`). Raw outputs of the three gap scanners and both overflow runs were copied from `scripts/qa/out/` into `evidence/75-36-*.json` and committed. The regression outputs stay in the gitignored `scripts/qa/out/`.
+
+| Run | Exit | Result |
+|---|---|---|
+| `python3 scripts/qa/en_leak_rendered.py https://rideprestigo.com` | 0 | `6 locales x 26 pages checked, 0 text leaks, 0 link leaks`. 156 pages, 0 page errors. `classifiedResidual` is `[]`. `scripts/qa/en_leak_allowlist.json` unchanged (`git diff --quiet HEAD` exit 0) |
+| `python3 scripts/qa/share_meta_audit.py https://rideprestigo.com` | 0 | `7 locales x 12 pages checked, 0 findings`. `counts` is empty for every locale |
+| `python3 scripts/qa/notfound_audit.py https://rideprestigo.com` | 0 | non-shadowing 12/12 PASS; localized 404 21/21 PASS (7 locales x `/this-page-does-not-exist`, `/qa/nested/missing-page`, `/blog/this-post-does-not-exist`) |
+| from `scripts/qa/out`: `python3 ../overflow_audit.py https://rideprestigo.com 320 --pages /blog,/blog/beyond-transport-luxury-chauffeur-service-prague` (7 locales) | 0 | pages with issues: 0, JSON `{}` |
+| same at 375 | 0 | pages with issues: 0, JSON `{}` |
+| `python3 -m unittest discover -s scripts/qa -p 'test_*.py'` | 0 | 67 tests OK (scanner self-test, incl. the WR-03 split-node fixture) |
+
+**Allowlisted findings, for transparency.** en_leak_rendered reports 1546 allowlisted findings (75-30: 1530). The difference comes from the new 75-32 detector kinds on the D-09 EN-only JSX post, which is allowlisted as a whole page (`enFallbackPaths`, decision D-09): `en-date` 0 → 12, `meta-identical-to-en` 0 → 12, `meta` 16 → 24 (twitter:* now read). `meta` on the D-05 recorded-as-is `/book/confirmation` dropped 16 → 0, because that page's meta is now localized. Nothing was moved into `classifiedResidual`, and no allowlist entry was added.
+
+#### Per-item table
+
+| Item | Check | Before | After (75-36) | Result | Evidence |
+|---|---|---|---|---|---|
+| WINDOWS #24 (en_leak_rendered residual; closure = exit 0) | `en_leak_rendered.py` (6 locales x 26 pages) | 75-30: 20 text / 0 link, exit 1. 75-32 prefix: 346 text / 0 link (`meta` 212, `meta-identical-to-en` 106, `en-date` 24, `joined-text` 4), exit 1 | 0 text / 0 link, exit 0 | **PASS** | `evidence/75-36-en-leak-rendered.json` |
+| WINDOWS #26 (/login + catch-all 404 English og/twitter) | `share_meta_audit.py` on `/login` and both 404 paths; en_leak_rendered `meta` on `/login` and `/this-page-does-not-exist` | share_meta prefix: `/login` 30 `en-site-default`; `/this-page-does-not-exist` 36 `en-site-default` + 7 `notfound-title`; `/blog/this-post-does-not-exist` 36 + 7. en_leak prefix: 54 meta findings on those two pages (6 locales) | 0 share_meta findings on all 7 locales x 3 pages; 0 en_leak meta findings | **PASS** | `evidence/75-36-share-meta-audit.json`, `evidence/75-36-en-leak-rendered.json` |
+| WR-01 (blog unknown-slug 404: English, brand-doubled title) | `notfound_audit.py` `/blog/this-post-does-not-exist`; share_meta `notfound-title`; verifier curl | notfound prefix: 0/7 (title "Not Found — Prestigo \| PRESTIGO" on every locale) | 7/7 PASS: 404, localized `NotFound.metaTitle` title, correct `lang`, `dir=rtl` on ar only. 0 `notfound-title` findings | **PASS** | `evidence/75-36-notfound-audit.json`, `evidence/75-36-share-meta-audit.json` |
+| WR-02 (twitter:* English site default on every page) | share_meta `twitter-mirror` + `en-site-default`; en_leak `meta`/`meta-identical-to-en` | share_meta prefix: `twitter-mirror` 98, `en-site-default` 258 | 0 and 0; en_leak 0 meta findings. `/ru`, `/es`, `/fr` `/fleet`: twitter:title equals og:title | **PASS** | `evidence/75-36-share-meta-audit.json`, `evidence/75-36-en-leak-rendered.json` |
+| WR-03 (scanner blind to JSX-split text) | detector capability: joined-text rule red on the prefix run, green after the fix; unit tests | 75-30: split byline invisible (0 findings while "Published 13 July 2026" rendered). 75-32 prefix: `joined-text` 4 (ru/ar/hi/zh post) | detector active (it found the 4 prefix leaks) and now reports 0; 67 unit tests OK | **PASS** | `evidence/75-32-en-leak-rendered-prefix.json`, `evidence/75-36-en-leak-rendered.json` |
+| WR-04 (byline By/Published/Updated + en-GB dates) | en_leak `joined-text` + `en-date`; verifier curl on the ru post | prefix: `en-date` 24 (4 per locale), `joined-text` 4 | 0 and 0. Raw ru post: `>By<` 0, `Published ` 0, `Updated <digit>` 0, English month dates 0; "Опубликовано 13 июля 2026 г." present; author label "Автор" | **PASS** | `evidence/75-36-en-leak-rendered.json` |
+| WR-05 (blog/[slug] without `setRequestLocale`) | en_leak `linkLeaks` on the MDX post (6 locales); raw-HTML href check on `/ru/blog/beyond-transport-…` | 75-20: 9 link leaks on the ru post; 75-30: 0 (latent risk, per 75-REVIEW) | 0 link leaks on all 156 pages; raw ru post: 51 `/ru` hrefs, the only unprefixed `href="/…"` is the cover image asset | **PASS** | `evidence/75-36-en-leak-rendered.json` |
+| IN-05 (raw 404 shell English, brand doubled) | share_meta `notfound-title` (raw HTML, both 404 classes); curl raw `<title>` | prefix: `notfound-title` 14 (e.g. "Page Not Found — PRESTIGO \| PRESTIGO") | 0 findings. Raw `/ru/this-page-does-not-exist`: "Страница не найдена — PRESTIGO"; `/es/…`: "Página no encontrada — PRESTIGO". Residual: raw shell is still `<html id="__next_error__">` with no `lang` (deferred, see deferred-items 75-36) | **PASS** (title/meta); `lang` residual deferred | `evidence/75-36-share-meta-audit.json` |
+
+GAP-4 remaining items: **none**. Every check above passes on production.
+
+#### Verifier reproductions (75-VERIFICATION.md "Behavioral Spot-Checks", re-run verbatim)
+
+| Command | 75-VERIFICATION output | Now (2026-09-27 ~15:50Z) | Result |
+|---|---|---|---|
+| `curl -s https://rideprestigo.com/ru/login \| grep twitter:title` | `PRESTIGO — Premium Chauffeur Service Prague` (English) | `<meta name="twitter:title" content="Вход — PRESTIGO"/>`; twitter:description is Russian; og:title = twitter:title | **PASS** |
+| `curl -s https://rideprestigo.com/ru/blog/totally-made-up-slug-zzz999` (status + `<title>`) | 404, English doubled-brand title, no `lang` attr | `404`, `<title>Страница не найдена — PRESTIGO</title>`. Raw shell still `<html id="__next_error__">` without `lang` (IN-05 residual, deferred) | **PASS** (title); `lang` deferred |
+| `curl -s https://rideprestigo.com/ru/fleet` twitter:title vs og:title | `twitter:title` English, `og:title` Russian | both "Наш автопарк — автомобили Mercedes с водителем в Праге"; twitter:description = og:description (Russian) | **PASS** |
+| `curl -s https://rideprestigo.com/ru/blog/beyond-transport-luxury-chauffeur-service-prague` byline | `>By<`, `Published ` visible in raw HTML | HTTP 200. `>By<` × 0, `Published ` × 0, `13 July 2026` × 0. "Опубликовано 13 июля 2026 г." present | **PASS** |
+
+#### Regression table (vs 75-30)
+
+| Script | 75-30 | 75-36 | Result |
+|---|---|---|---|
+| `render_audit.py` | 147 URLs, 7 findings (`/login` missing canonical x 7), exit 1 | 147 URLs, 7 findings: the same `/login` missing canonical on en/ru/es/fr/ar/hi/zh, exit 1 | No regression (pre-existing) |
+| `switcher_audit.py` | 63 ops, 0 findings, exit 0 | 63 ops, 0 findings, exit 0 | No regression |
+| `csp_regression.py --compare` | 11 route classes, 0 findings, exit 0 | 11 route classes, 0 findings, exit 0 | No regression |
+| `hreflang_reciprocity.py` | 63 URLs, 423 alternates, 3 errors (D-09 posts), exit 1 | 63 URLs, 423 alternates, 3 errors: `prague-airport-to-city-center`, `prague-airport-taxi-vs-chauffeur`, `prague-vienna-transfer-vs-train` (D-09), exit 1 | No regression (by design) |
+| `jsonld_audit.py` | 84 blocks, 0 findings, exit 0 | 84 blocks across 7 locales x 7 pages, 0 findings, exit 0 | No regression |
+| `overflow_audit.py` 320 / 375 on `/blog` + the MDX post (7 locales) | 0 issues (full 21-page sweep) | 0 issues at both widths, `{}` | No regression (localized byline fits) |
+
+Evidence files committed by this plan: `evidence/75-36-en-leak-rendered.json`, `75-36-notfound-audit.json`, `75-36-share-meta-audit.json`, `75-36-overflow-320.json`, `75-36-overflow-375.json`.
