@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 11
+open_count: 8
 waived_count: 0
-fixed_count: 14
+fixed_count: 17
 total_count: 25
-last_updated: 2026-09-26T22:18:26.809Z
+last_updated: 2026-09-27T13:16:24.566Z
 ---
 
 # Broken Windows Ledger
@@ -29,15 +29,15 @@ last_updated: 2026-09-26T22:18:26.809Z
 | 12 | 74 | stub | messages/ar.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:49.933Z | 2026-09-23T21:31:45.552Z |
 | 13 | 74 | stub | messages/hi.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:51.597Z | 2026-09-23T21:31:45.733Z |
 | 14 | 74 | stub | messages/zh.json | 790 | Common.firstVisitBanner keys shipped as EN-fallback text (Anthropic API billing gate blocked AI translation); manifest untouched so next real pipeline run retranslates automatically | fixed |  | 2026-09-23T21:28:53.493Z | 2026-09-23T21:31:45.904Z |
-| 15 | 75 | deviation | components/MetaPixel.tsx |  | Production Meta Pixel never fires: NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline, so fbq('init','<id>\\n') throws a SyntaxError on script insertion (appendChild); fbq stays undefined on every real page load. Env var needs re-entry in Vercel without trailing newline (human action). | open |  | 2026-09-25T12:39:18.185Z |  |
+| 15 | 75 | deviation | components/MetaPixel.tsx |  | Production Meta Pixel never fires: NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline, so fbq('init','<id>\\n') throws a SyntaxError on script insertion (appendChild); fbq stays undefined on every real page load. Env var needs re-entry in Vercel without trailing newline (human action). | fixed |  | 2026-09-25T12:39:18.185Z | 2026-09-27T13:16:24.181Z |
 | 16 | 75 | deviation | lib/routes.ts |  | 75-09: per-route h2/description/notes (30 unique route blurbs) intentionally stay English on the /routes hub across all locales -- out of this plan's scope per files_modified/must_haves (chrome/labels only); separate from the already-translated dedicated /routes/<slug> pages | open |  | 2026-09-25T14:43:54.229Z |  |
 | 17 | 75 | deviation | tests/account-trips.test.tsx |  | Pre-existing ERR_MODULE_NOT_FOUND at import (next-intl/server.react-server.js hardcoded relative path) on 5 test files unrelated to plan 75-12's scope; not fixed per scope boundary | open |  | 2026-09-25T19:30:56.319Z |  |
 | 18 | 75 | unrun-verify | tests/login-actions.test.ts |  | Known worktree-only next-intl/server import failure (relative vi.importActual path resolves outside the worktree's next/headers export map) prevents running this suite in-worktree; logic independently verified via a scratch composition check and will run/pass on main (matches 75-11-SUMMARY.md precedent). | open |  | 2026-09-25T21:05:40.466Z |  |
 | 19 | 75 | unrun-verify | tests/account-trips.test.tsx |  | Same known worktree-only next-intl/server import failure (see entry #18) — this file IS in plan 75-15's own scope (extended with new D-04 locale-redirect test cases), so the new assertions could not be executed in-worktree either; logic independently verified via a scratch mock-composition check and will run/pass on main. | open |  | 2026-09-25T21:08:17.526Z |  |
 | 20 | 75 | deviation | components/ArticleByline.tsx |  | next/link default import drops locale prefix on the byline link (75-EN-LEAK-AUDIT.md R3, attributed to 75-13 but out of files_modified scope) - deferred, see deferred-items.md | fixed |  | 2026-09-26T16:26:15.319Z | 2026-09-26T19:44:16.722Z |
 | 21 | 75 | deviation | lib/email.ts |  | D-05 recorded: client emails (email.ts/email-corporate.ts/email-bespoke.ts) are 100% English-only, locale never threaded through -- new capability, not fixed in 75-20 | open |  | 2026-09-26T22:18:07.075Z |  |
-| 22 | 75 | deviation | app/[locale]/not-found.tsx |  | Systemic gap: every locale's unmatched-path 404 renders un-localized root app/not-found.tsx (English) because no catch-all route exists under app/[locale]/ to reach the already-localized boundary -- root-caused in 75-20, explains 75-19-SUMMARY.md's zh/<unknown> observation (universal, not zh-specific) | open |  | 2026-09-26T22:18:13.476Z |  |
-| 23 | 75 | deviation | app/[locale]/fleet/page.tsx |  | overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08 | open |  | 2026-09-26T22:18:25.711Z |  |
+| 22 | 75 | deviation | app/[locale]/not-found.tsx |  | Systemic gap: every locale's unmatched-path 404 renders un-localized root app/not-found.tsx (English) because no catch-all route exists under app/[locale]/ to reach the already-localized boundary -- root-caused in 75-20, explains 75-19-SUMMARY.md's zh/<unknown> observation (universal, not zh-specific) | fixed |  | 2026-09-26T22:18:13.476Z | 2026-09-27T13:16:24.383Z |
+| 23 | 75 | deviation | app/[locale]/fleet/page.tsx |  | overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08 | fixed |  | 2026-09-26T22:18:25.711Z | 2026-09-27T13:16:24.566Z |
 | 24 | 75 | deviation | scripts/qa/en_leak_allowlist.json |  | en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope) | open |  | 2026-09-26T22:18:26.259Z |  |
 | 25 | 75 | unrun-verify | scripts/qa/booking_e2e.py |  | D-04 RU/AR signed-in account booking path unverified in 75-20: scripts/qa/.e2e-account.json never provided (75-19-SUMMARY.md), both locales auto-skipped. Guest-path locale-following is proven for both ru/ar; only the signed-in variant is unverified. Re-run booking_e2e.py --locales "" --account ru,ar once credentials file exists. | open |  | 2026-09-26T22:18:26.809Z |  |
 
@@ -218,10 +218,10 @@ last_updated: 2026-09-26T22:18:26.809Z
     "file": "components/MetaPixel.tsx",
     "line": null,
     "description": "Production Meta Pixel never fires: NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline, so fbq('init','<id>\\n') throws a SyntaxError on script insertion (appendChild); fbq stays undefined on every real page load. Env var needs re-entry in Vercel without trailing newline (human action).",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-25T12:39:18.185Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-27T13:16:24.181Z"
   },
   {
     "id": 16,
@@ -302,10 +302,10 @@ last_updated: 2026-09-26T22:18:26.809Z
     "file": "app/[locale]/not-found.tsx",
     "line": null,
     "description": "Systemic gap: every locale's unmatched-path 404 renders un-localized root app/not-found.tsx (English) because no catch-all route exists under app/[locale]/ to reach the already-localized boundary -- root-caused in 75-20, explains 75-19-SUMMARY.md's zh/<unknown> observation (universal, not zh-specific)",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-26T22:18:13.476Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-27T13:16:24.383Z"
   },
   {
     "id": 23,
@@ -314,10 +314,10 @@ last_updated: 2026-09-26T22:18:26.809Z
     "file": "app/[locale]/fleet/page.tsx",
     "line": null,
     "description": "overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-26T22:18:25.711Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-27T13:16:24.566Z"
   },
   {
     "id": 24,

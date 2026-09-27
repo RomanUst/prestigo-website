@@ -459,3 +459,28 @@ Root cause: `app/[locale]/layout.tsx` exports the static English `siteMetadata` 
 | `jsonld_audit.py` | 84 blocks, 0 findings | 84 blocks, 0 findings, exit 0 | No regression |
 
 Evidence files committed: `evidence/75-30-analytics-locale-audit.json`, `75-30-notfound-audit.json`, `75-30-en-leak-rendered.json`, and `75-30-overflow-{320,375,768,1024,1280}.json` (8 files). The regression outputs remain in the gitignored `scripts/qa/out/`.
+
+### Status updates (Task 3)
+
+- **WINDOWS closed** (`gsd-tools windows fixed`), each backed by a PASS row above:
+  - **#15**: Meta Pixel never fired. GAP-2 now 14/14 pass.
+  - **#22**: 404 not localized. `notfound_audit.py` 14/14 + 12/12 PASS.
+  - **#23**: `/ru/fleet` 768px overflow. 0 issues at all five widths.
+- **WINDOWS left open:**
+  - **#24**: `en_leak_rendered.py` still exits 1 with 20 meta findings (GAP-4 remainder).
+  - **#25**: GAP-1 skipped by user decision.
+- **VER-01 stays Pending** in REQUIREMENTS.md. Not all four gaps pass: GAP-1 was skipped and GAP-4 is partial. `requirements mark-complete VER-01` was not run.
+
+#### Remaining gaps
+
+1. **GAP-1** (D-04, WINDOWS #25): the RU/AR signed-in account booking path is unverified on production. Plan 75-22 was skipped by user decision, so this is open known debt. Closing it needs the E2E test account and the git-ignored `scripts/qa/.e2e-account.json` (user action), then `booking_e2e.py --account ru,ar` and the strict-marker cleanup.
+2. **GAP-4 remainder** (WINDOWS #24): English og/twitter metadata on `/login`, and English description/og/twitter on the localized 404, for every non-EN locale. The scanner flags 20 findings on ru/ar/hi/zh; es and fr are affected too but not flagged. The fix is app code: localized `description`/`openGraph`/`twitter` in `app/[locale]/login/layout.tsx` and `app/[locale]/[...rest]/page.tsx`, or a locale-aware default in `app/[locale]/layout.tsx`. After that: a PR deploy and a re-run of `en_leak_rendered.py`.
+
+Both items are logged in `deferred-items.md` (75-30).
+
+**Ready for re-verification: /gsd-verify-work 75 (or a verifier re-run).**
+
+- GAP-2, GAP-3 and GAP-4a are proven closed on production with committed evidence.
+- GAP-4 link leaks are closed.
+- GAP-1 and the GAP-4 meta remainder are open, as listed above.
+- WINDOWS ids closed by plan 75-30: **#15, #22, #23**.
