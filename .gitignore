@@ -14,3 +14,11 @@ scripts/qa/.e2e-account.json
 scripts/qa/__pycache__/
 __pycache__/
 *.pyc
+
+# Phase 76 infra/vps secrets — real .env files never leave the VPS/password
+# manager; only .env.example (placeholders) is tracked.
+infra/vps/**/*.env
+infra/vps/**/.env.*
+infra/vps/**/*.dump
+infra/vps/**/*.sql
+!infra/vps/**/.env.example
