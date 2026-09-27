@@ -26,9 +26,8 @@ trap 'echo "[bootstrap] FAILED at line ${LINENO} in section: ${CURRENT_SECTION}"
 DEPLOY_USER="${DEPLOY_USER:-deploy}"
 DEPLOY_PUBKEY_FILE="${DEPLOY_PUBKEY_FILE:-}"
 
-# Sections defined so far, in execution order. Task 2 appends packages,
-# fail2ban, unattended_upgrades, swap, docker, host_layout after firewall.
-ALL_SECTIONS=(preflight deploy_user sshd_hardening firewall)
+# Sections, in execution order.
+ALL_SECTIONS=(preflight deploy_user sshd_hardening firewall packages fail2ban unattended_upgrades swap docker host_layout)
 
 log() {
   echo "[bootstrap] $*"
@@ -186,6 +185,237 @@ section_firewall() {
     log "ufw enabled"
   else
     log "ufw already active"
+  fi
+}
+
+# --- packages ---------------------------------------------------------
+section_packages() {
+  CURRENT_SECTION="packages"
+  apt-get update -y
+  apt-get install -y ca-certificates curl gnupg jq rsync openssl
+  log "base packages present"
+}
+
+# --- fail2ban ---------------------------------------------------------
+section_fail2ban() {
+  CURRENT_SECTION="fail2ban"
+
+  if ! dpkg -s fail2ban >/dev/null 2>&1; then
+    apt-get update -y
+    apt-get install -y fail2ban
+    log "installed fail2ban"
+  fi
+
+  local jail_file="/etc/fail2ban/jail.d/sshd-prestigo.local"
+  local tmp_jail
+  tmp_jail=$(mktemp)
+  cat > "${tmp_jail}" <<'EOF'
+# Managed by infra/vps/scripts/bootstrap.sh (section fail2ban) - Phase 76 D-14/D-17.
+[sshd]
+enabled = true
+backend = systemd
+maxretry = 5
+findtime = 10m
+bantime = 1h
+EOF
+  chmod 0644 "${tmp_jail}"
+
+  if ! cmp -s "${tmp_jail}" "${jail_file}" 2>/dev/null; then
+    mv "${tmp_jail}" "${jail_file}"
+    chmod 0644 "${jail_file}"
+    log "wrote ${jail_file}"
+  else
+    rm -f "${tmp_jail}"
+  fi
+  chmod 0644 "${jail_file}"
+
+  systemctl enable fail2ban >/dev/null 2>&1 || true
+  systemctl restart fail2ban
+  log "fail2ban enabled and restarted"
+}
+
+# --- unattended_upgrades ---------------------------------------------------------
+section_unattended_upgrades() {
+  CURRENT_SECTION="unattended_upgrades"
+
+  if ! dpkg -s unattended-upgrades >/dev/null 2>&1; then
+    apt-get update -y
+    apt-get install -y unattended-upgrades
+    log "installed unattended-upgrades"
+  fi
+
+  local auto_upgrades="/etc/apt/apt.conf.d/20auto-upgrades"
+  local tmp_auto
+  tmp_auto=$(mktemp)
+  cat > "${tmp_auto}" <<'EOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+EOF
+  chmod 0644 "${tmp_auto}"
+  if ! cmp -s "${tmp_auto}" "${auto_upgrades}" 2>/dev/null; then
+    mv "${tmp_auto}" "${auto_upgrades}"
+    chmod 0644 "${auto_upgrades}"
+    log "wrote ${auto_upgrades}"
+  else
+    rm -f "${tmp_auto}"
+  fi
+  # apt.conf.d files must stay world-readable (apt-config dump is run
+  # unprivileged e.g. by monitoring/verification tooling) - normalize even
+  # when content already matched and the mv branch above didn't run.
+  chmod 0644 "${auto_upgrades}"
+
+  # Security-only origins (#clear resets the accumulated Allowed-Origins list from
+  # 50unattended-upgrades.conf, per D-14) + Docker package blacklist (D-14) + never
+  # auto-reboot (reboots are a runbook step, not unattended).
+  local uu_conf="/etc/apt/apt.conf.d/52prestigo-unattended-upgrades"
+  local tmp_uu
+  tmp_uu=$(mktemp)
+  cat > "${tmp_uu}" <<'EOF'
+#clear Unattended-Upgrade::Allowed-Origins;
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+};
+Unattended-Upgrade::Package-Blacklist {
+    "docker-ce";
+    "docker-ce-cli";
+    "containerd.io";
+    "docker-compose-plugin";
+};
+Unattended-Upgrade::Automatic-Reboot "false";
+EOF
+  chmod 0644 "${tmp_uu}"
+  if ! cmp -s "${tmp_uu}" "${uu_conf}" 2>/dev/null; then
+    mv "${tmp_uu}" "${uu_conf}"
+    chmod 0644 "${uu_conf}"
+    log "wrote ${uu_conf}"
+  else
+    rm -f "${tmp_uu}"
+  fi
+  chmod 0644 "${uu_conf}"
+}
+
+# --- swap ---------------------------------------------------------
+section_swap() {
+  CURRENT_SECTION="swap"
+
+  if swapon --show=NAME --noheadings 2>/dev/null | grep -q .; then
+    log "swap already active"
+  else
+    fallocate -l 4G /swapfile
+    chmod 600 /swapfile
+    mkswap /swapfile >/dev/null
+    swapon /swapfile
+    if ! grep -q '^/swapfile ' /etc/fstab 2>/dev/null; then
+      echo '/swapfile none swap sw 0 0' >> /etc/fstab
+    fi
+    log "created and enabled 4G /swapfile"
+  fi
+
+  local sysctl_conf="/etc/sysctl.d/99-prestigo.conf"
+  local tmp_sysctl
+  tmp_sysctl=$(mktemp)
+  echo 'vm.swappiness=10' > "${tmp_sysctl}"
+  chmod 0644 "${tmp_sysctl}"
+  if ! cmp -s "${tmp_sysctl}" "${sysctl_conf}" 2>/dev/null; then
+    mv "${tmp_sysctl}" "${sysctl_conf}"
+    chmod 0644 "${sysctl_conf}"
+    sysctl --system >/dev/null
+    log "set vm.swappiness=10"
+  else
+    rm -f "${tmp_sysctl}"
+  fi
+  chmod 0644 "${sysctl_conf}"
+}
+
+# --- docker ---------------------------------------------------------
+section_docker() {
+  CURRENT_SECTION="docker"
+
+  # Official Docker apt signing key fingerprint - pinned per infra/vps host contract.
+  # Refuse to continue unless the downloaded key matches exactly (T-76-SC).
+  local expected_fp="9DC8 5822 9FC7 DD38 854A E2D8 8D81 803C 0EBF CD88"
+  local expected_fp_nospace
+  expected_fp_nospace=$(echo "${expected_fp}" | tr -d ' ')
+
+  install -d -m 0755 /etc/apt/keyrings
+  if [ ! -f /etc/apt/keyrings/docker.asc ]; then
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+  fi
+  chmod a+r /etc/apt/keyrings/docker.asc
+
+  local actual_fp
+  actual_fp=$(gpg --show-keys --with-fingerprint --with-colons /etc/apt/keyrings/docker.asc 2>/dev/null \
+    | awk -F: '/^fpr:/{print $10; exit}')
+
+  if [ "${actual_fp}" != "${expected_fp_nospace}" ]; then
+    echo "[bootstrap] Docker apt key fingerprint mismatch: expected ${expected_fp_nospace}, got ${actual_fp:-<none>}" >&2
+    exit 1
+  fi
+  log "Docker apt key fingerprint verified: ${actual_fp}"
+
+  local codename
+  codename=$(. /etc/os-release && echo "${VERSION_CODENAME}")
+  local arch
+  arch=$(dpkg --print-architecture)
+  local repo_line="deb [arch=${arch} signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu ${codename} stable"
+  local repo_file="/etc/apt/sources.list.d/docker.list"
+
+  if [ ! -f "${repo_file}" ] || [ "$(cat "${repo_file}")" != "${repo_line}" ]; then
+    echo "${repo_line}" > "${repo_file}"
+    apt-get update -y
+    log "added Docker apt repo (${codename})"
+  fi
+
+  if ! dpkg -s docker-ce >/dev/null 2>&1; then
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    log "installed Docker Engine + compose plugin"
+  fi
+
+  local daemon_json="/etc/docker/daemon.json"
+  install -d -m 0755 /etc/docker
+  local tmp_daemon
+  tmp_daemon=$(mktemp)
+  cat > "${tmp_daemon}" <<'EOF'
+{
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  }
+}
+EOF
+  chmod 0644 "${tmp_daemon}"
+  if ! cmp -s "${tmp_daemon}" "${daemon_json}" 2>/dev/null; then
+    mv "${tmp_daemon}" "${daemon_json}"
+    chmod 0644 "${daemon_json}"
+    systemctl restart docker
+    log "wrote ${daemon_json} and restarted docker"
+  else
+    rm -f "${tmp_daemon}"
+  fi
+  # world-readable per host-bootstrap.md verification command (unprivileged cat)
+  chmod 0644 "${daemon_json}"
+
+  usermod -aG docker "${DEPLOY_USER}"
+}
+
+# --- host_layout ---------------------------------------------------------
+section_host_layout() {
+  CURRENT_SECTION="host_layout"
+
+  install -d -m 0700 -o root -g root /etc/prestigo
+  install -d -m 0755 -o "${DEPLOY_USER}" -g "${DEPLOY_USER}" /opt/prestigo
+  install -d -m 0700 -o root -g root /var/backups/prestigo
+  install -d -m 0700 -o root -g root /var/backups/prestigo/dumps
+  install -d -m 0750 -o root -g root /var/log/prestigo
+
+  if ! docker network inspect edge >/dev/null 2>&1; then
+    docker network create edge >/dev/null
+    log "created docker network 'edge'"
+  else
+    log "docker network 'edge' already exists"
   fi
 }
 
