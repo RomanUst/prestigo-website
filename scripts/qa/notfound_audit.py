@@ -105,7 +105,9 @@ def _opener():
     return build_opener(*handlers)
 
 
-def fetch_status(url: str, timeout: int = 30, retries: int = 1) -> int:
+def fetch_status(url: str, timeout: int = 90, retries: int = 1) -> int:
+    # 90 s matches the Playwright goto timeout: a local `next dev` compiles a
+    # route on first hit (a blog page took ~35 s), and prod cold starts vary.
     opener = _opener()
     last_err = None
     for _ in range(retries + 1):
