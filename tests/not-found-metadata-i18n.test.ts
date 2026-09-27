@@ -116,3 +116,56 @@ describe('blog/[slug] generateMetadata — unknown slug (WR-01)', () => {
     expect(resolved.twitter?.description).toBe(metaDescription)
   })
 })
+
+async function notFoundMeta(params?: Promise<{ locale?: string }>) {
+  const { generateMetadata } = await import('@/app/[locale]/not-found')
+  return generateMetadata({ params })
+}
+
+describe('app/[locale]/not-found.tsx generateMetadata (IN-05)', () => {
+  for (const locale of LOCALES) {
+    it(`${locale}: equals getNotFoundMetadata(locale)`, async () => {
+      const { getNotFoundMetadata } = await import('@/lib/site-metadata')
+      const meta = await notFoundMeta(Promise.resolve({ locale }))
+      expect(meta).toEqual(await getNotFoundMetadata(locale))
+      expect(meta.title).toEqual({ absolute: str(locale, 'NotFound.metaTitle') })
+      expect(meta.robots).toEqual({ index: false, follow: false })
+    })
+  }
+
+  it('falls back to EN for an unknown locale, empty params, undefined or rejected params (never throws)', async () => {
+    const { getNotFoundMetadata } = await import('@/lib/site-metadata')
+    const en = await getNotFoundMetadata('en')
+    expect(await notFoundMeta(Promise.resolve({ locale: 'xx' }))).toEqual(en)
+    expect(await notFoundMeta(Promise.resolve({}))).toEqual(en)
+    expect(await notFoundMeta(undefined)).toEqual(en)
+    expect(await notFoundMeta(Promise.reject(new Error('boom')))).toEqual(en)
+  })
+
+  it('no longer exports a static metadata constant', async () => {
+    const mod = (await import('@/app/[locale]/not-found')) as Record<string, unknown>
+    expect(mod.metadata).toBeUndefined()
+    expect(typeof mod.generateMetadata).toBe('function')
+  })
+
+  for (const locale of LOCALES) {
+    it(`contract (${locale}): error shell = layout + not-found metadata -> localized absolute title, og/twitter`, async () => {
+      const { getLocaleSiteMetadata } = await import('@/lib/site-metadata')
+      const resolved = await resolveNextMetadata(
+        [await getLocaleSiteMetadata(locale), await notFoundMeta(Promise.resolve({ locale }))],
+        `/${locale}/x`
+      )
+      const metaTitle = str(locale, 'NotFound.metaTitle')
+      const metaDescription = str(locale, 'NotFound.metaDescription')
+      expect(resolved.title?.absolute).toBe(metaTitle)
+      expect(resolved.title?.absolute).not.toMatch(/\| PRESTIGO$/)
+      if (locale === 'en') expect(resolved.title?.absolute).toBe('Page Not Found — PRESTIGO')
+      expect(resolved.description).toBe(metaDescription)
+      expect(resolved.openGraph?.title?.absolute).toBe(metaTitle)
+      expect(resolved.openGraph?.description).toBe(metaDescription)
+      expect(resolved.twitter?.title?.absolute).toBe(metaTitle)
+      expect(resolved.twitter?.description).toBe(metaDescription)
+      expect(resolved.robots?.basic).toBe('noindex, nofollow')
+    })
+  }
+})
