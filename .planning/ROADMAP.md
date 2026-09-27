@@ -368,8 +368,8 @@ Wave 1 *(file-disjoint)*
 
 Wave 2 *(blocked on 75-31)*
 
-- [ ] 75-33-PLAN.md — WR-01 + IN-05 + WR-05: localized 404 metadata on blog unknown slug, catch-all and not-found boundary (raw error shell), setRequestLocale on blog/[slug]
-- [ ] 75-34-PLAN.md — WR-04: localized byline By/Published/Updated + locale date format (Latin digits) on posts and /blog cards (x7 frozen)
+- [x] 75-33-PLAN.md — WR-01 + IN-05 + WR-05: localized 404 metadata on blog unknown slug, catch-all and not-found boundary (raw error shell), setRequestLocale on blog/[slug]
+- [x] 75-34-PLAN.md — WR-04: localized byline By/Published/Updated + locale date format (Latin digits) on posts and /blog cards (x7 frozen)
 
 Wave 3 *(blocked on 75-31..75-34)*
 
@@ -466,4 +466,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 32/36 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 34/36 | In Progress|  |
