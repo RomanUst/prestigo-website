@@ -349,7 +349,7 @@ Wave 1 *(file-disjoint)*
 
 Wave 2 *(blocked on 75-25, 75-26, 75-27)*
 
-- [ ] 75-28-PLAN.md — GAP-4d: /login metadata, author byline/bio/meta, hardcoded testimonials, blog category labels localized x7 (frozen)
+- [x] 75-28-PLAN.md — GAP-4d: /login metadata, author byline/bio/meta, hardcoded testimonials, blog category labels localized x7 (frozen)
 
 Wave 3 *(blocked on 75-26, 75-28)*
 
@@ -446,4 +446,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 27/30 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 28/30 | In Progress|  |
