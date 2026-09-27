@@ -7,6 +7,13 @@
 # contract stay identical everywhere (same image on prod and any future drill
 # host).
 #
+# /var/backups/prestigo is mounted READ-WRITE (not :ro like the other three)
+# because it is BOTH a `backup` source (dumps, read-only in effect) AND the
+# `restore`/`restore.sh --verify-only` TARGET (restic writes the restored
+# rehearsal/staging tree there). /etc/prestigo and /opt/prestigo stay
+# read-only — nothing ever restores INTO them via this wrapper; restore.sh
+# copies individual restored files into place itself, outside restic.
+#
 # Usage: sudo bash restic.sh <restic-subcommand-and-args...>
 #   e.g. sudo bash restic.sh snapshots --host prestigo-vps --compact
 #        sudo bash restic.sh check
@@ -24,7 +31,7 @@ exec docker run --rm \
   --env-file /etc/prestigo/backup.env \
   --hostname prestigo-vps \
   -v /var/lib/docker/volumes:/var/lib/docker/volumes:ro \
-  -v /var/backups/prestigo:/var/backups/prestigo:ro \
+  -v /var/backups/prestigo:/var/backups/prestigo \
   -v /etc/prestigo:/etc/prestigo:ro \
   -v /opt/prestigo:/opt/prestigo:ro \
   -v /var/cache/restic:/root/.cache/restic \

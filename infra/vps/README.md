@@ -70,7 +70,7 @@ these names exact.
 | `runbooks/upgrade.md` | Pinned-version upgrade procedure (backup -> snapshot -> pull/up -> migrate -> smoke check -> rollback) | Plan 76-05 |
 | `runbooks/monitoring.md` | External uptime/health monitoring + Healthchecks.io dead-man's-switch setup | Plan 76-06 |
 | `runbooks/outage-test.md` | The D-19(a) real outage test procedure (VPS offline, public site/wizard/Stripe/email still work) | Plan 76-08 |
-| `runbooks/restore-drill.md` | The D-09 restore drill onto a temporary host, checklist and dated log | Plan 76-09 |
+| `runbooks/restore-drill.md` | The D-09 restore drill onto a temporary host, checklist and dated log | Plan 76-08 (authored); exercised and its Drill log filled in by Plan 76-09 |
 
 ## Re-provisioning a fresh host
 

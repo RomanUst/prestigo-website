@@ -337,7 +337,8 @@ RUBY
     record "drill-chatwoot-http" FAIL "http://127.0.0.1:3000/api not reachable"
   fi
 
-  if curl -fsS -m 10 http://127.0.0.1:8080/ 2>/dev/null | grep -qi espo; then
+  ESPO_HTTP_BODY=$(curl -fsS -m 10 http://127.0.0.1:8080/ 2>/dev/null || true)
+  if grep -qi espo <<< "${ESPO_HTTP_BODY}"; then
     record "drill-espocrm-http" OK
   else
     record "drill-espocrm-http" FAIL "http://127.0.0.1:8080/ did not return an EspoCRM login marker"
