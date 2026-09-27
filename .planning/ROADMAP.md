@@ -342,7 +342,7 @@ Wave 1 *(file-disjoint)*
 
 - [ ] 75-22-PLAN.md — GAP-1: user-supplied E2E account creds (human-action) → RU tracer + AR RTL signed-in booking to Stripe on prod → strict-marker cleanup with backup (human-action, Supabase MCP)
 - [ ] 75-23-PLAN.md — GAP-2: newline-safe Meta pixel ID (client + CAPI, tests) → user re-enters Vercel env vars + redeploys (human-action) → prod Meta capture
-- [ ] 75-24-PLAN.md — GAP-3: locale-robust wrap CSS on /fleet maintenance cards + overflow_audit.py --pages/--locales + snapshot guard
+- [x] 75-24-PLAN.md — GAP-3: locale-robust wrap CSS on /fleet maintenance cards + overflow_audit.py --pages/--locales + snapshot guard
 - [ ] 75-25-PLAN.md — GAP-4a: app/[locale]/[...rest] catch-all → localized 404 (lang/dir, 404 status, NotFound.metaTitle x7 frozen) + notfound_audit.py non-shadowing audit
 - [ ] 75-26-PLAN.md — GAP-4b: EN-leak allowlist properNouns/inlineTerms/classifiedResidual + boundary-aware scanner + unit tests + production residual ledger (75-EN-LEAK-RESIDUAL.md)
 - [ ] 75-27-PLAN.md — GAP-4c: locale-preserving links in MDX posts (mdx-components `a`) + EN-only JSX posts
@@ -446,4 +446,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 21/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 22/30 | In Progress|  |
