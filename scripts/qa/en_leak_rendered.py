@@ -18,6 +18,15 @@ loads the rendered production page after hydration and flags:
     Meta values (title, description, og:*, twitter:*) identical to the same
     page's EN meta with 2+ significant words are 'meta-identical-to-en'
     (Plan 75-32 — the es/fr metadata blind spot).
+  - joined element texts (Plan 75-32, WR-03): for p/li/h*/span/a/button/
+    label/td/th/dd/dt elements whose element children are all inline, the
+    collapsed innerText is evaluated as one string, so English split across
+    JSX text nodes ('Published ' + '13 July 2026') is caught. ru/ar/hi/zh:
+    kind 'joined-text' (2+ words), skipped when a node-level finding is a
+    substring of it. es/fr: joined texts join both the EN baseline and the
+    identical-to-EN candidates (3+ words).
+  - all non-EN locales (Plan 75-32, WR-04): English-formatted dates
+    ('13 July 2026', 'July 13, 2026') in texts/joined texts -> kind 'en-date'.
   - all non-EN locales: any internal anchor (href starting with a single
     slash) that does not start with /{locale}/ or equal /{locale} — i.e. an
     internal link that would drop the locale prefix.
@@ -194,6 +203,29 @@ EXTRACT_JS = """() => {
     }
     return out;
   }
+  // Plan 75-32 (WR-03): React/JSX often splits one visible phrase across
+  // several text nodes ('Published ' + '13 July 2026'), each too short to be a
+  // leak on its own. For every text-bearing element whose element children
+  // are all inline, the collapsed innerText is evaluated as one string.
+  const JOIN_SELECTOR = 'p,li,h1,h2,h3,h4,h5,h6,span,a,button,label,td,th,dd,dt';
+  const INLINE_TAGS = new Set(['A', 'SPAN', 'B', 'STRONG', 'EM', 'I', 'BDI', 'TIME', 'SMALL', 'SUP', 'SUB', 'BR', 'ABBR', 'CODE', 'MARK', 'U', 'S']);
+  function joinedTexts() {
+    const seen = new Set();
+    const out = [];
+    document.body.querySelectorAll(JOIN_SELECTOR).forEach((el) => {
+      if (el.childNodes.length < 2) return;  // a single child is already covered node-by-node
+      for (const child of el.children) {
+        if (!INLINE_TAGS.has(child.tagName)) return;
+      }
+      if (el.closest('script,style,noscript')) return;
+      const text = (el.innerText || '').replace(/\\s+/g, ' ').trim();
+      if (!text || seen.has(text)) return;
+      if (isHiddenByAncestor(el)) return;
+      seen.add(text);
+      out.push(text);
+    });
+    return out;
+  }
   function attrTexts() {
     const out = [];
     document.querySelectorAll('[placeholder],[aria-label],[alt],[title]').forEach((el) => {
@@ -255,6 +287,7 @@ EXTRACT_JS = """() => {
   const jsonLd = jsonLdNodes();
   return {
     texts: visibleTextNodes(),
+    joined: joinedTexts(),
     attrs: attrTexts(),
     meta: metaTexts(),
     faqStrings: jsonLd.faq,
@@ -354,7 +387,8 @@ def collect_page_data(page, url: str) -> dict:
         page.wait_for_timeout(1500)
         return page.evaluate(EXTRACT_JS)
     except Exception as e:
-        return {'error': str(e)[:200], 'texts': [], 'attrs': [], 'meta': [], 'faqStrings': [], 'serviceStrings': [], 'links': []}
+        return {'error': str(e)[:200], 'texts': [], 'joined': [], 'attrs': [], 'meta': [], 'faqStrings': [],
+                'serviceStrings': [], 'links': []}
 
 
 def collect_leaks(data: dict, path: str, locale=None) -> list:
@@ -391,11 +425,77 @@ def collect_es_fr_leaks(data: dict, en_strings: set, locale=None, en_meta=None) 
     for text in candidates:
         if text in en_strings and has_significant_words(text, 3, locale):
             leaks.append({'kind': 'identical-to-en', 'value': text[:200]})
+    # Joined element texts (Plan 75-32): same 3-word rule, but never re-report
+    # a string whose node-level part is already flagged.
+    node_flagged = [l['value'] for l in leaks]
+    seen = set(node_flagged)
+    for text in data.get('joined', []):
+        if text in seen or any(v and v in text for v in node_flagged):
+            continue
+        if text in en_strings and has_significant_words(text, 3, locale):
+            leaks.append({'kind': 'identical-to-en', 'value': text[:200]})
+            seen.add(text)
     if en_meta:
         for text in data.get('meta', []):
             if text in en_meta and has_significant_words(text, 2, locale):
                 leaks.append({'kind': 'meta-identical-to-en', 'value': text[:200]})
     return leaks
+
+
+_EN_MONTHS = ('January|February|March|April|May|June|July|August|September|October|November|December')
+# Plan 75-32 (WR-04): English-formatted dates — capitalized English month
+# names in 'D Month YYYY' (en-GB) or 'Month D, YYYY' (en-US). Case-sensitive on
+# purpose: fr/es month names are lowercase and differ, ru/ar/hi/zh use their own
+# scripts, so a match on a non-EN page is an EN date format leak.
+ENGLISH_DATE_RE = re.compile(
+    rf'(?<![A-Za-z0-9])(?:\d{{1,2}} (?:{_EN_MONTHS}) \d{{4}}|(?:{_EN_MONTHS}) \d{{1,2}}, \d{{4}})(?![A-Za-z0-9])'
+)
+
+
+def collect_date_leaks(data: dict) -> list:
+    """Unique English-formatted dates across visible text nodes + joined element texts -> kind 'en-date'."""
+    out, seen = [], set()
+    for text in list(data.get('texts', [])) + list(data.get('joined', [])):
+        for m in ENGLISH_DATE_RE.finditer(text or ''):
+            v = m.group(0)
+            if v not in seen:
+                seen.add(v)
+                out.append({'kind': 'en-date', 'value': v})
+    return out
+
+
+def collect_joined_leaks(data: dict, node_leak_values, locale=None) -> list:
+    """ru/ar/hi/zh: joined element texts with 2+ significant Latin words -> kind 'joined-text'.
+
+    A joined value J is skipped when any node-level flagged value is a
+    substring of it (already reported at node level — no double-reporting).
+    """
+    flagged = [v for v in (node_leak_values or []) if v]
+    out, seen = [], set()
+    for text in data.get('joined', []):
+        if not text or text in seen:
+            continue
+        if any(v in text for v in flagged):
+            continue
+        if has_significant_words(text, 2, locale):
+            seen.add(text)
+            out.append({'kind': 'joined-text', 'value': text[:200]})
+    return out
+
+
+def collect_locale_leaks(data: dict, path: str, locale, en_strings=None, en_meta=None) -> list:
+    """All text-level findings for one (locale, page): the per-locale rule set used by main().
+
+    ru/ar/hi/zh: collect_leaks + collect_joined_leaks + collect_date_leaks.
+    es/fr: collect_es_fr_leaks (texts/attrs/joined identical to EN, meta
+    identical to EN meta) + collect_date_leaks.
+    """
+    if locale in ('es', 'fr'):
+        leaks = collect_es_fr_leaks(data, en_strings or set(), locale, en_meta=en_meta)
+    else:
+        leaks = collect_leaks(data, path, locale)
+        leaks += collect_joined_leaks(data, [l['value'] for l in leaks], locale)
+    return leaks + collect_date_leaks(data)
 
 
 def apply_classified_residual(leaks: list, locale, path: str, entries=None):
@@ -481,7 +581,8 @@ def main() -> int:
                 for path in pages_to_scan:
                     url = build_url(base, 'en', path)
                     data = collect_page_data(page, url)
-                    en_baseline[path] = set(data.get('texts', [])) | set(data.get('attrs', []))
+                    en_baseline[path] = (set(data.get('texts', [])) | set(data.get('attrs', []))
+                                         | set(data.get('joined', [])))
                     en_meta_baseline[path] = set(data.get('meta', []))
 
             for loc in requested_locales:
@@ -490,11 +591,9 @@ def main() -> int:
                     url = build_url(base, loc, path)
                     data = collect_page_data(page, url)
 
-                    if loc in ('es', 'fr'):
-                        leaks = collect_es_fr_leaks(data, en_baseline.get(path, set()), loc,
-                                                    en_meta=en_meta_baseline.get(path, set()))
-                    else:
-                        leaks = collect_leaks(data, path, loc)
+                    leaks = collect_locale_leaks(data, path, loc,
+                                                 en_strings=en_baseline.get(path, set()),
+                                                 en_meta=en_meta_baseline.get(path, set()))
                     link_leaks = collect_link_leaks(data, loc)
 
                     reason = en_fallback_reason(path, loc)
