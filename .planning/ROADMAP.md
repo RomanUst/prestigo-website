@@ -288,7 +288,7 @@ Plans:
   6. vitest is green for all v3.0-touched files; pre-existing unrelated failures are listed.
   7. Launch: sitemap resubmitted in GSC with a per-locale indexing baseline recorded; Metricool announcement created as drafts only; milestone v3.0 audited and closed.
 
-**Plans:** 21 plans
+**Plans:** 30 plans (21 + 9 gap closure)
 
 Plans:
 **Wave 1**
@@ -335,6 +335,29 @@ Plans:
 **Wave 8** *(blocked on Wave 7 completion)*
 
 - [x] 75-21-PLAN.md — Launch: GSC baseline/resubmit, Rich Results, Metricool drafts, milestone-close handoff
+
+**Gap closure** *(from 75-VERIFICATION.md gaps_found — 6/10 must-haves; GAP-1 RU/AR account path, GAP-2 Meta Pixel site_locale, GAP-3 /ru/fleet 768px overflow, GAP-4 residual EN leaks)*
+
+Wave 1 *(file-disjoint)*
+
+- [ ] 75-22-PLAN.md — GAP-1: user-supplied E2E account creds (human-action) → RU tracer + AR RTL signed-in booking to Stripe on prod → strict-marker cleanup with backup (human-action, Supabase MCP)
+- [ ] 75-23-PLAN.md — GAP-2: newline-safe Meta pixel ID (client + CAPI, tests) → user re-enters Vercel env vars + redeploys (human-action) → prod Meta capture
+- [ ] 75-24-PLAN.md — GAP-3: locale-robust wrap CSS on /fleet maintenance cards + overflow_audit.py --pages/--locales + snapshot guard
+- [ ] 75-25-PLAN.md — GAP-4a: app/[locale]/[...rest] catch-all → localized 404 (lang/dir, 404 status, NotFound.metaTitle x7 frozen) + notfound_audit.py non-shadowing audit
+- [ ] 75-26-PLAN.md — GAP-4b: EN-leak allowlist properNouns/inlineTerms/classifiedResidual + boundary-aware scanner + unit tests + production residual ledger (75-EN-LEAK-RESIDUAL.md)
+- [ ] 75-27-PLAN.md — GAP-4c: locale-preserving links in MDX posts (mdx-components `a`) + EN-only JSX posts
+
+Wave 2 *(blocked on 75-25, 75-26, 75-27)*
+
+- [ ] 75-28-PLAN.md — GAP-4d: /login metadata, author byline/bio/meta, hardcoded testimonials, blog category labels localized x7 (frozen)
+
+Wave 3 *(blocked on 75-26, 75-28)*
+
+- [ ] 75-29-PLAN.md — GAP-4e: hi loanword policy decision (checkpoint) → ledger-driven hi/ru in-content fixes (frozen)
+
+Wave 4 *(blocked on 75-22..75-29 — deploy + re-verification gate)*
+
+- [ ] 75-30-PLAN.md — Gated PR → main → Vercel prod deploy; full post-deploy re-run with committed evidence; WINDOWS #15/#22-#25; VER-01 only if all 4 gaps pass
 
 </details>
 
