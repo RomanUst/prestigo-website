@@ -115,6 +115,11 @@ Rich Results Test results (filled in by Task 3, per sampled URL):
 
 | URL | Rich Results outcome |
 |---|---|
+| https://rideprestigo.com/ru/routes/prague-vienna | valid (user-reported "все ок", 2026-09-27) |
+| https://rideprestigo.com/ar/faq | valid (user-reported "все ок", 2026-09-27) |
+| https://rideprestigo.com/es/fleet | valid (user-reported "все ок", 2026-09-27) |
+| https://rideprestigo.com/zh/routes | valid (user-reported "все ок", 2026-09-27) |
+| https://rideprestigo.com/hi/services/airport-transfer | valid (user-reported "все ок", 2026-09-27) |
 | `https://rideprestigo.com/ru/routes/prague-vienna` | _pending — Task 3_ |
 | `https://rideprestigo.com/ar/faq` | _pending — Task 3_ |
 | `https://rideprestigo.com/es/fleet` | _pending — Task 3_ |
@@ -186,3 +191,16 @@ These are workflow-level commands that cannot run inside this phase's plan execu
 ## Task 2 result: Metricool announcement drafts. SKIPPED (user decision, 2026-09-27)
 
 User answer: "Без анонса" (no announcement). No Metricool posts were created. The copy and visual above stay available if the announcement is wanted later. The draft-capable client from 75-18 is in place (`createMetricoolPost({ ..., draft: true })`).
+
+## Task 3 result: GSC sitemap, Request Indexing, Rich Results. DONE (user, 2026-09-27)
+
+The user reported "все ок" for all three steps:
+- Sitemap `https://rideprestigo.com/sitemap.xml` resubmitted: OK.
+- Request Indexing: all 10 URLs in the list above accepted.
+- Rich Results Test: all 5 sampled URLs valid, consistent with jsonld_audit.py (0 findings).
+
+## Milestone-close handoff
+
+1. `/gsd-verify-work 75` (UAT for items the verifier marks human-needed)
+2. `/gsd-audit-milestone`
+3. `/gsd-complete-milestone v3.0` (tag v3.0)

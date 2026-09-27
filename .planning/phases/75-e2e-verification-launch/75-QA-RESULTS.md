@@ -383,3 +383,9 @@ Both surfaces render English regardless of the booking's site locale. Logged to 
 - **Delete** (marker AND `paid_at is null` AND explicit id list) returned 17 references, equal to the pre-delete unpaid set, which contains every recorded ref that has a row.
 - **Post-delete** unpaid marker count: **0**. Verified kept: `PRG-20260925-65B2CC`, `PRG-20260828-954109`.
 - **Test account:** the user answered "delete after QA: yes", but no auth user matching E2E exists (0 rows), and the credentials file was never provided. Nothing to delete. The RU/AR account path (D-04) remains UNVERIFIED.
+
+## D-14 launch (plan 75-21, 2026-09-27)
+
+- GSC baseline: 24/42 key URLs indexed (see 75-LAUNCH.md).
+- The user reported sitemap resubmitted OK, all 10 URLs accepted for indexing, and Rich Results valid on all 5 sampled URLs ("все ок").
+- Metricool announcement: skipped by user decision.

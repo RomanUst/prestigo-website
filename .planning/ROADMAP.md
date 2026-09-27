@@ -334,7 +334,7 @@ Plans:
 
 **Wave 8** *(blocked on Wave 7 completion)*
 
-- [ ] 75-21-PLAN.md — Launch: GSC baseline/resubmit, Rich Results, Metricool drafts, milestone-close handoff
+- [x] 75-21-PLAN.md — Launch: GSC baseline/resubmit, Rich Results, Metricool drafts, milestone-close handoff
 
 </details>
 
@@ -423,4 +423,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 20/21 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 21/21 | In Progress|  |

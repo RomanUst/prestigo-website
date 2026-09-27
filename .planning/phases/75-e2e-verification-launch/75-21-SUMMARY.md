@@ -144,3 +144,7 @@ None from this task. Tasks 2 and 3 of this same plan require the orchestrator (M
 ---
 *Phase: 75-e2e-verification-launch*
 *Completed: 2026-09-27*
+
+## Tasks 2–3 (orchestrator/user). Resolved 2026-09-27
+- Task 2 (Metricool drafts): SKIPPED by user decision ("Без анонса"). No posts were created.
+- Task 3 (GSC sitemap / Request Indexing / Rich Results): DONE by the user ("все ок"). Recorded in 75-LAUNCH.md and 75-QA-RESULTS.md.
