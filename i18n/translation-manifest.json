@@ -10168,6 +10168,14 @@
     "messages/en.json::NotFound.metaTitle": {
       "enHash": "sha256:5d9c3d1e2b47bbc4b0e020fe055d6b0fdd5c51f993c98fbabf335f4505db6985",
       "lastTranslatedAt": "2026-09-27T10:45:07.567Z"
+    },
+    "messages/en.json::Auth.login.metaTitle": {
+      "enHash": "sha256:ef058f68237cabad507921eab5f1ca81261e9bd8002d3f89af8fbd3f34cedcd2",
+      "lastTranslatedAt": "2026-09-27T11:20:12.076Z"
+    },
+    "messages/en.json::Auth.login.metaDescription": {
+      "enHash": "sha256:2e94ded4440bcd6c0b5e803aeb2f9845a0d9387d101be6d2f940ed4ddc263115",
+      "lastTranslatedAt": "2026-09-27T11:20:12.076Z"
     }
   }
 }

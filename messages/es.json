@@ -756,7 +756,9 @@
       "alreadyHaveAccountPrompt": "¿Ya tiene una cuenta?",
       "resetSentMessage": "Enlace de restablecimiento enviado. Consulte su correo electrónico.",
       "sendResetLinkButton": "Enviar enlace de restablecimiento",
-      "backToSignIn": "Volver al inicio de sesión"
+      "backToSignIn": "Volver al inicio de sesión",
+      "metaTitle": "Iniciar sesión — PRESTIGO",
+      "metaDescription": "Inicie sesión en su cuenta de PRESTIGO para consultar y gestionar sus reservas y sus próximos viajes."
     },
     "oauth": {
       "googleLabel": "Iniciar sesión con Google",

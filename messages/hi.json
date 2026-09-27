@@ -756,7 +756,9 @@
       "alreadyHaveAccountPrompt": "क्या आपके पास पहले से खाता है?",
       "resetSentMessage": "रीसेट लिंक भेज दिया गया है। अपना ईमेल देखें।",
       "sendResetLinkButton": "रीसेट लिंक भेजें",
-      "backToSignIn": "साइन इन पर वापस जाएँ"
+      "backToSignIn": "साइन इन पर वापस जाएँ",
+      "metaTitle": "साइन इन — PRESTIGO",
+      "metaDescription": "अपनी बुकिंग और आगामी यात्राएँ देखने और प्रबंधित करने के लिए अपने PRESTIGO खाते में साइन इन करें।"
     },
     "oauth": {
       "googleLabel": "Google से साइन इन करें",

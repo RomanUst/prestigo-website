@@ -1,0 +1,7 @@
+# 75-28 (GAP-4d): shared-surface EN leaks localized on every non-EN locale —
+# /login metadata, author byline/bio/metadata, hardcoded homepage
+# testimonials and blog category labels. Hand-translated in-session (D-08)
+# into ru/es/fr/ar/hi/zh; PRESTIGO kept in Latin (glossary DNT). Frozen so a
+# future pipeline run neither overwrites these units nor re-spends tokens.
+messages/en.json::Auth.login.metaTitle
+messages/en.json::Auth.login.metaDescription

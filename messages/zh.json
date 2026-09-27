@@ -756,7 +756,9 @@
       "alreadyHaveAccountPrompt": "已有账户？",
       "resetSentMessage": "重置链接已发送。请查收您的邮箱。",
       "sendResetLinkButton": "发送重置链接",
-      "backToSignIn": "返回登录"
+      "backToSignIn": "返回登录",
+      "metaTitle": "登录 — PRESTIGO",
+      "metaDescription": "登录您的 PRESTIGO 账户，查看并管理您的预订和即将开始的行程。"
     },
     "oauth": {
       "googleLabel": "使用 Google 登录",

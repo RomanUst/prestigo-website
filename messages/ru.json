@@ -756,7 +756,9 @@
       "alreadyHaveAccountPrompt": "Уже есть учётная запись?",
       "resetSentMessage": "Ссылка для сброса пароля отправлена. Проверьте Вашу электронную почту.",
       "sendResetLinkButton": "Отправить ссылку для сброса",
-      "backToSignIn": "Вернуться к входу"
+      "backToSignIn": "Вернуться к входу",
+      "metaTitle": "Вход — PRESTIGO",
+      "metaDescription": "Войдите в свою учётную запись PRESTIGO, чтобы просматривать бронирования и предстоящие поездки и управлять ими."
     },
     "oauth": {
       "googleLabel": "Войти через Google",

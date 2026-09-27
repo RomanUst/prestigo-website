@@ -706,7 +706,9 @@
       "alreadyHaveAccountPrompt": "Already have an account?",
       "resetSentMessage": "Reset link sent. Check your email.",
       "sendResetLinkButton": "Send reset link",
-      "backToSignIn": "Back to sign in"
+      "backToSignIn": "Back to sign in",
+      "metaTitle": "Sign in — PRESTIGO",
+      "metaDescription": "Sign in to your PRESTIGO account to view and manage your bookings and upcoming trips."
     },
     "oauth": {
       "googleLabel": "Sign in with Google",

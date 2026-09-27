@@ -756,7 +756,9 @@
       "alreadyHaveAccountPrompt": "Vous avez déjà un compte ?",
       "resetSentMessage": "Lien de réinitialisation envoyé. Consultez votre messagerie.",
       "sendResetLinkButton": "Envoyer le lien de réinitialisation",
-      "backToSignIn": "Retour à la connexion"
+      "backToSignIn": "Retour à la connexion",
+      "metaTitle": "Connexion — PRESTIGO",
+      "metaDescription": "Connectez-vous à votre compte PRESTIGO pour consulter et gérer vos réservations et vos prochains trajets."
     },
     "oauth": {
       "googleLabel": "Se connecter avec Google",

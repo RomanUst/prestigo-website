@@ -756,7 +756,9 @@
       "alreadyHaveAccountPrompt": "هل لديك حساب بالفعل؟",
       "resetSentMessage": "تم إرسال رابط إعادة التعيين. تحقّق من بريدك الإلكتروني.",
       "sendResetLinkButton": "إرسال رابط إعادة التعيين",
-      "backToSignIn": "العودة إلى تسجيل الدخول"
+      "backToSignIn": "العودة إلى تسجيل الدخول",
+      "metaTitle": "تسجيل الدخول — PRESTIGO",
+      "metaDescription": "سجّل الدخول إلى حسابك في PRESTIGO لعرض حجوزاتك ورحلاتك القادمة وإدارتها."
     },
     "oauth": {
       "googleLabel": "تسجيل الدخول باستخدام Google",
