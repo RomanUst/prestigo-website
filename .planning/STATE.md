@@ -3,10 +3,10 @@ gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
 status: planning
-last_updated: "2026-09-27T18:39:11.638Z"
+last_updated: "2026-09-27T20:00:00.000Z"
 last_activity: 2026-09-27
 progress:
-  total_phases: 0
+  total_phases: 10
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-09-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Planning next milestone (v3.0 shipped 2026-09-27; tech debt parked in ROADMAP Backlog 999.1–999.8)
+**Current focus:** v4.0 Helpdesk + CRM roadmap created (Phases 76-85, 45/45 requirements mapped); next: /gsd-plan-phase 76
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 76 (VPS Infrastructure) — not started
 Plan: —
-Status: Defining requirements
-Last activity: 2026-09-27 — Milestone v4.0 started
+Status: Roadmap created (10 phases, 45/45 requirements mapped) — ready for /gsd-plan-phase 76
+Last activity: 2026-09-27 — v4.0 ROADMAP.md created (Phases 76-85)
 
 ## Accumulated Context
 
@@ -36,6 +36,7 @@ Last activity: 2026-09-27 — Milestone v4.0 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v4.0 roadmap: 10 phases derived from 45 v1 requirements across 12 categories (INFRA/INBOX/WA/SOC/CRM/LEAD/SYNC/HOOK/PANEL/OPS/STAT/GDPR), continuing phase numbering from 75 -> starting at 76. OPS-01/02 folded into Phase 77 (Chatwoot core channels - canned responses/automation are native Chatwoot features, not WhatsApp-specific). GDPR-01/02 folded into Phase 82 (Sync Foundation - erasure needs the outbox, and the privacy-policy update documents the same systems). Execution order: 76 -> (77 || 80) -> 78 -> 79; 80 -> 81 -> 82 (needs 77+80+81) -> 83 -> 84; 85 (Statistics) depends on 80/81/82's data existing. WhatsApp (78) and IG/FB (79) isolated as their own phases per research risk-sequencing (Meta verification lead time, blast-radius reduction); Dashboard App (84) sequenced last among integration phases pending CVE-2025-12245 confirmation. Outbox core built in Phase 81 (leads + site bookings as leads, LEAD-06), extended by Phase 82. Phases 82/83/84 flagged security-relevant for `security:` commit prefix per CLAUDE.md.
 - v3.0 (Phase 73): ar/hi/zh non-Latin + RTL infra shipped. Noto Sans Arabic/Devanagari/SC delivered per-locale via a single `localeFontClassName` ternary in SiteChrome (zero Noto bytes on en/ru/es/fr, no cross-family leak). Physical-direction Tailwind → logical properties; Arabic `dir="rtl"` with `.wordmark { direction: ltr }` to keep the PRESTIGO wordmark un-reversed. DNT price/phone/time tokens bidi-isolated via `interpolateBidi()`/`<bdi>` at the render site on all 30 route pages; FAQPage JSON-LD `acceptedAnswer.text` kept a plain `f.a` string (never a ReactNode) — guarded by strengthened CR-02 backstop. FONT-01 glyph-tofu independently browser-verified (0 tofu) 2026-09-20; security 16/16 threats closed.
 - v3.0: ~~7 static pages render EN on every locale (WINDOWS #7)~~ — FIXED in Phase 74 (74-04, params-forwarded locale).
 - v2.2 roadmap: 3 phases derived from DISP-* and DTRIP-* — Phase 65 (DISP-01..04, dispatch list defaults) is independent of the driver portal. Phase 66 (DTRIP-01,02,07,08 — permanent link + trip sheet) is the foundation the status-marking work builds on; Phase 67 (DTRIP-03,04,05,06 — status marking, note, admin visibility) depends on Phase 66's token/trip-sheet infrastructure. Execution order: (65 ∥ 66) → 67.
@@ -210,6 +211,21 @@ Recent decisions affecting current work:
 - Phase 75: E2E Verification & Launch — VER-01
 - Proposed execution: 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69∥70 after 68; 71/72 pipeline can overlap)
 
+### v4.0 roadmap (Phases 76-85, planning)
+
+- Milestone: Helpdesk + CRM — self-hosted Chatwoot (omnichannel inbox) + EspoCRM (B2B CRM) on a new Hostinger VPS, two-way linked to production; Supabase stays source of truth for bookings/customers; public site never depends on VPS uptime.
+- Phase 76: VPS Infrastructure — INFRA-01..05 (foundation: Docker/Caddy/TLS, backups+restore drill, independent alerting, OS/app upgrade runbook, VPS-offline resilience proof)
+- Phase 77: Chatwoot Deployment + Core Channels — INBOX-01..06, OPS-01/02 (email, widget, Telegram, native reports, canned responses, automation)
+- Phase 78: WhatsApp Cloud API Channel (Coexistence) — WA-01..03 (own phase: highest business risk, Meta verification lead time)
+- Phase 79: Instagram + Facebook Channels — SOC-01/02 (after WhatsApp per blast-radius sequencing)
+- Phase 80: EspoCRM Deployment + Core Entities — CRM-01..05 (parallel to 77-79, only needs Phase 76)
+- Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM) — LEAD-01..05
+- Phase 82: Site ↔ CRM/Chatwoot Sync Foundation — SYNC-01..05, GDPR-01/02 (outbox/identity/backfill/outbox-health/erasure — the hard-engineering dependency root)
+- Phase 83: CRM/Chatwoot → Site Webhooks — HOOK-01..04 (security: HMAC verification, echo-loop prevention)
+- Phase 84: Chatwoot Dashboard App — PANEL-01/02 (security: postMessage/frame-ancestors, CVE-2025-12245; sequenced last among integration phases)
+- Phase 85: Statistics — STAT-01..03 (needs 80/81/82 data)
+- Proposed execution: 76 → (77 ∥ 80) → 78 → 79 (Meta verification for 78 can start early/in parallel with 76-77); 80 → 81 → 82 (needs 77+80+81) → 83 → 84; 85 after 80/81/82
+
 ### Key i18n grounding (verify during /gsd-plan-phase 68)
 
 - `middleware.ts` is a single default export doing CSP nonce (`buildCsp`) + Supabase `updateSession` + CSRF Origin-guard; broad matcher. next-intl locale-middleware must be COMPOSED into this chain, not replace it — highest-risk item.
@@ -364,4 +380,4 @@ Resume file: None
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run /gsd-plan-phase 76 to start planning VPS Infrastructure (v4.0 Phase 76)

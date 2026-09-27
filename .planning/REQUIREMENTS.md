@@ -50,6 +50,7 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 - [ ] **LEAD-02**: Every corporate-form submission is stored and appears as a Lead (with company) in EspoCRM
 - [ ] **LEAD-03**: Every multi-day quote request is stored and appears as a Lead in EspoCRM with its itinerary details
 - [ ] **LEAD-04**: Other lead signals are captured as Leads: abandoned/unpaid checkouts and calculator email captures (with consent-appropriate retention)
+- [ ] **LEAD-06**: Every booking made on the site (paid or not, incl. round-trip and multi-day) also creates/updates a Lead in EspoCRM with source "Website booking"; the Lead status follows the booking (paid → Converted, cancelled/abandoned → Dead)
 - [ ] **LEAD-05**: If inquiry storage fails, the customer submission still succeeds and the existing email path still fires (no regression of today's behaviour)
 
 ### Site → CRM/Chatwoot Sync (SYNC)
@@ -112,16 +113,59 @@ Deferred — tracked, not in this roadmap.
 
 ## Traceability
 
-Filled by roadmap creation.
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| INFRA-01 | Phase 76 | Pending |
+| INFRA-02 | Phase 76 | Pending |
+| INFRA-03 | Phase 76 | Pending |
+| INFRA-04 | Phase 76 | Pending |
+| INFRA-05 | Phase 76 | Pending |
+| INBOX-01 | Phase 77 | Pending |
+| INBOX-02 | Phase 77 | Pending |
+| INBOX-03 | Phase 77 | Pending |
+| INBOX-04 | Phase 77 | Pending |
+| INBOX-05 | Phase 77 | Pending |
+| INBOX-06 | Phase 77 | Pending |
+| WA-01 | Phase 78 | Pending |
+| WA-02 | Phase 78 | Pending |
+| WA-03 | Phase 78 | Pending |
+| SOC-01 | Phase 79 | Pending |
+| SOC-02 | Phase 79 | Pending |
+| CRM-01 | Phase 80 | Pending |
+| CRM-02 | Phase 80 | Pending |
+| CRM-03 | Phase 80 | Pending |
+| CRM-04 | Phase 80 | Pending |
+| CRM-05 | Phase 80 | Pending |
+| LEAD-01 | Phase 81 | Pending |
+| LEAD-02 | Phase 81 | Pending |
+| LEAD-03 | Phase 81 | Pending |
+| LEAD-04 | Phase 81 | Pending |
+| LEAD-05 | Phase 81 | Pending |
+| LEAD-06 | Phase 81 | Pending |
+| SYNC-01 | Phase 82 | Pending |
+| SYNC-02 | Phase 82 | Pending |
+| SYNC-03 | Phase 82 | Pending |
+| SYNC-04 | Phase 82 | Pending |
+| SYNC-05 | Phase 82 | Pending |
+| HOOK-01 | Phase 83 | Pending |
+| HOOK-02 | Phase 83 | Pending |
+| HOOK-03 | Phase 83 | Pending |
+| HOOK-04 | Phase 83 | Pending |
+| PANEL-01 | Phase 84 | Pending |
+| PANEL-02 | Phase 84 | Pending |
+| OPS-01 | Phase 77 | Pending |
+| OPS-02 | Phase 77 | Pending |
+| STAT-01 | Phase 85 | Pending |
+| STAT-02 | Phase 85 | Pending |
+| STAT-03 | Phase 85 | Pending |
+| GDPR-01 | Phase 82 | Pending |
+| GDPR-02 | Phase 82 | Pending |
 
 **Coverage:**
-- v1 requirements: 44 total
-- Mapped to phases: 0
-- Unmapped: 44 ⚠️
+- v1 requirements: 45 total
+- Mapped to phases: 45
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-27*
-*Last updated: 2026-09-27 after initial definition*
+*Last updated: 2026-09-27 after ROADMAP.md creation — all 45 v1 requirements mapped to Phases 76-85*
