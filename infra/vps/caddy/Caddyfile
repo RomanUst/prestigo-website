@@ -1,0 +1,17 @@
+# Phase 76 plan 04, Task 1 (tracer). Only chat.rideprestigo.com so far -
+# Task 2 adds the crm.rideprestigo.com block. Caddy issues/renews Let's
+# Encrypt certs automatically for both site blocks (no `tls` directive
+# needed - automatic HTTPS is the default for a public hostname).
+#
+# D-17: no IP allowlisting - Chatwoot must receive Meta/WhatsApp webhooks
+# and serve the widget publicly.
+
+chat.rideprestigo.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+	}
+
+	reverse_proxy chatwoot-rails:3000
+}
