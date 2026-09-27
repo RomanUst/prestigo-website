@@ -181,5 +181,172 @@ class LocaleScopedTokensTest(unittest.TestCase):
         self.assertEqual(len(text_leaks('zzqx wwvy', 'ru')), 1)
 
 
+EN_DEFAULT_TITLE = 'PRESTIGO — Premium Chauffeur Service Prague'
+EN_DEFAULT_DESCRIPTION = (
+    'Premium chauffeur service in Prague. Airport transfers, intercity routes, corporate accounts. '
+    'Fixed prices, flight tracking, meet & greet.'
+)
+
+
+class TwitterMetaTest(unittest.TestCase):
+    """Plan 75-32 Task 1 (WR-02/WR-03): twitter:* meta is read and English X cards are findings."""
+
+    def test_extract_js_reads_twitter_meta(self):
+        self.assertIn('twitter:title', scanner.EXTRACT_JS)
+        self.assertIn('twitter:description', scanner.EXTRACT_JS)
+
+    def test_english_twitter_title_is_meta_leak_ru(self):
+        leaks = scanner.collect_leaks({'meta': [EN_DEFAULT_TITLE]}, '/fleet', 'ru')
+        self.assertEqual([l['kind'] for l in leaks], ['meta'])
+
+    def test_localized_title_not_a_leak_ru(self):
+        s = 'Автопарк Mercedes — PRESTIGO'
+        self.assertEqual(scanner.collect_leaks({'meta': [s]}, '/fleet', 'ru'), [])
+
+
+class EsFrMetaIdenticalTest(unittest.TestCase):
+    """Plan 75-32 Task 1: es/fr meta identical to the EN page's meta (2+ significant words)."""
+
+    def test_identical_en_description_is_flagged_es(self):
+        data = {'texts': [], 'meta': [EN_DEFAULT_DESCRIPTION]}
+        leaks = scanner.collect_es_fr_leaks(data, set(), 'es', en_meta={EN_DEFAULT_DESCRIPTION})
+        self.assertEqual([l['kind'] for l in leaks], ['meta-identical-to-en'])
+
+    def test_spanish_description_not_flagged(self):
+        s = 'Servicio de chófer premium en Praga. Traslados al aeropuerto y rutas interurbanas.'
+        data = {'meta': [s]}
+        self.assertEqual(scanner.collect_es_fr_leaks(data, set(), 'es', en_meta={EN_DEFAULT_DESCRIPTION}), [])
+
+    def test_two_word_identical_meta_is_flagged_fr(self):
+        # The legacy default title strips to 'Premium Chauffeur' (2 words) —
+        # a 3-word threshold would miss it; the meta rule uses 2.
+        self.assertFalse(scanner.has_significant_words(EN_DEFAULT_TITLE, 3, 'fr'))
+        leaks = scanner.collect_es_fr_leaks({'meta': [EN_DEFAULT_TITLE]}, set(), 'fr', en_meta={EN_DEFAULT_TITLE})
+        self.assertEqual([l['kind'] for l in leaks], ['meta-identical-to-en'])
+
+    def test_brand_only_identical_meta_not_flagged(self):
+        self.assertEqual(scanner.collect_es_fr_leaks({'meta': ['PRESTIGO']}, set(), 'es', en_meta={'PRESTIGO'}), [])
+
+    def test_meta_not_in_en_meta_not_flagged(self):
+        # An English-looking meta that differs from EN is not an identical-to-EN finding.
+        self.assertEqual(
+            scanner.collect_es_fr_leaks({'meta': ['Some other English words']}, set(), 'es', en_meta={EN_DEFAULT_TITLE}),
+            [],
+        )
+
+    def test_positional_call_without_en_meta_unchanged(self):
+        s = 'Founder of PRESTIGO. 10+ years in luxury transportation and 5★ hospitality in Prague.'
+        self.assertEqual(len(scanner.collect_es_fr_leaks({'texts': [s]}, {s}, 'es')), 1)
+        # meta is ignored when en_meta is not given
+        self.assertEqual(scanner.collect_es_fr_leaks({'meta': [EN_DEFAULT_DESCRIPTION]}, set(), 'es'), [])
+
+
+def kinds_values(leaks):
+    return sorted((l['kind'], l['value']) for l in leaks)
+
+
+class JoinedTextTest(unittest.TestCase):
+    """Plan 75-32 Task 2 (WR-03): English split across JSX text nodes is caught at element level."""
+
+    def test_split_byline_ru_is_joined_text_and_en_date(self):
+        data = {'texts': ['Published', '13 July 2026'], 'joined': ['Published 13 July 2026']}
+        leaks = scanner.collect_locale_leaks(data, '/blog/x', 'ru')
+        self.assertEqual(kinds_values(leaks), [('en-date', '13 July 2026'), ('joined-text', 'Published 13 July 2026')])
+
+    def test_localized_byline_ru_no_leak(self):
+        data = {'texts': ['Опубликовано', '13 июля 2026 г.'], 'joined': ['Опубликовано 13 июля 2026 г.']}
+        self.assertEqual(scanner.collect_locale_leaks(data, '/blog/x', 'ru'), [])
+
+    def test_node_level_leak_not_double_reported(self):
+        data = {'texts': ['Book your chauffeur now', 'today'], 'joined': ['Book your chauffeur now today']}
+        leaks = scanner.collect_locale_leaks(data, '/', 'ru')
+        self.assertEqual(kinds_values(leaks), [('text', 'Book your chauffeur now')])
+
+    def test_joined_allowlisted_model_name_not_a_leak_ar(self):
+        data = {'texts': ['Mercedes', 'E-Class'], 'joined': ['Mercedes E-Class']}
+        self.assertEqual(scanner.collect_locale_leaks(data, '/fleet', 'ar'), [])
+
+    def test_collect_joined_leaks_direct(self):
+        data = {'joined': ['Published 13 July 2026', 'Book your chauffeur now today']}
+        leaks = scanner.collect_joined_leaks(data, {'Book your chauffeur now'}, 'zh')
+        self.assertEqual(kinds_values(leaks), [('joined-text', 'Published 13 July 2026')])
+
+    def test_es_joined_identical_to_en(self):
+        s = 'Published by Roman Ustyugov on the company blog'
+        data = {'texts': ['Published by', 'Roman Ustyugov', 'on the company blog'], 'joined': [s]}
+        leaks = scanner.collect_locale_leaks(data, '/blog/x', 'es', en_strings={s}, en_meta=set())
+        self.assertIn(('identical-to-en', s), kinds_values(leaks))
+
+    def test_es_joined_not_double_reported_with_identical_node(self):
+        s = 'Book your chauffeur now'
+        data = {'texts': [s], 'joined': [s + ' today']}
+        leaks = scanner.collect_locale_leaks(data, '/', 'es', en_strings={s, s + ' today'}, en_meta=set())
+        self.assertEqual(kinds_values(leaks), [('identical-to-en', s)])
+
+    def test_missing_joined_key_is_tolerated(self):
+        self.assertEqual(scanner.collect_locale_leaks({'texts': ['Прага']}, '/', 'ru'), [])
+
+
+class EnglishDateTest(unittest.TestCase):
+    """Plan 75-32 Task 2 (WR-04): English-formatted dates on non-EN locales."""
+
+    def test_regex_symbol_exists(self):
+        self.assertTrue(hasattr(scanner, 'ENGLISH_DATE_RE'))
+
+    def test_day_month_year(self):
+        leaks = scanner.collect_date_leaks({'texts': ['2 September 2026'], 'joined': []})
+        self.assertEqual(kinds_values(leaks), [('en-date', '2 September 2026')])
+
+    def test_us_order(self):
+        leaks = scanner.collect_date_leaks({'texts': ['Updated July 13, 2026']})
+        self.assertEqual(kinds_values(leaks), [('en-date', 'July 13, 2026')])
+
+    def test_unique_across_texts_and_joined(self):
+        leaks = scanner.collect_date_leaks({'texts': ['13 July 2026'], 'joined': ['Published 13 July 2026']})
+        self.assertEqual(kinds_values(leaks), [('en-date', '13 July 2026')])
+
+    def test_localized_dates_not_flagged(self):
+        for loc, s in (
+            ('zh', '2026年7月13日'),
+            ('fr', '13 juillet 2026'),
+            ('es', '13 de julio de 2026'),
+            ('ar', '13 يوليو 2026'),
+            ('hi', '13 जुलाई 2026'),
+            ('ru', '13 июля 2026 г.'),
+        ):
+            self.assertEqual(scanner.collect_date_leaks({'texts': [s], 'joined': [s]}), [], loc)
+
+    def test_en_date_applies_to_es_fr(self):
+        for loc in ('es', 'fr'):
+            leaks = scanner.collect_locale_leaks({'texts': ['29 August 2026']}, '/blog', loc, en_strings=set(), en_meta=set())
+            self.assertEqual(kinds_values(leaks), [('en-date', '29 August 2026')], loc)
+
+
+class ExtractJsBrowserTest(unittest.TestCase):
+    """Optional: runs EXTRACT_JS in headless Chromium; skipped when Playwright/Chromium is unavailable."""
+
+    def test_extract_js_twitter_and_joined(self):
+        try:
+            from playwright.sync_api import sync_playwright
+        except Exception:  # pragma: no cover
+            self.skipTest('playwright not installed')
+        html = (
+            '<html><head><title>t</title>'
+            '<meta name="twitter:title" content="Twitter Title Here"></head>'
+            '<body><p>Published <!-- --> 13 July 2026</p></body></html>'
+        )
+        try:
+            with sync_playwright() as p:
+                browser = p.chromium.launch()
+                page = browser.new_page()
+                page.set_content(html)
+                data = page.evaluate(scanner.EXTRACT_JS)
+                browser.close()
+        except Exception as e:  # pragma: no cover
+            self.skipTest(f'chromium unavailable: {e}')
+        self.assertIn('Twitter Title Here', data['meta'])
+        self.assertIn('Published 13 July 2026', data['joined'])
+
+
 if __name__ == '__main__':
     unittest.main()

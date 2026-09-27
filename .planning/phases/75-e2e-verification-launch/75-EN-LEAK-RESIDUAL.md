@@ -47,6 +47,104 @@ All 20 remaining rows have one root cause. `app/[locale]/layout.tsx` exports the
 - es and fr serve the same English og/twitter values on these two pages, but the scanner does not flag them. The Latin-script check only compares visible text to EN, so this is a scanner coverage gap.
 - None of these rows is classified. They are real untranslated text, and they need an app-code fix, which plan 75-30 may not make.
 
+## Extended-scanner pre-fix baseline (plan 75-32)
+
+**Run date:** 2026-09-27, production (`https://rideprestigo.com`), before any 75-31/75-33/75-34 code is deployed. All three runs are GET-only; the Playwright runs abort analytics requests. Each run exits 1, which is the expected pre-fix result.
+
+Plan 75-32 extended the QA harness so it can see every leak class found by the code review and the verifier:
+- `en_leak_rendered.py` now reads `twitter:title` and `twitter:description`.
+- On es/fr it compares meta to the EN page (`meta-identical-to-en`, 2+ words).
+- It evaluates joined element text (`joined-text`), so English split across JSX text nodes is caught.
+- It flags English dates on all 6 non-EN locales (`en-date`).
+- New `share_meta_audit.py` checks the raw server HTML: `status`, `twitter-mirror`, `en-site-default` and `notfound-title`.
+- `notfound_audit.py` now also covers `/blog/this-post-does-not-exist`.
+
+`classifiedResidual` stays `[]`. No finding below is classified away.
+
+| Script | Command | Evidence (committed) | Exit | Findings |
+|---|---|---|---|---|
+| en_leak_rendered | `python3 scripts/qa/en_leak_rendered.py https://rideprestigo.com` (6 locales x 26 pages) | `evidence/75-32-en-leak-rendered-prefix.json` | 1 | 346 text, 0 link |
+| share_meta_audit | `python3 scripts/qa/share_meta_audit.py https://rideprestigo.com` (7 locales x 12 pages) | `evidence/75-32-share-meta-audit-prefix.json` | 1 | 370 |
+| notfound_audit | `python3 scripts/qa/notfound_audit.py https://rideprestigo.com` (7 locales x 3 missing paths + 12 shadowing checks) | `evidence/75-32-notfound-audit-prefix.json` | 1 | 7 (non-shadowing 12/12 PASS, localized 404 14/21 PASS) |
+
+### en_leak_rendered — findings per locale x kind
+
+| Kind | ru | es | fr | ar | hi | zh | total |
+|---|---|---|---|---|---|---|---|
+| `meta` | 53 | – | – | 53 | 53 | 53 | 212 |
+| `meta-identical-to-en` | – | 53 | 53 | – | – | – | 106 |
+| `joined-text` | 1 | 0 | 0 | 1 | 1 | 1 | 4 |
+| `en-date` | 4 | 4 | 4 | 4 | 4 | 4 | 24 |
+| **total** | **58** | **57** | **57** | **58** | **58** | **58** | **346** |
+
+Each locale has 53 meta findings:
+- 48 are `twitter:title` + `twitter:description` set to the EN site default, on 24 pages.
+- 2 are `/login` `og:title` + `og:description`.
+- 3 are the catch-all 404's `description`, `og:title` and `og:description`.
+
+The other two pages are already allowlisted: `/blog/prague-airport-to-city-center` (D-09 EN-only post) and `/book/confirmation` (D-05). On those pages the new kinds go to `allowlisted` per locale, not to findings:
+- 6 meta rows
+- 1 `joined-text` ("Published 9 April 2026", D-09 post)
+- 3 `en-date` (D-09 post)
+
+Distinct values:
+- `joined-text`: "Published 13 July 2026". Found on `/blog/beyond-transport-luxury-chauffeur-service-prague` in ru/ar/hi/zh.
+- `en-date` on the `/blog` cards: "4 September 2026", "2 September 2026", "29 August 2026".
+- `en-date` on the MDX post: "13 July 2026".
+- All `en-date` values appear on all 6 locales.
+- es/fr: outside the allowlisted D-09/D-05 pages, nothing in texts, attrs or joined text is identical to EN.
+
+### share_meta_audit — findings per locale x kind (raw server HTML)
+
+| Kind | en | ru | es | fr | ar | hi | zh | total |
+|---|---|---|---|---|---|---|---|---|
+| `twitter-mirror` | 14 | 14 | 14 | 14 | 14 | 14 | 14 | 98 |
+| `en-site-default` | – | 43 | 43 | 43 | 43 | 43 | 43 | 258 |
+| `notfound-title` | 2 | 2 | 2 | 2 | 2 | 2 | 2 | 14 |
+| `status` | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| **total** | **16** | **59** | **59** | **59** | **59** | **59** | **59** | **370** |
+
+- **`twitter-mirror` (14 per locale):** 7 pages set their own `og:*`: `/`, `/fleet`, `/blog`, the MDX post, the author page, `/routes/prague-vienna` and `/services/airport-transfer`. On each, `twitter:title` and `twitter:description` are still the EN site default. This happens on EN too.
+- **`en-site-default` (43 per locale):**
+
+  | Source | Findings | Keys |
+  |---|---|---|
+  | The 7 pages above | 14 | twitter |
+  | `/login` | 5 | og:title/description/image:alt, twitter x2 |
+  | `/data-deletion` | 5 | same as `/login` |
+  | `/book/confirmation` | 7 | the above + `<title>` and description |
+  | Two 404 paths | 12 | 6 each: description, og x3, twitter x2 |
+
+- **`notfound-title` (2 per locale):** both 404 classes serve `<title>Page Not Found — PRESTIGO | PRESTIGO</title>` in the raw HTML. It is English and the brand appears twice, on every locale including EN.
+- **`status`:** every sample path answered 200 or 404 as expected. No 3xx.
+
+### notfound_audit — findings (hydrated, Playwright)
+
+| Path | en | ru | es | fr | ar | hi | zh |
+|---|---|---|---|---|---|---|---|
+| `/this-page-does-not-exist` | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `/qa/nested/missing-page` | PASS | PASS | PASS | PASS | PASS | PASS | PASS |
+| `/blog/this-post-does-not-exist` (new, WR-01) | title | title | title | title | title | title | title |
+
+On the new path every locale gets the hydrated `document.title` "Not Found — Prestigo | PRESTIGO" from blog/[slug]'s hardcoded English not-found metadata. Status, lang, dir and h1 pass.
+
+### Finding class -> fixing plan
+
+| # | Finding class | Scripts / kinds | Pages | Locales | Fixing plan |
+|---|---|---|---|---|---|
+| 1 | twitter:title/description = EN site default on pages that set their own og (no mirror) | en_leak `meta` / `meta-identical-to-en`; share_meta `twitter-mirror` + `en-site-default` | every page with its own og | all 7 (EN: `twitter-mirror` only) | **75-31** (layout default omits twitter title/description, so Next.js mirrors each page's og) |
+| 2 | Pages without their own og inherit the EN default og/twitter/og:image:alt (and title/description on `/book/confirmation`) | share_meta `en-site-default` | `/data-deletion`, `/book/confirmation` | 6 non-EN | **75-31** (locale-aware `getLocaleSiteMetadata` layout default) |
+| 3 | `/login` og:title/og:description/og:image:alt + twitter = EN default | en_leak `meta` / `meta-identical-to-en`; share_meta `en-site-default` | `/login` | 6 non-EN | **75-31** (localized `/login` share metadata) |
+| 4 | Catch-all 404 description/og/twitter = EN default | en_leak `meta` / `meta-identical-to-en`; share_meta `en-site-default` | `/this-page-does-not-exist` | 6 non-EN | **75-33** (wires the 75-31 localized-404 helper; twitter part also covered by 75-31's mirror) |
+| 5 | Raw-SSR 404 `<title>` brand-doubled + English | share_meta `notfound-title` | `/this-page-does-not-exist`, `/blog/this-post-does-not-exist` | all 7 | **75-33** |
+| 6 | Blog unknown-slug 404: hydrated title "Not Found — Prestigo \| PRESTIGO" + EN default meta | notfound_audit title; share_meta `en-site-default` + `notfound-title` | `/blog/this-post-does-not-exist` | all 7 (`en-site-default` on 6 non-EN) | **75-33** |
+| 7 | Byline "Published" split across JSX nodes | en_leak `joined-text` | `/blog/beyond-transport-luxury-chauffeur-service-prague` | ru, ar, hi, zh | **75-34** |
+| 8 | en-GB dates on the post byline and `/blog` cards | en_leak `en-date` | the MDX post, `/blog` | all 6 non-EN | **75-34** |
+
+**UNMAPPED:** none. Every finding class in the three evidence files maps to 75-31, 75-33 or 75-34, as the planner probe expected. Nothing was added to `deferred-items.md`.
+
+Post-fix expectation: after 75-31, 75-33 and 75-34 deploy (75-35), all three scripts should exit 0 on production. Plan 75-36 uses this as its gate. The allowlisted D-09/D-05 rows stay in `allowlisted`.
+
 ## Disposition rules
 
 Every row has exactly one disposition:
