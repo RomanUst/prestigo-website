@@ -363,8 +363,8 @@ Wave 4 *(blocked on 75-22..75-29 — deploy + re-verification gate)*
 
 Wave 1 *(file-disjoint)*
 
-- [ ] 75-31-PLAN.md — WR-02 + /login (#24/#26): locale-aware layout default metadata, sitewide twitter:* mirroring of og via one central mechanism (Next.js contract test), localized /login share meta, getNotFoundMetadata helper (x7 frozen)
-- [ ] 75-32-PLAN.md — WR-03: en_leak_rendered reads twitter:*, es/fr meta vs EN, JSX-joined text, English dates; new share_meta_audit.py (raw HTML); notfound_audit covers /blog/<unknown>; committed pre-fix prod baseline
+- [x] 75-31-PLAN.md — WR-02 + /login (#24/#26): locale-aware layout default metadata, sitewide twitter:* mirroring of og via one central mechanism (Next.js contract test), localized /login share meta, getNotFoundMetadata helper (x7 frozen)
+- [x] 75-32-PLAN.md — WR-03: en_leak_rendered reads twitter:*, es/fr meta vs EN, JSX-joined text, English dates; new share_meta_audit.py (raw HTML); notfound_audit covers /blog/<unknown>; committed pre-fix prod baseline
 
 Wave 2 *(blocked on 75-31)*
 
@@ -466,4 +466,4 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
 | 72. AI Translation Pipeline & Catalogs | v3.0 | 5/5 | Complete    | 2026-09-17 |
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
-| 75. E2E Verification & Launch | v3.0 | 30/30 | In Progress|  |
+| 75. E2E Verification & Launch | v3.0 | 32/36 | In Progress|  |
