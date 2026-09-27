@@ -182,3 +182,7 @@ Once Tasks 2 and 3 above are complete and this file records their results:
 3. Run `/gsd-complete-milestone v3.0` — creates tag `v3.0`.
 
 These are workflow-level commands that cannot run inside this phase's plan execution — they are the explicit next step after this plan's remaining tasks (2, 3) are resolved.
+
+## Task 2 result: Metricool announcement drafts. SKIPPED (user decision, 2026-09-27)
+
+User answer: "Без анонса" (no announcement). No Metricool posts were created. The copy and visual above stay available if the announcement is wanted later. The draft-capable client from 75-18 is in place (`createMetricoolPost({ ..., draft: true })`).
