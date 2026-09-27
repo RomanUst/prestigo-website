@@ -200,6 +200,93 @@ describe('Next.js metadata resolution contract (real accumulateMetadata)', () =>
   }
 })
 
+describe('buildShareMetadata — per-page localized share metadata', () => {
+  it('returns absolute title, description and a full openGraph block with no twitter key', async () => {
+    const { buildShareMetadata } = await import('@/lib/site-metadata')
+    const meta = buildShareMetadata('ru', 'T', 'D')
+    expect(meta).toEqual({
+      title: { absolute: 'T' },
+      description: 'D',
+      openGraph: {
+        type: 'website',
+        siteName: 'PRESTIGO',
+        locale: 'ru_RU',
+        title: 'T',
+        description: 'D',
+        images: [{ url: '/og-image.jpg', width: 1200, height: 630, alt: 'T' }],
+      },
+    })
+    expect('twitter' in meta).toBe(false)
+  })
+
+  it('uses the EN og:locale for a non-locale segment', async () => {
+    const { buildShareMetadata } = await import('@/lib/site-metadata')
+    expect(ogOf(buildShareMetadata('xx', 'T', 'D')).locale).toBe('en_US')
+  })
+})
+
+describe('getNotFoundMetadata — shared localized 404 metadata', () => {
+  for (const locale of LOCALES) {
+    it(`${locale}: NotFound.metaTitle/metaDescription + noindex/nofollow`, async () => {
+      const { getNotFoundMetadata, buildShareMetadata } = await import('@/lib/site-metadata')
+      const title = str(locale, 'NotFound.metaTitle')
+      const description = str(locale, 'NotFound.metaDescription')
+      const meta = await getNotFoundMetadata(locale)
+      expect(meta).toEqual({
+        ...buildShareMetadata(locale, title, description),
+        robots: { index: false, follow: false },
+      })
+      expect('twitter' in meta).toBe(false)
+    })
+  }
+
+  it('falls back to EN for a non-locale segment without throwing', async () => {
+    const { getNotFoundMetadata } = await import('@/lib/site-metadata')
+    await expect(getNotFoundMetadata('xx')).resolves.toEqual(await getNotFoundMetadata('en'))
+  })
+
+  for (const locale of LOCALES) {
+    it(`${locale}: resolves (real Next.js) to an absolute NotFound title with og/twitter mirroring`, async () => {
+      const { getLocaleSiteMetadata, getNotFoundMetadata } = await import('@/lib/site-metadata')
+      const resolved = await resolveNextMetadata([
+        await getLocaleSiteMetadata(locale),
+        await getNotFoundMetadata(locale),
+      ])
+      const title = str(locale, 'NotFound.metaTitle')
+      const description = str(locale, 'NotFound.metaDescription')
+      expect(resolved.title?.absolute).toBe(title)
+      expect(resolved.title?.absolute).not.toMatch(/\| PRESTIGO$/)
+      expect(resolved.description).toBe(description)
+      expect(resolved.openGraph?.title?.absolute).toBe(title)
+      expect(resolved.openGraph?.description).toBe(description)
+      expect(resolved.twitter?.title?.absolute).toBe(title)
+      expect(resolved.twitter?.description).toBe(description)
+      expect(resolved.robots?.basic).toBe('noindex, nofollow')
+    })
+  }
+})
+
+describe('/login share metadata through the locale layout default', () => {
+  for (const locale of LOCALES) {
+    it(`${locale}: twitter:* mirrors the localized Auth.login strings (real Next.js)`, async () => {
+      const { getLocaleSiteMetadata } = await import('@/lib/site-metadata')
+      const { generateMetadata } = await import('@/app/[locale]/login/layout')
+      const login = await generateMetadata({ params: Promise.resolve({ locale }) })
+      const resolved = await resolveNextMetadata([await getLocaleSiteMetadata(locale), login])
+      const title = str(locale, 'Auth.login.metaTitle')
+      const description = str(locale, 'Auth.login.metaDescription')
+      expect(resolved.title?.absolute).toBe(title)
+      expect(resolved.description).toBe(description)
+      expect(resolved.openGraph?.title?.absolute).toBe(title)
+      expect(resolved.openGraph?.description).toBe(description)
+      expect(resolved.openGraph?.locale).toBe(EXPECTED_OG_LOCALE[locale])
+      expect(resolved.twitter?.title?.absolute).toBe(title)
+      expect(resolved.twitter?.description).toBe(description)
+      expect(resolved.robots?.basic).toBe('noindex, follow')
+    })
+  }
+})
+
 describe('app/[locale]/layout.tsx metadata export', () => {
   it('exports generateMetadata (no static metadata constant) returning the locale default', async () => {
     const mod = (await import('@/app/[locale]/layout')) as Record<string, unknown>
