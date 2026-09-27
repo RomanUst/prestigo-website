@@ -92,6 +92,36 @@ describe('FleetPage — render byte-parity proof (EN golden)', () => {
   })
 })
 
+// 75-24 (GAP-3 / ROADMAP SC #5 / WINDOWS #23): the maintenance card <h3>
+// and <p> must carry a locale-robust wrap rule so translated copy (e.g. ru
+// at 768px) cannot overflow its ~131px text column. Asserted on the
+// element class list directly, independent of any specific locale's copy
+// length, so the guard holds even if future translations change again.
+describe('FleetPage — maintenance card text wraps in every locale (VER-01 GAP-3)', () => {
+  it('every maintenance card <h3> and <p> className carries overflow-wrap:anywhere and hyphens-auto', async () => {
+    const { default: FleetPage } = await import('@/app/[locale]/fleet/page')
+    const { render } = await import('@testing-library/react')
+
+    const PageElement = await FleetPage({ params: Promise.resolve({ locale: 'en' }) })
+    const { container } = render(PageElement)
+
+    const en = readContentJson('en') as { maintenance: { items: { title: string }[] } }
+    expect(en.maintenance.items.length).toBeGreaterThan(0)
+
+    for (const item of en.maintenance.items) {
+      const heading = Array.from(container.querySelectorAll('h3')).find((el) => el.textContent === item.title)
+      expect(heading).toBeTruthy()
+      expect(heading!.className).toContain('[overflow-wrap:anywhere]')
+      expect(heading!.className).toContain('hyphens-auto')
+
+      const body = heading!.parentElement!.querySelector('p')
+      expect(body).toBeTruthy()
+      expect(body!.className).toContain('[overflow-wrap:anywhere]')
+      expect(body!.className).toContain('hyphens-auto')
+    }
+  })
+})
+
 // 75-08 D-06/D-08: /fleet is now driven by content/pages/<locale>/fleet.json —
 // a real Russian render must show the translated hero headline and step 1
 // FAQ question, and show NEITHER of the corresponding hardcoded EN strings.
