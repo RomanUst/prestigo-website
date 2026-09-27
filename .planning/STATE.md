@@ -6,10 +6,10 @@ current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
 stopped_at: Completed 76-08-PLAN.md
-last_updated: "2026-09-27T23:39:39.429Z"
+last_updated: "2026-09-27T23:41:24.956Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 76 execution started
-state_head: c0b236a9443d27984ebf64d8149136dbd4278c2c
+state_head: 06ecaefcb5406cce0bb9c20ca8450edee262758f
 progress:
   total_phases: 10
   completed_phases: 22
@@ -270,6 +270,7 @@ None yet.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
 - 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
 - 75-08: no worktree isolation on this repo — an external concurrent git checkout (fix/payment-link-pi-succeeded) moved HEAD mid-plan and stranded a commit off main; recovered via cherry-pick (no data lost). Future sequential plans on this repo should verify 'git branch --show-current' before every commit, not just at plan start.
+- Phase 76: plans 07/09 and owner parts of 05/06 await owner actions — see 76-OWNER-ACTIONS.md
 
 ## Deferred Items
 
