@@ -2,7 +2,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
+import { hasLocale } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
@@ -12,6 +13,8 @@ import { buildBlogPostingJsonLd } from '@/lib/blog-jsonld'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
 import { blogCategoryKey } from '@/lib/blog-categories'
+import { getNotFoundMetadata } from '@/lib/site-metadata'
+import { locales } from '@/i18n/locales'
 
 export const dynamic = 'force-static'
 // Untranslated {locale, slug} combinations (no localized MDX yet, all of
@@ -48,9 +51,12 @@ export async function generateMetadata({
   // bare getLocale() on a force-static route was the Phase-73 EN-leak bug.
   const { slug, locale } = await params
   const resolved = resolveLocalizedMdx(slug, locale)
-  if (!resolved) return { title: 'Not Found — Prestigo' }
-  const post = findMdxPost(slug, resolved.dir)
-  if (!post) return { title: 'Not Found — Prestigo' }
+  const post = resolved ? findMdxPost(slug, resolved.dir) : undefined
+  // 75-33 (WR-01): an unknown slug gets the localized, absolute, noindex 404
+  // metadata. Only the validated locale reaches the helper — never the slug.
+  if (!resolved || !post) {
+    return hasLocale(locales, locale) ? await getNotFoundMetadata(locale) : {}
+  }
   // canonical → EN for an untranslated localized path (D-07); self-refs the
   // current locale's own URL for a genuinely localized post (CR-01).
   // getAlternates' own D-07 fs-probe (content: { kind: 'blog', key: slug })
@@ -89,6 +95,9 @@ export default async function BlogArticlePage({
   // generateMetadata above), never a bare request-scoped lookup on this
   // force-static route — it is also threaded into ArticleByline.
   const { slug, locale } = await params
+  // 75-33 (WR-05): next-intl requires setRequestLocale per page — pin it here
+  // so locale-prefixed MDX Links never depend on the layout rendering first.
+  setRequestLocale(locale)
 
   // Allowlist preserved from Phase 54 scaffold — defence in depth even
   // with dynamicParams=true. Path-traversal safe.
