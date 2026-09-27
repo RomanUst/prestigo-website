@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 9
+open_count: 7
 waived_count: 0
-fixed_count: 17
-total_count: 26
-last_updated: 2026-09-27T13:16:47.097Z
+fixed_count: 22
+total_count: 29
+last_updated: 2026-09-27T15:53:55.136Z
 ---
 
 # Broken Windows Ledger
@@ -38,9 +38,12 @@ last_updated: 2026-09-27T13:16:47.097Z
 | 21 | 75 | deviation | lib/email.ts |  | D-05 recorded: client emails (email.ts/email-corporate.ts/email-bespoke.ts) are 100% English-only, locale never threaded through -- new capability, not fixed in 75-20 | open |  | 2026-09-26T22:18:07.075Z |  |
 | 22 | 75 | deviation | app/[locale]/not-found.tsx |  | Systemic gap: every locale's unmatched-path 404 renders un-localized root app/not-found.tsx (English) because no catch-all route exists under app/[locale]/ to reach the already-localized boundary -- root-caused in 75-20, explains 75-19-SUMMARY.md's zh/<unknown> observation (universal, not zh-specific) | fixed |  | 2026-09-26T22:18:13.476Z | 2026-09-27T13:16:24.383Z |
 | 23 | 75 | deviation | app/[locale]/fleet/page.tsx |  | overflow_audit 768px: new regression on /ru/fleet -- 2 maintenance-copy paragraphs overflow their container with translated (longer) Russian text; 320/375/1024/1280px clean -- 75-20 recorded not fixed, candidate follow-up for 75-08 | fixed |  | 2026-09-26T22:18:25.711Z | 2026-09-27T13:16:24.566Z |
-| 24 | 75 | deviation | scripts/qa/en_leak_allowlist.json |  | en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope) | open |  | 2026-09-26T22:18:26.259Z |  |
+| 24 | 75 | deviation | scripts/qa/en_leak_allowlist.json |  | en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope) | fixed |  | 2026-09-26T22:18:26.259Z | 2026-09-27T15:53:54.961Z |
 | 25 | 75 | unrun-verify | scripts/qa/booking_e2e.py |  | D-04 RU/AR signed-in account booking path unverified in 75-20: scripts/qa/.e2e-account.json never provided (75-19-SUMMARY.md), both locales auto-skipped. Guest-path locale-following is proven for both ru/ar; only the signed-in variant is unverified. Re-run booking_e2e.py --locales "" --account ru,ar once credentials file exists. | open |  | 2026-09-26T22:18:26.809Z |  |
-| 26 | 75 | deviation | app/[locale]/[...rest]/page.tsx |  | 75-30: localized /login and catch-all 404 still inherit EN siteMetadata (components/SiteChrome.tsx) for og/twitter (+404 description) on every non-EN locale -- 20 en_leak_rendered meta findings ru/ar/hi/zh, es/fr unflagged; needs localized description/openGraph/twitter overrides (app code), not fixed in 75-30 | open |  | 2026-09-27T13:16:47.097Z |  |
+| 26 | 75 | deviation | app/[locale]/[...rest]/page.tsx |  | 75-30: localized /login and catch-all 404 still inherit EN siteMetadata (components/SiteChrome.tsx) for og/twitter (+404 description) on every non-EN locale -- 20 en_leak_rendered meta findings ru/ar/hi/zh, es/fr unflagged; needs localized description/openGraph/twitter overrides (app code), not fixed in 75-30 | fixed |  | 2026-09-27T13:16:47.097Z | 2026-09-27T15:53:55.136Z |
+| 27 | 75 | deviation | app/[locale]/blog/[slug]/page.tsx |  | WR-01 blog unknown-slug 404 rendered an English, brand-doubled title (Not Found — Prestigo \| PRESTIGO) on every locale — fixed by 75-33 via getNotFoundMetadata + locale-aware not-found metadata | fixed |  | 2026-09-27T15:53:44.202Z | 2026-09-27T15:53:54.421Z |
+| 28 | 75 | deviation | lib/site-metadata.ts |  | WR-02 twitter title/description were the English site default on every non-EN page even where og:* was localized — fixed by 75-31 central mirroring + locale-aware layout default | fixed |  | 2026-09-27T15:53:44.378Z | 2026-09-27T15:53:54.600Z |
+| 29 | 75 | deviation | components/ArticleByline.tsx |  | WR-04 byline By/Published/Updated + en-GB dates English on localized posts and /blog cards — fixed by 75-34 | fixed |  | 2026-09-27T15:53:44.554Z | 2026-09-27T15:53:54.786Z |
 
 ````json
 [
@@ -327,10 +330,10 @@ last_updated: 2026-09-27T13:16:47.097Z
     "file": "scripts/qa/en_leak_allowlist.json",
     "line": null,
     "description": "en_leak_rendered residual gaps (75-20): person names (Roman Ustyugov) flagged as leaks on ar/ru/hi/zh, and mid-sentence brand/tech-term Latin runs (Mercedes E-Class, USB-A/USB-C, Wi-Fi, Visa) still trip the 2+/3+-word heuristic when embedded inline -- allowlist needs a proper-noun category and inline-DNT handling; not fixed in 75-20 (scanner/allowlist change out of scope)",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-26T22:18:26.259Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-27T15:53:54.961Z"
   },
   {
     "id": 25,
@@ -351,10 +354,46 @@ last_updated: 2026-09-27T13:16:47.097Z
     "file": "app/[locale]/[...rest]/page.tsx",
     "line": null,
     "description": "75-30: localized /login and catch-all 404 still inherit EN siteMetadata (components/SiteChrome.tsx) for og/twitter (+404 description) on every non-EN locale -- 20 en_leak_rendered meta findings ru/ar/hi/zh, es/fr unflagged; needs localized description/openGraph/twitter overrides (app code), not fixed in 75-30",
-    "status": "open",
+    "status": "fixed",
     "reason": "",
     "recorded_at": "2026-09-27T13:16:47.097Z",
-    "resolved_at": null
+    "resolved_at": "2026-09-27T15:53:55.136Z"
+  },
+  {
+    "id": 27,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "app/[locale]/blog/[slug]/page.tsx",
+    "line": null,
+    "description": "WR-01 blog unknown-slug 404 rendered an English, brand-doubled title (Not Found — Prestigo | PRESTIGO) on every locale — fixed by 75-33 via getNotFoundMetadata + locale-aware not-found metadata",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-27T15:53:44.202Z",
+    "resolved_at": "2026-09-27T15:53:54.421Z"
+  },
+  {
+    "id": 28,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "lib/site-metadata.ts",
+    "line": null,
+    "description": "WR-02 twitter title/description were the English site default on every non-EN page even where og:* was localized — fixed by 75-31 central mirroring + locale-aware layout default",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-27T15:53:44.378Z",
+    "resolved_at": "2026-09-27T15:53:54.600Z"
+  },
+  {
+    "id": 29,
+    "kind": "deviation",
+    "phase": "75",
+    "file": "components/ArticleByline.tsx",
+    "line": null,
+    "description": "WR-04 byline By/Published/Updated + en-GB dates English on localized posts and /blog cards — fixed by 75-34",
+    "status": "fixed",
+    "reason": "",
+    "recorded_at": "2026-09-27T15:53:44.554Z",
+    "resolved_at": "2026-09-27T15:53:54.786Z"
   }
 ]
 ````

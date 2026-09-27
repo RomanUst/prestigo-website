@@ -47,6 +47,40 @@ All 20 remaining rows have one root cause. `app/[locale]/layout.tsx` exports the
 - es and fr serve the same English og/twitter values on these two pages, but the scanner does not flag them. The Latin-script check only compares visible text to EN, so this is a scanner coverage gap.
 - None of these rows is classified. They are real untranslated text, and they need an app-code fix, which plan 75-30 may not make.
 
+## Final status (plan 75-36) — production re-scan 2026-09-27
+
+This re-scan ran after PR #39 (merge `04a591a1`, Vercel Production deployment `6694162361` = success) reached production. All three scanners exit 0. `classifiedResidual` stays `[]`, and `scripts/qa/en_leak_allowlist.json` was not changed by plan 75-36.
+
+| Script | 75-32 prefix | 75-36 (production) | Evidence |
+|---|---|---|---|
+| `en_leak_rendered.py` (6 locales x 26 pages) | 346 text / 0 link, exit 1 | **0 text / 0 link**, exit 0, 0 page errors | `evidence/75-36-en-leak-rendered.json` |
+| `share_meta_audit.py` (7 locales x 12 pages) | 370 findings, exit 1 | **0 findings**, exit 0 | `evidence/75-36-share-meta-audit.json` |
+| `notfound_audit.py` (7 x 3 missing paths + 12 shadowing) | localized 14/21, exit 1 | **localized 21/21, non-shadowing 12/12**, exit 0 | `evidence/75-36-notfound-audit.json` |
+
+### The 20 remaining 75-30 rows
+
+| 75-30 rows | Status (75-36) | Evidence |
+|---|---|---|
+| `/login` og:title/og:description, ru/ar/hi/zh (rows 20-21, 100-101, 189-190, 223-224), 8 rows | **verified fixed**: 0 findings on `/login` in both scanners; ru `/login` twitter:title/og:title "Вход — PRESTIGO" | `evidence/75-36-en-leak-rendered.json`, `evidence/75-36-share-meta-audit.json` |
+| 404 description/og:title/og:description, ru/ar/hi/zh (rows 250-261), 12 rows | **verified fixed**: 0 findings on `/this-page-does-not-exist` in both scanners; hydrated and raw titles localized | same, plus `evidence/75-36-notfound-audit.json` |
+
+Totals: 261 rows. 241 were already closed at 75-30 (200 verified fixed + 41 classified). The remaining 20 are now verified fixed. **Remaining: 0.**
+
+### The 75-32 baseline classes
+
+| # | Finding class | Status (75-36) | Evidence |
+|---|---|---|---|
+| 1 | twitter:* = EN site default on pages with their own og | **verified fixed**: `twitter-mirror` 98 → 0, en_leak `meta`/`meta-identical-to-en` twitter rows → 0 | `75-36-share-meta-audit.json`, `75-36-en-leak-rendered.json` |
+| 2 | Pages without their own og inherit the EN default (`/data-deletion`, `/book/confirmation`) | **verified fixed**: 0 `en-site-default` on both pages; they now show the localized site default | `75-36-share-meta-audit.json` |
+| 3 | `/login` og/twitter EN default | **verified fixed** | `75-36-share-meta-audit.json`, `75-36-en-leak-rendered.json` |
+| 4 | Catch-all 404 description/og/twitter EN default | **verified fixed** | same |
+| 5 | Raw-SSR 404 `<title>` brand-doubled + English | **verified fixed**: `notfound-title` 14 → 0 (e.g. ru "Страница не найдена — PRESTIGO"). The raw shell still has no `lang` attribute (IN-05 residual, deferred in `deferred-items.md` 75-36) | `75-36-share-meta-audit.json` |
+| 6 | Blog unknown-slug 404 English title | **verified fixed**: notfound 7/7 on `/blog/this-post-does-not-exist` | `75-36-notfound-audit.json` |
+| 7 | Byline "Published" split across JSX nodes | **verified fixed**: `joined-text` 4 → 0 | `75-36-en-leak-rendered.json` |
+| 8 | en-GB dates on the post byline and `/blog` cards | **verified fixed**: `en-date` 24 → 0 | `75-36-en-leak-rendered.json` |
+
+The allowlisted D-09 (EN-only JSX post) and D-05 (`/book/confirmation`) rows stay in `allowlisted`, as planned in 75-32. On the D-09 post the new kinds are allowlisted page-level (`en-date` 12, `meta-identical-to-en` 12, `meta` 24). The D-05 page's `meta` allowlisted rows fell from 16 to 0 because its meta is now localized.
+
 ## Extended-scanner pre-fix baseline (plan 75-32)
 
 **Run date:** 2026-09-27, production (`https://rideprestigo.com`), before any 75-31/75-33/75-34 code is deployed. All three runs are GET-only; the Playwright runs abort analytics requests. Each run exits 1, which is the expected pre-fix result.

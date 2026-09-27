@@ -603,3 +603,18 @@ GAP-4 remaining items: **none**. Every check above passes on production.
 | `overflow_audit.py` 320 / 375 on `/blog` + the MDX post (7 locales) | 0 issues (full 21-page sweep) | 0 issues at both widths, `{}` | No regression (localized byline fits) |
 
 Evidence files committed by this plan: `evidence/75-36-en-leak-rendered.json`, `75-36-notfound-audit.json`, `75-36-share-meta-audit.json`, `75-36-overflow-320.json`, `75-36-overflow-375.json`.
+
+### Status updates (plan 75-36)
+
+- **WINDOWS closed** (`gsd-tools windows fixed`), each backed by a PASS row in the per-item table above:
+  - **#24**: en_leak_rendered residual. `en_leak_rendered.py` exits 0 on production (0 text / 0 link).
+  - **#26**: `/login` and catch-all 404 English og/twitter. share_meta 0 findings on `/login` and both 404 paths; en_leak 0 meta findings.
+  - **#27** (new, WR-01): blog unknown-slug 404 English, brand-doubled title. notfound 7/7 on `/blog/this-post-does-not-exist`.
+  - **#28** (new, WR-02): twitter:* English site default. share_meta `twitter-mirror`/`en-site-default` 0.
+  - **#29** (new, WR-04): byline By/Published/Updated + en-GB dates. en_leak `joined-text`/`en-date` 0; verifier curl clean.
+- **WINDOWS not touched:** **#25** (GAP-1, closed by the user override in 75-VERIFICATION.md; left for the verifier/orchestrator).
+- **Remaining GAP-4 items:** none. No check failed, so no row was left open for GAP-4.
+- **Explicitly deferred** (not English leaks; see `deferred-items.md` "## 75-36"): WR-06, IN-01, IN-02, IN-03, IN-04, the IN-05 `lang` residual on the raw 404 shell, twitter:image on custom-og pages, absent og:locale on openGraph overrides, and the localized site-default share title on pages without their own og.
+- REQUIREMENTS.md, STATE.md and ROADMAP.md were not changed by this plan. VER-01 completion is decided by the verifier / phase completion.
+
+**Ready for re-verification: /gsd-verify-work 75 (or a verifier re-run).**
