@@ -116,3 +116,14 @@ covers; log everything else here instead of silently expanding scope).
   Vercel dashboard + redeploy, already logged in STATE.md's Phase 75 input
   notes. No new action here beyond confirming it systematically across all
   7 locales.
+
+- **75-28 (out of scope): ArticleByline "By" / "Published" / "Updated"
+  words and the `en-GB` byline date stay English on localized blog posts.**
+  `components/ArticleByline.tsx` hard-codes the three words and
+  `formatBylineDate()` (lib/authors.ts) always formats with `en-GB`; the
+  same `en-GB` date shows on `/<locale>/blog` cards (`components/BlogCard.tsx`).
+  The 75-26 rendered scan did not flag them (short tokens / date), so they
+  carry no `fix:75-28` ledger row. The fix would add `labels.by/published/
+  updated` to `content/pages/*/authors/roman-ustyugov.json` and a
+  locale-aware date formatter (pick Latin vs native digits for ar/hi
+  deliberately). lib/authors.ts must stay unchanged for the Person JSON-LD.
