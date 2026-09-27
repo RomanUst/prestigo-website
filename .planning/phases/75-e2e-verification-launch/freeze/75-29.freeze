@@ -1,0 +1,27 @@
+# 75-29 (GAP-4e): Latin-script English fragments inside translated hi/ru
+# catalogs on the audited pages. User decision (2026-09-27): keep-per-glossary
+# — hi keeps Latin travel/tech loanwords per i18n/glossary.json
+# locales.hi.toneGuide (hi-scoped inlineTerms in scripts/qa/en_leak_allowlist.json);
+# only genuinely untranslated words/phrases were rewritten in-session (D-08).
+# ru follows the ru toneGuide (Latin loanwords rewritten in Russian).
+#
+# content/pages/en/book.json is already frozen as a whole by 75-06.freeze, so
+# the hi /book edits need no extra pattern here.
+
+# hi/ru units whose locale values were rewritten in-session by 75-29
+# (EN sources unchanged; array units are frozen whole).
+content/pages/en/services/city-rides.json::editorial
+content/pages/en/services/concierge.json::editorial
+content/pages/en/services/concierge.json::pairsWell
+content/pages/en/services/concierge.json::faqs
+content/routes/en/prague-vienna.json::openingParagraphs
+content/routes/en/prague-vienna.json::journeyStops
+content/routes/en/prague-vienna.json::dayTrip.configurations
+messages/en.json::Hero.priceAnchor
+messages/en.json::Services.cards
+content/pages/en/services/airport-transfer.json::hero.intro
+content/pages/en/services/airport-transfer.json::meetGreet.paragraph2
+content/pages/en/services/airport-transfer.json::meetGreet.items
+content/pages/en/services/airport-transfer.json::faqs
+content/pages/en/services/airport-transfer.json::metadata.description
+content/pages/en/corporate.json::faqs

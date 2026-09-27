@@ -143,7 +143,13 @@
     { "value": "Innere Stadt", "reason": "Vienna 1st district — official German toponym" },
     { "value": "Ringstraße", "reason": "Vienna boulevard — official German toponym" },
     { "value": "Welschriesling", "reason": "grape variety name — proper noun (content/pages/*/book/multi-day.json wine-region example)" },
-    { "value": "Blaufränkisch", "reason": "grape variety name — proper noun (content/pages/*/book/multi-day.json wine-region example)" }
+    { "value": "Blaufränkisch", "reason": "grape variety name — proper noun (content/pages/*/book/multi-day.json wine-region example)" },
+    { "value": "U-Bahn", "locales": ["hi"], "reason": "Vienna metro system name — proper noun kept verbatim (content/pages/hi/services/intercity-routes.json editorial); hi-scoped by 75-29" },
+    { "value": "Nordautobahn", "locales": ["hi"], "reason": "official name of the Austrian A5 motorway — proper noun (content/routes/hi/prague-vienna.json routeNarrative); hi-scoped by 75-29" },
+    { "value": "Kunsthistorisches Museum", "locales": ["hi"], "reason": "Vienna museum name — proper noun (content/routes/hi/prague-vienna.json dayTrip); hi-scoped by 75-29" },
+    { "value": "Wiener Staatsoper", "locales": ["hi"], "reason": "Vienna State Opera official name — proper noun (content/routes/hi/prague-vienna.json dayTrip); hi-scoped by 75-29" },
+    { "value": "Naschmarkt", "locales": ["hi"], "reason": "Vienna market name — proper noun (content/routes/hi/prague-vienna.json dayTrip); hi-scoped by 75-29" },
+    { "value": "MuseumsQuartier", "locales": ["hi"], "reason": "Vienna museum-district name — proper noun (content/routes/hi/prague-vienna.json dayTrip); hi-scoped by 75-29" }
   ],
   "inlineTerms": [
     { "value": "Mercedes", "reason": "vehicle brand (bare form of dnt 'Mercedes-Benz'), used inline before E-Class/S-Class/V-Class in translated sentences" },
@@ -168,7 +174,27 @@
     { "value": "Apple Pay", "reason": "payment product name — never translated" },
     { "value": "Google Pay", "reason": "payment product name — never translated" },
     { "value": "(Business)", "reason": "parenthesised vehicle tier label (Business tier, sibling of tierNames 'First Class'/'Business Van') shown next to a translated class name" },
-    { "value": "(First)", "reason": "parenthesised vehicle tier label (First Class tier) shown next to a translated class name" }
+    { "value": "(First)", "reason": "parenthesised vehicle tier label (First Class tier) shown next to a translated class name" },
+    { "value": "airport", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide ('common English tech/travel terms (airport, flight, terminal) stay as-is') — user decision keep-per-glossary (75-29)" },
+    { "value": "Airport", "locales": ["hi"], "reason": "hi travel loanword (sentence-initial / airport-name form) kept in Latin per i18n/glossary.json locales.hi.toneGuide — user decision keep-per-glossary (75-29)" },
+    { "value": "flight", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide ('common English tech/travel terms (airport, flight, terminal) stay as-is') — user decision keep-per-glossary (75-29)" },
+    { "value": "terminal", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide ('common English tech/travel terms (airport, flight, terminal) stay as-is') — user decision keep-per-glossary (75-29)" },
+    { "value": "Terminal", "locales": ["hi"], "reason": "hi travel loanword (airport signage form, 'Terminal 1/2') kept in Latin per i18n/glossary.json locales.hi.toneGuide — user decision keep-per-glossary (75-29)" },
+    { "value": "Arrivals", "locales": ["hi"], "reason": "hi travel loanword (PRG airport signage 'Arrivals' hall) kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "arrivals", "locales": ["hi"], "reason": "hi travel loanword (lower-case 'arrivals' hall/board) kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "pickup", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "drop-off", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "driver", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "chauffeur", "locales": ["hi"], "reason": "hi chauffeur-travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "door-to-door", "locales": ["hi"], "reason": "hi travel loanword kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "vignette", "locales": ["hi"], "reason": "hi travel loanword (Czech/Austrian motorway toll sticker) kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "checkout", "locales": ["hi"], "reason": "hi tech loanword (online booking checkout step) kept in Latin per i18n/glossary.json locales.hi.toneGuide tech-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "live", "locales": ["hi"], "reason": "hi tech loanword ('live' status link / live flight data) kept in Latin per i18n/glossary.json locales.hi.toneGuide tech-term rule — user decision keep-per-glossary (75-29)" },
+    { "value": "Door-to-door", "locales": ["hi"], "reason": "sentence-initial form of the hi travel loanword 'door-to-door' kept in Latin per i18n/glossary.json locales.hi.toneGuide travel-term rule — user decision keep-per-glossary (75-29, content/routes/hi/prague-vienna.json inclusions)" },
+    { "value": "Google Ads", "locales": ["hi"], "reason": "advertising product name — never translated (messages/hi.json CookieBanner); hi-scoped by 75-29, other locales triaged with the 75-30 catalog deferred log" },
+    { "value": "Instagram", "locales": ["hi"], "reason": "social network brand — never translated (messages/hi.json CookieBanner); hi-scoped by 75-29, other locales triaged with the 75-30 catalog deferred log" },
+    { "value": "Facebook", "locales": ["hi"], "reason": "social network brand — never translated (messages/hi.json CookieBanner); hi-scoped by 75-29, other locales triaged with the 75-30 catalog deferred log" },
+    { "value": "Consent Mode", "locales": ["hi"], "reason": "Google product feature name ('Consent Mode v2') — never translated (messages/hi.json CookieBanner.svcGa4Desc); hi-scoped by 75-29" }
   ],
   "classifiedResidual": []
 }

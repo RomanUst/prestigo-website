@@ -1235,7 +1235,7 @@
     },
     "messages/en.json::Hero.priceAnchor": {
       "enHash": "sha256:8c6a4b8c6ae46fd8894baa0eec94e6811e251f72c69ffec87c7613d3d2b17a95",
-      "lastTranslatedAt": "2026-09-18T07:35:08.798Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "messages/en.json::Hero.scroll": {
       "enHash": "sha256:291873e31ccb2289508f7e02cb47ce5e8f62b31a51f07513b407d359a9aaa2c7",
@@ -1379,7 +1379,7 @@
     },
     "messages/en.json::Services.cards": {
       "enHash": "sha256:40f28d0efbaaa571529d60d660b90347cd114a0fbc6f8a30524f9e4ae717fa92",
-      "lastTranslatedAt": "2026-09-18T07:35:08.798Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "messages/en.json::Services.fromPrice": {
       "enHash": "sha256:22592b12738868fc822ac31809e8ff1faa76856a30bd328530a6b3f1a4a1876d",
@@ -6215,7 +6215,7 @@
     },
     "content/routes/en/prague-vienna.json::openingParagraphs": {
       "enHash": "sha256:ce0b8a1de658bd76235c9dffa16b31eddd862ffe71f1d078ae2ca7bf094c8bda",
-      "lastTranslatedAt": "2026-09-18T13:19:18.316Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/routes/en/prague-vienna.json::routeNarrative.headingLine1": {
       "enHash": "sha256:8abe299c47fe73d11750d8c5017bb2d0b4499379162fe72f2b4faa42c872afa7",
@@ -6259,7 +6259,7 @@
     },
     "content/routes/en/prague-vienna.json::journeyStops": {
       "enHash": "sha256:9d78e812f59bf0c3f5f4a2bffb77f0e978aadbf2f2305c85a062e352492118c2",
-      "lastTranslatedAt": "2026-09-18T13:19:18.316Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/routes/en/prague-vienna.json::goodToKnow": {
       "enHash": "sha256:cb1f42b9b26f705cc5e73df3ca95c30e3b8789850c9b6f532e9c9868deb9a92a",
@@ -6283,7 +6283,7 @@
     },
     "content/routes/en/prague-vienna.json::dayTrip.configurations": {
       "enHash": "sha256:e216e2903695f77d363be51e7d5ae2df98025e8d91fc4bbb68a24b6cb5def7e2",
-      "lastTranslatedAt": "2026-09-18T13:19:18.316Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/routes/en/prague-vienna.json::dayTrip.footnote": {
       "enHash": "sha256:5e4646c7f07fca4dc813a9267a78cc41098ef7b6fbe1694036467736295d0220",
@@ -7127,7 +7127,7 @@
     },
     "content/pages/en/corporate.json::faqs": {
       "enHash": "sha256:27f63d1a2091fba62e45719c6be4cd5c27c53269ceb7e9960fc03959e09f05a2",
-      "lastTranslatedAt": "2026-09-18T13:19:18.316Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/corporate.json::testimonial.quote": {
       "enHash": "sha256:34f80233c9189f05f66cb4b8fdf6a0a91ebb4ed0ef8bc71d6141e37f45ef9f60",
@@ -7611,7 +7611,7 @@
     },
     "content/pages/en/services/airport-transfer.json::metadata.description": {
       "enHash": "sha256:49184b49a65d73623779bcf32881c8393ac5623dfe2594ff894b132fa2a86347",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/airport-transfer.json::metadata.ogTitle": {
       "enHash": "sha256:6e9ddf4f0b56307069d049495922aa680d6d0aeeb7c395c3025b553ee5c640de",
@@ -7631,7 +7631,7 @@
     },
     "content/pages/en/services/airport-transfer.json::hero.intro": {
       "enHash": "sha256:3bff730bd417eae30598ccfefb19d9f79915ec6b5e1d32c4231c11387ba18c9d",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/airport-transfer.json::hero.ctaPrimary": {
       "enHash": "sha256:51d153d33ea7de75f5a5b622568bae0c3f57cea7bec2d7b799584e106d35d2bf",
@@ -7663,11 +7663,11 @@
     },
     "content/pages/en/services/airport-transfer.json::meetGreet.paragraph2": {
       "enHash": "sha256:240b0d299b45f0c6e6b4d44b27b1794406876019057aa60f566be4080373ee7c",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/airport-transfer.json::meetGreet.items": {
       "enHash": "sha256:94fd53fb927130c9f004382f12c5b411d19f93db45859d8e57c9b550f26b7acd",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/airport-transfer.json::howItWorksHeading": {
       "enHash": "sha256:9c870aa6e5e93270170d5a81277ad3e623afe8d4efd186d3e28f3d2b646d52e6",
@@ -7707,7 +7707,7 @@
     },
     "content/pages/en/services/airport-transfer.json::faqs": {
       "enHash": "sha256:546e8b3e94ff6d82e756e9f33d899d5c12b4dfc66b00010356bba8e4ae4a7add",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/airport-transfer.json::cta.label": {
       "enHash": "sha256:405faf276de89a52f8a86b53c2b1bf781b5b316d4e7a2977e655fd6e664e8fbe",
@@ -7795,7 +7795,7 @@
     },
     "content/pages/en/services/city-rides.json::editorial": {
       "enHash": "sha256:62ccacea02c9fb76dc423d89393c7225eda1c8be634d0420c9544105229da9a2",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/city-rides.json::useCasesHeading": {
       "enHash": "sha256:13de039dea77ccae8e89c6fca57100f7140011443917c4f78d9ea8061ab6b56d",
@@ -7879,7 +7879,7 @@
     },
     "content/pages/en/services/concierge.json::editorial": {
       "enHash": "sha256:be2b3004504178b4333cf1a92174302cfcb51581f0fc3d8e1e250b3a6cc40fdc",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/concierge.json::howItWorksHeading": {
       "enHash": "sha256:9c870aa6e5e93270170d5a81277ad3e623afe8d4efd186d3e28f3d2b646d52e6",
@@ -7899,7 +7899,7 @@
     },
     "content/pages/en/services/concierge.json::pairsWell": {
       "enHash": "sha256:7e5a4222aeb32d522417e6ae728b6bf4be5d3fbd61248bb903b5797f2f34db24",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/concierge.json::faqHeading": {
       "enHash": "sha256:9a72221a27476f3e907767bc2614ae6aaa0a45c60543a23f89786b571897bb75",
@@ -7907,7 +7907,7 @@
     },
     "content/pages/en/services/concierge.json::faqs": {
       "enHash": "sha256:63d6346d1a2a1bf3713d77f046711a81e6201d178bb99b6fd427a2029cb82e21",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "lastTranslatedAt": "2026-09-27T12:15:49.790Z"
     },
     "content/pages/en/services/concierge.json::cta.label": {
       "enHash": "sha256:9a95107ccaf002c7b05cfbad151ccefd6d8256dc63cfa2696df47bea4f1a6edd",
