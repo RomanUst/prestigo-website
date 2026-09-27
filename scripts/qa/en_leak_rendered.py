@@ -7,13 +7,17 @@ one D-09 EN-only JSX post, a deliberately-missing URL, and /book/confirmation),
 loads the rendered production page after hydration and flags:
 
   - ru/ar/hi/zh: any visible text node, placeholder/aria-label/alt/title
-    attribute, <title>, meta description, og:title/og:description, FAQPage
+    attribute, <title>, meta description, og:title/og:description,
+    twitter:title/twitter:description (Plan 75-32), FAQPage
     question/answer text, or route Service name/description containing a run
     of 2+ Latin words (3+ letters) not covered by the allowlist.
   - es/fr: any such string of 3+ words that is byte-identical to the same
     page's EN rendering (after allowlist stripping — a string that strips to
     nothing, e.g. a place/tier name, is not a leak; one that still has 3+
     words after stripping IS a leak even though the raw bytes match EN).
+    Meta values (title, description, og:*, twitter:*) identical to the same
+    page's EN meta with 2+ significant words are 'meta-identical-to-en'
+    (Plan 75-32 — the es/fr metadata blind spot).
   - all non-EN locales: any internal anchor (href starting with a single
     slash) that does not start with /{locale}/ or equal /{locale} — i.e. an
     internal link that would drop the locale prefix.
@@ -210,6 +214,12 @@ EXTRACT_JS = """() => {
     if (ogTitle && ogTitle.content) out.push(ogTitle.content);
     const ogDesc = document.querySelector('meta[property="og:description"]');
     if (ogDesc && ogDesc.content) out.push(ogDesc.content);
+    // Plan 75-32 (WR-02): the X card is a separate metadata channel — an
+    // English twitter:title/description next to a localized og:* is a leak.
+    const twTitle = document.querySelector('meta[name="twitter:title"]');
+    if (twTitle && twTitle.content) out.push(twTitle.content);
+    const twDesc = document.querySelector('meta[name="twitter:description"]');
+    if (twDesc && twDesc.content) out.push(twDesc.content);
     return out;
   }
   function jsonLdNodes() {
@@ -368,12 +378,23 @@ def collect_leaks(data: dict, path: str, locale=None) -> list:
     return leaks
 
 
-def collect_es_fr_leaks(data: dict, en_strings: set, locale=None) -> list:
+def collect_es_fr_leaks(data: dict, en_strings: set, locale=None, en_meta=None) -> list:
+    """es/fr: strings byte-identical to the same page's EN rendering.
+
+    texts + attrs: identical to `en_strings` with 3+ significant words -> 'identical-to-en'.
+    meta (only when `en_meta` is given): identical to the EN page's meta with
+    2+ significant words -> 'meta-identical-to-en' (Plan 75-32: the legacy
+    default title strips to 2 words, so a 3-word threshold would miss it).
+    """
     leaks = []
     candidates = list(data.get('texts', [])) + list(data.get('attrs', []))
     for text in candidates:
         if text in en_strings and has_significant_words(text, 3, locale):
             leaks.append({'kind': 'identical-to-en', 'value': text[:200]})
+    if en_meta:
+        for text in data.get('meta', []):
+            if text in en_meta and has_significant_words(text, 2, locale):
+                leaks.append({'kind': 'meta-identical-to-en', 'value': text[:200]})
     return leaks
 
 
@@ -438,6 +459,7 @@ def main() -> int:
 
     results: dict = {}
     en_baseline: dict = {}  # path -> set of EN strings (texts + attrs), only built if needed
+    en_meta_baseline: dict = {}  # path -> set of EN meta values (title/description/og:*/twitter:*)
 
     try:
         with sync_playwright() as p:
@@ -460,6 +482,7 @@ def main() -> int:
                     url = build_url(base, 'en', path)
                     data = collect_page_data(page, url)
                     en_baseline[path] = set(data.get('texts', [])) | set(data.get('attrs', []))
+                    en_meta_baseline[path] = set(data.get('meta', []))
 
             for loc in requested_locales:
                 results[loc] = {}
@@ -468,7 +491,8 @@ def main() -> int:
                     data = collect_page_data(page, url)
 
                     if loc in ('es', 'fr'):
-                        leaks = collect_es_fr_leaks(data, en_baseline.get(path, set()), loc)
+                        leaks = collect_es_fr_leaks(data, en_baseline.get(path, set()), loc,
+                                                    en_meta=en_meta_baseline.get(path, set()))
                     else:
                         leaks = collect_leaks(data, path, loc)
                     link_leaks = collect_link_leaks(data, loc)
