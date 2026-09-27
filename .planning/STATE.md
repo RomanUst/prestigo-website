@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
-stopped_at: Completed 76-03-PLAN.md
-last_updated: "2026-09-27T22:03:39.932Z"
+stopped_at: Completed 76-04-PLAN.md
+last_updated: "2026-09-27T22:37:02.648Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 76 execution started
-state_head: 52b599b3aba76ae24a717ad839dc682f3cfadb7f
+state_head: abb8798787f81ad1e6eaddb2baed4246402fcdf7
 progress:
   total_phases: 10
   completed_phases: 22
   total_plans: 9
-  completed_plans: 3
-  percent: 33
+  completed_plans: 4
+  percent: 44
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 ## Current Position
 
 Phase: 76 (VPS Infrastructure) — EXECUTING
-Plan: 4 of 9
+Plan: 5 of 9
 Status: Ready to execute
 Last activity: 2026-09-27 — Phase 76 execution started
 
@@ -172,6 +172,9 @@ Recent decisions affecting current work:
 - [Phase 76]: 76-02: config files written via mktemp+mv need an explicit chmod 0644 - mktemp defaults to 0600, which broke the plan's own unprivileged verify commands (apt-config dump, cat /etc/docker/daemon.json) on the first bootstrap run; fixed and re-verified end-to-end (Rule 1 auto-fix).
 - [Phase 76]: 76-03: owner-approved B2 bucket region deviation from D-05 — us-east-005 (not EU); restic client-side encryption + Backblaze DPF participation accepted as rationale
 - [Phase 76]: 76-03: D-10 evidence obtained via live Hostinger VPS API (same token authorizes it) rather than the owner-confirmation fallback — backups list returned 0 entries, consistent with a newly created host
+- [Phase 76]: 76-04: Docker Hub v2 tags API queried live at execution time for all six pinned images (chatwoot/chatwoot:v4.18.0-ce, pgvector/pgvector:0.8.6-pg16, redis:7.4.11-alpine, caddy:2.11.4-alpine, espocrm/espocrm:10.0.8, mariadb:11.4.13); namespace/pull-count re-checked for the four non-audited images per D-16.
+- [Phase 76]: 76-04: EspoCRM volume layout follows the current (non-legacy) espocrm-docker contract - data/custom/client-custom mounted as three separate volumes, confirmed by reading docker-entrypoint.sh/entrypoint-utils.sh from espocrm/espocrm-docker@master; mounting the whole /var/www/html tree is now a deprecated legacy method that can hard-abort on a fresh mount.
+- [Phase 76]: 76-04: found and worked around two real upstream/procedural defects - (1) Caddyfile single-file bind mounts go stale after rsync's temp-file+rename, need a container restart not just caddy reload; (2) espocrm-docker's actionInstall hardcodes set-password admin regardless of ESPOCRM_ADMIN_USERNAME, restart-looping the install forever with a non-default admin username. Both fixed live and documented as standing procedures in infra/vps/runbooks/app-deploy.md for plans 76-06/76-09.
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -312,8 +315,8 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-27T22:03:39.868Z
-Stopped at: Completed 76-03-PLAN.md
+Last session: 2026-09-27T22:36:50.831Z
+Stopped at: Completed 76-04-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -388,6 +391,7 @@ Resume file: None
 | Phase 75 P08 | 20min | 2 tasks | 11 files |
 | Phase 76 P02 | 39min | 2 tasks | 3 files |
 | Phase 76 P03 | 35min | 2 tasks | 6 files |
+| Phase 76 P04 | ~2h20m | 3 tasks | 9 files |
 
 ## Operator Next Steps
 

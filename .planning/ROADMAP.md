@@ -114,7 +114,7 @@ See [milestones/v2.2-ROADMAP.md](milestones/v2.2-ROADMAP.md) for full phase deta
   4. The VPS applies unattended security OS updates; a documented runbook (backup → upgrade → smoke check) governs Chatwoot/EspoCRM version upgrades.
   5. With the VPS fully offline, the public site, booking wizard, Stripe payment and all emails keep working (real outage test + repo guard test). The "no lead or booking event is lost — delivered once the VPS is back" half is verified in Phases 81/82 where the outbox exists.
 
-**Plans**: 3/9 plans executed
+**Plans**: 4/9 plans executed
 
 Plans:
 **Wave 1**
@@ -127,7 +127,7 @@ Plans:
 - [x] 76-03-PLAN.md — Owner-approved chat/crm A records + Resend SMTP and B2 EU credentials on the VPS
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 76-04-PLAN.md — Chatwoot + EspoCRM pinned Compose stacks behind Caddy with auto-renewing HTTPS
+- [x] 76-04-PLAN.md — Chatwoot + EspoCRM pinned Compose stacks behind Caddy with auto-renewing HTTPS
 
 **Wave 5** *(blocked on Wave 4 completion)*
 - [ ] 76-05-PLAN.md — Nightly restic backups to B2 EU, upgrade runbook, owner custody of secrets + 2FA
@@ -297,7 +297,7 @@ Plans:
 | 73. Non-Latin & RTL Infra (AR, HI, ZH) | v3.0 | 14/14 | Complete    | 2026-09-20 |
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
-| 76. VPS Infrastructure | v4.0 | 3/9 | In Progress|  |
+| 76. VPS Infrastructure | v4.0 | 4/9 | In Progress|  |
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 0/0 | Not started | - |
 | 78. WhatsApp Cloud API Channel (Coexistence) | v4.0 | 0/0 | Not started | - |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
