@@ -16,6 +16,15 @@ import { getPageContent } from '@/lib/page-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { getAllPosts } from '@/lib/blog'
+
+// Blog posts linked from the "Airport guides" block, in display order. A slug
+// with no post in the current locale is simply skipped.
+const GUIDE_SLUGS = [
+  'prague-airport-meet-and-greet',
+  'prague-airport-arrivals-guide',
+  'prague-to-munich-airport-private-transfer',
+]
 
 type AirportTransferContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -29,6 +38,7 @@ type AirportTransferContent = {
   journeyTimes: { paragraph1: string; paragraph2: string; items: { place: string; time: string }[] }
   vehicleClassesHeading: string
   vehicleClasses: { name: string; tag: string; cap: string; price: string; body: string }[]
+  guidesHeading: string
   faqsHeading: string
   faqs: { q: string; a: string }[]
   cta: { label: string; headingLine1: string; headingItalic: string; buttonText: string }
@@ -87,6 +97,8 @@ export default async function AirportTransferPage() {
 
   const features = content.features
   const faqs = content.faqs
+  const posts = getAllPosts(locale)
+  const guides = GUIDE_SLUGS.flatMap((slug) => posts.filter((p) => p.slug === slug))
   const howItWorks = content.howItWorks
   const journeyTimes = content.journeyTimes.items
   const meetGreetItems = content.meetGreet.items
@@ -280,6 +292,32 @@ export default async function AirportTransferPage() {
       </section>
 
       <Divider />
+
+      {/* Airport guides — internal links to the blog posts that support this page */}
+      {guides.length > 0 && (
+        <>
+          <section className="bg-anthracite py-16 md:py-24">
+            <div className="max-w-7xl mx-auto px-6 md:px-12">
+              <p className="label mb-6">{content.guidesHeading}</p>
+              <span className="copper-line mb-10 block" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {guides.map((post) => (
+                  <a
+                    key={post.slug}
+                    href={localizedHref(locale, `/blog/${post.slug}`)}
+                    className="border border-anthracite-light p-8 block hover:border-[var(--copper)] transition-colors"
+                  >
+                    <h3 className="font-display font-light text-[20px] text-offwhite mb-3">{post.title}</h3>
+                    <p className="body-text text-[12px]" style={{ lineHeight: '1.9' }}>{post.description}</p>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <Divider />
+        </>
+      )}
 
       {/* FAQ */}
       <section className="bg-anthracite py-16 md:py-24">
