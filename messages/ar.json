@@ -736,6 +736,21 @@
     "toggleEnabled": "مُفعّل",
     "toggleDisabled": "مُعطّل"
   },
+  "ChatLauncher": {
+    "openAria": "فتح المحادثة",
+    "closeAria": "إغلاق قائمة المحادثة",
+    "menuAria": "طرق التواصل معنا",
+    "chatOnSite": "الدردشة عبر الموقع",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "replyTimeHint": "عادةً ما نردّ خلال دقائق قليلة",
+    "widgetLoading": "جارٍ فتح المحادثة…",
+    "widgetError": "الدردشة المباشرة غير متاحة حاليًا — يُرجى تجربة WhatsApp أو Telegram بدلًا من ذلك.",
+    "widget": {
+      "welcomeTitle": "مرحبًا بكم، معكم Prestigo",
+      "welcomeDescription": "اسألونا عن رحلة نقل أو عرض سعر أو حجزكم. نردّ هنا وعبر البريد الإلكتروني."
+    }
+  },
   "Errors": {
     "genericRetry": "حدث خطأ ما. يُرجى المحاولة مرة أخرى.",
     "rateLimited": "عدد المحاولات كبير جدًا. يُرجى المحاولة مرة أخرى بعد دقيقة.",

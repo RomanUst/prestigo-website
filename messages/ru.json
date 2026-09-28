@@ -736,6 +736,21 @@
     "toggleEnabled": "Включено",
     "toggleDisabled": "Отключено"
   },
+  "ChatLauncher": {
+    "openAria": "Открыть чат",
+    "closeAria": "Закрыть меню чата",
+    "menuAria": "Способы связи с нами",
+    "chatOnSite": "Чат на сайте",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "replyTimeHint": "Обычно мы отвечаем в течение нескольких минут",
+    "widgetLoading": "Открываем чат…",
+    "widgetError": "Онлайн-чат сейчас недоступен — попробуйте WhatsApp или Telegram.",
+    "widget": {
+      "welcomeTitle": "Здравствуйте, это Prestigo",
+      "welcomeDescription": "Спросите о трансфере, расчёте стоимости или Вашем бронировании. Мы отвечаем здесь и по электронной почте."
+    }
+  },
   "Errors": {
     "genericRetry": "Произошла ошибка. Пожалуйста, попробуйте снова.",
     "rateLimited": "Слишком много попыток. Пожалуйста, попробуйте снова через минуту.",
