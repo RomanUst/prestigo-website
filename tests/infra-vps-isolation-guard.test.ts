@@ -52,7 +52,13 @@ interface Violation {
 // "QStash-invoked outbox worker route", "click-to-load consent-gated client
 // widget loader") — later phases (77 widget, 81/82 outbox) add entries
 // deliberately, never as a blanket exemption.
-const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = []
+const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = [
+  {
+    path: 'app/api/chatwoot/identity/route.ts',
+    reason:
+      'on-demand identity endpoint fetched only by the chat launcher\'s click handler after the visitor clicks "Chat on site"; reads env and computes an HMAC locally, makes no network call to the VPS, and never runs on page render',
+  },
+]
 
 /** Recursive fs.readdirSync walk — no glob dependency, matches the repo's
  * existing zero-dependency test-file convention. Skips node_modules/.next.
