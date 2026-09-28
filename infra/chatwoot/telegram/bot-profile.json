@@ -1,0 +1,46 @@
+{
+  "usernameCandidates": [
+    "PrestigoPragueBot",
+    "RidePrestigoBot",
+    "PrestigoChauffeurBot",
+    "PrestigoChatBot"
+  ],
+  "confirmedUsername": "",
+  "profiles": {
+    "default": {
+      "name": "Prestigo — Prague chauffeur",
+      "description": "A private driver, door to door, on your schedule. Write here about a transfer, a quote or your booking — we answer in this chat.",
+      "short_description": "Private chauffeur service in Prague. Message us for a transfer, a quote or help with your booking."
+    },
+    "ru": {
+      "name": "Prestigo — шофёр в Праге",
+      "description": "Личный водитель от двери до двери, в удобное для вас время. Напишите нам о трансфере, расчёте стоимости или бронировании — мы отвечаем прямо здесь.",
+      "short_description": "Частный шофёр в Праге. Напишите нам о трансфере или бронировании."
+    },
+    "es": {
+      "name": "Prestigo — chófer en Praga",
+      "description": "Un chófer privado, puerta a puerta, a tu ritmo. Escríbenos aquí sobre un traslado, un presupuesto o tu reserva — te respondemos en este chat.",
+      "short_description": "Chófer privado en Praga. Escríbenos para un traslado, un presupuesto o tu reserva."
+    },
+    "fr": {
+      "name": "Prestigo — chauffeur à Prague",
+      "description": "Un chauffeur privé, porte à porte, à votre rythme. Écrivez-nous ici pour un transfert, un devis ou votre réservation — nous répondons dans ce chat.",
+      "short_description": "Chauffeur privé à Prague. Écrivez-nous pour un transfert, un devis ou votre réservation."
+    },
+    "ar": {
+      "name": "Prestigo — سائق خاص في براغ",
+      "description": "سائق خاص يوصلك من الباب إلى الباب في الوقت الذي يناسبك. اكتب لنا هنا عن رحلة، عرض سعر أو حجزك — نرد عليك في هذه المحادثة.",
+      "short_description": "سائق خاص في براغ. راسلنا لحجز رحلة أو الاستفسار عن رحلتك."
+    },
+    "hi": {
+      "name": "Prestigo — प्राग में निजी ड्राइवर",
+      "description": "आपके समय के अनुसार, दरवाज़े से दरवाज़े तक निजी ड्राइवर सेवा। यहां लिखें — ट्रांसफ़र, अनुमानित मूल्य या अपनी बुकिंग के बारे में — हम यहीं जवाब देंगे।",
+      "short_description": "प्राग में निजी ड्राइवर सेवा। ट्रांसफ़र या बुकिंग के लिए हमें लिखें।"
+    },
+    "zh": {
+      "name": "Prestigo — 布拉格专属司机",
+      "description": "专属司机为您提供门到门服务，时间由您决定。请在这里告诉我们您的接送需求、报价咨询或预订信息——我们会在这个聊天窗口回复您。",
+      "short_description": "布拉格专属司机服务。请留言咨询接送、报价或预订。"
+    }
+  }
+}
