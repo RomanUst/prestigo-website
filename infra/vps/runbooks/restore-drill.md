@@ -225,6 +225,53 @@ unset HETZNER_TOKEN MAC_IP SSH_KEY_ID FIREWALL_ID DRILL_SERVER_ID DRILL_IP
 
 ## Drill log
 
+Most recent completed drill: **2026-09-28** (owner-approved, host torn down — see row and finalization notes below).
+
 | Date | Snapshot ID | fetch duration | start duration | Total time to restored | D-09 checks | Deviations / fixes |
 |------|-------------|-----------------|-----------------|-------------------------|-------------|---------------------|
 | 2026-09-28 | `79f1c6f8` (host `prestigo-vps`, resolved by `restore.sh --drill --phase fetch`) | 45s total — resolve-snapshot 6s, restic-restore-staging 6s, install-env-files 0s, apply-drill-url-overrides 0s, place-dumps 0s, pull-images 28s | 36s total — egress-gate 5s, create-volumes-copy-data 0s, start-chatwoot-db-restore-dump 12s, start-espocrm-db-import 13s, start-app-services 2s | ~12 min (server created 09:25:39Z → tunnel confirmed serving both apps ~09:37:20Z; excludes Task 1's Hetzner sign-up which was already done) | `drill-verify.sh --drill` 30/30 OK after the fix below (egress blocked from host+container, functional insert display_id correct on a re-imported pristine dump, both canary checksums match, all counts >= baseline, canary IDs match baseline); `smoke.sh --local-only` 8/8 OK after the fix below; `docker ps` on the drill host showed only `chatwoot-{postgres,redis,rails}-1` + `espocrm-{db,app}-1` — no `chatwoot-sidekiq-1`, no `espocrm-daemon-1` | 2 fixes found live, both committed as `fix(76-09)`: (1) `drill-verify.sh`'s functional-insert Ruby snippet created a `Conversation` without a `ContactInbox`, which Chatwoot validates as required — this silently killed the whole script under `set -e` with no FAIL line (stderr was redirected to suppress Sidekiq-client noise); fixed by finding/creating the `ContactInbox` first and wrapping the `docker exec` in `set +e`/`set -e` so a future regression here always reports FAIL instead of an unexplained early exit. (2) `smoke.sh --local-only` checked for `chatwoot-sidekiq-1`/`espocrm-daemon-1` as required-running, but D-09 deliberately never starts those in drill mode — always-FAIL by design, not a defect; fixed to only check them (plus Caddy) outside `--local-only`. |
+
+### 2026-09-28 drill — owner sign-off and teardown
+
+- **Owner login (Task 3, D-09):** Chatwoot at `localhost:13000` — owner logged
+  in with password-manager credentials (no 2FA enrolled in this Chatwoot CE
+  v4.18 install), opened Inboxes → "Restore drill canary" → the resolved
+  conversation, and downloaded `canary.txt`. EspoCRM at `localhost:18080` —
+  the owner's first two login attempts failed with a generic credentials
+  error (mistyped password, no password-manager autofill on `localhost`);
+  Claude verified the restored `prestigo-admin` password hash and
+  `passwordSalt` fingerprint were byte-identical to production before the
+  retry, confirming this was not a restore defect. The owner then logged in
+  successfully as `prestigo-admin` (EspoCRM `auth_log_record` shows success
+  at `09:56:10Z` and `09:56:45Z`, including TOTP), opened Accounts →
+  "Restore Drill Canary" → Documents, downloaded the canary file, and
+  replied "готово" approving the drill. **Operational note for the next
+  drill:** paste EspoCRM credentials from the password manager rather than
+  typing them — `localhost` gets no browser autofill.
+- **Teardown (Task 4):** Hetzner API calls issued `2026-09-28T10:00:13Z`.
+  Server `167796745` (`prestigo-restore-drill`, `2.28.135.178`) deleted
+  first, then firewall `11694338`, then SSH key `130609093`. Post-teardown
+  listing confirmed zero servers, zero firewalls and zero SSH keys remain in
+  the project (both the drill label/name filter and an unfiltered
+  project-wide listing returned empty). Local cleanup: removed the
+  `Host prestigo-drill` block from `~/.ssh/config`, removed the drill host's
+  key from `~/.ssh/known_hosts`, deleted
+  `.planning/phases/76-vps-infrastructure/evidence/drill-host-ip.txt`; no
+  drill secrets (backup.env copies, tokens) remain on the Mac.
+- **Total wall-clock:** server created `09:25:39Z` → deleted `10:00:13Z` =
+  **~34.5 minutes** of billed host time (excludes Task 1's one-time Hetzner
+  sign-up, already done before this drill).
+- **Approximate cost:** the exact server_type chosen during Task 2's
+  provisioning wasn't captured in the Drill log columns, and the server is
+  now deleted so its type can't be re-queried; `GET /v1/server_types` at
+  teardown time (same day, same pricing epoch) shows the selection rule's
+  cheapest x86 type with ≥8 GB RAM in `fsn1` is `cx33` at €0.016456/hr
+  gross — 0.576 h × €0.016456/hr ≈ **€0.0095**. Even the most expensive
+  plausible candidate in that ≥8 GB x86 tier (`ccx13`, €0.0834/hr) would put
+  this drill at ≈ €0.048. Either way, well under €0.05 for the whole drill.
+- **Next drill:** repeat before the next major Chatwoot/EspoCRM upgrade and
+  at least quarterly, per this runbook's intent — next scheduled check-in no
+  later than **2026-12-28**.
+- **Reminder:** the owner should revoke the Hetzner Cloud API token used for
+  this drill now that teardown is verified complete (it was scoped to the
+  dedicated `prestigo-restore-drill` project only).
