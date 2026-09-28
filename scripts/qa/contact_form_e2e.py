@@ -141,7 +141,8 @@ def main() -> None:
         ok = False
 
     result["finishedAt"] = datetime.now(timezone.utc).isoformat()
-    json.dump(result, open(RESULTS_PATH, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    with open(RESULTS_PATH, "w", encoding="utf-8") as f:
+        json.dump(result, f, ensure_ascii=False, indent=1)
 
     print(
         f"[{'OK' if ok else 'FAIL'}] pages={result['pages']} submitted={result['submitted']} "
