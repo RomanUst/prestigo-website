@@ -229,3 +229,221 @@ describe('Task 2: remaining four canned topics', () => {
     }
   })
 })
+
+// --- Task 3: labels, teams, custom attributes, inboxes, account, automation ---
+
+const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/
+const D20_LABELS = [
+  'ch-email',
+  'ch-web',
+  'ch-telegram',
+  'booking-new',
+  'booking-change',
+  'payment',
+  'b2b',
+  'complaint',
+  'lost-item',
+  'review',
+  'other',
+] as const
+const CHANNEL_LABELS = new Set(['ch-email', 'ch-web', 'ch-telegram'])
+const CONVERSATION_ATTR_KEYS = [
+  'page_url',
+  'landing_url',
+  'site_locale',
+  'referrer',
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'book_trip_type',
+  'book_origin',
+  'book_destination',
+  'book_vehicle',
+  'chat_opened_at',
+  'chat_consent',
+] as const
+
+function readInfraJson<T>(file: string): T {
+  return JSON.parse(fs.readFileSync(path.join(INFRA_DIR, file), 'utf8')) as T
+}
+
+describe('infra/chatwoot/labels.json (D-20)', () => {
+  const data = readInfraJson<{
+    labels: { title: string; description: string; color: string; show_on_sidebar: boolean }[]
+  }>('labels.json')
+
+  it('titles equal exactly the 11 D-20 labels', () => {
+    expect(data.labels.map((l) => l.title).sort()).toEqual([...D20_LABELS].sort())
+  })
+
+  it('every color is a valid #RRGGBB hex value', () => {
+    for (const label of data.labels) {
+      expect(label.color).toMatch(HEX_COLOR_RE)
+    }
+  })
+
+  it('channel labels share one color, topic labels share a different color', () => {
+    const channelColors = new Set(
+      data.labels.filter((l) => CHANNEL_LABELS.has(l.title)).map((l) => l.color)
+    )
+    const topicColors = new Set(
+      data.labels.filter((l) => !CHANNEL_LABELS.has(l.title)).map((l) => l.color)
+    )
+    expect(channelColors.size).toBe(1)
+    expect(topicColors.size).toBe(1)
+    expect([...channelColors][0]).not.toBe([...topicColors][0])
+  })
+})
+
+describe('infra/chatwoot/teams.json (D-21)', () => {
+  const data = readInfraJson<{
+    teams: { name: string; description: string; allow_auto_assign: boolean; members: string[] }[]
+  }>('teams.json')
+
+  it('names equal exactly ["Bookings","B2B"]', () => {
+    expect(data.teams.map((t) => t.name)).toEqual(['Bookings', 'B2B'])
+  })
+
+  it('allow_auto_assign is false and members is ["@owner"] for every team', () => {
+    for (const team of data.teams) {
+      expect(team.allow_auto_assign).toBe(false)
+      expect(team.members).toEqual(['@owner'])
+    }
+  })
+})
+
+describe('infra/chatwoot/custom-attributes.json (D-06)', () => {
+  const data = readInfraJson<{
+    conversation: { key: string; display_type: string }[]
+    contact: { key: string; display_type: string }[]
+  }>('custom-attributes.json')
+
+  it('conversation keys equal exactly the 15 keys in the interfaces block', () => {
+    expect(data.conversation.map((a) => a.key)).toEqual([...CONVERSATION_ATTR_KEYS])
+  })
+
+  it('contact keys equal ["site_locale"]', () => {
+    expect(data.contact.map((a) => a.key)).toEqual(['site_locale'])
+  })
+
+  it('every display_type is "text" or "link"', () => {
+    for (const attr of [...data.conversation, ...data.contact]) {
+      expect(['text', 'link']).toContain(attr.display_type)
+    }
+  })
+})
+
+describe('infra/chatwoot/inboxes.json (D-04/D-07/D-08)', () => {
+  const data = readInfraJson<{
+    website: {
+      avatar: string
+      settings: {
+        greeting_enabled: boolean
+        working_hours_enabled: boolean
+      }
+      channel: {
+        widget_color: string
+        reply_time: string
+        hmac_mandatory: boolean
+        continuity_via_email: boolean
+        pre_chat_form_options: { pre_chat_fields: { name: string; required: boolean }[] }
+      }
+    }
+    managed: { name: string }[]
+  }>('inboxes.json')
+
+  it('matches the locked interfaces-block values', () => {
+    expect(data.website.channel.widget_color).toBe('#0F1D2C')
+    expect(data.website.channel.reply_time).toBe('in_a_few_minutes')
+    expect(data.website.channel.hmac_mandatory).toBe(true)
+    expect(data.website.channel.continuity_via_email).toBe(true)
+    expect(data.website.settings.working_hours_enabled).toBe(false)
+    expect(data.website.settings.greeting_enabled).toBe(false)
+  })
+
+  it('pre-chat form: email required, name optional (D-04)', () => {
+    const fields = data.website.channel.pre_chat_form_options.pre_chat_fields
+    const email = fields.find((f) => f.name === 'emailAddress')
+    const name = fields.find((f) => f.name === 'fullName')
+    expect(email?.required).toBe(true)
+    expect(name?.required).toBe(false)
+  })
+
+  it('the avatar path exists on disk', () => {
+    expect(fs.existsSync(path.join(process.cwd(), data.website.avatar))).toBe(true)
+  })
+})
+
+describe('infra/chatwoot/account.json', () => {
+  it('support_email equals bookings@rideprestigo.com', () => {
+    const data = readInfraJson<{ support_email: string }>('account.json')
+    expect(data.support_email).toBe('bookings@rideprestigo.com')
+  })
+})
+
+describe('infra/chatwoot/automation-rules.json (D-20/D-21/OPS-02)', () => {
+  const labels = readInfraJson<{ labels: { title: string }[] }>('labels.json')
+  const teams = readInfraJson<{ teams: { name: string }[] }>('teams.json')
+  const inboxes = readInfraJson<{ website: { name: string }; managed: { name: string }[] }>(
+    'inboxes.json'
+  )
+  const data = readInfraJson<{
+    channelRules: { name: string; inbox: string; label: string; team: string }[]
+    topicRules: { label: string; team: string | null; keywords: Record<Locale, string[]> }[]
+    labelRouting: { name: string; label: string; team: string; optional: boolean }[]
+  }>('automation-rules.json')
+
+  const labelTitles = new Set(labels.labels.map((l) => l.title))
+  const teamNames = new Set(teams.teams.map((t) => t.name))
+  const inboxNames = new Set([inboxes.website.name, ...inboxes.managed.map((m) => m.name)])
+
+  it('every channelRules.inbox is the website name or a managed inbox name', () => {
+    for (const rule of data.channelRules) {
+      expect(inboxNames.has(rule.inbox)).toBe(true)
+    }
+  })
+
+  it('every channelRules/topicRules/labelRouting label exists in labels.json', () => {
+    for (const rule of data.channelRules) expect(labelTitles.has(rule.label)).toBe(true)
+    for (const rule of data.topicRules) expect(labelTitles.has(rule.label)).toBe(true)
+    for (const rule of data.labelRouting) expect(labelTitles.has(rule.label)).toBe(true)
+  })
+
+  it('every channelRules/labelRouting team exists in teams.json', () => {
+    for (const rule of data.channelRules) expect(teamNames.has(rule.team)).toBe(true)
+    for (const rule of data.labelRouting) expect(teamNames.has(rule.team)).toBe(true)
+  })
+
+  it('topicRules cover exactly booking-new, booking-change, payment, b2b, complaint, lost-item, review (not other)', () => {
+    const expected = ['booking-new', 'booking-change', 'payment', 'b2b', 'complaint', 'lost-item', 'review']
+    expect(data.topicRules.map((r) => r.label).sort()).toEqual([...expected].sort())
+  })
+
+  it('b2b topic rule routes to the B2B team', () => {
+    const b2b = data.topicRules.find((r) => r.label === 'b2b')
+    expect(b2b?.team).toBe('B2B')
+  })
+
+  it('every topic has at least 2 keywords per locale for all 7 locales', () => {
+    for (const rule of data.topicRules) {
+      for (const loc of LOCALES) {
+        expect(rule.keywords[loc]?.length ?? 0).toBeGreaterThanOrEqual(2)
+      }
+    }
+  })
+
+  it('keywords are lowercase, trimmed; zh keywords are >=2 chars, others >=3 chars; none is forbidden content', () => {
+    for (const rule of data.topicRules) {
+      for (const loc of LOCALES) {
+        for (const kw of rule.keywords[loc]) {
+          expect(kw).toBe(kw.trim())
+          expect(kw).toBe(kw.toLowerCase())
+          expect(kw.length).toBeGreaterThanOrEqual(loc === 'zh' ? 2 : 3)
+          expect(findForbiddenContent(kw)).toEqual([])
+        }
+      }
+    }
+  })
+})
