@@ -303,22 +303,36 @@ if [ "${MODE}" = "drill" ]; then
   if [ -n "${CANARY_ACCOUNT_ID}" ]; then
     CANARY_INBOX_ID=$(cw_psql "select i.id from inboxes i where i.name = '${CANARY_INBOX_NAME}' and i.account_id = ${CANARY_ACCOUNT_ID} limit 1;")
     PREV_MAX_DID=$(cw_psql "select coalesce(max(display_id),0) from conversations where account_id = ${CANARY_ACCOUNT_ID};")
-    INSERT_RESULT=$(docker exec -i -e CANARY_INBOX_ID="${CANARY_INBOX_ID}" chatwoot-rails-1 bundle exec rails runner - <<'RUBY' 2>/dev/null
+    # set +e around this command substitution: Conversation.create! requires an
+    # existing contact_inbox association (Chatwoot validates "Contact inbox must
+    # exist"), and a `VAR=$(docker exec ...)` assignment that fails still trips
+    # `set -e` at the top of this script even though it isn't inside an `if` -
+    # that silently killed the ENTIRE drill-verify run (no FAIL line at all,
+    # stderr already redirected to /dev/null to suppress Sidekiq client noise)
+    # the first time this ran for real, live, in Plan 76-09. Captured explicitly
+    # so a future regression here always produces a FAIL line instead of an
+    # unexplained early exit.
+    set +e
+    INSERT_RESULT=$(docker exec -i -e CANARY_INBOX_ID="${CANARY_INBOX_ID}" chatwoot-rails-1 bundle exec rails runner - 2>/dev/null <<'RUBY'
 inbox = Inbox.find(ENV.fetch("CANARY_INBOX_ID"))
 contact = inbox.account.contacts.find_by(name: "Restore Drill Canary") ||
           inbox.account.contacts.create!(name: "Restore Drill Canary (functional test)")
-conv = Conversation.create!(account_id: inbox.account_id, inbox_id: inbox.id, contact_id: contact.id, status: :open)
+contact_inbox = ContactInbox.find_by(contact_id: contact.id, inbox_id: inbox.id) ||
+                ContactInbox.create!(contact_id: contact.id, inbox_id: inbox.id, source_id: SecureRandom.uuid)
+conv = Conversation.create!(account_id: inbox.account_id, inbox_id: inbox.id, contact_id: contact.id, contact_inbox_id: contact_inbox.id, status: :open)
 did = conv.display_id
 conv.destroy!
 puts "DRILL_RESULT display_id=#{did}"
 RUBY
 )
+    INSERT_EXIT=$?
+    set -e
     NEW_DID=$(printf '%s' "${INSERT_RESULT}" | grep '^DRILL_RESULT ' | sed -n 's/.*display_id=\([0-9]*\).*/\1/p')
     EXPECTED_DID=$((PREV_MAX_DID + 1))
-    if [ "${NEW_DID}" = "${EXPECTED_DID}" ]; then
+    if [ "${INSERT_EXIT}" -eq 0 ] && [ "${NEW_DID}" = "${EXPECTED_DID}" ]; then
       record "drill-functional-insert" OK "display_id=${NEW_DID}"
     else
-      record "drill-functional-insert" FAIL "expected display_id ${EXPECTED_DID}, got ${NEW_DID:-<none>}"
+      record "drill-functional-insert" FAIL "expected display_id ${EXPECTED_DID}, got ${NEW_DID:-<none>} (docker exec exit=${INSERT_EXIT})"
     fi
   else
     record "drill-functional-insert" FAIL "no canary account id resolved - cannot run functional insert test"

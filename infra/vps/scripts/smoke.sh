@@ -56,12 +56,18 @@ check_container() {
   ok "${name}"
 }
 
-for c in chatwoot-postgres-1 chatwoot-redis-1 chatwoot-rails-1 chatwoot-sidekiq-1 \
-         espocrm-db-1 espocrm-app-1 espocrm-daemon-1; do
+for c in chatwoot-postgres-1 chatwoot-redis-1 chatwoot-rails-1 \
+         espocrm-db-1 espocrm-app-1; do
   check_container "${c}"
 done
 
+# Sidekiq / EspoCRM daemon / Caddy are never started on a drill host (D-09: no
+# mailbox polling/sending, no public ingress from a restored instance) -
+# checking for them under --local-only would always FAIL by design, not by
+# defect. Only checked in the default (production/full-restore) mode.
 if [ "${LOCAL_ONLY}" != "true" ]; then
+  check_container "chatwoot-sidekiq-1"
+  check_container "espocrm-daemon-1"
   check_container "caddy-caddy-1"
 fi
 
