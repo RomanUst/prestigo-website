@@ -18,11 +18,24 @@
 # `--status` reports per-service instead of failing outright.
 #
 # Idempotent by design:
-#   - UptimeRobot: matched by friendly_name against a fresh getMonitors call;
-#     a name that already exists is never re-created.
+#   - UptimeRobot: matched by friendly_name against a fresh /v3/monitors
+#     list; a name that already exists is never re-created.
 #   - Healthchecks: created with "unique": ["name"] — the API itself treats a
 #     second POST with the same name as an update, not a duplicate create
 #     (distinguished here by the create/updated HTTP status: 201 vs 200).
+#
+# UptimeRobot API version note (discovered live 2026-09-28, per this plan's
+# interfaces block's own documented fallback: "if v2 answers with a
+# deprecation error, use the documented v3 equivalents"): this account's
+# free plan now returns `access_denied: "You are not allowed to use some
+# settings with your current plan."` for EVERY v2 POST /newMonitor call,
+# including a bare HTTP monitor with no keyword/interval/contacts — i.e.
+# monitor CREATION via the v2 API itself is plan-gated, not any individual
+# field. v2 reads (getMonitors, getAlertContacts) and v2 editMonitor both
+# still work fine on the free plan; only v2 monitor creation is blocked.
+# The v3 API (Authorization: Bearer <Main API key>, same key — no separate
+# token needed) creates monitors on the same free plan without restriction,
+# so this script uses v3 exclusively for the UptimeRobot section.
 #
 # Usage:
 #   UPTIMEROBOT_API_KEY=... HEALTHCHECKS_API_KEY=... bash provision-monitors.sh
@@ -72,29 +85,23 @@ fi
 # UptimeRobot section
 # ---------------------------------------------------------------------------
 ur_state_line() {
-  # Map UptimeRobot's numeric status to a human word (interfaces block).
-  case "$1" in
-    2) echo "up" ;;
-    8) echo "seems_down" ;;
-    9) echo "down" ;;
-    0) echo "paused" ;;
-    1) echo "not_checked_yet" ;;
-    *) echo "unknown" ;;
-  esac
+  # v3 API returns human-readable status strings (UP, DOWN, SEEMS_DOWN,
+  # PAUSED, STARTED, ...) — normalize to lowercase for the --status output.
+  printf '%s' "$1" | tr '[:upper:]' '[:lower:]'
 }
 
 run_uptimerobot() {
-  local resp emails telegrams contact_ids monitors_resp existing_names created=0 name
+  local resp emails telegrams contacts_json monitors_resp existing_names created=0 name
 
-  resp=$(curl -fsS -m 20 https://api.uptimerobot.com/v2/getAlertContacts \
-    -d "api_key=${UPTIMEROBOT_API_KEY}" -d "format=json") \
-    || die "uptimerobot: getAlertContacts request failed"
+  resp=$(curl -fsS -m 20 -H "Authorization: Bearer ${UPTIMEROBOT_API_KEY}" \
+    https://api.uptimerobot.com/v3/alert-contacts) \
+    || die "uptimerobot: GET /v3/alert-contacts failed"
 
-  echo "${resp}" | jq -e '.stat == "ok"' >/dev/null 2>&1 \
-    || die "uptimerobot: getAlertContacts returned stat != ok: $(echo "${resp}" | jq -r '.error.message // "unknown error"')"
+  echo "${resp}" | jq -e '.data' >/dev/null 2>&1 \
+    || die "uptimerobot: GET /v3/alert-contacts returned unexpected shape: $(echo "${resp}" | jq -r '.message // .' 2>/dev/null || echo "${resp}")"
 
-  emails=$(echo "${resp}" | jq -r '[.alert_contacts[] | select(.type == 2)] | length')
-  telegrams=$(echo "${resp}" | jq -r '[.alert_contacts[] | select(.type == 9)] | length')
+  emails=$(echo "${resp}" | jq -r '[.data[] | select(.type == "Email")] | length')
+  telegrams=$(echo "${resp}" | jq -r '[.data[] | select(.type == "Telegram")] | length')
   # D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram
   # integration is now a paid feature the owner declined to buy. UptimeRobot
   # alerts by EMAIL ONLY going forward — a Telegram contact is optional (kept
@@ -103,7 +110,7 @@ run_uptimerobot() {
   # coverage for app-level outages now comes from Healthchecks' apps_http
   # check instead (see monitor.sh's check_apps_http and monitoring.md).
   if [ "${emails}" -lt 1 ]; then
-    die "uptimerobot: need at least one email (type 2) alert contact — found email=${emails}. \
+    die "uptimerobot: need at least one email alert contact — found email=${emails}. \
 Add an email alert contact and retry."
   fi
   if [ "${telegrams}" -ge 1 ]; then
@@ -113,32 +120,33 @@ Add an email alert contact and retry."
 feature the owner declined); monitors will alert via email only"
   fi
 
-  # alert_contacts param shape: "ID_0_0-ID_0_0" (id_threshold_recurrence, dash-joined per contact)
-  contact_ids=$(echo "${resp}" | jq -r '[.alert_contacts[].id] | map(. + "_0_0") | join("-")')
+  # v3 assignedAlertContacts shape: [{alertContactId, threshold, recurrence}, ...]
+  # — attach every existing contact (email, and telegram if present).
+  contacts_json=$(echo "${resp}" | jq -c '[.data[] | {alertContactId: .id, threshold: 0, recurrence: 0}]')
 
   if [ "${STATUS_MODE}" = "true" ]; then
-    monitors_resp=$(curl -fsS -m 20 https://api.uptimerobot.com/v2/getMonitors \
-      -d "api_key=${UPTIMEROBOT_API_KEY}" -d "format=json") \
-      || die "uptimerobot: getMonitors (status) request failed"
-    echo "${monitors_resp}" | jq -e '.stat == "ok"' >/dev/null 2>&1 \
-      || die "uptimerobot: getMonitors returned stat != ok"
+    monitors_resp=$(curl -fsS -m 20 -H "Authorization: Bearer ${UPTIMEROBOT_API_KEY}" \
+      https://api.uptimerobot.com/v3/monitors) \
+      || die "uptimerobot: GET /v3/monitors (status) failed"
+    echo "${monitors_resp}" | jq -e '.data' >/dev/null 2>&1 \
+      || die "uptimerobot: GET /v3/monitors (status) returned unexpected shape"
     jq -r --slurpfile mj "${MONITORS_JSON}" '
       ($mj[0].uptimerobot | map(.friendly_name)) as $wanted
-      | .monitors[]
-      | select(.friendly_name as $n | $wanted | index($n))
-      | "\(.friendly_name)\t\(.status)"
+      | .data[]
+      | select(.friendlyName as $n | $wanted | index($n))
+      | "\(.friendlyName)\t\(.status)"
     ' <<<"${monitors_resp}" | while IFS=$'\t' read -r fname status; do
       echo "uptimerobot ${fname} $(ur_state_line "${status}")"
     done
     return 0
   fi
 
-  monitors_resp=$(curl -fsS -m 20 https://api.uptimerobot.com/v2/getMonitors \
-    -d "api_key=${UPTIMEROBOT_API_KEY}" -d "format=json") \
-    || die "uptimerobot: getMonitors request failed"
-  echo "${monitors_resp}" | jq -e '.stat == "ok"' >/dev/null 2>&1 \
-    || die "uptimerobot: getMonitors returned stat != ok"
-  existing_names=$(echo "${monitors_resp}" | jq -r '.monitors[].friendly_name')
+  monitors_resp=$(curl -fsS -m 20 -H "Authorization: Bearer ${UPTIMEROBOT_API_KEY}" \
+    https://api.uptimerobot.com/v3/monitors) \
+    || die "uptimerobot: GET /v3/monitors failed"
+  echo "${monitors_resp}" | jq -e '.data' >/dev/null 2>&1 \
+    || die "uptimerobot: GET /v3/monitors returned unexpected shape"
+  existing_names=$(echo "${monitors_resp}" | jq -r '.data[].friendlyName')
 
   while IFS= read -r name; do
     [ -z "${name}" ] && continue
@@ -146,22 +154,37 @@ feature the owner declined); monitors will alert via email only"
       log "uptimerobot: '${name}' already exists — skipping"
       continue
     fi
-    local url keyword_type keyword_value interval create_resp
+    local url keyword_value interval create_resp create_status body payload
     url=$(jq -r --arg n "${name}" '.uptimerobot[] | select(.friendly_name == $n) | .url' "${MONITORS_JSON}")
-    keyword_type=$(jq -r --arg n "${name}" '.uptimerobot[] | select(.friendly_name == $n) | .keyword_type' "${MONITORS_JSON}")
     keyword_value=$(jq -r --arg n "${name}" '.uptimerobot[] | select(.friendly_name == $n) | .keyword_value' "${MONITORS_JSON}")
     interval=$(jq -r --arg n "${name}" '.uptimerobot[] | select(.friendly_name == $n) | .interval' "${MONITORS_JSON}")
 
-    create_resp=$(curl -fsS -m 20 https://api.uptimerobot.com/v2/newMonitor \
-      -d "api_key=${UPTIMEROBOT_API_KEY}" -d "format=json" \
-      -d "friendly_name=${name}" -d "url=${url}" -d "type=2" \
-      -d "keyword_type=${keyword_type}" --data-urlencode "keyword_value=${keyword_value}" \
-      -d "interval=${interval}" -d "alert_contacts=${contact_ids}") \
-      || die "uptimerobot: newMonitor request failed for '${name}'"
-    echo "${create_resp}" | jq -e '.stat == "ok"' >/dev/null 2>&1 \
-      || die "uptimerobot: newMonitor failed for '${name}': $(echo "${create_resp}" | jq -r '.error.message // "unknown error"')"
-    log "uptimerobot: created '${name}'"
-    created=$((created + 1))
+    # v2's keyword_type 2 ("alert when keyword is MISSING") maps to v3's
+    # ALERT_NOT_EXISTS — monitors.json's schema stays v2-shaped (the stable,
+    # versioned contract); this is the only place that translates it.
+    payload=$(jq -n --arg name "${name}" --arg url "${url}" --arg kw "${keyword_value}" \
+      --argjson interval "${interval}" --argjson contacts "${contacts_json}" '
+        {type: "KEYWORD", url: $url, friendlyName: $name, interval: $interval, timeout: 30,
+         keywordValue: $kw, keywordType: "ALERT_NOT_EXISTS", keywordCaseType: "CaseSensitive",
+         assignedAlertContacts: $contacts}
+      ')
+
+    create_resp=$(curl -fsS -m 20 -w '\n%{http_code}' -X POST https://api.uptimerobot.com/v3/monitors \
+      -H "Authorization: Bearer ${UPTIMEROBOT_API_KEY}" -H "Content-Type: application/json" \
+      -d "${payload}") \
+      || die "uptimerobot: POST /v3/monitors failed for '${name}'"
+    create_status=$(echo "${create_resp}" | tail -1)
+    body=$(echo "${create_resp}" | sed '$d')
+
+    case "${create_status}" in
+      200|201)
+        log "uptimerobot: created '${name}'"
+        created=$((created + 1))
+        ;;
+      *)
+        die "uptimerobot: create failed for '${name}' (HTTP ${create_status}): $(echo "${body}" | jq -r '.message // .error // .' 2>/dev/null || echo "${body}")"
+        ;;
+    esac
   done < <(jq -r '.uptimerobot[].friendly_name' "${MONITORS_JSON}")
 
   log "uptimerobot: created=${created}"
