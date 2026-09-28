@@ -9,17 +9,18 @@ goes dark, nothing here depends on it to notice — that is the entire point.
 UptimeRobot (external SaaS) ──polls──> chat.rideprestigo.com/api
                              ──polls──> crm.rideprestigo.com/
                              │
+                             └──alerts──> owner email ONLY (D-02 deviation)
+                             │
 Healthchecks.io (external SaaS) <──pings── infra/vps/scripts/backup.sh (nightly)
                                 <──pings── infra/vps/scripts/monitor.sh (every 5 min,
-                                            prestigo-monitor.timer)
+                                            prestigo-monitor.timer, incl. apps_http)
                              │
-                             └──alerts──> owner Telegram (bot integration)
-                                          owner email
+                             └──alerts──> owner Telegram + owner email
 ```
 
 - **UptimeRobot** is the *primary* signal for "is the app reachable at all"
-  (D-01). It runs entirely off the VPS — nothing installed here, nothing
-  that dies with the host.
+  (D-01), polling both apps from outside. It runs entirely off the VPS —
+  nothing installed here, nothing that dies with the host.
 - **Healthchecks.io** is a *dead-man's switch*: the VPS pings it to say
   "I'm alive and this specific thing is healthy." A missing ping (VPS down,
   cron/timer dead, network partition) is itself the alert — no separate
@@ -31,22 +32,71 @@ Healthchecks.io (external SaaS) <──pings── infra/vps/scripts/backup.sh (
   different purpose, never reused here.
 - **Nothing on the VPS is the primary signal.** The on-VPS checks
   (`monitor.sh`) exist because some things — disk %, Sidekiq's own Redis
-  heartbeat, TLS cert file expiry — are only observable from inside the
+  heartbeat, TLS cert file expiry, and (as of the D-02 deviation below)
+  app-level HTTP health — are only observable from, or re-derivable on, the
   host. They still report outward, through Healthchecks.io, never through
   anything that lives only on the VPS.
 
+### D-02 deviation: alert routing (owner-approved 2026-09-28)
+
+UptimeRobot's Telegram integration became a **paid feature** partway through
+this plan's execution; the owner declined to pay for it. Current alert
+routing, by service:
+
+| Service | Telegram | Email | Why |
+|---|---|---|---|
+| **UptimeRobot** (2 app monitors) | No | **Yes** | Telegram add-on is now paid; owner declined. Alerts route through the account's email alert contact only. |
+| **Healthchecks.io** (7 checks) | **Yes** | **Yes** | Unaffected — Healthchecks' Telegram integration stayed free. Both channels attached to every check (`channels: "*"` at creation). |
+
+To keep Telegram coverage for **app-level outages** (Chatwoot/EspoCRM down)
+despite UptimeRobot losing it, this plan added a sixth on-VPS check,
+**`apps_http`** (`prestigo-apps-http` in Healthchecks, `HC_PING_APPS_HTTP`):
+it fetches the same two public URLs UptimeRobot polls externally, checks
+for the same health markers, and pings Healthchecks — which still alerts
+Telegram + email. So:
+
+- **App down, VPS itself still up:** UptimeRobot alerts by email (its own
+  poll fails); `apps_http` on the VPS also fails within 5 minutes and
+  Healthchecks alerts Telegram + email — the owner still gets a Telegram
+  ping for an app-level outage, just via a different path than before.
+- **Whole VPS down:** every Healthchecks check (including `apps_http`)
+  stops pinging; once each check's grace period elapses, Healthchecks
+  alerts Telegram + email independently of UptimeRobot — this coverage is
+  unchanged by the deviation.
+- **UptimeRobot-only false positive (e.g. a transient network blip between
+  UptimeRobot's probe location and the VPS, with the VPS itself fine):**
+  email only, no Telegram — an intentional, accepted tradeoff of the
+  owner's decision not to pay for UptimeRobot's Telegram add-on.
+
+**Known flap risk for UptimeRobot's Chatwoot keyword monitor:** this plan's
+own execution found that Chatwoot's `/api` `data_services` field
+intermittently reports `"failing"` in short (10-60s), self-resolving bursts
+under normal load (tracked as WINDOWS.md #30 — root cause not confirmed,
+suspected ActiveRecord connection-pool reaping). UptimeRobot polls every 5
+minutes with no built-in grace period equivalent to Healthchecks' `grace`
+field, so a poll that happens to land inside one of these bursts can
+register as a real DOWN event on the UptimeRobot side (email alert, no
+Telegram) even though the app recovers within a minute — **Healthchecks'
+`apps_http` check has `grace: 600` (10 minutes total window at a 5-minute
+interval), which comfortably absorbs one bad run**, so the Telegram-bearing
+signal is more resistant to this flap than the email-only UptimeRobot one.
+If the owner sees an UptimeRobot email alert that clears within a few
+minutes with no corresponding Healthchecks Telegram alert, this flap is the
+most likely explanation, not a real sustained outage.
+
 ## Monitor & Check Inventory
 
-| Name | What it proves | Interval | Alert condition | Source |
-|---|---|---|---|---|
-| Chatwoot app (chat.rideprestigo.com/api) | Chatwoot's Rails app is up **and** both its Postgres and Redis connections are healthy — not just that Caddy answers | 5 min | UptimeRobot keyword `"queue_services":"ok","data_services":"ok"` missing from the response body | UptimeRobot |
-| EspoCRM login (crm.rideprestigo.com) | EspoCRM's app shell actually renders the login page — not a Caddy error page | 5 min | UptimeRobot keyword `<title>EspoCRM</title>` missing from the response body | UptimeRobot |
-| prestigo-backup | The nightly restic→B2 backup ran and succeeded | pinged nightly, ~26h before alert (24h timeout + 2h grace) | Missing ping, or `backup.sh` posts to `/fail` | Healthchecks.io, pinged by `backup.sh` |
-| prestigo-disk-mem | Root filesystem, RAM, and swap usage are under threshold | pinged every 5 min | disk >85%, used RAM >90%, or swap >50% (overridable via `DISK_MAX_PCT`/`MEM_MAX_PCT`/`SWAP_MAX_PCT`) | Healthchecks.io, pinged by `monitor.sh` |
-| prestigo-kvm4-trigger | 7-day rolling average used-RAM stays under the KVM 4 upgrade threshold | pinged every 5 min | 7-day avg used RAM >80% (`KVM4_AVG_PCT`) | Healthchecks.io, pinged by `monitor.sh` |
-| prestigo-sidekiq | Chatwoot's Sidekiq worker process is alive | pinged every 5 min | newest heartbeat (`beat` field on the Redis `processes` set) older than 60s, or the set is empty/unreadable | Healthchecks.io, pinged by `monitor.sh` |
-| prestigo-espocrm-internals | EspoCRM's daemon container is running and MariaDB is healthy | pinged every 5 min | `espocrm-daemon-1` not `running`, or `healthcheck.sh --connect --innodb_initialized` fails | Healthchecks.io, pinged by `monitor.sh` |
-| prestigo-tls-expiry | TLS certs for both apps have enough runway | pinged every 5 min | either cert expires within 14 days (`TLS_MIN_DAYS`) or can't be fetched | Healthchecks.io, pinged by `monitor.sh` |
+| Name | What it proves | Interval | Alert condition | Alerts to | Source |
+|---|---|---|---|---|---|
+| Chatwoot app (chat.rideprestigo.com/api) | Chatwoot's Rails app is up **and** both its Postgres and Redis connections are healthy — not just that Caddy answers | 5 min | UptimeRobot keyword `"queue_services":"ok","data_services":"ok"` missing from the response body | Email only (D-02) | UptimeRobot |
+| EspoCRM login (crm.rideprestigo.com) | EspoCRM's app shell actually renders the login page — not a Caddy error page | 5 min | UptimeRobot keyword `<title>EspoCRM</title>` missing from the response body | Email only (D-02) | UptimeRobot |
+| prestigo-backup | The nightly restic→B2 backup ran and succeeded | pinged nightly, ~26h before alert (24h timeout + 2h grace) | Missing ping, or `backup.sh` posts to `/fail` | Telegram + email | Healthchecks.io, pinged by `backup.sh` |
+| prestigo-disk-mem | Root filesystem, RAM, and swap usage are under threshold | pinged every 5 min | disk >85%, used RAM >90%, or swap >50% (overridable via `DISK_MAX_PCT`/`MEM_MAX_PCT`/`SWAP_MAX_PCT`) | Telegram + email | Healthchecks.io, pinged by `monitor.sh` |
+| prestigo-kvm4-trigger | 7-day rolling average used-RAM stays under the KVM 4 upgrade threshold | pinged every 5 min | 7-day avg used RAM >80% (`KVM4_AVG_PCT`) | Telegram + email | Healthchecks.io, pinged by `monitor.sh` |
+| prestigo-sidekiq | Chatwoot's Sidekiq worker process is alive | pinged every 5 min | newest heartbeat (`beat` field on the Redis `processes` set) older than 60s, or the set is empty/unreadable | Telegram + email | Healthchecks.io, pinged by `monitor.sh` |
+| prestigo-espocrm-internals | EspoCRM's daemon container is running and MariaDB is healthy | pinged every 5 min | `espocrm-daemon-1` not `running`, or `healthcheck.sh --connect --innodb_initialized` fails | Telegram + email | Healthchecks.io, pinged by `monitor.sh` |
+| prestigo-tls-expiry | TLS certs for both apps have enough runway | pinged every 5 min | either cert expires within 14 days (`TLS_MIN_DAYS`) or can't be fetched | Telegram + email | Healthchecks.io, pinged by `monitor.sh` |
+| prestigo-apps-http | D-02 deviation: restores Telegram coverage for app-level outages — fetches the same two public URLs from the VPS itself and checks the same health markers UptimeRobot watches externally | pinged every 5 min | `chat.rideprestigo.com/api` missing `"queue_services":"ok"`, or `crm.rideprestigo.com/` missing `<title>EspoCRM</title>`, or either fetch fails | Telegram + email | Healthchecks.io, pinged by `monitor.sh`'s `apps_http` check |
 
 Monitor/check definitions are versioned in `infra/vps/monitoring/monitors.json`
 and (re-)provisioned by `infra/vps/scripts/provision-monitors.sh` — see that
@@ -144,6 +194,25 @@ fired. Start there.
 4. `ssh prestigo-vps 'docker compose -f /opt/prestigo/caddy/compose.yml restart caddy'`
    after fixing DNS/network, then re-run `smoke.sh`'s cert-expiry checks.
 
+### "prestigo-apps-http" failing (Healthchecks.io — D-02 deviation)
+
+This is the Telegram-bearing counterpart to the "Chatwoot app"/"EspoCRM
+login" UptimeRobot monitors above (which now alert by email only). Same
+underlying condition, different signal path — treat it as an app-down alert:
+
+1. `ssh prestigo-vps 'sudo /opt/prestigo/scripts/monitor.sh --only apps_http'`
+   to reproduce and see which of `chat`/`crm` is failing.
+2. `ssh prestigo-vps 'bash /opt/prestigo/scripts/smoke.sh'` to pinpoint the
+   failing container/check, then follow the "Chatwoot app"/"EspoCRM login"
+   playbook above.
+3. **Before assuming a real outage:** check whether a corresponding
+   UptimeRobot email alert also fired for the same window. If this fired
+   alone and clears within a couple of minutes, it may be Chatwoot's known
+   `data_services` flap (WINDOWS.md #30) landing inside this check's
+   5-minute poll — `grace: 600` on this check already absorbs one bad run,
+   so a real, sustained problem will still page after ~10 minutes; a single
+   isolated ping recovering immediately is more likely the flap.
+
 ## KVM 4 Upgrade Triggers (D-11, D-12)
 
 The plan started on **Hostinger KVM 2** (8 GB RAM / 2 vCPU), an explicit,
@@ -182,9 +251,10 @@ Docker Engine upgrade):
    ends.
 2. **Healthchecks.io:** for a check whose grace period would otherwise
    expire during the maintenance window (`prestigo-disk-mem`,
-   `prestigo-sidekiq`, `prestigo-espocrm-internals`, `prestigo-tls-expiry` —
-   any 5-minute-interval check, effectively always during a maintenance
-   window longer than ~15 minutes), pause it from the dashboard or leave
+   `prestigo-sidekiq`, `prestigo-espocrm-internals`, `prestigo-tls-expiry`,
+   `prestigo-apps-http` — any 5-minute-interval check, effectively always
+   during a maintenance window longer than ~15 minutes), pause it from the
+   dashboard or leave
    `monitor.sh`'s timer running with `--only` scoped to skip the affected
    check for the duration; either way, resume/unpause before ending the
    session so a real post-maintenance failure isn't silently missed.
@@ -210,3 +280,16 @@ old entry manually in the dashboard if it's genuinely retired.
 
 `bash infra/vps/scripts/provision-monitors.sh --status` prints one line per
 monitor/check with its current live state, without creating anything.
+
+**UptimeRobot API version note (discovered live 2026-09-28):** this
+account's free plan returns `access_denied` for every `v2 POST
+/newMonitor` call — monitor *creation* via the v2 API is plan-gated on the
+current free tier, even for a bare HTTP monitor with no special settings.
+`provision-monitors.sh`'s UptimeRobot section therefore uses the **v3 API**
+(`Authorization: Bearer <same Main API key>` — no separate token needed)
+for both creating and listing monitors; v2 is still used nowhere in this
+script. `monitors.json`'s schema is unaffected (stays v2-shaped `type`/
+`keyword_type`, translated to v3's `KEYWORD`/`ALERT_NOT_EXISTS` only inside
+the script). If a future UptimeRobot plan change also gates v3 creation,
+check `api.uptimerobot.com`'s current docs for the then-current endpoint
+before assuming the free tier permits API-based monitor creation at all.
