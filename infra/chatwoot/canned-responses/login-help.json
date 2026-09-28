@@ -1,0 +1,14 @@
+{
+  "topic": "login-help",
+  "sourceScript": "generate-login-link.mjs",
+  "placeholders": [],
+  "responses": {
+    "en": "Hi {{contact.first_name}}, you can sign in and reset your password any time at https://rideprestigo.com/login — just tap \"Forgot password?\" and follow the steps. — Prestigo",
+    "ru": "Здравствуйте, {{contact.first_name}}! Вы можете войти и сбросить пароль в любое время на странице https://rideprestigo.com/ru/login — просто нажмите «Забыли пароль?» и следуйте подсказкам. — Prestigo",
+    "es": "Hola {{contact.first_name}}, puedes iniciar sesión y restablecer tu contraseña en cualquier momento en https://rideprestigo.com/es/login — solo pulsa «¿Ha olvidado su contraseña?» y sigue los pasos. — Prestigo",
+    "fr": "Bonjour {{contact.first_name}}, vous pouvez vous connecter et réinitialiser votre mot de passe à tout moment sur https://rideprestigo.com/fr/login — il suffit d'appuyer sur « Mot de passe oublié ? » et de suivre les étapes. — Prestigo",
+    "ar": "مرحبًا {{contact.first_name}}، يمكنك تسجيل الدخول وإعادة تعيين كلمة المرور في أي وقت عبر https://rideprestigo.com/ar/login — فقط اضغط على «هل نسيت كلمة المرور؟» واتبع الخطوات. — Prestigo",
+    "hi": "नमस्ते {{contact.first_name}}, आप कभी भी https://rideprestigo.com/hi/login पर साइन इन करके अपना पासवर्ड रीसेट कर सकते हैं — बस «पासवर्ड भूल गए?» पर टैप करें और आगे के चरण अपनाएं। — Prestigo",
+    "zh": "您好 {{contact.first_name}}，您可以随时访问 https://rideprestigo.com/zh/login 登录并重置密码——只需点击“忘记密码？”并按提示操作即可。— Prestigo"
+  }
+}

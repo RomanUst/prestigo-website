@@ -18,6 +18,21 @@ if [ -n "$MATCHES" ]; then
   exit 1
 fi
 
+# Phase 77 / D-18: fail the commit if any Chatwoot template source (json/md)
+# under infra/chatwoot contains a price or currency token. These templates
+# are sent to customers verbatim via canned responses — a baked-in price
+# would go stale and could contradict the actual charge. Scans the working
+# tree (not the staged index), matching the app/components check above.
+CHATWOOT_MATCHES=$(grep -rIlE '€|EUR|CZK|Kč' --include='*.json' --include='*.md' infra/chatwoot 2>/dev/null || true)
+
+if [ -n "$CHATWOOT_MATCHES" ]; then
+  echo "ERROR: Price or currency found in Chatwoot template source (D-18)"
+  echo ""
+  echo "Matched files:"
+  echo "$CHATWOOT_MATCHES"
+  exit 1
+fi
+
 # Secret scan: block staged .env files and added lines that look like live
 # credentials (Stripe, Resend, Anthropic, Google, Supabase JWT, private keys).
 # Only ADDED lines of the staged diff are checked, so existing docs don't trip it.

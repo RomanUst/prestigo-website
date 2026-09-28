@@ -11,11 +11,13 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 PROBE_DIR="infra/vps/.gate-probe-$$"
+CHATWOOT_PROBE_DIR="infra/chatwoot/.gate-probe-$$"
 TMP_INDEX=$(mktemp -t gsd-secret-gate-index.XXXXXX)
 FAIL=0
 
 cleanup() {
   rm -rf "$PROBE_DIR"
+  rm -rf "$CHATWOOT_PROBE_DIR"
   rm -f "$TMP_INDEX"
 }
 trap cleanup EXIT INT TERM
@@ -107,5 +109,27 @@ run_probe "infra-env-key-value" "$PROBE_DIR/probe-infra-key.md" "block" "ERROR: 
 # does not regress. ---
 printf "ROOT_PW=\$(grep '^MARIADB_ROOT_PASSWORD=' /etc/prestigo/espocrm.env | cut -d= -f2-)\n" > "$PROBE_DIR/probe-grep-pattern.sh"
 run_probe "infra-env-key-search-pattern" "$PROBE_DIR/probe-grep-pattern.sh" "allow"
+
+# --- Probe G (Phase 77 D-18): a Chatwoot template source file containing a
+# currency token must be blocked. The token is assembled at runtime from
+# fragments so the literal never exists in a tracked file (including this
+# script). The price guard scans the WORKING TREE (not the staged index),
+# so the file only needs to exist on disk under infra/chatwoot for the hook
+# to see it — run_probe's git add -f is harmless but not what makes this
+# probe work. ---
+mkdir -p "$CHATWOOT_PROBE_DIR"
+CUR_FRAG1='EU'
+CUR_FRAG2='R'
+CUR_TOKEN="${CUR_FRAG1}${CUR_FRAG2} 99"
+printf '{"topic":"probe","responses":{"en":"Total %s"}}\n' "$CUR_TOKEN" > "$CHATWOOT_PROBE_DIR/probe-price.json"
+run_probe "template-price" "$CHATWOOT_PROBE_DIR/probe-price.json" "block" "Price or currency found in Chatwoot template source"
+
+# --- Probe H (Phase 77 D-18): a clean template JSON (no price/currency
+# token) must be ALLOWED. Probe G's file is removed first — the price guard
+# greps infra/chatwoot recursively, so a leftover probe-price.json anywhere
+# under that tree would make this probe fail for the wrong reason. ---
+rm -f "$CHATWOOT_PROBE_DIR/probe-price.json"
+printf '{"topic":"probe","responses":{"en":"Hello there, no price mentioned here."}}\n' > "$CHATWOOT_PROBE_DIR/probe-clean.json"
+run_probe "template-clean" "$CHATWOOT_PROBE_DIR/probe-clean.json" "allow"
 
 exit "$FAIL"

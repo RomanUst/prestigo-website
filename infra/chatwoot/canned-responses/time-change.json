@@ -1,0 +1,14 @@
+{
+  "topic": "time-change",
+  "sourceScript": "send-time-change-email.mjs",
+  "placeholders": ["[BOOKING_REF]", "[DATE]", "[OLD_TIME]", "[NEW_TIME]"],
+  "responses": {
+    "en": "Hi {{contact.first_name}}, your pickup time for booking [BOOKING_REF] has changed from [OLD_TIME] to [NEW_TIME] on [DATE]. Everything else stays the same. Reply here if you have any questions. — Prestigo",
+    "ru": "Здравствуйте, {{contact.first_name}}! Время подачи автомобиля по бронированию [BOOKING_REF] изменено с [OLD_TIME] на [NEW_TIME], дата [DATE]. Всё остальное остаётся без изменений. Если есть вопросы, напишите нам здесь. — Prestigo",
+    "es": "Hola {{contact.first_name}}, la hora de recogida de tu reserva [BOOKING_REF] cambió de [OLD_TIME] a [NEW_TIME] el [DATE]. Todo lo demás sigue igual. Escríbenos aquí si tienes alguna pregunta. — Prestigo",
+    "fr": "Bonjour {{contact.first_name}}, l'heure de prise en charge de votre réservation [BOOKING_REF] a été modifiée de [OLD_TIME] à [NEW_TIME], le [DATE]. Tout le reste reste inchangé. Répondez ici si vous avez des questions. — Prestigo",
+    "ar": "مرحبًا {{contact.first_name}}، تم تغيير موعد الاستلام لحجزك [BOOKING_REF] من [OLD_TIME] إلى [NEW_TIME] بتاريخ [DATE]. كل شيء آخر يبقى كما هو. يرجى الرد هنا إذا كانت لديك أي أسئلة. — Prestigo",
+    "hi": "नमस्ते {{contact.first_name}}, आपकी बुकिंग [BOOKING_REF] के लिए पिकअप का समय [OLD_TIME] से बदलकर [NEW_TIME] हो गया है, तारीख [DATE]। बाकी सब कुछ पहले जैसा ही रहेगा। कोई सवाल हो तो यहीं जवाब दें। — Prestigo",
+    "zh": "您好 {{contact.first_name}}，您的预订 [BOOKING_REF] 的接送时间已从 [OLD_TIME] 更改为 [NEW_TIME]，日期为 [DATE]。其他安排保持不变。如有任何问题，请在此回复。— Prestigo"
+  }
+}

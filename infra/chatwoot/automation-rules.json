@@ -1,0 +1,104 @@
+{
+  "channelRules": [
+    { "name": "channel: website", "inbox": "Website", "label": "ch-web", "team": "Bookings" },
+    { "name": "channel: email info@", "inbox": "Email info@", "label": "ch-email", "team": "Bookings" },
+    { "name": "channel: email bookings@", "inbox": "Email bookings@", "label": "ch-email", "team": "Bookings" },
+    { "name": "channel: telegram", "inbox": "Telegram", "label": "ch-telegram", "team": "Bookings" }
+  ],
+  "topicRules": [
+    {
+      "label": "booking-new",
+      "team": null,
+      "keywords": {
+        "en": ["new booking", "book a transfer", "make a reservation"],
+        "ru": ["новое бронирование", "забронировать трансфер"],
+        "es": ["nueva reserva", "reservar un traslado"],
+        "fr": ["nouvelle réservation", "réserver un transfert"],
+        "ar": ["حجز جديد", "احجز رحلة"],
+        "hi": ["नई बुकिंग", "ट्रांसफर बुक करें"],
+        "zh": ["新预订", "预订接送"]
+      }
+    },
+    {
+      "label": "booking-change",
+      "team": null,
+      "keywords": {
+        "en": ["change my booking", "reschedule my trip", "change pickup time"],
+        "ru": ["изменить бронирование", "перенести время"],
+        "es": ["cambiar mi reserva", "cambiar la hora"],
+        "fr": ["modifier ma réservation", "changer l'heure"],
+        "ar": ["تغيير حجزي", "تغيير الموعد"],
+        "hi": ["बुकिंग बदलें", "समय बदलें"],
+        "zh": ["更改预订", "更改时间"]
+      }
+    },
+    {
+      "label": "payment",
+      "team": null,
+      "keywords": {
+        "en": ["payment link", "card declined", "how do i pay"],
+        "ru": ["ссылка на оплату", "карта отклонена"],
+        "es": ["enlace de pago", "tarjeta rechazada"],
+        "fr": ["lien de paiement", "carte refusée"],
+        "ar": ["رابط الدفع", "تم رفض البطاقة"],
+        "hi": ["भुगतान लिंक", "कार्ड अस्वीकृत"],
+        "zh": ["付款链接", "银行卡被拒"]
+      }
+    },
+    {
+      "label": "b2b",
+      "team": "B2B",
+      "keywords": {
+        "en": ["corporate account", "agency partnership", "commission rate"],
+        "ru": ["корпоративный аккаунт", "партнёрство агентства"],
+        "es": ["cuenta corporativa", "asociación con agencia"],
+        "fr": ["compte entreprise", "partenariat agence"],
+        "ar": ["حساب شركات", "شراكة وكالة"],
+        "hi": ["कॉर्पोरेट खाता", "एजेंसी साझेदारी"],
+        "zh": ["企业账户", "代理合作"]
+      }
+    },
+    {
+      "label": "complaint",
+      "team": null,
+      "keywords": {
+        "en": ["file a complaint", "very disappointed", "unacceptable service"],
+        "ru": ["хочу пожаловаться", "очень недоволен"],
+        "es": ["quiero quejarme", "muy decepcionado"],
+        "fr": ["je veux me plaindre", "très déçu"],
+        "ar": ["أريد تقديم شكوى", "غير مقبول إطلاقا"],
+        "hi": ["शिकायत दर्ज करनी है", "बहुत निराश हूं"],
+        "zh": ["我要投诉", "非常失望"]
+      }
+    },
+    {
+      "label": "lost-item",
+      "team": null,
+      "keywords": {
+        "en": ["left my bag", "lost item in car", "forgot something"],
+        "ru": ["забыл вещь в машине", "оставил сумку"],
+        "es": ["olvidé algo en el coche", "dejé mi bolso"],
+        "fr": ["oublié un objet", "laissé mon sac"],
+        "ar": ["نسيت حقيبتي بالسيارة", "تركت شيئا"],
+        "hi": ["गाड़ी में सामान भूल गया", "बैग छूट गया"],
+        "zh": ["把包忘在车上", "丢了东西"]
+      }
+    },
+    {
+      "label": "review",
+      "team": null,
+      "keywords": {
+        "en": ["leave a review", "write a review", "google review"],
+        "ru": ["оставить отзыв", "написать отзыв"],
+        "es": ["dejar una reseña", "escribir una reseña"],
+        "fr": ["laisser un avis", "écrire un avis"],
+        "ar": ["أترك تقييما", "أكتب مراجعة"],
+        "hi": ["समीक्षा छोड़ें", "रिव्यू लिखें"],
+        "zh": ["写评价", "留下评价"]
+      }
+    }
+  ],
+  "labelRouting": [
+    { "name": "route: b2b label to B2B team", "label": "b2b", "team": "B2B", "optional": true }
+  ]
+}

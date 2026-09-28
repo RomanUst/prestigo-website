@@ -1,0 +1,14 @@
+{
+  "topic": "vehicle-change",
+  "sourceScript": "send-vehicle-change-email.mjs",
+  "placeholders": ["[BOOKING_REF]", "[OLD_VEHICLE]", "[NEW_VEHICLE]"],
+  "responses": {
+    "en": "Hi {{contact.first_name}}, good news — we've upgraded the vehicle for your booking [BOOKING_REF] from [OLD_VEHICLE] to [NEW_VEHICLE] at no extra charge. Everything else stays the same. — Prestigo",
+    "ru": "Здравствуйте, {{contact.first_name}}! У нас хорошие новости — автомобиль для вашего бронирования [BOOKING_REF] заменён с [OLD_VEHICLE] на [NEW_VEHICLE] без доплаты. Всё остальное остаётся без изменений. — Prestigo",
+    "es": "Hola {{contact.first_name}}, buenas noticias — hemos mejorado el vehículo de tu reserva [BOOKING_REF] de [OLD_VEHICLE] a [NEW_VEHICLE] sin coste adicional. Todo lo demás sigue igual. — Prestigo",
+    "fr": "Bonjour {{contact.first_name}}, bonne nouvelle — le véhicule de votre réservation [BOOKING_REF] passe de [OLD_VEHICLE] à [NEW_VEHICLE], sans frais supplémentaires. Tout le reste reste inchangé. — Prestigo",
+    "ar": "مرحبًا {{contact.first_name}}، لدينا خبر جيد — تم تغيير السيارة الخاصة بحجزك [BOOKING_REF] من [OLD_VEHICLE] إلى [NEW_VEHICLE] دون أي رسوم إضافية. كل شيء آخر يبقى كما هو. — Prestigo",
+    "hi": "नमस्ते {{contact.first_name}}, अच्छी खबर है — आपकी बुकिंग [BOOKING_REF] की गाड़ी [OLD_VEHICLE] से बदलकर [NEW_VEHICLE] कर दी गई है, बिना किसी अतिरिक्त शुल्क के। बाकी सब कुछ पहले जैसा ही रहेगा। — Prestigo",
+    "zh": "您好 {{contact.first_name}}，好消息——您的预订 [BOOKING_REF] 的车辆已从 [OLD_VEHICLE] 升级为 [NEW_VEHICLE]，不收取额外费用。其他安排保持不变。— Prestigo"
+  }
+}

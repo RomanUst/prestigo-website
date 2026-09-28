@@ -1,0 +1,6 @@
+{
+  "teams": [
+    { "name": "Bookings", "description": "Default team for all booking-related conversations across every channel", "allow_auto_assign": false, "members": ["@owner"] },
+    { "name": "B2B", "description": "Corporate accounts, agencies and partnership inquiries", "allow_auto_assign": false, "members": ["@owner"] }
+  ]
+}

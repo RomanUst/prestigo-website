@@ -1,0 +1,14 @@
+{
+  "topic": "payment-help",
+  "sourceScript": "send-payment-help-email.mjs",
+  "placeholders": ["[BOOKING_REF]", "[PAYMENT_LINK]"],
+  "responses": {
+    "en": "Hi {{contact.first_name}}, your booking [BOOKING_REF] is reserved but not yet paid. Here is a secure payment link: [PAYMENT_LINK]. If your card was declined, reply here and we'll help you sort it out. — Prestigo",
+    "ru": "Здравствуйте, {{contact.first_name}}! Ваше бронирование [BOOKING_REF] зарезервировано, но оплата ещё не прошла. Вот ссылка для безопасной оплаты: [PAYMENT_LINK]. Если карта была отклонена, напишите нам — поможем разобраться. — Prestigo",
+    "es": "Hola {{contact.first_name}}, tu reserva [BOOKING_REF] está confirmada pero aún no se ha pagado. Aquí tienes un enlace de pago seguro: [PAYMENT_LINK]. Si tu tarjeta fue rechazada, escríbenos y te ayudamos. — Prestigo",
+    "fr": "Bonjour {{contact.first_name}}, votre réservation [BOOKING_REF] est confirmée mais pas encore payée. Voici un lien de paiement sécurisé : [PAYMENT_LINK]. Si votre carte a été refusée, répondez ici et nous vous aiderons. — Prestigo",
+    "ar": "مرحبًا {{contact.first_name}}، تم حجز [BOOKING_REF] ولكن لم يتم الدفع بعد. إليك رابط دفع آمن: [PAYMENT_LINK]. إذا تم رفض بطاقتك، يرجى الرد هنا وسنساعدك. — Prestigo",
+    "hi": "नमस्ते {{contact.first_name}}, आपकी बुकिंग [BOOKING_REF] सुरक्षित है लेकिन अभी भुगतान नहीं हुआ है। यहाँ एक सुरक्षित भुगतान लिंक है: [PAYMENT_LINK]। अगर आपका कार्ड अस्वीकृत हुआ था, तो यहीं जवाब दें, हम मदद करेंगे। — Prestigo",
+    "zh": "您好 {{contact.first_name}}，您的预订 [BOOKING_REF] 已保留，但尚未完成付款。这是安全付款链接：[PAYMENT_LINK]。如果您的银行卡被拒绝，请在此回复，我们会协助您完成付款。— Prestigo"
+  }
+}

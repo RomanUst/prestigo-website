@@ -1,0 +1,22 @@
+{
+  "conversation": [
+    { "key": "page_url", "display_name": "Page URL", "display_type": "link", "description": "The page the visitor was on when they opened chat" },
+    { "key": "landing_url", "display_name": "Landing URL", "display_type": "link", "description": "The first page the visitor landed on this session" },
+    { "key": "site_locale", "display_name": "Site language", "display_type": "text", "description": "The site locale (en, ru, es, fr, ar, hi, zh) the visitor was viewing" },
+    { "key": "referrer", "display_name": "Referrer", "display_type": "link", "description": "The referring URL, if available" },
+    { "key": "utm_source", "display_name": "UTM source", "display_type": "text", "description": "First-touch utm_source parameter" },
+    { "key": "utm_medium", "display_name": "UTM medium", "display_type": "text", "description": "First-touch utm_medium parameter" },
+    { "key": "utm_campaign", "display_name": "UTM campaign", "display_type": "text", "description": "First-touch utm_campaign parameter" },
+    { "key": "utm_term", "display_name": "UTM term", "display_type": "text", "description": "First-touch utm_term parameter" },
+    { "key": "utm_content", "display_name": "UTM content", "display_type": "text", "description": "First-touch utm_content parameter" },
+    { "key": "book_trip_type", "display_name": "Trip type", "display_type": "text", "description": "Selected trip type inside the booking wizard, if the visitor is on /book" },
+    { "key": "book_origin", "display_name": "Trip origin", "display_type": "text", "description": "Selected origin inside the booking wizard, if the visitor is on /book" },
+    { "key": "book_destination", "display_name": "Trip destination", "display_type": "text", "description": "Selected destination inside the booking wizard, if the visitor is on /book" },
+    { "key": "book_vehicle", "display_name": "Selected vehicle", "display_type": "text", "description": "Selected vehicle class inside the booking wizard, if the visitor is on /book" },
+    { "key": "chat_opened_at", "display_name": "Chat opened at", "display_type": "text", "description": "ISO timestamp when the visitor clicked Chat on site" },
+    { "key": "chat_consent", "display_name": "Chat consent recorded", "display_type": "text", "description": "Whether opening the widget was recorded as a consent event" }
+  ],
+  "contact": [
+    { "key": "site_locale", "display_name": "Site language", "display_type": "text", "description": "The locale of the site the contact most recently visited" }
+  ]
+}

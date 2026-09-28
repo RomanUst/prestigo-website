@@ -1,0 +1,449 @@
+import { describe, it, expect } from 'vitest'
+import fs from 'node:fs'
+import path from 'node:path'
+
+/**
+ * Phase 77-03: config-as-code validation for infra/chatwoot/.
+ *
+ * findForbiddenContent() is the single shared "is this text safe to send
+ * to a customer" check reused across canned responses (this file), and
+ * (Task 3) automation-rules.json keyword lists. Keep it a pure function of
+ * (text) -> string[] issues, no I/O, so it's directly unit-testable and
+ * cheap to call in a tight loop over every locale of every topic.
+ */
+
+const CANNED_DIR = path.join(process.cwd(), 'infra/chatwoot/canned-responses')
+const INFRA_DIR = path.join(process.cwd(), 'infra/chatwoot')
+const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh'] as const
+type Locale = (typeof LOCALES)[number]
+
+const FORBIDDEN_KEYWORDS = ['uber', 'bolt', 'ride-hailing', 'ride hailing', 'taxi app']
+
+const ALLOWED_CHATWOOT_VARS = new Set([
+  '{{contact.first_name}}',
+  '{{contact.name}}',
+  '{{agent.first_name}}',
+  '{{agent.name}}',
+])
+
+// Euro sign, EUR/CZK currency codes, or "Kč" — any of these next to nothing
+// (not just digit-adjacent) is disallowed in operator-facing template copy.
+const CURRENCY_RE = /€|\bEUR\b|\bCZK\b|Kč/
+// A real booking reference shaped PRG-<8 digits>, e.g. PRG-20260818-DE8697's
+// PRG-20260818 segment — templates must use the [BOOKING_REF] placeholder.
+const BOOKING_REF_RE = /PRG-\d{8}/i
+
+export function findForbiddenContent(text: string): string[] {
+  const issues: string[] = []
+  if (CURRENCY_RE.test(text)) issues.push('currency/price token found')
+
+  const lower = text.toLowerCase()
+  for (const kw of FORBIDDEN_KEYWORDS) {
+    if (lower.includes(kw)) issues.push(`forbidden keyword: ${kw}`)
+  }
+
+  if (/prestigio/i.test(text)) issues.push('misspelled brand: Prestigio')
+  if (BOOKING_REF_RE.test(text)) issues.push('real booking reference pattern found')
+
+  const varMatches = text.match(/\{\{[^}]+\}\}/g) || []
+  for (const v of varMatches) {
+    if (!ALLOWED_CHATWOOT_VARS.has(v)) issues.push(`disallowed chatwoot variable: ${v}`)
+  }
+
+  return issues
+}
+
+function listCannedResponseFiles(): string[] {
+  if (!fs.existsSync(CANNED_DIR)) return []
+  return fs.readdirSync(CANNED_DIR).filter((f) => f.endsWith('.json')).sort()
+}
+
+function readCannedTopic(topic: string): { responses: Record<Locale, string> } {
+  const raw = fs.readFileSync(path.join(CANNED_DIR, `${topic}.json`), 'utf8')
+  return JSON.parse(raw)
+}
+
+// One-off customer identifiers found in the six root scripts read for Task 2
+// (send-vehicle-change-email.mjs, send-payment-help-email.mjs,
+// send-young-posttrip-review.mjs, generate-login-link.mjs,
+// send-invoice-tltgo.mjs, send-maxime-traveltime-reply.mjs) — surnames,
+// distinguishing emails/companies, and trip-specific place pairs. None of
+// these belong in a reusable, generalized template (D-19/T-77-08).
+const ONE_OFF_IDENTIFIERS = [
+  'Malone',
+  'caitlin_mal',
+  'Benshitrit',
+  'connectlifestyle',
+  'Almsaeed',
+  'Abdulaziz',
+  'youngir',
+  'TLTGO',
+  'theluxtaxi',
+  'Maxime',
+  'mironclaw',
+  'Karoliny Světlé',
+  'Hybernská',
+  'Carlsbad Plaza',
+  'Grand Mark Prague',
+]
+
+describe('findForbiddenContent (pure helper)', () => {
+  it('flags a euro amount', () => {
+    expect(findForbiddenContent('Total: €305')).toContain('currency/price token found')
+  })
+
+  it('flags an Uber mention', () => {
+    const issues = findForbiddenContent('cheaper than Uber for this route')
+    expect(issues.some((i) => i.includes('uber'))).toBe(true)
+  })
+
+  it('passes clean text', () => {
+    expect(
+      findForbiddenContent('Hi {{contact.first_name}}, your pickup time changed. — Prestigo')
+    ).toEqual([])
+  })
+})
+
+describe('infra/chatwoot/canned-responses/*.json', () => {
+  const files = listCannedResponseFiles()
+
+  it('has at least one topic file', () => {
+    expect(files.length).toBeGreaterThan(0)
+  })
+
+  for (const file of files) {
+    const topic = file.replace(/\.json$/, '')
+
+    describe(`topic: ${topic}`, () => {
+      const raw = fs.readFileSync(path.join(CANNED_DIR, file), 'utf8')
+      const data = JSON.parse(raw) as {
+        topic: string
+        sourceScript: string
+        placeholders: string[]
+        responses: Record<Locale, string>
+      }
+
+      it('declares the topic matching its filename', () => {
+        expect(data.topic).toBe(topic)
+      })
+
+      it('has exactly the 7 locale keys', () => {
+        expect(Object.keys(data.responses).sort()).toEqual([...LOCALES].sort())
+      })
+
+      it('every locale value is non-empty', () => {
+        for (const loc of LOCALES) {
+          expect(data.responses[loc].trim().length).toBeGreaterThan(0)
+        }
+      })
+
+      it('every non-en locale differs from en (no English copy-paste stub)', () => {
+        for (const loc of LOCALES) {
+          if (loc === 'en') continue
+          expect(data.responses[loc]).not.toBe(data.responses.en)
+        }
+      })
+
+      it('every declared placeholder appears in every locale text', () => {
+        for (const loc of LOCALES) {
+          for (const ph of data.placeholders || []) {
+            expect(data.responses[loc]).toContain(ph)
+          }
+        }
+      })
+
+      it('short_code "<topic>-<locale>" matches the required pattern for every locale', () => {
+        for (const loc of LOCALES) {
+          const shortCode = `${topic}-${loc}`
+          expect(shortCode).toMatch(/^[a-z]+(-[a-z]+)*-(en|ru|es|fr|ar|hi|zh)$/)
+        }
+      })
+
+      it('no locale value contains forbidden content (price, Uber, misspelling, real booking ref, bad variable)', () => {
+        for (const loc of LOCALES) {
+          const issues = findForbiddenContent(data.responses[loc])
+          expect(issues).toEqual([])
+        }
+      })
+    })
+  }
+})
+
+describe('infra/chatwoot template price guard (D-18)', () => {
+  it('.husky/pre-commit scans infra/chatwoot for currency tokens', () => {
+    const hook = fs.readFileSync(path.join(process.cwd(), '.husky/pre-commit'), 'utf8')
+    expect(hook).toContain('infra/chatwoot')
+    expect(hook).toContain('Price or currency found in Chatwoot template source')
+  })
+
+  it('scripts/qa/secret_gate_probe.sh proves the currency guard blocks and allows correctly', () => {
+    const probe = fs.readFileSync(
+      path.join(process.cwd(), 'scripts/qa/secret_gate_probe.sh'),
+      'utf8'
+    )
+    expect(probe).toContain('template-price')
+    expect(probe).toContain('template-clean')
+  })
+
+  it('infra/chatwoot directory exists on disk', () => {
+    expect(fs.existsSync(INFRA_DIR)).toBe(true)
+  })
+})
+
+describe('Task 2: remaining four canned topics', () => {
+  it('exactly 5 topic files exist', () => {
+    expect(listCannedResponseFiles().length).toBe(5)
+  })
+
+  it('no template contains a one-off customer name/identifier from the six root scripts', () => {
+    for (const file of listCannedResponseFiles()) {
+      const raw = fs.readFileSync(path.join(CANNED_DIR, file), 'utf8')
+      for (const ident of ONE_OFF_IDENTIFIERS) {
+        expect(raw).not.toContain(ident)
+      }
+    }
+  })
+
+  it('login-help: en points to the root sign-in page, every other locale to its own /<locale>/login', () => {
+    const data = readCannedTopic('login-help')
+    expect(data.responses.en).toContain('https://rideprestigo.com/login')
+    for (const loc of LOCALES) {
+      if (loc === 'en') continue
+      expect(data.responses[loc]).toContain(`https://rideprestigo.com/${loc}/login`)
+    }
+  })
+
+  it('review-request contains the Google review link in every locale', () => {
+    const data = readCannedTopic('review-request')
+    for (const loc of LOCALES) {
+      expect(data.responses[loc]).toContain('https://g.page/r/CdQIkiuHQ1UOEBM/review')
+    }
+  })
+
+  it('payment-help contains [PAYMENT_LINK] in every locale and no amount (no digits at all)', () => {
+    const data = readCannedTopic('payment-help')
+    for (const loc of LOCALES) {
+      expect(data.responses[loc]).toContain('[PAYMENT_LINK]')
+      expect(data.responses[loc]).not.toMatch(/\d/)
+      expect(findForbiddenContent(data.responses[loc])).toEqual([])
+    }
+  })
+})
+
+// --- Task 3: labels, teams, custom attributes, inboxes, account, automation ---
+
+const HEX_COLOR_RE = /^#[0-9A-Fa-f]{6}$/
+const D20_LABELS = [
+  'ch-email',
+  'ch-web',
+  'ch-telegram',
+  'booking-new',
+  'booking-change',
+  'payment',
+  'b2b',
+  'complaint',
+  'lost-item',
+  'review',
+  'other',
+] as const
+const CHANNEL_LABELS = new Set(['ch-email', 'ch-web', 'ch-telegram'])
+const CONVERSATION_ATTR_KEYS = [
+  'page_url',
+  'landing_url',
+  'site_locale',
+  'referrer',
+  'utm_source',
+  'utm_medium',
+  'utm_campaign',
+  'utm_term',
+  'utm_content',
+  'book_trip_type',
+  'book_origin',
+  'book_destination',
+  'book_vehicle',
+  'chat_opened_at',
+  'chat_consent',
+] as const
+
+function readInfraJson<T>(file: string): T {
+  return JSON.parse(fs.readFileSync(path.join(INFRA_DIR, file), 'utf8')) as T
+}
+
+describe('infra/chatwoot/labels.json (D-20)', () => {
+  const data = readInfraJson<{
+    labels: { title: string; description: string; color: string; show_on_sidebar: boolean }[]
+  }>('labels.json')
+
+  it('titles equal exactly the 11 D-20 labels', () => {
+    expect(data.labels.map((l) => l.title).sort()).toEqual([...D20_LABELS].sort())
+  })
+
+  it('every color is a valid #RRGGBB hex value', () => {
+    for (const label of data.labels) {
+      expect(label.color).toMatch(HEX_COLOR_RE)
+    }
+  })
+
+  it('channel labels share one color, topic labels share a different color', () => {
+    const channelColors = new Set(
+      data.labels.filter((l) => CHANNEL_LABELS.has(l.title)).map((l) => l.color)
+    )
+    const topicColors = new Set(
+      data.labels.filter((l) => !CHANNEL_LABELS.has(l.title)).map((l) => l.color)
+    )
+    expect(channelColors.size).toBe(1)
+    expect(topicColors.size).toBe(1)
+    expect([...channelColors][0]).not.toBe([...topicColors][0])
+  })
+})
+
+describe('infra/chatwoot/teams.json (D-21)', () => {
+  const data = readInfraJson<{
+    teams: { name: string; description: string; allow_auto_assign: boolean; members: string[] }[]
+  }>('teams.json')
+
+  it('names equal exactly ["Bookings","B2B"]', () => {
+    expect(data.teams.map((t) => t.name)).toEqual(['Bookings', 'B2B'])
+  })
+
+  it('allow_auto_assign is false and members is ["@owner"] for every team', () => {
+    for (const team of data.teams) {
+      expect(team.allow_auto_assign).toBe(false)
+      expect(team.members).toEqual(['@owner'])
+    }
+  })
+})
+
+describe('infra/chatwoot/custom-attributes.json (D-06)', () => {
+  const data = readInfraJson<{
+    conversation: { key: string; display_type: string }[]
+    contact: { key: string; display_type: string }[]
+  }>('custom-attributes.json')
+
+  it('conversation keys equal exactly the 15 keys in the interfaces block', () => {
+    expect(data.conversation.map((a) => a.key)).toEqual([...CONVERSATION_ATTR_KEYS])
+  })
+
+  it('contact keys equal ["site_locale"]', () => {
+    expect(data.contact.map((a) => a.key)).toEqual(['site_locale'])
+  })
+
+  it('every display_type is "text" or "link"', () => {
+    for (const attr of [...data.conversation, ...data.contact]) {
+      expect(['text', 'link']).toContain(attr.display_type)
+    }
+  })
+})
+
+describe('infra/chatwoot/inboxes.json (D-04/D-07/D-08)', () => {
+  const data = readInfraJson<{
+    website: {
+      avatar: string
+      settings: {
+        greeting_enabled: boolean
+        working_hours_enabled: boolean
+      }
+      channel: {
+        widget_color: string
+        reply_time: string
+        hmac_mandatory: boolean
+        continuity_via_email: boolean
+        pre_chat_form_options: { pre_chat_fields: { name: string; required: boolean }[] }
+      }
+    }
+    managed: { name: string }[]
+  }>('inboxes.json')
+
+  it('matches the locked interfaces-block values', () => {
+    expect(data.website.channel.widget_color).toBe('#0F1D2C')
+    expect(data.website.channel.reply_time).toBe('in_a_few_minutes')
+    expect(data.website.channel.hmac_mandatory).toBe(true)
+    expect(data.website.channel.continuity_via_email).toBe(true)
+    expect(data.website.settings.working_hours_enabled).toBe(false)
+    expect(data.website.settings.greeting_enabled).toBe(false)
+  })
+
+  it('pre-chat form: email required, name optional (D-04)', () => {
+    const fields = data.website.channel.pre_chat_form_options.pre_chat_fields
+    const email = fields.find((f) => f.name === 'emailAddress')
+    const name = fields.find((f) => f.name === 'fullName')
+    expect(email?.required).toBe(true)
+    expect(name?.required).toBe(false)
+  })
+
+  it('the avatar path exists on disk', () => {
+    expect(fs.existsSync(path.join(process.cwd(), data.website.avatar))).toBe(true)
+  })
+})
+
+describe('infra/chatwoot/account.json', () => {
+  it('support_email equals bookings@rideprestigo.com', () => {
+    const data = readInfraJson<{ support_email: string }>('account.json')
+    expect(data.support_email).toBe('bookings@rideprestigo.com')
+  })
+})
+
+describe('infra/chatwoot/automation-rules.json (D-20/D-21/OPS-02)', () => {
+  const labels = readInfraJson<{ labels: { title: string }[] }>('labels.json')
+  const teams = readInfraJson<{ teams: { name: string }[] }>('teams.json')
+  const inboxes = readInfraJson<{ website: { name: string }; managed: { name: string }[] }>(
+    'inboxes.json'
+  )
+  const data = readInfraJson<{
+    channelRules: { name: string; inbox: string; label: string; team: string }[]
+    topicRules: { label: string; team: string | null; keywords: Record<Locale, string[]> }[]
+    labelRouting: { name: string; label: string; team: string; optional: boolean }[]
+  }>('automation-rules.json')
+
+  const labelTitles = new Set(labels.labels.map((l) => l.title))
+  const teamNames = new Set(teams.teams.map((t) => t.name))
+  const inboxNames = new Set([inboxes.website.name, ...inboxes.managed.map((m) => m.name)])
+
+  it('every channelRules.inbox is the website name or a managed inbox name', () => {
+    for (const rule of data.channelRules) {
+      expect(inboxNames.has(rule.inbox)).toBe(true)
+    }
+  })
+
+  it('every channelRules/topicRules/labelRouting label exists in labels.json', () => {
+    for (const rule of data.channelRules) expect(labelTitles.has(rule.label)).toBe(true)
+    for (const rule of data.topicRules) expect(labelTitles.has(rule.label)).toBe(true)
+    for (const rule of data.labelRouting) expect(labelTitles.has(rule.label)).toBe(true)
+  })
+
+  it('every channelRules/labelRouting team exists in teams.json', () => {
+    for (const rule of data.channelRules) expect(teamNames.has(rule.team)).toBe(true)
+    for (const rule of data.labelRouting) expect(teamNames.has(rule.team)).toBe(true)
+  })
+
+  it('topicRules cover exactly booking-new, booking-change, payment, b2b, complaint, lost-item, review (not other)', () => {
+    const expected = ['booking-new', 'booking-change', 'payment', 'b2b', 'complaint', 'lost-item', 'review']
+    expect(data.topicRules.map((r) => r.label).sort()).toEqual([...expected].sort())
+  })
+
+  it('b2b topic rule routes to the B2B team', () => {
+    const b2b = data.topicRules.find((r) => r.label === 'b2b')
+    expect(b2b?.team).toBe('B2B')
+  })
+
+  it('every topic has at least 2 keywords per locale for all 7 locales', () => {
+    for (const rule of data.topicRules) {
+      for (const loc of LOCALES) {
+        expect(rule.keywords[loc]?.length ?? 0).toBeGreaterThanOrEqual(2)
+      }
+    }
+  })
+
+  it('keywords are lowercase, trimmed; zh keywords are >=2 chars, others >=3 chars; none is forbidden content', () => {
+    for (const rule of data.topicRules) {
+      for (const loc of LOCALES) {
+        for (const kw of rule.keywords[loc]) {
+          expect(kw).toBe(kw.trim())
+          expect(kw).toBe(kw.toLowerCase())
+          expect(kw.length).toBeGreaterThanOrEqual(loc === 'zh' ? 2 : 3)
+          expect(findForbiddenContent(kw)).toEqual([])
+        }
+      }
+    }
+  })
+})

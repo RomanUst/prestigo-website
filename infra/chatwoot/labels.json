@@ -1,0 +1,15 @@
+{
+  "labels": [
+    { "title": "ch-email", "description": "Conversation channel: Email (info@ or bookings@)", "color": "#0F1D2C", "show_on_sidebar": true },
+    { "title": "ch-web", "description": "Conversation channel: Website chat widget", "color": "#0F1D2C", "show_on_sidebar": true },
+    { "title": "ch-telegram", "description": "Conversation channel: Telegram bot", "color": "#0F1D2C", "show_on_sidebar": true },
+    { "title": "booking-new", "description": "Topic: new booking inquiry", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "booking-change", "description": "Topic: change to an existing booking (time, vehicle, route)", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "payment", "description": "Topic: payment help or payment link request", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "b2b", "description": "Topic: corporate account, agency or partnership inquiry", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "complaint", "description": "Topic: service complaint", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "lost-item", "description": "Topic: lost item follow-up", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "review", "description": "Topic: post-trip review request or response", "color": "#BFA06A", "show_on_sidebar": true },
+    { "title": "other", "description": "Topic: operator-applied catch-all, corrected manually", "color": "#BFA06A", "show_on_sidebar": true }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "website": {
+    "name": "Website",
+    "avatar": "public/brand/logo-512.png",
+    "settings": {
+      "greeting_enabled": false,
+      "enable_email_collect": true,
+      "csat_survey_enabled": false,
+      "enable_auto_assignment": false,
+      "working_hours_enabled": false
+    },
+    "channel": {
+      "type": "web_widget",
+      "website_url": "https://rideprestigo.com",
+      "widget_color": "#0F1D2C",
+      "welcome_title": "Prestigo",
+      "welcome_tagline": "",
+      "reply_time": "in_a_few_minutes",
+      "hmac_mandatory": true,
+      "continuity_via_email": true,
+      "allowed_domains": "rideprestigo.com,www.rideprestigo.com",
+      "pre_chat_form_enabled": true,
+      "pre_chat_form_options": {
+        "pre_chat_message": "",
+        "pre_chat_fields": [
+          { "name": "emailAddress", "type": "email", "field_type": "standard", "label": "Email", "required": true, "enabled": true },
+          { "name": "fullName", "type": "text", "field_type": "standard", "label": "Name", "required": false, "enabled": true },
+          { "name": "phoneNumber", "type": "text", "field_type": "standard", "label": "Phone", "required": false, "enabled": false }
+        ]
+      }
+    }
+  },
+  "managed": [
+    { "name": "Email info@", "channel_type": "Channel::Email", "settings": { "enable_auto_assignment": false, "business_name": "Prestigo", "sender_name_type": "professional" } },
+    { "name": "Email bookings@", "channel_type": "Channel::Email", "settings": { "enable_auto_assignment": false, "business_name": "Prestigo", "sender_name_type": "professional" } },
+    { "name": "Telegram", "channel_type": "Channel::Telegram", "settings": { "enable_auto_assignment": false } }
+  ]
+}
