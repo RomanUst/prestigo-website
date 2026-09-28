@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 9
 waived_count: 0
 fixed_count: 22
-total_count: 30
-last_updated: 2026-09-27T23:03:53.254Z
+total_count: 31
+last_updated: 2026-09-28T22:24:58.414Z
 ---
 
 # Broken Windows Ledger
@@ -45,6 +45,7 @@ last_updated: 2026-09-27T23:03:53.254Z
 | 28 | 75 | deviation | lib/site-metadata.ts |  | WR-02 twitter title/description were the English site default on every non-EN page even where og:* was localized — fixed by 75-31 central mirroring + locale-aware layout default | fixed |  | 2026-09-27T15:53:44.378Z | 2026-09-27T15:53:54.600Z |
 | 29 | 75 | deviation | components/ArticleByline.tsx |  | WR-04 byline By/Published/Updated + en-GB dates English on localized posts and /blog cards — fixed by 75-34 | fixed |  | 2026-09-27T15:53:44.554Z | 2026-09-27T15:53:54.786Z |
 | 30 | 76 | deviation | infra/vps/chatwoot/compose.yml |  | Chatwoot /api intermittently reports data_services:failing (postgres_status via ActiveRecord::Base.connection.active? raising ConnectionNotEstablished) in bursts of several seconds, self-resolving, observed live during 76-06 (containers healthy, no restarts/OOM, pg_stat_activity normal, no errors in postgres logs; reproduces externally via Caddy but NOT via in-process rails runner/Rack::Test) -- will cause the 76-06 UptimeRobot Chatwoot monitor to occasionally show real (if brief) DOWN states once provisioned; root cause not diagnosed (Puma/AR connection-pool reaping suspected, DB_POOL_REAPING_FREQUENCY=30s default), out of scope for 76-06 (chatwoot.env/compose.yml belong to 76-04) | open |  | 2026-09-27T23:03:53.254Z |  |
+| 31 | 77 | deviation | scripts/qa/chat_widget_probe.py |  | Home-page CLS lab-noise trips --cwv-compare self-consistency check (0.027 vs 0.02 threshold) on 2 of 2 attempts; plan-authorized do-not-widen-thresholds handling applied, documented in 77-04-SUMMARY.md | open |  | 2026-09-28T22:24:58.414Z |  |
 
 ````json
 [
@@ -406,6 +407,19 @@ last_updated: 2026-09-27T23:03:53.254Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-27T23:03:53.254Z",
+    "resolved_at": null,
+    "milestone": "v4.0"
+  },
+  {
+    "id": 31,
+    "kind": "deviation",
+    "phase": "77",
+    "file": "scripts/qa/chat_widget_probe.py",
+    "line": null,
+    "description": "Home-page CLS lab-noise trips --cwv-compare self-consistency check (0.027 vs 0.02 threshold) on 2 of 2 attempts; plan-authorized do-not-widen-thresholds handling applied, documented in 77-04-SUMMARY.md",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-28T22:24:58.414Z",
     "resolved_at": null,
     "milestone": "v4.0"
   }
