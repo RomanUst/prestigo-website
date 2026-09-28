@@ -95,12 +95,32 @@
         "name": "Vercel",
         "purpose": "Website hosting and content delivery.",
         "url": "https://vercel.com/legal/privacy-policy"
+      },
+      {
+        "name": "Chatwoot (self-hosted)",
+        "purpose": "Our customer messaging inbox for website chat, email and Telegram messages, run on our own server. If our team uses the Chatwoot mobile app, new-message notifications pass through Chatwoot's notification service.",
+        "url": "https://www.chatwoot.com/privacy-policy"
+      },
+      {
+        "name": "Hostinger",
+        "purpose": "Hosting of our own messaging server in Germany (EU).",
+        "url": "https://www.hostinger.com/legal/privacy-policy"
+      },
+      {
+        "name": "Backblaze",
+        "purpose": "Encrypted nightly backups of our messaging server, stored in the United States.",
+        "url": "https://www.backblaze.com/company/privacy.html"
+      },
+      {
+        "name": "Telegram",
+        "purpose": "Only if you choose to message us on Telegram.",
+        "url": "https://telegram.org/privacy"
       }
     ]
   },
   "section5": {
     "title": "International Data Transfers",
-    "text": "Your booking data is stored within the European Union (Supabase EU region). Some of our service providers — including Google, Stripe, Resend, and Vercel — may process data in the United States. These transfers are protected by the EU–US Data Privacy Framework and, where applicable, Standard Contractual Clauses approved by the European Commission."
+    "text": "Your booking data is stored within the European Union (Supabase EU region). Some of our service providers — including Google, Stripe, Resend, and Vercel — may process data in the United States. These transfers are protected by the EU–US Data Privacy Framework and, where applicable, Standard Contractual Clauses approved by the European Commission. Messages sent through the website chat, email or Telegram are stored on our own server in Germany; encrypted backups of that server are kept by Backblaze in the United States under the EU–US Data Privacy Framework."
   },
   "section6": {
     "title": "Data Retention",
@@ -134,6 +154,10 @@
       {
         "name": "Essential cookies",
         "purpose": "Session management only. Required for the website to function correctly."
+      },
+      {
+        "name": "cw_conversation / cw_user_*",
+        "purpose": "Website chat. Set only after you click “Chat on site” — that click starts the chat service; keeps your conversation open while you browse and is cleared when you sign out of your Prestigo account. When you open the chat we also record the page you were on, the site language, how you reached us and, on the booking page, the route and vehicle you selected."
       }
     ],
     "outro": "We do not use advertising, remarketing, or social media tracking cookies."

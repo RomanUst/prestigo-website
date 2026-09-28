@@ -1,0 +1,8 @@
+# 77-05: pre-launch privacy disclosure (Backblaze/Hostinger/Chatwoot/Telegram
+# processors, section5 international-transfers sentence, section7 chat-cookie
+# entry) — hand-translated in-session into ru/es/fr/ar/hi/zh (i18n GH workflow
+# disabled, empty Anthropic API credit). Freezes so a future pipeline run
+# never overwrites these units.
+content/pages/en/privacy.json::section4.providers
+content/pages/en/privacy.json::section5.text
+content/pages/en/privacy.json::section7.cookies

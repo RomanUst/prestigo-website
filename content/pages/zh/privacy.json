@@ -95,12 +95,32 @@
         "name": "Vercel",
         "purpose": "网站托管与内容分发。",
         "url": "https://vercel.com/legal/privacy-policy"
+      },
+      {
+        "name": "Chatwoot (self-hosted)",
+        "purpose": "我们用于网站聊天、电子邮件和 Telegram 消息的客户消息收件箱，运行在我们自有的服务器上。若我们的团队使用 Chatwoot 移动应用，新消息通知将通过 Chatwoot 的通知服务发送。",
+        "url": "https://www.chatwoot.com/privacy-policy"
+      },
+      {
+        "name": "Hostinger",
+        "purpose": "我们自有消息服务器在德国（欧盟）的托管服务。",
+        "url": "https://www.hostinger.com/legal/privacy-policy"
+      },
+      {
+        "name": "Backblaze",
+        "purpose": "我们消息服务器的每夜加密备份，存储于美国。",
+        "url": "https://www.backblaze.com/company/privacy.html"
+      },
+      {
+        "name": "Telegram",
+        "purpose": "仅在您选择通过 Telegram 与我们联系时适用。",
+        "url": "https://telegram.org/privacy"
       }
     ]
   },
   "section5": {
     "title": "跨境数据传输",
-    "text": "您的预订数据存储于欧盟境内（Supabase 欧盟区域）。我们的部分服务提供商 — 包括 Google、Stripe、Resend 和 Vercel — 可能在美国处理数据。此类传输受《欧盟—美国数据隐私框架》保护，并在适用情况下受欧盟委员会批准的标准合同条款保护。"
+    "text": "您的预订数据存储于欧盟境内（Supabase 欧盟区域）。我们的部分服务提供商 — 包括 Google、Stripe、Resend 和 Vercel — 可能在美国处理数据。此类传输受《欧盟—美国数据隐私框架》保护，并在适用情况下受欧盟委员会批准的标准合同条款保护。通过网站聊天、电子邮件或 Telegram 发送的消息存储在我们位于德国的自有服务器上；该服务器的加密备份由 Backblaze 依据《欧盟—美国数据隐私框架》存储于美国。"
   },
   "section6": {
     "title": "数据保存期限",
@@ -134,6 +154,10 @@
       {
         "name": "必要 Cookie",
         "purpose": "仅用于会话管理。为网站正常运行所必需。"
+      },
+      {
+        "name": "cw_conversation / cw_user_*",
+        "purpose": "网站聊天。仅在您点击“在线聊天”后才会设置——该点击会启动聊天服务；它会在您浏览期间保持对话开启，并在您从 Prestigo 账户登出时清除。当您打开聊天时，我们还会记录您所在的页面、网站语言、您是如何找到我们的，以及在预订页面上您所选择的路线和车辆。"
       }
     ],
     "outro": "我们不使用广告、再营销或社交媒体追踪 Cookie。"

@@ -95,12 +95,32 @@
         "name": "Vercel",
         "purpose": "Alojamiento del sitio web y distribución de contenidos.",
         "url": "https://vercel.com/legal/privacy-policy"
+      },
+      {
+        "name": "Chatwoot (self-hosted)",
+        "purpose": "Nuestra bandeja de entrada de mensajería con clientes para el chat del sitio web, el correo electrónico y los mensajes de Telegram, alojada en nuestro propio servidor. Si nuestro equipo utiliza la aplicación móvil de Chatwoot, las notificaciones de nuevos mensajes pasan por el servicio de notificaciones de Chatwoot.",
+        "url": "https://www.chatwoot.com/privacy-policy"
+      },
+      {
+        "name": "Hostinger",
+        "purpose": "Alojamiento de nuestro propio servidor de mensajería en Alemania (UE).",
+        "url": "https://www.hostinger.com/legal/privacy-policy"
+      },
+      {
+        "name": "Backblaze",
+        "purpose": "Copias de seguridad nocturnas cifradas de nuestro servidor de mensajería, almacenadas en los Estados Unidos.",
+        "url": "https://www.backblaze.com/company/privacy.html"
+      },
+      {
+        "name": "Telegram",
+        "purpose": "Solo si decide escribirnos por Telegram.",
+        "url": "https://telegram.org/privacy"
       }
     ]
   },
   "section5": {
     "title": "Transferencias internacionales de datos",
-    "text": "Los datos de su reserva se almacenan dentro de la Unión Europea (región UE de Supabase). Algunos de nuestros proveedores de servicios — entre ellos Google, Stripe, Resend y Vercel — pueden tratar datos en los Estados Unidos. Estas transferencias están amparadas por el Marco de Privacidad de Datos UE-EE. UU. y, cuando proceda, por las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea."
+    "text": "Los datos de su reserva se almacenan dentro de la Unión Europea (región UE de Supabase). Algunos de nuestros proveedores de servicios — entre ellos Google, Stripe, Resend y Vercel — pueden tratar datos en los Estados Unidos. Estas transferencias están amparadas por el Marco de Privacidad de Datos UE-EE. UU. y, cuando proceda, por las Cláusulas Contractuales Tipo aprobadas por la Comisión Europea. Los mensajes enviados a través del chat del sitio web, el correo electrónico o Telegram se almacenan en nuestro propio servidor en Alemania; las copias de seguridad cifradas de ese servidor las conserva Backblaze en los Estados Unidos al amparo del Marco de Privacidad de Datos UE-EE. UU."
   },
   "section6": {
     "title": "Conservación de los datos",
@@ -134,6 +154,10 @@
       {
         "name": "Cookies esenciales",
         "purpose": "Únicamente gestión de la sesión. Necesarias para el correcto funcionamiento del sitio web."
+      },
+      {
+        "name": "cw_conversation / cw_user_*",
+        "purpose": "Chat del sitio web. Se establece solo después de que haga clic en «Chatear en el sitio» — ese clic inicia el servicio de chat; mantiene su conversación abierta mientras navega y se elimina al cerrar sesión en su cuenta de Prestigo. Al abrir el chat también registramos la página en la que se encontraba, el idioma del sitio, cómo llegó hasta nosotros y, en la página de reserva, la ruta y el vehículo que seleccionó."
       }
     ],
     "outro": "No utilizamos cookies de publicidad, de remarketing ni de seguimiento en redes sociales."
