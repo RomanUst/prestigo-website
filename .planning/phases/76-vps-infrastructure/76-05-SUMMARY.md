@@ -122,7 +122,7 @@ coverage:
 
 duration: ~50min
 completed: 2026-09-27
-status: complete-pending-owner
+status: complete
 ---
 
 # Phase 76 Plan 05: Backups + Upgrade Runbook Summary
@@ -273,3 +273,11 @@ Owner, in order:
 - FOUND commit: b466dfa2 (Task 2)
 - Re-ran all Task 1/2 `<verify>` and acceptance-criteria commands live (see "Verification" section above) — all PASS
 - Task 3 intentionally not executed (see "Deferred owner actions" section) — not claimed as done anywhere in this SUMMARY or in REQUIREMENTS.md
+
+## Owner custody — resolved 2026-09-28
+
+Owner completed Task 3 in chat (orchestrator-verified, no secret read by Claude):
+- Owner saved backup.env into Apple Passwords (entry "Prestigo VPS backup.env", all lines in notes) — owner-reported.
+- D-18 end-to-end: owner confirmed all three emails arrived at info@rideprestigo.com (relay test, EspoCRM test, Chatwoot reset).
+- Chatwoot: admin password reset by owner at 2026-09-28 07:43 UTC; one devise_token_auth session created by the reset flow (sign_in_count stays 0 because token auth does not update trackable columns). `otp_required_for_login=false` — owner did not enable 2FA in Chatwoot (Profile 2FA to be re-checked; schema supports it).
+- EspoCRM: successful `prestigo-admin` login 2026-09-28 07:44:51 UTC (auth_log_record); user_data.auth2_f_a=1, method Totp ✓.

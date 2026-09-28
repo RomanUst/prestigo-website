@@ -2,7 +2,7 @@
 
 Status 2026-09-28: plans 01–04 and 08 complete; 05 and 06 `complete-pending-owner`; 07 and 09 not started (need the items below). Everything automatable is done.
 
-## A. Custody (plan 05 Task 3) — no accounts needed, ~15 min
+## A. Custody (plan 05 Task 3) — ✓ DONE 2026-09-28 (only open bit: Chatwoot 2FA not enabled yet)
 1. Terminal on the owner Mac: `ssh prestigo-vps sudo cat /etc/prestigo/backup.env` → copy all lines into a password-manager secure note **"Prestigo VPS backup.env"** (without it backups cannot be decrypted if the VPS is lost; plan 09 restores with exactly this note).
 2. Chatwoot: https://chat.rideprestigo.com → Forgot password → info@rideprestigo.com → set password (password manager) → Profile → enable 2FA if offered, save recovery codes.
 3. EspoCRM: `ssh prestigo-vps sudo grep ESPOCRM_ADMIN_PASSWORD /etc/prestigo/espocrm.env` → log in at https://crm.rideprestigo.com as `prestigo-admin` → change password → Preferences → Two-Factor Authentication (authenticator app).
