@@ -386,7 +386,18 @@ run_start() {
     [ "${health}" = "healthy" ] && break
     sleep 2
   done
-  docker exec -i chatwoot-postgres-1 pg_restore -U postgres -d chatwoot_production --clean --if-exists < /var/backups/prestigo/dumps/chatwoot.dump || true
+  # CR-02: pg_restore's exit code MUST NOT be swallowed here — this is the
+  # single most consequential place for this script to lie about success.
+  # `--clean --if-exists` restoring into a fresh, empty database is not
+  # expected to emit any errors (--if-exists suppresses the "does not
+  # exist" noise from the DROP statements); if pg_restore still reports a
+  # non-zero exit, treat that as a real failure and abort loudly rather
+  # than continuing into run_start()'s remaining steps / run_full()'s final
+  # "PASS full" line.
+  if ! docker exec -i chatwoot-postgres-1 pg_restore -U postgres -d chatwoot_production --clean --if-exists < /var/backups/prestigo/dumps/chatwoot.dump; then
+    echo "[restore] FAIL start-chatwoot-db-restore-dump: pg_restore reported errors — inspect output above before trusting this restore" >&2
+    exit 1
+  fi
   log "restored chatwoot.dump into chatwoot_production"
   step_end "start-chatwoot-db-restore-dump"
 
