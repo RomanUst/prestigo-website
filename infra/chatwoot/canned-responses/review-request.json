@@ -1,0 +1,14 @@
+{
+  "topic": "review-request",
+  "sourceScript": "send-young-posttrip-review.mjs",
+  "placeholders": [],
+  "responses": {
+    "en": "Hi {{contact.first_name}}, thank you for travelling with Prestigo! We hope you enjoyed the journey. If you have a moment, a short review means a lot to us: https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo",
+    "ru": "Здравствуйте, {{contact.first_name}}! Спасибо, что выбрали Prestigo! Надеемся, поездка вам понравилась. Если найдётся минутка, короткий отзыв много значит для нас: https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo",
+    "es": "Hola {{contact.first_name}}, ¡gracias por viajar con Prestigo! Esperamos que hayas disfrutado el viaje. Si tienes un momento, una breve reseña significa mucho para nosotros: https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo",
+    "fr": "Bonjour {{contact.first_name}}, merci d'avoir voyagé avec Prestigo ! Nous espérons que le trajet vous a plu. Si vous avez un instant, un court avis compte beaucoup pour nous : https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo",
+    "ar": "مرحبًا {{contact.first_name}}، شكرًا لسفرك مع Prestigo! نأمل أن تكون قد استمتعت بالرحلة. إذا سنحت لك لحظة، فإن تقييمًا قصيرًا يعني لنا الكثير: https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo",
+    "hi": "नमस्ते {{contact.first_name}}, Prestigo के साथ यात्रा करने के लिए धन्यवाद! उम्मीद है आपकी यात्रा सुखद रही। अगर समय हो तो एक छोटी सी समीक्षा हमारे लिए बहुत मायने रखती है: https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo",
+    "zh": "您好 {{contact.first_name}}，感谢您选择 Prestigo 出行！希望您旅途愉快。如果方便的话，一条简短的评价对我们意义重大：https://g.page/r/CdQIkiuHQ1UOEBM/review — Prestigo"
+  }
+}

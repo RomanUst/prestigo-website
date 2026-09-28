@@ -58,6 +58,35 @@ function listCannedResponseFiles(): string[] {
   return fs.readdirSync(CANNED_DIR).filter((f) => f.endsWith('.json')).sort()
 }
 
+function readCannedTopic(topic: string): { responses: Record<Locale, string> } {
+  const raw = fs.readFileSync(path.join(CANNED_DIR, `${topic}.json`), 'utf8')
+  return JSON.parse(raw)
+}
+
+// One-off customer identifiers found in the six root scripts read for Task 2
+// (send-vehicle-change-email.mjs, send-payment-help-email.mjs,
+// send-young-posttrip-review.mjs, generate-login-link.mjs,
+// send-invoice-tltgo.mjs, send-maxime-traveltime-reply.mjs) — surnames,
+// distinguishing emails/companies, and trip-specific place pairs. None of
+// these belong in a reusable, generalized template (D-19/T-77-08).
+const ONE_OFF_IDENTIFIERS = [
+  'Malone',
+  'caitlin_mal',
+  'Benshitrit',
+  'connectlifestyle',
+  'Almsaeed',
+  'Abdulaziz',
+  'youngir',
+  'TLTGO',
+  'theluxtaxi',
+  'Maxime',
+  'mironclaw',
+  'Karoliny Světlé',
+  'Hybernská',
+  'Carlsbad Plaza',
+  'Grand Mark Prague',
+]
+
 describe('findForbiddenContent (pure helper)', () => {
   it('flags a euro amount', () => {
     expect(findForbiddenContent('Total: €305')).toContain('currency/price token found')
@@ -158,5 +187,45 @@ describe('infra/chatwoot template price guard (D-18)', () => {
 
   it('infra/chatwoot directory exists on disk', () => {
     expect(fs.existsSync(INFRA_DIR)).toBe(true)
+  })
+})
+
+describe('Task 2: remaining four canned topics', () => {
+  it('exactly 5 topic files exist', () => {
+    expect(listCannedResponseFiles().length).toBe(5)
+  })
+
+  it('no template contains a one-off customer name/identifier from the six root scripts', () => {
+    for (const file of listCannedResponseFiles()) {
+      const raw = fs.readFileSync(path.join(CANNED_DIR, file), 'utf8')
+      for (const ident of ONE_OFF_IDENTIFIERS) {
+        expect(raw).not.toContain(ident)
+      }
+    }
+  })
+
+  it('login-help: en points to the root sign-in page, every other locale to its own /<locale>/login', () => {
+    const data = readCannedTopic('login-help')
+    expect(data.responses.en).toContain('https://rideprestigo.com/login')
+    for (const loc of LOCALES) {
+      if (loc === 'en') continue
+      expect(data.responses[loc]).toContain(`https://rideprestigo.com/${loc}/login`)
+    }
+  })
+
+  it('review-request contains the Google review link in every locale', () => {
+    const data = readCannedTopic('review-request')
+    for (const loc of LOCALES) {
+      expect(data.responses[loc]).toContain('https://g.page/r/CdQIkiuHQ1UOEBM/review')
+    }
+  })
+
+  it('payment-help contains [PAYMENT_LINK] in every locale and no amount (no digits at all)', () => {
+    const data = readCannedTopic('payment-help')
+    for (const loc of LOCALES) {
+      expect(data.responses[loc]).toContain('[PAYMENT_LINK]')
+      expect(data.responses[loc]).not.toMatch(/\d/)
+      expect(findForbiddenContent(data.responses[loc])).toEqual([])
+    }
   })
 })
