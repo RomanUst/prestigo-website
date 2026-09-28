@@ -27,7 +27,12 @@ DEPLOY_USER="${DEPLOY_USER:-deploy}"
 DEPLOY_PUBKEY_FILE="${DEPLOY_PUBKEY_FILE:-}"
 
 # Sections, in execution order.
-ALL_SECTIONS=(preflight deploy_user sshd_hardening firewall packages fail2ban unattended_upgrades swap docker host_layout)
+ALL_SECTIONS=(preflight hostname deploy_user sshd_hardening firewall packages fail2ban unattended_upgrades swap docker host_layout)
+
+# Hostname for this host. Production MUST be prestigo-vps: restore.sh,
+# backup.sh and drill-verify.sh use it as their production-host interlock.
+# Empty = leave the hostname alone (e.g. a restore-drill host).
+HOST_NAME="${HOST_NAME:-}"
 
 log() {
   echo "[bootstrap] $*"
@@ -54,6 +59,32 @@ section_preflight() {
   fi
 
   log "preflight OK: root, Ubuntu ${VERSION_ID}"
+}
+
+# --- hostname ---------------------------------------------------------
+# Hostinger's cloud-init ships preserve_hostname: false, which resets the
+# hostname (to srvNNNN) on reboot and would silently disarm the
+# production-host guards (and make backup.sh refuse to run).
+section_hostname() {
+  CURRENT_SECTION="hostname"
+
+  local cfg=/etc/cloud/cloud.cfg.d/99-prestigo-hostname.cfg
+  if [ -d /etc/cloud/cloud.cfg.d ] && ! grep -qs '^preserve_hostname: true' "${cfg}"; then
+    printf '%s\n' "# Managed by infra/vps/scripts/bootstrap.sh (section hostname) - Phase 76." \
+      "preserve_hostname: true" > "${cfg}"
+    chmod 0644 "${cfg}"
+    log "cloud-init: preserve_hostname true"
+  fi
+
+  if [ -n "${HOST_NAME}" ] && [ "$(hostname)" != "${HOST_NAME}" ]; then
+    hostnamectl set-hostname "${HOST_NAME}"
+    log "hostname set to ${HOST_NAME}"
+  fi
+  if [ -n "${HOST_NAME}" ] && ! grep -qE "^127\.0\.1\.1[[:space:]]+${HOST_NAME}\$" /etc/hosts; then
+    sed -i '/^127\.0\.1\.1[[:space:]]/d' /etc/hosts
+    echo "127.0.1.1 ${HOST_NAME}" >> /etc/hosts
+    log "/etc/hosts: 127.0.1.1 ${HOST_NAME}"
+  fi
 }
 
 # --- deploy_user ---------------------------------------------------------
