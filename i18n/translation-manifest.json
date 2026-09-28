@@ -7502,16 +7502,16 @@
       "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
     },
     "content/pages/en/privacy.json::section4.providers": {
-      "enHash": "sha256:22fe0d352d78a3e321f1128904315a228887ca3d74623d6d697528204ae07c1c",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "enHash": "sha256:db9b85801df76a8f0fb0d0af4457d5c25fc4a1bb281bf89e1ac30ca6f3762187",
+      "lastTranslatedAt": "2026-09-28T22:08:57.989Z"
     },
     "content/pages/en/privacy.json::section5.title": {
       "enHash": "sha256:61b68033eeac3edaec6dce5d22e979d6f0111accc5b4851348014d6fa06586b9",
       "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
     },
     "content/pages/en/privacy.json::section5.text": {
-      "enHash": "sha256:4ad11897ba862a9de71537aa5ac0a2fff8773766a3004997bdca1aca928d64d3",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "enHash": "sha256:631eaa21d7c0a955e18d83bcdc71f727c8c8afba1cf51a80b72632e6b1f4b07e",
+      "lastTranslatedAt": "2026-09-28T22:08:57.989Z"
     },
     "content/pages/en/privacy.json::section6.title": {
       "enHash": "sha256:6c5a4be839b4874bb1dfe878c75ea979efa82cacbb1414842dc3ff9591198838",
@@ -7530,8 +7530,8 @@
       "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
     },
     "content/pages/en/privacy.json::section7.cookies": {
-      "enHash": "sha256:7202bb20b1be33192ebdb4d658baabba716cc1630c8fa1145346a0e0db4cc816",
-      "lastTranslatedAt": "2026-09-18T20:21:00.828Z"
+      "enHash": "sha256:8ed0559d555f6fa58f9b733c5907fd3479dc04d18ead6846855392b1f5990293",
+      "lastTranslatedAt": "2026-09-28T22:08:57.989Z"
     },
     "content/pages/en/privacy.json::section7.outro": {
       "enHash": "sha256:4c35b346b0689b82d30c58ddd87fa980399e0b8d5c0f60b8435f4717a682bdb1",

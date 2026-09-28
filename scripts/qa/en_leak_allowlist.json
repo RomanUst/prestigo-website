@@ -11,6 +11,7 @@
     { "value": "rideprestigo.com", "reason": "i18n/glossary.json doNotTranslate.structural.domains" },
     { "value": "Meta Pixel", "reason": "third-party product name, never translated" },
     { "value": "WhatsApp", "reason": "third-party product name, never translated" },
+    { "value": "Telegram", "reason": "third-party product name, never translated" },
     { "value": "Google", "reason": "third-party product name, never translated" },
     { "value": "Stripe", "reason": "third-party product name, never translated" },
     { "value": "Apple", "reason": "third-party product name, never translated" }

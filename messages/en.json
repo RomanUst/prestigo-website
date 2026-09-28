@@ -686,6 +686,21 @@
     "toggleEnabled": "Enabled",
     "toggleDisabled": "Disabled"
   },
+  "ChatLauncher": {
+    "openAria": "Open chat",
+    "closeAria": "Close chat menu",
+    "menuAria": "Ways to contact us",
+    "chatOnSite": "Chat on site",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "replyTimeHint": "We usually reply within a few minutes",
+    "widgetLoading": "Opening chat…",
+    "widgetError": "Live chat is unavailable right now — try WhatsApp or Telegram instead.",
+    "widget": {
+      "welcomeTitle": "Hello from Prestigo",
+      "welcomeDescription": "Ask about a transfer, a quote or your booking. We reply here and by email."
+    }
+  },
   "Errors": {
     "genericRetry": "Something went wrong. Please try again.",
     "rateLimited": "Too many attempts. Please try again in a minute.",

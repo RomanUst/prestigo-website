@@ -736,6 +736,21 @@
     "toggleEnabled": "Activado",
     "toggleDisabled": "Desactivado"
   },
+  "ChatLauncher": {
+    "openAria": "Abrir chat",
+    "closeAria": "Cerrar menú de chat",
+    "menuAria": "Formas de contactarnos",
+    "chatOnSite": "Chatear en el sitio",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "replyTimeHint": "Normalmente respondemos en pocos minutos",
+    "widgetLoading": "Abriendo el chat…",
+    "widgetError": "El chat en vivo no está disponible en este momento — pruebe con WhatsApp o Telegram.",
+    "widget": {
+      "welcomeTitle": "Hola, somos Prestigo",
+      "welcomeDescription": "Pregúntenos sobre un traslado, un presupuesto o su reserva. Respondemos aquí y por correo electrónico."
+    }
+  },
   "Errors": {
     "genericRetry": "Se ha producido un error. Inténtelo de nuevo.",
     "rateLimited": "Demasiados intentos. Inténtelo de nuevo en un minuto.",

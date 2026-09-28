@@ -736,6 +736,21 @@
     "toggleEnabled": "已启用",
     "toggleDisabled": "已停用"
   },
+  "ChatLauncher": {
+    "openAria": "打开聊天",
+    "closeAria": "关闭聊天菜单",
+    "menuAria": "联系我们的方式",
+    "chatOnSite": "在线聊天",
+    "whatsapp": "WhatsApp",
+    "telegram": "Telegram",
+    "replyTimeHint": "我们通常会在几分钟内回复",
+    "widgetLoading": "正在打开聊天…",
+    "widgetError": "在线聊天暂时不可用——请改用 WhatsApp 或 Telegram。",
+    "widget": {
+      "welcomeTitle": "您好,这里是 Prestigo",
+      "welcomeDescription": "请咨询接送服务、报价或您的预订。我们会在此处及通过电子邮件回复您。"
+    }
+  },
   "Errors": {
     "genericRetry": "出现问题,请重试。",
     "rateLimited": "尝试次数过多,请在一分钟后重试。",
