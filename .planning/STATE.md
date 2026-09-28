@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
-stopped_at: 76-07 Task 1 complete (autonomous outage test); Tasks 2/3 pending owner confirmation + orchestrator cleanup
-last_updated: "2026-09-28T08:52:42.010Z"
-last_activity: 2026-09-27
+stopped_at: Completed 76-09-PLAN.md
+last_updated: "2026-09-28T10:15:25.975Z"
+last_activity: 2026-09-28
 last_activity_desc: Phase 76 execution started
-state_head: 7d00d3163f9357856e48575573298ea68a638f3e
+state_head: 3e3069eff7a15d9d15ca44c08424306318168c69
 progress:
   total_phases: 10
   completed_phases: 22
   total_plans: 9
-  completed_plans: 8
-  percent: 89
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -30,7 +30,7 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 ## Current Position
 
 Phase: 76 (VPS Infrastructure) — EXECUTING
-Plan: 8 of 9 (76-07 Task 1 done, complete-pending-owner; Task 2/3 await owner + orchestrator)
+Plan: 9 of 9 (76-07 Task 1 done, complete-pending-owner; Task 2/3 await owner + orchestrator)
 Status: Ready to execute
 Last activity: 2026-09-28 — 76-07 real controlled outage test run
 
@@ -183,6 +183,8 @@ Recent decisions affecting current work:
 - [Phase 76]: D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram integration is now a paid feature; owner declined. UptimeRobot alerts by email only; a new on-VPS apps_http check restores Telegram coverage for app-level outages via Healthchecks.io (which kept its free Telegram integration). UptimeRobot v2 monitor creation is also plan-gated on the free tier (access_denied for every v2 POST /newMonitor) — provision-monitors.sh migrated to the v3 API for monitor creation/listing, per the plan's own documented fallback.
 - [Phase 76]: 76-07: real controlled outage on production 2026-09-28 08:37:13Z-08:44:01Z (caddy/chatwoot/espocrm stopped); site/booking-to-Stripe/contact form all proved working with zero chat./crm. requests (ref PRG-20260928-D8E6DC); all 6 alert targets (2 UptimeRobot + 4 Healthchecks) confirmed down by 08:42:09Z, recovery confirmed by 08:47:39Z. Task 1 (tracer) autonomous per owner authorization; Tasks 2 (owner alert/email confirmation) and 3 (orchestrator Supabase cleanup) deferred, SUMMARY status complete-pending-owner.
 - [Phase 76]: 76-07: docker compose up -d needed sudo during recovery even though stop did not (env_file is 0600 root-only, read only by up) - Rule 3 auto-fix, no code/plan change, documented in outage-test.md.
+- [Phase 76]: D-09 restore drill executed and owner-approved: production Chatwoot+EspoCRM recovered from B2 onto a disposable Hetzner host, integrity-verified, host torn down and confirmed gone (INFRA-02 recovery half met)
+- [Phase 76]: EspoCRM login retries during Task 3 were confirmed an operator typo, not a restore defect, via byte-identical password hash/salt comparison against production before the owner retried
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -324,8 +326,8 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-28T08:52:41.959Z
-Stopped at: 76-07 Task 1 complete (autonomous outage test); Tasks 2/3 pending owner confirmation + orchestrator cleanup
+Last session: 2026-09-28T10:15:25.927Z
+Stopped at: Completed 76-09-PLAN.md
 Resume file: None
 
 ## Performance Metrics
@@ -406,6 +408,7 @@ Resume file: None
 | Phase 76 P08 | 32min | 2 tasks | 9 files |
 | Phase 76 P06 | ~40min (continuation) | 3 tasks | 5 files |
 | Phase 76 P07 | 20min | 1 tasks | 2 files |
+| Phase 76 P09 | 49min | 4 tasks | 3 files |
 
 ## Operator Next Steps
 
