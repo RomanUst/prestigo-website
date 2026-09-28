@@ -1,10 +1,10 @@
 ---
 schema_version: 1
-open_count: 8
+open_count: 9
 waived_count: 0
 fixed_count: 22
-total_count: 30
-last_updated: 2026-09-27T23:03:53.254Z
+total_count: 31
+last_updated: 2026-09-28T22:28:39.488Z
 ---
 
 # Broken Windows Ledger
@@ -45,6 +45,7 @@ last_updated: 2026-09-27T23:03:53.254Z
 | 28 | 75 | deviation | lib/site-metadata.ts |  | WR-02 twitter title/description were the English site default on every non-EN page even where og:* was localized — fixed by 75-31 central mirroring + locale-aware layout default | fixed |  | 2026-09-27T15:53:44.378Z | 2026-09-27T15:53:54.600Z |
 | 29 | 75 | deviation | components/ArticleByline.tsx |  | WR-04 byline By/Published/Updated + en-GB dates English on localized posts and /blog cards — fixed by 75-34 | fixed |  | 2026-09-27T15:53:44.554Z | 2026-09-27T15:53:54.786Z |
 | 30 | 76 | deviation | infra/vps/chatwoot/compose.yml |  | Chatwoot /api intermittently reports data_services:failing (postgres_status via ActiveRecord::Base.connection.active? raising ConnectionNotEstablished) in bursts of several seconds, self-resolving, observed live during 76-06 (containers healthy, no restarts/OOM, pg_stat_activity normal, no errors in postgres logs; reproduces externally via Caddy but NOT via in-process rails runner/Rack::Test) -- will cause the 76-06 UptimeRobot Chatwoot monitor to occasionally show real (if brief) DOWN states once provisioned; root cause not diagnosed (Puma/AR connection-pool reaping suspected, DB_POOL_REAPING_FREQUENCY=30s default), out of scope for 76-06 (chatwoot.env/compose.yml belong to 76-04) | open |  | 2026-09-27T23:03:53.254Z |  |
+| 31 | 77 | unrun-verify | tests/auth-customer.test.ts |  | Task 2 verify (vitest run tests/auth-customer.test.ts) could not execute in this isolated worktree: worktree-local node_modules gap (Phase 71 deferred item) breaks the relative next-intl/server.react-server.js import; verified instead via tsc/eslint (0 new errors), grep, and a standalone algorithmic check of the cw_ cookie-deletion loop | open |  | 2026-09-28T22:28:39.488Z |  |
 
 ````json
 [
@@ -406,6 +407,19 @@ last_updated: 2026-09-27T23:03:53.254Z
     "status": "open",
     "reason": "",
     "recorded_at": "2026-09-27T23:03:53.254Z",
+    "resolved_at": null,
+    "milestone": "v4.0"
+  },
+  {
+    "id": 31,
+    "kind": "unrun-verify",
+    "phase": "77",
+    "file": "tests/auth-customer.test.ts",
+    "line": null,
+    "description": "Task 2 verify (vitest run tests/auth-customer.test.ts) could not execute in this isolated worktree: worktree-local node_modules gap (Phase 71 deferred item) breaks the relative next-intl/server.react-server.js import; verified instead via tsc/eslint (0 new errors), grep, and a standalone algorithmic check of the cw_ cookie-deletion loop",
+    "status": "open",
+    "reason": "",
+    "recorded_at": "2026-09-28T22:28:39.488Z",
     "resolved_at": null,
     "milestone": "v4.0"
   }
