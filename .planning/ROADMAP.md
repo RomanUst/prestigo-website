@@ -157,7 +157,31 @@ Plans:
   5. Owner sees conversation volume, first-response time and resolution time per channel in Chatwoot reports.
   6. Operator sends every message previously sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as a Chatwoot canned response/macro, multilingual where relevant; new conversations are auto-assigned and labeled by channel/topic.
 
-**Plans**: TBD
+**Plans**: 13 plans
+
+Plans:
+**Wave 1**
+- [ ] 77-01-PLAN.md — Server-side HMAC identity + widget config route (INBOX-03), one isolation-guard allowlist entry
+- [ ] 77-02-PLAN.md — Customer-facing emails reply to bookings@ (D-11), internal sends unchanged
+- [ ] 77-03-PLAN.md — Chatwoot config-as-code: 35 canned responses, labels, teams, attributes, inbox + automation JSON, template price guard
+- [ ] 77-04-PLAN.md — Playwright chat probe (consent, CSP click, overlap) + pre-change CWV baseline
+- [ ] 77-05-PLAN.md — ChatLauncher copy in 7 locales + pre-launch privacy disclosure (chat, Hostinger, Backblaze, Telegram)
+- [ ] 77-06-PLAN.md — New Telegram bot with localized profile, connected to Chatwoot (owner steps)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 77-07-PLAN.md — Idempotent Chatwoot sync: templates, labels, teams, automation, Website inbox (owner token)
+- [ ] 77-08-PLAN.md — Exact-origin widget CSP + scoped guard rule + chat cookies cleared on sign-out
+- [ ] 77-10-PLAN.md — Brand chat launcher + click-to-load identified widget with visit context (7 locales, RTL)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 77-09-PLAN.md — Read-only inspect tooling (status/activity/reports/identity) + Vercel env hand-off + custody docs
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 77-11-PLAN.md — info@/bookings@ email inboxes, Chatwoot-only, webmail emergency runbook (owner decision + steps)
+- [ ] 77-12-PLAN.md — Owner-approved production launch + consent/CSP/CWV gates on production
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 77-13-PLAN.md — Live verification on every channel: automation, canned responses, identity, continuity, native reports
 **UI hint**: yes
 
 ### Phase 78: WhatsApp Cloud API Channel (Coexistence)
