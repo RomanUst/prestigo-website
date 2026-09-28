@@ -5,17 +5,17 @@ milestone_name: Helpdesk + CRM
 current_phase: 76
 current_phase_name: VPS Infrastructure
 status: executing
-stopped_at: Completed 76-06 owner-deferred follow-up (D-02 deviation, live provisioning, test alert)
-last_updated: "2026-09-28T08:32:03.178Z"
+stopped_at: 76-07 Task 1 complete (autonomous outage test); Tasks 2/3 pending owner confirmation + orchestrator cleanup
+last_updated: "2026-09-28T08:52:42.010Z"
 last_activity: 2026-09-27
 last_activity_desc: Phase 76 execution started
-state_head: 38cf686e4d2c8639f1a3097567f969e4b550a1e7
+state_head: 7d00d3163f9357856e48575573298ea68a638f3e
 progress:
   total_phases: 10
   completed_phases: 22
   total_plans: 9
-  completed_plans: 7
-  percent: 78
+  completed_plans: 8
+  percent: 89
 ---
 
 # Project State
@@ -30,9 +30,9 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 ## Current Position
 
 Phase: 76 (VPS Infrastructure) — EXECUTING
-Plan: 8 of 9
+Plan: 8 of 9 (76-07 Task 1 done, complete-pending-owner; Task 2/3 await owner + orchestrator)
 Status: Ready to execute
-Last activity: 2026-09-27 — Phase 76 execution started
+Last activity: 2026-09-28 — 76-07 real controlled outage test run
 
 ## Accumulated Context
 
@@ -181,6 +181,8 @@ Recent decisions affecting current work:
 - [Phase 76]: EspoCRM Document.accounts is ACL-gated (directUpdateDisabled/noLoad linkMultiple), so the account_document join row is written directly via root MariaDB instead of widening the least-privilege canary API role's ACL.
 - [Phase 76]: Fixed restic.sh: /var/backups/prestigo mount changed from read-only to read-write since it is also the restore/rehearsal target, not just a backup source.
 - [Phase 76]: D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram integration is now a paid feature; owner declined. UptimeRobot alerts by email only; a new on-VPS apps_http check restores Telegram coverage for app-level outages via Healthchecks.io (which kept its free Telegram integration). UptimeRobot v2 monitor creation is also plan-gated on the free tier (access_denied for every v2 POST /newMonitor) — provision-monitors.sh migrated to the v3 API for monitor creation/listing, per the plan's own documented fallback.
+- [Phase 76]: 76-07: real controlled outage on production 2026-09-28 08:37:13Z-08:44:01Z (caddy/chatwoot/espocrm stopped); site/booking-to-Stripe/contact form all proved working with zero chat./crm. requests (ref PRG-20260928-D8E6DC); all 6 alert targets (2 UptimeRobot + 4 Healthchecks) confirmed down by 08:42:09Z, recovery confirmed by 08:47:39Z. Task 1 (tracer) autonomous per owner authorization; Tasks 2 (owner alert/email confirmation) and 3 (orchestrator Supabase cleanup) deferred, SUMMARY status complete-pending-owner.
+- [Phase 76]: 76-07: docker compose up -d needed sudo during recovery even though stop did not (env_file is 0600 root-only, read only by up) - Rule 3 auto-fix, no code/plan change, documented in outage-test.md.
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -271,7 +273,7 @@ None yet.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
 - 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
 - 75-08: no worktree isolation on this repo — an external concurrent git checkout (fix/payment-link-pi-succeeded) moved HEAD mid-plan and stranded a commit off main; recovered via cherry-pick (no data lost). Future sequential plans on this repo should verify 'git branch --show-current' before every commit, not just at plan start.
-- Phase 76: plans 07/09 and owner parts of 05/06 await owner actions — see 76-OWNER-ACTIONS.md
+- Phase 76: plan 09 and owner parts of 05/07 await owner actions — see 76-OWNER-ACTIONS.md (07's Task 1 outage test ran autonomously 2026-09-28; Tasks 2/3 await owner confirmation + orchestrator Supabase cleanup)
 
 ## Deferred Items
 
@@ -322,8 +324,8 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-28T08:31:46.100Z
-Stopped at: Completed 76-06 owner-deferred follow-up (D-02 deviation, live provisioning, test alert)
+Last session: 2026-09-28T08:52:41.959Z
+Stopped at: 76-07 Task 1 complete (autonomous outage test); Tasks 2/3 pending owner confirmation + orchestrator cleanup
 Resume file: None
 
 ## Performance Metrics
@@ -403,6 +405,7 @@ Resume file: None
 | Phase 76 P06 | ~35min | 2 tasks | 8 files |
 | Phase 76 P08 | 32min | 2 tasks | 9 files |
 | Phase 76 P06 | ~40min (continuation) | 3 tasks | 5 files |
+| Phase 76 P07 | 20min | 1 tasks | 2 files |
 
 ## Operator Next Steps
 
