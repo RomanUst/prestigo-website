@@ -99,9 +99,9 @@ export const JSX_POSTS: BlogPost[] = [
   },
   {
     slug: "prague-airport-taxi-vs-chauffeur",
-    title: "Prague Airport Taxi vs Chauffeur 2026 — After Uber Took the Rank",
+    title: "Prague Airport Taxi 2026: Official Rank, Fares & Scams to Avoid",
     description:
-      "Prague airport taxi vs private chauffeur in 2026: Uber is the exclusive official rank partner, AAA Taxi is no longer there. Real fares, scam alerts, decision tree by passenger profile.",
+      "Taking a taxi from Prague Airport in 2026? Who runs the official rank now, what the ride into town really costs, the scams to avoid, and when a pre-booked chauffeur is worth it.",
     date: "2026-04-09",
     coverImage: "/hero-airport-transfer.webp",
     category: "Airport Transfer",
