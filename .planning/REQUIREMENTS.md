@@ -10,11 +10,11 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Infrastructure (INFRA)
 
-- [ ] **INFRA-01**: Owner can reach Chatwoot at `chat.rideprestigo.com` and EspoCRM at `crm.rideprestigo.com` over valid auto-renewing HTTPS (Hostinger KVM 2 — upgrade to KVM 4 on documented trigger — Docker Compose, Caddy, EU region)
-- [ ] **INFRA-02**: Chatwoot and EspoCRM databases and attachment storage are backed up nightly, encrypted, to offsite storage, and a restore drill onto a clean host has been performed successfully
-- [ ] **INFRA-03**: Owner receives an alert on a channel independent of the VPS when Chatwoot or EspoCRM is down or a nightly backup did not run
-- [ ] **INFRA-04**: VPS receives unattended security OS updates; Chatwoot/EspoCRM versions are pinned and upgraded only via a documented runbook (backup → upgrade → smoke check)
-- [ ] **INFRA-05**: With the VPS fully offline, the public site, booking wizard, Stripe payment and all emails keep working, and no lead or booking event is lost (delivered once the VPS is back — isolation verified in Phase 76, delivery-after-recovery verified in Phases 81/82)
+- [x] **INFRA-01**: Owner can reach Chatwoot at `chat.rideprestigo.com` and EspoCRM at `crm.rideprestigo.com` over valid auto-renewing HTTPS (Hostinger KVM 2 — upgrade to KVM 4 on documented trigger — Docker Compose, Caddy, EU region)
+- [x] **INFRA-02**: Chatwoot and EspoCRM databases and attachment storage are backed up nightly, encrypted, to offsite storage, and a restore drill onto a clean host has been performed successfully
+- [x] **INFRA-03**: Owner receives an alert on a channel independent of the VPS when Chatwoot or EspoCRM is down or a nightly backup did not run
+- [x] **INFRA-04**: VPS receives unattended security OS updates; Chatwoot/EspoCRM versions are pinned and upgraded only via a documented runbook (backup → upgrade → smoke check)
+- [x] **INFRA-05**: With the VPS fully offline, the public site, booking wizard, Stripe payment and all emails keep working, and no lead or booking event is lost (delivered once the VPS is back — isolation verified in Phase 76, delivery-after-recovery verified in Phases 81/82)
 
 ### Helpdesk Channels (INBOX)
 
@@ -115,11 +115,11 @@ Deferred — tracked, not in this roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 76 | Pending |
-| INFRA-02 | Phase 76 | Pending |
-| INFRA-03 | Phase 76 | Pending |
-| INFRA-04 | Phase 76 | Pending |
-| INFRA-05 | Phase 76 | Pending |
+| INFRA-01 | Phase 76 | Complete |
+| INFRA-02 | Phase 76 | Complete |
+| INFRA-03 | Phase 76 | Complete |
+| INFRA-04 | Phase 76 | Complete |
+| INFRA-05 | Phase 76 | Complete |
 | INBOX-01 | Phase 77 | Pending |
 | INBOX-02 | Phase 77 | Pending |
 | INBOX-03 | Phase 77 | Pending |
