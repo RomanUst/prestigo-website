@@ -7,7 +7,7 @@
 ## Phase Boundary
 
 Chatwoot (already running at `chat.rideprestigo.com` from Phase 76) becomes the single inbox for:
-- service email: info@ and booking@
+- service email: info@ and bookings@
 - a consent-safe, CWV-safe website chat widget, with signed-in customers identified via HMAC
 - a new Telegram bot
 
@@ -57,18 +57,18 @@ NOT in this phase:
 - **D-09:** CSP additions (script/connect incl. `wss://chat.rideprestigo.com`, frame, img) go into `middleware.ts` + `scripts/qa/baselines/csp_baseline.json` as a **reviewed diff**. No LCP/INP regression on home, route and /book pages is an explicit UAT gate: measure before and after. The Phase 76 guard test (`tests/infra-vps-isolation-guard.test.ts`) must stay green. The widget is loaded client-side on click, never by server code.
 
 ### Email channel (INBOX-01)
-- **D-10:** **Two separate Chatwoot email inboxes**, one for info@ and one for booking@ (IMAP in, SMTP out through each mailbox's own Hostinger SMTP). A reply always leaves from the address the customer wrote to. Reports are per inbox.
-- **D-11:** **Customer-facing transactional emails get `replyTo: booking@rideprestigo.com`**, so customer replies land in Chatwoot. Today `lib/email.ts` sets `roman@` on several calls.
+- **D-10:** **Two separate Chatwoot email inboxes**, one for info@ and one for bookings@ (IMAP in, SMTP out through each mailbox's own Hostinger SMTP). A reply always leaves from the address the customer wrote to. Reports are per inbox.
+- **D-11:** **Customer-facing transactional emails get `replyTo: bookings@rideprestigo.com`**, so customer replies land in Chatwoot. Today `lib/email.ts` sets `roman@` on several calls.
   - Covered: booking confirmation, payment, reminders and other emails sent to customers.
   - Untouched: internal/manager notifications, and the contact-form email whose `replyTo` is the visitor's own address.
   - `roman@` stays the sales mailbox, reserved for EspoCRM (Phase 80).
   - Planner audits all 7 `replyTo` sites and classifies each as customer-facing or internal.
-- **D-12:** **Chatwoot is the only working client for info@/booking@.** Remove the mailboxes from phone Mail/other apps; the operator uses the Chatwoot web/mobile app. **Hostinger webmail stays as an emergency-only fallback.** Runbook rule:
+- **D-12:** **Chatwoot is the only working client for info@/bookings@.** Remove the mailboxes from phone Mail/other apps; the operator uses the Chatwoot web/mobile app. **Hostinger webmail stays as an emergency-only fallback.** Runbook rule:
   - Never reply or delete from webmail in normal operation.
   - Webmail is used only while the VPS/Chatwoot is down (the Phase 76 alert fires).
   - Rationale: a webmail reply is invisible in the Chatwoot thread, which causes double replies and broken reply-time stats. Deleting before Chatwoot polls loses the mail.
 - **D-13:** **No history import.** Chatwoot picks up mail from the connection date forward. Old mail stays in the mailbox archive. Past customers reach contacts via the Phase 82 backfill.
-- **D-14:** Before connecting, audit that info@/booking@ are not wired to anything else: forwards, other IMAP clients, the future EspoCRM. The rule is one mailbox, one system.
+- **D-14:** Before connecting, audit that info@/bookings@ are not wired to anything else: forwards, other IMAP clients, the future EspoCRM. The rule is one mailbox, one system.
 
 ### Telegram (INBOX-05)
 - **D-15:** A **new dedicated customer-facing Telegram bot** for Chatwoot.

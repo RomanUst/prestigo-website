@@ -18,7 +18,7 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Helpdesk Channels (INBOX)
 
-- [ ] **INBOX-01**: Emails to the service mailboxes (info@ / booking@) arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only
+- [ ] **INBOX-01**: Emails to the service mailboxes (info@ / bookings@) arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only
 - [ ] **INBOX-02**: Visitor sees a lightweight chat button on the site (all 7 locales, RTL-correct) that loads no third-party script or cookie until clicked; clicking opens the Chatwoot widget and starts a conversation
 - [ ] **INBOX-03**: Signed-in customers open the widget already identified (HMAC identity validation), so their conversation attaches to their existing contact
 - [ ] **INBOX-04**: Adding the widget causes no CSP violations (CSP in `middleware.ts` + `csp_baseline.json` updated as a reviewed diff) and no measurable LCP/INP regression on home, route and /book pages

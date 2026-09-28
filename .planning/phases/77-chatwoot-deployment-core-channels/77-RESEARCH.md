@@ -4,6 +4,9 @@
 **Domain:** Chatwoot CE self-hosted channel configuration (email/IMAP, website widget SDK + HMAC identity, Telegram, canned responses/macros, automation rules, native reports) on top of an already-deployed Chatwoot v4.18.0-ce instance
 **Confidence:** MEDIUM-HIGH (Chatwoot public API/SDK behavior is well documented via official docs; two load-bearing items — the `bookings@`/`booking@` address mismatch and Hindi widget-UI coverage — are `[ASSUMED]`/flagged for confirmation)
 
+> **RESOLVED 2026-09-28 (owner):** the real, existing mailbox is `bookings@rideprestigo.com` (plural). Planning docs corrected. No `checkpoint:human-verify` needed for Pitfall 1 / A1 / Open Question 1 — D-10/D-11/D-12/D-14 target `bookings@`, D-11 still switches the customer-facing `replyTo` sites that use `roman@` to `bookings@rideprestigo.com`.
+
+
 ## Summary
 
 Chatwoot CE v4.18.0-ce is already live at `chat.rideprestigo.com` (Phase 76). This phase is pure **channel configuration + integration code**, not infrastructure: connect two IMAP/SMTP mailboxes, add a Website Widget inbox with HMAC identity validation, add a Telegram inbox, and version canned responses/labels/automation rules as config-as-code synced via Chatwoot's REST API. The website widget is the only piece requiring site code changes (a click-to-load launcher, a server-side HMAC endpoint, and CSP additions); everything else is Chatwoot dashboard/API configuration plus one Node sync script and one audit of `lib/email.ts`'s `replyTo` fields.

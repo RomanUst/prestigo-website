@@ -14,7 +14,7 @@
 ### v4.0 Helpdesk + CRM (Phases 76-85) — IN PROGRESS
 
 - [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
-- [ ] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/booking@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation
+- [ ] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation
 - [ ] **Phase 78: WhatsApp Cloud API Channel (Coexistence)** - WhatsApp Business Coexistence onboarding for the existing +420 number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [ ] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL
@@ -150,7 +150,7 @@ Plans:
 **Depends on**: Phase 76
 **Requirements**: INBOX-01, INBOX-02, INBOX-03, INBOX-04, INBOX-05, INBOX-06, OPS-01, OPS-02
 **Success Criteria** (what must be TRUE):
-  1. Emails to info@/booking@ arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only.
+  1. Emails to info@/bookings@ arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only.
   2. Visitor on any of the 7 locales (RTL-correct in Arabic) sees a lightweight chat button that loads no third-party script or cookie until clicked; clicking opens the Chatwoot widget and starts a conversation, with zero CSP violations and no measurable LCP/INP regression on home, route and /book pages.
   3. A signed-in customer's widget conversation is already identified via HMAC validation and attaches to their existing Chatwoot contact.
   4. Messages to the Prestigo Telegram bot arrive as Chatwoot conversations and can be answered from Chatwoot.
