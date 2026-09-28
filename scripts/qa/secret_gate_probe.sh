@@ -80,4 +80,32 @@ run_probe "secret-line" "$PROBE_DIR/probe-secret.sh" "block" "ERROR: Possible se
 printf 'RESTIC_PASSWORD=\nB2_ACCOUNT_ID=\nB2_ACCOUNT_KEY=\n' > "$PROBE_DIR/probe.env.example"
 run_probe "clean-example" "$PROBE_DIR/probe.env.example" "allow"
 
+# --- Probe D (WR-02): a Phase 76 VPS secret shape added to SECRET_RE
+# (Backblaze B2 application key, "K00" + digit + 20+ alnum) must be
+# blocked. Assembled at runtime from fragments + random suffix so it never
+# exists as a literal in any tracked file. ---
+B2_FRAG='K005'
+B2_RAND_SUFFIX=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 24)
+B2_SECRET_LINE="B2_ACCOUNT_KEY=${B2_FRAG}${B2_RAND_SUFFIX}"
+printf '#!/usr/bin/env sh\n%s\n' "$B2_SECRET_LINE" > "$PROBE_DIR/probe-b2-key.sh"
+run_probe "b2-application-key" "$PROBE_DIR/probe-b2-key.sh" "block" "ERROR: Possible secret"
+
+# --- Probe E (WR-02): a Phase 76 .env.example KEY name (POSTGRES_PASSWORD)
+# assigned a real-shaped, non-empty value in a *non*-.env, non-.example
+# tracked file (e.g. a runbook .md or a one-off script) must be blocked —
+# this is the gap WR-02 closed: SECRET_RE alone never recognized this
+# shape. Assembled at runtime; never a literal in any tracked file. ---
+PW_RAND_SUFFIX=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 24)
+PW_LINE="POSTGRES_PASSWORD=${PW_RAND_SUFFIX}"
+printf '# notes\n%s\n' "$PW_LINE" > "$PROBE_DIR/probe-infra-key.md"
+run_probe "infra-env-key-value" "$PROBE_DIR/probe-infra-key.md" "block" "ERROR: Possible infra/vps secret"
+
+# --- Probe F (WR-02 regression guard): the same KEY name used as a `grep`/
+# `awk` search PATTERN (never a real value — matches this repo's own
+# `grep '^KEY=' file | cut -d= -f2-` idiom used throughout infra/vps/) must
+# still be ALLOWED, proving the false-positive exclusion added for WR-02
+# does not regress. ---
+printf "ROOT_PW=\$(grep '^MARIADB_ROOT_PASSWORD=' /etc/prestigo/espocrm.env | cut -d= -f2-)\n" > "$PROBE_DIR/probe-grep-pattern.sh"
+run_probe "infra-env-key-search-pattern" "$PROBE_DIR/probe-grep-pattern.sh" "allow"
+
 exit "$FAIL"

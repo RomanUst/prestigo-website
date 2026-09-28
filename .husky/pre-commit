@@ -33,7 +33,7 @@ if [ -n "$ENV_FILES" ]; then
   exit 1
 fi
 
-SECRET_RE='sk_live_[0-9A-Za-z]{10,}|sk_test_[0-9A-Za-z]{20,}|rk_live_[0-9A-Za-z]{10,}|whsec_[A-Za-z0-9]{20,}|re_[A-Za-z0-9]{8,}_[A-Za-z0-9]{10,}|sk-ant-[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}|eyJhbGciOi[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{20,}|BEGIN [A-Z ]*PRIVATE KEY'
+SECRET_RE='sk_live_[0-9A-Za-z]{10,}|sk_test_[0-9A-Za-z]{20,}|rk_live_[0-9A-Za-z]{10,}|whsec_[A-Za-z0-9]{20,}|re_[A-Za-z0-9]{8,}_[A-Za-z0-9]{10,}|sk-ant-[A-Za-z0-9_-]{20,}|AIza[0-9A-Za-z_-]{35}|eyJhbGciOi[A-Za-z0-9_-]{15,}\.[A-Za-z0-9_-]{20,}|BEGIN [A-Z ]*PRIVATE KEY|K00[0-9][A-Za-z0-9]{20,}|u[0-9]{4,}-[0-9a-f]{16,}|hcw_[A-Za-z0-9_-]{16,}'
 
 SECRET_HITS=$(git diff --cached -U0 --diff-filter=ACMR -- . ':!package-lock.json' \
   | awk '/^\+\+\+ b\//{f=substr($0,7)} /^\+[^+]/{print f"\t"$0}' \
@@ -46,6 +46,45 @@ if [ -n "$SECRET_HITS" ]; then
   echo "$SECRET_HITS"
   echo "Move it to an env var. If this is a false positive, commit with --no-verify after checking."
   exit 1
+fi
+
+# Phase 76 VPS secret hygiene (WR-02): SECRET_RE above only recognizes
+# vendor-prefixed formats from pre-existing integrations (Stripe, Resend,
+# Anthropic, Google, Supabase JWT, PEM). None of the openssl-rand-generated
+# passwords this phase introduces (POSTGRES_PASSWORD, REDIS_PASSWORD,
+# MARIADB_ROOT_PASSWORD, SECRET_KEY_BASE, RESTIC_PASSWORD,
+# ESPOCRM_ADMIN_PASSWORD, ...) have a recognizable shape, so a
+# KEY=<real-value> pasted into any *non*-.env, non-.example tracked file
+# (a runbook .md, a one-off script, a chat-pasted snippet) would slip past
+# it. Derive the KEY= name list directly from the five infra/vps/env/
+# *.env.example files (any name containing PASSWORD/SECRET/_KEY/TOKEN) and
+# block any added line elsewhere that assigns one of those names a
+# non-empty value.
+INFRA_SECRET_KEY_NAMES=$(grep -hoE '^[A-Z_][A-Z0-9_]*=' infra/vps/env/*.env.example 2>/dev/null \
+  | sed 's/=$//' \
+  | grep -E '(PASSWORD|SECRET|_KEY|TOKEN)' \
+  | sort -u \
+  || true)
+
+if [ -n "$INFRA_SECRET_KEY_NAMES" ]; then
+  INFRA_SECRET_KEY_RE=$(printf '%s\n' "$INFRA_SECRET_KEY_NAMES" | paste -sd'|' -)
+  # Require the value to start with a real secret-shaped character (alnum
+  # or +/_.:-), NOT a quote/slash/dollar/brace - this is what excludes the
+  # many existing `grep '^KEY='`, `awk '/^KEY=/'`, and `KEY=${var}` template
+  # occurrences already in this repo (verified false-positive-free against
+  # the current HEAD tree) while still catching a real pasted value.
+  INFRA_SECRET_HITS=$(git diff --cached -U0 --diff-filter=ACMR -- . ':!package-lock.json' ':!*.env.example' \
+    | awk '/^\+\+\+ b\//{f=substr($0,7)} /^\+[^+]/{print f"\t"$0}' \
+    | grep -E "	\\+($INFRA_SECRET_KEY_RE)=[A-Za-z0-9+/_.:=-]{4,}" \
+    | cut -f1 | sort -u \
+    || true)
+
+  if [ -n "$INFRA_SECRET_HITS" ]; then
+    echo "ERROR: Possible infra/vps secret (KEY=value matching a Phase 76 .env.example name) in staged changes (value not printed) in:"
+    echo "$INFRA_SECRET_HITS"
+    echo "Move it to an env var / the password manager. If this is a false positive, commit with --no-verify after checking."
+    exit 1
+  fi
 fi
 
 exit 0
