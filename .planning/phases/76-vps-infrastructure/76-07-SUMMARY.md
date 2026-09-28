@@ -92,7 +92,7 @@ coverage:
 
 duration: 20min
 completed: 2026-09-28
-status: complete-pending-owner
+status: complete
 ---
 
 # Phase 76 Plan 07: Controlled VPS Outage Test Summary
@@ -231,3 +231,8 @@ The "no event lost, delivered once the VPS is back" half of INFRA-05 — i.e., t
 - Re-ran all Task 1 `<verify>` commands live: `CONTACT_OK`, `STRIPE_OK PRG-20260928-D8E6DC`, `ssh prestigo-vps smoke.sh` -> 13/13 OK, exit 0
 - Re-ran all Task 1 `<acceptance_criteria>` checks: `grep -q "81/82"` -> exit 0; `python3 -m py_compile scripts/qa/contact_form_e2e.py` -> exit 0; every recorded first-down time is <= 20 minutes after stop (actual: 4m56s); E2E booking reference listed above (`PRG-20260928-D8E6DC`)
 - No Supabase rows touched; no cleanup performed (Task 3 explicitly deferred)
+
+## Tasks 2–3 resolved 2026-09-28 (orchestrator)
+
+- Task 2: owner confirmed in chat ("1 пришли") that the alerts (Healthchecks Telegram test + outage down/up, UptimeRobot email down/up) and the contact-form email "New inquiry: E2E Outage Test (Phase 76)" all arrived. Owner approved cleanup ("2 удаляй").
+- Task 3: via Supabase MCP (project enakcryrtxlnjvjutfpv) — pre-check SELECT by strict marker returned exactly one row; `DELETE ... WHERE booking_reference='PRG-20260928-D8E6DC' AND client_email LIKE 'e2e+%@rideprestigo.com' AND client_first_name='E2E' AND client_last_name='TEST' AND status='unpaid' RETURNING` removed exactly 1 row (created 2026-09-28 08:38:33Z). No other rows touched.

@@ -14,7 +14,7 @@ Status 2026-09-28: plans 01–04, 06 and 08 complete; 05 `complete-pending-owner
 2. uptimerobot.com: sign up (free) → Integrations → Telegram → Integrations & API → Main API key.
 3. Send both keys to Claude → Claude writes /etc/prestigo/monitor.env, runs provision-monitors.sh, `--status` all up, one real test alert (see 76-06-SUMMARY).
 
-## C. Outage test (plan 07) — DONE (Task 1, autonomous, owner-authorized 2026-09-28); owner confirmation still needed (Task 2)
+## C. Outage test (plan 07) — ✓ DONE 2026-09-28 (alerts + email confirmed, test booking deleted)
 
 Claude ran the full outage on production: caddy/chatwoot/espocrm stopped 08:37:13Z-08:37:55Z UTC on 2026-09-28. Site/booking/contact all proved working with the VPS fully dark (booking reached the rendered Stripe Payment Element, ref `PRG-20260928-D8E6DC`; contact form submitted with zero requests to chat./crm.). Both UptimeRobot monitors and 4 Healthchecks checks (sidekiq/tls-expiry/espocrm-internals/apps-http) were confirmed down by 08:42:09Z (under 5 minutes); full recovery confirmed by 08:47:39Z. Full timeline: `infra/vps/runbooks/outage-test.md` and `76-07-SUMMARY.md`.
 
