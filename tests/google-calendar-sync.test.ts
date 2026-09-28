@@ -101,7 +101,7 @@ describe('calendar event helpers', () => {
 
   it('builds an event with route, client and flight details', () => {
     const ev = buildCalendarEvent({ ...BOOKING, driver_name: 'Petr (accepted)' })
-    expect(ev.summary).toBe('PRG-123 · Anna Novak · Business')
+    expect(ev.summary).toBe('Prestigo: PRG-123 · Anna Novak · Business')
     expect(ev.start.dateTime).toBe('2026-10-05T08:00:00.000Z')
     expect(ev.end.dateTime).toBe('2026-10-05T09:00:00.000Z')
     expect(ev.location).toBe('Václav Havel Airport Prague')
@@ -111,6 +111,10 @@ describe('calendar event helpers', () => {
     expect(ev.description).toContain('Driver: Petr (accepted)')
     expect(ev.description).not.toContain('null')
     expect(ev.colorId).toBeUndefined()
+  })
+
+  it('prefixes GNet bookings with GNet', () => {
+    expect(buildCalendarEvent({ ...BOOKING, booking_source: 'gnet' }).summary).toMatch(/^GNet: PRG-123/)
   })
 
   it('greys out completed trips', () => {
