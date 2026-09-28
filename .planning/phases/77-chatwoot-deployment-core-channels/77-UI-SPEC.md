@@ -1,7 +1,8 @@
 ---
 phase: "77"
 slug: "chatwoot-deployment-core-channels"
-status: draft
+status: approved
+reviewed_at: "2026-09-28"
 shadcn_initialized: false
 preset: none
 created: "2026-09-28"
@@ -79,6 +80,9 @@ Exceptions:
 - **44px minimum touch target on every individual menu item row**, even though the row's visual content
   (icon 20px + label) is shorter — matches the existing `.btn-primary`/`.btn-ghost` `min-height: 44px`
   convention verbatim.
+
+### Visual anchor
+The primary visual anchor of the open menu is the 600-weight gold "Chat on site" row (gold icon + `--copper-light` label); the closed-state anchor is the gold launcher icon.
 
 ### Z-index (new value — the launcher is a new layer, does not exist yet)
 - **Launcher button + closed state:** `z-40` — above ordinary page content, below `Nav`'s `z-50` (so an
@@ -185,20 +189,25 @@ Phase 69's locked convention in STATE.md). Suggested shape:
 
 ## UI Considerations
 
-Applicable state considerations resolved: 5 covered, 3 backstop, 0 unresolved.
+Probe run 2026-09-28 (ui-consideration-probe, 4 elements: E1 launcher, E2 3-item menu, E3 "Chat on site" SDK load, E4 reply-time hint) — 24 applicable, all resolved (owner-confirmed) + keyboard/focus kind added by owner. Copy for loading/error lives in the Copywriting Contract; rows below reference it.
 
-| Category | Element(s) | Status | Resolution / Reason |
-|----------|------------|--------|---------------------|
-| populated | launcher (closed) + menu (open, 3 items) | ✅ covered | Launcher always renders identically on every public page — no data-dependent variance; menu always shows exactly 3 fixed items in the D-01 order |
-| loading | "Chat on site" click → `sdk.js` fetch in flight | ✅ covered | Menu item shows a brief inline loading affordance (spinner or disabled state) between click and `chatwootSDK.run()` firing; WhatsApp/Telegram items are never blocked by this since they don't depend on the script |
-| error | `sdk.js` fails to load (network/CSP) | ✅ covered | "Live chat is unavailable right now — try WhatsApp or Telegram instead." (see Copywriting Contract); the other two menu items stay independently functional |
-| RTL mirroring | launcher corner, menu open-direction, icon mirroring | ✅ covered | D-03 locked: launcher mirrors to the opposite corner under `dir="rtl"`, menu uses logical properties (`inset-inline-*`), matches the codebase's existing RTL convention verbatim (see Reusable Patterns table) |
-| consent-gate zero-request | pre-click state, all 7 locales | ✅ covered | D-02 locked: the launcher/menu themselves are pure first-party markup+CSS; zero third-party script/cookie/request until "Chat on site" is explicitly clicked |
-| long-text | translated menu item labels (ru/es/fr run longer than EN; ar/hi/zh have different average glyph widths) | 🧪 backstop | Menu panel width must not be hardcoded to the EN label's pixel width — visual QA across all 7 locales at 320px viewport is the verification, not a hardcoded truth |
-| overflow | reply-time hint text at 12px in longer locales (ar/hi tend to run ~20-30% longer than EN for short phrases) | 🧪 backstop | Hint text wraps to a second line rather than truncating or overflowing its container — visual QA verification |
-| zero-one-many | menu item count | 🧪 backstop | Always exactly 3 items in this phase (no dynamic list), but the component should not hardcode "exactly 3" in a way that breaks if Phase 78/79 later add WhatsApp-Cloud-API-specific or IG/FB entries to the same menu — held out as a forward-compatibility note, not a defect, verified at code review rather than a runtime truth |
+**Resolved — explicit (lift into `must_haves.truths`):**
+- E1/E2 populated: the launcher renders identically on every public page in all 7 locales; opening it shows exactly 3 items in D-01 order (Chat on site → WhatsApp → Telegram).
+- E3 loading: between the "Chat on site" click and `chatwootSDK.run()` completing, that item shows an inline loading state (spinner or `aria-busy="true"` + disabled); WhatsApp/Telegram items stay clickable.
+- E3 error: if `sdk.js` fails to load (network/CSP/timeout), the menu shows `ChatLauncher.widgetError` inline and WhatsApp/Telegram items remain functional.
+- E1 RTL: under `dir="rtl"` the launcher sits in the bottom-start (left) corner and the menu opens using logical properties only (no `left-`/`right-` classes); `chatwootSettings.position` is `'left'`.
+- E1/E3 consent gate: before "Chat on site" is clicked, the page makes zero requests to the Chatwoot host and sets no Chatwoot cookie/localStorage key.
+- Keyboard/focus: the launcher is a `<button>` with `aria-expanded` and `aria-controls`; Enter/Space toggles the menu; Esc closes it and returns focus to the launcher; a click/tap outside the menu closes it; menu items are reachable with Tab in D-01 order; a visible focus ring (`--copper`) shows on keyboard focus.
 
----
+**Resolved — backstop (visual QA, held out):**
+- { statement: "E2/E4 long-text: translated menu labels and the reply-time hint wrap (never truncate or overflow) in all 7 locales at 320px viewport width", verification: backstop }
+- { statement: "E1/E2 overflow: the open menu stays fully inside the viewport at 320px width and does not cover the CookieBanner or Nav controls", verification: backstop }
+- { statement: "E2 zero-one-many: the menu renders items from an array (not hardcoded to 3) so Phases 78/79 can add channels without layout breakage — checked at code review", verification: backstop }
+
+**Dismissed (with reason):**
+- empty (E1/E2/E3): no data-driven content — the menu is a fixed, static list; there is no zero-item state.
+- partial (E2/E3): no records or fields to be partially present; SDK load is binary (loaded / error), covered by loading+error above.
+- E1/E3 overflow/long-text beyond the rows above: the launcher is icon-only (no visible text); SDK load has no text of its own besides the error copy covered in long-text.
 
 ## Registry Safety
 
@@ -214,12 +223,12 @@ Design System section above), so the registry-vetting flow does not apply to thi
 
 ## Checker Sign-Off
 
-- [ ] Dimension 1 Copywriting: PASS
-- [ ] Dimension 2 Visuals: PASS
-- [ ] Dimension 3 Color: PASS
-- [ ] Dimension 4 Typography: PASS
-- [ ] Dimension 5 Spacing: PASS
-- [ ] Dimension 6 Registry Safety: PASS
-- [ ] Dimension 7 Inventory Provenance: PASS
+- [x] Dimension 1 Copywriting: PASS
+- [x] Dimension 2 Visuals: PASS
+- [x] Dimension 3 Color: PASS
+- [x] Dimension 4 Typography: PASS
+- [x] Dimension 5 Spacing: PASS
+- [x] Dimension 6 Registry Safety: PASS
+- [x] Dimension 7 Inventory Provenance: PASS
 
-**Approval:** pending
+**Approval:** approved 2026-09-28 (Dimension 2 FLAG addressed: visual anchor stated)
