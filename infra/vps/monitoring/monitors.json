@@ -70,6 +70,14 @@
       "grace": 600,
       "tags": "prestigo vps",
       "desc": "D-04b: TLS certificate for chat.rideprestigo.com and crm.rideprestigo.com expires within 14 days, or could not be fetched. Runs on the VPS (not a paid UptimeRobot tier feature) per 76-RESEARCH.md Pattern 3."
+    },
+    {
+      "name": "prestigo-apps-http",
+      "env_key": "HC_PING_APPS_HTTP",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-02 deviation: UptimeRobot's Telegram integration became a paid feature the owner declined, so UptimeRobot now alerts by email only. This on-VPS check restores Telegram coverage for app-level outages through Healthchecks.io's own Telegram integration — it fetches https://chat.rideprestigo.com/api (must contain \"queue_services\":\"ok\") and https://crm.rideprestigo.com/ (must contain <title>EspoCRM</title>) and pings success/fail. A total VPS outage is still covered independently by every 5-minute Healthchecks check going silent (Telegram + email)."
     }
   ]
 }

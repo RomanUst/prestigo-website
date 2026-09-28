@@ -9,6 +9,12 @@
 # expiry (D-04). Healthchecks' own dead-man's switch means a VPS that goes
 # fully dark also alerts, once the grace period elapses (D-01, Pitfall 13).
 #
+# D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram
+# integration became a paid feature the owner declined, so UptimeRobot now
+# alerts by email only. The apps_http check below restores Telegram coverage
+# for app-level outages (Chatwoot/EspoCRM down) through Healthchecks.io's own
+# Telegram integration instead — see runbooks/monitoring.md.
+#
 # Every check is independent: one check's failure or a missing ping URL
 # never stops the others from running.
 #
@@ -18,7 +24,7 @@
 # the timer run cleanly before Task 1/2's owner-account provisioning exists.
 #
 # Usage:
-#   sudo bash monitor.sh                   # run all five checks
+#   sudo bash monitor.sh                   # run all six checks
 #   sudo bash monitor.sh --only sidekiq    # run a single named check
 #   MONITOR_DRY_RUN=1 sudo bash monitor.sh # print "WOULD PING" instead of curling
 #
@@ -248,6 +254,42 @@ check_tls_expiry() {
   return 0
 }
 
+# --- apps_http (D-02 deviation) ------------------------------------------
+# UptimeRobot's Telegram integration is now a paid feature the owner
+# declined (UptimeRobot alerts by email only, per monitors.json comments).
+# This check restores Telegram coverage for app-level outages through
+# Healthchecks.io's own Telegram integration: it fetches both apps' public
+# URLs from the VPS itself and checks for the same health markers UptimeRobot
+# watches for externally.
+check_apps_http() {
+  local chat_body crm_body ok=true msgs=""
+
+  if chat_body=$(curl -fsS -m 10 https://chat.rideprestigo.com/api 2>/dev/null) \
+      && printf '%s' "${chat_body}" | grep -q '"queue_services":"ok"'; then
+    msgs="${msgs}chat=ok "
+  else
+    msgs="${msgs}chat=fail "
+    ok=false
+  fi
+
+  if crm_body=$(curl -fsS -m 10 https://crm.rideprestigo.com/ 2>/dev/null) \
+      && printf '%s' "${crm_body}" | grep -q '<title>EspoCRM</title>'; then
+    msgs="${msgs}crm=ok "
+  else
+    msgs="${msgs}crm=fail "
+    ok=false
+  fi
+
+  if [ "${ok}" != "true" ]; then
+    log "apps_http FAIL: ${msgs}"
+    hc HC_PING_APPS_HTTP fail "${msgs}"
+    return 1
+  fi
+  log "apps_http OK: ${msgs}"
+  hc HC_PING_APPS_HTTP success "${msgs}"
+  return 0
+}
+
 # ---------------------------------------------------------------------------
 FAILED=0
 
@@ -269,5 +311,6 @@ run_check kvm4_trigger check_kvm4_trigger
 run_check sidekiq check_sidekiq
 run_check espocrm_internals check_espocrm_internals
 run_check tls_expiry check_tls_expiry
+run_check apps_http check_apps_http
 
 exit "${FAILED}"

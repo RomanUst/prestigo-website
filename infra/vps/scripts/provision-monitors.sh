@@ -95,9 +95,22 @@ run_uptimerobot() {
 
   emails=$(echo "${resp}" | jq -r '[.alert_contacts[] | select(.type == 2)] | length')
   telegrams=$(echo "${resp}" | jq -r '[.alert_contacts[] | select(.type == 9)] | length')
-  if [ "${emails}" -lt 1 ] || [ "${telegrams}" -lt 1 ]; then
-    die "uptimerobot: need at least one email (type 2) AND one Telegram (type 9) alert contact — \
-found email=${emails} telegram=${telegrams}. Finish the Telegram handshake (Task 1) and retry."
+  # D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram
+  # integration is now a paid feature the owner declined to buy. UptimeRobot
+  # alerts by EMAIL ONLY going forward — a Telegram contact is optional (kept
+  # and attached if the owner already has one) but no longer required. The
+  # Healthchecks section below still requires both telegram + email: Telegram
+  # coverage for app-level outages now comes from Healthchecks' apps_http
+  # check instead (see monitor.sh's check_apps_http and monitoring.md).
+  if [ "${emails}" -lt 1 ]; then
+    die "uptimerobot: need at least one email (type 2) alert contact — found email=${emails}. \
+Add an email alert contact and retry."
+  fi
+  if [ "${telegrams}" -ge 1 ]; then
+    log "uptimerobot: telegram contact present (optional) — will attach to created monitors"
+  else
+    log "uptimerobot: no telegram contact (expected per D-02 — UptimeRobot Telegram is now a paid \
+feature the owner declined); monitors will alert via email only"
   fi
 
   # alert_contacts param shape: "ID_0_0-ID_0_0" (id_threshold_recurrence, dash-joined per contact)
