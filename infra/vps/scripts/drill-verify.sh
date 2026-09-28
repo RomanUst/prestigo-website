@@ -102,70 +102,93 @@ cw_psql() {
 
 ESPO_ROOT_PW=$(grep '^MARIADB_ROOT_PASSWORD=' /etc/prestigo/espocrm.env | cut -d= -f2-)
 espo_sql() {
-  docker exec -e MYSQL_PWD="${ESPO_ROOT_PW}" espocrm-db-1 mariadb -N -B -u root espocrm -e "$1"
+  MYSQL_PWD="${ESPO_ROOT_PW}" docker exec -e MYSQL_PWD espocrm-db-1 mariadb -N -B -u root espocrm -e "$1"
+}
+
+# CR-03: a plain `VAR=$(cw_psql ...)` / `VAR=$(espo_sql ...)` assignment
+# aborts the WHOLE script the instant that docker exec fails (a stopped
+# container, a connection reset, a lock) under `set -Eeuo pipefail` — with
+# no FAIL line printed, because the JSON result object below is only
+# assembled at the very end. This silently killed the entire D-09 drill run
+# the first time it happened live (see the functional-insert block further
+# down, which was the one call site patched on the spot). Every other
+# DB-touching assignment in this script is routed through this helper so a
+# transient failure becomes a FAIL record instead of a hard abort, and the
+# script still reaches the end and emits its JSON/--out file.
+try_sql() {  # try_sql VARNAME 'sql' cw_psql|espo_sql
+  local __var="$1" __sql="$2" __fn="$3" __val __rc
+  set +e
+  __val=$("${__fn}" "${__sql}")
+  __rc=$?
+  set -e
+  if [ "${__rc}" -ne 0 ]; then
+    record "sql-error-${__var}" FAIL "docker exec exit=${__rc}"
+    __val=""
+  fi
+  printf -v "${__var}" '%s' "${__val}"
 }
 
 # ============================================================================
 # Chatwoot: counts
 # ============================================================================
-CW_ACCOUNTS=$(cw_psql "select count(*) from accounts;")
-CW_USERS=$(cw_psql "select count(*) from users;")
-CW_INBOXES=$(cw_psql "select count(*) from inboxes;")
-CW_CONTACTS=$(cw_psql "select count(*) from contacts;")
-CW_CONTACT_INBOXES=$(cw_psql "select count(*) from contact_inboxes;")
-CW_CONVERSATIONS=$(cw_psql "select count(*) from conversations;")
-CW_MESSAGES=$(cw_psql "select count(*) from messages;")
-CW_ATTACHMENTS=$(cw_psql "select count(*) from attachments;")
-CW_BLOBS=$(cw_psql "select count(*) from active_storage_blobs;")
+try_sql CW_ACCOUNTS "select count(*) from accounts;" cw_psql
+try_sql CW_USERS "select count(*) from users;" cw_psql
+try_sql CW_INBOXES "select count(*) from inboxes;" cw_psql
+try_sql CW_CONTACTS "select count(*) from contacts;" cw_psql
+try_sql CW_CONTACT_INBOXES "select count(*) from contact_inboxes;" cw_psql
+try_sql CW_CONVERSATIONS "select count(*) from conversations;" cw_psql
+try_sql CW_MESSAGES "select count(*) from messages;" cw_psql
+try_sql CW_ATTACHMENTS "select count(*) from attachments;" cw_psql
+try_sql CW_BLOBS "select count(*) from active_storage_blobs;" cw_psql
 record "chatwoot-counts" OK "accounts=${CW_ACCOUNTS} users=${CW_USERS} inboxes=${CW_INBOXES} contacts=${CW_CONTACTS} contact_inboxes=${CW_CONTACT_INBOXES} conversations=${CW_CONVERSATIONS} messages=${CW_MESSAGES} attachments=${CW_ATTACHMENTS} active_storage_blobs=${CW_BLOBS}"
 
 # ============================================================================
 # Chatwoot: orphan checks (Pitfall 14)
 # ============================================================================
-ORPHAN_CONV=$(cw_psql "select count(*) from conversations c left join contact_inboxes ci on ci.id = c.contact_inbox_id where c.contact_inbox_id is not null and ci.id is null;")
+try_sql ORPHAN_CONV "select count(*) from conversations c left join contact_inboxes ci on ci.id = c.contact_inbox_id where c.contact_inbox_id is not null and ci.id is null;" cw_psql
 [ "${ORPHAN_CONV}" = "0" ] && record "chatwoot-orphan-conversations" OK || record "chatwoot-orphan-conversations" FAIL "${ORPHAN_CONV} conversations with a dangling contact_inbox_id"
 
-ORPHAN_MSG=$(cw_psql "select count(*) from messages m left join conversations c on c.id = m.conversation_id where c.id is null;")
+try_sql ORPHAN_MSG "select count(*) from messages m left join conversations c on c.id = m.conversation_id where c.id is null;" cw_psql
 [ "${ORPHAN_MSG}" = "0" ] && record "chatwoot-orphan-messages" OK || record "chatwoot-orphan-messages" FAIL "${ORPHAN_MSG} messages without a conversation"
 
-ORPHAN_ATT=$(cw_psql "select count(*) from attachments a left join messages m on m.id = a.message_id where m.id is null;")
+try_sql ORPHAN_ATT "select count(*) from attachments a left join messages m on m.id = a.message_id where m.id is null;" cw_psql
 [ "${ORPHAN_ATT}" = "0" ] && record "chatwoot-orphan-attachments" OK || record "chatwoot-orphan-attachments" FAIL "${ORPHAN_ATT} attachments without a message"
 
-ORPHAN_ASA=$(cw_psql "select count(*) from active_storage_attachments asa left join active_storage_blobs b on b.id = asa.blob_id where b.id is null;")
+try_sql ORPHAN_ASA "select count(*) from active_storage_attachments asa left join active_storage_blobs b on b.id = asa.blob_id where b.id is null;" cw_psql
 [ "${ORPHAN_ASA}" = "0" ] && record "chatwoot-orphan-storage-attachments" OK || record "chatwoot-orphan-storage-attachments" FAIL "${ORPHAN_ASA} active_storage_attachments without a blob"
 
 # ============================================================================
 # Chatwoot: per-account display_id sequence correctness
 # ============================================================================
-SEQ_BAD=$(cw_psql "
+try_sql SEQ_BAD "
 select count(*) from (
   select a.id as account_id,
          coalesce((select max(display_id) from conversations where account_id = a.id), 0) as max_did,
          coalesce((select last_value from pg_sequences where sequencename = 'conv_dpid_seq_' || a.id), 0) as seq_val
   from accounts a
 ) s where seq_val < max_did;
-")
+" cw_psql
 [ "${SEQ_BAD}" = "0" ] && record "chatwoot-display-id-sequences" OK || record "chatwoot-display-id-sequences" FAIL "${SEQ_BAD} accounts where conv_dpid_seq lags max(display_id)"
 
 # ============================================================================
 # Chatwoot: canary presence + checksum
 # ============================================================================
-CANARY_CONV_ID=$(cw_psql "select c.id from conversations c join inboxes i on i.id = c.inbox_id where i.name = '${CANARY_INBOX_NAME}' order by c.id desc limit 1;")
+try_sql CANARY_CONV_ID "select c.id from conversations c join inboxes i on i.id = c.inbox_id where i.name = '${CANARY_INBOX_NAME}' order by c.id desc limit 1;" cw_psql
 CANARY_ACCOUNT_ID=""
 CANARY_CONV_DISPLAY_ID=""
 CANARY_MSG_ID=""
 CANARY_ATTACHMENT_ID=""
 CANARY_BLOB_KEY=""
 if [ -n "${CANARY_CONV_ID}" ]; then
-  CANARY_ACCOUNT_ID=$(cw_psql "select account_id from conversations where id = ${CANARY_CONV_ID};")
-  CANARY_CONV_DISPLAY_ID=$(cw_psql "select display_id from conversations where id = ${CANARY_CONV_ID};")
-  CANARY_MSG_ID=$(cw_psql "select id from messages where conversation_id = ${CANARY_CONV_ID} order by id asc limit 1;")
+  try_sql CANARY_ACCOUNT_ID "select account_id from conversations where id = ${CANARY_CONV_ID};" cw_psql
+  try_sql CANARY_CONV_DISPLAY_ID "select display_id from conversations where id = ${CANARY_CONV_ID};" cw_psql
+  try_sql CANARY_MSG_ID "select id from messages where conversation_id = ${CANARY_CONV_ID} order by id asc limit 1;" cw_psql
 fi
 if [ -n "${CANARY_MSG_ID}" ]; then
-  CANARY_ATTACHMENT_ID=$(cw_psql "select id from attachments where message_id = ${CANARY_MSG_ID} limit 1;")
+  try_sql CANARY_ATTACHMENT_ID "select id from attachments where message_id = ${CANARY_MSG_ID} limit 1;" cw_psql
 fi
 if [ -n "${CANARY_ATTACHMENT_ID}" ]; then
-  CANARY_BLOB_KEY=$(cw_psql "select b.key from active_storage_attachments asa join active_storage_blobs b on b.id = asa.blob_id where asa.record_type = 'Attachment' and asa.record_id = ${CANARY_ATTACHMENT_ID} limit 1;")
+  try_sql CANARY_BLOB_KEY "select b.key from active_storage_attachments asa join active_storage_blobs b on b.id = asa.blob_id where asa.record_type = 'Attachment' and asa.record_id = ${CANARY_ATTACHMENT_ID} limit 1;" cw_psql
 fi
 
 if [ -n "${CANARY_CONV_ID}" ] && [ -n "${CANARY_MSG_ID}" ] && [ -n "${CANARY_ATTACHMENT_ID}" ] && [ -n "${CANARY_BLOB_KEY}" ]; then
@@ -201,27 +224,27 @@ fi
 # ============================================================================
 # EspoCRM: counts
 # ============================================================================
-ESPO_ACCOUNT_CNT=$(espo_sql "select count(*) from account where deleted=0;")
-ESPO_DOCUMENT_CNT=$(espo_sql "select count(*) from document where deleted=0;")
-ESPO_ATTACHMENT_CNT=$(espo_sql "select count(*) from attachment where deleted=0;")
-ESPO_USER_CNT=$(espo_sql "select count(*) from user where deleted=0;")
+try_sql ESPO_ACCOUNT_CNT "select count(*) from account where deleted=0;" espo_sql
+try_sql ESPO_DOCUMENT_CNT "select count(*) from document where deleted=0;" espo_sql
+try_sql ESPO_ATTACHMENT_CNT "select count(*) from attachment where deleted=0;" espo_sql
+try_sql ESPO_USER_CNT "select count(*) from user where deleted=0;" espo_sql
 record "espocrm-counts" OK "account=${ESPO_ACCOUNT_CNT} document=${ESPO_DOCUMENT_CNT} attachment=${ESPO_ATTACHMENT_CNT} user=${ESPO_USER_CNT}"
 
-ESPO_DOC_MISSING_ATT=$(espo_sql "select count(*) from document d left join attachment a on a.id = d.file_id and a.deleted = 0 where d.deleted = 0 and d.file_id is not null and a.id is null;")
+try_sql ESPO_DOC_MISSING_ATT "select count(*) from document d left join attachment a on a.id = d.file_id and a.deleted = 0 where d.deleted = 0 and d.file_id is not null and a.id is null;" espo_sql
 [ "${ESPO_DOC_MISSING_ATT}" = "0" ] && record "espocrm-documents-missing-attachment" OK || record "espocrm-documents-missing-attachment" FAIL "${ESPO_DOC_MISSING_ATT} documents whose file attachment row is missing"
 
 # ============================================================================
 # EspoCRM: canary presence + checksum
 # ============================================================================
-ESPO_CANARY_ACCOUNT_ID=$(espo_sql "select id from account where deleted=0 and name='${ESPO_ACCOUNT_NAME}' order by id desc limit 1;")
-ESPO_CANARY_DOC_ID=$(espo_sql "select id from document where deleted=0 and name='${ESPO_DOCUMENT_NAME}' order by id desc limit 1;")
+try_sql ESPO_CANARY_ACCOUNT_ID "select id from account where deleted=0 and name='${ESPO_ACCOUNT_NAME}' order by id desc limit 1;" espo_sql
+try_sql ESPO_CANARY_DOC_ID "select id from document where deleted=0 and name='${ESPO_DOCUMENT_NAME}' order by id desc limit 1;" espo_sql
 ESPO_CANARY_ATTACHMENT_ID=""
 ESPO_CANARY_LINK_CNT="0"
 if [ -n "${ESPO_CANARY_DOC_ID}" ]; then
-  ESPO_CANARY_ATTACHMENT_ID=$(espo_sql "select file_id from document where deleted=0 and id='${ESPO_CANARY_DOC_ID}';")
+  try_sql ESPO_CANARY_ATTACHMENT_ID "select file_id from document where deleted=0 and id='${ESPO_CANARY_DOC_ID}';" espo_sql
 fi
 if [ -n "${ESPO_CANARY_ACCOUNT_ID}" ] && [ -n "${ESPO_CANARY_DOC_ID}" ]; then
-  ESPO_CANARY_LINK_CNT=$(espo_sql "select count(*) from account_document where deleted=0 and account_id='${ESPO_CANARY_ACCOUNT_ID}' and document_id='${ESPO_CANARY_DOC_ID}';")
+  try_sql ESPO_CANARY_LINK_CNT "select count(*) from account_document where deleted=0 and account_id='${ESPO_CANARY_ACCOUNT_ID}' and document_id='${ESPO_CANARY_DOC_ID}';" espo_sql
 fi
 
 if [ -n "${ESPO_CANARY_ACCOUNT_ID}" ] && [ -n "${ESPO_CANARY_DOC_ID}" ] && [ -n "${ESPO_CANARY_ATTACHMENT_ID}" ] && [ "${ESPO_CANARY_LINK_CNT}" != "0" ]; then
@@ -301,19 +324,22 @@ if [ "${MODE}" = "drill" ]; then
 
   # Functional insert: one conversation in the canary inbox, display_id must be previous max + 1, then destroy it.
   if [ -n "${CANARY_ACCOUNT_ID}" ]; then
-    CANARY_INBOX_ID=$(cw_psql "select i.id from inboxes i where i.name = '${CANARY_INBOX_NAME}' and i.account_id = ${CANARY_ACCOUNT_ID} limit 1;")
-    PREV_MAX_DID=$(cw_psql "select coalesce(max(display_id),0) from conversations where account_id = ${CANARY_ACCOUNT_ID};")
-    # set +e around this command substitution: Conversation.create! requires an
-    # existing contact_inbox association (Chatwoot validates "Contact inbox must
-    # exist"), and a `VAR=$(docker exec ...)` assignment that fails still trips
-    # `set -e` at the top of this script even though it isn't inside an `if` -
-    # that silently killed the ENTIRE drill-verify run (no FAIL line at all,
-    # stderr already redirected to /dev/null to suppress Sidekiq client noise)
-    # the first time this ran for real, live, in Plan 76-09. Captured explicitly
-    # so a future regression here always produces a FAIL line instead of an
-    # unexplained early exit.
-    set +e
-    INSERT_RESULT=$(docker exec -i -e CANARY_INBOX_ID="${CANARY_INBOX_ID}" chatwoot-rails-1 bundle exec rails runner - 2>/dev/null <<'RUBY'
+    try_sql CANARY_INBOX_ID "select i.id from inboxes i where i.name = '${CANARY_INBOX_NAME}' and i.account_id = ${CANARY_ACCOUNT_ID} limit 1;" cw_psql
+    try_sql PREV_MAX_DID "select coalesce(max(display_id),0) from conversations where account_id = ${CANARY_ACCOUNT_ID};" cw_psql
+    if [ -z "${CANARY_INBOX_ID}" ] || [ -z "${PREV_MAX_DID}" ]; then
+      record "drill-functional-insert" FAIL "could not resolve canary inbox id / previous max display_id (see sql-error-* above)"
+    else
+      # set +e around this command substitution: Conversation.create! requires an
+      # existing contact_inbox association (Chatwoot validates "Contact inbox must
+      # exist"), and a `VAR=$(docker exec ...)` assignment that fails still trips
+      # `set -e` at the top of this script even though it isn't inside an `if` -
+      # that silently killed the ENTIRE drill-verify run (no FAIL line at all,
+      # stderr already redirected to /dev/null to suppress Sidekiq client noise)
+      # the first time this ran for real, live, in Plan 76-09. Captured explicitly
+      # so a future regression here always produces a FAIL line instead of an
+      # unexplained early exit.
+      set +e
+      INSERT_RESULT=$(docker exec -i -e CANARY_INBOX_ID="${CANARY_INBOX_ID}" chatwoot-rails-1 bundle exec rails runner - 2>/dev/null <<'RUBY'
 inbox = Inbox.find(ENV.fetch("CANARY_INBOX_ID"))
 contact = inbox.account.contacts.find_by(name: "Restore Drill Canary") ||
           inbox.account.contacts.create!(name: "Restore Drill Canary (functional test)")
@@ -325,14 +351,15 @@ conv.destroy!
 puts "DRILL_RESULT display_id=#{did}"
 RUBY
 )
-    INSERT_EXIT=$?
-    set -e
-    NEW_DID=$(printf '%s' "${INSERT_RESULT}" | grep '^DRILL_RESULT ' | sed -n 's/.*display_id=\([0-9]*\).*/\1/p')
-    EXPECTED_DID=$((PREV_MAX_DID + 1))
-    if [ "${INSERT_EXIT}" -eq 0 ] && [ "${NEW_DID}" = "${EXPECTED_DID}" ]; then
-      record "drill-functional-insert" OK "display_id=${NEW_DID}"
-    else
-      record "drill-functional-insert" FAIL "expected display_id ${EXPECTED_DID}, got ${NEW_DID:-<none>} (docker exec exit=${INSERT_EXIT})"
+      INSERT_EXIT=$?
+      set -e
+      NEW_DID=$(printf '%s' "${INSERT_RESULT}" | grep '^DRILL_RESULT ' | sed -n 's/.*display_id=\([0-9]*\).*/\1/p')
+      EXPECTED_DID=$((PREV_MAX_DID + 1))
+      if [ "${INSERT_EXIT}" -eq 0 ] && [ "${NEW_DID}" = "${EXPECTED_DID}" ]; then
+        record "drill-functional-insert" OK "display_id=${NEW_DID}"
+      else
+        record "drill-functional-insert" FAIL "expected display_id ${EXPECTED_DID}, got ${NEW_DID:-<none>} (docker exec exit=${INSERT_EXIT})"
+      fi
     fi
   else
     record "drill-functional-insert" FAIL "no canary account id resolved - cannot run functional insert test"
@@ -362,6 +389,10 @@ fi
 # ============================================================================
 # Assemble JSON result
 # ============================================================================
+# CR-03: any of the counts above may be an empty string here if its try_sql
+# call failed (already recorded as a sql-error-* FAIL) — `${VAR:-null}`
+# coerces that to JSON `null` for --argjson so this assembly step itself
+# never aborts the script, and the --out file is always written.
 CHECKS_JSON=$(jq -s '.' "${CHECKS_FILE}")
 
 RESULT_JSON=$(jq -n \
@@ -369,28 +400,28 @@ RESULT_JSON=$(jq -n \
   --arg ts "$(date -u +%FT%TZ)" \
   --arg hostname "$(hostname)" \
   --arg canarySha256 "${CANARY_SHA256}" \
-  --argjson cwAccounts "${CW_ACCOUNTS}" \
-  --argjson cwUsers "${CW_USERS}" \
-  --argjson cwInboxes "${CW_INBOXES}" \
-  --argjson cwContacts "${CW_CONTACTS}" \
-  --argjson cwContactInboxes "${CW_CONTACT_INBOXES}" \
-  --argjson cwConversations "${CW_CONVERSATIONS}" \
-  --argjson cwMessages "${CW_MESSAGES}" \
-  --argjson cwAttachments "${CW_ATTACHMENTS}" \
-  --argjson cwBlobs "${CW_BLOBS}" \
-  --argjson orphanConv "${ORPHAN_CONV}" \
-  --argjson orphanMsg "${ORPHAN_MSG}" \
-  --argjson orphanAtt "${ORPHAN_ATT}" \
-  --argjson orphanAsa "${ORPHAN_ASA}" \
+  --argjson cwAccounts "${CW_ACCOUNTS:-null}" \
+  --argjson cwUsers "${CW_USERS:-null}" \
+  --argjson cwInboxes "${CW_INBOXES:-null}" \
+  --argjson cwContacts "${CW_CONTACTS:-null}" \
+  --argjson cwContactInboxes "${CW_CONTACT_INBOXES:-null}" \
+  --argjson cwConversations "${CW_CONVERSATIONS:-null}" \
+  --argjson cwMessages "${CW_MESSAGES:-null}" \
+  --argjson cwAttachments "${CW_ATTACHMENTS:-null}" \
+  --argjson cwBlobs "${CW_BLOBS:-null}" \
+  --argjson orphanConv "${ORPHAN_CONV:-null}" \
+  --argjson orphanMsg "${ORPHAN_MSG:-null}" \
+  --argjson orphanAtt "${ORPHAN_ATT:-null}" \
+  --argjson orphanAsa "${ORPHAN_ASA:-null}" \
   --arg cwCanaryConvDisplayId "${CANARY_CONV_DISPLAY_ID}" \
   --arg cwCanaryMessageId "${CANARY_MSG_ID}" \
   --arg cwCanaryBlobKey "${CANARY_BLOB_KEY}" \
   --arg cwCanarySha "${CW_CANARY_SHA}" \
-  --argjson espoAccount "${ESPO_ACCOUNT_CNT}" \
-  --argjson espoDocument "${ESPO_DOCUMENT_CNT}" \
-  --argjson espoAttachment "${ESPO_ATTACHMENT_CNT}" \
-  --argjson espoUser "${ESPO_USER_CNT}" \
-  --argjson espoDocMissingAtt "${ESPO_DOC_MISSING_ATT}" \
+  --argjson espoAccount "${ESPO_ACCOUNT_CNT:-null}" \
+  --argjson espoDocument "${ESPO_DOCUMENT_CNT:-null}" \
+  --argjson espoAttachment "${ESPO_ATTACHMENT_CNT:-null}" \
+  --argjson espoUser "${ESPO_USER_CNT:-null}" \
+  --argjson espoDocMissingAtt "${ESPO_DOC_MISSING_ATT:-null}" \
   --arg espoCanaryAccountId "${ESPO_CANARY_ACCOUNT_ID}" \
   --arg espoCanaryDocId "${ESPO_CANARY_DOC_ID}" \
   --arg espoCanaryAttachmentId "${ESPO_CANARY_ATTACHMENT_ID}" \
