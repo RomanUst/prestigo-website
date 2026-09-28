@@ -14,9 +14,19 @@ v3.0 (shipped 2026-09-27) made the whole public site multilingual without touchi
 
 v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin list, permanent driver trip link + trip sheet, trip-progress marking). v2.1 delivered admin booking lifecycle control. v2.0 delivered Blacklane-style booking with customer accounts.
 
-## Next Milestone Goals
+## Current Milestone: v4.0 Helpdesk + CRM
 
-Not yet defined — start with `/gsd-new-milestone`. v3.0 tech debt is parked in ROADMAP.md `## Backlog` (999.1–999.8) until Anthropic API credits are topped up (AI translation workflow is disabled). Other carried-forward candidates: CR-02 Stripe Payment Link deactivation hardening, automatic unpaid-reminder emails (FOLLOW-01), Google/Apple OAuth credential config (AUTH-02/03), corporate "book for a guest" (BOOK-06), pre-existing red test baseline, v2.2 tech debt.
+**Goal:** Every customer conversation (WhatsApp, email, website chat, Telegram/Instagram/Facebook) lands in one self-hosted Chatwoot inbox, every inquiry and every customer who ever booked is retained in a self-hosted EspoCRM with a B2B pipeline and repeat-sales base — both on a new Hostinger VPS and linked two-way with production (Supabase stays the source of truth for bookings and customers).
+
+**Target features:**
+- Hostinger VPS (Docker) running Chatwoot + EspoCRM on own subdomains with TLS, backups and monitoring — the public site must never depend on VPS uptime
+- Chatwoot omnichannel inbox: WhatsApp Cloud API (existing +420 number), service mail (info@/bookings@) via IMAP/SMTP, consent-gated website widget, Telegram/Instagram/Facebook
+- Persist every lead: contact form, corporate form, multi-day quotes (today email-only, never stored) into Supabase + CRM
+- Site → CRM/Chatwoot sync via Supabase outbox + QStash (bookings, payments, status changes, signups, leads) — idempotent, retried
+- Chatwoot → CRM: conversations create/update contacts & leads; conversation summary written to CRM contact history
+- Chatwoot Dashboard App showing the customer's bookings from Supabase inside the conversation sidebar
+- EspoCRM B2B pipeline (hotels, agencies, corporates) with sales mailbox (sales@/roman@) in EspoCRM only — no mailbox connected to both systems
+- Statistics (conversations, response time, leads → bookings, repeat customers) and replacing manual `send-*.mjs` ops with Chatwoot canned responses/templates
 
 ## Requirements
 
@@ -74,6 +84,7 @@ Not yet defined — start with `/gsd-new-milestone`. v3.0 tech debt is parked in
 - [ ] BOOK-06: Booking-method step — "Book for myself / Book as guest"; corporate also "Book for a guest" (deferred from v2.0)
 - [ ] Corporate invoicing, monthly billing, cost-centre fields — basic corporate profile only in v2.0
 - [ ] Email notifications — booking confirmation, reminder, driver assignment
+- [ ] v4.0: self-hosted Chatwoot + EspoCRM on Hostinger VPS, one inbox for all channels, all leads persisted, two-way site↔helpdesk↔CRM sync, B2B pipeline, stats
 - [ ] v3.0 i18n tech debt — localized client emails + confirmation page, /routes hub blurbs, byline dates, catalog residual, Uber-comparison FAQ rewrite, RU/AR signed-in E2E, share-meta polish, Meta/CAPI robustness, test/QA infra; parked in ROADMAP.md Backlog 999.1–999.8 until API credits are topped up
 
 ### Out of Scope
@@ -109,6 +120,9 @@ Not yet defined — start with `/gsd-new-milestone`. v3.0 tech debt is parked in
 - **SEO**: Every article page must have canonical URL, OG tags, Schema.org Article — non-negotiable
 - **Guest checkout**: Must always remain available; sign-in is never a hard gate
 - **Admin auth**: Untouched — admin session isolation must be maintained across all changes
+- **v4.0 VPS independence**: public site, booking and payments must keep working when the Hostinger VPS (Chatwoot/EspoCRM) is down — sync is async via outbox
+- **v4.0 CSP/consent**: chat widget needs `middleware.ts` CSP additions (script/connect incl. wss/frame/img) + `scripts/qa/baselines/csp_baseline.json`, and consent gating like `components/CookieBanner.tsx` consumers
+- **Secrets**: VPS/Chatwoot/EspoCRM/WhatsApp tokens only in env (Vercel + VPS), never committed
 
 ## Key Decisions
 
@@ -142,6 +156,11 @@ Not yet defined — start with `/gsd-new-milestone`. v3.0 tech debt is parked in
 | v3.0: first-visit language suggestion lives inside the cookie consent modal, not a separate banner | One prompt instead of two; consent text readable in visitor's language; standalone banner never rendered in prod (next-intl sets NEXT_LOCALE on every response) and clashed with /book price bar | ✓ Good (Phase 74 UAT) |
 | v3.0: middleware matcher skips static-file extensions only outside api/admin/driver/auth/account | txt/xml had to be excluded (robots/sitemap/llms 404'd since Phase 68) but a blanket suffix exclusion let crafted admin API paths skip CSRF | ✓ Good (Phase 74, 8821d8b8) |
 | v3.0: close with accepted override for RU/AR signed-in booking path (no test account) | Guest path proven on 7/7 locales; signed-in variant shares the same locale logic | — Pending (Backlog 999.5) |
+| v4.0: Chatwoot as helpdesk (self-hosted) | Only OSS tool that unifies WhatsApp Cloud API, IMAP email, website widget and Telegram/IG/FB in one inbox; reports, assignment, Dashboard Apps, API/webhooks | — Pending |
+| v4.0: EspoCRM as CRM (over Twenty / custom admin CRM) | Mature, light (PHP+MySQL), stable REST API + webhooks, custom entities without code, strong free roles/ACL; paid Advanced Pack unnecessary because automations live in our code | — Pending |
+| v4.0: integration logic in repo (Next.js + Supabase outbox + QStash), no n8n | Tested, versioned, idempotent, retried; nothing lost if VPS is down | — Pending |
+| v4.0: Supabase remains source of truth for bookings/customers | CRM and Chatwoot are downstream views; no booking writes originate from them | — Pending |
+| v4.0: separate mailboxes — service mail in Chatwoot, sales mail in EspoCRM; never one mailbox in both | Avoids duplicate messages, double replies and broken reply-time stats; Chatwoot conversation summaries still reach CRM history via sync | — Pending |
 | v3.0: accept tech debt at close, defer to backlog until API credits return | Translation-dependent fixes need the AI pipeline | — Pending |
 
 ## Evolution
@@ -162,4 +181,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-09-27 after v3.0 milestone (Site Internationalization) — shipped, archived to milestones/v3.0-*. Next: `/gsd-new-milestone`.*
+*Last updated: 2026-09-27 after starting milestone v4.0 (Helpdesk + CRM).*

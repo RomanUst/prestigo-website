@@ -1,0 +1,98 @@
+name: chatwoot
+
+# Phase 76 plan 04, Task 1 (tracer). Chatwoot CE behind Caddy.
+#
+# Pinned tags (D-16, verified against the Docker Hub v2 tags API 2026-09-28):
+#   chatwoot/chatwoot:v4.18.0-ce  - namespace chatwoot/chatwoot, 10.5M+ pulls (76-RESEARCH.md audit)
+#   pgvector/pgvector:0.8.6-pg16 - namespace pgvector, 206M+ pulls, matches project's official GH org
+#   redis:7.4.11-alpine          - namespace library (official), 11.3B+ pulls
+#
+# Volumes (project name "chatwoot" -> chatwoot_postgres_data, chatwoot_redis_data,
+# chatwoot_storage_data per the plan's interfaces block). Mem limits per D-12
+# (interfaces table): rails 1536m, sidekiq 1024m, postgres 1536m, redis 384m.
+#
+# Only `rails` joins the external `edge` network (alias chatwoot-rails) so Caddy
+# can reverse_proxy into it; everything else stays on the private default network.
+# `rails` and `postgres`/`redis` also publish to 127.0.0.1 only, never 0.0.0.0
+# (D-17/T-76-15) - loopback bind is a defense-in-depth belt alongside "only
+# Caddy publishes 80/443" (Docker's own iptables rules bypass ufw).
+
+services:
+  postgres:
+    image: pgvector/pgvector:0.8.6-pg16
+    restart: unless-stopped
+    env_file: /etc/prestigo/chatwoot.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 1536m
+
+  redis:
+    image: redis:7.4.11-alpine
+    restart: unless-stopped
+    env_file: /etc/prestigo/chatwoot.env
+    # $$ so Compose does not try to interpolate REDIS_PASSWORD itself - the
+    # value comes from the container's own env (env_file), expanded by the
+    # container's sh at start, per the plan's interfaces block.
+    command: ["sh", "-c", "redis-server --requirepass \"$$REDIS_PASSWORD\""]
+    volumes:
+      - redis_data:/data
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli -a \"$$REDIS_PASSWORD\" ping | grep -q PONG"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    mem_limit: 384m
+
+  rails:
+    image: chatwoot/chatwoot:v4.18.0-ce
+    restart: unless-stopped
+    env_file: /etc/prestigo/chatwoot.env
+    entrypoint: docker/entrypoints/rails.sh
+    command: ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - storage_data:/app/storage
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - chatwoot-rails
+    mem_limit: 1536m
+
+  sidekiq:
+    image: chatwoot/chatwoot:v4.18.0-ce
+    restart: unless-stopped
+    env_file: /etc/prestigo/chatwoot.env
+    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - storage_data:/app/storage
+    mem_limit: 1024m
+
+volumes:
+  postgres_data:
+  redis_data:
+  storage_data:
+
+networks:
+  edge:
+    external: true

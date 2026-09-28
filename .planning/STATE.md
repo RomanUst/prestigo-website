@@ -1,19 +1,21 @@
 ---
-gsd_state_version: 1.0
-milestone: v3.0
-milestone_name: Site Internationalization (i18n)
-status: Awaiting next milestone
-stopped_at: Phase 75 complete — all phases complete
-last_updated: "2026-09-27T18:01:15.546Z"
-last_activity: 2026-09-27
-last_activity_desc: Milestone v3.0 completed and archived
-state_head: 1937b331a4dda945487b1455ad223c4be28f181b
+gsd_state_version: "1.0"
+milestone: v4.0
+milestone_name: Helpdesk + CRM
+current_phase: 77
+current_phase_name: Chatwoot Deployment + Core Channels
+status: planning
+stopped_at: Phase 77 context gathered
+last_updated: "2026-09-28T19:58:35.088Z"
+last_activity: 2026-09-28
+last_activity_desc: Phase 76 complete, transitioned to Phase 77
+state_head: 25b3825175238dc9178de209a02ef0410a22e4d8
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 85
-  completed_plans: 85
-current_phase: 75
+  total_phases: 10
+  completed_phases: 23
+  total_plans: 9
+  completed_plans: 9
+  percent: 100
 ---
 
 # Project State
@@ -23,14 +25,14 @@ current_phase: 75
 See: .planning/PROJECT.md (updated 2026-09-27)
 
 **Core value:** Every page must convert a visitor into a confirmed booking or qualified lead without friction
-**Current focus:** Planning next milestone (v3.0 shipped 2026-09-27; tech debt parked in ROADMAP Backlog 999.1–999.8)
+**Current focus:** Phase 76 — VPS Infrastructure
 
 ## Current Position
 
-Phase: Milestone v3.0 complete
-Plan: —
-Status: Awaiting next milestone
-Last activity: 2026-09-27 — Milestone v3.0 completed and archived
+Phase: 77 — Chatwoot Deployment + Core Channels
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-09-28 — Phase 76 complete, transitioned to Phase 77
 
 ## Accumulated Context
 
@@ -39,6 +41,7 @@ Last activity: 2026-09-27 — Milestone v3.0 completed and archived
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
+- v4.0 roadmap: 10 phases derived from 45 v1 requirements across 12 categories (INFRA/INBOX/WA/SOC/CRM/LEAD/SYNC/HOOK/PANEL/OPS/STAT/GDPR), continuing phase numbering from 75 -> starting at 76. OPS-01/02 folded into Phase 77 (Chatwoot core channels - canned responses/automation are native Chatwoot features, not WhatsApp-specific). GDPR-01/02 folded into Phase 82 (Sync Foundation - erasure needs the outbox, and the privacy-policy update documents the same systems). Execution order: 76 -> (77 || 80) -> 78 -> 79; 80 -> 81 -> 82 (needs 77+80+81) -> 83 -> 84; 85 (Statistics) depends on 80/81/82's data existing. WhatsApp (78) and IG/FB (79) isolated as their own phases per research risk-sequencing (Meta verification lead time, blast-radius reduction); Dashboard App (84) sequenced last among integration phases pending CVE-2025-12245 confirmation. Outbox core built in Phase 81 (leads + site bookings as leads, LEAD-06), extended by Phase 82. Phases 82/83/84 flagged security-relevant for `security:` commit prefix per CLAUDE.md.
 - v3.0 (Phase 73): ar/hi/zh non-Latin + RTL infra shipped. Noto Sans Arabic/Devanagari/SC delivered per-locale via a single `localeFontClassName` ternary in SiteChrome (zero Noto bytes on en/ru/es/fr, no cross-family leak). Physical-direction Tailwind → logical properties; Arabic `dir="rtl"` with `.wordmark { direction: ltr }` to keep the PRESTIGO wordmark un-reversed. DNT price/phone/time tokens bidi-isolated via `interpolateBidi()`/`<bdi>` at the render site on all 30 route pages; FAQPage JSON-LD `acceptedAnswer.text` kept a plain `f.a` string (never a ReactNode) — guarded by strengthened CR-02 backstop. FONT-01 glyph-tofu independently browser-verified (0 tofu) 2026-09-20; security 16/16 threats closed.
 - v3.0: ~~7 static pages render EN on every locale (WINDOWS #7)~~ — FIXED in Phase 74 (74-04, params-forwarded locale).
 - v2.2 roadmap: 3 phases derived from DISP-* and DTRIP-* — Phase 65 (DISP-01..04, dispatch list defaults) is independent of the driver portal. Phase 66 (DTRIP-01,02,07,08 — permanent link + trip sheet) is the foundation the status-marking work builds on; Phase 67 (DTRIP-03,04,05,06 — status marking, note, admin visibility) depends on Phase 66's token/trip-sheet infrastructure. Execution order: (65 ∥ 66) → 67.
@@ -165,6 +168,23 @@ Recent decisions affecting current work:
 - [Phase 75]: 75-06: entity-handling split preserved on /book — dangerouslySetInnerHTML fields keep literal HTML-entity text (matches about.json convention); plain-JSX-text fields converted to literal Unicode characters, since {expr} interpolation doesn't decode entities the way JSX text children did
 - [Phase 75]: 75-07: translated the TRANSFER/HOURLY example-day badge (not in must_haves) reusing messages/*.json's Booking.dayCard terms, to close an EN-leak the plan's own success criterion required
 - [Phase 75]: 75-08: /fleet localized via content model — structural VehicleSpec array (model/photo/specs + EN-only categoryEn/descriptionEn for JSON-LD) zipped by index with translated content.vehicles; entity-decoding rule empirically confirmed (JS string literal entities stay literal, JSX-text-child entities need decoded Unicode) — Matches 75-06/75-07 content-model pattern; extends split one level further for per-vehicle structural vs translated data; Phase 74 D-09 JSON-LD-stays-English preserved via dedicated EN-only fields
+- [Phase 76]: 76-02: sshd_hardening's own precondition check (non-empty deploy authorized_keys) enforces the lockout-safe order structurally, so Task 1 ran the full bootstrap.sh invocation in one command; the plan's "second connection proves deploy access" step is the human-verifiable proof done immediately after the script returns, before root access is treated as retired.
+- [Phase 76]: 76-02: config files written via mktemp+mv need an explicit chmod 0644 - mktemp defaults to 0600, which broke the plan's own unprivileged verify commands (apt-config dump, cat /etc/docker/daemon.json) on the first bootstrap run; fixed and re-verified end-to-end (Rule 1 auto-fix).
+- [Phase 76]: 76-03: owner-approved B2 bucket region deviation from D-05 — us-east-005 (not EU); restic client-side encryption + Backblaze DPF participation accepted as rationale
+- [Phase 76]: 76-03: D-10 evidence obtained via live Hostinger VPS API (same token authorizes it) rather than the owner-confirmation fallback — backups list returned 0 entries, consistent with a newly created host
+- [Phase 76]: 76-04: Docker Hub v2 tags API queried live at execution time for all six pinned images (chatwoot/chatwoot:v4.18.0-ce, pgvector/pgvector:0.8.6-pg16, redis:7.4.11-alpine, caddy:2.11.4-alpine, espocrm/espocrm:10.0.8, mariadb:11.4.13); namespace/pull-count re-checked for the four non-audited images per D-16.
+- [Phase 76]: 76-04: EspoCRM volume layout follows the current (non-legacy) espocrm-docker contract - data/custom/client-custom mounted as three separate volumes, confirmed by reading docker-entrypoint.sh/entrypoint-utils.sh from espocrm/espocrm-docker@master; mounting the whole /var/www/html tree is now a deprecated legacy method that can hard-abort on a fresh mount.
+- [Phase 76]: 76-04: found and worked around two real upstream/procedural defects - (1) Caddyfile single-file bind mounts go stale after rsync's temp-file+rename, need a container restart not just caddy reload; (2) espocrm-docker's actionInstall hardcodes set-password admin regardless of ESPOCRM_ADMIN_USERNAME, restart-looping the install forever with a non-default admin username. Both fixed live and documented as standing procedures in infra/vps/runbooks/app-deploy.md for plans 76-06/76-09.
+- [Phase 76]: restic to Backblaze B2 (us-east-005, owner-approved) via a single pinned restic/restic:0.19.1 container wrapper; nightly systemd timer 02:30 Europe/Prague, 7d/4w/6m retention; Task 3 owner-custody checkpoint deliberately deferred to end-of-phase, SUMMARY status complete-pending-owner
+- [Phase 76]: 76-06: external monitor definitions (UptimeRobot+Healthchecks) versioned repo-side with idempotent provisioner; owner-account provisioning (Task 1) deferred to end-of-phase alongside 76-05's Task 3. All five on-VPS depth checks (disk/mem, KVM4 trigger, Sidekiq, EspoCRM internals, TLS expiry) live on a 5-min systemd timer, gracefully skipping pings until monitor.env exists. Discovered (not fixed, out of scope): Chatwoot /api data_services intermittently reports failing in self-resolving bursts, suspected Puma/AR connection-pool reaping - recorded WINDOWS.md #30 for a later phase.
+- [Phase 76]: Ordering deviation (orchestrator-directed): ran 76-08 before 76-07 since 76-07 (controlled outage test) is deliberately deferred to end of phase for owner-held accounts; no real content dependency on 76-07 was found.
+- [Phase 76]: EspoCRM Document.accounts is ACL-gated (directUpdateDisabled/noLoad linkMultiple), so the account_document join row is written directly via root MariaDB instead of widening the least-privilege canary API role's ACL.
+- [Phase 76]: Fixed restic.sh: /var/backups/prestigo mount changed from read-only to read-write since it is also the restore/rehearsal target, not just a backup source.
+- [Phase 76]: D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram integration is now a paid feature; owner declined. UptimeRobot alerts by email only; a new on-VPS apps_http check restores Telegram coverage for app-level outages via Healthchecks.io (which kept its free Telegram integration). UptimeRobot v2 monitor creation is also plan-gated on the free tier (access_denied for every v2 POST /newMonitor) — provision-monitors.sh migrated to the v3 API for monitor creation/listing, per the plan's own documented fallback.
+- [Phase 76]: 76-07: real controlled outage on production 2026-09-28 08:37:13Z-08:44:01Z (caddy/chatwoot/espocrm stopped); site/booking-to-Stripe/contact form all proved working with zero chat./crm. requests (ref PRG-20260928-D8E6DC); all 6 alert targets (2 UptimeRobot + 4 Healthchecks) confirmed down by 08:42:09Z, recovery confirmed by 08:47:39Z. Task 1 (tracer) autonomous per owner authorization; Tasks 2 (owner alert/email confirmation) and 3 (orchestrator Supabase cleanup) deferred, SUMMARY status complete-pending-owner.
+- [Phase 76]: 76-07: docker compose up -d needed sudo during recovery even though stop did not (env_file is 0600 root-only, read only by up) - Rule 3 auto-fix, no code/plan change, documented in outage-test.md.
+- [Phase 76]: D-09 restore drill executed and owner-approved: production Chatwoot+EspoCRM recovered from B2 onto a disposable Hetzner host, integrity-verified, host torn down and confirmed gone (INFRA-02 recovery half met)
+- [Phase 76]: EspoCRM login retries during Task 3 were confirmed an operator typo, not a restore defect, via byte-identical password hash/salt comparison against production before the owner retried
 
 ### Brownfield phases (pre-GSD, completed)
 
@@ -213,6 +233,21 @@ Recent decisions affecting current work:
 - Phase 75: E2E Verification & Launch — VER-01
 - Proposed execution: 68 → 69 → 70 → 71 → 72 → 73 → 74 → 75 (69∥70 after 68; 71/72 pipeline can overlap)
 
+### v4.0 roadmap (Phases 76-85, planning)
+
+- Milestone: Helpdesk + CRM — self-hosted Chatwoot (omnichannel inbox) + EspoCRM (B2B CRM) on a new Hostinger VPS, two-way linked to production; Supabase stays source of truth for bookings/customers; public site never depends on VPS uptime.
+- Phase 76: VPS Infrastructure — INFRA-01..05 (foundation: Docker/Caddy/TLS, backups+restore drill, independent alerting, OS/app upgrade runbook, VPS-offline resilience proof)
+- Phase 77: Chatwoot Deployment + Core Channels — INBOX-01..06, OPS-01/02 (email, widget, Telegram, native reports, canned responses, automation)
+- Phase 78: WhatsApp Cloud API Channel (Coexistence) — WA-01..03 (own phase: highest business risk, Meta verification lead time)
+- Phase 79: Instagram + Facebook Channels — SOC-01/02 (after WhatsApp per blast-radius sequencing)
+- Phase 80: EspoCRM Deployment + Core Entities — CRM-01..05 (parallel to 77-79, only needs Phase 76)
+- Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM) — LEAD-01..05
+- Phase 82: Site ↔ CRM/Chatwoot Sync Foundation — SYNC-01..05, GDPR-01/02 (outbox/identity/backfill/outbox-health/erasure — the hard-engineering dependency root)
+- Phase 83: CRM/Chatwoot → Site Webhooks — HOOK-01..04 (security: HMAC verification, echo-loop prevention)
+- Phase 84: Chatwoot Dashboard App — PANEL-01/02 (security: postMessage/frame-ancestors, CVE-2025-12245; sequenced last among integration phases)
+- Phase 85: Statistics — STAT-01..03 (needs 80/81/82 data)
+- Proposed execution: 76 → (77 ∥ 80) → 78 → 79 (Meta verification for 78 can start early/in parallel with 76-77); 80 → 81 → 82 (needs 77+80+81) → 83 → 84; 85 after 80/81/82
+
 ### Key i18n grounding (verify during /gsd-plan-phase 68)
 
 - `middleware.ts` is a single default export doing CSP nonce (`buildCsp`) + Supabase `updateSession` + CSRF Origin-guard; broad matcher. next-intl locale-middleware must be COMPOSED into this chain, not replace it — highest-risk item.
@@ -240,6 +275,7 @@ None yet.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
 - 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
 - 75-08: no worktree isolation on this repo — an external concurrent git checkout (fix/payment-link-pi-succeeded) moved HEAD mid-plan and stranded a commit off main; recovered via cherry-pick (no data lost). Future sequential plans on this repo should verify 'git branch --show-current' before every commit, not just at plan start.
+- Phase 76 complete 2026-09-28 (verification passed 5/5). Open housekeeping only (76-OWNER-ACTIONS.md §E): rotate B2 master key, delete B2 key "crm", confirm Lifecycle 30d, revoke Hostinger + Hetzner API tokens. Privacy policy must list Backblaze (US) before the Phase 77 widget launch. Confirm VPS hostname stays prestigo-vps after the next reboot (cloud-init preserve_hostname fix unproven until then).
 
 ## Deferred Items
 
@@ -290,9 +326,9 @@ Owner decision: all v3.0 tech debt deferred until Anthropic API credits are topp
 
 ## Session Continuity
 
-Last session: 2026-09-25T14:00:46.769Z
-Stopped at: Phase 75 complete — all phases complete
-Resume file: None
+Last session: 2026-09-28T19:58:34.983Z
+Stopped at: Phase 77 context gathered
+Resume file: .planning/phases/77-chatwoot-deployment-core-channels/77-CONTEXT.md
 
 ## Performance Metrics
 
@@ -364,7 +400,16 @@ Resume file: None
 | Phase 75 P06 | 16min | 2 tasks | 11 files |
 | Phase 75-e2e-verification-launch P07 | 25min | 2 tasks | 11 files |
 | Phase 75 P08 | 20min | 2 tasks | 11 files |
+| Phase 76 P02 | 39min | 2 tasks | 3 files |
+| Phase 76 P03 | 35min | 2 tasks | 6 files |
+| Phase 76 P04 | ~2h20m | 3 tasks | 9 files |
+| Phase 76 P05 | 50min | 2 tasks | 7 files |
+| Phase 76 P06 | ~35min | 2 tasks | 8 files |
+| Phase 76 P08 | 32min | 2 tasks | 9 files |
+| Phase 76 P06 | ~40min (continuation) | 3 tasks | 5 files |
+| Phase 76 P07 | 20min | 1 tasks | 2 files |
+| Phase 76 P09 | 49min | 4 tasks | 3 files |
 
 ## Operator Next Steps
 
-- Start the next milestone with /gsd-new-milestone
+- Run /gsd-plan-phase 76 to start planning VPS Infrastructure (v4.0 Phase 76)

@@ -1,0 +1,31 @@
+[Unit]
+Description=Prestigo nightly backup (Chatwoot + EspoCRM -> restic -> B2)
+Wants=network-online.target
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/prestigo/scripts/backup.sh
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=3h
+
+# Hardening (WR-04). Runs as root (needs the docker socket, /etc/prestigo,
+# /var/backups/prestigo, /var/log/prestigo, network egress to B2) so full
+# sandboxing (DynamicUser, ProtectSystem=strict, PrivateNetwork) is not an
+# option — these are the belt-and-suspenders directives that do NOT
+# conflict with those requirements. ProtectSystem=full leaves /var and
+# /run (docker.sock, the backup lock file, the dump dir) writable while
+# making /usr/boot/etc read-only; this script only ever reads
+# /etc/prestigo, never writes it.
+NoNewPrivileges=yes
+PrivateTmp=yes
+ProtectSystem=full
+ProtectHome=read-only
+ProtectClock=yes
+ProtectKernelLogs=yes
+ProtectKernelModules=yes
+ProtectKernelTunables=yes
+ProtectControlGroups=yes
+RestrictSUIDSGID=yes
+LockPersonality=yes

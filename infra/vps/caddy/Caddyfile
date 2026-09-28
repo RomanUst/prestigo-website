@@ -1,0 +1,27 @@
+# Phase 76 plan 04. Caddy issues/renews Let's Encrypt certs automatically
+# for both site blocks (no `tls` directive needed - automatic HTTPS is the
+# default for a public hostname).
+#
+# D-17: no IP allowlisting - Chatwoot must receive Meta/WhatsApp webhooks
+# and serve the widget publicly, and EspoCRM must be reachable from Vercel
+# in Phase 81.
+
+chat.rideprestigo.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+	}
+
+	reverse_proxy chatwoot-rails:3000
+}
+
+crm.rideprestigo.com {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+	}
+
+	reverse_proxy espocrm-app:80
+}

@@ -1,0 +1,29 @@
+name: caddy
+
+# Phase 76 plan 04. Caddy is the ONLY service that publishes 80/443 to the
+# internet (D-17/T-76-15) - every app stack binds to 127.0.0.1 or joins the
+# `edge` network only. Pinned tag verified against the Docker Hub v2 tags API
+# 2026-09-28: caddy 2.11.4-alpine, namespace library (official), 732M+ pulls.
+
+services:
+  caddy:
+    image: caddy:2.11.4-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - edge
+    mem_limit: 128m
+
+volumes:
+  caddy_data:
+  caddy_config:
+
+networks:
+  edge:
+    external: true

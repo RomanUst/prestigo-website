@@ -1,206 +1,186 @@
 # Project Research Summary
 
-**Project:** Prestigo — MDX Blog Milestone
-**Domain:** Hybrid JSX + MDX blog on Next.js 16 App Router
-**Researched:** 2026-05-13
-**Confidence:** HIGH
-
----
+**Project:** Prestigo v4.0 — Helpdesk + CRM
+**Domain:** Self-hosted omnichannel helpdesk (Chatwoot) + CRM (EspoCRM) on a new Hostinger VPS, two-way linked to an existing production Next.js/Supabase/Stripe site
+**Researched:** 2026-09-27
+**Confidence:** MEDIUM
 
 ## Executive Summary
 
-The MDX blog milestone adds a `/blog` listing page, new MDX article pages at `/blog/[slug]`, and migrates three existing JSX articles from `/guides/` and `/compare/` to `/blog/`. The canonical approach for this architecture is `@next/mdx` (the official, Vercel-maintained package) combined with `gray-matter` for listing-page frontmatter extraction. The previously-common alternative, `next-mdx-remote`, was archived on 2026-04-09 and must not be used; its RSC mode was broken on Next.js 15.2+ with no fix before archival.
+v4.0 bolts a self-hosted helpdesk (Chatwoot) and CRM (EspoCRM) onto the existing Prestigo stack, running on a new Hostinger VPS (Docker, KVM 4 recommended, 16GB/4vCPU) behind Caddy. Both tools are mature, free-tier-sufficient open-source products — Chatwoot unifies WhatsApp Cloud API, email, website widget, Telegram/Instagram/Facebook into one inbox; EspoCRM gives a no-code custom-entity CRM with a B2B Opportunity pipeline. Neither Enterprise/paid tier is needed for 1-3 operators. The only genuinely hard engineering is the sync layer: a Supabase `integration_outbox` table dispatched via QStash to Chatwoot/EspoCRM REST APIs, plus inbound HMAC-verified webhooks from both — built in-repo (no n8n, per locked decision) so the public site, booking and payment flow never depend on VPS uptime.
 
-The recommended architecture is a hybrid static model: named JSX article directories (`app/blog/<slug>/page.tsx`) coexist with a single dynamic MDX route (`app/blog/[slug]/page.tsx`). Next.js App Router gives named directories inherent routing priority over dynamic segments — no configuration is required. The unifying layer is `lib/blog.ts`, a server-only aggregator that merges a hardcoded `JSX_POSTS` registry with MDX frontmatter extracted via `gray-matter` and `fs.readdirSync`. All blog routes build fully static output; no runtime rendering or ISR is needed at current content volume.
+The recommended approach: stand up the VPS infrastructure first (Docker, Caddy, backups, Uptime Kuma) as its own phase, then Chatwoot channels (WhatsApp Coexistence is the critical, highest-business-risk step — must not disconnect the existing +420 number), then EspoCRM entities/pipeline, then the outbox/webhook sync layer (idempotency, identity resolution, echo-loop prevention, GDPR erasure propagation all belong in this phase's initial design, not bolted on later), and only then the Dashboard App (booking data in the Chatwoot sidebar) once Chatwoot/EspoCRM are stable and any known CVEs are confirmed patched.
 
-The primary risk area is the URL migration. Each of the three existing JSX articles encodes its old path in nine distinct locations (canonical, hreflang, OG url, and five Schema.org `@id`/`url` fields). Partial updates cause canonical mismatches that suppress Google rich results. The recommended mitigation is a `const CANONICAL_PATH` constant at the top of each migrated file, referenced everywhere. Secondary risks are redirect-chain creation from overlapping wildcard patterns and leaving old paths in `sitemap.ts` after migration — both of which send contradictory canonical signals to Googlebot.
-
----
+Key risks: (1) WhatsApp migration — must use Coexistence, not a hard cutover, or the live +420 number's history/app access is destroyed; (2) Meta Business/App-Review friction for WhatsApp/IG/FB, which is a lead-time risk, not a code risk, and should start in parallel with VPS setup; (3) webhook security — Chatwoot's webhook-secret/HMAC mismatch (GitHub #13809) means signature verification must be validated against the actual deployed version, not assumed; (4) CSP/CWV regressions from the chat widget on conversion-critical pages, which Prestigo has already been burned by twice (middleware matcher incidents); (5) GDPR erasure/DSR propagation across three systems (Supabase/Chatwoot/EspoCRM) must be designed into the outbox schema from day one, not retrofitted.
 
 ## Key Findings
 
 ### Recommended Stack
 
-`@next/mdx` is the only viable MDX compiler for this project as of May 2026. It integrates with the existing `next.config.ts` via the `createMDX` wrapper, supports Turbopack, and requires no serialization step — MDX files compile through webpack at build time with the full content tree available to RSC.
-
-For the listing page, `gray-matter` reads YAML frontmatter from `.mdx` files at build time without invoking the full MDX compiler. This is the correct separation of concerns: gray-matter for aggregation/sorting in `lib/blog.ts`, `@next/mdx` dynamic import for article rendering. `remark-gfm` (ESM-only, v4) adds GFM table support and is required for the blog content style.
+New infra only — the existing Next.js/Supabase/Stripe/Resend/QStash stack is untouched. Hostinger VPS **KVM 4** (16GB/4vCPU) runs Chatwoot (Rails + Sidekiq + Postgres 16/pgvector + Redis 7, Community Edition) and EspoCRM (PHP 8.3+/MariaDB 10.3+, Community, v10.0.3) as separate Docker Compose stacks behind **Caddy** (auto-TLS, minimal ops for a static 2-subdomain box) on `chat.rideprestigo.com` / `crm.rideprestigo.com`. Backups: `pg_dump`/`mysqldump` nightly -> **restic -> Backblaze B2**, plus Hostinger's weekly snapshot as a coarse safety net, with a dead-man's-switch ping to **Uptime Kuma** (also used for uptime/health monitoring). OS patched via `unattended-upgrades` (security-repo only, Docker packages blacklisted); app images upgraded manually/deliberately. SMTP: Hostinger-hosted mailboxes (not Resend, which is send-only) for info@/booking@ (Chatwoot) and sales@/roman@ (EspoCRM) — strictly separate, per locked decision.
 
 **Core technologies:**
-- `@next/mdx ^16.2.5`: MDX compilation pipeline — the only maintained, officially supported option (`next-mdx-remote` archived April 2026)
-- `gray-matter ^4.0.3`: Frontmatter extraction for `lib/blog.ts` listing aggregation — battle-tested, zero breaking-change history; handles YAML efficiently without full MDX compilation
-- `remark-gfm ^4.0.1`: GFM table/strikethrough support — ESM-only, compatible with MDX v3 remark pipeline
-- `rehype-pretty-code ^0.14.3` + `shiki ^4.0.2`: Optional server-side syntax highlighting — add when code blocks appear in articles
-- `@tailwindcss/typography`: Prose rhythm classes for article body — verify installation with `npm ls` before adding
-
-**Critical version note:** `@next/mdx` version must match the installed Next.js version (currently `^16.2.3`). Do not install mismatched versions.
+- Chatwoot CE v4.18.x on Docker — omnichannel inbox (WhatsApp/email/widget/Telegram/IG/FB), Application API + webhooks
+- EspoCRM CE v10.0.3 on Docker — Contact/Account/Lead/Opportunity/Case + custom "Booking" entity, REST API (API Key/HMAC) + webhooks
+- Caddy 2.x — reverse proxy + automatic TLS for the two subdomains
+- restic + Backblaze B2 — encrypted offsite backups; Uptime Kuma — monitoring + backup dead-man's-switch
+- No new Node client packages — hand-written `fetch` wrappers (`lib/chatwoot.ts`, `lib/espocrm.ts`), matching existing repo convention (Stripe/Resend, no unofficial SDKs)
+- Reuse existing QStash (`lib/qstash.ts`) for outbox dispatch — no new queue library
 
 ### Expected Features
 
-All features required for launch are low-to-medium complexity because the project already has `ArticleByline`, `personSchemaFor()`, `lastModFor()`, `lib/jsonld.ts`, `formatBylineDate()`, and the sitemap `entry()` helper. The blog milestone assembles existing building blocks rather than building new infrastructure.
-
 **Must have (table stakes):**
-- `/blog` listing page: card grid sorted newest-first with coverImage, category badge, title, description, date
-- `/blog/[slug]` MDX article pages: hero image, ArticleByline, full MDX render
-- `generateMetadata()` per article: unique title, description, canonical, OG, `og:type = article`
-- Schema.org `BlogPosting` JSON-LD per article — use `BlogPosting` (not `Article`): it is a more specific subtype eligible for the same Google rich results; signals time-stamped editorial content; creates correct type distinction from existing editorial pages that use `Article`
-- 301 redirects from old `/guides/*` and `/compare/*` paths to `/blog/*`
-- Sitemap update: old paths removed, `/blog/*` added atomically in the same deploy as redirects
+- Chatwoot inboxes: WhatsApp Cloud API (Coexistence mode, existing +420 number), email IMAP/SMTP (info@/booking@), consent-gated website widget with identity validation, Telegram, Instagram, Facebook
+- Canned responses + macros directly replacing the current ad-hoc `send-*.mjs` scripts
+- Automation rules, agent/team assignment, labels, reports (CSAT, first-response-time, conversation volume)
+- Chatwoot Application API + webhooks; Dashboard App (read-only bookings in the conversation sidebar)
+- EspoCRM Account/Contact/Lead/Opportunity/Case, custom "Booking" entity (read-model, never a second source of truth), B2B Opportunity pipeline (Kanban)
+- EspoCRM REST API + Roles/ACL (set up correctly from day one, even with 1 operator)
+- Persisting currently-lost inquiries: contact form, corporate form, multi-day quote form -> Supabase `inquiries` table -> EspoCRM Lead
 
-**Should have (competitive differentiators):**
-- `dateModified` frontmatter field: triggers "Updated" label in ArticleByline and Google freshness signal
-- Hybrid JSX + MDX listing unified in `lib/blog.ts`: hides JSX/MDX distinction from readers and crawlers
-- `lastmod` from `lastModFor()` for MDX files: consistent with existing editorial pages
-- `og:type = article` + `publishedTime` + `authors` in `generateMetadata`: richer social share previews
-- Reading time estimate: computed at build time from raw MDX source word count; stored in `BlogPost`
+**Should have (differentiators):**
+- Supabase outbox + QStash sync (the actual hard engineering; guarantees no lost lead/booking if VPS is down)
+- Dashboard App showing booking history in the Chatwoot sidebar (biggest named "convenient work" win)
+- Statistics: leads->bookings conversion, repeat-customer rate (requires a join across CRM + Supabase, not out-of-the-box)
 
-**Defer (v2+):**
-- Category filter via `?category=` search param: useful only when 10+ articles per category exist
-- Pagefind static search: justified only at 50+ articles
-- Table of contents: add as Phase 2 once article pipeline is stable
-- Pagination: unnecessary below 40 articles
-- Dynamic OG image generation: static `coverImage` is a stronger brand signal for a premium chauffeur service
+**Defer (v2+ of this milestone / backlog):**
+- Chatwoot Enterprise / EspoCRM Advanced Pack (SLA, SSO, BPM, pivot reports) — not needed for 1-3 operators
+- EspoCRM webhooks feeding CRM-side changes back into the outbox — only if a real workflow needs it
+- Client<->driver messaging 24h before trip via Chatwoot — explicitly named as future, not v4.0 scope
+- Automation-rule tuning, 2nd/3rd agent onboarding — after real data exists
 
 ### Architecture Approach
 
-The architecture separates three concerns: (1) content discovery and aggregation in `lib/blog.ts`, (2) rendering in route files, and (3) MDX element mapping in the required `mdx-components.tsx`. `lib/blog.ts` is the keystone — every consumer (listing page, article `generateStaticParams`, sitemap, redirects) depends on it. The listing page and sitemap call `getAllPosts()` which merges gray-matter-parsed MDX frontmatter with the hardcoded `JSX_POSTS` registry. The MDX article renderer uses `await import('@/content/${slug}.mdx')` at build time, giving it the compiled MDX component without a separate filesystem read.
+The delta is entirely additive: a durable `integration_outbox` table (Supabase) that every booking/inquiry/customer write path inserts into in the same request, dispatched near-real-time via QStash to a single `app/api/integrations/dispatch` route that fans out to Chatwoot/EspoCRM based on `event_type`, with a `crm_identity_map` table resolving identity (normalized email/phone) before every outbound write. Inbound direction mirrors this: HMAC-verified webhook receivers (`app/api/webhooks/chatwoot`, `app/api/webhooks/espocrm`) write only to CRM-side tables, never to `bookings`/`customer_profiles` (Supabase stays sole source of truth, enforced structurally by which modules the webhook routes are allowed to import — same "isolation by omission" pattern already used for the driver trip-progress route).
 
 **Major components:**
-1. `lib/blog.ts` — `BlogPost` type, `JSX_POSTS` registry, `getAllPosts()`: aggregates both content sources; must exist before any other file can be built
-2. `mdx-components.tsx` (project root) — global MDX element overrides: required by `@next/mdx`; build fails without it; must be created first in the infrastructure phase
-3. `app/blog/page.tsx` — listing page: calls `getAllPosts()`, renders `BlogCard` grid; purely static Server Component
-4. `app/blog/[slug]/page.tsx` — MDX article renderer: `generateStaticParams` reads only `content/blog/*.mdx` files; `dynamicParams = false` mandatory; JSX slugs must never appear here
-5. `app/blog/<named-slug>/page.tsx` — migrated JSX articles: named directories automatically shadow the `[slug]` dynamic segment (built-in Next.js routing behavior, no config needed)
-6. `components/BlogCard.tsx` — listing card with coverImage, category badge, title, description, date
-7. `components/BlogArticleLayout.tsx` — prose wrapper for MDX articles
+1. `integration_outbox` + `lib/outbox.ts` — durable, idempotent event log; single insert call site for every producer
+2. `app/api/integrations/dispatch` (QStash-invoked) — the only code path allowed to call `lib/chatwoot-client.ts` / `lib/espocrm-client.ts` for outbound writes
+3. `crm_identity_map` + `lib/identity.ts` — email/phone normalization and dedup before any Chatwoot/EspoCRM contact is created
+4. Webhook receivers (`app/api/webhooks/{chatwoot,espocrm}`) — HMAC-verified inbound sync, structurally barred from touching booking/customer core tables
+5. `app/embed/chatwoot-dashboard` — Dashboard App iframe page, no admin session cookie, identity via Chatwoot's own `postMessage` handshake + `frame-ancestors` CSP, read-only booking-summary RPC only
 
 ### Critical Pitfalls
 
-1. **`next-mdx-remote` archived — do not install** — FEATURES.md contains residual references to `next-mdx-remote/rsc`; these are superseded by STACK.md and ARCHITECTURE.md. The correct package is `@next/mdx`. `next-mdx-remote` is archived (April 2026) with RSC mode broken on Next.js 15.2+. Use `next-mdx-remote-client` only if MDX content must be fetched from an external source (not applicable here).
-
-2. **9 URL locations per migrated article file** — Each JSX article encodes its canonical path in: `alternates.canonical`, `alternates.languages.en`, `alternates.languages['x-default']`, `openGraph.url`, BreadcrumbList `@id`, BreadcrumbList last `ListItem.item`, Article `@id`, Article `url`, FAQPage `@id`. Updating only the `metadata` export misses five Schema.org fields. Fix: add `const CANONICAL_PATH = '/blog/<slug>'` at the top of each file and reference it in all nine locations. Verify with `grep -n "guides\|compare" app/blog/<slug>/page.tsx` — expect zero hits.
-
-3. **`generateStaticParams` must exclude JSX article slugs** — Including migrated slugs causes build-time "Conflicting SSG paths" error. `generateStaticParams` in `app/blog/[slug]/page.tsx` must read only from `content/blog/*.mdx`. Set `export const dynamicParams = false` immediately; verify `/blog/non-existent-slug` returns HTTP 404.
-
-4. **`mdx-components.tsx` must be created first** — `@next/mdx` requires this file at the project root before the build succeeds. It must export `useMDXComponents()`. Create it as the first action of the infrastructure phase.
-
-5. **`git mv` in its own commit before sitemap path updates** — `lastModFor()` uses `git log -1` on the file path. If `sitemap.ts` references `app/blog/<slug>/page.tsx` before `git mv` has committed that path, git returns no history and `lastModFor()` returns `undefined`. Commit each `git mv` first; verify `git log -1 -- app/blog/<slug>/page.tsx` returns a real date; then update the sitemap in a subsequent commit.
-
-6. **Redirect chains from overlapping wildcard patterns** — Using `source: '/compare/:path*'` as a catch-all conflicts with individual-slug rules, creating multi-hop redirects. Use exact `source` paths for every rule. Verify single-hop with `curl -sIL` after deploy.
-
-7. **Sitemap and redirects must deploy atomically** — Deploying redirects without removing old paths from `sitemap.ts` contradicts the canonical signal. The old `entry()` calls for `/compare/*` and `/guides/*` must be removed and new `/blog/*` entries added in the same deployment as the redirect rules.
-
----
+1. **WhatsApp hard-cutover migration destroys the existing +420 number's history/app access** — use Embedded Signup Coexistence mode, verify the number isn't already claimed by another BSP, test both directions before declaring done.
+2. **Webhook signature verification trusted on a known-buggy field** — Chatwoot's API-exposed `secret` field can mismatch the real `hmac_token` (issue #13809); verify against a real test delivery, add IP-allowlist/shared-secret as compensating control if unverifiable for the installed version.
+3. **Bidirectional sync infinite echo loop** — tag every outbound write with an origin marker/fingerprint; inbound webhooks must skip processing anything matching a recent outbound write, since Supabase is the locked sole source of truth.
+4. **Chat widget tanks LCP/INP on conversion-critical pages** — defer load past `load`/facade pattern, gate behind consent (also closes the GDPR pre-consent-cookie gap), measure before/after CWV as an explicit UAT gate given Prestigo's SEO/CWV history is already load-bearing.
+5. **GDPR erasure request only deletes the Supabase row**, leaving the person live in Chatwoot conversations and EspoCRM contacts — design an `erasure_requested` outbox event type from day one, not after a real DSR arrives.
 
 ## Implications for Roadmap
 
-Based on the dependency graph in architecture research, three phases emerge naturally.
+Based on research, suggested phase structure (phases start at 76 per milestone numbering):
 
-### Phase 1: Infrastructure (MDX Pipeline)
+### Phase 1: VPS Infrastructure
+**Rationale:** Everything else (Chatwoot, EspoCRM, sync) needs the VPS, TLS, backups, and monitoring to exist first; also the phase where the "VPS must never be a silent SPOF" constraint and backup/restore integrity need to be proven before any real data flows through.
+**Delivers:** Hostinger VPS provisioned (KVM 4), Docker + Compose, Caddy with TLS on `chat.*`/`crm.*`, `unattended-upgrades` configured (Docker packages blacklisted), restic->B2 backup pipeline with a tested restore drill, Uptime Kuma monitoring + dead-man's-switch alerting on a channel independent of the VPS.
+**Addresses:** Foundation for all target features.
+**Avoids:** Pitfall 13 (VPS SPOF/no alerting), Pitfall 14 (backup/restore integrity — DB dump + attachment storage out of sync).
 
-**Rationale:** Everything depends on the MDX compilation pipeline and `lib/blog.ts` aggregator existing. The build fails without `mdx-components.tsx`. The listing page, article renderer, sitemap, and migration all depend on `getAllPosts()`. No external dependencies — start here.
+### Phase 2: Chatwoot Deployment + Core Channels (Email, Widget, Telegram)
+**Rationale:** Get Chatwoot live and low-risk channels connected before the highest-business-risk step (WhatsApp) and before Meta-gated channels (IG/FB).
+**Delivers:** Chatwoot CE running on the VPS; email channel (info@/booking@ IMAP/SMTP, audited for no dual-mailbox access first); consent-gated, CWV-safe website widget with CSP additions + `csp_baseline.json` update; Telegram inbox.
+**Addresses:** Table-stakes Chatwoot inboxes (partial), canned responses/macros scaffolding.
+**Avoids:** Pitfall 6 (CWV regression), Pitfall 7 (CSP breakage), Pitfall 8 (pre-consent cookie/GDPR), Pitfall 17 (dual mailbox access).
 
-**Delivers:** Working MDX pipeline end-to-end validated with one real MDX article; `lib/blog.ts` with `BlogPost` type, `JSX_POSTS` registry, and `getAllPosts()`; `content/blog/` directory; `app/blog/[slug]/page.tsx` skeleton with `generateStaticParams` + `dynamicParams = false` verified (HTTP 404 on unknown slug confirmed).
+### Phase 3: WhatsApp Cloud API Channel (Coexistence)
+**Rationale:** Isolated as its own phase because it's the single highest-business-risk step (can kill the live +420 number) and has external lead-time dependencies (Meta Business verification, template approval) that should run in parallel with other build work, not block it.
+**Delivers:** WhatsApp Coexistence onboarding, Meta Business verification + display-name approval, pre-approved outbound templates replacing every current `send-*.mjs` use case (payment reminder, time-change, vehicle-change, review request, invoice), 24h-window UI/automation awareness.
+**Addresses:** WhatsApp Cloud API inbox target feature; retiring manual ops scripts.
+**Avoids:** Pitfall 1 (migration cutover), Pitfall 2 (Meta verification rejection), Pitfall 4 (24h window/template gap), Pitfall 5 (pricing model changes Oct 2026), Pitfall 15 (inbox deletion cascade — runbook).
 
-**Implements:** `@next/mdx` install and `next.config.ts` `createMDX` wrapper; `mdx-components.tsx` at project root (first file created); `lib/blog.ts`; `content/blog/` directory.
+### Phase 4: Instagram + Facebook Channels
+**Rationale:** Sequenced after WhatsApp/email/widget are stable, per pitfalls research, to reduce blast radius if Meta App Review stalls; scope-mixing bugs mean these should go through separate app-review submissions.
+**Delivers:** IG + FB inboxes via separate, scope-minimal Meta App Review submissions.
+**Addresses:** Remaining Chatwoot channel target features.
+**Avoids:** Pitfall 3 (Instagram scope-mixing rejection loop).
 
-**Avoids:** `mdx-components.tsx` missing (build fails); JSX slugs in `generateStaticParams` (build conflict); `fs` in edge runtime (add warning comments to `lib/blog.ts` and `sitemap.ts` now).
+### Phase 5: EspoCRM Deployment + Core Entities
+**Rationale:** Independent of Chatwoot channel work; can run in parallel with Phase 3/4 once Phase 1 infra exists. Establishes the CRM data model the sync layer will target.
+**Delivers:** EspoCRM live; Account/Contact/Lead/Opportunity/Case configured; custom "Booking" entity (read-model only); B2B Opportunity pipeline (Kanban, hotel/agency/corporate stages); Roles/ACL set up for future 2-3 operators; sales@/roman@ Group Email Account (audited for no dual mailbox access first).
+**Addresses:** EspoCRM table-stakes target features.
+**Avoids:** Pitfall 17 (dual mailbox access, applied to sales@/roman@).
 
-**Research flag:** Standard patterns — skip `/gsd-research-phase`. `@next/mdx` install is fully documented in Next.js 16 official guide (verified 2026-05-13).
+### Phase 6: Site -> Sync Foundation (Outbox, Identity, Inquiries)
+**Rationale:** This is the hard engineering and the true dependency root for every "leads never lost" and "two-way sync" goal — must exist before any inbound webhook or Dashboard App work, and its schema (including erasure events) shapes everything downstream.
+**Delivers:** `integration_outbox`, `crm_identity_map`, `inquiries` Supabase migrations; `lib/outbox.ts`, `lib/identity.ts` (with `libphonenumber-js` added); contact/corporate/multi-day-quote forms modified to persist into `inquiries`; `app/api/integrations/dispatch` route wired to QStash, pushing `booking.created/paid/status_changed/edited`, `lead.created`, `customer.signed_up` events to Chatwoot/EspoCRM; `outbox-sweep` cron.
+**Uses:** QStash (`lib/qstash.ts`), Supabase, `lib/chatwoot-client.ts`/`lib/espocrm-client.ts` thin fetch wrappers.
+**Implements:** Outbox pattern, idempotency-key pattern, identity resolution pattern (Architecture Patterns 1-3).
+**Avoids:** Pitfall 9 (erasure propagation — build the event type now), Pitfall 12 (duplicate contacts — normalization at the single matching point).
 
----
+### Phase 7: CRM/Chatwoot -> Site Sync (Webhooks + Echo Prevention)
+**Rationale:** Depends on Phase 6's identity/outbox infrastructure; the inbound direction is architecturally riskier (webhook auth, echo loops) so it's kept as its own reviewable, security-flagged phase.
+**Delivers:** `app/api/webhooks/chatwoot` and `app/api/webhooks/espocrm` routes, HMAC-verified over raw body with replay protection and delivery-ID dedup; origin-tagging/fingerprint mechanism to prevent bidirectional echo loops; conversation-derived contact/lead create-update flowing into EspoCRM; erasure-propagation end-to-end tested.
+**Addresses:** "Chatwoot -> CRM: conversations create/update contacts & leads" target feature.
+**Avoids:** Pitfall 10 (unverified/spoofable webhooks), Pitfall 11 (echo loop) — commit with `security:` prefix per CLAUDE.md.
 
-### Phase 2: Listing + Article UI
-
-**Rationale:** Depends on Phase 1's `lib/blog.ts` and verified MDX rendering. All required utilities (`ArticleByline`, `personSchemaFor`, `formatBylineDate`, `lib/jsonld.ts`) already exist — this phase is assembly, not construction.
-
-**Delivers:** `/blog` listing page with card grid; `/blog/[slug]` MDX article pages with hero image, ArticleByline, MDX render, `generateMetadata`, canonical, OG, `og:type = article`, Schema.org `BlogPosting` JSON-LD.
-
-**Implements:** `app/blog/page.tsx`; `components/BlogCard.tsx`; `components/BlogArticleLayout.tsx`; `generateMetadata()` on both pages; Schema.org `BlogPosting` (reuse `lib/jsonld.ts` and `personSchemaFor()` patterns).
-
-**Avoids:** `BlogPosting` vs `Article` type confusion (use `BlogPosting`); duplicate Nav/Footer in `app/blog/layout.tsx` (add prose container only, not chrome).
-
-**Research flag:** Standard patterns — skip `/gsd-research-phase`. Schema.org `BlogPosting` spec and Next.js `generateMetadata` API are well-documented with HIGH-confidence sources.
-
----
-
-### Phase 3: JSX Migration + SEO Wiring
-
-**Rationale:** Must come last because migrated JSX articles require blog infrastructure from Phases 1–2 (ArticleByline, sitemap pattern, redirect array). Redirects must not deploy before destination pages exist. This phase deploys atomically: file moves + canonical updates + redirects + sitemap changes in a single deployment.
-
-**Delivers:** Three migrated articles at `/blog/<slug>` with updated canonicals in all 9 URL locations; 301 redirects from `/guides/*` and `/compare/*`; sitemap updated with `/blog/*` entries and old paths removed; `lastModFor()` returning valid dates for moved files.
-
-**Implements:** `git mv` for each JSX article in its own commit (before sitemap updates); `const CANONICAL_PATH` pattern in each migrated file; exact-path redirect rules in `next.config.ts`; `app/sitemap.ts` additions and old-path deletions; Search Console sitemap resubmission.
-
-**Avoids:** 9 URL locations pitfall (`CANONICAL_PATH` constant); redirect chains (exact source paths); split sitemap/redirect deployment; `lastModFor()` broken path (`git mv` committed first); 308 caching wrong destination (verify all destination paths before `permanent: true`).
-
-**Research flag:** Pre-implementation: read the current `redirects()` array in `next.config.ts` to identify existing patterns before appending. No full `/gsd-research-phase` needed.
-
----
+### Phase 8: Chatwoot Dashboard App (Bookings in Sidebar)
+**Rationale:** Sequenced last, after core Chatwoot/EspoCRM sync is stable and the Chatwoot version is confirmed to have patched CVE-2025-12245 — this is explicitly the phase pitfalls research flags as needing a security-first build, not a quick iframe wire-up.
+**Delivers:** `app/embed/chatwoot-dashboard` page, `app/api/chatwoot/dashboard-app` read-only RPC, origin-validated `postMessage` handshake, no cookie-based auth.
+**Addresses:** Explicit v4.0 target feature (biggest named "convenient work" win).
+**Avoids:** Pitfall 16 (iframe/postMessage CVE-class vulnerability) — commit with `security:` prefix.
 
 ### Phase Ordering Rationale
 
-- `mdx-components.tsx` must precede any MDX compilation — build fails without it.
-- `lib/blog.ts` must precede listing page, article `generateStaticParams`, and sitemap — all three are consumers.
-- `app/blog/[slug]/page.tsx` with `dynamicParams = false` must be deployed before any redirects are live — visitors following a redirect to `/blog/<slug>` must not hit 404.
-- Sitemap changes and redirect rules must ship in the same deployment — split deployment creates contradictory canonical signals that can take weeks for Google to resolve.
-- `git mv` commits must precede sitemap updates — `lastModFor()` depends on git history at the new path.
+- VPS infra must exist before anything is deployed onto it (Phase 1 first, universally blocking).
+- WhatsApp is isolated as its own phase, not bundled with other channels, because it's the highest-risk step (can break a live customer-facing number) and has external Meta approval lead time that benefits from starting early and running in parallel with other build work.
+- IG/FB deliberately come after WhatsApp/email/widget are stable, per the pitfalls research's explicit sequencing recommendation (reduces blast radius from Meta review stalls, avoids scope-mixing rejection loops).
+- The sync layer (outbox -> dispatch -> identity) must exist before any inbound webhook work, since webhooks need `crm_identity_map` and the origin-tagging mechanism the outbox establishes.
+- The Dashboard App is deliberately last among the build phases — it depends on both Chatwoot and EspoCRM being live and stable, and it's flagged as needing the most security hardening (CVE-2025-12245), so it shouldn't be the first thing built on a fresh, unverified Chatwoot install.
+- GDPR/compliance work (privacy policy, RoPA, erasure propagation) is folded into Phase 6 rather than deferred, per pitfalls research's explicit warning that this is easy to skip under deadline pressure and hard to retrofit.
 
 ### Research Flags
 
-Phases with standard patterns (skip `/gsd-research-phase`):
-- **Phase 1 (Infrastructure):** `@next/mdx` setup is a first-party workflow in Next.js 16 official docs (verified 2026-05-13).
-- **Phase 2 (Listing + Article UI):** Schema.org `BlogPosting`, `generateMetadata`, and existing utility reuse are all HIGH-confidence established patterns.
+Phases likely needing deeper research during planning:
+- **Phase 3 (WhatsApp Coexistence):** Meta's onboarding flow, current pricing model (changed twice in 15 months, Oct 2026 service-message billing change), and the exact state of the +420 number's current BSP connection all need verification at plan time, not assumed from this research.
+- **Phase 6 (Outbox/Identity foundation):** idempotency-key design and the email-OR-phone permissive-matching trade-off are flagged MEDIUM-confidence design choices in ARCHITECTURE.md that should be confirmed with the owner during planning.
+- **Phase 7 (Webhooks):** must confirm the exact Chatwoot/EspoCRM version deployed and whether the HMAC signing bug (#13809) and EspoCRM's header rename (`X-Signature`->`Signature` at v9+) apply to the installed versions before finalizing verification code.
+- **Phase 8 (Dashboard App):** must confirm CVE-2025-12245 is patched in the deployed Chatwoot version before building.
 
-Phases that warrant a pre-implementation file inspection (not full research):
-- **Phase 3 (Migration):** Read current `redirects()` in `next.config.ts` and `sitemap.ts` before writing migration code to avoid accidental pattern overlap with existing rules.
-
----
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (VPS infra):** Docker Compose + Caddy + restic/B2 + Uptime Kuma are all well-documented, standard self-hosting patterns.
+- **Phase 2 (Chatwoot core channels), Phase 5 (EspoCRM core entities):** both follow official vendor documentation closely; low ambiguity.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified against Next.js 16.2.6 official docs and npm registry as of 2026-05-13; `next-mdx-remote` archival confirmed from GitHub |
-| Features | HIGH | All features straightforward; existing infrastructure (`ArticleByline`, `personSchemaFor`, `lastModFor`) confirmed in codebase; `BlogPosting` decision verified against Google Search Central and schema.org |
-| Architecture | HIGH | Hybrid routing behavior verified against Next.js 16.2.6 official routing docs; `dynamicParams = false` behavior verified; `@next/mdx` dynamic import pattern from official guide |
-| Pitfalls | HIGH | 9 URL locations verified by direct inspection of existing JSX article files; redirect and sitemap pitfalls verified against Next.js docs and Google Search Central |
+| Stack | MEDIUM | Web-search cross-checked across 2-3 sources per claim; no official Context7 docs for Chatwoot/EspoCRM/Caddy; Hostinger pricing figures are directional only |
+| Features | MEDIUM | Official docs + GitHub discussions cross-checked via web search; no direct API testing against a live instance; automation-rule tier gating and Enterprise feature lists should be re-verified at install time |
+| Architecture | HIGH (integration points) / MEDIUM (Chatwoot/EspoCRM webhook & Dashboard App mechanics) | Integration points verified against the actual `main` branch codebase (2026-09-27); external mechanics (webhooks, iframe) verified via docs search only, not yet exercised against a live self-hosted instance |
+| Pitfalls | MEDIUM | Cross-checked across official docs, GitHub issues/discussions, CVE databases, GDPR sources; a few findings (e.g. "5 production failures" blog) are single-source but corroborated elsewhere |
 
-**Overall confidence:** HIGH
+**Overall confidence:** MEDIUM
 
 ### Gaps to Address
 
-- **FEATURES.md internal inconsistency:** FEATURES.md references `next-mdx-remote/rsc` in its dependency diagram and MDX pipeline section. This is superseded by STACK.md and ARCHITECTURE.md which correctly mandate `@next/mdx`. During Phase 1, follow STACK.md and ARCHITECTURE.md; disregard the `next-mdx-remote` references in FEATURES.md entirely.
-
-- **gray-matter vs exported const frontmatter:** ARCHITECTURE.md recommends using `export const metadata = { ... }` inside MDX files (avoiding gray-matter for rendering), while STACK.md recommends gray-matter for listing-page frontmatter extraction. These are complementary: use gray-matter in `lib/blog.ts` for efficient frontmatter extraction without full MDX compilation; use `await import('@/content/${slug}.mdx')` in the article renderer for the compiled MDX component. The roadmap should reflect this dual pattern explicitly.
-
-- **`@tailwindcss/typography` presence:** Research flags this as "likely available" but recommends checking before adding. Verify with `npm ls @tailwindcss/typography` before Phase 2 begins.
-
-- **Cover image dimensions for MDX articles:** Research establishes the `public/blog/*.avif` convention but does not specify required `width`/`height` values. Declare explicit dimensions on `next/image` cover images to avoid CLS. Add `fs.existsSync` check in `lib/blog.ts` for `coverImage` paths as a build-time guard against broken images.
-
----
+- **Exact Chatwoot/EspoCRM patch versions at deploy time** — webhook HMAC behavior (issue #13809), CVE-2025-12245 patch status, and EspoCRM's webhook header name (`X-Signature` vs `Signature`) all depend on the specific version installed; verify against a real test webhook delivery during Phase 7/8 planning, not assumed from this research.
+- **Current WhatsApp Business Platform pricing** (changed materially in 2025-2026, another change Oct 1 2026) — re-verify against Meta's live pricing docs immediately before Phase 3 launch, not from this document.
+- **+420 number's current BSP connection status** — confirm it's still only on the WhatsApp Business App (not already claimed by a competing BSP) before starting Coexistence onboarding.
+- **Email-OR-phone permissive identity matching** — flagged MEDIUM-confidence in ARCHITECTURE.md; confirm with the owner whether false-positive merges (e.g. shared corporate booking-desk phone) are acceptable before Phase 6 implementation.
+- **Automation-rule gating on self-hosted vs Chatwoot Cloud plan names** — some sources suggest richer automation may be Business/Enterprise-gated on Cloud; verify actual self-hosted CE gating at Phase 2 setup time.
+- **GDPR/legal review of the Hostinger VPS's physical hosting region and sub-processor documentation** — this research recommends an EU region and privacy-policy updates but does not substitute for actual legal review.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Next.js 16.2.6 Official MDX Guide](https://nextjs.org/docs/app/guides/mdx) — `@next/mdx` install, `mdx-components.tsx` requirement, `pageExtensions`, `createMDX` wrapper, dynamic import pattern
-- [Next.js 16.2.6 Dynamic Routes docs](https://nextjs.org/docs/app/api-reference/file-conventions/dynamic-routes) — named directory routing precedence, `dynamicParams`, `generateStaticParams`
-- [Next.js 16.2.6 generateMetadata API](https://nextjs.org/docs/app/api-reference/functions/generate-metadata) — OG, canonical, `og:type = article`
-- [Next.js 16.2.6 redirects config](https://nextjs.org/docs/app/api-reference/config/next-config-js/redirects) — `permanent: true` = 308 behavior
-- [hashicorp/next-mdx-remote GitHub — issue #488](https://github.com/hashicorp/next-mdx-remote/issues/488) — archival date 2026-04-09, unresolved RSC issue
-- [Google Search Central: Article Structured Data](https://developers.google.com/search/docs/appearance/structured-data/article) — `BlogPosting` eligibility for rich results
-- [Schema.org/BlogPosting](https://schema.org/BlogPosting) — required properties for Google rich results
-- [Google Search Central: Site moves with URL changes](https://developers.google.com/search/docs/crawling-indexing/site-move-with-url-changes) — redirect and sitemap canonical interaction
-- [Next.js Conflicting SSG paths error docs](https://nextjs.org/docs/messages/conflicting-ssg-paths) — `generateStaticParams` + named directory conflict behavior
+- Codebase read directly from `main` branch (2026-09-27): `app/api/webhooks/stripe/route.ts`, `lib/qstash.ts`, `lib/rate-limit.ts`, `middleware.ts`, `lib/supabase/server.ts`, `components/CookieBanner.tsx`, `components/MetaPixel.tsx`, migrations 038/044/055
+- `.planning/PROJECT.md` — locked v4.0 decisions, target features, constraints
 
 ### Secondary (MEDIUM confidence)
-- [ipikuka/next-mdx-remote-client](https://github.com/ipikuka/next-mdx-remote-client) — drop-in alternative if remote MDX content ever needed; v2.1.10 tested with next@16
-- [rehype-pretty-code official site](https://rehype-pretty.pages.dev/) — syntax highlighting approach; add only when code blocks are needed
-- [Vercel: Common Next.js App Router Mistakes](https://vercel.com/blog/common-mistakes-with-the-next-js-app-router-and-how-to-fix-them) — RSC boundaries, layout pitfalls
+- Chatwoot official docs (developers.chatwoot.com) — deployment requirements, webhooks, email/Instagram/WhatsApp channel setup, Dashboard Apps, Enterprise Edition scope
+- EspoCRM official docs (docs.espocrm.com) — Entity Manager, API, webhooks, roles, Docker deployment
+- GitHub issues: chatwoot/chatwoot #13809 (webhook HMAC mismatch), #8434 and #13860 (Instagram scope-mixing)
+- GitHub Advisory GHSA-hgg8-54gw-8v33 (CVE-2025-12245, Dashboard App/widget iframe origin validation)
+- Meta for Developers — WhatsApp Coexistence, pricing docs
+- GDPR sources: gdpr-info.eu Art. 17
 
-### Tertiary
-- Direct codebase inspection — 9 URL locations per JSX article file verified by reading existing `/guides/` and `/compare/` page.tsx files
-- [Next.js sitemap.xml file convention docs](https://nextjs.org/docs/app/api-reference/file-conventions/metadata/sitemap) — sitemap + edge runtime limitations
+### Tertiary (LOW confidence)
+- dev.to "Self-Hosted Chatwoot: 5 Failures the Docs Don't Warn You About" — single-source, corroborated on storage/backup points by official docs
+- GitHub Discussion #5878 (Dashboard App security) — community discussion, not authoritative spec
+- Various 2026 Caddy/Traefik/nginx comparison blog posts — cross-checked for consistency across multiple posts
 
 ---
-*Research completed: 2026-05-13*
+*Research completed: 2026-09-27*
 *Ready for roadmap: yes*

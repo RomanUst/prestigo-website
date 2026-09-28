@@ -1,0 +1,10 @@
+[Unit]
+Description=Nightly timer for prestigo-backup.service (D-07)
+
+[Timer]
+OnCalendar=*-*-* 02:30:00 Europe/Prague
+Persistent=true
+RandomizedDelaySec=10min
+
+[Install]
+WantedBy=timers.target

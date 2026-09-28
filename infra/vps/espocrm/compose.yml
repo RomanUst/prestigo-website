@@ -1,0 +1,80 @@
+name: espocrm
+
+# Phase 76 plan 04, Task 2. EspoCRM CE behind Caddy.
+#
+# Pinned tags (D-16, verified against the Docker Hub v2 tags API 2026-09-28):
+#   espocrm/espocrm:10.0.8  - namespace espocrm, official GH org, 2.6M+ pulls;
+#                             PHP 8.4.25 inside (>= 10's required 8.3) - confirmed
+#                             with `docker run --rm espocrm/espocrm:10.0.8 php -r
+#                             'echo PHP_VERSION;'` on the VPS
+#   mariadb:11.4.13         - namespace library (official), 3.1B+ pulls
+#
+# Volume layout is the CURRENT (non-legacy) espocrm-docker contract, confirmed
+# by reading docker-entrypoint.sh/entrypoint-utils.sh from espocrm/espocrm-docker
+# @master 2026-09-28: mounting the whole /var/www/html tree is now the
+# "legacy installation method" (a startup warning, and a hard abort if
+# bin/command doesn't exist yet on a truly empty legacy mount). The supported
+# method mounts exactly three subdirectories - data, custom, client/custom -
+# so the image's own code/vendor/public/client tree stays baked into the
+# image and only user data + customizations persist across an upgrade.
+#
+# Websocket container intentionally omitted (RAM budget on KVM 2 - see
+# infra/vps/runbooks/app-deploy.md).
+
+services:
+  db:
+    image: mariadb:11.4.13
+    restart: unless-stopped
+    env_file: /etc/prestigo/espocrm.env
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 20s
+      start_period: 10s
+      timeout: 10s
+      retries: 3
+    mem_limit: 1024m
+
+  app:
+    image: espocrm/espocrm:10.0.8
+    restart: unless-stopped
+    env_file: /etc/prestigo/espocrm.env
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - app_data:/var/www/html/data
+      - app_custom:/var/www/html/custom
+      - app_custom_client:/var/www/html/client/custom
+    networks:
+      default: {}
+      edge:
+        aliases:
+          - espocrm-app
+    mem_limit: 768m
+
+  daemon:
+    image: espocrm/espocrm:10.0.8
+    restart: unless-stopped
+    env_file: /etc/prestigo/espocrm.env
+    entrypoint: docker-daemon.sh
+    depends_on:
+      - app
+    volumes:
+      - app_data:/var/www/html/data
+      - app_custom:/var/www/html/custom
+      - app_custom_client:/var/www/html/client/custom
+    mem_limit: 384m
+
+volumes:
+  db_data:
+  app_data:
+  app_custom:
+  app_custom_client:
+
+networks:
+  edge:
+    external: true

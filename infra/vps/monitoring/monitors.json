@@ -1,0 +1,83 @@
+{
+  "_comment": "infra/vps/monitoring/monitors.json — versioned source of truth for Phase 76 plan 06's external monitors (D-01/D-02/D-03/D-04). Consumed by infra/vps/scripts/provision-monitors.sh, which is idempotent: re-running it against an already-provisioned account creates nothing new (matched by uptimerobot.friendly_name and healthchecks.name/unique). Never edit a monitor's name here without also renaming/re-provisioning its live counterpart — provisioning matches by name, not by any other field.",
+
+  "uptimerobot": [
+    {
+      "friendly_name": "Chatwoot app (chat.rideprestigo.com/api)",
+      "url": "https://chat.rideprestigo.com/api",
+      "type": 2,
+      "keyword_type": 2,
+      "keyword_value": "\"queue_services\":\"ok\",\"data_services\":\"ok\"",
+      "interval": 300,
+      "_comment": "D-04a: app-level, not just Caddy. Chatwoot's /api endpoint (app/controllers/api_controller.rb, pinned v4.18.0) renders {\"version\":...,\"queue_services\":redis_status,\"data_services\":postgres_status}. keyword_type 2 = UptimeRobot alerts when this exact substring is MISSING, which happens if either service reports \"failing\" (key order in the JSON is fixed by the controller's source, so the substring only appears when both are literally \"ok\" back to back)."
+    },
+    {
+      "friendly_name": "EspoCRM login (crm.rideprestigo.com)",
+      "url": "https://crm.rideprestigo.com/",
+      "type": 2,
+      "keyword_type": 2,
+      "keyword_value": "<title>EspoCRM</title>",
+      "interval": 300,
+      "_comment": "D-04a: app-level. The rendered EspoCRM login page's <head><title> is emitted by the app's client-side loader shell (confirmed live 2026-09-27) — Caddy's own error page (502/504 on backend down) never contains this string, so the keyword distinguishes 'app is actually rendering' from 'Caddy is up but the backend died'."
+    }
+  ],
+
+  "healthchecks": [
+    {
+      "name": "prestigo-backup",
+      "env_key": "HC_PING_BACKUP",
+      "timeout": 86400,
+      "grace": 7200,
+      "tags": "prestigo vps",
+      "desc": "D-03: nightly restic->B2 backup dead-man's switch. Pinged by infra/vps/scripts/backup.sh (start/success/fail). ~26h total (24h timeout + 2h grace) before an alert fires for a missed run."
+    },
+    {
+      "name": "prestigo-disk-mem",
+      "env_key": "HC_PING_DISK_MEM",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-04c: root filesystem >85%, used RAM >90%, or swap >50%. Pinged every 5 minutes by infra/vps/scripts/monitor.sh via prestigo-monitor.timer."
+    },
+    {
+      "name": "prestigo-kvm4-trigger",
+      "env_key": "HC_PING_KVM4",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-12: 7-day rolling average used RAM exceeds 80% — the automated half of the KVM 2 -> KVM 4 upgrade trigger (the other half, 'a second operator is onboarded', is manual — see runbooks/monitoring.md)."
+    },
+    {
+      "name": "prestigo-sidekiq",
+      "env_key": "HC_PING_SIDEKIQ",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-04d: Chatwoot Sidekiq liveness via its own Redis heartbeat (the 'processes' set's newest 'beat' epoch field must be under 60s old). A dead Sidekiq leaves the UI up while email/message processing silently stops."
+    },
+    {
+      "name": "prestigo-espocrm-internals",
+      "env_key": "HC_PING_ESPOCRM",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-04d (parallel check): EspoCRM's daemon container is running and MariaDB's own healthcheck.sh --connect --innodb_initialized succeeds."
+    },
+    {
+      "name": "prestigo-tls-expiry",
+      "env_key": "HC_PING_TLS",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-04b: TLS certificate for chat.rideprestigo.com and crm.rideprestigo.com expires within 14 days, or could not be fetched. Runs on the VPS (not a paid UptimeRobot tier feature) per 76-RESEARCH.md Pattern 3."
+    },
+    {
+      "name": "prestigo-apps-http",
+      "env_key": "HC_PING_APPS_HTTP",
+      "timeout": 300,
+      "grace": 600,
+      "tags": "prestigo vps",
+      "desc": "D-02 deviation: UptimeRobot's Telegram integration became a paid feature the owner declined, so UptimeRobot now alerts by email only. This on-VPS check restores Telegram coverage for app-level outages through Healthchecks.io's own Telegram integration — it fetches https://chat.rideprestigo.com/api (must contain \"queue_services\":\"ok\") and https://crm.rideprestigo.com/ (must contain <title>EspoCRM</title>) and pings success/fail. A total VPS outage is still covered independently by every 5-minute Healthchecks check going silent (Telegram + email)."
+    }
+  ]
+}

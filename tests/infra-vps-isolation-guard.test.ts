@@ -1,0 +1,331 @@
+import { describe, it, expect } from 'vitest'
+import fs from 'fs'
+import path from 'path'
+
+/**
+ * Phase 76, D-19(b) — repo guard: no synchronous site code path under app/,
+ * components/, lib/, i18n/, middleware.ts, next.config.ts or vercel.json may
+ * reach chat.rideprestigo.com or crm.rideprestigo.com — as a host literal, an
+ * env var name, a chatwoot/espocrm package import, or transitively through an
+ * import chain into a file that does any of those. This is a source-reading
+ * assertion only (no browser, no network, no live render) — it proves the
+ * CODE never wires a synchronous VPS dependency into the public site's
+ * request path. The runtime half (a real outage test against the live VPS,
+ * D-19a) is plan 76-07. The "no event lost, delivered once the VPS is back"
+ * half of INFRA-05 is Phases 81/82.
+ */
+
+const REPO_ROOT = path.resolve(__dirname, '..')
+
+const SCAN_DIRS = ['app', 'components', 'lib', 'i18n']
+const SCAN_FILES = ['middleware.ts', 'next.config.ts', 'vercel.json']
+const CODE_EXT = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'])
+const CODE_EXT_LIST = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']
+const SCAN_FLOOR = 250
+
+// Case-insensitive, word-bounded chat/crm subdomain of rideprestigo.com.
+// Deliberately does NOT match the apex (rideprestigo.com), www, a path
+// (rideprestigo.com/chat) or an email local-part (booking@rideprestigo.com) —
+// all of those lack a literal "chat." or "crm." immediately before the host.
+const VPS_HOST_RE = /\b(?:chat|crm)\.rideprestigo\.com\b/i
+
+// Uppercase CHATWOOT_/ESPOCRM_ prefixed env var names. No leading word
+// boundary on purpose, so NEXT_PUBLIC_CHATWOOT_BASE_URL still matches.
+const VPS_ENV_RE = /(?:CHATWOOT|ESPOCRM)_[A-Z0-9_]+/
+
+// Applied only to bare package specifiers (never '.', '/' or '@/' prefixed).
+const VPS_PKG_RE = /chatwoot|espocrm/i
+
+interface AllowlistEntry {
+  path: string
+  reason: string
+}
+
+interface Violation {
+  path: string
+  why: string[]
+}
+
+// An entry is permitted only when the file never runs on a synchronous user
+// request path (page render, middleware, booking/payment/contact API
+// route). Its reason must name the async mechanism that makes it safe (e.g.
+// "QStash-invoked outbox worker route", "click-to-load consent-gated client
+// widget loader") — later phases (77 widget, 81/82 outbox) add entries
+// deliberately, never as a blanket exemption.
+const VPS_ASYNC_ALLOWLIST: AllowlistEntry[] = []
+
+/** Recursive fs.readdirSync walk — no glob dependency, matches the repo's
+ * existing zero-dependency test-file convention. Skips node_modules/.next.
+ * Returns repo-relative POSIX paths. */
+function listScanFiles(root: string): string[] {
+  const results: string[] = []
+
+  function walk(relDir: string) {
+    const absDir = path.join(root, relDir)
+    let entries: fs.Dirent[]
+    try {
+      entries = fs.readdirSync(absDir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const entry of entries) {
+      if (entry.name === 'node_modules' || entry.name === '.next') continue
+      const relPath = relDir ? `${relDir}/${entry.name}` : entry.name
+      if (entry.isDirectory()) {
+        walk(relPath)
+      } else if (entry.isFile() && CODE_EXT.has(path.extname(entry.name))) {
+        results.push(relPath)
+      }
+    }
+  }
+
+  for (const dir of SCAN_DIRS) walk(dir)
+  for (const file of SCAN_FILES) {
+    if (fs.existsSync(path.join(root, file))) results.push(file)
+  }
+
+  return results
+}
+
+/** Extracts import/require specifiers via regex (no AST parser). Covers
+ * static `import ... from '...'`, `export ... from '...'`, side-effect
+ * `import '...'`, dynamic `import('...')` and `require('...')`. */
+function extractImportSpecifiers(content: string): string[] {
+  const specifiers = new Set<string>()
+
+  for (const m of content.matchAll(/\bfrom\s+['"]([^'"]+)['"]/g)) {
+    specifiers.add(m[1])
+  }
+  for (const m of content.matchAll(/^\s*import\s+['"]([^'"]+)['"]/gm)) {
+    specifiers.add(m[1])
+  }
+  for (const m of content.matchAll(/\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+    specifiers.add(m[1])
+  }
+  for (const m of content.matchAll(/\brequire\s*\(\s*['"]([^'"]+)['"]\s*\)/g)) {
+    specifiers.add(m[1])
+  }
+
+  return [...specifiers]
+}
+
+/** Resolves `@/x` against the repo root and relative specifiers against the
+ * importing file's directory. Tries the exact path, then each CODE_EXT, then
+ * /index plus each CODE_EXT — only among keys actually present in the scan
+ * set. Bare package specifiers (no '.', '/' or '@/' prefix) resolve to null:
+ * they are never file-graph edges, only direct package-import hits. */
+function resolveSpecifier(spec: string, importerPath: string, fileKeys: Set<string>): string | null {
+  let basePath: string
+  if (spec.startsWith('@/')) {
+    basePath = spec.slice(2)
+  } else if (spec.startsWith('.')) {
+    const importerDir = path.posix.dirname(importerPath)
+    basePath = path.posix.normalize(path.posix.join(importerDir, spec))
+  } else {
+    return null
+  }
+
+  const candidates = [basePath]
+  for (const ext of CODE_EXT_LIST) candidates.push(basePath + ext)
+  for (const ext of CODE_EXT_LIST) candidates.push(path.posix.join(basePath, `index${ext}`))
+
+  for (const candidate of candidates) {
+    if (fileKeys.has(candidate)) return candidate
+  }
+  return null
+}
+
+/** Non-global test against a single line, avoiding lastIndex statefulness. */
+function getLineNumbers(content: string, re: RegExp): number[] {
+  const testRe = new RegExp(re.source, re.flags.replace('g', ''))
+  const nums: number[] = []
+  content.split('\n').forEach((line, i) => {
+    if (testRe.test(line)) nums.push(i + 1)
+  })
+  return nums
+}
+
+/** Pure function: no fs access, no side effects. */
+function findVpsViolations(files: Map<string, string>, allowlist: AllowlistEntry[]): Violation[] {
+  const allowlistPaths = new Set(allowlist.map((e) => e.path))
+  const whyMap = new Map<string, string[]>()
+
+  function addWhy(filePath: string, why: string) {
+    if (!whyMap.has(filePath)) whyMap.set(filePath, [])
+    whyMap.get(filePath)!.push(why)
+  }
+
+  // Step 1: direct hits (host literal, env var, bare package import).
+  for (const [filePath, content] of files) {
+    for (const ln of getLineNumbers(content, VPS_HOST_RE)) {
+      addWhy(filePath, `host literal at line ${ln}`)
+    }
+    for (const ln of getLineNumbers(content, VPS_ENV_RE)) {
+      addWhy(filePath, `env var reference at line ${ln}`)
+    }
+    for (const spec of extractImportSpecifiers(content)) {
+      const isBarePackage = !spec.startsWith('.') && !spec.startsWith('/') && !spec.startsWith('@/')
+      if (isBarePackage && VPS_PKG_RE.test(spec)) {
+        addWhy(filePath, `package import '${spec}'`)
+      }
+    }
+  }
+
+  // Step 2: reverse import graph — target file -> set of files that import it.
+  const fileKeys = new Set(files.keys())
+  const importedBy = new Map<string, Set<string>>()
+  for (const [filePath, content] of files) {
+    for (const spec of extractImportSpecifiers(content)) {
+      const resolved = resolveSpecifier(spec, filePath, fileKeys)
+      if (resolved && resolved !== filePath) {
+        if (!importedBy.has(resolved)) importedBy.set(resolved, new Set())
+        importedBy.get(resolved)!.add(filePath)
+      }
+    }
+  }
+
+  // Step 3: BFS from every direct-hit file through its importers.
+  const queue = [...whyMap.keys()]
+  const reached = new Set(queue)
+  while (queue.length) {
+    const current = queue.shift()!
+    const importers = importedBy.get(current)
+    if (!importers) continue
+    for (const importer of importers) {
+      if (!reached.has(importer)) {
+        reached.add(importer)
+        addWhy(importer, `imports ${current}`)
+        queue.push(importer)
+      }
+    }
+  }
+
+  // Step 4: every reached file not on the allowlist becomes a Violation,
+  // sorted by path so a failing run is reproducible.
+  const violations: Violation[] = []
+  for (const filePath of reached) {
+    if (allowlistPaths.has(filePath)) continue
+    violations.push({ path: filePath, why: whyMap.get(filePath) ?? [] })
+  }
+
+  return violations.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+describe('scan set — real tree', () => {
+  const scanFiles = listScanFiles(REPO_ROOT)
+
+  it('is non-vacuous and includes the known sync-path files', () => {
+    expect(scanFiles.length).toBeGreaterThanOrEqual(SCAN_FLOOR)
+    expect(scanFiles).toContain('middleware.ts')
+    expect(scanFiles).toContain('app/api/contact/route.ts')
+    expect(scanFiles).toContain('app/api/create-payment-intent/route.ts')
+  })
+
+  it('has zero violations on the real tree', () => {
+    const fileMap = new Map<string, string>()
+    for (const f of scanFiles) {
+      fileMap.set(f, fs.readFileSync(path.join(REPO_ROOT, f), 'utf-8'))
+    }
+    const violations = findVpsViolations(fileMap, VPS_ASYNC_ALLOWLIST)
+    const message = violations.map((v) => `${v.path}: ${v.why.join('; ')}`).join('\n')
+    expect(violations, message).toEqual([])
+  })
+})
+
+describe('allowlist hygiene', () => {
+  it('every allowlist entry points at an existing file', () => {
+    for (const entry of VPS_ASYNC_ALLOWLIST) {
+      expect(fs.existsSync(path.join(REPO_ROOT, entry.path)), entry.path).toBe(true)
+    }
+  })
+
+  it('every allowlist entry has a reason of at least 20 characters', () => {
+    for (const entry of VPS_ASYNC_ALLOWLIST) {
+      expect(entry.reason.length, `${entry.path}: reason too short`).toBeGreaterThanOrEqual(20)
+    }
+  })
+})
+
+describe('findVpsViolations — fixture self-tests', () => {
+  it('flags a host literal with its line number', () => {
+    const files = new Map([['lib/a.ts', 'line1\nconst url = "https://chat.rideprestigo.com/api"\nline3']])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('lib/a.ts')
+    expect(violations[0].why.some((w) => w.includes('line 2'))).toBe(true)
+  })
+
+  it('flags an uppercase host literal case-insensitively', () => {
+    const files = new Map([['lib/b.ts', 'const url = "CRM.RIDEPRESTIGO.COM"']])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('lib/b.ts')
+  })
+
+  it('does not flag adjacency non-matches (apex, www, path, email)', () => {
+    const files = new Map([
+      [
+        'lib/c.ts',
+        [
+          'const apex = "https://rideprestigo.com"',
+          'const www = "https://www.rideprestigo.com"',
+          'const withPath = "https://rideprestigo.com/chat"',
+          'const email = "booking@rideprestigo.com"',
+        ].join('\n'),
+      ],
+    ])
+    expect(findVpsViolations(files, [])).toEqual([])
+  })
+
+  it('flags env var references with no leading word boundary', () => {
+    const files = new Map([
+      [
+        'lib/d.ts',
+        'const a = process.env.ESPOCRM_API_URL\nconst b = process.env.NEXT_PUBLIC_CHATWOOT_BASE_URL',
+      ],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('lib/d.ts')
+    expect(violations[0].why.length).toBeGreaterThanOrEqual(2)
+  })
+
+  it('flags a bare package import whose specifier contains chatwoot or espocrm', () => {
+    const files = new Map([
+      ['lib/e.ts', "import { Client } from '@chatwoot/sdk'"],
+      ['lib/f.ts', "import EspoCrm from 'espocrm-client'"],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations.map((v) => v.path).sort()).toEqual(['lib/e.ts', 'lib/f.ts'])
+  })
+
+  it('flags a transitive import chain sorted by path', () => {
+    const files = new Map([
+      ['app/api/route.ts', "import { call } from '@/lib/a'"],
+      ['lib/a.ts', "import { client } from './vps-client'"],
+      ['lib/vps-client.ts', 'const url = "https://chat.rideprestigo.com"'],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations.map((v) => v.path)).toEqual(['app/api/route.ts', 'lib/a.ts', 'lib/vps-client.ts'])
+    const routeViolation = violations.find((v) => v.path === 'app/api/route.ts')!
+    expect(routeViolation.why.some((w) => w.includes('imports lib/a.ts'))).toBe(true)
+  })
+
+  it('allows an allowlisted client with an allowlisted importer, but flags a second non-allowlisted importer', () => {
+    const files = new Map([
+      ['lib/vps-client.ts', 'const url = "https://chat.rideprestigo.com"'],
+      ['workers/outbox.ts', "import { client } from '@/lib/vps-client'"],
+      ['app/api/route.ts', "import { client } from '@/lib/vps-client'"],
+    ])
+    const allowlist: AllowlistEntry[] = [
+      { path: 'lib/vps-client.ts', reason: 'QStash-invoked outbox worker client, never called synchronously' },
+      { path: 'workers/outbox.ts', reason: 'QStash-invoked outbox worker route, async job runner' },
+    ]
+    const violations = findVpsViolations(files, allowlist)
+    expect(violations.map((v) => v.path)).toEqual(['app/api/route.ts'])
+  })
+
+  it('returns an empty list for an empty file map', () => {
+    expect(findVpsViolations(new Map(), [])).toEqual([])
+  })
+})

@@ -1,0 +1,10 @@
+[Unit]
+Description=5-minute timer for prestigo-monitor.service (D-04, D-12)
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=30s
+
+[Install]
+WantedBy=timers.target
