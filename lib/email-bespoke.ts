@@ -8,6 +8,7 @@
  * No DB calls — this module is purely email/template concerned.
  */
 import { Resend } from 'resend'
+import { CUSTOMER_REPLY_TO } from '@/lib/email'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -267,6 +268,7 @@ export async function sendBespokeEmails(p: BespokePayload): Promise<void> {
   await getResend().emails.send({
     from: 'Prestigo <bookings@rideprestigo.com>',
     to: p.email,
+    replyTo: CUSTOMER_REPLY_TO,
     subject: clientSubject,
     html: clientHtml,
   })

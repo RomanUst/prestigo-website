@@ -2,6 +2,12 @@ import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 
+// D-11 (Phase 77-02): every customer-facing transactional email replies to the
+// bookings@ Chatwoot inbox, so a customer reply becomes an operator-visible
+// conversation. roman@rideprestigo.com stays the sales mailbox, reserved for
+// EspoCRM (Phase 80) — never set as replyTo on a customer-facing email.
+export const CUSTOMER_REPLY_TO = 'bookings@rideprestigo.com'
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // Wordmark as a static raster image — letter-spaced inline spans render
 // inconsistently (overlapping/garbled) across email clients (Outlook, some
@@ -290,7 +296,7 @@ export async function sendClientConfirmation(data: BookingEmailData): Promise<vo
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.email],
-      replyTo: 'roman@rideprestigo.com',
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Your PRESTIGO booking is confirmed — ${data.bookingReference}`,
       html,
     })
@@ -702,7 +708,7 @@ export async function sendRoundTripClientConfirmation(
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.email],
-      replyTo: 'roman@rideprestigo.com',
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Your PRESTIGO round-trip booking is confirmed — ${data.outboundBookingReference}`,
       html,
       attachments: [
@@ -982,6 +988,7 @@ export async function sendMultidayClientAck(data: MultidayEmailData): Promise<vo
     await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.email],
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Your PRESTIGO multi-day quote request — ${data.quoteReference}`,
       html: buildMultidayClientAckHtml(data),
     })
@@ -1103,6 +1110,7 @@ export async function sendStatusConfirmedEmail(booking: StatusEmailBooking): Pro
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Your booking ${booking.booking_reference} is confirmed — Prestigo`,
       html: buildStatusEmailHtml(booking, 'Booking Confirmed', 'We look forward to your trip.'),
     })
@@ -1117,6 +1125,7 @@ export async function sendStatusCancelledEmail(booking: StatusEmailBooking): Pro
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Booking ${booking.booking_reference} cancelled — Prestigo`,
       html: buildStatusEmailHtml(booking, 'Booking Cancelled', 'If you have any questions, please contact us.'),
     })
@@ -1233,6 +1242,7 @@ export async function sendBookingChangedEmail(booking: StatusEmailBooking, chang
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Your booking ${booking.booking_reference} was updated — Prestigo`,
       html: buildChangeEmailHtml(booking, changes),
     })
@@ -1387,6 +1397,7 @@ export async function sendPaymentRequestEmail(data: PaymentRequestEmailData): Pr
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.clientEmail],
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Complete your payment for ${data.bookingReference} — Prestigo`,
       html: buildPaymentRequestHtml(data),
     })
@@ -1864,6 +1875,7 @@ export async function sendClientReminderEmail(
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
+      replyTo: CUSTOMER_REPLY_TO,
       subject,
       html: buildClientReminderHtml(booking, horizon),
     })
@@ -2002,6 +2014,7 @@ export async function sendPostTripEmail(booking: StatusEmailBooking): Promise<vo
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [booking.client_email],
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Thank you for riding with Prestigo — ${booking.booking_reference}`,
       html: buildPostTripHtml(booking),
     })
