@@ -113,8 +113,21 @@ log() {
   echo "[restore] $*"
 }
 
+# WR-08: backup.sh and bootstrap.sh both install an ERR trap that logs
+# which step was in progress when a command failed; restore.sh had none,
+# so a failure anywhere in run_fetch/run_start/run_full produced only
+# bash's default (often terse) error output with no "FAILED at step: X"
+# line - the one piece of context that matters most when this script is
+# being run under drill-log or disaster-recovery time pressure.
+# CURRENT_STEP_NAME is updated by step_start() itself, so every existing
+# and future step_start call site is covered without individually touching
+# each one.
+CURRENT_STEP_NAME="startup"
+trap 'echo "[restore] FAILED at step: ${CURRENT_STEP_NAME}" >&2' ERR
+
 STEP_START=0
 step_start() {
+  CURRENT_STEP_NAME="$1"
   log "=== $1 ==="
   STEP_START=$(date +%s)
 }
