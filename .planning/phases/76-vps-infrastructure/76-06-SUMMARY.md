@@ -10,27 +10,31 @@ requires:
   - phase: 76-05
     provides: "backup.sh already sources /etc/prestigo/monitor.env opportunistically and pings HC_PING_BACKUP when set — no code change needed when monitor.env first appears"
 provides:
-  - "infra/vps/monitoring/monitors.json — versioned source of truth for 2 UptimeRobot monitors + 6 Healthchecks.io checks (D-01..D-04, D-12)"
-  - "infra/vps/scripts/provision-monitors.sh — idempotent SaaS provisioner (matches by friendly_name / unique name), --status mode, reads keys only from UPTIMEROBOT_API_KEY/HEALTHCHECKS_API_KEY env vars, never writes them anywhere"
-  - "infra/vps/env/monitor.env.example — six HC_PING_* keys"
-  - "infra/vps/scripts/monitor.sh — five on-VPS depth checks (disk_mem, kvm4_trigger, sidekiq, espocrm_internals, tls_expiry), MONITOR_DRY_RUN, --only, threshold overrides; every check gracefully skips its ping and still succeeds when monitor.env/its own HC_PING_* var is absent"
-  - "infra/vps/systemd/prestigo-monitor.{service,timer} — 5-minute oneshot timer, installed and enabled on the VPS"
-  - "infra/vps/runbooks/monitoring.md — architecture, monitor/check inventory, alert response playbook, KVM 4 upgrade triggers, maintenance-pause procedure, re-provisioning instructions"
+  - "infra/vps/monitoring/monitors.json — versioned source of truth for 2 UptimeRobot monitors + 7 Healthchecks.io checks (D-01..D-04, D-12, D-02 deviation)"
+  - "infra/vps/scripts/provision-monitors.sh — idempotent SaaS provisioner (UptimeRobot via v3 API, matched by friendlyName; Healthchecks matched by unique name), --status mode, reads keys only from UPTIMEROBOT_API_KEY/HEALTHCHECKS_API_KEY env vars, never writes them anywhere"
+  - "infra/vps/env/monitor.env.example — seven HC_PING_* keys"
+  - "infra/vps/scripts/monitor.sh — six on-VPS depth checks (disk_mem, kvm4_trigger, sidekiq, espocrm_internals, tls_expiry, apps_http), MONITOR_DRY_RUN, --only, threshold overrides; every check gracefully skips its ping and still succeeds when monitor.env/its own HC_PING_* var is absent"
+  - "infra/vps/systemd/prestigo-monitor.{service,timer} — 5-minute oneshot timer, installed and enabled on the VPS, live-pinging all seven Healthchecks checks"
+  - "infra/vps/runbooks/monitoring.md — architecture, monitor/check inventory with alert routing, alert response playbook, KVM 4 upgrade triggers, maintenance-pause procedure, re-provisioning instructions, D-02 deviation writeup"
+  - "Live SaaS state: 2 UptimeRobot monitors + 7 Healthchecks.io checks provisioned and up; /etc/prestigo/monitor.env installed (0600 root); one real end-to-end test alert sent and recovered"
 affects: [76-07, 76-08, 76-09]
 
 actuals:
-  tokens: 11498
-  tasks: 2
-  commits: 2
+  tokens: 18924
+  tasks: 3
+  commits: 8
   plan_head_before: 884c979c5deb905bcd77a503d00234ea9f2ebf0f
-  plan_head_after: 0f879ebe1c67460efac899d33483baa160543a0f
+  plan_head_after: 38cf686e4d2c8639f1a3097567f969e4b550a1e7
+  commits_note: "Measured by commit-subject tag (`grep -E '^[0-9a-f]+ [a-z]+\\(76-06\\)'`), not a raw plan_head_before..HEAD rev-list range — this repo has no per-plan worktree isolation (single flat repo, sequential executor on main per this plan's dispatch), so 76-05 and 76-08 commits landed interleaved between this plan's two sessions. Raw range would read 13; 8 is the count of commits actually tagged (76-06) in their subject (7 before this SUMMARY commit + this SUMMARY/metadata commit)."
 
 tech-stack:
-  added: ["UptimeRobot (free tier, external SaaS)", "Healthchecks.io (free tier, external SaaS)"]
+  added: ["UptimeRobot (free tier, external SaaS) — v3 API for monitor creation/listing", "Healthchecks.io (free tier, external SaaS)"]
   patterns:
     - "monitor.sh's hc() ping helper mirrors backup.sh's hc() exactly: skip-and-log (never abort) when its HC_PING_* var is unset, plus a MONITOR_DRY_RUN short-circuit that logs 'WOULD PING ...' before ever reaching curl — lets every fail branch be proven live without risking a real page"
-    - "Each on-VPS check runs in its own subshell (run_check wrapper) so one check's internal `set -e` exit never aborts the other four — matches the plan's 'never aborts the other checks' requirement"
+    - "Each on-VPS check runs in its own subshell (run_check wrapper) so one check's internal `set -e` exit never aborts the other checks — matches the plan's 'never aborts the other checks' requirement, now covering six checks"
     - "provision-monitors.sh: each SaaS section (uptimerobot/healthchecks) is fully independent and gated on its own env var being set, so the script degrades gracefully with only one key present and gives a clear 'keys missing' exit with zero keys"
+    - "provision-monitors.sh's UptimeRobot section uses the v3 API (Authorization: Bearer <same Main API key>) exclusively for both listing and creating monitors — v2 create is plan-gated on this account's free tier (access_denied for every /newMonitor call, even a bare HTTP monitor), while v2 reads and editMonitor still work. monitors.json's schema stays v2-shaped (type/keyword_type); translation to v3's KEYWORD/ALERT_NOT_EXISTS happens only at the API-call boundary, so the versioned contract is unaffected by the API-version choice."
+    - "check_apps_http (D-02 deviation) has no numeric threshold to tweak the way disk_mem/tls_expiry do (it's a binary content match against production URLs), so it takes CHAT_HEALTH_URL/CRM_HEALTH_URL env overrides (defaulting to the real URLs) purely to let a dry run prove the fail branch against a URL that cannot contain the marker, without ever pointing the check at anything but production during normal operation"
 
 key-files:
   created:
@@ -48,21 +52,21 @@ key-decisions:
   - "UptimeRobot chosen over Better Stack per the plan's Claude-discretion note: free tier confirms keyword monitors + Telegram integration and allows commercial use (re-checked 2026-09-27)"
   - "Chatwoot keyword_value is the compound substring \"queue_services\":\"ok\",\"data_services\":\"ok\" (not just one field) — JSON key order is fixed by api_controller.rb's source, so the exact substring only ever appears when BOTH services report ok, matching the interfaces block's 'marker proving both data and queue services are ok' requirement"
   - "EspoCRM keyword_value is <title>EspoCRM</title>, confirmed live against the rendered login page's actual head markup (not guessed) — distinguishes the real app shell from a Caddy error page"
-  - "Task 2's commit is named for what it actually contains (repo-side monitor definitions + provisioner) rather than the plan's literal 'external monitors provisioned (tracer)' wording, since Task 1's owner accounts don't exist yet and no live API call was made this session"
-  - "monitor.sh's --only NAME dispatch uses a per-check subshell (not a trap/ERR handler) so 'never aborts the other checks' holds even when a check's own internal command fails outside an if-guard"
+  - "D-02 deviation (owner-approved 2026-09-28): UptimeRobot's Telegram integration is now a paid feature; the owner declined to pay. UptimeRobot alerts by email only going forward (provision-monitors.sh's UptimeRobot section now requires only an email alert contact, Telegram optional). A new sixth on-VPS check, apps_http, restores Telegram coverage for app-level outages by re-deriving both apps' health markers on the VPS and pinging Healthchecks (which kept its free Telegram integration)."
+  - "UptimeRobot v2 monitor creation is plan-gated on this account's free tier (discovered live: access_denied for every v2 POST /newMonitor call, even a bare HTTP type with no special fields — v2 reads and editMonitor still work). Rule 3 auto-fix per the plan's own documented fallback ('if v2 answers with a deprecation error, use the documented v3 equivalents'): migrated the UptimeRobot section to the v3 API (same Main API key, Authorization: Bearer). monitors.json's v2-shaped schema is untouched; translation happens only inside provision-monitors.sh."
+  - "The owner-signup placeholder UptimeRobot monitor ('chat.rideprestigo.com', type 1 HTTP) was deleted via the v3 API once the two versioned keyword monitors existed, per the owner-approved D-02 decision — only the two monitors.json-defined monitors remain live."
 
 requirements-completed: []
 
 coverage:
   - id: D1
-    description: "D-01/INFRA-03 (repo-side only): monitors.json declares UptimeRobot keyword monitors for both apps' app-level health, chosen from live-fetched marker text; provision-monitors.sh idempotently creates them once owner API keys exist"
+    description: "D-01/INFRA-03: UptimeRobot keyword monitors for both apps' app-level health are live and reporting up, created via monitors.json + provision-monitors.sh (v3 API)"
     requirement: "INFRA-03"
     verification:
       - kind: other
-        ref: "jq -e '.uptimerobot | length == 2' infra/vps/monitoring/monitors.json -> exit 0; live curl of both public URLs confirmed the chosen keyword_value strings are the actual current response bodies"
+        ref: "provision-monitors.sh --status -> both uptimerobot lines end in 'up'; v3 GET /v3/monitors confirms exactly 2 monitors exist (the owner-signup placeholder was deleted)"
         status: pass
-    human_judgment: true
-    rationale: "the monitors themselves are not live — Task 1 (owner creates the UptimeRobot/Healthchecks accounts + Telegram handshakes) is deferred to end-of-phase, so no human/automated check can confirm the monitors actually alert until the owner completes Task 1 and Claude runs provision-monitors.sh"
+    human_judgment: false
   - id: D2
     description: "D-02: no custom Telegram bot code exists anywhere in this change; lib/content/telegram.ts untouched"
     verification:
@@ -71,208 +75,222 @@ coverage:
         status: pass
     human_judgment: false
   - id: D3
-    description: "D-03: prestigo-backup Healthchecks check definition carries the ~26h dead-man's-switch shape (24h timeout + 2h grace) matching backup.sh's already-live nightly schedule"
+    description: "D-03: prestigo-backup Healthchecks check is live and up after a real backup.sh run (start+success pings)"
     requirement: "INFRA-04"
     verification:
       - kind: other
-        ref: "jq -e '.healthchecks[] | select(.name==\"prestigo-backup\") | .timeout == 86400 and .grace == 7200' infra/vps/monitoring/monitors.json -> exit 0"
+        ref: "jq -e '.healthchecks[] | select(.name==\"prestigo-backup\") | .timeout == 86400 and .grace == 7200' monitors.json -> exit 0; systemctl start prestigo-backup.service -> Result=success; provision-monitors.sh --status -> prestigo-backup up"
         status: pass
     human_judgment: false
   - id: D4
-    description: "D-04b/c/d, D-12: monitor.sh implements all five on-VPS checks (disk_mem, kvm4_trigger, sidekiq, espocrm_internals, tls_expiry), each independently proven live on the VPS against real container/host state"
+    description: "D-04b/c/d, D-12: monitor.sh's five original on-VPS checks (disk_mem, kvm4_trigger, sidekiq, espocrm_internals, tls_expiry) are live and pinging Healthchecks for real (monitor.env now present)"
     requirement: "INFRA-03"
     verification:
       - kind: other
-        ref: "live run with no monitor.env: all 5 checks OK, exit 0 (disk=12% mem=22% swap=0%, kvm4 no-history-yet, sidekiq heartbeat age 0-6s, espocrm daemon+mariadb healthy, both TLS certs ok); dry-run with DISK_MAX_PCT=1 MEM_MAX_PCT=1 TLS_MIN_DAYS=400 -> WOULD PING fail for disk_mem and tls_expiry, WOULD PING success for the other three, zero real network calls; normal dry run -> WOULD PING success for all five"
+        ref: "systemctl start prestigo-monitor.service -> Result=success; journalctl shows real ping attempts (no 'skipped' lines) for all checks once monitor.env existed; provision-monitors.sh --status -> all five up"
         status: pass
     human_judgment: false
   - id: D5
-    description: "prestigo-monitor.timer runs every 5 minutes, enabled and active; a manual service start completes cleanly (Result=success) even with /etc/prestigo/monitor.env entirely absent — every ping logs 'skipped (no ping URL)' and the run still exits 0"
+    description: "prestigo-monitor.timer runs every 5 minutes, enabled and active"
     requirement: "INFRA-04"
     verification:
       - kind: other
-        ref: "systemctl is-enabled -> enabled; is-active -> active; list-timers shows NEXT in ~5min; systemctl start + systemctl show -p Result -> Result=success; journalctl shows all five 'skipped (no ping URL)' lines"
+        ref: "systemctl is-enabled -> enabled; is-active -> active (unchanged from the prior session, re-confirmed)"
         status: pass
     human_judgment: false
   - id: D6
-    description: "D-12/monitoring.md: runbook documents both KVM 4 upgrade triggers (automated 7-day RAM>80%, manual 'a second operator is onboarded') plus the in-panel upgrade procedure and alert response playbook for every monitor/check"
+    description: "monitoring.md documents both KVM 4 upgrade triggers, the full monitor/check inventory including apps_http, per-service alert routing, and the D-02 deviation"
     verification:
       - kind: other
         ref: "grep -q 'second operator' && grep -q 'KVM 4' infra/vps/runbooks/monitoring.md -> both pass"
         status: pass
     human_judgment: false
   - id: D7
-    description: "Task 1 (owner creates Healthchecks.io + UptimeRobot accounts, connects Telegram, hands over API keys) — deliberately deferred to end-of-phase per this run's dispatch"
-    verification: []
+    description: "Task 1 (owner creates Healthchecks.io + UptimeRobot accounts, connects Telegram, hands over API keys) — completed this session: owner supplied both keys in chat"
+    verification:
+      - kind: other
+        ref: "Healthchecks GET /api/v3/channels/ confirmed kind=telegram and kind=email present; UptimeRobot GET /v3/alert-contacts confirmed an email contact present (no Telegram contact, expected per the owner's D-02 decision not to pay for UptimeRobot's Telegram add-on)"
+        status: pass
+    human_judgment: false
+  - id: D8
+    description: "D-02 deviation: apps_http check live on the VPS, both branches proven (fail via CHAT_HEALTH_URL override in dry-run; success against real production URLs), pinging the new prestigo-apps-http Healthchecks check (Telegram + email)"
+    requirement: "INFRA-03"
+    verification:
+      - kind: other
+        ref: "ssh prestigo-vps 'sudo env MONITOR_DRY_RUN=1 CHAT_HEALTH_URL=https://example.com monitor.sh --only apps_http' -> 'apps_http FAIL: chat=fail crm=ok' + WOULD PING fail; default dry run -> 'apps_http OK: chat=ok crm=ok' + WOULD PING success; live run (real ping) -> Healthchecks shows prestigo-apps-http up"
+        status: pass
+    human_judgment: false
+  - id: D9
+    description: "One real end-to-end test alert sent and recovered via prestigo-apps-http's ping URL (down at 2026-09-28T08:21:15Z, recovered at 2026-09-28T08:21:26Z), so the owner's Telegram + email channels should have fired for both the down and recovery transitions"
+    verification:
+      - kind: other
+        ref: "Healthchecks GET /api/v3/checks/ showed status=down immediately after the /fail ping (last_ping matches the fail timestamp) and status=up immediately after the success ping (last_ping matches the recovery timestamp); the check's channels field lists both the email and telegram channel IDs"
+        status: pass
     human_judgment: true
-    rationale: "owner accounts deferred to end of phase; see 'Deferred owner actions' below for the checklist and the exact Claude follow-up commands"
+    rationale: "Claude has no access to the owner's Telegram app or email inbox — the check's server-side down/up transition and its attached channels are proven, but actual message receipt is a fact only the owner can confirm. Asked the owner to confirm receipt of both alerts as part of this session's final report."
 
-duration: ~35min
+duration: "~35min (original session) + ~40min (this continuation session, 2026-09-28T08:09-08:49Z UTC)"
 completed: 2026-09-28
-status: complete-pending-owner
+status: complete
 ---
 
 # Phase 76 Plan 06: External Monitoring & On-VPS Depth Checks Summary
 
-**UptimeRobot + Healthchecks.io monitor definitions and an idempotent provisioner are versioned and validated (repo-only — no owner API keys exist yet), while all five on-VPS depth checks (disk/mem, KVM 4 trigger, Sidekiq, EspoCRM internals, TLS expiry) run live on a 5-minute systemd timer, gracefully no-op'ing every ping until the owner's SaaS accounts exist.**
+**UptimeRobot (v3 API) + Healthchecks.io monitors are fully live — 2 app-level keyword monitors and 7 on-VPS/dead-man's-switch checks all report up — with a D-02 owner-approved alert-routing change (UptimeRobot email-only, Telegram coverage for app outages moved to a new on-VPS `apps_http` check) and one real end-to-end test alert sent and recovered.**
 
 ## Performance
 
-- **Duration:** ~35 min
-- **Started:** ~2026-09-27T22:49Z
-- **Completed:** 2026-09-27T23:04Z
-- **Tasks:** 2/3 completed (Task 1 deferred, see below)
-- **Files created:** 7, modified: 1
+- **Duration:** ~35 min (original session, Task 2/3) + ~40 min (this continuation, Task 1 resolution + D-02 deviation + live provisioning)
+- **Original session:** 2026-09-27T22:49Z – 2026-09-27T23:04Z
+- **This continuation:** 2026-09-28T08:09Z – 2026-09-28T08:49Z (approx.)
+- **Tasks:** 3/3 completed (Task 1 resolved this session; Task 2/3 completed previously and re-verified live)
+- **Files created:** 7, modified: 1 (unchanged from original session — this continuation only modified already-created files)
 
 ## Accomplishments
 
-- `infra/vps/monitoring/monitors.json` declares the 2 UptimeRobot monitors and 6 Healthchecks.io checks required by D-01 through D-04 and D-12, with keyword values chosen from the **live** current response bodies of `https://chat.rideprestigo.com/api` (the compound substring `"queue_services":"ok","data_services":"ok"`, which only appears when both services are healthy) and `https://crm.rideprestigo.com/` (`<title>EspoCRM</title>`, confirmed against the actual rendered markup, not guessed).
-- `infra/vps/scripts/provision-monitors.sh` is written, `bash -n` clean, and validated end-to-end **without** calling any live API: with no keys exported it prints a clear "keys missing" error naming exactly which env vars are needed and pointing at Task 1, and exits 1. Each SaaS section (UptimeRobot / Healthchecks) is independently gated on its own API key so the script degrades gracefully with only one key present. It is idempotent by construction — UptimeRobot monitors matched by `friendly_name`, Healthchecks checks created with `unique: ["name"]`.
-- `infra/vps/env/monitor.env.example` documents the six `HC_PING_*` keys with empty values.
-- `infra/vps/scripts/monitor.sh` implements all five on-VPS checks and is **live on the VPS**, proven against real container/host state: with `/etc/prestigo/monitor.env` genuinely absent, all five checks report `OK` and every ping logs `skipped (no ping URL)`, exit 0. A dry run with `DISK_MAX_PCT=1 MEM_MAX_PCT=1 TLS_MIN_DAYS=400` produces `WOULD PING ... fail` for `disk_mem` and `tls_expiry` (and `WOULD PING ... success` for the other three) with zero real network calls; a normal-threshold dry run produces `WOULD PING ... success` for all five.
-- `infra/vps/systemd/prestigo-monitor.{service,timer}` are installed and enabled on the VPS (`systemctl is-enabled`/`is-active` both confirm), and a manual `systemctl start` completed with `Result=success` — the timer runs cleanly in the current pre-provisioning state.
-- `infra/vps/runbooks/monitoring.md` documents the alerting architecture (everything off the VPS is primary, D-01/D-02), the full monitor/check inventory, a response playbook per alert type, both KVM 4 upgrade triggers, the maintenance-pause procedure, and how to re-provision from `monitors.json`.
-- `infra/vps/README.md`'s runbook index corrected `monitoring.md`'s attribution from "Plan 76-07" to "Plan 76-06" (same stale-cross-reference class as 76-05's `upgrade.md` fix).
+- **Task 1 resolved:** the owner created both SaaS accounts and supplied the Healthchecks.io read-write API key and the UptimeRobot Main API key directly in chat. Verified via API: Healthchecks channels include `email` and `telegram`; UptimeRobot alert contacts include an `email` contact (no Telegram contact — expected, see D-02 below).
+- **D-02 deviation (owner-approved):** UptimeRobot's Telegram integration became a paid feature partway through this plan; the owner declined to pay. `provision-monitors.sh`'s UptimeRobot section now requires only an email alert contact (Telegram optional, attached if present). A new sixth on-VPS check, **`apps_http`**, restores Telegram coverage for app-level outages: it fetches `https://chat.rideprestigo.com/api` (must contain `"queue_services":"ok"`) and `https://crm.rideprestigo.com/` (must contain `<title>EspoCRM</title>`) from the VPS itself and pings the new `prestigo-apps-http` Healthchecks check (which kept its free Telegram integration). `CHAT_HEALTH_URL`/`CRM_HEALTH_URL` env overrides let the fail branch be proven honestly in a dry run without ever pointing the check at anything but production during real operation.
+- **UptimeRobot v2 API discovery + fix:** this account's free plan returns `access_denied: "You are not allowed to use some settings with your current plan."` for **every** v2 `POST /newMonitor` call — including a bare HTTP monitor with no keyword/interval/contacts — meaning monitor *creation* itself is plan-gated on v2, not any individual field (v2 reads and `editMonitor` still work fine). Per the plan's own documented fallback ("if v2 answers with a deprecation error, use the documented v3 equivalents"), migrated the UptimeRobot section to the v3 API (`Authorization: Bearer` with the same Main API key). `monitors.json`'s v2-shaped schema (`type`/`keyword_type`) is untouched — translation to v3's `KEYWORD`/`ALERT_NOT_EXISTS` happens only inside the script.
+- **Live provisioning, verified idempotent:** ran `provision-monitors.sh` with the owner's keys — created 2 UptimeRobot monitors + 7 Healthchecks checks (`created=2` / `created=7`); immediately re-ran and confirmed `created=0` / `created=0`.
+- **`/etc/prestigo/monitor.env` installed** on the VPS (`600 root:root`, 7 `HC_PING_*` keys), piped directly from `provision-monitors.sh`'s stdout through `ssh` — never touched a file or shell history on the Mac. `backup.sh` already sources this file opportunistically (76-05) — confirmed it now picks up `HC_PING_BACKUP` with zero code changes.
+- **Owner-signup placeholder UptimeRobot monitor deleted** (`chat.rideprestigo.com`, type 1 HTTP, created automatically at account signup) via the v3 API — only the two `monitors.json`-defined monitors remain.
+- **All 9 monitors/checks confirmed up:** `prestigo-monitor.service` and `prestigo-backup.service` both triggered manually (`Result=success`); `provision-monitors.sh --status` shows both UptimeRobot monitors and all 7 Healthchecks checks ending in `up`.
+- **Dry-run fail branches re-proven for all six on-VPS checks together** (`disk_mem`, `tls_expiry` via threshold overrides; `apps_http` via `CHAT_HEALTH_URL` override) alongside the five-check success path — zero real pings sent during any dry run.
+- **One real end-to-end test alert sent and recovered:** `/fail` ping to `prestigo-apps-http` at **2026-09-28T08:21:15Z** (Healthchecks confirmed `status=down`), success ping at **2026-09-28T08:21:26Z** (confirmed `status=up`). The check's `channels` field lists both the email and Telegram channel IDs, so both should have fired for the down transition and the recovery. No other alerts were triggered.
+- **`monitoring.md` updated:** new "D-02 deviation" section (architecture diagram, per-service alert-routing table, flap-risk note for UptimeRobot's Chatwoot keyword monitor referencing WINDOWS.md #30), a `prestigo-apps-http` inventory row + response-playbook entry, an "Alerts to" column on the inventory table, and a UptimeRobot v2→v3 API note under "Re-provisioning."
 
 ## Task Commits
 
-1. **Task 2 (tracer, repo-side only): monitor definitions and provisioning script** - `c072302d` (feat) — named for what it actually contains (see Deviations)
+Original session (2026-09-27):
+1. **Task 2 (tracer, repo-side only): monitor definitions and provisioning script** - `c072302d` (feat)
 2. **Task 3: on-VPS checks, systemd timer, and monitoring runbook** - `0f879ebe` (feat)
+3. **Plan metadata (original, superseded by this continuation's metadata commit below)** - `6f0cf608` (docs)
 
-**Plan metadata:** commit pending (this SUMMARY + STATE/ROADMAP update)
+This continuation session (2026-09-28):
+4. **Task 1 resolution + D-02 code changes:** UptimeRobot email-only, `apps_http` check added to `monitor.sh`, `monitors.json`, `monitor.env.example` - `7ec57fa9` (feat)
+5. **UptimeRobot v2→v3 API migration** (discovered live during provisioning) - `872b3ee8` (fix)
+6. **`apps_http` dry-run fail-branch overrides** (`CHAT_HEALTH_URL`/`CRM_HEALTH_URL`) - `46b2f3fc` (feat)
+7. **`monitoring.md` D-02 deviation + apps_http documentation** - `38cf686e` (docs)
+
+**Plan metadata (this continuation, final):** commit pending (this SUMMARY + STATE/ROADMAP update)
 
 ## Files Created/Modified
 
-- `infra/vps/monitoring/monitors.json` - 2 UptimeRobot monitors + 6 Healthchecks checks, versioned declaratively
-- `infra/vps/scripts/provision-monitors.sh` - idempotent provisioner, `--status` mode, env-only keys
-- `infra/vps/env/monitor.env.example` - six `HC_PING_*` keys, empty values
-- `infra/vps/scripts/monitor.sh` - five checks, `--only`, `MONITOR_DRY_RUN`, threshold overrides
-- `infra/vps/systemd/prestigo-monitor.service` - oneshot, `TimeoutStartSec=4min`
-- `infra/vps/systemd/prestigo-monitor.timer` - `OnBootSec=2min`, `OnUnitActiveSec=5min`, `AccuracySec=30s`
-- `infra/vps/runbooks/monitoring.md` - architecture/inventory/playbook/KVM4-triggers/maintenance/re-provisioning
-- `infra/vps/README.md` - runbook-index attribution fix
-- Host (not in git): `/opt/prestigo/{monitoring,scripts,systemd,runbooks}` synced; `prestigo-monitor.{service,timer}` installed in `/etc/systemd/system/`, enabled+active; `/var/log/prestigo/mem-usage.log` created by live check runs; `/opt/prestigo/DEPLOYED_SHA` updated to `0f879ebe`
+- `infra/vps/monitoring/monitors.json` - 2 UptimeRobot monitors + **7** Healthchecks checks (added `prestigo-apps-http`)
+- `infra/vps/scripts/provision-monitors.sh` - idempotent provisioner, `--status` mode, env-only keys; UptimeRobot section now uses the **v3 API** and requires only an email alert contact (D-02)
+- `infra/vps/env/monitor.env.example` - **seven** `HC_PING_*` keys (added `HC_PING_APPS_HTTP`)
+- `infra/vps/scripts/monitor.sh` - **six** checks (added `apps_http`), `--only`, `MONITOR_DRY_RUN`, threshold overrides, `CHAT_HEALTH_URL`/`CRM_HEALTH_URL`
+- `infra/vps/systemd/prestigo-monitor.service` - oneshot, `TimeoutStartSec=4min` (unchanged)
+- `infra/vps/systemd/prestigo-monitor.timer` - `OnBootSec=2min`, `OnUnitActiveSec=5min`, `AccuracySec=30s` (unchanged)
+- `infra/vps/runbooks/monitoring.md` - D-02 deviation section, updated inventory/playbook/re-provisioning
+- `infra/vps/README.md` - unchanged this session (runbook-index attribution fix was in the original session)
+- Host (not in git): `/opt/prestigo/{monitoring,scripts,systemd,runbooks}` synced (SHA `38cf686e`); `/etc/prestigo/monitor.env` installed (`600 root:root`, 7 keys); SaaS: 2 UptimeRobot monitors (placeholder deleted) + 7 Healthchecks checks, all live and up
 
 ## Verification
 
-- `bash -n infra/vps/scripts/monitor.sh && bash -n infra/vps/scripts/provision-monitors.sh` -> exit 0
-- `jq -e ".healthchecks | length == 6"` and `jq -e ".uptimerobot | length == 2"` on `monitors.json` -> both pass
+Original session's checks (still passing, re-verified where noted):
+- `bash -n infra/vps/scripts/monitor.sh && bash -n infra/vps/scripts/provision-monitors.sh` -> exit 0 (re-run this session)
+- `jq -e ".healthchecks | length == 7"` (was 6, now 7) and `jq -e ".uptimerobot | length == 2"` on `monitors.json` -> both pass
 - `jq -e '.healthchecks[] | select(.name=="prestigo-backup") | .timeout == 86400 and .grace == 7200'` -> pass (D-03 ~26h)
-- `! grep -Eq "(api_key|X-Api-Key)[\"=: ]+[A-Za-z0-9]{12,}" provision-monitors.sh monitors.json` -> pass (no key literals)
+- `! grep -Eq "(api_key|X-Api-Key)[\"=: ]+[A-Za-z0-9]{12,}" provision-monitors.sh monitors.json` -> pass (no key literals, re-verified this session)
 - `git diff --quiet HEAD -- lib/content/telegram.ts` -> pass (D-02: content bot untouched)
-- `bash infra/vps/scripts/provision-monitors.sh` with no keys exported -> clear error naming both required env vars, exit 1 (no live API call)
-- `ssh prestigo-vps 'sudo /opt/prestigo/scripts/monitor.sh'` with `/etc/prestigo/monitor.env` genuinely absent -> all 5 checks OK, all 5 pings "skipped (no ping URL)", exit 0
-- `ssh prestigo-vps 'sudo env MONITOR_DRY_RUN=1 DISK_MAX_PCT=1 MEM_MAX_PCT=1 TLS_MIN_DAYS=400 HC_PING_*=<dummy hc-ping.com URLs> monitor.sh'` -> `WOULD PING HC_PING_DISK_MEM fail`, `WOULD PING HC_PING_TLS fail`, the other three `WOULD PING ... success`, zero real network calls (dummy URLs, never actually curled since `MONITOR_DRY_RUN=1` short-circuits before the curl line)
-- Same command with default thresholds -> `WOULD PING ... success` for all five
-- `ssh prestigo-vps 'systemctl is-enabled prestigo-monitor.timer; systemctl is-active prestigo-monitor.timer'` -> `enabled` / `active`
-- `ssh prestigo-vps 'systemctl start prestigo-monitor.service && systemctl show prestigo-monitor.service -p Result'` -> `Result=success`
-- `grep -q "second operator" && grep -q "KVM 4"` on `monitoring.md` -> both pass
 - `grep -q "REDISCLI_AUTH" monitor.sh` -> pass
+- `grep -q "second operator" && grep -q "KVM 4"` on `monitoring.md` -> both pass
+
+This continuation session's live verification:
+- `UPTIMEROBOT_API_KEY=... HEALTHCHECKS_API_KEY=... bash provision-monitors.sh` (first run) -> `uptimerobot: created=2`, `healthchecks: created=7`
+- Same command re-run immediately -> `uptimerobot: created=0`, `healthchecks: created=0` (idempotent)
+- `ssh prestigo-vps 'sudo stat -c "%a %U" /etc/prestigo/monitor.env; sudo grep -c "^HC_PING_[A-Z0-9_]*=https://hc-ping.com/" /etc/prestigo/monitor.env'` -> `600 root` / `7`
+- `ssh prestigo-vps 'sudo systemctl start prestigo-monitor.service && systemctl show -p Result,ExecMainStatus'` -> `Result=success` / `ExecMainStatus=0`
+- `ssh prestigo-vps 'sudo systemctl start prestigo-backup.service && systemctl show -p Result,ExecMainStatus'` -> `Result=success` / `ExecMainStatus=0`
+- `bash provision-monitors.sh --status` -> all 9 lines (`2 uptimerobot + 7 healthchecks`) end in `up`
+- `ssh prestigo-vps 'sudo env MONITOR_DRY_RUN=1 CHAT_HEALTH_URL=https://example.com monitor.sh --only apps_http'` -> `apps_http FAIL: chat=fail crm=ok` + `WOULD PING HC_PING_APPS_HTTP fail`, zero real ping (only `example.com` probed, not production)
+- `ssh prestigo-vps 'sudo env MONITOR_DRY_RUN=1 monitor.sh --only apps_http'` -> `apps_http OK: chat=ok crm=ok` + `WOULD PING HC_PING_APPS_HTTP success`
+- `ssh prestigo-vps 'sudo env MONITOR_DRY_RUN=1 DISK_MAX_PCT=1 MEM_MAX_PCT=1 TLS_MIN_DAYS=400 monitor.sh'` -> `WOULD PING ... fail` for `disk_mem` and `tls_expiry`, `WOULD PING ... success` for `kvm4_trigger`/`sidekiq`/`espocrm_internals`/`apps_http`, zero real pings, all six checks run
+- `ssh prestigo-vps 'sudo env MONITOR_DRY_RUN=1 monitor.sh'` (defaults) -> `WOULD PING ... success` for all six checks
+- Real UptimeRobot v3 API test (`POST /v3/monitors` with a throwaway monitor, then `DELETE`) -> proved v3 creation works on this free-tier account where v2 is `access_denied`
+- `curl .../de31f3b5.../fail` at `2026-09-28T08:21:15Z` -> Healthchecks `status=down`, `last_ping` matches
+- `curl .../de31f3b5...` (success) at `2026-09-28T08:21:26Z` -> Healthchecks `status=up`, `last_ping` matches
+- `DELETE /v3/monitors/804107290` (the owner-signup placeholder) -> HTTP 200; `GET /v3/monitors` afterward shows exactly the 2 `monitors.json`-defined monitors
 
 ## Decisions Made
 
-See `key-decisions` in frontmatter. In short: UptimeRobot chosen per the plan's Claude-discretion clause; both keyword values were chosen from **live** response bodies (not assumed from documentation), matching the plan's explicit instruction to fetch both endpoints first; Task 2's commit message honestly describes what actually happened (repo-side definitions + provisioner) rather than reusing the plan's literal "provisioned" wording, since no live SaaS provisioning occurred this session.
+See `key-decisions` in frontmatter. In short: UptimeRobot chosen per the plan's Claude-discretion clause (original session); D-02 alert-routing change is an explicit owner-approved deviation mid-plan (UptimeRobot Telegram now paid, declined — email only; `apps_http` restores Telegram coverage via Healthchecks); the UptimeRobot v2→v3 API migration is a Rule 3 blocking-issue auto-fix discovered live and resolved per the plan's own documented fallback clause; the owner-signup placeholder UptimeRobot monitor was deleted per explicit owner authorization once the two real monitors existed.
 
 ## Deviations from Plan
 
 ### Auto-fixed Issues
 
-None (Rule 1-3 code fixes) — the plan's own files_modified list was implemented as written.
+**1. [Rule 3 - Blocking] UptimeRobot v2 monitor creation is plan-gated on the free tier — migrated to v3 API**
+- **Found during:** live provisioning (this continuation session)
+- **Issue:** `POST https://api.uptimerobot.com/v2/newMonitor` returned `{"stat":"fail","error":{"type":"access_denied","message":"You are not allowed to use some settings with your current plan."}}` for every attempt, including a bare `type=1` HTTP monitor with no keyword/interval/alert_contacts — creation itself is now gated on this free-tier account, not any specific field. `v2` reads (`getAlertContacts`, `getMonitors`) and `editMonitor` (a write op) both still succeeded, isolating the block to monitor creation specifically.
+- **Fix:** Rewrote `run_uptimerobot()` in `provision-monitors.sh` to use the v3 API (`Authorization: Bearer <same Main API key>`) for both listing (`GET /v3/monitors`) and creating (`POST /v3/monitors`) monitors, per the plan's own interfaces-block fallback clause ("if v2 answers with a deprecation error, use the documented v3 equivalents"). `monitors.json`'s v2-shaped schema (`type: 2`, `keyword_type: 2`) is unchanged — translated to v3's `type: "KEYWORD"`, `keywordType: "ALERT_NOT_EXISTS"` only inside the script.
+- **Files modified:** `infra/vps/scripts/provision-monitors.sh`
+- **Verification:** Live run created both monitors (`created=2`); confirmed via a throwaway v3 test monitor (created + deleted) that v3 creation works where v2 is denied.
+- **Committed in:** `872b3ee8`
 
-### Scope note (not a deviation, a designed divergence per this run's explicit dispatch)
+**2. [Rule 2 - Missing Critical] `apps_http` needed URL overrides to prove its fail branch without risking production**
+- **Found during:** proving the D-02 deviation's dry-run fail requirement (this continuation session)
+- **Issue:** `check_apps_http` always hit the real `chat`/`crm` production URLs, which are healthy — unlike `disk_mem`/`tls_expiry`, there is no numeric threshold to tweak to force a fail condition for testing.
+- **Fix:** Added `CHAT_HEALTH_URL`/`CRM_HEALTH_URL` env overrides (default to the real production URLs), so `MONITOR_DRY_RUN=1 CHAT_HEALTH_URL=https://example.com` proves the fail path honestly (a URL guaranteed not to contain the marker) without ever touching production during normal operation.
+- **Files modified:** `infra/vps/scripts/monitor.sh`
+- **Verification:** `sudo env MONITOR_DRY_RUN=1 CHAT_HEALTH_URL=https://example.com monitor.sh --only apps_http` -> `apps_http FAIL: chat=fail crm=ok` + `WOULD PING ... fail`, zero real ping.
+- **Committed in:** `46b2f3fc`
 
-**1. Task 2's commit message deviates from the plan's literal text**
-- **Found during:** Task 2
-- **Issue:** The plan's action text specifies committing as `feat(76-06): external monitors provisioned (tracer)`. Since Task 1 (owner accounts) is deferred and no API keys exist, no monitor was actually provisioned this session — using that exact message would misstate what the commit contains.
-- **Fix:** Committed as `feat(76-06): monitor definitions and provisioning script (owner accounts deferred)`, with the commit body explaining the deferral explicitly.
-- **Files modified:** none beyond the plan's own list — commit-message wording only.
-- **Verification:** `git log --oneline` shows the honest message; the commit's actual diff matches exactly what the plan's Task 2 files_modified specifies.
-- **Committed in:** `c072302d`
+### Owner-approved architectural deviation (documented, not a Rule 1-3 auto-fix)
+
+**3. [D-02 deviation] UptimeRobot alerts by email only; apps_http restores Telegram coverage**
+- **Found during:** Task 1 resolution (owner reported UptimeRobot's Telegram integration is now a paid feature and declined to pay)
+- **Change:** `provision-monitors.sh`'s UptimeRobot section requires only an email alert contact (Telegram optional, attached if present but not required). A new sixth on-VPS check, `apps_http` (`prestigo-apps-http` in Healthchecks, `HC_PING_APPS_HTTP`), re-derives both apps' external health markers on the VPS itself and pings Healthchecks — which kept its free Telegram integration — restoring Telegram coverage for app-level outages via a different path.
+- **Owner approval:** explicit, provided in chat as this session's `<owner_decision_d02>` before any code was written.
+- **Files modified:** `infra/vps/monitoring/monitors.json`, `infra/vps/scripts/provision-monitors.sh`, `infra/vps/scripts/monitor.sh`, `infra/vps/env/monitor.env.example`, `infra/vps/runbooks/monitoring.md`
+- **Verification:** all listed above; monitoring.md documents the routing change and its edge cases (see "D-02 deviation" section there).
+- **Committed in:** `7ec57fa9` (code), `38cf686e` (docs)
 
 ---
 
-**Total deviations:** 0 code auto-fixes; 1 commit-message wording adjustment (not a Rule 1-3 fix — a factual-accuracy correction, made necessary by Task 1's deferral).
-**Impact on plan:** None on functionality. No scope creep.
+**Total deviations:** 2 Rule 1-3 auto-fixes (1 blocking-issue API migration, 1 missing-critical testability addition) + 1 owner-approved architectural deviation (D-02, pre-authorized before implementation, so it did not require a mid-execution checkpoint per Rule 4).
+**Impact on plan:** UptimeRobot's alert path changed from Telegram+email to email-only per the owner's explicit choice not to pay; Telegram coverage for the scenario that mattered (app-level outages) is preserved through a different, still-free path. No scope creep beyond what the owner authorized.
 
 ## Issues Encountered
 
-**Chatwoot's `/api` `data_services` field intermittently reports `"failing"`** (discovered while fetching the live UptimeRobot keyword marker for Task 2). Observed multiple times during this session, in bursts lasting roughly 10-60 seconds, then self-resolving:
+**Chatwoot's `/api` `data_services` field intermittently reports `"failing"`** (first discovered during the original session, re-confirmed as still relevant this session). Tracked as WINDOWS.md entry #30 (`kind: deviation`, `status: open`, phase 76). **New this session:** documented in `monitoring.md`'s D-02 section and the `prestigo-apps-http` response-playbook entry as a specific flap risk for UptimeRobot's Chatwoot keyword monitor — UptimeRobot polls every 5 minutes with no grace-period equivalent, so a poll landing inside one of these short (10-60s) self-resolving bursts can register as a real DOWN (email alert, no Telegram, per D-02). Healthchecks' `apps_http` check has `grace: 600`, which comfortably absorbs one bad run — so if the owner sees an UptimeRobot email alert clear within a few minutes with no corresponding Healthchecks Telegram alert, the flap is the most likely explanation. Not fixed (out of this plan's scope — `chatwoot.env`/`compose.yml` belong to plan 76-04).
 
-```
-{"version":"4.18.0","timestamp":"...","queue_services":"ok","data_services":"failing"}
-```
-
-Investigated (read-only, no changes made): `data_services` comes from Chatwoot's own `ApiController#postgres_status` (`ActiveRecord::Base.connection.active?`, rescuing `ActiveRecord::ConnectionNotEstablished`). During the failing window: `chatwoot-postgres-1`/`chatwoot-rails-1` both show `RestartCount=0`, `OOMKilled=false`; `docker logs chatwoot-postgres-1` has zero errors in the surrounding 5 minutes; `pg_stat_activity` shows 9 connections, well under `max_connections=100`; an in-process `rails runner` check and a `Rack::Test` request both return `"ok"` even while the real public endpoint (both via Caddy and via a direct `docker exec ... ruby -rnet/http` call to `127.0.0.1:3000`) intermittently returns `"failing"`. Suspected cause: Puma/ActiveRecord connection-pool reaping (`config/database.yml`'s `reaping_frequency: 30s` default) transiently reclaiming a request thread's checked-out connection, but this is not confirmed.
-
-**Not fixed** — `chatwoot.env`/`chatwoot/compose.yml` belong to plan 76-04's `files_modified`, not this plan's (Scope Boundary). **Recorded** as WINDOWS.md entry #30 (`kind: deviation`, `status: open`, phase 76, file `infra/vps/chatwoot/compose.yml`) so it stays visible before `/gsd-ship`. **Practical implication for this plan's own deliverables:** none of `monitor.sh`'s five on-VPS checks touch Chatwoot's Postgres connection at all (they check disk/mem/KVM4/Sidekiq's own Redis heartbeat/EspoCRM/TLS) — this issue only affects the **already-committed, not-yet-live** UptimeRobot Chatwoot monitor definition in `monitors.json`. Once the owner completes Task 1 and the monitor goes live, it may occasionally show a brief real DOWN state for this reason — that is arguably the monitor **correctly catching a real intermittent condition**, not a monitoring defect, but it is worth investigating further in a later phase (likely Phase 77, when Chatwoot sees real traffic) before it pages the owner with false urgency for a self-resolving blip.
+**UptimeRobot v2 API rate limiting during live debugging:** the v2 API's `x-ratelimit-limit: 10` (short rolling window) was hit once while diagnosing the `access_denied` error across multiple test calls, returning a transient `429`. Not a plan defect — just required spacing out diagnostic calls. No impact on the final provisioning run.
 
 ## Known Stubs
 
-None in this plan's own deliverables — every file this plan created is fully functional as written (no placeholder logic). The one true "stub" state is external: the two SaaS monitors declared in `monitors.json` are not yet live, entirely because Task 1's owner accounts don't exist — tracked explicitly via coverage entry D7 and the "Deferred owner actions" section below, not silently.
+None. Task 1's owner-account dependency (the only stub-like state in the original session's summary) is now resolved — both SaaS accounts exist, both API keys were used live, and every monitor/check is provisioned and confirmed up.
 
 ## Threat Flags
 
-None — every new surface (Healthchecks ping URLs, UptimeRobot/Healthchecks API keys, the Redis heartbeat read, MariaDB healthcheck exec) was already enumerated in this plan's `<threat_model>` (T-76-25 through T-76-28, T-76-SC) and mitigated as designed; no unplanned surface was introduced.
+None new. `apps_http` re-derives the same public-URL health check UptimeRobot already performs externally (T-76-25 already covers "alert path" DoS/dead-man's-switch reasoning); it introduces no new credential, no new trust boundary, and fetches only the same two already-public URLs from the VPS itself (already reachable from off-host per D-17's exposure posture). All threats from the original `<threat_model>` (T-76-25 through T-76-28, T-76-SC) remain mitigated as designed.
 
 ## User Setup Required
 
-None new beyond Task 1 (see below) — no additional owner action is introduced by Task 3's on-VPS work, which required no credentials beyond what 76-01..76-05 already supplied.
+**None outstanding.** Task 1 (the only user-setup item for this plan) is complete: the owner created both SaaS accounts, completed the Healthchecks Telegram handshake, and handed over both API keys in chat. The owner declined UptimeRobot's paid Telegram add-on (D-02) — this is a completed decision, not an outstanding setup task.
 
-## Deferred owner actions (Task 1 + provisioning)
+**One thing to confirm from the owner (not blocking, informational):** please confirm you received both a "down" and a "recovery" alert for `prestigo-apps-http` around 2026-09-28 08:21 UTC (08:21:15Z down, 08:21:26Z up) — on Telegram and/or email. This was a deliberate, harmless test (see D9 in the coverage table); Claude can confirm the check transitioned server-side but cannot see your Telegram/email inbox directly.
 
-**Not executed.** Per this run's explicit dispatch instruction, Task 1 (`type="checkpoint:human-action"`, `gate="blocking-human"`) — the owner creating the Healthchecks.io and UptimeRobot accounts, completing both Telegram bot handshakes, and handing over the two API keys — is deliberately deferred so the owner can complete every Phase 76 owner action in one batch at the end of the phase. **Nothing was faked or simulated.** No API calls were made to either service. `requirements-completed` is empty in this SUMMARY's frontmatter; `INFRA-03`/`INFRA-04` stay open in REQUIREMENTS.md until Task 1 closes and the monitors are actually live.
+## Deferred owner actions — RESOLVED this session
 
-### Owner checklist (copied from Task 1's `<instructions>`)
+The original session's "Deferred owner actions (Task 1 + provisioning)" section is superseded — Task 1 is complete and all four follow-up commands from that checklist have been run:
 
-Claude already: has backups running with a ping hook waiting for a Healthchecks URL, and knows exactly which monitors to create (Claude creates all monitors and checks itself via API once keys are provided).
+1. ✅ Provisioned both SaaS accounts from `monitors.json` (`created=2` / `created=7`, then `created=0` / `created=0` on re-run).
+2. ✅ Installed the seven ping URLs on the VPS as `/etc/prestigo/monitor.env` (`600 root:root`).
+3. ✅ Confirmed all 9 lines report `up` via `--status`.
+4. ✅ Sent one real test alert end-to-end (`prestigo-apps-http` down at 08:21:15Z, recovery at 08:21:26Z) — awaiting the owner's confirmation of receipt (informational, not blocking; see "User Setup Required" above).
 
-Owner, in order:
-
-1. **healthchecks.io** — sign up with your email (the email alert channel is created automatically). Integrations -> Telegram -> follow the instructions: open `@HealthchecksBot` in Telegram, send `/start`, open the link it replies with, attach it to your project. Then Settings -> API Access -> create a read-write API key.
-2. **uptimerobot.com** — sign up (free plan). Integrations -> Telegram -> add, open the bot link in Telegram, press Start. Your account email is already an alert contact. Then Integrations & API -> Main API key -> create it.
-3. Reply with both API keys. Claude uses them only in this plan's commands and never stores them.
-
-### Exact Claude follow-up commands (once the owner replies with both keys)
-
-```bash
-# 1. Provision both SaaS accounts from monitors.json (idempotent — safe to re-run)
-UPTIMEROBOT_API_KEY="<owner's key>" HEALTHCHECKS_API_KEY="<owner's key>" \
-  bash infra/vps/scripts/provision-monitors.sh
-# -> prints created=N for each section, then the six HC_PING_*=url lines
-#    between "--- MONITOR ENV ---" and "--- END MONITOR ENV ---"
-
-# 2. Install those six ping URLs on the VPS as monitor.env (root, mode 600)
-#    — pipe directly, never via a file on this Mac or in shell history:
-UPTIMEROBOT_API_KEY="<owner's key>" HEALTHCHECKS_API_KEY="<owner's key>" \
-  bash infra/vps/scripts/provision-monitors.sh \
-  | sed -n '/^--- MONITOR ENV/,/^--- END MONITOR ENV/p' | sed '1d;$d' \
-  | ssh prestigo-vps 'sudo install -m 600 -o root -g root /dev/stdin /etc/prestigo/monitor.env'
-
-# 3. Confirm all 8 lines report "up" (allow one 5-minute timer cycle to pass first)
-UPTIMEROBOT_API_KEY="<owner's key>" HEALTHCHECKS_API_KEY="<owner's key>" \
-  bash infra/vps/scripts/provision-monitors.sh --status
-
-# 4. Send one real test alert end-to-end (Telegram + email) before declaring done —
-#    e.g. temporarily stop a monitored container and confirm the alert arrives on
-#    both channels, then restart it and confirm the recovery alert also arrives.
-```
-
-### Verification Claude must run once the owner replies with both API keys
-
-- Run the four commands above.
-- Confirm `--status` shows all 8 lines (`2 uptimerobot + 6 healthchecks`) ending in `up`.
-- Confirm the owner received one real test alert (down + recovery) on both Telegram and email.
-- Once verified: re-classify coverage entries D1 and D7 in this SUMMARY (or a follow-up SUMMARY) from `human_judgment: true` to a passing `verification`, and run `requirements.mark-complete INFRA-03 INFRA-04` (currently withheld — also withheld pending 76-05's own Task 3 closure, which gates the same two IDs).
-
-**Resume signal for Task 1 (unchanged from the plan):** Owner replies "monitoring accounts ready" with both API keys — or describes any problem completing either signup/Telegram handshake.
+`requirements-completed` is still `[]` in this SUMMARY's frontmatter **per this session's explicit dispatch instruction** ("do NOT mark REQUIREMENTS.md complete") — `INFRA-03`/`INFRA-04` should be marked complete in a follow-up step once 76-05's own Task 3 (its own deferred owner action, gating the same two requirement IDs) also closes, so both plans' requirement completion lands together rather than piecemeal.
 
 ## Next Phase Readiness
 
-- All five on-VPS depth checks run live, every 5 minutes, and degrade gracefully to a clean no-op until the owner's SaaS accounts exist — no risk of a broken/erroring timer in the interim.
-- `infra/vps/scripts/provision-monitors.sh` and `infra/vps/monitoring/monitors.json` are ready for the owner-key follow-up the moment Task 1 closes — no further code changes needed, just the four commands above.
-- `infra/vps/runbooks/monitoring.md` is ready for reference by Phase 76's remaining plans (76-07 outage test, 76-08/09 restore drill) and any future alert response.
-- **Blocker for closing this plan's requirements:** Task 1 (owner creates both SaaS accounts + Telegram handshakes + hands over API keys) is outstanding, same as 76-05's Task 3. `INFRA-03`/`INFRA-04` should not be marked complete until both plans' deferred owner actions close. Collect this alongside 76-05's Task 3 and any other Phase 76 owner actions at end-of-phase per this run's instruction.
-- **Non-blocking finding for a later phase:** Chatwoot's intermittent `data_services:failing` (WINDOWS.md #30) is worth a focused look once Phase 77 puts real traffic through Chatwoot — it may cause occasional brief false-seeming DOWN alerts on the Chatwoot UptimeRobot monitor once Task 1 goes live.
+- All six on-VPS depth checks (including the new `apps_http`) and both UptimeRobot monitors are live, provisioned, and confirmed `up`. The 5-minute timer is pinging for real.
+- `infra/vps/scripts/provision-monitors.sh` and `infra/vps/monitoring/monitors.json` are fully live and idempotent — no further code changes needed for normal operation. Re-provisioning after any future monitor/check definition change is a single command (see `monitoring.md`'s "Re-provisioning" section).
+- `infra/vps/runbooks/monitoring.md` is ready for reference by Phase 76's remaining plans (76-07 outage test, 76-08/09 restore drill) and any future alert response, including the new D-02 routing and `apps_http` playbook entry.
+- **Blocker for closing this plan's requirements:** none from this plan alone — `INFRA-03`/`INFRA-04` should be marked complete together with 76-05's own Task 3 closure (per this session's explicit instruction not to touch REQUIREMENTS.md here), same coordination note as the original session left.
+- **Non-blocking finding for a later phase:** Chatwoot's intermittent `data_services:failing` (WINDOWS.md #30) remains worth a focused look once Phase 77 puts real traffic through Chatwoot — now doubly relevant since it can also cause an occasional brief email-only UptimeRobot alert (D-02) even though `apps_http`'s `grace: 600` absorbs the same flap on the Telegram-bearing path.
+- **UptimeRobot API version note for future plans:** if a future plan needs to script UptimeRobot further, use the v3 API (`Authorization: Bearer`) for any write operation that might be creation-adjacent — this account's free tier blocks v2 monitor creation specifically, and there is no guarantee v3 stays unrestricted if UptimeRobot's pricing changes again.
 
 ---
 *Phase: 76-vps-infrastructure*
@@ -287,7 +305,9 @@ UPTIMEROBOT_API_KEY="<owner's key>" HEALTHCHECKS_API_KEY="<owner's key>" \
 - FOUND: infra/vps/systemd/prestigo-monitor.service
 - FOUND: infra/vps/systemd/prestigo-monitor.timer
 - FOUND: infra/vps/runbooks/monitoring.md
-- FOUND commit: c072302d (Task 2)
-- FOUND commit: 0f879ebe (Task 3)
-- Re-ran all Task 2/3 `<verify>`/acceptance-criteria commands that don't require live API keys — all PASS (see "Verification" section above)
-- Task 2's plan-specified `<verify>` commands requiring `UPTIMEROBOT_API_KEY`/`HEALTHCHECKS_API_KEY` and Task 3's second `<verify>` command (`provision-monitors.sh --status`) were **not** run — they require Task 1's owner API keys, which do not exist yet. Not claimed as done anywhere in this SUMMARY or in REQUIREMENTS.md.
+- FOUND commit: c072302d, 0f879ebe, 6f0cf608 (original session)
+- FOUND commit: 7ec57fa9, 872b3ee8, 46b2f3fc, 38cf686e (this continuation)
+- Re-ran all Task 2/3 `<verify>`/acceptance-criteria commands, now live with real API keys — all PASS (see "Verification" section above)
+- `provision-monitors.sh --status` -> all 9 lines (2 UptimeRobot + 7 Healthchecks) end in `up`
+- Idempotency re-confirmed live: second provisioning run -> `created=0` / `created=0`
+- Real end-to-end test alert sent and recovered (down 08:21:15Z, up 08:21:26Z) — server-side transition confirmed via the Healthchecks API; owner's receipt confirmation requested but not required to close this SUMMARY (see "User Setup Required")
