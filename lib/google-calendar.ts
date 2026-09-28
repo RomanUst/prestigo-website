@@ -92,6 +92,7 @@ export interface CalendarBooking {
   id: string
   booking_reference: string
   status: string
+  booking_source?: string | null
   trip_type: string | null
   leg: string | null
   pickup_utc: string
@@ -158,7 +159,7 @@ export function buildCalendarEvent(b: CalendarBooking) {
   ].filter((l): l is string => typeof l === 'string')
 
   return {
-    summary: `${b.booking_reference}${legLabel} · ${client || 'Client'} · ${formatVehicleLabel(b.vehicle_class)}`,
+    summary: `${b.booking_source === 'gnet' ? 'GNet' : 'Prestigo'}: ${b.booking_reference}${legLabel} · ${client || 'Client'} · ${formatVehicleLabel(b.vehicle_class)}`,
     location: b.origin_address,
     description: lines.join('\n'),
     start: { dateTime: start.toISOString(), timeZone: TIME_ZONE },
@@ -182,7 +183,7 @@ export async function syncBookingToCalendar(bookingId: string): Promise<Calendar
   const { data: row, error } = await supabase
     .from('bookings')
     .select(`
-      id, booking_reference, status, trip_type, leg, pickup_utc, hours, distance_km,
+      id, booking_reference, status, booking_source, trip_type, leg, pickup_utc, hours, distance_km,
       origin_address, destination_address, vehicle_class, passengers, luggage,
       client_first_name, client_last_name, client_phone, client_email,
       flight_number, terminal, special_requests, operator_notes,
