@@ -66,6 +66,41 @@ EOF
 
 From then on, use `ssh prestigo-vps`.
 
+## Production-only: set the OS hostname to match (CR-01/WR-05 dependency)
+
+`bootstrap.sh` deliberately never sets the OS hostname — the SSH alias
+above (`ssh prestigo-vps`) reaches this host regardless of what its own
+`hostname` command reports, and `bootstrap.sh` is the exact same script
+run against the disposable D-09 drill host
+(`runbooks/restore-drill.md`), which must **never** end up reporting
+`prestigo-vps` as its own hostname (that would make `drill-verify.sh
+--drill`'s own safety guard refuse to run on the drill host, and would
+defeat `restore.sh`'s `--drill` guard and `backup.sh`'s production-only
+guard, both of which key off `$(hostname) = prestigo-vps` to tell the
+real production host apart from every other host).
+
+`drill-verify.sh`'s existing guard, and `restore.sh`/`backup.sh`'s guards
+(CR-01/WR-05), all assume the **real** production host's own `hostname`
+command actually prints `prestigo-vps`. A fresh Hostinger VPS's default
+hostname is provider-assigned (e.g. `srv1234567`), not `prestigo-vps` -
+this step is what makes that assumption true. Run it manually, once,
+**only on the real production host, never on a drill/replacement host**:
+
+```bash
+ssh prestigo-vps 'sudo hostnamectl set-hostname prestigo-vps && hostname'
+# Expect: prestigo-vps
+```
+
+This is a live `sethostname()` call - no reboot, no service restart, and
+it is instantly reversible (`sudo hostnamectl set-hostname <original>`).
+**Caveat:** this host's cloud-init has `preserve_hostname: false`; if a
+future reboot ever re-triggers cloud-init's `set_hostname`/
+`update_hostname` modules from provider metadata, the hostname could
+revert. If any of the CR-01/WR-05 refusal checks below start passing
+unexpectedly after a reboot, re-run the command above and consider
+setting `preserve_hostname: true` in `/etc/cloud/cloud.cfg` as a
+follow-up (out of scope for this runbook).
+
 ## Re-running on an already-hardened host (as deploy, via sudo)
 
 ```bash

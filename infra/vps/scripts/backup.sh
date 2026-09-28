@@ -22,6 +22,15 @@
 #   sudo bash backup.sh              # normal run
 #   sudo bash backup.sh --init-repo  # one-time: initialize the restic repo first
 #
+# Production-host guard (WR-05): refuses to run unless `hostname` is
+# prestigo-vps (see infra/vps/runbooks/host-bootstrap.md's one-time
+# hostname-setup step this depends on), so a copy of this script
+# accidentally run on the D-09 drill host (which temporarily holds valid
+# production restic credentials) cannot push a snapshot into the
+# production B2 repository. Override only for a deliberate non-standard
+# manual run:
+#   sudo bash backup.sh --i-understand-this-is-not-the-production-host
+#
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -33,15 +42,35 @@ LOCK_FILE=/run/prestigo-backup.lock
 INTEGRITY_BASELINE_FAILED=false
 
 INIT_REPO=false
+FORCE_NON_PROD_OVERRIDE=false
 for arg in "$@"; do
   case "${arg}" in
     --init-repo) INIT_REPO=true ;;
+    --i-understand-this-is-not-the-production-host) FORCE_NON_PROD_OVERRIDE=true ;;
   esac
 done
 
 log() {
   echo "[backup] $*"
 }
+
+# WR-05: restic.sh hardcodes --hostname prestigo-vps and backup.sh tags
+# every snapshot --host prestigo-vps --tag nightly regardless of which
+# machine actually runs it. The D-09 drill runbook requires copying the
+# real /etc/prestigo/backup.env (live B2 credentials) onto a disposable
+# drill host so restore.sh --phase fetch can pull a snapshot - if backup.sh
+# is ever run by mistake on that same drill host, it pushes a new snapshot
+# into the SAME production B2 repository, indistinguishable from a real
+# nightly backup, and the next `restic forget --prune` folds it into
+# production's own retention rotation. Refuse to run unless this machine's
+# own hostname is prestigo-vps (mirrors drill-verify.sh's guard; see
+# infra/vps/runbooks/host-bootstrap.md for the one-time hostname setup this
+# depends on), with an explicit override for the rare case of a deliberate
+# manual/ad-hoc backup from a non-standard host.
+if [ "$(hostname)" != "prestigo-vps" ] && [ "${FORCE_NON_PROD_OVERRIDE}" != "true" ]; then
+  echo "[backup] refusing to run: hostname is $(hostname), not prestigo-vps. backup.sh must only run on the real production host (see infra/vps/runbooks/host-bootstrap.md) — pass --i-understand-this-is-not-the-production-host to override" >&2
+  exit 1
+fi
 
 # Non-blocking lock: if a previous run is still in progress, skip this one
 # rather than racing two restic invocations against the same repo.
