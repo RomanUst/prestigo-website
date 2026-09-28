@@ -21,4 +21,4 @@ infra/vps/**/*.env
 infra/vps/**/.env.*
 infra/vps/**/*.dump
 infra/vps/**/*.sql
-!infra/vps/**/.env.example
+!infra/vps/**/*.env.example
