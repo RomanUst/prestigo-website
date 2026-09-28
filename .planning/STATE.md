@@ -275,7 +275,7 @@ None yet.
 - [Phase 74] T-74-07 class: never add a blanket file-extension exclusion to the middleware matcher that can match protected prefixes (api/admin/driver/auth/account) — see tests/middleware-matcher.test.ts.
 - 75-04: Meta Pixel never fires on production -- NEXT_PUBLIC_META_PIXEL_ID/META_PIXEL_ID env var has a trailing newline breaking the fbq init script syntax; needs human re-entry in Vercel dashboard + redeploy (WINDOWS.md #15)
 - 75-08: no worktree isolation on this repo — an external concurrent git checkout (fix/payment-link-pi-succeeded) moved HEAD mid-plan and stranded a commit off main; recovered via cherry-pick (no data lost). Future sequential plans on this repo should verify 'git branch --show-current' before every commit, not just at plan start.
-- Phase 76: plan 09 and owner parts of 05/07 await owner actions — see 76-OWNER-ACTIONS.md (07's Task 1 outage test ran autonomously 2026-09-28; Tasks 2/3 await owner confirmation + orchestrator Supabase cleanup)
+- Phase 76 complete 2026-09-28 (verification passed 5/5). Open housekeeping only (76-OWNER-ACTIONS.md §E): rotate B2 master key, delete B2 key "crm", confirm Lifecycle 30d, revoke Hostinger + Hetzner API tokens. Privacy policy must list Backblaze (US) before the Phase 77 widget launch. Confirm VPS hostname stays prestigo-vps after the next reboot (cloud-init preserve_hostname fix unproven until then).
 
 ## Deferred Items
 
