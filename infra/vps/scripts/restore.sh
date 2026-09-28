@@ -32,11 +32,24 @@
 #     the backup/monitor timers and the Caddy stack. Remember to switch DNS
 #     per infra/vps/runbooks/dns.md afterwards.
 #
+# Production-host interlock (mirrors drill-verify.sh's own hostname guard,
+# infra/vps/runbooks/backup-restore.md, infra/vps/runbooks/restore-drill.md):
+#   --drill is ALWAYS refused when `hostname` is `prestigo-vps` — that mode
+#     is disposable-host only and must never touch the live host.
+#   --full is refused on hostname `prestigo-vps` UNLESS the caller also
+#     passes --i-understand-this-overwrites-production. This flag exists
+#     solely for the rare case where the live host itself is the disaster
+#     (e.g. restoring in place after data corruption) — a fresh replacement
+#     host is never named prestigo-vps yet, so the normal disaster-recovery
+#     path never needs this flag.
+#   --verify-only is never blocked — it is read-only by design (see above).
+#
 # Usage:
 #   sudo bash restore.sh --verify-only [--snapshot ID]
 #   sudo bash restore.sh --drill --phase fetch [--snapshot ID]
 #   sudo bash restore.sh --drill --phase start
 #   sudo bash restore.sh --full [--snapshot ID]
+#   sudo bash restore.sh --full --i-understand-this-overwrites-production [--snapshot ID]  # only on the live host itself
 #
 set -Eeuo pipefail
 
@@ -48,6 +61,7 @@ PGVECTOR_IMAGE="${PGVECTOR_IMAGE:-pgvector/pgvector:0.8.6-pg16}"
 MODE=""
 PHASE=""
 SNAPSHOT="latest"
+FORCE_PROD_OVERRIDE=false
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -56,6 +70,7 @@ while [ $# -gt 0 ]; do
     --full) MODE="full"; shift ;;
     --phase) PHASE="${2:-}"; shift 2 ;;
     --snapshot) SNAPSHOT="${2:-}"; shift 2 ;;
+    --i-understand-this-overwrites-production) FORCE_PROD_OVERRIDE=true; shift ;;
     *)
       echo "[restore] unknown argument: $1" >&2
       exit 1
@@ -70,6 +85,28 @@ fi
 if [ "${MODE}" = "drill" ] && [ "${PHASE}" != "fetch" ] && [ "${PHASE}" != "start" ]; then
   echo "[restore] --drill requires --phase fetch or --phase start" >&2
   exit 1
+fi
+
+# Production-host interlock (CR-01): --verify-only is read-only and always
+# safe. --drill is disposable-host only, full stop — no override exists,
+# same as drill-verify.sh's own hostname guard. --full is a real
+# disaster-recovery path that MUST be able to run onto a REPLACEMENT host
+# (which will never be named prestigo-vps), so it is refused on the live
+# host unless the operator explicitly opts in.
+if [ "$(hostname)" = "prestigo-vps" ]; then
+  case "${MODE}" in
+    drill)
+      echo "[restore] refusing --drill on hostname prestigo-vps (production) — this mode is disposable-host only, see infra/vps/runbooks/restore-drill.md" >&2
+      exit 1
+      ;;
+    full)
+      if [ "${FORCE_PROD_OVERRIDE}" != "true" ]; then
+        echo "[restore] refusing --full on hostname prestigo-vps (production) without --i-understand-this-overwrites-production — a disaster-recovery restore is meant for a REPLACEMENT host; see infra/vps/runbooks/backup-restore.md" >&2
+        exit 1
+      fi
+      echo "[restore] WARNING: --full invoked on production host prestigo-vps with --i-understand-this-overwrites-production — proceeding to overwrite this host's env files and databases" >&2
+      ;;
+  esac
 fi
 
 log() {

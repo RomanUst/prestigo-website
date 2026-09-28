@@ -166,6 +166,32 @@ plan 08 (`restore.sh`) and documented/run in plan 09
 (`runbooks/restore-drill.md`). This runbook only covers the backup side and
 ad-hoc single-file recovery; it is not itself a substitute for the drill.
 
+## Production-host interlock on restore.sh (CR-01)
+
+`restore.sh` refuses to run its destructive modes on the live production
+host (`hostname` = `prestigo-vps`):
+
+- `--drill --phase fetch|start` is **always** refused on `prestigo-vps` — no
+  override exists. `--drill` is disposable-host only (see
+  `runbooks/restore-drill.md`); it rewrites `FRONTEND_URL`/
+  `ESPOCRM_SITE_URL` to `localhost` URLs, which must never happen to the live
+  Chatwoot/EspoCRM config.
+- `--full` — the real disaster-recovery path — is refused on `prestigo-vps`
+  **unless** the operator also passes
+  `--i-understand-this-overwrites-production`. The normal disaster-recovery
+  scenario (a replacement host after total loss of the production VPS) never
+  needs this flag, because a fresh replacement host is never named
+  `prestigo-vps`. The flag exists only for the rare case of restoring in
+  place onto the live host itself (e.g. recovering from in-place data
+  corruption without provisioning a new host) — use it deliberately, and
+  only after confirming a fresh backup of the current state exists if at all
+  possible:
+  ```bash
+  sudo bash /opt/prestigo/scripts/restore.sh --full --i-understand-this-overwrites-production
+  ```
+- `--verify-only` is never blocked — it is read-only by design (restores
+  into a root-only rehearsal directory and always deletes it on exit).
+
 ## Backup-first rule before any destructive admin action (Pitfall 15)
 
 Deleting a Chatwoot inbox (e.g. to reconfigure a channel) silently cascades

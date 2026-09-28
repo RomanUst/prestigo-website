@@ -113,6 +113,13 @@ restored env files into `/etc/prestigo` with the D-09 drill URL overrides
 pulls the pinned Chatwoot/EspoCRM images. Record this step's duration from
 its `--- fetch ... done in Ns ---` log lines into the Drill log below.
 
+**Production-host interlock (CR-01):** `restore.sh` refuses to run
+`--drill --phase fetch|start` at all when `hostname` is `prestigo-vps` — no
+override flag exists for `--drill`, by design. This should never trigger on
+the disposable drill host (its hostname is whatever Hetzner assigned it,
+never `prestigo-vps`); if it ever does trigger, stop immediately — it means
+this session is pointed at the wrong host.
+
 ## Step 6 — lock egress before starting anything
 
 Add the outbound firewall rule (this is what flips the firewall to
