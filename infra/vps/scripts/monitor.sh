@@ -30,6 +30,8 @@
 #
 # Threshold overrides (env):
 #   DISK_MAX_PCT=85 MEM_MAX_PCT=90 SWAP_MAX_PCT=50 TLS_MIN_DAYS=14 KVM4_AVG_PCT=80
+#   CHAT_HEALTH_URL / CRM_HEALTH_URL override apps_http's fetch targets — used
+#   only to prove its fail branch in a dry run (see MONITOR_DRY_RUN above).
 set -Eeuo pipefail
 
 DISK_MAX_PCT="${DISK_MAX_PCT:-85}"
@@ -263,8 +265,14 @@ check_tls_expiry() {
 # watches for externally.
 check_apps_http() {
   local chat_body crm_body ok=true msgs=""
+  # Overridable only for proving the fail branch in a dry run without ever
+  # pointing this check at anything other than the real apps in production
+  # (e.g. CHAT_HEALTH_URL=https://example.com MONITOR_DRY_RUN=1 — a URL that
+  # cannot contain the marker, so the fail path is exercised honestly).
+  local chat_url="${CHAT_HEALTH_URL:-https://chat.rideprestigo.com/api}"
+  local crm_url="${CRM_HEALTH_URL:-https://crm.rideprestigo.com/}"
 
-  if chat_body=$(curl -fsS -m 10 https://chat.rideprestigo.com/api 2>/dev/null) \
+  if chat_body=$(curl -fsS -m 10 "${chat_url}" 2>/dev/null) \
       && printf '%s' "${chat_body}" | grep -q '"queue_services":"ok"'; then
     msgs="${msgs}chat=ok "
   else
@@ -272,7 +280,7 @@ check_apps_http() {
     ok=false
   fi
 
-  if crm_body=$(curl -fsS -m 10 https://crm.rideprestigo.com/ 2>/dev/null) \
+  if crm_body=$(curl -fsS -m 10 "${crm_url}" 2>/dev/null) \
       && printf '%s' "${crm_body}" | grep -q '<title>EspoCRM</title>'; then
     msgs="${msgs}crm=ok "
   else
