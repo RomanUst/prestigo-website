@@ -410,7 +410,10 @@ run_start() {
   done
   local espo_root_pw
   espo_root_pw=$(grep '^MARIADB_ROOT_PASSWORD=' /etc/prestigo/espocrm.env | cut -d= -f2-)
-  docker exec -i -e MYSQL_PWD="${espo_root_pw}" espocrm-db-1 mariadb -u root espocrm < /var/backups/prestigo/dumps/espocrm.sql
+  # WR-01: `-e MYSQL_PWD` (no inline value) forwards the value from the
+  # `docker` client's own process environment instead of embedding it as a
+  # literal argv element (visible via `ps auxww` for the call's duration).
+  MYSQL_PWD="${espo_root_pw}" docker exec -i -e MYSQL_PWD espocrm-db-1 mariadb -u root espocrm < /var/backups/prestigo/dumps/espocrm.sql
   unset espo_root_pw
   log "imported espocrm.sql into the espocrm database"
   step_end "start-espocrm-db-import"

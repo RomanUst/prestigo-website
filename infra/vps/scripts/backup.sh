@@ -124,7 +124,13 @@ mv "${DUMP_DIR}/chatwoot.dump.tmp" "${DUMP_DIR}/chatwoot.dump"
 CURRENT_STEP="dump-espocrm"
 log "dumping EspoCRM MariaDB (espocrm)"
 ESPOCRM_ROOT_PW=$(grep '^MARIADB_ROOT_PASSWORD=' /etc/prestigo/espocrm.env | cut -d= -f2-)
-docker exec -e MYSQL_PWD="${ESPOCRM_ROOT_PW}" espocrm-db-1 \
+# WR-01: `-e MYSQL_PWD` (no inline value) forwards MYSQL_PWD from the
+# `docker` client's OWN process environment (set here via the leading
+# assignment) rather than embedding the password as a literal `docker`
+# argv element visible to `ps auxww` / `/proc/<pid>/cmdline` for the
+# duration of the call — same pattern monitor.sh already uses for
+# REDISCLI_AUTH.
+MYSQL_PWD="${ESPOCRM_ROOT_PW}" docker exec -e MYSQL_PWD espocrm-db-1 \
   mariadb-dump --single-transaction --quick --routines --triggers --events \
   -u root espocrm > "${DUMP_DIR}/espocrm.sql.tmp"
 unset ESPOCRM_ROOT_PW
