@@ -36,6 +36,39 @@ const VPS_ENV_RE = /(?:CHATWOOT|ESPOCRM)_[A-Z0-9_]+/
 // Applied only to bare package specifiers (never '.', '/' or '@/' prefixed).
 const VPS_PKG_RE = /chatwoot|espocrm/i
 
+// Phase 77 (D-09/T-77-19): a CSP allow-source is a browser permission, not a
+// server dependency — the widget's origin has to appear as a literal inside
+// middleware.ts's own CSP directive strings for the browser to allow it, and
+// that is not the same thing this guard exists to catch (a synchronous site
+// code path reaching the VPS at request time). So the host-literal check
+// (step 1 below) tolerates exactly one narrow shape: a single CSP directive
+// string literal, alone on its own line, in middleware.ts only. The
+// exemption is intentionally this narrow — it does not cover env var names,
+// package imports, any other file, or a CSP string sharing a line with any
+// other statement (a fetch call, a second statement after the string, etc).
+// Five fixture tests below (describe('CSP directive-line exemption...'))
+// prove each of those boundaries independently.
+const CSP_EXEMPT_FILE = 'middleware.ts'
+const CSP_DIRECTIVE_NAMES = [
+  'default-src',
+  'script-src',
+  'style-src',
+  'img-src',
+  'font-src',
+  'connect-src',
+  'frame-src',
+  'media-src',
+  'worker-src',
+  'form-action',
+].join('|')
+// Group 1 captures the opening quote (double, single or backtick) so the
+// body and closing quote can backreference it — `(?:(?!\1).)*` (a negative
+// lookahead per character) stands in for "any char but the group-1 quote"
+// since a backreference cannot appear inside a character class in JS regex.
+const CSP_DIRECTIVE_LINE_RE = new RegExp(
+  `^\\s*(?:[?:]\\s+)?(["'\`])(?:${CSP_DIRECTIVE_NAMES})\\s(?:(?!\\1).)*\\1,?\\s*$`
+)
+
 interface AllowlistEntry {
   path: string
   reason: string
@@ -163,9 +196,15 @@ function findVpsViolations(files: Map<string, string>, allowlist: AllowlistEntry
 
   // Step 1: direct hits (host literal, env var, bare package import).
   for (const [filePath, content] of files) {
-    for (const ln of getLineNumbers(content, VPS_HOST_RE)) {
-      addWhy(filePath, `host literal at line ${ln}`)
-    }
+    const lines = content.split('\n')
+    lines.forEach((line, i) => {
+      if (!VPS_HOST_RE.test(line)) return
+      // Only host-literal hits are exempted, only in CSP_EXEMPT_FILE, and
+      // only for a line matching the single-directive shape above — the
+      // env-var and package-import checks below are never exempted.
+      if (filePath === CSP_EXEMPT_FILE && CSP_DIRECTIVE_LINE_RE.test(line)) return
+      addWhy(filePath, `host literal at line ${i + 1}`)
+    })
     for (const ln of getLineNumbers(content, VPS_ENV_RE)) {
       addWhy(filePath, `env var reference at line ${ln}`)
     }
@@ -333,5 +372,57 @@ describe('findVpsViolations — fixture self-tests', () => {
 
   it('returns an empty list for an empty file map', () => {
     expect(findVpsViolations(new Map(), [])).toEqual([])
+  })
+})
+
+describe('CSP directive-line exemption (Phase 77, D-09/T-77-19)', () => {
+  it('(a) a middleware.ts connect-src directive line with the host literal is exempt', () => {
+    const files = new Map([
+      [
+        'middleware.ts',
+        '    "connect-src \'self\' https://chat.rideprestigo.com wss://chat.rideprestigo.com",',
+      ],
+    ])
+    expect(findVpsViolations(files, [])).toEqual([])
+  })
+
+  it('(b) a middleware.ts fetch() call to the host is still a violation (not a CSP directive line)', () => {
+    const files = new Map([
+      ['middleware.ts', 'const res = await fetch("https://chat.rideprestigo.com/api")'],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('middleware.ts')
+  })
+
+  it('(c) the identical CSP-shaped line in a non-middleware file is still a violation', () => {
+    const files = new Map([
+      ['lib/x.ts', '    "connect-src \'self\' https://chat.rideprestigo.com",'],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('lib/x.ts')
+  })
+
+  it('(d) a middleware.ts CSP-shaped line with an uppercase CHATWOOT_ env name is still a violation (env check not exempted)', () => {
+    const files = new Map([
+      ['middleware.ts', '    "connect-src \'self\' CHATWOOT_WIDGET_HMAC_SECRET",'],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('middleware.ts')
+    expect(violations[0].why.some((w) => w.includes('env var reference'))).toBe(true)
+  })
+
+  it('(e) a middleware.ts line where the CSP string is followed by another statement is still a violation', () => {
+    const files = new Map([
+      [
+        'middleware.ts',
+        '    "connect-src \'self\' https://chat.rideprestigo.com"; doSomethingElse();',
+      ],
+    ])
+    const violations = findVpsViolations(files, [])
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('middleware.ts')
   })
 })

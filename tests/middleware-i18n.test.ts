@@ -332,6 +332,65 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
   })
 
   // -------------------------------------------------------------------------
+  // CSP: chat widget exact origin (INBOX-04, D-09) — Phase 77 Plan 08
+  // -------------------------------------------------------------------------
+  describe('CSP: chat widget exact origin on public pages (INBOX-04, D-09)', () => {
+    it('static CSP (GET /) adds the exact chat origin to script-src, frame-src, img-src, and both https+wss to connect-src', async () => {
+      const response = await middleware(makeRequest('/'))
+      const csp = response.headers.get('Content-Security-Policy')!
+      expect(csp).toBeTruthy()
+      expect(csp).toMatch(/script-src[^;]*https:\/\/chat\.rideprestigo\.com/)
+      expect(csp).toMatch(/frame-src[^;]*https:\/\/chat\.rideprestigo\.com/)
+      expect(csp).toMatch(/img-src[^;]*https:\/\/chat\.rideprestigo\.com/)
+      expect(csp).toMatch(/connect-src[^;]*https:\/\/chat\.rideprestigo\.com/)
+      expect(csp).toMatch(/connect-src[^;]*wss:\/\/chat\.rideprestigo\.com/)
+    })
+
+    it('locale-prefixed /ru/book (dynamic path, static CSP) also carries the chat origin', async () => {
+      const response = await middleware(makeRequest('/ru/book'))
+      const csp = response.headers.get('Content-Security-Policy')!
+      expect(csp).toContain('https://chat.rideprestigo.com')
+      expect(csp).not.toMatch(/nonce-/)
+    })
+
+    it('/login (dynamic path, static CSP) also carries the chat origin', async () => {
+      const response = await middleware(makeRequest('/login'))
+      const csp = response.headers.get('Content-Security-Policy')!
+      expect(csp).toContain('https://chat.rideprestigo.com')
+      expect(csp).not.toMatch(/nonce-/)
+    })
+
+    it('removing the added chat-origin tokens from the public CSP restores the previous directive strings exactly', async () => {
+      const response = await middleware(makeRequest('/'))
+      const csp = response.headers.get('Content-Security-Policy')!
+      const stripped = csp
+        .replace(/ https:\/\/chat\.rideprestigo\.com/g, '')
+        .replace(/ wss:\/\/chat\.rideprestigo\.com/g, '')
+      expect(stripped).toBe(
+        [
+          "default-src 'self'",
+          "script-src 'unsafe-inline' https:",
+          'frame-src https://js.stripe.com https://hooks.stripe.com',
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms",
+          "font-src 'self' https://fonts.gstatic.com",
+          "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com",
+          "form-action 'self' https://accounts.google.com https://appleid.apple.com",
+          'report-uri /api/csp-report',
+        ].join('; ')
+      )
+    })
+
+    it('/admin nonce CSP carries no chat origin (D-03: launcher never mounts there)', async () => {
+      mockGetUser.mockResolvedValue({ data: { user: makeAdminUser() }, error: null })
+      const response = await middleware(makeRequest('/admin'))
+      const csp = response.headers.get('Content-Security-Policy')!
+      expect(csp).toMatch(/nonce-/)
+      expect(csp).not.toContain('chat.rideprestigo.com')
+    })
+  })
+
+  // -------------------------------------------------------------------------
   // Backstop edges — NOT asserted here by design (must_haves `edges` list,
   // verification: backstop). Per-request nonce freshness under concurrency
   // and trailing-slash/case normalization on the locale segment are not
