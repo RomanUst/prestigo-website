@@ -1,0 +1,127 @@
+{
+ "capturedAt": "2026-09-28T22:08:12Z",
+ "base": "https://rideprestigo.com",
+ "profile": {
+  "viewport": {
+   "width": 412,
+   "height": 823
+  },
+  "deviceScaleFactor": 2.625,
+  "isMobile": true,
+  "hasTouch": true,
+  "cpuThrottlingRate": 4,
+  "network": {
+   "latencyMs": 150,
+   "downloadMbps": 1.6,
+   "uploadKbps": 750
+  },
+  "runsPerPage": 5,
+  "idleAfterLoadMs": 5000
+ },
+ "thresholds": {
+  "lcp_pct": 0.1,
+  "lcp_ms": 150,
+  "tbt_pct": 0.1,
+  "tbt_ms": 50,
+  "cls_abs": 0.02,
+  "launcher_inp_ms": 200
+ },
+ "pages": {
+  "/": {
+   "lcp_ms": 9548,
+   "cls": 0,
+   "tbt_ms": 5860,
+   "runs": [
+    {
+     "lcp_ms": 6044,
+     "cls": 0.027249845143266695,
+     "tbt_ms": 3093
+    },
+    {
+     "lcp_ms": 7028,
+     "cls": 0,
+     "tbt_ms": 6553
+    },
+    {
+     "lcp_ms": 9548,
+     "cls": 0,
+     "tbt_ms": 5860
+    },
+    {
+     "lcp_ms": 10864,
+     "cls": 0,
+     "tbt_ms": 5794
+    },
+    {
+     "lcp_ms": 10828,
+     "cls": 0,
+     "tbt_ms": 6743
+    }
+   ]
+  },
+  "/routes/prague-vienna": {
+   "lcp_ms": 7032,
+   "cls": 0,
+   "tbt_ms": 5216,
+   "runs": [
+    {
+     "lcp_ms": 6552,
+     "cls": 0,
+     "tbt_ms": 5091
+    },
+    {
+     "lcp_ms": 7032,
+     "cls": 0,
+     "tbt_ms": 6806
+    },
+    {
+     "lcp_ms": 8132,
+     "cls": 0,
+     "tbt_ms": 5216
+    },
+    {
+     "lcp_ms": 7120,
+     "cls": 0,
+     "tbt_ms": 6553
+    },
+    {
+     "lcp_ms": 4556,
+     "cls": 0.0005142126623275403,
+     "tbt_ms": 1300
+    }
+   ]
+  },
+  "/book": {
+   "lcp_ms": 4072,
+   "cls": 0.03218050967521455,
+   "tbt_ms": 1144,
+   "runs": [
+    {
+     "lcp_ms": 4220,
+     "cls": 0.03218050967521455,
+     "tbt_ms": 2091
+    },
+    {
+     "lcp_ms": 4396,
+     "cls": 0.03218050967521455,
+     "tbt_ms": 1569
+    },
+    {
+     "lcp_ms": 4072,
+     "cls": 0.03218050967521455,
+     "tbt_ms": 1144
+    },
+    {
+     "lcp_ms": 4072,
+     "cls": 0.03218050967521455,
+     "tbt_ms": 956
+    },
+    {
+     "lcp_ms": 4032,
+     "cls": 0.03218050967521455,
+     "tbt_ms": 1043
+    }
+   ]
+  }
+ }
+}
