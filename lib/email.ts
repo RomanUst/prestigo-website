@@ -2,6 +2,12 @@ import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
 
+// D-11 (Phase 77-02): every customer-facing transactional email replies to the
+// bookings@ Chatwoot inbox, so a customer reply becomes an operator-visible
+// conversation. roman@rideprestigo.com stays the sales mailbox, reserved for
+// EspoCRM (Phase 80) — never set as replyTo on a customer-facing email.
+export const CUSTOMER_REPLY_TO = 'bookings@rideprestigo.com'
+
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // Wordmark as a static raster image — letter-spaced inline spans render
 // inconsistently (overlapping/garbled) across email clients (Outlook, some
@@ -290,7 +296,7 @@ export async function sendClientConfirmation(data: BookingEmailData): Promise<vo
     const { error } = await getResend().emails.send({
       from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
       to: [data.email],
-      replyTo: 'roman@rideprestigo.com',
+      replyTo: CUSTOMER_REPLY_TO,
       subject: `Your PRESTIGO booking is confirmed — ${data.bookingReference}`,
       html,
     })
