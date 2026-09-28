@@ -2,9 +2,7 @@
 """chat_widget_probe — Phase 77 (INBOX-02/INBOX-04, D-02/D-09) launch-gate probe
 for the Chatwoot website chat launcher.
 
-Five independent modes, selected by exactly one flag (--consent/--click/
---overlap ship in a follow-up commit on this same file; this commit
-implements --cwv-capture and --cwv-compare first, per the tracer task):
+Five independent modes, selected by exactly one flag:
 
   --cwv-capture BASE
       Lab Core Web Vitals ("before") reference. For each of 3 pages (/,
@@ -76,13 +74,18 @@ chat launcher element could not be found at all (--click mode only).
 Usage:
   python3 scripts/qa/chat_widget_probe.py --cwv-capture [base_url]
   python3 scripts/qa/chat_widget_probe.py --cwv-compare [base_url]
+  python3 scripts/qa/chat_widget_probe.py --consent [base_url] [--expect-launcher] [--locales en,ru,...] [--pages /,/book]
+  python3 scripts/qa/chat_widget_probe.py --click [base_url] [--locales en,ar] [--pages /,/book]
+  python3 scripts/qa/chat_widget_probe.py --overlap [base_url] [--pages /book,/]
 """
 import argparse
 import json
 import os
 import sys
+import time
 from datetime import datetime, timezone
 from statistics import median
+from urllib.parse import urlparse
 
 from playwright.sync_api import sync_playwright
 
@@ -98,6 +101,8 @@ LAUNCHER_SELECTOR = 'button[aria-controls^="chat-launcher"]'
 
 LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh']
 CWV_PAGES = ['/', '/routes/prague-vienna', '/book']
+DEFAULT_PAGES = ['/', '/routes/prague-vienna', '/book']
+DEFAULT_OVERLAP_PAGES = ['/book', '/']
 
 BASELINE_DIR = os.path.join('scripts', 'qa', 'baselines')
 CWV_BASELINE_PATH = os.path.join(BASELINE_DIR, 'cwv_chat_baseline.json')
@@ -185,6 +190,63 @@ READ_CWV_JS = """
 """
 
 READ_EVENT_DURATIONS_JS = "() => (window.__prestigoPerf && window.__prestigoPerf.eventDurations) || []"
+
+# Installed via add_init_script for --click mode only — records every
+# securitypolicyviolation event from page load onward, so a violation fired
+# by the widget script the instant it's injected is never missed.
+CSP_LISTENER_JS = """
+window.__cspViolations = [];
+document.addEventListener('securitypolicyviolation', (e) => {
+  window.__cspViolations.push({
+    violatedDirective: e.violatedDirective,
+    blockedURI: e.blockedURI,
+    sourceFile: e.sourceFile,
+  });
+});
+"""
+
+# Excludes the launcher's own subtree (button + its aria-controls menu) and
+# any fixed/sticky ancestor wrapper of the launcher, per read_first note:
+# exclude only the launcher subtree, never the CookieBanner.
+OVERLAP_JS = """
+(selector) => {
+  const launcher = document.querySelector(selector);
+  if (!launcher) return [];
+  const excludeRoots = [launcher];
+  const controlsId = launcher.getAttribute('aria-controls');
+  if (controlsId) {
+    const menu = document.getElementById(controlsId);
+    if (menu) excludeRoots.push(menu);
+  }
+  let anc = launcher.parentElement;
+  while (anc && anc !== document.body) {
+    const cs = getComputedStyle(anc);
+    if (cs.position === 'fixed' || cs.position === 'sticky') excludeRoots.push(anc);
+    anc = anc.parentElement;
+  }
+  const isInsideExcluded = (el) => excludeRoots.some((root) => root.contains(el));
+  const lr = launcher.getBoundingClientRect();
+  const findings = [];
+  const all = document.querySelectorAll('body *');
+  for (const el of all) {
+    if (isInsideExcluded(el)) continue;
+    const cs = getComputedStyle(el);
+    if (cs.position !== 'fixed' && cs.position !== 'sticky') continue;
+    if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+    const intersects = !(r.right <= lr.left || r.left >= lr.right || r.bottom <= lr.top || r.top >= lr.bottom);
+    if (intersects) {
+      findings.push({
+        tag: el.tagName.toLowerCase(),
+        cls: (el.className || '').toString().slice(0, 60),
+        rect: { left: Math.round(r.left), top: Math.round(r.top), right: Math.round(r.right), bottom: Math.round(r.bottom) },
+      });
+    }
+  }
+  return findings;
+}
+"""
 
 
 def iso_now() -> str:
@@ -375,6 +437,212 @@ def do_cwv_compare(base: str) -> int:
     return 1 if findings else 0
 
 
+def do_consent(base: str, locales, pages, expect_launcher: bool) -> int:
+    findings = []
+    checked = 0
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            try:
+                for locale in locales:
+                    for path in pages:
+                        url = page_url(base, locale, path)
+                        combo = f'{locale} {path}'
+                        context = browser.new_context()
+                        chat_requests = []
+                        context.on('request', lambda req, lst=chat_requests: lst.append(req.url))
+                        page = context.new_page()
+                        try:
+                            page.goto(url, wait_until='load', timeout=60000)
+                            page.wait_for_timeout(1500)
+                        except Exception as e:
+                            findings.append(f'{combo}: navigation error {e}')
+                            context.close()
+                            continue
+                        checked += 1
+
+                        for req_url in chat_requests:
+                            host = urlparse(req_url).hostname or ''
+                            if host == CHAT_HOST:
+                                findings.append(f'{combo}: request to chat host before consent ({req_url})')
+
+                        for c in context.cookies():
+                            if c['name'].startswith('cw_'):
+                                findings.append(f"{combo}: cw_ cookie present ({c['name']})")
+
+                        storage_keys = page.evaluate('() => Object.keys(window.localStorage || {})')
+                        for k in storage_keys:
+                            if k.startswith('cw_') or k.startswith('chatwoot'):
+                                findings.append(f'{combo}: chatwoot localStorage key present ({k})')
+
+                        if expect_launcher:
+                            candidates = page.query_selector_all('button[aria-expanded="false"][aria-controls]')
+                            launchers = [
+                                el for el in candidates
+                                if (el.get_attribute('aria-controls') or '').startswith('chat-launcher')
+                            ]
+                            if len(launchers) != 1:
+                                findings.append(f'{combo}: expected exactly 1 launcher button, found {len(launchers)}')
+                            else:
+                                box = launchers[0].bounding_box()
+                                viewport = page.viewport_size
+                                if box and viewport:
+                                    center_x = box['x'] + box['width'] / 2
+                                    mid = viewport['width'] / 2
+                                    if locale == 'ar':
+                                        if not center_x < mid:
+                                            findings.append(f'{combo}: launcher not left-of-center under RTL (ar)')
+                                    else:
+                                        if not center_x > mid:
+                                            findings.append(f'{combo}: launcher not right-of-center')
+                        context.close()
+            finally:
+                browser.close()
+    except Exception as e:
+        print(f'INFRA ERROR: {e}', file=sys.stderr)
+        return 2
+
+    print(f'consent: {checked} locale x page combos checked, {len(findings)} findings')
+    for f_ in findings:
+        print('FINDING:', f_)
+    return 1 if findings else 0
+
+
+def do_click(base: str, locales, pages) -> int:
+    findings = []
+    checked = 0
+    combos = [(locale, path) for locale in locales for path in pages]
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            try:
+                for locale, path in combos:
+                    url = page_url(base, locale, path)
+                    combo = f'{locale} {path}'
+                    context = browser.new_context()
+                    context.add_init_script(CSP_LISTENER_JS)
+                    page = context.new_page()
+                    console_csp_msgs = []
+                    page.on(
+                        'console',
+                        lambda msg, lst=console_csp_msgs: (
+                            lst.append(msg.text) if 'Content Security Policy' in msg.text else None
+                        ),
+                    )
+                    requests_log = []
+                    page.on('request', lambda req, lst=requests_log: lst.append((time.time(), req.url)))
+
+                    try:
+                        page.goto(url, wait_until='load', timeout=60000)
+                        page.wait_for_timeout(500)
+                    except Exception as e:
+                        findings.append(f'{combo}: navigation error {e}')
+                        context.close()
+                        continue
+                    checked += 1
+
+                    launcher = page.query_selector(LAUNCHER_SELECTOR)
+                    if not launcher:
+                        context.close()
+                        print(f'{combo}: launcher not found')
+                        return 3
+
+                    click_time = time.time()
+                    launcher.click()
+                    controls_id = launcher.get_attribute('aria-controls')
+                    if controls_id:
+                        menu = page.query_selector(f'#{controls_id}')
+                        first_item = menu.query_selector('button, a') if menu else None
+                        if first_item:
+                            first_item.click()
+                        else:
+                            findings.append(f'{combo}: no clickable menu item found in #{controls_id}')
+                    else:
+                        findings.append(f'{combo}: launcher missing aria-controls')
+
+                    iframe_found = False
+                    deadline = time.time() + 15
+                    while time.time() < deadline:
+                        for fr in page.frames:
+                            try:
+                                host = urlparse(fr.url).hostname
+                            except Exception:
+                                host = None
+                            if host == CHAT_HOST:
+                                iframe_found = True
+                                break
+                        if iframe_found:
+                            break
+                        page.wait_for_timeout(500)
+                    if not iframe_found:
+                        findings.append(f'{combo}: no chat iframe (host={CHAT_HOST}) appeared within 15s')
+
+                    csp_violations = page.evaluate('window.__cspViolations || []')
+                    if csp_violations:
+                        findings.append(f'{combo}: {len(csp_violations)} securitypolicyviolation event(s): {csp_violations[:3]}')
+                    if console_csp_msgs:
+                        findings.append(f'{combo}: {len(console_csp_msgs)} CSP console error(s): {console_csp_msgs[:3]}')
+
+                    pre_click = [
+                        u for (t, u) in requests_log
+                        if t < click_time and (urlparse(u).hostname == CHAT_HOST)
+                    ]
+                    if pre_click:
+                        findings.append(f'{combo}: chat-host request(s) happened before click: {pre_click[:3]}')
+
+                    context.close()
+            finally:
+                browser.close()
+    except Exception as e:
+        print(f'INFRA ERROR: {e}', file=sys.stderr)
+        return 2
+
+    print(f'click: {checked} locale x page combos checked, {len(findings)} findings')
+    for f_ in findings:
+        print('FINDING:', f_)
+    return 1 if findings else 0
+
+
+def do_overlap(base: str, pages) -> int:
+    findings = []
+    checked = 0
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            try:
+                context = browser.new_context(viewport={'width': 375, 'height': 812})
+                context.add_init_script(
+                    "try { localStorage.setItem('prestigo_consent_v2', JSON.stringify({analytics:false,marketing:false})) } catch (e) {}"
+                )
+                page = context.new_page()
+                for path in pages:
+                    url = base + path
+                    try:
+                        page.goto(url, wait_until='load', timeout=60000)
+                        page.wait_for_timeout(1000)
+                    except Exception as e:
+                        findings.append(f'{path}: navigation error {e}')
+                        continue
+                    checked += 1
+                    launcher = page.query_selector(LAUNCHER_SELECTOR)
+                    if not launcher:
+                        continue  # nothing to check yet — launcher not deployed
+                    result = page.evaluate(OVERLAP_JS, LAUNCHER_SELECTOR)
+                    for item in result:
+                        findings.append(f'{path}: launcher overlaps {item}')
+                context.close()
+            finally:
+                browser.close()
+    except Exception as e:
+        print(f'INFRA ERROR: {e}', file=sys.stderr)
+        return 2
+
+    print(f'overlap: {checked} pages checked, {len(findings)} findings')
+    for f_ in findings:
+        print('FINDING:', f_)
+    return 1 if findings else 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description='chat_widget_probe — Phase 77 D-02/D-09 CWV, consent, CSP-click and overlap probe',
@@ -385,14 +653,30 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument('--cwv-capture', action='store_true', help='capture the pre-change CWV baseline (writes the baseline file)')
     mode.add_argument('--cwv-compare', action='store_true', help='compare current CWV against the committed baseline')
+    mode.add_argument('--consent', action='store_true', help='assert zero chat-host traffic/cookies/storage before a click')
+    mode.add_argument('--click', action='store_true', help='click the launcher and assert a clean CSP/iframe result')
+    mode.add_argument('--overlap', action='store_true', help='assert the launcher never covers a fixed/sticky control at 375px')
+    parser.add_argument('--expect-launcher', action='store_true', help='(--consent) also assert exactly one launcher button exists, correctly positioned')
+    parser.add_argument('--locales', default=None, help='comma-separated locale list (default: all 7)')
+    parser.add_argument('--pages', default=None, help='comma-separated page-path list')
     args = parser.parse_args()
 
     base = args.base_url.rstrip('/')
+    locales = parse_csv(args.locales, LOCALES)
 
     if args.cwv_capture:
         return do_cwv_capture(base)
     if args.cwv_compare:
         return do_cwv_compare(base)
+    if args.consent:
+        pages = parse_pages_csv(args.pages, DEFAULT_PAGES)
+        return do_consent(base, locales, pages, args.expect_launcher)
+    if args.click:
+        pages = parse_pages_csv(args.pages, DEFAULT_PAGES)
+        return do_click(base, locales, pages)
+    if args.overlap:
+        pages = parse_pages_csv(args.pages, DEFAULT_OVERLAP_PAGES)
+        return do_overlap(base, pages)
 
     parser.error('no mode selected')
     return 2
