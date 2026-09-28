@@ -53,6 +53,7 @@ const {
   mockFrom,
   mockCheckRateLimit,
   mockRedirect,
+  mockCookies,
 } = vi.hoisted(() => {
   const mockSignInWithOtp = vi.fn()
   const mockSignInWithPassword = vi.fn()
@@ -66,6 +67,7 @@ const {
 
   const mockCheckRateLimit = vi.fn()
   const mockRedirect = vi.fn()
+  const mockCookies = vi.fn()
 
   return {
     mockSignInWithOtp,
@@ -79,6 +81,7 @@ const {
     mockFrom,
     mockCheckRateLimit,
     mockRedirect,
+    mockCookies,
   }
 })
 
@@ -109,6 +112,15 @@ vi.mock('next/navigation', async (importOriginal) => {
   return { ...actual, redirect: mockRedirect }
 })
 
+// next/headers: `headers()` is left as the real implementation (it throws
+// outside request scope in this test environment, which getIp() already
+// catches — unchanged from before this plan). Only `cookies()` is replaced
+// with a controllable mock, for the T-77-20/D-05 chat-cookie-cleanup tests.
+vi.mock('next/headers', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('next/headers')>()
+  return { ...actual, cookies: mockCookies }
+})
+
 // ---------------------------------------------------------------------------
 // Imports (from Plan 02 modules — not yet implemented; tests are RED)
 // ---------------------------------------------------------------------------
@@ -126,6 +138,13 @@ import {
 describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-07, ACCT-04)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Default: an empty cookie jar with a no-op delete — tests that don't
+    // care about cookie cleanup (everything except AUTH-07's new cases)
+    // see no behavior change from before this plan.
+    mockCookies.mockResolvedValue({
+      getAll: () => [],
+      delete: vi.fn(),
+    })
   })
 
   // -------------------------------------------------------------------------
@@ -303,6 +322,49 @@ describe('auth/customer — server actions (AUTH-01, AUTH-02, AUTH-03, AUTH-04, 
     it('calls signOut() then redirects to /', async () => {
       mockSignOut.mockResolvedValue({ error: null })
       // redirect() throws (Next.js navigation throws on redirect)
+      mockRedirect.mockImplementation(() => {
+        throw new Error('NEXT_REDIRECT')
+      })
+
+      await expect(customerSignOut()).rejects.toThrow('NEXT_REDIRECT')
+
+      expect(mockSignOut).toHaveBeenCalledOnce()
+      expect(mockRedirect).toHaveBeenCalledWith('/')
+    })
+
+    // T-77-20 (D-05): a shared device must never leak the previous
+    // customer's chat widget session to the next person who signs in.
+    it('deletes every cw_* cookie (path "/") and leaves other cookies alone', async () => {
+      const mockDelete = vi.fn()
+      mockCookies.mockResolvedValue({
+        getAll: () => [
+          { name: 'cw_conversation', value: 'abc' },
+          { name: 'cw_user_abc', value: 'def' },
+          { name: 'sb-auth-token', value: 'xyz' },
+        ],
+        delete: mockDelete,
+      })
+      mockSignOut.mockResolvedValue({ error: null })
+      mockRedirect.mockImplementation(() => {
+        throw new Error('NEXT_REDIRECT')
+      })
+
+      await expect(customerSignOut()).rejects.toThrow('NEXT_REDIRECT')
+
+      expect(mockDelete).toHaveBeenCalledTimes(2)
+      expect(mockDelete).toHaveBeenCalledWith({ name: 'cw_conversation', path: '/' })
+      expect(mockDelete).toHaveBeenCalledWith({ name: 'cw_user_abc', path: '/' })
+      expect(mockDelete).not.toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'sb-auth-token' })
+      )
+      // The existing AUTH-07 expectations still hold alongside cookie cleanup.
+      expect(mockSignOut).toHaveBeenCalledOnce()
+      expect(mockRedirect).toHaveBeenCalledWith('/')
+    })
+
+    it('a cookie-store failure never blocks sign-out', async () => {
+      mockCookies.mockRejectedValue(new Error('cookie store unavailable'))
+      mockSignOut.mockResolvedValue({ error: null })
       mockRedirect.mockImplementation(() => {
         throw new Error('NEXT_REDIRECT')
       })

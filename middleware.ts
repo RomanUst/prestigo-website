@@ -76,6 +76,13 @@ function buildCsp(nonce: string): string {
  * HTML would be stale relative to the per-request nonce injected by middleware,
  * causing browsers to block the Next.js runtime chunks. These pages contain no
  * user-supplied content, so unsafe-inline is an acceptable trade-off.
+ *
+ * INBOX-04/D-09 (Phase 77): the chat widget is loaded client-side, only after
+ * the visitor clicks "Chat on site" on a public page (never by server code,
+ * never on /admin or /driver — see components/ChatWidgetLoader.tsx). Its
+ * exact origin (the widget's VPS subdomain, below) is added here only —
+ * never a wildcard subdomain, never to buildCsp() (the nonce CSP for /admin
+ * and /driver, which never mount the launcher).
  */
 function buildCspStatic(): string {
   return [
@@ -85,13 +92,13 @@ function buildCspStatic(): string {
     // script-src-elem with nothing to allow external chunk <script> tags and
     // breaking hydration entirely in local dev. Production is unaffected.
     process.env.NODE_ENV === 'development'
-      ? "script-src 'unsafe-inline' 'unsafe-eval' 'self' https:"
-      : "script-src 'unsafe-inline' https:",
-    "frame-src https://js.stripe.com https://hooks.stripe.com",
+      ? "script-src 'unsafe-inline' 'unsafe-eval' 'self' https: https://chat.rideprestigo.com"
+      : "script-src 'unsafe-inline' https: https://chat.rideprestigo.com",
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://chat.rideprestigo.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms",
+    "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://chat.rideprestigo.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com",
+    "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com https://chat.rideprestigo.com wss://chat.rideprestigo.com",
     "form-action 'self' https://accounts.google.com https://appleid.apple.com",
     "report-uri /api/csp-report",
   ].join('; ')

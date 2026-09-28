@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { headers } from 'next/headers'
+import { headers, cookies } from 'next/headers'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase/server'
 import { checkRateLimit } from '@/lib/rate-limit'
@@ -215,6 +215,20 @@ export async function customerSignOut(): Promise<void> {
   // locale (this is a dynamic Server Action invocation, not the
   // static-render case WINDOWS #7 warns about).
   const locale = (await getLocale()) as AppLocale
+  // T-77-20 (D-05): the chat widget's session cookies are removed so the
+  // next user of a shared device starts a fresh, unidentified chat — never
+  // sees the previous customer's conversation. Best-effort: a cookie-store
+  // failure must never block sign-out itself.
+  try {
+    const cookieStore = await cookies()
+    for (const cookie of cookieStore.getAll()) {
+      if (cookie.name.startsWith('cw_')) {
+        cookieStore.delete({ name: cookie.name, path: '/' })
+      }
+    }
+  } catch {
+    // Cookie store unavailable (e.g. outside request scope) — never block sign-out.
+  }
   const supabase = await createClient()
   await supabase.auth.signOut()
   try {
