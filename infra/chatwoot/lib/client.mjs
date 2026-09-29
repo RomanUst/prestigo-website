@@ -107,12 +107,19 @@ export function loadChatwootConfig({ env = process.env, filePath = DEFAULT_ENV_F
 
 const MAX_BODY_CHARS = 300
 
+/** JSON fields of a WhatsApp inbox provider_config whose values must never reach a log. */
+const PROVIDER_SECRET_FIELD_RE =
+  /("(?:api_key|app_secret|app_secret_key|client_secret|api_secret|verification_pin|business_management_token)"\s*:\s*)(?:"(?:[^"\\]|\\.)*"|-?\d+(?:\.\d+)?)/g
+
 function makeRedactor(token) {
   return (text) => {
     let out = String(text ?? '')
     if (token) out = out.split(token).join('[redacted]')
     // Never let a secret leak through an echoed response body either.
     out = out.replace(/("(?:hmac_token|access_token|api_access_token)"\s*:\s*")[^"]*(")/g, '$1[redacted]$2')
+    // Phase 78: a WhatsApp inbox PATCH/GET error can echo the whole provider_config
+    // (Cloud API key, app secret, two-step PIN). String or bare-number values.
+    out = out.replace(PROVIDER_SECRET_FIELD_RE, '$1"[redacted]"')
     return out.length > MAX_BODY_CHARS ? `${out.slice(0, MAX_BODY_CHARS)}...` : out
   }
 }
