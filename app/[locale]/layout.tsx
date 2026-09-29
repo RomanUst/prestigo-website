@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation'
 import { routing, rtlLocales, type AppLocale } from '@/i18n/routing'
 import type { Metadata } from 'next'
 import SiteChrome from '@/components/SiteChrome'
+import ChatLauncher from '@/components/ChatLauncher'
 import { getLocaleSiteMetadata } from '@/lib/site-metadata'
 
 // 75-31 (WR-02 / GAP-4): locale-aware site default. Localized default
@@ -37,7 +38,13 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} dir={rtlLocales.includes(locale as AppLocale) ? 'rtl' : 'ltr'}>
-      <SiteChrome>{children}</SiteChrome>
+      <SiteChrome>
+        {children}
+        {/* Phase 77 (INBOX-02): server-rendered launcher; loads nothing third-party
+            until the visitor clicks "Chat on site". Public layout only — the
+            internal layout (/admin, /driver) never mounts it. */}
+        <ChatLauncher />
+      </SiteChrome>
     </html>
   )
 }
