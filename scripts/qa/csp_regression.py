@@ -22,9 +22,11 @@ enumerated CSP addition (Phase 77-12: the chat origin tokens). It never
 accepts any other drift. For every route class the drift passes only if
 (a) the current CSP with every listed token removed (each occurrence, plus
 its single leading space, at a token boundary) equals the baseline CSP
-exactly, and (b) at least one listed token is present on every route class
-whose baseline used the static policy (non-empty, no nonce). The
-Report-Only header must still match the baseline exactly. The per-route
+exactly, (b) at least one listed token is present on every route class
+whose baseline used the static policy (non-empty, no nonce), (c) NO listed
+token is present on a route class whose baseline carries a nonce (the chat
+origin must never leak into /admin, /driver), and (d) no listed token appears
+in default-src. The Report-Only header must still match the baseline exactly. The per-route
 unified diff is printed for review. After it passes, re-capture the golden
 with --capture so plain --compare is clean again.
 
@@ -130,6 +132,38 @@ def strip_tokens(csp: str, tokens) -> str:
     return csp
 
 
+def directive_sources(csp: str, name: str):
+    """Source tokens of directive `name` in `csp` (empty list if absent)."""
+    for d in csp.split(';'):
+        parts = d.split()
+        if parts and parts[0] == name:
+            return parts[1:]
+    return []
+
+
+def expected_token_findings(route_class: str, base_csp: str, cur_csp: str, expect_added) -> list:
+    """Presence/absence rules for --expect-added, applied after the strip-equals-
+    baseline check has passed (WR-03).
+
+    - static-policy route (baseline non-empty, no nonce): at least one expected token must be present;
+    - nonce-policy route (baseline has a nonce, e.g. /admin, /driver): NO expected token may be present
+      (the chat origin must never leak into the nonce CSP — D-09), stripping it must not hide the leak;
+    - default-src must never carry an expected token, on any route.
+    """
+    findings = []
+    is_nonce = 'nonce-' in base_csp
+    is_static = bool(base_csp) and not is_nonce
+    present = [t for t in expect_added if strip_tokens(cur_csp, [t]) != cur_csp]
+    if is_static and not present:
+        findings.append(f'{route_class}: static-policy route has none of the expected tokens')
+    if is_nonce and present:
+        findings.append(f'{route_class}: nonce-policy route must not carry the expected tokens, found: {", ".join(present)}')
+    leaked_default = [t for t in expect_added if t in directive_sources(cur_csp, 'default-src')]
+    if leaked_default:
+        findings.append(f'{route_class}: expected tokens must not appear in default-src, found: {", ".join(leaked_default)}')
+    return findings
+
+
 def csp_unified_diff(route_class: str, before: str, after: str) -> str:
     """Unified diff of the two policies, one directive per line."""
     a = [d.strip() + ';' for d in before.split(';') if d.strip()]
@@ -177,9 +211,7 @@ def do_compare(base: str, expect_added=None) -> int:
                 print(f'+++ current CSP [{route_class}]')
                 print(cur_csp)
             else:
-                is_static = bool(base_csp) and 'nonce-' not in base_csp
-                if is_static and not any(t in cur_csp for t in expect_added):
-                    findings.append(f'{route_class}: static-policy route has none of the expected tokens')
+                findings.extend(expected_token_findings(route_class, base_csp, cur_csp, expect_added))
                 diff = csp_unified_diff(route_class, base_csp, cur_csp)
                 print(f'REVIEWED DIFF [{route_class}]' + ('' if diff else ' (no difference)'))
                 if diff:
