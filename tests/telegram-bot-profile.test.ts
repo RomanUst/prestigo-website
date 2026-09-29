@@ -10,7 +10,12 @@ import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildProfileCalls, redact, loadToken } from '../infra/chatwoot/telegram/set-bot-profile.mjs'
-import { WHATSAPP_CHAT_URL, TELEGRAM_BOT_USERNAME, TELEGRAM_CHAT_URL } from '../lib/contact-channels'
+import {
+  BUSINESS_PHONE_DIGITS,
+  WHATSAPP_CHAT_URL,
+  TELEGRAM_BOT_USERNAME,
+  TELEGRAM_CHAT_URL,
+} from '../lib/contact-channels'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, '..')
@@ -188,10 +193,10 @@ describe('lib/contact-channels.ts agreement', () => {
     expect(TELEGRAM_CHAT_URL).toBe(`https://t.me/${loadProfile().confirmedUsername}`)
   })
 
-  it('WHATSAPP_CHAT_URL keeps the existing WhatsApp number', () => {
-    expect(WHATSAPP_CHAT_URL).toBe('https://wa.me/420725986855')
+  it('WHATSAPP_CHAT_URL derives from the single business-number constant', () => {
+    expect(WHATSAPP_CHAT_URL).toBe(`https://wa.me/${BUSINESS_PHONE_DIGITS}`)
     const hero = readFileSync(join(REPO_ROOT, 'components/HeroWhatsApp.tsx'), 'utf8')
-    expect(hero).toContain('wa.me/420725986855')
+    expect(hero).toContain('whatsappUrlWithText(')
   })
 
   it('contact-channels.ts reads no env and names no VPS host', () => {
