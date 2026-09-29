@@ -1,6 +1,5 @@
 import { useTranslations } from 'next-intl'
 import HeroTypewriter from './HeroTypewriter'
-import HeroWhatsApp from './HeroWhatsApp'
 import HeroRating from './HeroRating'
 import HeroBackground from './HeroBackground'
 
@@ -71,12 +70,11 @@ export default function Hero({ airportPrice, rating }: Props) {
               {t('subhead2')}
             </p>
 
-            {/* CTAs — stacked underlined text links */}
-            <div className="flex flex-col items-start gap-5 animate-on-load delay-600">
-              <a href="#book" className="cta-text cta-text-primary">
+            {/* Primary CTA — WhatsApp moved to the floating chat launcher (Phase 77) */}
+            <div className="flex flex-col items-start animate-on-load delay-600">
+              <a href="#book" className="cta-text cta-text-primary cta-hero">
                 {t('bookRide')}
               </a>
-              <HeroWhatsApp />
             </div>
 
             {/* Price anchor */}

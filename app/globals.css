@@ -363,6 +363,18 @@ h4 {
   color: var(--copper-pale);
 }
 
+/* Hero primary CTA — larger outlined gold button */
+.cta-hero {
+  font-size: 13px;
+  letter-spacing: 0.24em;
+  padding: 18px 36px;
+  border: 1px solid var(--copper);
+}
+
+.cta-hero:hover {
+  background: rgba(191, 160, 106, 0.12);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cta-text:hover {
     transform: none;
