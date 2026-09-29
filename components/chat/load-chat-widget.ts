@@ -88,6 +88,23 @@ let inFlight: Promise<void> | null = null
  */
 let configuredIdentifier: string | null | undefined
 
+/**
+ * True once 'chatwoot:ready' has fired for the current iframe. The SDK assigns
+ * window.$chatwoot synchronously inside run(), BEFORE ready, so the global's
+ * truthiness says nothing about whether identity/context were applied — a
+ * failed or late first attempt would otherwise be "reused" without them.
+ */
+let sdkReady = false
+let readyTracked = false
+
+function trackReadyEvents(): void {
+  if (readyTracked) return
+  readyTracked = true
+  window.addEventListener('chatwoot:ready', () => {
+    sdkReady = true
+  })
+}
+
 function identifierOf(config: { user: WidgetIdentity | null }): string | null {
   return config.user?.identifier && config.user.identifierHash ? config.user.identifier : null
 }
@@ -214,14 +231,12 @@ function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<
 }
 
 async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
+  trackReadyEvents()
   const existing = window.$chatwoot
   if (!existing) {
     // No live widget (first open, or the page was reloaded): forget any state.
     configuredIdentifier = undefined
-  }
-  if (existing && configuredIdentifier === undefined) {
-    existing.toggle('open')
-    return
+    sdkReady = false
   }
 
   // Click-time snapshot: the page, UTM, referrer and booking state as they are
@@ -252,14 +267,21 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     availableMessage: options.texts.replyTimeHint,
   }
 
-  if (existing) {
+  if (!existing) {
+    await loadAndRun(config)
+  } else if (configuredIdentifier !== undefined) {
     // Identity changed (signed out, signed in, or another account): drop the
     // previous customer's contact and conversation before anything is shown.
+    // Marked unconfigured first so a failed reload can never be re-toggled as-is.
+    configuredIdentifier = undefined
+    sdkReady = false
     const reloaded = awaitReady()
     existing.reset()
     await reloaded.promise
-  } else {
-    await loadAndRun(config)
+  } else if (!sdkReady) {
+    // An earlier attempt failed or timed out after run(); the widget exists
+    // but was never configured. Wait for it, then apply identity below.
+    await awaitReady().promise
   }
 
   // Re-read: the SDK assigns window.$chatwoot during run().

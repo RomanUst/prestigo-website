@@ -303,6 +303,62 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     expect(sdk.cw.setUser).toHaveBeenCalledTimes(1)
   })
 
+  it('WR-01: a retry after a failed first attempt still applies identity and visit context (late ready)', async () => {
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk({ neverReady: true })
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.scripts).toHaveLength(1))
+    await waitFor(() => expect(window.$chatwoot).toBeDefined())
+
+    // The widget reports an error; the SDK global already exists.
+    act(() => {
+      window.dispatchEvent(new Event('chatwoot:error'))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(enMessages.ChatLauncher.widgetError),
+    )
+    expect(sdk.cw.toggle).not.toHaveBeenCalled()
+    // ...then ready arrives late, with nobody listening.
+    act(() => {
+      window.dispatchEvent(new Event('chatwoot:ready'))
+    })
+
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    expect(sdk.cw.setUser).toHaveBeenCalledWith(USER.id, expect.objectContaining({ email: USER.email }))
+    expect(sdk.cw.setLocale).toHaveBeenCalledWith('en')
+    expect(sdk.cw.setConversationCustomAttributes).toHaveBeenCalled()
+    expect(sdk.scripts).toHaveLength(1)
+    expect(sdk.run).toHaveBeenCalledTimes(1)
+  })
+
+  it('WR-01: a retry while the widget is still not ready waits for ready, then applies identity', async () => {
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk({ neverReady: true })
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(window.$chatwoot).toBeDefined())
+    act(() => {
+      window.dispatchEvent(new Event('chatwoot:error'))
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(enMessages.ChatLauncher.widgetError),
+    )
+
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(mockGetUser).toHaveBeenCalledTimes(2))
+    expect(sdk.cw.toggle).not.toHaveBeenCalled()
+    await act(async () => {
+      window.dispatchEvent(new Event('chatwoot:ready'))
+    })
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+    expect(sdk.cw.setUser).toHaveBeenCalledTimes(1)
+    expect(sdk.run).toHaveBeenCalledTimes(1)
+  })
+
   it('CR-01: after sign-out the next open resets the widget instead of reusing the previous customer\'s chat', async () => {
     wireFetchToIdentityRoute()
     const sdk = installFakeSdk()
