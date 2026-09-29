@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
-import { formatStatus, gatherStatus, parseArgs, runInspect } from '../infra/chatwoot/inspect.mjs'
+import { formatStatus, gatherStatus, parseArgs, printSecret, runInspect } from '../infra/chatwoot/inspect.mjs'
 
 const FAKE_TOKEN = 'tok_SECRET_0123456789abcdef'
 const FAKE_HMAC = 'hmac_SECRET_fedcba9876543210'
@@ -198,5 +198,92 @@ describe('inspect --status (tracer)', () => {
     expect(() => parseArgs(['--status', '--report'])).toThrow()
     expect(() => parseArgs(['--bogus'])).toThrow()
     expect(() => parseArgs([])).toThrow()
+  })
+})
+
+describe('--print (T-77-21: a secret only ever flows into a pipe)', () => {
+  const kinds = ['website-token', 'hmac-token'] as const
+
+  for (const kind of kinds) {
+    it(`printSecret(${kind}) refuses when isTTY is true: nothing on stdout, exit 1, secret not even fetched`, async () => {
+      const written: string[] = []
+      const errors: string[] = []
+      let fetched = false
+      const code = await printSecret(kind, {
+        isTTY: true,
+        getValue: async () => {
+          fetched = true
+          return FAKE_HMAC
+        },
+        out: (t) => written.push(t),
+        err: (t) => errors.push(t),
+      })
+      expect(code).toBe(1)
+      expect(written).toEqual([])
+      expect(fetched).toBe(false)
+      expect(errors).toEqual(['refusing to print a secret to a terminal; pipe it'])
+    })
+
+    it(`printSecret(${kind}) writes exactly the value, no newline, when isTTY is false`, async () => {
+      const written: string[] = []
+      const code = await printSecret(kind, {
+        isTTY: false,
+        getValue: async () => 'value-123',
+        out: (t) => written.push(t),
+        err: () => {},
+      })
+      expect(code).toBe(0)
+      expect(written).toEqual(['value-123'])
+    })
+  }
+
+  it('rejects an unknown kind and never prints', async () => {
+    const written: string[] = []
+    const code = await printSecret('api-token', { isTTY: false, getValue: async () => 'x', out: (t) => written.push(t), err: () => {} })
+    expect(code).toBe(2)
+    expect(written).toEqual([])
+  })
+
+  it('an empty secret exits 2 without writing', async () => {
+    const written: string[] = []
+    const code = await printSecret('hmac-token', { isTTY: false, getValue: async () => '', out: (t) => written.push(t), err: () => {} })
+    expect(code).toBe(2)
+    expect(written).toEqual([])
+  })
+
+  it('runInspect --print pulls each value from the Website inbox and never puts it on the error stream', async () => {
+    const fake = createFake()
+    for (const [kind, expected] of [
+      ['website-token', 'pub_website_token_123'],
+      ['hmac-token', FAKE_HMAC],
+    ] as const) {
+      const written: string[] = []
+      const errors: string[] = []
+      const code = await runInspect(parseArgs(['--print', kind]), {
+        client: makeClient(fake),
+        isTTY: false,
+        write: (t) => written.push(t),
+        err: (l) => errors.push(l),
+      })
+      expect(code).toBe(0)
+      expect(written).toEqual([expected])
+      expect(errors.join('')).not.toContain(expected)
+    }
+    expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
+  })
+
+  it('runInspect --print on a terminal exits 1 and makes no secret request', async () => {
+    const fake = createFake()
+    const written: string[] = []
+    const errors: string[] = []
+    const code = await runInspect(parseArgs(['--print', 'hmac-token']), {
+      client: makeClient(fake),
+      isTTY: true,
+      write: (t) => written.push(t),
+      err: (l) => errors.push(l),
+    })
+    expect(code).toBe(1)
+    expect(written).toEqual([])
+    expect(fake.requests).toHaveLength(0)
   })
 })

@@ -132,4 +132,17 @@ rm -f "$CHATWOOT_PROBE_DIR/probe-price.json"
 printf '{"topic":"probe","responses":{"en":"Hello there, no price mentioned here."}}\n' > "$CHATWOOT_PROBE_DIR/probe-clean.json"
 run_probe "template-clean" "$CHATWOOT_PROBE_DIR/probe-clean.json" "allow"
 
+# --- Probe I (Phase 77 plan 09, T-77-22): the new Chatwoot/Telegram secret
+# names come from infra/vps/env/chatwoot-integration.env.example. A markdown
+# file assigning CHATWOOT_WIDGET_HMAC_SECRET a real-shaped value must be blocked
+# by the infra KEY=value gate. Value generated at runtime (never a literal);
+# the second probe covers the Telegram token name the same way. ---
+HMAC_RAND_SUFFIX=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 40)
+printf '# notes\n%s\n' "CHATWOOT_WIDGET_HMAC_SECRET=${HMAC_RAND_SUFFIX}" > "$PROBE_DIR/probe-chatwoot-hmac.md"
+run_probe "chatwoot-hmac-secret" "$PROBE_DIR/probe-chatwoot-hmac.md" "block" "ERROR: Possible infra/vps secret"
+
+TG_RAND_SUFFIX=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 35)
+printf '# notes\n%s\n' "TELEGRAM_CHAT_BOT_TOKEN=${TG_RAND_SUFFIX}" > "$PROBE_DIR/probe-telegram-token.md"
+run_probe "telegram-bot-token" "$PROBE_DIR/probe-telegram-token.md" "block" "ERROR: Possible infra/vps secret"
+
 exit "$FAIL"
