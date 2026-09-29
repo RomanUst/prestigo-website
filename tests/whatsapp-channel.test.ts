@@ -16,6 +16,7 @@ import { createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
 import {
   buildProbePayload,
   loadChannelMeta,
+  mergeAppSecret,
   parseArgs,
   runChannel,
   signBody,
@@ -298,5 +299,186 @@ describe('--probe', () => {
       const res = await run(['--probe'], world)
       for (const value of [APP_SECRET, API_KEY, CW_TOKEN, GRAPH_TOKEN, PHONE_ID]) expect(res.all).not.toContain(value)
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Task 2: --harden, recovery levers, provider_config redaction
+// ---------------------------------------------------------------------------
+
+describe('mergeAppSecret', () => {
+  it('returns a new object with every existing key plus app_secret and never mutates its input', () => {
+    const existing = { source: 'manual_setup_v2', api_key: API_KEY, phone_number_id: PHONE_ID, nested: { a: 1 } }
+    const snapshot = JSON.parse(JSON.stringify(existing))
+    const merged = mergeAppSecret(existing, APP_SECRET)
+    expect(merged).toEqual({ ...snapshot, app_secret: APP_SECRET })
+    expect(merged).not.toBe(existing)
+    expect(existing).toEqual(snapshot)
+    expect(Object.keys(existing)).not.toContain('app_secret')
+  })
+})
+
+describe('--harden', () => {
+  const noLeak = (text: string) => {
+    for (const value of [APP_SECRET, OTHER_SECRET, API_KEY, CW_TOKEN, GRAPH_TOKEN, PHONE_ID, WABA]) expect(text).not.toContain(value)
+  }
+
+  it('sends exactly one PATCH with the full existing provider_config plus app_secret, then re-reads and prints booleans only', async () => {
+    const world = makeWorld()
+    const before = structuredClone(world.inboxes[0].provider_config)
+    const res = await run(['--harden'], world)
+    const patches = patchCalls(world)
+    expect(patches).toHaveLength(1)
+    expect(patches[0].url).toBe(`${BASE}/api/v1/accounts/1/inboxes/7`)
+    expect(JSON.parse(patches[0].body as string)).toEqual({ channel: { provider_config: { ...before, app_secret: APP_SECRET } } })
+    // a GET of the inbox follows the PATCH (preservation proof)
+    const idxPatch = world.calls.indexOf(patches[0])
+    expect(world.calls.slice(idxPatch + 1).some((c: Call) => c.method === 'GET' && c.url.endsWith('/inboxes/7'))).toBe(true)
+    expect(res.out).toEqual(['app_secret=configured', 'source_preserved=true', 'api_key_preserved=true', 'phone_number_id_preserved=true'])
+    expect(res.code).toBe(0)
+    expect(world.inboxes[0].provider_config).toEqual({ ...before, app_secret: APP_SECRET })
+    noLeak(res.all)
+  })
+
+  it('is idempotent: a second run sends no PATCH and prints app_secret=unchanged', async () => {
+    const world = makeWorld()
+    await run(['--harden'], world)
+    const patchesBefore = patchCalls(world).length
+    const res = await run(['--harden'], world)
+    expect(patchCalls(world)).toHaveLength(patchesBefore)
+    expect(res.out).toEqual(['app_secret=unchanged'])
+    expect(res.code).toBe(0)
+  })
+
+  it('replaces a different stored secret with one PATCH and prints app_secret=updated', async () => {
+    const world = makeWorld()
+    world.inboxes[0].provider_config.app_secret = OTHER_SECRET
+    const res = await run(['--harden'], world)
+    expect(patchCalls(world)).toHaveLength(1)
+    expect(res.out[0]).toBe('app_secret=updated')
+    expect(world.inboxes[0].provider_config.app_secret).toBe(APP_SECRET)
+    noLeak(res.all)
+  })
+
+  it('--dry-run reads only and prints plan app_secret=set (or unchanged once configured)', async () => {
+    const world = makeWorld()
+    const res = await run(['--harden', '--dry-run'], world)
+    expect(res.out).toEqual(['plan app_secret=set'])
+    expect(res.code).toBe(0)
+    expect(world.calls.every((c: Call) => c.method === 'GET')).toBe(true)
+    world.inboxes[0].provider_config.app_secret = APP_SECRET
+    const again = await run(['--harden', '--dry-run'], world)
+    expect(again.out).toEqual(['plan app_secret=unchanged'])
+  })
+
+  it('a rejected PATCH echoing api_key and app_secret exits 2 without leaking, points at the rails runner fallback, and a rerun completes', async () => {
+    const world = makeWorld()
+    const before = structuredClone(world.inboxes[0].provider_config)
+    world.patchMode = 'reject'
+    const res = await run(['--harden'], world)
+    expect(res.code).toBe(2)
+    noLeak(res.all)
+    expect(res.all).toContain('rails runner')
+    expect(world.inboxes[0].provider_config).toEqual(before)
+    world.patchMode = 'accept'
+    const rerun = await run(['--harden'], world)
+    expect(rerun.code).toBe(0)
+    expect(rerun.out[0]).toBe('app_secret=configured')
+  })
+
+  it('exits 1 with the failing *_preserved=false line when the write dropped api_key', async () => {
+    const world = makeWorld()
+    world.patchMode = 'drop_api_key'
+    const res = await run(['--harden'], world)
+    expect(res.code).toBe(1)
+    expect(res.out).toContain('api_key_preserved=false')
+    expect(res.out).toContain('source_preserved=true')
+    noLeak(res.all)
+  })
+
+  it('exits 1 with source_preserved=false when the write changed source', async () => {
+    const world = makeWorld()
+    world.patchMode = 'change_source'
+    const res = await run(['--harden'], world)
+    expect(res.code).toBe(1)
+    expect(res.out).toContain('source_preserved=false')
+  })
+
+  it('requires META_WA_APP_SECRET before any request', async () => {
+    const world = makeWorld()
+    const env = { ...META_ENV }
+    delete (env as any).META_WA_APP_SECRET
+    const res = await run(['--harden'], world, {}, env)
+    expect(res.code).toBe(2)
+    expect(res.all).toContain('META_WA_APP_SECRET')
+    expect(world.calls).toHaveLength(0)
+  })
+})
+
+describe('recovery levers', () => {
+  it('--sync-templates issues exactly one POST to /inboxes/:id/sync_templates', async () => {
+    const world = makeWorld()
+    const res = await run(['--sync-templates'], world)
+    const posts = world.calls.filter((c: Call) => c.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(posts[0].url).toBe(`${BASE}/api/v1/accounts/1/inboxes/7/sync_templates`)
+    expect(res.out).toEqual(['sync_templates=requested'])
+    expect(res.code).toBe(0)
+  })
+
+  it('--register-webhook issues exactly one POST to /inboxes/:id/register_webhook', async () => {
+    const world = makeWorld()
+    const res = await run(['--register-webhook'], world)
+    const posts = world.calls.filter((c: Call) => c.method === 'POST')
+    expect(posts).toHaveLength(1)
+    expect(posts[0].url).toBe(`${BASE}/api/v1/accounts/1/inboxes/7/register_webhook`)
+    expect(res.out).toEqual(['register_webhook=ok'])
+    expect(res.code).toBe(0)
+  })
+
+  it('both levers report a missing WhatsApp inbox with exit 1 and no POST', async () => {
+    for (const mode of ['--sync-templates', '--register-webhook']) {
+      const world = makeWorld([])
+      const res = await run([mode], world)
+      expect(res.out).toContain('whatsapp inbox missing')
+      expect(res.code).toBe(1)
+      expect(world.calls.some((c: Call) => c.method === 'POST')).toBe(false)
+    }
+  })
+})
+
+describe('client error redaction (provider_config keys)', () => {
+  it('redacts api_key, app_secret, app_secret_key, client_secret, api_secret, verification_pin and business_management_token in error bodies', async () => {
+    const values: Record<string, string> = {
+      api_key: 'distinct-value-api-key',
+      app_secret: 'distinct-value-app-secret',
+      app_secret_key: 'distinct-value-app-secret-key',
+      client_secret: 'distinct-value-client-secret',
+      api_secret: 'distinct-value-api-secret',
+      verification_pin: 'distinct-value-pin',
+      business_management_token: 'distinct-value-bm-token',
+    }
+    const body = JSON.stringify({ error: 'nope', provider_config: { ...values, keep: 'visible' } })
+    const client = createChatwootClient({
+      baseUrl: BASE,
+      token: CW_TOKEN,
+      accountId: '1',
+      fetchImpl: async () => new Response(body, { status: 422 }),
+    })
+    const error: any = await client.request('PATCH', '/inboxes/7', { channel: {} }).catch((e: unknown) => e)
+    for (const value of Object.values(values)) expect(error.message).not.toContain(value)
+    expect(error.message).toContain('[redacted]')
+    expect(error.message).toContain('visible')
+  })
+
+  it('also redacts a numeric verification_pin', async () => {
+    const client = createChatwootClient({
+      baseUrl: BASE,
+      token: CW_TOKEN,
+      accountId: '1',
+      fetchImpl: async () => new Response('{"verification_pin":135790}', { status: 500 }),
+    })
+    const error: any = await client.request('GET', '/inboxes/7').catch((e: unknown) => e)
+    expect(error.message).not.toContain('135790')
   })
 })

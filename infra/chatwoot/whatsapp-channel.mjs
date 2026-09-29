@@ -9,6 +9,12 @@
  *                                 signature, correct X-Hub-Signature-256) to the
  *                                 WhatsApp inbox's own webhook URL; verdict=enforced
  *                                 only for 401 / 401 / 200
+ *   --harden [--dry-run]          merge app_secret into the manual channel's
+ *                                 provider_config (admin inbox PATCH, full existing
+ *                                 hash merged in memory), re-read, prove source,
+ *                                 api_key and phone_number_id are unchanged. Idempotent.
+ *   --sync-templates              POST /inboxes/:id/sync_templates (recovery lever)
+ *   --register-webhook            POST /inboxes/:id/register_webhook (recovery lever)
  *
  * Config sources (never a command-line argument):
  *   - Chatwoot admin token: env CHATWOOT_API_TOKEN / CHATWOOT_BASE_URL /
@@ -137,6 +143,17 @@ export function buildProbePayload(inbox) {
   }
 }
 
+/**
+ * New provider_config with every existing key plus app_secret. The Chatwoot PATCH
+ * REPLACES provider_config, so the full existing hash must be sent back. Never
+ * mutates its input.
+ * @param {Record<string, any>} existing
+ * @param {string} secret
+ */
+export function mergeAppSecret(existing, secret) {
+  return { ...structuredClone(existing ?? {}), app_secret: secret }
+}
+
 function unwrapList(res) {
   if (Array.isArray(res)) return res
   if (Array.isArray(res?.payload)) return res.payload
@@ -148,20 +165,29 @@ function unwrapList(res) {
 // Arguments
 // ---------------------------------------------------------------------------
 
-const MODES = new Map([['--probe', 'probe']])
+const MODES = new Map([
+  ['--probe', 'probe'],
+  ['--harden', 'harden'],
+  ['--sync-templates', 'sync-templates'],
+  ['--register-webhook', 'register-webhook'],
+])
+const MODE_LIST = [...MODES.keys()].join(', ')
 
 export function parseArgs(argv) {
-  const opts = { mode: null }
+  const opts = { mode: null, dryRun: false }
   for (const arg of argv) {
     if (MODES.has(arg)) {
       const mode = MODES.get(arg)
       if (opts.mode && opts.mode !== mode) throw new UsageError('Use exactly one mode')
       opts.mode = mode
+    } else if (arg === '--dry-run') {
+      opts.dryRun = true
     } else {
       throw new UsageError(`Unknown argument: ${arg}`)
     }
   }
-  if (!opts.mode) throw new UsageError('Use one of --probe')
+  if (!opts.mode) throw new UsageError(`Use one of ${MODE_LIST}`)
+  if (opts.dryRun && opts.mode !== 'harden') throw new UsageError('--dry-run only works with --harden')
   return opts
 }
 
@@ -239,6 +265,73 @@ async function modeProbe(ctx) {
   return enforced ? 0 : 1
 }
 
+const RAILS_FALLBACK =
+  'Fallback: merge app_secret into the Channel::Whatsapp provider_config with a rails runner in the Chatwoot rails container ' +
+  '(VPS SSH, owner allow-rule); steps in infra/vps/runbooks/whatsapp.md. provider_config was not changed by this run.'
+
+/** Same value on both sides, compared structurally. */
+const same = (a, b) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null)
+
+async function modeHarden(ctx, opts) {
+  const meta = ctx.loadMeta([APP_SECRET_KEY])
+  const inbox = await resolveInbox(ctx, { detail: true })
+  if (!inbox) {
+    ctx.out('whatsapp inbox missing')
+    return 1
+  }
+  const existing = inbox.provider_config
+  if (!existing || typeof existing !== 'object' || Array.isArray(existing)) {
+    throw new ChatwootConfigError('WhatsApp inbox has no readable provider_config (admin token needed)')
+  }
+  // Every provider_config value is treated as sensitive: if an error body echoes
+  // any of them (escaped, nested), the scrubber removes it from the output.
+  for (const value of Object.values(existing)) if (typeof value === 'string') ctx.addSecret(value)
+  const hadSecret = typeof existing.app_secret === 'string' && existing.app_secret !== ''
+  const unchanged = existing.app_secret === meta.appSecret
+
+  if (opts.dryRun) {
+    ctx.out(`plan app_secret=${unchanged ? 'unchanged' : 'set'}`)
+    return 0
+  }
+  if (unchanged) {
+    ctx.out('app_secret=unchanged')
+    return 0
+  }
+
+  try {
+    await needChatwoot(ctx).request('PATCH', `/inboxes/${inbox.id}`, {
+      channel: { provider_config: mergeAppSecret(existing, meta.appSecret) },
+    })
+  } catch (error) {
+    if (!(error instanceof ChatwootApiError)) throw error
+    ctx.err(`API error: ${error.message}`)
+    ctx.err(RAILS_FALLBACK)
+    return 2
+  }
+
+  const after = (await needChatwoot(ctx).request('GET', `/inboxes/${inbox.id}`))?.provider_config ?? {}
+  const saved = after.app_secret === meta.appSecret
+  const checks = {
+    source_preserved: same(existing.source, after.source),
+    api_key_preserved: same(existing.api_key, after.api_key),
+    phone_number_id_preserved: same(existing.phone_number_id, after.phone_number_id),
+  }
+  ctx.out(saved ? `app_secret=${hadSecret ? 'updated' : 'configured'}` : 'app_secret=not_saved')
+  for (const [key, ok] of Object.entries(checks)) ctx.out(`${key}=${ok}`)
+  return saved && Object.values(checks).every(Boolean) ? 0 : 1
+}
+
+async function modeLever(ctx, { path, line }) {
+  const inbox = await resolveInbox(ctx)
+  if (!inbox) {
+    ctx.out('whatsapp inbox missing')
+    return 1
+  }
+  await needChatwoot(ctx).request('POST', `/inboxes/${inbox.id}/${path}`)
+  ctx.out(line)
+  return 0
+}
+
 /**
  * @param {ReturnType<typeof parseArgs>} opts
  * @param {{
@@ -294,6 +387,9 @@ export async function runChannel(opts, deps = {}) {
 
   try {
     if (opts.mode === 'probe') return await modeProbe(ctx)
+    if (opts.mode === 'harden') return await modeHarden(ctx, opts)
+    if (opts.mode === 'sync-templates') return await modeLever(ctx, { path: 'sync_templates', line: 'sync_templates=requested' })
+    if (opts.mode === 'register-webhook') return await modeLever(ctx, { path: 'register_webhook', line: 'register_webhook=ok' })
     throw new UsageError('Unknown mode')
   } catch (error) {
     if (error instanceof UsageError) {
