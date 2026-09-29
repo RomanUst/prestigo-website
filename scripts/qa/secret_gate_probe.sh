@@ -173,4 +173,28 @@ TG_RAND_SUFFIX=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 35)
 printf '# notes\n%s\n' "TELEGRAM_CHAT_BOT_TOKEN=${TG_RAND_SUFFIX}" > "$PROBE_DIR/probe-telegram-token.md"
 run_probe "telegram-bot-token" "$PROBE_DIR/probe-telegram-token.md" "block" "ERROR: Possible infra/vps secret"
 
+# --- Probe J (Phase 78 plan 02, T-78-04/T-78-05): the WhatsApp Cloud API
+# credential names come from infra/vps/env/whatsapp-meta.env.example. A markdown
+# file assigning META_WA_SYSTEM_USER_TOKEN or META_WA_APP_SECRET a real-shaped
+# value must be blocked by the infra KEY=value gate. Values are generated at
+# runtime from /dev/urandom (never a literal). The token charset omits "E" so a
+# random value can never accidentally form the Meta token shape and trip
+# SECRET_RE first (which would change the reported needle).
+# Identifiers (META_WA_WABA_ID) are not secrets and must stay ALLOWED, as must
+# the example file itself with all six names and empty values. ---
+META_TOK_RAND=$(LC_ALL=C tr -dc 'A-DF-Za-z0-9' < /dev/urandom | head -c 60)
+printf '# notes\n%s\n' "META_WA_SYSTEM_USER_TOKEN=${META_TOK_RAND}" > "$PROBE_DIR/probe-meta-token.md"
+run_probe "meta-wa-system-user-token" "$PROBE_DIR/probe-meta-token.md" "block" "ERROR: Possible infra/vps secret"
+
+META_SEC_RAND=$(LC_ALL=C tr -dc 'a-f0-9' < /dev/urandom | head -c 32)
+printf '# notes\n%s\n' "META_WA_APP_SECRET=${META_SEC_RAND}" > "$PROBE_DIR/probe-meta-app-secret.md"
+run_probe "meta-wa-app-secret" "$PROBE_DIR/probe-meta-app-secret.md" "block" "ERROR: Possible infra/vps secret"
+
+META_WABA_RAND=$(LC_ALL=C tr -dc '1-9' < /dev/urandom | head -c 15)
+printf '# notes\n%s\n' "META_WA_WABA_ID=${META_WABA_RAND}" > "$PROBE_DIR/probe-meta-waba-id.md"
+run_probe "meta-wa-waba-id-identifier" "$PROBE_DIR/probe-meta-waba-id.md" "allow"
+
+printf 'META_WA_SYSTEM_USER_TOKEN=\nMETA_WA_APP_SECRET=\nMETA_WA_WABA_ID=\nMETA_WA_PHONE_NUMBER_ID=\nMETA_WA_APP_ID=\nMETA_WA_GRAPH_VERSION=\n' > "$PROBE_DIR/probe-meta.env.example"
+run_probe "meta-wa-empty-example" "$PROBE_DIR/probe-meta.env.example" "allow"
+
 exit "$FAIL"
