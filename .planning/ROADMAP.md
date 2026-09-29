@@ -196,7 +196,7 @@ Plans:
   3. Operator can message a customer outside the 24-hour window using pre-approved WhatsApp templates (booking change, payment help, review request, trip reminder).
   4. A documented runbook covers WhatsApp channel recovery, current per-message pricing, and the rule that inboxes are never deleted without a fresh backup.
 
-**Plans**: 9/17 plans executed
+**Plans**: 10/17 plans executed
 
 Plans:
 **Wave 1**
@@ -213,7 +213,7 @@ Plans:
 - [x] 78-09-PLAN.md — WhatsApp channel ops CLI: signature probe, --harden (app_secret), --number/--register (owner PIN), recovery levers (security)
 
 **Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 78-10-PLAN.md — Remaining templates (driver details, re-open, invoice ready per D-10 owner decision, payment received) — 56 submissions valid
+- [x] 78-10-PLAN.md — Remaining templates (driver details, re-open, invoice ready per D-10 owner decision, payment received) — 56 submissions valid
 - [ ] 78-11-PLAN.md — EUR confirmation (one-way) + owner Meta onboarding: new SIM, "Prestigo Messaging" app Live, number + display name, own-PIN registration, token
 
 **Wave 4** *(blocked on Wave 3 completion)*
@@ -356,7 +356,7 @@ Plans:
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
-| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 9/17 | In Progress|  |
+| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 10/17 | In Progress|  |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
