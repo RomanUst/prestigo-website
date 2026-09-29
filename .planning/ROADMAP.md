@@ -157,7 +157,7 @@ Plans:
   5. Owner sees conversation volume, first-response time and resolution time per channel in Chatwoot reports.
   6. Operator sends every message previously sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as a Chatwoot canned response/macro, multilingual where relevant; new conversations are auto-assigned and labeled by channel/topic.
 
-**Plans**: 10/13 plans executed
+**Plans**: 11/13 plans executed
 
 Plans:
 **Wave 1**
@@ -177,7 +177,7 @@ Plans:
 - [x] 77-09-PLAN.md — Read-only inspect tooling (status/activity/reports/identity) + Vercel env hand-off + custody docs
 
 **Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 77-11-PLAN.md — info@/bookings@ email inboxes, Chatwoot-only, webmail emergency runbook (owner decision + steps)
+- [x] 77-11-PLAN.md — info@/bookings@ email inboxes, Chatwoot-only, webmail emergency runbook (owner decision + steps)
 - [ ] 77-12-PLAN.md — Owner-approved production launch + consent/CSP/CWV gates on production
 
 **Wave 5** *(blocked on Wave 4 completion)*
@@ -323,7 +323,7 @@ Plans:
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
-| 77. Chatwoot Deployment + Core Channels | v4.0 | 10/13 | In Progress|  |
+| 77. Chatwoot Deployment + Core Channels | v4.0 | 11/13 | In Progress|  |
 | 78. WhatsApp Cloud API Channel (Coexistence) | v4.0 | 0/0 | Not started | - |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
