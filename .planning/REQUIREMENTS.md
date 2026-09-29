@@ -18,12 +18,12 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Helpdesk Channels (INBOX)
 
-- [ ] **INBOX-01**: Emails to the service mailboxes (info@ / bookings@) arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only
-- [ ] **INBOX-02**: Visitor sees a lightweight chat button on the site (all 7 locales, RTL-correct) that loads no third-party script or cookie until clicked; clicking opens the Chatwoot widget and starts a conversation
-- [ ] **INBOX-03**: Signed-in customers open the widget already identified (HMAC identity validation), so their conversation attaches to their existing contact
-- [ ] **INBOX-04**: Adding the widget causes no CSP violations (CSP in `middleware.ts` + `csp_baseline.json` updated as a reviewed diff) and no measurable LCP/INP regression on home, route and /book pages
-- [ ] **INBOX-05**: Messages to the Prestigo Telegram bot arrive as Chatwoot conversations and can be answered from Chatwoot
-- [ ] **INBOX-06**: Owner can see reports of conversation volume, first-response time and resolution time per channel in Chatwoot
+- [x] **INBOX-01**: Emails to the service mailboxes (info@ / bookings@) arrive as Chatwoot conversations and operator replies are sent from that same address; these mailboxes are connected to Chatwoot only
+- [x] **INBOX-02**: Visitor sees a lightweight chat button on the site (all 7 locales, RTL-correct) that loads no third-party script or cookie until clicked; clicking opens the Chatwoot widget and starts a conversation
+- [x] **INBOX-03**: Signed-in customers open the widget already identified (HMAC identity validation), so their conversation attaches to their existing contact
+- [x] **INBOX-04**: Adding the widget causes no CSP violations (CSP in `middleware.ts` + `csp_baseline.json` updated as a reviewed diff) and no measurable LCP/INP regression on home, route and /book pages
+- [x] **INBOX-05**: Messages to the Prestigo Telegram bot arrive as Chatwoot conversations and can be answered from Chatwoot
+- [x] **INBOX-06**: Owner can see reports of conversation volume, first-response time and resolution time per channel in Chatwoot
 
 ### WhatsApp (WA)
 
@@ -75,8 +75,8 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### Operations (OPS)
 
-- [ ] **OPS-01**: Operator can send each message currently sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as Chatwoot canned responses/macros, multilingual where relevant
-- [ ] **OPS-02**: Chatwoot automation assigns and labels new conversations by channel/topic (e.g. booking, B2B, complaint)
+- [x] **OPS-01**: Operator can send each message currently sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as Chatwoot canned responses/macros, multilingual where relevant
+- [x] **OPS-02**: Chatwoot automation assigns and labels new conversations by channel/topic (e.g. booking, B2B, complaint)
 
 ### Statistics (STAT)
 
@@ -120,12 +120,12 @@ Deferred — tracked, not in this roadmap.
 | INFRA-03 | Phase 76 | Complete |
 | INFRA-04 | Phase 76 | Complete |
 | INFRA-05 | Phase 76 | Complete |
-| INBOX-01 | Phase 77 | Pending |
-| INBOX-02 | Phase 77 | Pending |
-| INBOX-03 | Phase 77 | Pending |
-| INBOX-04 | Phase 77 | Pending |
-| INBOX-05 | Phase 77 | Pending |
-| INBOX-06 | Phase 77 | Pending |
+| INBOX-01 | Phase 77 | Complete |
+| INBOX-02 | Phase 77 | Complete |
+| INBOX-03 | Phase 77 | Complete |
+| INBOX-04 | Phase 77 | Complete |
+| INBOX-05 | Phase 77 | Complete |
+| INBOX-06 | Phase 77 | Complete |
 | WA-01 | Phase 78 | Pending |
 | WA-02 | Phase 78 | Pending |
 | WA-03 | Phase 78 | Pending |
@@ -153,8 +153,8 @@ Deferred — tracked, not in this roadmap.
 | HOOK-04 | Phase 83 | Pending |
 | PANEL-01 | Phase 84 | Pending |
 | PANEL-02 | Phase 84 | Pending |
-| OPS-01 | Phase 77 | Pending |
-| OPS-02 | Phase 77 | Pending |
+| OPS-01 | Phase 77 | Complete |
+| OPS-02 | Phase 77 | Complete |
 | STAT-01 | Phase 85 | Pending |
 | STAT-02 | Phase 85 | Pending |
 | STAT-03 | Phase 85 | Pending |

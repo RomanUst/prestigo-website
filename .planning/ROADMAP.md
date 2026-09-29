@@ -14,7 +14,7 @@
 ### v4.0 Helpdesk + CRM (Phases 76-85) — IN PROGRESS
 
 - [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
-- [ ] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation
+- [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
 - [ ] **Phase 78: WhatsApp Cloud API Channel (Coexistence)** - WhatsApp Business Coexistence onboarding for the existing +420 number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [ ] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL
@@ -157,7 +157,7 @@ Plans:
   5. Owner sees conversation volume, first-response time and resolution time per channel in Chatwoot reports.
   6. Operator sends every message previously sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as a Chatwoot canned response/macro, multilingual where relevant; new conversations are auto-assigned and labeled by channel/topic.
 
-**Plans**: 13/13 plans executed
+**Plans**: 13/13 plans complete
 
 Plans:
 **Wave 1**
@@ -323,7 +323,7 @@ Plans:
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
-| 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | In Progress|  |
+| 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
 | 78. WhatsApp Cloud API Channel (Coexistence) | v4.0 | 0/0 | Not started | - |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
