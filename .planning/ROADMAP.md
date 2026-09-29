@@ -157,7 +157,7 @@ Plans:
   5. Owner sees conversation volume, first-response time and resolution time per channel in Chatwoot reports.
   6. Operator sends every message previously sent by root `send-*.mjs` scripts (time change, vehicle change, payment help, post-trip review, login help) as a Chatwoot canned response/macro, multilingual where relevant; new conversations are auto-assigned and labeled by channel/topic.
 
-**Plans**: 6/13 plans executed
+**Plans**: 7/13 plans executed
 
 Plans:
 **Wave 1**
@@ -166,7 +166,7 @@ Plans:
 - [x] 77-03-PLAN.md — Chatwoot config-as-code: 35 canned responses, labels, teams, attributes, inbox + automation JSON, template price guard
 - [x] 77-04-PLAN.md — Playwright chat probe (consent, CSP click, overlap) + pre-change CWV baseline
 - [x] 77-05-PLAN.md — ChatLauncher copy in 7 locales + pre-launch privacy disclosure (chat, Hostinger, Backblaze, Telegram)
-- [ ] 77-06-PLAN.md — New Telegram bot with localized profile, connected to Chatwoot (owner steps)
+- [x] 77-06-PLAN.md — New Telegram bot with localized profile, connected to Chatwoot (owner steps)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 77-07-PLAN.md — Idempotent Chatwoot sync: templates, labels, teams, automation, Website inbox (owner token)
@@ -323,7 +323,7 @@ Plans:
 | 74. SEO — hreflang, Metadata, Sitemap, Switcher | v3.0 | 6/6 | Complete    | 2026-09-24 |
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
-| 77. Chatwoot Deployment + Core Channels | v4.0 | 6/13 | In Progress|  |
+| 77. Chatwoot Deployment + Core Channels | v4.0 | 7/13 | In Progress|  |
 | 78. WhatsApp Cloud API Channel (Coexistence) | v4.0 | 0/0 | Not started | - |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
