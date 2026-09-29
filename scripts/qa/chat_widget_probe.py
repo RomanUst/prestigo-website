@@ -312,6 +312,15 @@ def measure_once(browser, url: str, click_launcher: bool = False) -> dict:
         if click_launcher:
             launcher = page.query_selector(LAUNCHER_SELECTOR)
             if launcher:
+                # LCP/CLS/TBT were read above with the first-visit cookie modal
+                # showing (same as the baseline). That modal is full-screen and
+                # intercepts pointer events, so model a visitor who has already
+                # answered it before the launcher click, and only count the
+                # launcher click's own interaction durations.
+                page.evaluate(
+                    "() => { const d = document.querySelector('[role=dialog][aria-labelledby=consent-title]'); if (d) d.remove(); "
+                    "if (window.__prestigoPerf) window.__prestigoPerf.eventDurations = []; }"
+                )
                 launcher.click()
                 page.wait_for_timeout(300)
                 durations = page.evaluate(READ_EVENT_DURATIONS_JS)
