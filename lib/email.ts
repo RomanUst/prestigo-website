@@ -355,6 +355,150 @@ Total: €${czkToEur(data.amountCzk)} (${data.amountCzk.toLocaleString('cs-CZ')}
   }
 }
 
+// ── Group payment link (one Stripe link settling several manual bookings) ──
+// Per-row amounts are 0 on these bookings (the price is a group total), so the
+// single-booking template would print "0 Kč" — this one lists every leg and
+// shows the total actually captured by Stripe.
+
+export interface GroupPaymentLeg {
+  bookingReference: string
+  pickupDate: string        // 'YYYY-MM-DD'
+  pickupTime: string        // 'HH:MM'
+  originAddress: string
+  destinationAddress: string
+  vehicleClass: string
+  passengers: number
+  flightNumber?: string
+  specialRequests?: string
+}
+
+export interface GroupPaymentEmailData {
+  clientName: string
+  clientEmail: string
+  clientPhone: string
+  amountEur: number
+  legs: GroupPaymentLeg[]
+}
+
+export function buildGroupConfirmationHtml(data: GroupPaymentEmailData): string {
+  const legRows = data.legs
+    .map((leg, i) => {
+      const route = leg.destinationAddress
+        ? `${escapeHtml(leg.originAddress)} &rarr; ${escapeHtml(leg.destinationAddress)}`
+        : escapeHtml(leg.originAddress)
+      const flight = leg.flightNumber
+        ? `<div style="font-size: 12px; color: #A9AEB0; margin-top: 6px;">Flight ${escapeHtml(leg.flightNumber)}</div>`
+        : ''
+      return `
+      <div style="background-color: #17293B; border-left: 3px solid #BFA06A; padding: 20px 24px; margin: 0 32px 12px;">
+        <div style="font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A;">TRANSFER ${i + 1} OF ${data.legs.length} &middot; ${escapeHtml(leg.bookingReference)}</div>
+        <div style="font-size: 15px; font-weight: 600; color: #F3EEE3; margin-top: 8px;">${formatPickupDate(leg.pickupDate)} at ${escapeHtml(leg.pickupTime)}</div>
+        <div style="font-size: 14px; color: #F3EEE3; margin-top: 6px;">${route}</div>
+        <div style="font-size: 12px; color: #A9AEB0; margin-top: 6px;">${formatVehicleLabel(leg.vehicleClass)} &middot; ${leg.passengers} passenger${leg.passengers !== 1 ? 's' : ''}</div>
+        ${flight}
+      </div>`
+    })
+    .join('')
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your PRESTIGO Booking Confirmation</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body style="margin: 0; padding: 0; background-color: #0F1D2C;">
+  <div style="background-color: #0F1D2C; padding: 0; margin: 0; font-family: 'Inter', Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #0F1D2C;">
+
+      <div style="height: 2px; background: linear-gradient(90deg, #BFA06A 0%, #E6D6B0 50%, transparent 100%);"></div>
+
+      <div style="padding: 32px 32px 16px; text-align: center;">
+        ${emailLogoImg(28)}
+      </div>
+
+      <h1 style="font-family: 'Inter', Arial, sans-serif; font-size: 28px; font-weight: 400; color: #F3EEE3; text-align: center; margin: 0 0 12px;">Your bookings are confirmed.</h1>
+      <p style="font-size: 14px; color: #A9AEB0; text-align: center; margin: 0 32px 32px;">Payment received for ${data.legs.length} transfer${data.legs.length !== 1 ? 's' : ''}. Driver details will follow before each pickup.</p>
+
+      ${legRows}
+
+      <div style="border-top: 1px solid #2B4056; padding: 16px 32px; margin-top: 24px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">TOTAL PAID</div>
+        <div style="font-size: 14px; font-weight: 600; color: #F3EEE3;">${formatEUR(data.amountEur)}</div>
+      </div>
+
+      <div style="padding: 24px 32px; color: #A9AEB0; font-size: 14px;">
+        <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at ${EMAIL_CONTACT_LINE}</div>
+      </div>
+
+      <div style="padding-top: 32px; padding-bottom: 32px;">
+        <div style="height: 1px; background-color: #BFA06A; margin: 0 32px 24px;"></div>
+        <div style="text-align: center; margin-bottom: 8px;">
+          ${emailLogoImg(18)}
+        </div>
+        <div style="text-align: center; font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">PRESTIGE IN EVERY MILE</div>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>`
+}
+
+export async function sendGroupClientConfirmation(data: GroupPaymentEmailData): Promise<void> {
+  const refs = data.legs.map((l) => l.bookingReference)
+  const subjectRef = refs.length > 1 ? `${refs[0]} + ${refs.length - 1} more` : refs[0]
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [data.clientEmail],
+      replyTo: CUSTOMER_REPLY_TO,
+      subject: `Your PRESTIGO bookings are confirmed — ${subjectRef}`,
+      html: buildGroupConfirmationHtml(data),
+    })
+    if (error) console.error('Resend group client email error:', error)
+  } catch (err) {
+    console.error('Resend group client email exception:', err)
+    // Non-fatal — do not throw
+  }
+}
+
+export async function sendGroupManagerAlert(data: GroupPaymentEmailData): Promise<void> {
+  const legsText = data.legs
+    .map(
+      (l, i) => `${i + 1}. ${l.bookingReference} — ${l.pickupDate} at ${l.pickupTime}
+   ${l.originAddress} → ${l.destinationAddress}
+   ${formatVehicleLabel(l.vehicleClass)}, ${l.passengers} pax, flight: ${l.flightNumber || 'N/A'}
+   Notes: ${l.specialRequests || 'None'}`
+    )
+    .join('\n')
+
+  const text = `Group payment received — ${data.legs.length} bookings confirmed.
+
+Client: ${data.clientName}
+Email: ${data.clientEmail}
+Phone: ${data.clientPhone || 'N/A'}
+Total paid: ${formatEUR(data.amountEur)}
+
+${legsText}`
+
+  try {
+    const { error } = await getResend().emails.send({
+      from: 'PRESTIGO Bookings <bookings@rideprestigo.com>',
+      to: [process.env.MANAGER_EMAIL!],
+      replyTo: 'roman@rideprestigo.com',
+      subject: `Group payment: ${data.legs.length} bookings — ${data.clientName}`,
+      text,
+    })
+    if (error) console.error('Resend group manager alert error:', error)
+  } catch (err) {
+    console.error('Resend group manager alert exception:', err)
+    // Non-fatal — do not throw
+  }
+}
+
 export interface ContactInquiryData {
   name: string
   email: string
