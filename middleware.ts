@@ -79,7 +79,7 @@ function buildCsp(nonce: string): string {
  *
  * INBOX-04/D-09 (Phase 77): the chat widget is loaded client-side, only after
  * the visitor clicks "Chat on site" on a public page (never by server code,
- * never on /admin or /driver — see components/ChatWidgetLoader.tsx). Its
+ * never on /admin or /driver — see components/chat/load-chat-widget.ts). Its
  * exact origin (the widget's VPS subdomain, below) is added here only —
  * never a wildcard subdomain, never to buildCsp() (the nonce CSP for /admin
  * and /driver, which never mount the launcher).
