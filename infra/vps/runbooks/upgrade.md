@@ -92,6 +92,21 @@ ssh prestigo-vps 'bash /opt/prestigo/scripts/smoke.sh'
 Any `FAIL` line stops the upgrade here — do not proceed to declare success;
 go to step 7 (rollback).
 
+**6b. Chatwoot config check after an upgrade (Chatwoot only).**
+A new Chatwoot version can change defaults or drop a setting, so confirm the
+configuration kept in `infra/chatwoot/` still matches the live instance. Run from
+the owner Mac (uses `~/.config/prestigo/chatwoot-api.env`; see
+`infra/chatwoot/README.md`):
+```bash
+node infra/chatwoot/sync.mjs --dry-run     # must end with: summary: create=0 update=0 (skipped only for inboxes not created yet)
+node infra/chatwoot/inspect.mjs --status   # counts, Website settings (hmac_mandatory=true) and inbox presence must match the last known-good output
+python3 scripts/qa/chat_widget_probe.py --click https://rideprestigo.com --locales en --pages /   # must exit 0
+```
+Any `update` in the dry run means the upgrade changed a managed setting: review
+it, then apply with `node infra/chatwoot/sync.mjs` (git stays the source of
+truth) and re-run the checks. A widget probe failure means the site widget is
+broken for visitors: treat it like a failed smoke check and go to step 7.
+
 **7. Rollback.**
 - If the smoke check fails **before** any DB migration ran (Chatwoot: before
   `db:chatwoot_prepare`; EspoCRM: before the entrypoint's auto-upgrade

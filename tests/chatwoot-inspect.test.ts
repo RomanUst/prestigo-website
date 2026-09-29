@@ -9,7 +9,16 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
-import { formatStatus, gatherStatus, parseArgs, printSecret, runInspect } from '../infra/chatwoot/inspect.mjs'
+import {
+  formatActivity,
+  formatContact,
+  formatReport,
+  formatStatus,
+  gatherStatus,
+  parseArgs,
+  printSecret,
+  runInspect,
+} from '../infra/chatwoot/inspect.mjs'
 
 const FAKE_TOKEN = 'tok_SECRET_0123456789abcdef'
 const FAKE_HMAC = 'hmac_SECRET_fedcba9876543210'
@@ -285,5 +294,152 @@ describe('--print (T-77-21: a secret only ever flows into a pipe)', () => {
     expect(code).toBe(1)
     expect(written).toEqual([])
     expect(fake.requests).toHaveLength(0)
+  })
+})
+
+describe('--activity', () => {
+  it('formatActivity maps a conversation to the exact documented line', () => {
+    const line = formatActivity({
+      inboxName: 'Website',
+      conversation: { id: 42, status: 'open', labels: ['ch-web', 'payment'], meta: { assignee: { id: OWNER_ID }, team: { name: 'Bookings' } } },
+      ownerId: OWNER_ID,
+      lastOutgoing: 'sent',
+    })
+    expect(line).toBe('inbox=Website id=42 status=open labels=ch-web,payment assignee_is_owner=true team=Bookings last_outgoing=sent')
+  })
+
+  it('handles no assignee, no team, no labels and no outgoing message', () => {
+    const line = formatActivity({
+      inboxName: 'Website',
+      conversation: { id: 1, status: 'pending', labels: [], meta: {} },
+      ownerId: OWNER_ID,
+      lastOutgoing: null,
+    })
+    expect(line).toBe('inbox=Website id=1 status=pending labels=none assignee_is_owner=false team=none last_outgoing=none')
+  })
+
+  it('runInspect --activity lists conversations per inbox without names, emails or message bodies', async () => {
+    const fake = createFake({
+      conversations: [
+        { id: 5, inbox_id: 3, status: 'open', labels: ['ch-web'], created_at: 1_800_000_000, team_id: 1, meta: { assignee: { id: OWNER_ID }, sender: { name: 'Jane Customer', email: 'jane@example.test' } } },
+        { id: 6, inbox_id: 3, status: 'resolved', labels: [], created_at: 1_000_000_000, meta: { assignee: { id: 99 } } },
+      ],
+      messages: new Map([
+        [5, [
+          { id: 1, message_type: 0, status: 'sent', content: 'SECRET CUSTOMER TEXT', created_at: 1 },
+          { id: 2, message_type: 1, status: 'delivered', content: 'reply body', created_at: 2 },
+          { id: 3, message_type: 1, status: 'read', content: 'later reply', created_at: 3 },
+        ]],
+      ]),
+    })
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--activity', '--since', '2020-01-01T00:00:00Z']), { client: makeClient(fake), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual(['inbox=Website id=5 status=open labels=ch-web assignee_is_owner=true team=bookings last_outgoing=read'])
+    const all = cap.out.join('\n')
+    expect(all).not.toContain('Jane')
+    expect(all).not.toContain('example.test')
+    expect(all).not.toContain('SECRET CUSTOMER TEXT')
+    expect(all).not.toContain('reply body')
+  })
+
+  it('respects --limit per inbox', async () => {
+    const conversations = Array.from({ length: 5 }, (_, i) => ({ id: 10 + i, inbox_id: 3, status: 'open', labels: [], created_at: 10, meta: {} }))
+    const cap = capture()
+    await runInspect(parseArgs(['--activity', '--limit', '2']), { client: makeClient(createFake({ conversations })), ...cap.io })
+    expect(cap.out).toHaveLength(2)
+  })
+})
+
+describe('--report (INBOX-06 / D-22)', () => {
+  it('formatReport prints null, not 0, when Chatwoot returns no average', () => {
+    expect(formatReport({ kind: 'inbox', name: 'Website', summary: { conversations_count: 0, avg_first_response_time: null, avg_resolution_time: null } })).toBe(
+      'report inbox Website conversations=0 avg_first_response_s=null avg_resolution_s=null',
+    )
+    expect(formatReport({ kind: 'label', name: 'ch-web', summary: undefined })).toBe(
+      'report label ch-web conversations=0 avg_first_response_s=null avg_resolution_s=null',
+    )
+    expect(formatReport({ kind: 'inbox', name: 'Website', summary: { conversations_count: 4, avg_first_response_time: 120.4, avg_resolution_time: null } })).toBe(
+      'report inbox Website conversations=4 avg_first_response_s=120 avg_resolution_s=null',
+    )
+  })
+
+  it('uses summary_reports for every inbox and every ch-* label', async () => {
+    const fake = createFake({
+      reports: {
+        summary: new Map([
+          ['inbox:3', { conversations_count: 9, avg_first_response_time: 60, avg_resolution_time: 600 }],
+          ['label:20', { conversations_count: 3, avg_first_response_time: 30, avg_resolution_time: null }],
+        ]),
+      },
+    })
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--report', '--since', '2026-09-01T00:00:00Z']), { client: makeClient(fake), now: () => 1_800_000_000_000, ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual([
+      'report inbox Website conversations=9 avg_first_response_s=60 avg_resolution_s=600',
+      'report label ch-web conversations=3 avg_first_response_s=30 avg_resolution_s=null',
+      'report label ch-email conversations=0 avg_first_response_s=null avg_resolution_s=null',
+      'report label ch-telegram conversations=0 avg_first_response_s=null avg_resolution_s=null',
+    ])
+    expect(cap.err).toContain('reports_path=/summary_reports')
+    const url = fake.requests.find((r) => r.path.includes('summary_reports/inbox'))!.path
+    expect(url).toContain(`since=${Math.floor(Date.parse('2026-09-01T00:00:00Z') / 1000)}`)
+    expect(url).toContain('until=1800000000')
+  })
+
+  it('falls back to reports/summary per entity when summary_reports is 404', async () => {
+    const fake = createFake({
+      reports: {
+        summary404: true,
+        legacy: new Map([['inbox:3', { conversations_count: 2, avg_first_response_time: 15, avg_resolution_time: 90 }]]),
+      },
+    })
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--report', '--since', '2026-09-01T00:00:00Z', '--until', '2026-09-29T00:00:00Z']), { client: makeClient(fake), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out[0]).toBe('report inbox Website conversations=2 avg_first_response_s=15 avg_resolution_s=90')
+    expect(cap.err).toContain('reports_path=/reports/summary')
+    expect(fake.requests.some((r) => r.path.startsWith('/api/v2/accounts/1/reports/summary?type=label'))).toBe(true)
+  })
+
+  it('requires --since and a valid ISO date', async () => {
+    expect(() => parseArgs(['--report'])).toThrow()
+    await expect(runInspect(parseArgs(['--report', '--since', 'not-a-date']), { client: makeClient(createFake()), ...capture().io })).rejects.toThrow()
+  })
+})
+
+describe('--contact (INBOX-03, T-77-23: booleans only)', () => {
+  const contact = { id: 1, email: 'Guest@Example.test', identifier: 'uuid-123', name: 'Guest Person', phone_number: '+420000000' }
+
+  it('formatContact prints only the two booleans', () => {
+    expect(formatContact({ found: true, matches: false })).toBe('contact_found=true identifier_matches=false')
+  })
+
+  it('exit 0 when the contact exists and the identifier matches; nothing else printed', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--contact', 'guest@example.test', '--expect-identifier', 'uuid-123']), { client: makeClient(createFake({ contacts: [contact] })), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual(['contact_found=true identifier_matches=true'])
+    expect(cap.out.join('')).not.toContain('Guest Person')
+    expect(cap.out.join('')).not.toContain('uuid-123')
+  })
+
+  it('exit 1 on an identifier mismatch', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--contact', 'guest@example.test', '--expect-identifier', 'other']), { client: makeClient(createFake({ contacts: [contact] })), ...cap.io })
+    expect(code).toBe(1)
+    expect(cap.out).toEqual(['contact_found=true identifier_matches=false'])
+  })
+
+  it('exit 1 when the contact does not exist', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--contact', 'nobody@example.test', '--expect-identifier', 'uuid-123']), { client: makeClient(createFake()), ...cap.io })
+    expect(code).toBe(1)
+    expect(cap.out).toEqual(['contact_found=false identifier_matches=false'])
+  })
+
+  it('requires --expect-identifier', () => {
+    expect(() => parseArgs(['--contact', 'a@b.test'])).toThrow()
   })
 })
