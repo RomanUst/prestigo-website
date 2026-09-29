@@ -22,10 +22,10 @@
  * URLs are reduced to their hostname before being logged.
  */
 
-import { readFileSync, existsSync } from 'node:fs'
+import { readFileSync, existsSync, realpathSync } from 'node:fs'
 import path from 'node:path'
 import os from 'node:os'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -236,7 +236,19 @@ async function main() {
   process.exitCode = 1
 }
 
-const isMainModule = process.argv[1] && import.meta.url === `file://${process.argv[1]}`
+// pathToFileURL (on the realpath), not a template string: a path with a space,
+// #, % etc. is URL-escaped in import.meta.url, and a symlinked directory
+// (e.g. macOS /var -> /private/var) is resolved there but not in argv[1] — a
+// naive comparison silently never matches (exit 0, no output).
+function isEntryPoint() {
+  if (!process.argv[1]) return false
+  try {
+    return import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href
+  } catch {
+    return import.meta.url === pathToFileURL(process.argv[1]).href
+  }
+}
+const isMainModule = isEntryPoint()
 if (isMainModule) {
   main().catch((err) => {
     console.error('set-bot-profile failed:', err)

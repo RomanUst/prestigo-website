@@ -4,7 +4,8 @@
  * call or reads a real bot token.
  */
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -150,6 +151,25 @@ describe('--dry-run CLI behavior', () => {
     const planLines = output.split('\n').filter((l) => l.startsWith('plan '))
     expect(planLines).toHaveLength(21)
     expect(output).toContain('planned=21')
+  })
+})
+
+describe('WR-05: runs when the script path needs URL-escaping', () => {
+  it('--dry-run still prints the plan from a directory containing a space and a #', () => {
+    const root = mkdtempSync(join(tmpdir(), 'bot profile #'))
+    try {
+      const dir = join(root, 'a b')
+      mkdirSync(dir, { recursive: true })
+      copyFileSync(SCRIPT_PATH, join(dir, 'set-bot-profile.mjs'))
+      copyFileSync(PROFILE_PATH, join(dir, 'bot-profile.json'))
+      const output = execFileSync('node', [join(dir, 'set-bot-profile.mjs'), '--dry-run'], {
+        encoding: 'utf8',
+        env: { ...process.env, TELEGRAM_CHAT_BOT_TOKEN: '' },
+      })
+      expect(output).toContain('planned=21')
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
   })
 })
 
