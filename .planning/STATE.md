@@ -6,16 +6,16 @@ current_phase: 77
 current_phase_name: Chatwoot Deployment + Core Channels
 status: executing
 stopped_at: Phase 77 UI-SPEC approved
-last_updated: "2026-09-28T22:34:43.982Z"
+last_updated: "2026-09-29T08:23:55.935Z"
 last_activity: 2026-09-28
 last_activity_desc: Phase 77 execution started
-state_head: 1fa6f0dfac47cdd0238ad57e90d0f08128ab2cb5
+state_head: 4267e815004cd280cbb439bf179c78956d7c5a7e
 progress:
   total_phases: 10
   completed_phases: 23
   total_plans: 22
-  completed_plans: 15
-  percent: 68
+  completed_plans: 18
+  percent: 82
 ---
 
 # Project State
@@ -277,6 +277,7 @@ None yet.
 - 75-08: no worktree isolation on this repo — an external concurrent git checkout (fix/payment-link-pi-succeeded) moved HEAD mid-plan and stranded a commit off main; recovered via cherry-pick (no data lost). Future sequential plans on this repo should verify 'git branch --show-current' before every commit, not just at plan start.
 - Phase 76 complete 2026-09-28 (verification passed 5/5). Open housekeeping only (76-OWNER-ACTIONS.md §E): rotate B2 master key, delete B2 key "crm", confirm Lifecycle 30d, revoke Hostinger + Hetzner API tokens. Privacy policy must list Backblaze (US) before the Phase 77 widget launch. Confirm VPS hostname stays prestigo-vps after the next reboot (cloud-init preserve_hostname fix unproven until then).
 - Phase 77 paused on owner actions: 77-06 T2 Telegram bot, 77-07 T1 Chatwoot API token, 77-11 T1 D-14 decision, 77-12 T1 launch decision
+- Phase 77 paused 2026-09-29: owner to connect Email info@/bookings@ inboxes in Chatwoot (77-11 T2); 77-09 executor branch worktree-agent-af1de82dcaea8c53e may need merge; 77-12 launch decision pending
 
 ## Deferred Items
 
