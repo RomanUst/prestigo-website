@@ -1,0 +1,54 @@
+{
+  "key": "booking-change",
+  "name": "prestigo_booking_change",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": "time-change",
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" },
+    { "name": "change_summary", "example": "pickup time moved to 14:30" }
+  ],
+  "buttons": [
+    { "type": "QUICK_REPLY", "textKey": "ok" },
+    { "type": "QUICK_REPLY", "textKey": "question" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, your booking {{booking_ref}} has a change: {{change_summary}}. Everything else stays the same. Tap a button below or reply here if you have a question. — Prestigo",
+      "buttons": { "ok": "OK", "question": "I have a question" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! В вашем бронировании {{booking_ref}} есть изменение: {{change_summary}}. Всё остальное остаётся без изменений. Если есть вопрос, нажмите кнопку ниже или напишите нам здесь. — Prestigo",
+      "buttons": { "ok": "Хорошо", "question": "У меня вопрос" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, hay un cambio en tu reserva {{booking_ref}}: {{change_summary}}. Todo lo demás sigue igual. Si tienes alguna pregunta, pulsa un botón de abajo o escríbenos aquí. — Prestigo",
+      "buttons": { "ok": "De acuerdo", "question": "Tengo una pregunta" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, votre réservation {{booking_ref}} a été modifiée : {{change_summary}}. Tout le reste reste inchangé. Pour toute question, appuyez sur un bouton ci-dessous ou répondez ici. — Prestigo",
+      "buttons": { "ok": "D'accord", "question": "J'ai une question" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، طرأ تغيير على حجزك {{booking_ref}}: {{change_summary}}. كل شيء آخر يبقى كما هو. إذا كان لديك سؤال، اضغط على أحد الأزرار أدناه أو رد هنا. — Prestigo",
+      "buttons": { "ok": "حسنًا", "question": "لدي سؤال" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, आपकी बुकिंग {{booking_ref}} में एक बदलाव हुआ है: {{change_summary}}। बाकी सब कुछ पहले जैसा ही रहेगा। कोई सवाल हो तो नीचे दिया बटन दबाएँ या यहीं जवाब दें। — Prestigo",
+      "buttons": { "ok": "ठीक है", "question": "मेरा एक सवाल है" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，您的预订 {{booking_ref}} 有一项变更：{{change_summary}}。其他安排保持不变。如有问题，请点击下方按钮或直接在此回复。— Prestigo",
+      "buttons": { "ok": "好的", "question": "我有个问题" }
+    }
+  }
+}

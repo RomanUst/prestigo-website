@@ -1,0 +1,56 @@
+{
+  "key": "trip-reminder",
+  "name": "prestigo_trip_reminder",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": null,
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" },
+    { "name": "pickup_date", "example": "12 October" },
+    { "name": "pickup_time", "example": "14:30" },
+    { "name": "pickup_place", "example": "Prague Airport, Terminal 1" }
+  ],
+  "buttons": [
+    { "type": "QUICK_REPLY", "textKey": "all_good" },
+    { "type": "QUICK_REPLY", "textKey": "change" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, a reminder about your booking {{booking_ref}}: pickup on {{pickup_date}} at {{pickup_time}}, from {{pickup_place}}. Your driver will be waiting for you. Tap a button below to confirm or ask for a change. — Prestigo",
+      "buttons": { "all_good": "All good", "change": "I need a change" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! Напоминаем о вашем бронировании {{booking_ref}}: подача {{pickup_date}} в {{pickup_time}}, место: {{pickup_place}}. Водитель будет вас ждать. Нажмите кнопку ниже, чтобы подтвердить или попросить изменить. — Prestigo",
+      "buttons": { "all_good": "Всё в порядке", "change": "Нужно изменение" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, te recordamos tu reserva {{booking_ref}}: recogida el {{pickup_date}} a las {{pickup_time}}, en {{pickup_place}}. Tu conductor te estará esperando. Pulsa un botón de abajo para confirmar o pedir un cambio. — Prestigo",
+      "buttons": { "all_good": "Todo bien", "change": "Necesito un cambio" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, un rappel pour votre réservation {{booking_ref}} : prise en charge le {{pickup_date}} à {{pickup_time}}, à {{pickup_place}}. Votre chauffeur vous attendra. Appuyez sur un bouton ci-dessous pour confirmer ou demander une modification. — Prestigo",
+      "buttons": { "all_good": "Tout est bon", "change": "Je veux modifier" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، تذكير بحجزك {{booking_ref}}: الاستلام بتاريخ {{pickup_date}} الساعة {{pickup_time}} من {{pickup_place}}. سيكون السائق في انتظارك. اضغط على أحد الأزرار أدناه للتأكيد أو لطلب تغيير. — Prestigo",
+      "buttons": { "all_good": "كل شيء جيد", "change": "أحتاج إلى تغيير" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, आपकी बुकिंग {{booking_ref}} की याद दिला रहे हैं: पिकअप {{pickup_date}} को {{pickup_time}} बजे, स्थान: {{pickup_place}}। ड्राइवर आपका इंतज़ार करेंगे। पुष्टि करने या बदलाव माँगने के लिए नीचे दिया बटन दबाएँ। — Prestigo",
+      "buttons": { "all_good": "सब ठीक है", "change": "मुझे बदलाव चाहिए" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，提醒您预订 {{booking_ref}} 的接送安排：接送时间 {{pickup_date}} {{pickup_time}}，地点：{{pickup_place}}。司机会在现场等您。请点击下方按钮确认或申请更改。— Prestigo",
+      "buttons": { "all_good": "一切正常", "change": "我需要更改" }
+    }
+  }
+}

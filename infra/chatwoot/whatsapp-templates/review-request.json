@@ -1,0 +1,52 @@
+{
+  "key": "review-request",
+  "name": "prestigo_review_request",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": "review-request",
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" }
+  ],
+  "buttons": [
+    { "type": "URL", "textKey": "review", "url": "https://g.page/r/CdQIkiuHQ1UOEBM/review" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, thank you for travelling with Prestigo on booking {{booking_ref}}. We hope the journey went well. If you have a moment, a short review helps us a lot. Tap the button below to leave one. — Prestigo",
+      "buttons": { "review": "Leave a review" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! Спасибо, что поехали с Prestigo по бронированию {{booking_ref}}. Надеемся, поездка прошла хорошо. Если найдётся минутка, короткий отзыв очень поможет нам. Нажмите кнопку ниже, чтобы его оставить. — Prestigo",
+      "buttons": { "review": "Оставить отзыв" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, gracias por tu viaje con Prestigo, reserva {{booking_ref}}. Esperamos que todo haya ido bien. Si tienes un momento, una breve reseña nos ayuda mucho. Pulsa el botón de abajo para dejarla. — Prestigo",
+      "buttons": { "review": "Dejar una reseña" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, merci d'avoir voyagé avec Prestigo (réservation {{booking_ref}}). Nous espérons que le trajet s'est bien passé. Si vous avez un instant, un court avis nous aide beaucoup. Appuyez sur le bouton ci-dessous pour en laisser un. — Prestigo",
+      "buttons": { "review": "Laisser un avis" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، شكرًا لسفرك مع Prestigo (الحجز {{booking_ref}}). نأمل أن تكون الرحلة قد سارت على ما يرام. إذا سنحت لك لحظة، فإن تقييمًا قصيرًا يساعدنا كثيرًا. اضغط على الزر أدناه لكتابته. — Prestigo",
+      "buttons": { "review": "اكتب تقييمًا" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, Prestigo के साथ यात्रा करने के लिए धन्यवाद (बुकिंग {{booking_ref}})। उम्मीद है आपकी यात्रा अच्छी रही। अगर समय हो तो एक छोटी सी समीक्षा हमारी बहुत मदद करती है। समीक्षा लिखने के लिए नीचे दिया बटन दबाएँ। — Prestigo",
+      "buttons": { "review": "समीक्षा लिखें" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，感谢您选择 Prestigo 出行（预订 {{booking_ref}}）。希望您旅途顺利。如果方便，一条简短的评价对我们帮助很大。请点击下方按钮留下评价。— Prestigo",
+      "buttons": { "review": "留下评价" }
+    }
+  }
+}
