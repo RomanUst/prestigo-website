@@ -9,6 +9,7 @@ import { execFileSync } from 'node:child_process'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { buildProfileCalls, redact, loadToken } from '../infra/chatwoot/telegram/set-bot-profile.mjs'
+import { WHATSAPP_CHAT_URL, TELEGRAM_BOT_USERNAME, TELEGRAM_CHAT_URL } from '../lib/contact-channels'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const REPO_ROOT = join(__dirname, '..')
@@ -152,9 +153,30 @@ describe('--dry-run CLI behavior', () => {
   })
 })
 
-describe('lib/contact-channels.ts agreement (Task 3 pre-check)', () => {
-  it('confirmedUsername is a string (empty until Task 2/3 fill it in)', () => {
+describe('lib/contact-channels.ts agreement', () => {
+  it('confirmedUsername is a valid bot username from the candidate list', () => {
     const profile = loadProfile()
-    expect(typeof profile.confirmedUsername).toBe('string')
+    expect(profile.confirmedUsername).toMatch(/^[A-Za-z][A-Za-z0-9_]{3,30}[Bb]ot$/)
+    expect(profile.usernameCandidates).toContain(profile.confirmedUsername)
+  })
+
+  it('TELEGRAM_BOT_USERNAME equals confirmedUsername', () => {
+    expect(TELEGRAM_BOT_USERNAME).toBe(loadProfile().confirmedUsername)
+  })
+
+  it('TELEGRAM_CHAT_URL is https://t.me/<username>', () => {
+    expect(TELEGRAM_CHAT_URL).toBe(`https://t.me/${loadProfile().confirmedUsername}`)
+  })
+
+  it('WHATSAPP_CHAT_URL keeps the existing WhatsApp number', () => {
+    expect(WHATSAPP_CHAT_URL).toBe('https://wa.me/420725986855')
+    const hero = readFileSync(join(REPO_ROOT, 'components/HeroWhatsApp.tsx'), 'utf8')
+    expect(hero).toContain('wa.me/420725986855')
+  })
+
+  it('contact-channels.ts reads no env and names no VPS host', () => {
+    const src = readFileSync(join(REPO_ROOT, 'lib/contact-channels.ts'), 'utf8')
+    expect(src).not.toMatch(/process\.env/)
+    expect(src).not.toMatch(/chat\.rideprestigo\.com/)
   })
 })
