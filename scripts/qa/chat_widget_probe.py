@@ -2,7 +2,7 @@
 """chat_widget_probe — Phase 77 (INBOX-02/INBOX-04, D-02/D-09) launch-gate probe
 for the Chatwoot website chat launcher.
 
-Five independent modes, selected by exactly one flag:
+Six independent modes, selected by exactly one flag:
 
   --cwv-capture BASE
       Lab Core Web Vitals ("before") reference. For each of 3 pages (/,
@@ -48,6 +48,15 @@ Five independent modes, selected by exactly one flag:
       intersection (e.g. the booking price bar, the wizard action row, the
       cookie-consent banner).
 
+  --send-message TEXT --email ADDR [--name NAME] [--locale en] BASE
+      Plan 77-13 tracer. Opens the launcher on the locale home page, clicks
+      "Chat on site", fills the pre-chat form inside the chat iframe (email,
+      name, message; located by field `name` attribute so it works in every
+      locale), submits, and waits for TEXT to show in the widget thread.
+      Prints `sent_at=<ISO>`. Exit 1 when any step times out (15 s each).
+      Use example.com addresses or the owner's own — never a customer's.
+      Creates a REAL conversation in the live inbox; resolve it afterwards.
+
 Throttling profile used by --cwv-capture/--cwv-compare (Chrome DevTools'
 own "Fast 3G" preset — matches this plan's "slow-4G" spec exactly):
   - Mobile viewport 412x823, deviceScaleFactor 2.625, isMobile, hasTouch
@@ -77,6 +86,7 @@ Usage:
   python3 scripts/qa/chat_widget_probe.py --consent [base_url] [--expect-launcher] [--locales en,ru,...] [--pages /,/book]
   python3 scripts/qa/chat_widget_probe.py --click [base_url] [--locales en,ar] [--pages /,/book]
   python3 scripts/qa/chat_widget_probe.py --overlap [base_url] [--pages /book,/]
+  python3 scripts/qa/chat_widget_probe.py --send-message "text" --email qa@example.com [base_url] [--locale en]
 """
 import argparse
 import json
@@ -622,6 +632,121 @@ def do_click(base: str, locales, pages) -> int:
     return 1 if findings else 0
 
 
+def _find_chat_frame(page):
+    for fr in page.frames:
+        try:
+            if urlparse(fr.url).hostname == CHAT_HOST:
+                return fr
+        except Exception:
+            continue
+    return None
+
+
+def _wait_until(page, predicate, timeout_s: float = 15.0, step_ms: int = 300):
+    """Poll predicate() until it returns a truthy value or timeout_s elapses."""
+    deadline = time.time() + timeout_s
+    while time.time() < deadline:
+        try:
+            value = predicate()
+        except Exception:
+            value = None
+        if value:
+            return value
+        page.wait_for_timeout(step_ms)
+    return None
+
+
+def do_send_message(base: str, text: str, email: str, locale: str, name: str) -> int:
+    """Drive the production widget end to end: open the launcher menu, start
+    the conversation, fill the pre-chat form inside the chat iframe (email,
+    optional name, message), submit, and wait for the message to show in the
+    thread. Each step has a 15 s budget; any timeout exits 1. The pre-chat
+    fields are located by their stable `name` attributes (emailAddress,
+    fullName, message), never by visible label text, so this works in every
+    locale. Prints sent_at=<ISO> once the message is visible in the thread."""
+    if not email:
+        print('INFRA ERROR: --send-message needs --email ADDR (use an example.com address)', file=sys.stderr)
+        return 2
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            try:
+                # Fresh context per conversation: no widget cookies or storage
+                # carry over, so each run is a new contact and a new conversation.
+                context = browser.new_context()
+                context.add_init_script(CONSENT_SEED_JS)
+                page = context.new_page()
+                page.goto(page_url(base, locale, '/'), wait_until='load', timeout=60000)
+                page.wait_for_timeout(500)
+
+                launcher = page.query_selector(LAUNCHER_SELECTOR)
+                if not launcher:
+                    print('FINDING: launcher not found')
+                    return 3
+                launcher.click()
+                controls_id = launcher.get_attribute('aria-controls')
+                menu = page.query_selector(f'#{controls_id}') if controls_id else None
+                first_item = menu.query_selector('button, a') if menu else None
+                if not first_item:
+                    print('FINDING: no clickable menu item in the launcher menu')
+                    return 1
+                first_item.click()
+
+                frame = _wait_until(page, lambda: _find_chat_frame(page))
+                if not frame:
+                    print(f'FINDING: no chat iframe (host={CHAT_HOST}) within 15s')
+                    return 1
+
+                # Welcome screen first (a submit button), then the pre-chat form.
+                email_input = frame.locator('input[name="emailAddress"]')
+                shown = _wait_until(
+                    page,
+                    lambda: email_input.count() > 0 and email_input.first.is_visible(),
+                    timeout_s=3.0,
+                )
+                if not shown:
+                    start = frame.locator('button:visible').last
+                    if not _wait_until(page, lambda: start.count() > 0 and start.is_visible()):
+                        print('FINDING: welcome screen start button not found within 15s')
+                        return 1
+                    start.click()
+                    if not _wait_until(page, lambda: email_input.count() > 0 and email_input.first.is_visible()):
+                        print('FINDING: pre-chat email field not shown within 15s')
+                        return 1
+
+                email_input.first.fill(email)
+                name_input = frame.locator('input[name="fullName"]')
+                if name_input.count() > 0 and name_input.first.is_visible():
+                    name_input.first.fill(name)
+                message_input = frame.locator('textarea[name="message"]')
+                if not _wait_until(page, lambda: message_input.count() > 0 and message_input.first.is_visible()):
+                    print('FINDING: pre-chat message field not shown within 15s')
+                    return 1
+                message_input.first.fill(text)
+
+                # The pre-chat form's submit is the last visible submit button
+                # that is not the welcome screen's.
+                submit = frame.locator('button:visible').last
+                sent_at = iso_now()
+                submit.click()
+
+                needle = text.strip()[:40]
+                if not _wait_until(page, lambda: needle in frame.evaluate('() => document.body.innerText')):
+                    print('FINDING: message did not appear in the thread within 15s')
+                    return 1
+                print(f'sent_at={sent_at}')
+                # Give the server a moment to create the conversation and fire
+                # its automation rules before the browser context is closed.
+                page.wait_for_timeout(2000)
+                context.close()
+            finally:
+                browser.close()
+    except Exception as e:
+        print(f'INFRA ERROR: {e}', file=sys.stderr)
+        return 2
+    return 0
+
+
 def do_overlap(base: str, pages) -> int:
     findings = []
     checked = 0
@@ -675,6 +800,10 @@ def main() -> int:
     mode.add_argument('--consent', action='store_true', help='assert zero chat-host traffic/cookies/storage before a click')
     mode.add_argument('--click', action='store_true', help='click the launcher and assert a clean CSP/iframe result')
     mode.add_argument('--overlap', action='store_true', help='assert the launcher never covers a fixed/sticky control at 375px')
+    mode.add_argument('--send-message', metavar='TEXT', default=None, help='open the widget, fill the pre-chat form and send TEXT (needs --email)')
+    parser.add_argument('--email', default=None, help='(--send-message) contact email for the pre-chat form; use an example.com address')
+    parser.add_argument('--name', default='QA Probe', help='(--send-message) contact name for the pre-chat form')
+    parser.add_argument('--locale', default='en', help='(--send-message) site locale to open (default en)')
     parser.add_argument('--expect-launcher', action='store_true', help='(--consent) also assert exactly one launcher button exists, correctly positioned')
     parser.add_argument('--locales', default=None, help='comma-separated locale list (default: all 7)')
     parser.add_argument('--pages', default=None, help='comma-separated page-path list')
@@ -683,6 +812,8 @@ def main() -> int:
     base = args.base_url.rstrip('/')
     locales = parse_csv(args.locales, LOCALES)
 
+    if args.send_message is not None:
+        return do_send_message(base, args.send_message, args.email, args.locale, args.name)
     if args.cwv_capture:
         return do_cwv_capture(base)
     if args.cwv_compare:
