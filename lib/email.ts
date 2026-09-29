@@ -1,12 +1,17 @@
 import { Resend } from 'resend'
 import { czkToEur, formatCZK, formatEUR } from '@/lib/currency'
 import { EXTRAS_CONFIG } from '@/lib/extras'
+import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
 
 // D-11 (Phase 77-02): every customer-facing transactional email replies to the
 // bookings@ Chatwoot inbox, so a customer reply becomes an operator-visible
 // conversation. roman@rideprestigo.com stays the sales mailbox, reserved for
 // EspoCRM (Phase 80) — never set as replyTo on a customer-facing email.
 export const CUSTOMER_REPLY_TO = 'bookings@rideprestigo.com'
+
+// Footer contact pair shared by the transactional email templates (Phase 78 D-21):
+// the phone follows the single business-number constant.
+const EMAIL_CONTACT_LINE = `info@rideprestigo.com or ${BUSINESS_PHONE_DISPLAY}`
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://rideprestigo.com'
 // Wordmark as a static raster image — letter-spaced inline spans render
@@ -272,7 +277,7 @@ function buildConfirmationHtml(data: BookingEmailData): string {
       <!-- Support contact -->
       <div style="padding: 24px 32px; color: #A9AEB0; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at ${EMAIL_CONTACT_LINE}</div>
       </div>
 
       <!-- Footer -->
@@ -1087,7 +1092,7 @@ function buildStatusEmailHtml(booking: StatusEmailBooking, heading: string, clos
       <!-- Support contact -->
       <div style="padding: 0 32px 24px; color: #A9AEB0; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at ${EMAIL_CONTACT_LINE}</div>
       </div>
 
       <!-- Footer -->
@@ -1219,7 +1224,7 @@ export function buildChangeEmailHtml(booking: StatusEmailBooking, changes: Booki
       <!-- Support contact -->
       <div style="padding: 0 32px 24px; color: #A9AEB0; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at ${EMAIL_CONTACT_LINE}</div>
       </div>
 
       <!-- Footer -->
@@ -1369,7 +1374,7 @@ export function buildPaymentRequestHtml(data: PaymentRequestEmailData): string {
       <!-- Support contact -->
       <div style="padding: 0 32px 24px; color: #A9AEB0; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">Contact us at ${EMAIL_CONTACT_LINE}</div>
       </div>
 
       <!-- Footer -->
@@ -1743,7 +1748,7 @@ function buildClientReminderHtml(booking: ReminderEmailBooking, horizon: '24h' |
       <!-- Support contact -->
       <div style="padding: 24px 32px; color: #A9AEB0; font-size: 14px;">
         <div style="font-size: 9px; font-weight: 400; letter-spacing: 3px; text-transform: uppercase; color: #BFA06A; margin-bottom: 8px;">NEED ASSISTANCE?</div>
-        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at info@rideprestigo.com or +420 725 986 855</div>
+        <div style="font-size: 14px; font-weight: 400; color: #A9AEB0; font-family: 'Inter', Arial, sans-serif;">For any queries, contact us at ${EMAIL_CONTACT_LINE}</div>
       </div>
 
       <!-- Footer -->

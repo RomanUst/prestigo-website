@@ -5,6 +5,7 @@
 import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingGlobals } from '@/lib/pricing-config'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { BUSINESS_PHONE_E164 } from '@/lib/contact-channels'
 
 const BASE_URL = 'https://rideprestigo.com'
 
@@ -34,7 +35,7 @@ export function businessNode(): Record<string, unknown> {
     '@id': `${BASE_URL}/#business`,
     name: 'PRESTIGO',
     url: BASE_URL,
-    telephone: '+420725986855',
+    telephone: BUSINESS_PHONE_E164,
     priceRange: '€€€',
     image: `${BASE_URL}/og-image.jpg`,
     logo: {

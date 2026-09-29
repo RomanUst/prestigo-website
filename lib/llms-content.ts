@@ -10,6 +10,7 @@
 import type { RoutePrice } from '@/lib/route-prices'
 import type { PricingRates } from '@/lib/pricing-config'
 import type { BlogPost } from '@/lib/blog'
+import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -104,7 +105,7 @@ export function buildLlmsFullTxt(data: LlmsData): string {
 > PRESTIGO is a boutique chauffeur service in Prague, Czech Republic, operating an all-Mercedes-Benz fleet (E-Class, S-Class, V-Class) for airport transfers, intercity routes across Central Europe, hourly city hire, corporate accounts, VIP events, and group transfers. Fixed pricing, 24/7 availability, meet-and-greet at Václav Havel Airport (PRG), 60 minutes of complimentary wait time included.
 
 - **Website:** ${BASE}
-- **Phone / WhatsApp:** +420 725 986 855
+- **Phone / WhatsApp:** ${BUSINESS_PHONE_DISPLAY}
 - **Email:** info@rideprestigo.com
 - **Base:** Prague, Czech Republic
 - **Languages:** English, Czech
@@ -200,7 +201,7 @@ Full route list with per-page detail: ${BASE}/routes
 ## Operating Details
 
 - **Hours:** 24/7, every day of the year
-- **Minimum lead time:** 12 hours for online bookings; last-minute via phone/WhatsApp +420 725 986 855
+- **Minimum lead time:** 12 hours for online bookings; last-minute via phone/WhatsApp ${BUSINESS_PHONE_DISPLAY}
 - **Booking confirmation:** instant — no callback wait
 - **Payment:** card at booking (Stripe) or corporate monthly invoicing
 - **Currencies:** EUR, CZK
@@ -230,7 +231,7 @@ Full route list with per-page detail: ${BASE}/routes
 
 ## Frequently Asked Questions
 
-**How do I book?** Online at ${BASE}/book — select route, vehicle, date, confirm. Instant confirmation. For bookings under 12 hours out, call +420 725 986 855.
+**How do I book?** Online at ${BASE}/book — select route, vehicle, date, confirm. Instant confirmation. For bookings under 12 hours out, call ${BUSINESS_PHONE_DISPLAY}.
 
 **Is the price fixed?** Yes. No surge pricing, no hidden tolls, no extras unless requested.
 
@@ -268,7 +269,7 @@ ${posts.map((p) => `- ${p.title}: ${BASE}/blog/${p.slug}`).join('\n')}
 
 ## Contact
 
-- **Phone / WhatsApp:** +420 725 986 855 (24/7)
+- **Phone / WhatsApp:** ${BUSINESS_PHONE_DISPLAY} (24/7)
 - **Email:** info@rideprestigo.com
 - **Booking:** ${BASE}/book
 - **Contact form:** ${BASE}/contact

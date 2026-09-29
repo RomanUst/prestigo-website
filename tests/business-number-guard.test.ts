@@ -16,6 +16,7 @@ import { describe, it, expect } from 'vitest'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { businessNode } from '@/lib/jsonld'
 import {
   BUSINESS_PHONE_E164,
   BUSINESS_PHONE_DIGITS,
@@ -53,15 +54,12 @@ const THIRD_PARTY_NUMBERS: { file: string; digits: string; reason: string }[] = 
   },
 ]
 
-// Files that were moved onto the constants: they must hold no number literal.
-const REFACTORED_FILES: string[] = [
-  'components/Footer.tsx',
-  'components/HeroWhatsApp.tsx',
-  'app/[locale]/contact/page.tsx',
-  'app/[locale]/privacy/page.tsx',
-  'components/booking/steps/Step2DateTime.tsx',
-  'components/ContactForm.tsx',
-]
+// Code files (app/, components/, lib/) may not hold the business number at all
+// except the constants module, which owns the single literal (D-22).
+const CODE_EXT = ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']
+const CODE_DIRS = ['app/', 'components/', 'lib/']
+const CONSTANTS_FILE = 'lib/contact-channels.ts'
+const CODE_FLOOR = 200
 
 const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh']
 const CONTENT_PAGES = ['book', 'faq', 'routes', 'services', 'privacy']
@@ -201,8 +199,48 @@ describe('assertion A: every Czech-number-shaped string equals the business numb
   })
 })
 
-describe('refactored files hold no number literal (D-21)', () => {
-  it.each(REFACTORED_FILES)('%s has zero Czech-number matches', (file) => {
-    expect(czMatches(readRepoFile(file))).toEqual([])
+describe('code holds the business number in one place only (D-21, D-22)', () => {
+  const CODE_FILES = FILES.filter(
+    (f) => CODE_DIRS.some((d) => f.startsWith(d)) && CODE_EXT.some((e) => f.endsWith(e)) && f !== CONSTANTS_FILE,
+  )
+
+  it('scans enough code files to be meaningful (not vacuous)', () => {
+    expect(CODE_FILES.length).toBeGreaterThanOrEqual(CODE_FLOOR)
+    expect(CODE_FILES).toContain('lib/email.ts')
+    expect(CODE_FILES).toContain('lib/llms-content.ts')
+    expect(CODE_FILES).toContain('lib/jsonld.ts')
+  })
+
+  it('no code file other than lib/contact-channels.ts contains the business number in any separator form', () => {
+    const offenders = CODE_FILES.filter((f) => (MATCHES_BY_FILE.get(f) ?? []).includes(BUSINESS_PHONE_DIGITS))
+    expect(offenders).toEqual([])
+  })
+
+  it('email footers and llms text import the display constant', () => {
+    for (const file of ['lib/email.ts', 'lib/llms-content.ts']) {
+      const src = readRepoFile(file)
+      expect(src, file).toMatch(/import \{[^}]*BUSINESS_PHONE_DISPLAY[^}]*\} from '@\/lib\/contact-channels'/)
+    }
+  })
+
+  it('golden-render DNT token lists follow the constant', () => {
+    for (const file of ['tests/book-page-render.test.tsx', 'tests/routes-hub-render.test.tsx']) {
+      const src = readRepoFile(file)
+      expect(src, file).toMatch(/BUSINESS_PHONE_DISPLAY/)
+      expect(czMatches(src), file).toEqual([])
+    }
+  })
+})
+
+describe('structured data follows the constant (D-21, D-22)', () => {
+  it('businessNode().telephone is the E.164 constant', () => {
+    expect(businessNode().telephone).toBe(BUSINESS_PHONE_E164)
+  })
+
+  it('the home page graph uses E.164 for the business node and the hyphen form for contactPoint', () => {
+    const src = readRepoFile('app/[locale]/page.tsx')
+    expect(src).toMatch(/telephone:\s*BUSINESS_PHONE_E164,/)
+    expect(src).toMatch(/telephone:\s*BUSINESS_PHONE_SCHEMA_HYPHEN,/)
+    expect(src).toMatch(/from '@\/lib\/contact-channels'/)
   })
 })
