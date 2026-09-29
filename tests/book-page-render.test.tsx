@@ -13,6 +13,7 @@
 import { describe, it, expect, vi } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
+import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
 
 function readContentJson(locale: string): Record<string, unknown> {
   const file = path.join(process.cwd(), 'content', 'pages', locale, 'book.json')
@@ -41,7 +42,7 @@ function flattenLeaves(obj: unknown, prefix = ''): Record<string, LeafInfo> {
 
 // DNT tokens (i18n/glossary.json doNotTranslate + phone/email) that must
 // reappear verbatim in every translated locale (T-75-17).
-const DNT_TOKENS = ['PRESTIGO', 'E-Class', 'S-Class', 'V-Class', '+420 725 986 855', 'info@rideprestigo.com']
+const DNT_TOKENS = ['PRESTIGO', 'E-Class', 'S-Class', 'V-Class', BUSINESS_PHONE_DISPLAY, 'info@rideprestigo.com']
 
 function collectStrings(obj: unknown): string[] {
   if (Array.isArray(obj)) return obj.flatMap(collectStrings)
