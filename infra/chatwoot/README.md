@@ -72,6 +72,53 @@ node infra/chatwoot/inspect.mjs --contact <email> --expect-identifier <uuid>
   refuses to run when stdout is a terminal. It exists only to feed a pipe (see
   rotation below).
 
+## WhatsApp tooling (Phase 78)
+
+Three scripts cover the WhatsApp Cloud API channel (a manual Chatwoot inbox on a
+dedicated number). None of them prints a credential: output is fixed `key=value`
+lines, enums, counts and booleans. Meta values come from environment variables or
+`~/.config/prestigo/meta-whatsapp.env` (mode 600): `META_WA_SYSTEM_USER_TOKEN`,
+`META_WA_APP_SECRET`, `META_WA_WABA_ID`, `META_WA_PHONE_NUMBER_ID`, optional
+`META_WA_GRAPH_VERSION`. The Chatwoot admin token comes from
+`~/.config/prestigo/chatwoot-api.env` as for `sync.mjs`. Exit codes: 0 ok, 1
+expectation failed or refused, 2 API or config error.
+
+```bash
+node infra/chatwoot/whatsapp-templates.mjs --validate | --dry-run | --status | --only <key> | --allow-edit
+node infra/chatwoot/inspect.mjs --whatsapp [--expect-connected]
+node infra/chatwoot/whatsapp-channel.mjs --probe
+node infra/chatwoot/whatsapp-channel.mjs --harden [--dry-run]
+node infra/chatwoot/whatsapp-channel.mjs --sync-templates
+node infra/chatwoot/whatsapp-channel.mjs --register-webhook
+node infra/chatwoot/whatsapp-channel.mjs --number [--expect-e164 <+420 and 9 digits>] [--expect-currency <ISO code>]
+node infra/chatwoot/whatsapp-channel.mjs --register
+```
+
+- `whatsapp-templates.mjs` keeps the message templates in git and creates,
+  re-submits or reports them on Meta. It never deletes a template.
+- `inspect.mjs --whatsapp` is the read-only health view of the channel.
+- `whatsapp-channel.mjs --probe` sends three message-less webhook POSTs to the
+  inbox's own webhook URL (unsigned, wrong signature, correct signature) and
+  prints `verdict=enforced` only for 401, 401, 200. It creates no conversation.
+- `--harden` writes `app_secret` into the inbox `provider_config` (the full
+  existing hash is merged in memory, then re-read to prove `source`, `api_key` and
+  `phone_number_id` are unchanged). Idempotent; `--dry-run` only reads. If the
+  Chatwoot API refuses the write, the fallback is a rails runner in the Chatwoot
+  rails container (see the runbook).
+- `--sync-templates` and `--register-webhook` call the Chatwoot inbox endpoints of
+  the same names; they are the recovery levers named in the runbook.
+- `--number` prints the number's Meta status enums and whether it belongs to the
+  WABA. `--expect-e164` prints `number_matches` without printing the number;
+  `--expect-currency` checks the WABA billing currency (the code agreed with the
+  owner is recorded in `infra/vps/runbooks/whatsapp.md`, "Owner onboarding
+  checklist"; it is deliberately not written here).
+- `--register` registers the number with the owner's own 6 digit two-step PIN. The
+  PIN is only ever typed at the hidden prompt of this command, in the owner's own
+  terminal: it refuses to run without a terminal, accepts no PIN argument, and
+  never prints, logs or stores it. It reads the status first, does nothing when the
+  number is already connected and makes at most one register call per run (Meta
+  allows 10 per 72 hours).
+
 ## Token custody
 
 No secret is ever committed, pasted into chat or written to a log. Names and

@@ -18,8 +18,10 @@ import {
   sendEmergencyAlert,
   sendRoundTripClientConfirmation,
   sendRoundTripManagerAlert,
+  sendGroupClientConfirmation,
+  sendGroupManagerAlert,
 } from '@/lib/email'
-import type { BookingEmailData, RoundTripEmailData } from '@/lib/email'
+import type { BookingEmailData, RoundTripEmailData, GroupPaymentEmailData } from '@/lib/email'
 import { buildIcs, type IcsEvent } from '@/lib/ics'
 import { safePiiSummary } from '@/lib/request-guards'
 import { scheduleQStashReminder } from '@/lib/qstash'
@@ -40,6 +42,12 @@ function getStripe(): Stripe {
     _stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? '')
   }
   return _stripe
+}
+
+/** Stripe minor units → EUR; null when the amount is missing or not in EUR. */
+function stripeAmountToEur(amount: number | null | undefined, currency: string | null | undefined): number | null {
+  if (typeof amount !== 'number' || currency?.toLowerCase() !== 'eur') return null
+  return amount / 100
 }
 
 export async function POST(request: Request) {
@@ -140,7 +148,7 @@ export async function POST(request: Request) {
     // being subscribed to checkout.session.completed. Both paths are status-gated,
     // so whichever event arrives second is a no-op.
     if (meta.groupBookingIds) {
-      await handleGroupPaymentSucceeded(meta.groupBookingIds, paymentIntent.id)
+      await handleGroupPaymentSucceeded(meta.groupBookingIds, paymentIntent.id, stripeAmountToEur(paymentIntent.amount_received || paymentIntent.amount, paymentIntent.currency))
     } else if (meta.bookingId) {
       await handlePaymentLinkSucceeded(meta.bookingId, meta.linkedBookingId || null, paymentIntent.id)
     } else if (isRoundTrip) {
@@ -197,7 +205,7 @@ export async function POST(request: Request) {
     // time (lib/stripe-payment-links.ts), making this effectively always
     // true, but keep the check as defense in depth.
     if (session.payment_status === 'paid' && meta.groupBookingIds && paymentIntentId) {
-      await handleGroupPaymentSucceeded(meta.groupBookingIds, paymentIntentId)
+      await handleGroupPaymentSucceeded(meta.groupBookingIds, paymentIntentId, stripeAmountToEur(session.amount_total, session.currency))
     } else if (session.payment_status === 'paid' && meta.bookingId && paymentIntentId) {
       await handlePaymentLinkSucceeded(meta.bookingId, meta.linkedBookingId ?? null, paymentIntentId)
     }
@@ -439,9 +447,17 @@ async function handlePaymentLinkSucceeded(
  * retries / the second of payment_intent.succeeded + checkout.session.completed
  * are no-ops. payment_intent_id is NOT written: the (payment_intent_id, leg)
  * unique index would reject it on the 2nd row; the PI id goes to operator_notes.
- * No client emails — the operator handles B2B comms for these itineraries.
+ *
+ * Side effects fire ONCE per payment and only for rows THIS call flipped:
+ * one combined client confirmation listing every leg, one manager alert, one
+ * GA4 purchase, and a QStash reminder per leg. Per-row amounts are 0 on these
+ * bookings, so `amountEur` is the total Stripe actually captured.
  */
-async function handleGroupPaymentSucceeded(groupBookingIds: string, paymentIntentId: string): Promise<void> {
+async function handleGroupPaymentSucceeded(
+  groupBookingIds: string,
+  paymentIntentId: string,
+  amountEur: number | null
+): Promise<void> {
   const ids = groupBookingIds
     .split(',')
     .map((s) => s.trim())
@@ -458,9 +474,10 @@ async function handleGroupPaymentSucceeded(groupBookingIds: string, paymentInten
     return
   }
   const paidAt = new Date().toISOString()
+  const reconciled: PaymentLinkReconciledRow[] = []
   for (const r of rows ?? []) {
     const note = `Paid via group payment link (PI ${paymentIntentId}).`
-    const { error } = await supabase
+    const { data: updated, error } = await supabase
       .from('bookings')
       .update({
         status: 'confirmed',
@@ -469,9 +486,74 @@ async function handleGroupPaymentSucceeded(groupBookingIds: string, paymentInten
       })
       .eq('id', r.id)
       .eq('status', 'unpaid')
-    if (error) console.error('[webhook] group payment update failed:', { bookingId: r.id, message: error.message })
+      .select('*')
+    if (error) {
+      console.error('[webhook] group payment update failed:', { bookingId: r.id, message: error.message })
+      continue
+    }
+    reconciled.push(...((updated ?? []) as PaymentLinkReconciledRow[]))
   }
-  console.log('[webhook] group payment reconciled', { paymentIntentId, count: rows?.length ?? 0 })
+  console.log('[webhook] group payment reconciled', { paymentIntentId, count: reconciled.length })
+  if (reconciled.length === 0) return
+
+  reconciled.sort((a, b) =>
+    `${a.pickup_date ?? ''} ${a.pickup_time ?? ''}`.localeCompare(`${b.pickup_date ?? ''} ${b.pickup_time ?? ''}`)
+  )
+  const first = reconciled[0]
+  const totalEur = amountEur ?? reconciled.reduce((sum, r) => sum + (r.amount_eur ?? 0), 0)
+
+  const emailData: GroupPaymentEmailData = {
+    clientName: `${first.client_first_name ?? ''} ${first.client_last_name ?? ''}`.trim(),
+    clientEmail: first.client_email || '',
+    clientPhone: first.client_phone || '',
+    amountEur: totalEur,
+    legs: reconciled.map((r) => ({
+      bookingReference: r.booking_reference,
+      pickupDate: r.pickup_date || '',
+      pickupTime: r.pickup_time || '',
+      originAddress: r.origin_address || '',
+      destinationAddress: r.destination_address || '',
+      vehicleClass: r.vehicle_class || '',
+      passengers: r.passengers ?? 1,
+      flightNumber: r.flight_number ?? undefined,
+      specialRequests: r.special_requests ?? undefined,
+    })),
+  }
+
+  if (emailData.clientEmail) {
+    try { await sendGroupClientConfirmation(emailData) } catch (err) {
+      console.error('sendGroupClientConfirmation unexpected error:', err)
+    }
+  }
+  try { await sendGroupManagerAlert(emailData) } catch (err) {
+    console.error('sendGroupManagerAlert unexpected error:', err)
+  }
+
+  for (const r of reconciled) {
+    if (r.pickup_utc) {
+      const legId = r.id
+      const pickupUtc = r.pickup_utc
+      after(() => scheduleQStashReminder(legId, new Date(pickupUtc).getTime()))
+    }
+  }
+
+  const vehicleClass = first.vehicle_class || 'transfer'
+  after(() => sendGa4Purchase({
+    transactionId: first.booking_reference,
+    valueEur: totalEur,
+    currency: 'EUR',
+    items: [
+      {
+        item_id: vehicleClass,
+        item_name: VEHICLE_LABELS[vehicleClass] ?? 'Chauffeur Transfer',
+        item_category: 'group',
+        item_variant: first.trip_type || 'transfer',
+        price: totalEur,
+        quantity: 1,
+      },
+    ],
+    siteLocale: first.locale ?? undefined,
+  }))
 }
 
 async function handleOneWaySucceeded(

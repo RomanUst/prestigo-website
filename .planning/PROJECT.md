@@ -20,7 +20,7 @@ v2.2 (2026-09-02) delivered dispatcher and driver tooling (future-first admin li
 
 **Target features:**
 - Hostinger VPS (Docker) running Chatwoot + EspoCRM on own subdomains with TLS, backups and monitoring — the public site must never depend on VPS uptime
-- Chatwoot omnichannel inbox: WhatsApp Cloud API (existing +420 number), service mail (info@/bookings@) via IMAP/SMTP, consent-gated website widget, Telegram/Instagram/Facebook
+- Chatwoot omnichannel inbox: WhatsApp Cloud API (new dedicated business number; personal +420 number retired from the site), service mail (info@/bookings@) via IMAP/SMTP, consent-gated website widget, Telegram/Instagram/Facebook
 - Persist every lead: contact form, corporate form, multi-day quotes (today email-only, never stored) into Supabase + CRM
 - Site → CRM/Chatwoot sync via Supabase outbox + QStash (bookings, payments, status changes, signups, leads) — idempotent, retried
 - Chatwoot → CRM: conversations create/update contacts & leads; conversation summary written to CRM contact history

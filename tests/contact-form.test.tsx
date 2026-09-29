@@ -7,6 +7,7 @@ import ContactForm from '@/components/ContactForm'
 import ContactPage from '@/app/[locale]/contact/page'
 import enMessages from '@/messages/en.json'
 import ruMessages from '@/messages/ru.json'
+import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
 
 const ruMessagesTyped = ruMessages as unknown as AbstractIntlMessages
 
@@ -128,7 +129,7 @@ describe('/contact page (ru) — details labels + locale-prefixed internal links
 
     // Legal entity block + phone/email stay verbatim DNT.
     expect(screen.getByText('chelautotrans s.r.o.')).toBeTruthy()
-    expect(screen.getByText('+420 725 986 855')).toBeTruthy()
+    expect(screen.getByText(BUSINESS_PHONE_DISPLAY)).toBeTruthy()
     expect(screen.getByText('info@rideprestigo.com')).toBeTruthy()
 
     // Every single-slash internal href (the "Also useful" links) is locale-prefixed.

@@ -1,0 +1,52 @@
+{
+  "key": "reopen-conversation",
+  "name": "prestigo_reopen_conversation",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": null,
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" }
+  ],
+  "buttons": [
+    { "type": "QUICK_REPLY", "textKey": "continue" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, we have an update about your booking {{booking_ref}}. Tap the button below or reply here to continue the conversation. — Prestigo",
+      "buttons": { "continue": "Continue here" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! У нас есть новости по вашему бронированию {{booking_ref}}. Нажмите кнопку ниже или напишите нам здесь, чтобы продолжить разговор. — Prestigo",
+      "buttons": { "continue": "Продолжить здесь" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, tenemos novedades sobre tu reserva {{booking_ref}}. Pulsa el botón de abajo o escríbenos aquí para continuar la conversación. — Prestigo",
+      "buttons": { "continue": "Continuar aquí" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, nous avons du nouveau concernant votre réservation {{booking_ref}}. Appuyez sur le bouton ci-dessous ou répondez ici pour poursuivre la conversation. — Prestigo",
+      "buttons": { "continue": "Continuer ici" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، لدينا تحديث بخصوص حجزك {{booking_ref}}. اضغط على الزر أدناه أو رد هنا لمتابعة المحادثة. — Prestigo",
+      "buttons": { "continue": "المتابعة هنا" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, आपकी बुकिंग {{booking_ref}} के बारे में हमारे पास एक अपडेट है। बातचीत जारी रखने के लिए नीचे दिया बटन दबाएँ या यहीं जवाब दें। — Prestigo",
+      "buttons": { "continue": "यहीं जारी रखें" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，关于您的预订 {{booking_ref}}，我们有一项更新。请点击下方按钮或直接在此回复，以继续对话。— Prestigo",
+      "buttons": { "continue": "在此继续" }
+    }
+  }
+}

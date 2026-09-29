@@ -1,5 +1,6 @@
 import { useTranslations } from 'next-intl'
 import { Link } from '@/i18n/routing'
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, WHATSAPP_CHAT_URL } from '@/lib/contact-channels'
 
 export default function Footer() {
   const t = useTranslations('Footer')
@@ -123,13 +124,13 @@ export default function Footer() {
             <p className="label mb-5">{t('contactHeading')}</p>
             <ul className="flex flex-col gap-3">
               <li>
-                <a href="tel:+420725986855" className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
-                  +420 725 986 855
+                <a href={BUSINESS_TEL_URL} className="body-text text-[11px] hover:text-offwhite transition-colors block py-2.5 -my-2.5">
+                  {BUSINESS_PHONE_DISPLAY}
                 </a>
               </li>
               <li>
                 <a
-                  href="https://wa.me/420725986855"
+                  href={WHATSAPP_CHAT_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-4 py-3 min-h-[44px] rounded bg-[#25D366] hover:bg-[#1ebe5d] transition-colors text-[#0a0a0a] font-body font-medium text-[11px] tracking-[0.08em] uppercase"

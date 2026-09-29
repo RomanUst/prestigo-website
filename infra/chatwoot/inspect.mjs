@@ -4,28 +4,41 @@
  *
  * Read-only views of the live Chatwoot instance (Phase 77 plan 09). Used by the
  * owner and by plans 77-11, 77-12 and 77-13 to verify configuration, activity,
- * native reports (INBOX-06 / D-22) and contact identity (INBOX-03).
+ * native reports (INBOX-06 / D-22) and contact identity (INBOX-03); Phase 78
+ * plan 04 adds the WhatsApp channel health view.
  *
  *   node infra/chatwoot/inspect.mjs --status
  *   node infra/chatwoot/inspect.mjs --activity [--since ISO] [--limit N]
  *   node infra/chatwoot/inspect.mjs --report --since ISO [--until ISO]
  *   node infra/chatwoot/inspect.mjs --contact <email> --expect-identifier <uuid>
+ *   node infra/chatwoot/inspect.mjs --whatsapp [--expect-connected]
  *   node infra/chatwoot/inspect.mjs --print website-token|hmac-token | <consumer>
  *
- * Exit codes: 0 ok, 1 expectation failed (or --print on a terminal), 2 API/config error.
+ * Exit codes: 0 ok, 1 expectation failed (or --print on a terminal, or no WhatsApp
+ * inbox), 2 API/config error.
  *
  * Every request is a GET. The API token is read by lib/client.mjs (env or file,
  * never argv). --print is the only path that emits a secret and it refuses to
  * write to a terminal: the value can only flow into a pipe (T-77-21). --contact
  * prints booleans only and --activity prints ids, labels and statuses only,
  * never names, emails or message bodies (T-77-23).
+ *
+ * --whatsapp (T-78-12) prints only enums, counts and booleans: the Meta health
+ * status fields, whether a signature secret and a verification pin are stored
+ * (derived from key presence, never from the value), the provider source from a
+ * fixed set, template counts by status and the window rule delay. It never
+ * prints a provider_config value (the Meta token and the app secret live there),
+ * a phone number, a verified name or a template name. --expect-connected exits 1
+ * unless status is CONNECTED, a signature secret is configured and no
+ * verification pin is stored. SECRET_KINDS is deliberately unchanged: no WhatsApp
+ * secret can be printed by any path in this file.
  */
 
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createChatwootClient, loadChatwootConfig, ChatwootApiError, ChatwootConfigError } from './lib/client.mjs'
-import { buildInboxRefs } from './sync.mjs'
+import { buildInboxRefs, featureState } from './sync.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
@@ -88,6 +101,55 @@ export function formatStatus(state) {
     lines.push(`inbox ${entry.name} ${entry.channel_type} ${refs.has(entry.name) ? 'present' : 'missing'}`)
   }
   return lines
+}
+
+const WA_CHANNEL_TYPE = 'Channel::Whatsapp'
+/** provider_config keys that hold the webhook signature secret (Chatwoot has used several names). */
+const WA_SIGNATURE_KEYS = ['app_secret', 'app_secret_key', 'client_secret', 'api_secret']
+const WA_SOURCES = ['manual_setup_v2', 'embedded_signup']
+const ENUM_RE = /^[A-Za-z][A-Za-z0-9_]{0,39}$/
+const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== ''
+/** An enum-like health value, or "unknown" / "other" - never an arbitrary string. */
+const enumValue = (v) => (!hasValue(v) ? 'unknown' : ENUM_RE.test(String(v)) ? String(v) : 'other')
+
+/**
+ * Normalised WhatsApp health state. Holds only enums, counts and booleans, so
+ * nothing downstream can print a credential.
+ * @typedef {{ missing?: boolean, status?: string, code_verification_status?: string, platform_type?: string,
+ *   name_status?: string, quality_rating?: string, messaging_limit_tier?: string,
+ *   signature_secret_configured?: boolean, verification_pin_stored?: boolean, provider_source?: string,
+ *   templates?: { total: number, approved: number, pending: number, rejected: number, other: number },
+ *   window_rule_delay_minutes?: string, delayed_automations?: string }} WhatsappState
+ */
+
+/** @param {WhatsappState} state @returns {string[]} */
+export function formatWhatsapp(state) {
+  if (state.missing) return ['whatsapp inbox missing']
+  const t = state.templates ?? { total: 0, approved: 0, pending: 0, rejected: 0, other: 0 }
+  return [
+    `status=${enumValue(state.status)}`,
+    `code_verification_status=${enumValue(state.code_verification_status)}`,
+    `platform_type=${enumValue(state.platform_type)}`,
+    `name_status=${enumValue(state.name_status)}`,
+    `quality_rating=${enumValue(state.quality_rating)}`,
+    `messaging_limit_tier=${enumValue(state.messaging_limit_tier)}`,
+    `signature_secret_configured=${Boolean(state.signature_secret_configured)}`,
+    `verification_pin_stored=${Boolean(state.verification_pin_stored)}`,
+    `provider_source=${WA_SOURCES.includes(state.provider_source) ? state.provider_source : 'other'}`,
+    `templates total=${t.total} approved=${t.approved} pending=${t.pending} rejected=${t.rejected} other=${t.other}`,
+    `window_rule_delay_minutes=${/^\d+$/.test(String(state.window_rule_delay_minutes)) ? state.window_rule_delay_minutes : 'missing'}`,
+    `delayed_automations=${['true', 'false'].includes(state.delayed_automations) ? state.delayed_automations : 'unknown'}`,
+  ]
+}
+
+/** Names of the failed --expect-connected checks (empty when all pass). */
+export function whatsappExpectationFailures(state) {
+  if (state.missing) return ['whatsapp inbox missing']
+  const failures = []
+  if (state.status !== 'CONNECTED') failures.push('status is not CONNECTED')
+  if (state.signature_secret_configured !== true) failures.push('signature_secret_configured is not true')
+  if (state.verification_pin_stored !== false) failures.push('verification_pin_stored is not false')
+  return failures
 }
 
 /**
@@ -214,6 +276,76 @@ export async function gatherStatus(client, { configDir = HERE } = {}) {
   return { labels, teams, attributes, canned, rules, inboxes, website, config, configTeams }
 }
 
+/** GET that tolerates a 4xx (older or partial Chatwoot): returns null instead of throwing. */
+async function optionalGet(client, apiPath) {
+  try {
+    return await client.request('GET', apiPath)
+  } catch (err) {
+    if (err instanceof ChatwootApiError && err.status >= 400 && err.status < 500) return null
+    throw err
+  }
+}
+
+/**
+ * Read-only WhatsApp channel health. Resolves the single Channel::Whatsapp inbox
+ * by channel type. The raw inbox payload (provider_config) is reduced to booleans
+ * and one fixed-set enum right here and is never kept.
+ * @returns {Promise<WhatsappState>}
+ */
+export async function gatherWhatsapp(client, { configDir = HERE } = {}) {
+  const inboxes = unwrapList(await client.request('GET', '/inboxes'), 'inboxes')
+  const found = inboxes.filter((i) => i.channel_type === WA_CHANNEL_TYPE)
+  if (found.length === 0) return { missing: true }
+  if (found.length > 1) throw new ChatwootConfigError(`Expected exactly one ${WA_CHANNEL_TYPE} inbox, found ${found.length}`)
+  const listed = found[0]
+
+  let providerConfig = listed.provider_config
+  if (providerConfig === undefined) providerConfig = (await optionalGet(client, `/inboxes/${listed.id}`))?.provider_config
+  const pc = providerConfig && typeof providerConfig === 'object' ? providerConfig : {}
+  const signature = WA_SIGNATURE_KEYS.some((k) => hasValue(pc[k]))
+  const pinStored = Object.keys(pc).some((k) => /(^|_)pin(_|$)/i.test(k) && hasValue(pc[k]))
+  const source = WA_SOURCES.includes(pc.source) ? pc.source : 'other'
+
+  const healthRes = await optionalGet(client, `/inboxes/${listed.id}/health`)
+  const health = healthRes?.payload && typeof healthRes.payload === 'object' && !Array.isArray(healthRes.payload) ? healthRes.payload : (healthRes ?? {})
+
+  const templateRows = unwrapList(await optionalGet(client, `/inboxes/${listed.id}/message_templates`), 'message_templates', 'templates')
+  const templates = { total: templateRows.length, approved: 0, pending: 0, rejected: 0, other: 0 }
+  for (const row of templateRows) {
+    const status = String(row?.status ?? '').toUpperCase()
+    if (status === 'APPROVED') templates.approved++
+    else if (status === 'PENDING') templates.pending++
+    else if (status === 'REJECTED') templates.rejected++
+    else templates.other++
+  }
+
+  let windowName = 'window: whatsapp closing soon'
+  try {
+    windowName = readConfig(configDir, 'automation-rules.json').windowRules?.[0]?.name ?? windowName
+  } catch {
+    // no config file next to the script: keep the default rule name
+  }
+  const rules = await listAutomationRules(client)
+  const windowRule = rules.find((r) => r.name === windowName)
+  const delay = windowRule?.execution_delay
+  const account = await optionalGet(client, '')
+
+  return {
+    status: enumValue(health.status),
+    code_verification_status: enumValue(health.code_verification_status),
+    platform_type: enumValue(health.platform_type),
+    name_status: enumValue(health.name_status),
+    quality_rating: enumValue(health.quality_rating),
+    messaging_limit_tier: enumValue(health.messaging_limit_tier),
+    signature_secret_configured: signature,
+    verification_pin_stored: pinStored,
+    provider_source: source,
+    templates,
+    window_rule_delay_minutes: Number.isInteger(delay) && delay >= 0 ? String(delay) : 'missing',
+    delayed_automations: { on: 'true', off: 'false', unknown: 'unknown' }[featureState(account, 'delayed_automations')],
+  }
+}
+
 /** Website inbox secrets. Never logged; only handed to printSecret's consumer. */
 export async function fetchInboxSecret(client, kind, { configDir = HERE } = {}) {
   const name = readConfig(configDir, 'inboxes.json').website.name
@@ -308,14 +440,14 @@ export async function checkContact(client, { email, expectIdentifier }) {
 // ---------------------------------------------------------------------------
 
 export function parseArgs(argv) {
-  const opts = { mode: null, since: null, until: null, limit: 20, contact: null, expectIdentifier: null, printKind: null }
+  const opts = { mode: null, since: null, until: null, limit: 20, contact: null, expectIdentifier: null, printKind: null, expectConnected: false }
   const takeValue = (i, flag) => {
     const v = argv[i + 1]
     if (v === undefined || v.startsWith('--')) throw new ChatwootConfigError(`${flag} needs a value`)
     return v
   }
   const setMode = (mode) => {
-    if (opts.mode && opts.mode !== mode) throw new ChatwootConfigError('Use exactly one of --status, --activity, --report, --contact, --print')
+    if (opts.mode && opts.mode !== mode) throw new ChatwootConfigError('Use exactly one of --status, --activity, --report, --contact, --whatsapp, --print')
     opts.mode = mode
   }
   for (let i = 0; i < argv.length; i++) {
@@ -323,6 +455,8 @@ export function parseArgs(argv) {
     if (arg === '--status') setMode('status')
     else if (arg === '--activity') setMode('activity')
     else if (arg === '--report') setMode('report')
+    else if (arg === '--whatsapp') setMode('whatsapp')
+    else if (arg === '--expect-connected') opts.expectConnected = true
     else if (arg === '--contact') {
       setMode('contact')
       opts.contact = takeValue(i++, '--contact')
@@ -338,7 +472,8 @@ export function parseArgs(argv) {
     } else if (arg === '--expect-identifier') opts.expectIdentifier = takeValue(i++, '--expect-identifier')
     else throw new ChatwootConfigError(`Unknown argument: ${arg}`)
   }
-  if (!opts.mode) throw new ChatwootConfigError('Use one of --status, --activity, --report, --contact, --print')
+  if (!opts.mode) throw new ChatwootConfigError('Use one of --status, --activity, --report, --contact, --whatsapp, --print')
+  if (opts.expectConnected && opts.mode !== 'whatsapp') throw new ChatwootConfigError('--expect-connected only works with --whatsapp')
   if (opts.mode === 'report' && !opts.since) throw new ChatwootConfigError('--report needs --since ISO')
   if (opts.mode === 'contact' && !opts.expectIdentifier) throw new ChatwootConfigError('--contact needs --expect-identifier <uuid>')
   return opts
@@ -369,6 +504,19 @@ export async function runInspect(opts, { client, out = console.log, err = consol
     const result = await checkContact(client, { email: opts.contact, expectIdentifier: opts.expectIdentifier })
     out(formatContact(result))
     return result.found && result.matches ? 0 : 1
+  }
+  if (opts.mode === 'whatsapp') {
+    const state = await gatherWhatsapp(client, { configDir })
+    for (const line of formatWhatsapp(state)) out(line)
+    if (state.missing) return 1
+    if (opts.expectConnected) {
+      const failures = whatsappExpectationFailures(state)
+      if (failures.length) {
+        err(`expectation failed: ${failures.join('; ')}`)
+        return 1
+      }
+    }
+    return 0
   }
   if (opts.mode === 'print') {
     return printSecret(opts.printKind, {

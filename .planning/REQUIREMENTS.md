@@ -27,9 +27,10 @@ Milestone goal: every conversation from every channel lands in one Chatwoot inbo
 
 ### WhatsApp (WA)
 
-- [ ] **WA-01**: WhatsApp messages to +420 725 986 855 arrive in Chatwoot and can be answered from Chatwoot, while the WhatsApp Business app on the phone keeps working with the same number and history (Coexistence onboarding; Meta Business verified)
+- [ ] **WA-01**: WhatsApp messages to Prestigo's new dedicated business number (new Czech SIM, WhatsApp Cloud API only, never installed in a WhatsApp app) arrive in Chatwoot and can be answered from Chatwoot
 - [ ] **WA-02**: Operator can message a customer outside the 24-hour window using pre-approved WhatsApp templates (booking change, payment help, review request, trip reminder)
 - [ ] **WA-03**: A documented runbook covers WhatsApp channel recovery, current per-message pricing and the rule that inboxes are never deleted without a fresh backup
+- [ ] **WA-04**: Every public contact surface (WhatsApp links, `tel:` links, JSON-LD `telephone`, email footers, `llms.txt`, page content in all 7 locales) shows the dedicated business number; the owner's personal number +420 725 986 855 is no longer published, and a transition auto-reply on the personal number points customers to the new one
 
 ### Social Channels (SOC)
 
@@ -108,7 +109,7 @@ Deferred — tracked, not in this roadmap.
 | One mailbox connected to both Chatwoot and EspoCRM | Duplicates, double replies, broken reply-time stats |
 | CRM or Chatwoot writing bookings/customers | Supabase is the single source of truth |
 | Reusing `quote_leads` for inquiries | Has 30-day purge + deny-all RLS for ephemeral captures |
-| Hard WhatsApp number migration | Would strand the live +420 number and history; Coexistence only |
+| Moving the personal +420 725 986 855 to the API (hard migration or Coexistence) | Owner keeps it as a personal number; a new dedicated business number is used instead (decided 2026-09-29) |
 | Loading the Chatwoot widget script on page load | CWV/SEO and consent risk; facade button instead |
 
 ## Traceability
@@ -129,6 +130,7 @@ Deferred — tracked, not in this roadmap.
 | WA-01 | Phase 78 | Pending |
 | WA-02 | Phase 78 | Pending |
 | WA-03 | Phase 78 | Pending |
+| WA-04 | Phase 78 | Pending |
 | SOC-01 | Phase 79 | Pending |
 | SOC-02 | Phase 79 | Pending |
 | CRM-01 | Phase 80 | Pending |
@@ -162,10 +164,10 @@ Deferred — tracked, not in this roadmap.
 | GDPR-02 | Phase 82 | Pending |
 
 **Coverage:**
-- v1 requirements: 45 total
-- Mapped to phases: 45
+- v1 requirements: 46 total
+- Mapped to phases: 46
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-09-27*
-*Last updated: 2026-09-27 after ROADMAP.md creation — all 45 v1 requirements mapped to Phases 76-85*
+*Last updated: 2026-09-29 — Phase 78 switched to a dedicated WhatsApp number (WA-01 reworded, WA-04 added); 46 v1 requirements mapped to Phases 76-85*

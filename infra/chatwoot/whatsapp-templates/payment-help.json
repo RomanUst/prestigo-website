@@ -1,0 +1,53 @@
+{
+  "key": "payment-help",
+  "name": "prestigo_payment_help",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": "payment-help",
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" }
+  ],
+  "buttons": [
+    { "type": "QUICK_REPLY", "textKey": "new_link" },
+    { "type": "QUICK_REPLY", "textKey": "question" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, your booking {{booking_ref}} is reserved, but the payment has not gone through yet. If your card was declined, tap a button below and we will send you a new secure payment link here. If you have a question, reply here. — Prestigo",
+      "buttons": { "new_link": "Send a new link", "question": "I have a question" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! Ваше бронирование {{booking_ref}} зарезервировано, но оплата ещё не прошла. Если карту отклонили, нажмите кнопку ниже — мы пришлём здесь новую безопасную ссылку для оплаты. Если есть вопрос, просто напишите нам. — Prestigo",
+      "buttons": { "new_link": "Отправить новую ссылку", "question": "У меня вопрос" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, tu reserva {{booking_ref}} está guardada, pero el pago aún no se ha completado. Si tu tarjeta fue rechazada, pulsa un botón de abajo y te enviaremos aquí un nuevo enlace de pago seguro. Si tienes una pregunta, escríbenos aquí. — Prestigo",
+      "buttons": { "new_link": "Enviar un nuevo enlace", "question": "Tengo una pregunta" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, votre réservation {{booking_ref}} est enregistrée, mais le paiement n'a pas encore abouti. Si votre carte a été refusée, appuyez sur un bouton ci-dessous et nous vous enverrons ici un nouveau lien de paiement sécurisé. Pour toute question, répondez ici. — Prestigo",
+      "buttons": { "new_link": "Envoyer un nouveau lien", "question": "J'ai une question" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، تم حفظ حجزك {{booking_ref}}، لكن عملية الدفع لم تكتمل بعد. إذا تم رفض بطاقتك، اضغط على أحد الأزرار أدناه وسنرسل لك هنا رابط دفع آمنًا جديدًا. إذا كان لديك سؤال، رد هنا. — Prestigo",
+      "buttons": { "new_link": "أرسل رابطًا جديدًا", "question": "لدي سؤال" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, आपकी बुकिंग {{booking_ref}} सुरक्षित है, लेकिन भुगतान अभी पूरा नहीं हुआ है। अगर आपका कार्ड अस्वीकृत हुआ था, तो नीचे दिया बटन दबाएँ, हम यहीं आपको नया सुरक्षित भुगतान लिंक भेज देंगे। कोई सवाल हो तो यहीं जवाब दें। — Prestigo",
+      "buttons": { "new_link": "नया लिंक भेजें", "question": "मेरा एक सवाल है" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，您的预订 {{booking_ref}} 已保留，但付款尚未完成。如果银行卡被拒绝，请点击下方按钮，我们会在此为您发送新的安全付款链接。如有问题，请直接在此回复。— Prestigo",
+      "buttons": { "new_link": "发送新链接", "question": "我有个问题" }
+    }
+  }
+}

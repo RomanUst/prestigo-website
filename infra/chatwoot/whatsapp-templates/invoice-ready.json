@@ -1,0 +1,52 @@
+{
+  "key": "invoice-ready",
+  "name": "prestigo_invoice_ready",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": null,
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" }
+  ],
+  "buttons": [
+    { "type": "QUICK_REPLY", "textKey": "send_invoice" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, the invoice for your booking {{booking_ref}} is ready. Tap the button below and we will send it to you here. — Prestigo",
+      "buttons": { "send_invoice": "Send my invoice" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! Счёт по вашему бронированию {{booking_ref}} готов. Нажмите кнопку ниже, и мы отправим его вам здесь. — Prestigo",
+      "buttons": { "send_invoice": "Отправьте мой счёт" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, la factura de tu reserva {{booking_ref}} está lista. Pulsa el botón de abajo y te la enviaremos aquí. — Prestigo",
+      "buttons": { "send_invoice": "Enviar mi factura" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, la facture de votre réservation {{booking_ref}} est prête. Appuyez sur le bouton ci-dessous et nous vous l'enverrons ici. — Prestigo",
+      "buttons": { "send_invoice": "Envoyer ma facture" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، فاتورة حجزك {{booking_ref}} جاهزة. اضغط على الزر أدناه وسنرسلها لك هنا. — Prestigo",
+      "buttons": { "send_invoice": "أرسل فاتورتي" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, आपकी बुकिंग {{booking_ref}} का इनवॉइस तैयार है। नीचे दिया बटन दबाएँ, हम इसे आपको यहीं भेज देंगे। — Prestigo",
+      "buttons": { "send_invoice": "मेरा इनवॉइस भेजें" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，您的预订 {{booking_ref}} 的发票已准备好。请点击下方按钮，我们会在此发送给您。— Prestigo",
+      "buttons": { "send_invoice": "发送我的发票" }
+    }
+  }
+}

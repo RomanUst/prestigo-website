@@ -44,6 +44,8 @@ vi.mock('@/lib/email', () => ({
   sendEmergencyAlert: vi.fn().mockResolvedValue(undefined),
   sendRoundTripClientConfirmation: vi.fn().mockResolvedValue(undefined),
   sendRoundTripManagerAlert: vi.fn().mockResolvedValue(undefined),
+  sendGroupClientConfirmation: vi.fn().mockResolvedValue(undefined),
+  sendGroupManagerAlert: vi.fn().mockResolvedValue(undefined),
 }))
 
 vi.mock('@/lib/ics', () => ({
