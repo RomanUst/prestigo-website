@@ -6,6 +6,9 @@
     { "name": "channel: telegram", "inbox": "Telegram", "label": "ch-telegram", "team": "Bookings" },
     { "name": "channel: whatsapp", "inbox": "WhatsApp", "label": "ch-whatsapp", "team": "Bookings" }
   ],
+  "windowRules": [
+    { "name": "window: whatsapp closing soon", "clearName": "window: whatsapp reply clears label", "inbox": "WhatsApp", "label": "wa-window-closing", "delayMinutes": 1200, "optional": true }
+  ],
   "topicRules": [
     {
       "label": "booking-new",

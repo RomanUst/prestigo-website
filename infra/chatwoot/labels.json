@@ -4,6 +4,7 @@
     { "title": "ch-web", "description": "Conversation channel: Website chat widget", "color": "#0F1D2C", "show_on_sidebar": true },
     { "title": "ch-telegram", "description": "Conversation channel: Telegram bot", "color": "#0F1D2C", "show_on_sidebar": true },
     { "title": "ch-whatsapp", "description": "Conversation channel: WhatsApp business number (Cloud API)", "color": "#0F1D2C", "show_on_sidebar": true },
+    { "title": "wa-window-closing", "description": "WhatsApp: customer wrote 20 h ago and has no reply yet; the 24 h window closes soon", "color": "#BFA06A", "show_on_sidebar": true },
     { "title": "booking-new", "description": "Topic: new booking inquiry", "color": "#BFA06A", "show_on_sidebar": true },
     { "title": "booking-change", "description": "Topic: change to an existing booking (time, vehicle, route)", "color": "#BFA06A", "show_on_sidebar": true },
     { "title": "payment", "description": "Topic: payment help or payment link request", "color": "#BFA06A", "show_on_sidebar": true },

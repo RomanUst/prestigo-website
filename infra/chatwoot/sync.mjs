@@ -6,7 +6,7 @@
  * infra/chatwoot/ into live Chatwoot configuration. Run by Claude/owner from a
  * workstation, never by the site at runtime.
  *
- *   node infra/chatwoot/sync.mjs [--dry-run] [--only labels,teams,...]
+ *   node infra/chatwoot/sync.mjs [--dry-run] [--only labels,teams,...] [--window-delay-override <minutes>]
  *
  * Resource order: account, labels, teams, attributes, canned, inboxes, automation.
  * Matching (never re-create what exists): labels by title, teams by name,
@@ -19,6 +19,11 @@
  *   website_token=<public token>
  *   summary: create=N update=N skipped=N
  * Exit codes: 0 ok, 1 config/validation error, 2 API error.
+ *
+ * WhatsApp window rules (automation-rules.json windowRules) carry an
+ * execution_delay in minutes (Chatwoot range 10..43200) and need the account
+ * feature flag delayed_automations; --window-delay-override changes the delay
+ * for that one run only and is never written to the config file.
  *
  * Secrets: the API token is read by lib/client.mjs (env or file, never a command
  * line argument) and never printed; the Website inbox hmac_token is never
@@ -120,6 +125,29 @@ export function resolveRefs(value, refs) {
 /** Name prefix of every generated keyword rule; only these are ever deleted. */
 export const GENERATED_RULE_PREFIX = 'topic:'
 
+/** Chatwoot's accepted automation-rule execution_delay range, in whole minutes. */
+export const WINDOW_DELAY_MIN = 10
+export const WINDOW_DELAY_MAX = 43200
+
+/** True for an integer number of minutes inside Chatwoot's execution_delay range. */
+export function isValidWindowDelay(value) {
+  return typeof value === 'number' && Number.isInteger(value) && value >= WINDOW_DELAY_MIN && value <= WINDOW_DELAY_MAX
+}
+
+const WINDOW_DELAY_HELP = `a whole number of minutes between ${WINDOW_DELAY_MIN} and ${WINDOW_DELAY_MAX}`
+
+/**
+ * Parse a --window-delay-override value. Only plain decimal integers pass:
+ * "12.5", "abc", "1e3", "" and values outside 10..43200 throw.
+ */
+export function parseWindowDelayOverride(raw) {
+  const text = String(raw ?? '').trim()
+  if (!/^\d+$/.test(text) || !isValidWindowDelay(Number(text))) {
+    throw new ChatwootConfigError(`--window-delay-override needs ${WINDOW_DELAY_HELP}`)
+  }
+  return Number(text)
+}
+
 /**
  * Expand automation-rules.json into concrete Chatwoot rule bodies. Names,
  * inbox/team/owner references stay as "@inbox:<name>", "@team:<name>",
@@ -129,9 +157,10 @@ export const GENERATED_RULE_PREFIX = 'topic:'
  *
  * @param {any} config parsed automation-rules.json
  * @param {{ ownerId?: number | null, teams?: Map<string, number> | null, inboxes?: Map<string, number> | null }} refs
+ * @param {{ windowDelayOverride?: number | null }} [options] one-run override of every windowRules delayMinutes
  * @returns {{ rules: any[], skipped: { name: string, reason: string, optional?: boolean }[], allNames: string[] }}
  */
-export function expandAutomationRules(config, refs) {
+export function expandAutomationRules(config, refs, options = {}) {
   const templates = []
 
   for (const rule of config.channelRules ?? []) {
@@ -183,13 +212,45 @@ export function expandAutomationRules(config, refs) {
     })
   }
 
+  // WhatsApp 24 h window (D-16): a delayed rule labels a conversation that has had no
+  // operator reply for `delayMinutes`; a second rule clears the label on any outgoing
+  // message. Both only add or remove a label - never a send action (D-12).
+  for (const rule of config.windowRules ?? []) {
+    const delay = options.windowDelayOverride ?? rule.delayMinutes
+    if (!isValidWindowDelay(delay)) {
+      throw new ChatwootConfigError(`windowRules "${rule.name}": delayMinutes must be ${WINDOW_DELAY_HELP}`)
+    }
+    const inboxCondition = { attribute_key: 'inbox_id', filter_operator: 'equal_to', values: [`@inbox:${rule.inbox}`], query_operator: 'and' }
+    templates.push({
+      name: rule.name,
+      description: `Generated: label ${rule.label} when a customer message on ${rule.inbox} has had no reply for ${delay} minutes`,
+      event_name: 'message_created',
+      active: true,
+      execution_delay: delay,
+      optional: Boolean(rule.optional),
+      windowRule: true,
+      conditions: [inboxCondition, { attribute_key: 'message_type', filter_operator: 'equal_to', values: ['incoming'], query_operator: null }],
+      actions: [{ action_name: 'add_label', action_params: [rule.label] }],
+    })
+    templates.push({
+      name: rule.clearName,
+      description: `Generated: remove label ${rule.label} when an operator replies on ${rule.inbox}`,
+      event_name: 'message_created',
+      active: true,
+      optional: Boolean(rule.optional),
+      windowRule: true,
+      conditions: [inboxCondition, { attribute_key: 'message_type', filter_operator: 'equal_to', values: ['outgoing'], query_operator: null }],
+      actions: [{ action_name: 'remove_label', action_params: [rule.label] }],
+    })
+  }
+
   const rules = []
   const skipped = []
   for (const template of templates) {
-    const { optional, ...body } = template
+    const { optional, windowRule, ...body } = template
     const { value, missing } = resolveRefs(body, refs)
     if (missing.length) skipped.push({ name: template.name, reason: `missing ${missing.join(', ')}`, optional })
-    else rules.push({ ...value, optional })
+    else rules.push({ ...value, optional, ...(windowRule ? { windowRule: true } : {}) })
   }
   return { rules, skipped, allNames: templates.map((t) => t.name) }
 }
@@ -232,9 +293,23 @@ function readOnlyClient(client) {
   }
 }
 
-function makeContext({ client: rawClient, dryRun, log, configDir, repoRoot }) {
+/**
+ * Whether the account reports a feature flag on. Chatwoot returns either a
+ * name -> boolean map or a list of enabled names; when the payload carries
+ * neither, the answer is 'unknown' (never guessed).
+ * @returns {'on' | 'off' | 'unknown'}
+ */
+export function featureState(account, name) {
+  const features = account?.features
+  if (Array.isArray(features)) return features.includes(name) ? 'on' : 'off'
+  if (isPlainObject(features)) return features[name] === true ? 'on' : 'off'
+  return 'unknown'
+}
+
+function makeContext({ client: rawClient, dryRun, log, configDir, repoRoot, windowDelayOverride }) {
   const client = dryRun ? readOnlyClient(rawClient) : rawClient
   const refs = { ownerId: null, teams: null, inboxes: null }
+  let featureAccount
 
   async function mutate(method, apiPath, body) {
     if (dryRun) return null
@@ -249,6 +324,12 @@ function makeContext({ client: rawClient, dryRun, log, configDir, repoRoot }) {
     repoRoot,
     refs,
     mutate,
+    windowDelayOverride: windowDelayOverride ?? null,
+    /** The account is read once per run for feature flags (GET only). */
+    async featureState(name) {
+      if (featureAccount === undefined) featureAccount = (await client.request('GET', '')) ?? null
+      return featureState(featureAccount, name)
+    },
     read: (...parts) => readJson(configDir, ...parts),
     list: async (apiPath, ...keys) => unwrapList(await client.request('GET', apiPath), ...keys),
     unsupportedFields: new Set(),
@@ -609,11 +690,19 @@ async function syncInboxes(ctx) {
       continue
     }
     const fields = Object.keys(entry.settings).filter((k) => !subsetEqual(entry.settings[k], have[k]))
+    let changed = false
     if (fields.length) {
       ctx.log(`  [update] inbox ${entry.name}: ${fields.join(', ')}`)
       await ctx.mutate('PATCH', `/inboxes/${have.id}`, entry.settings)
-      counts.update++
-    } else counts.unchanged++
+      changed = true
+    }
+    // assign_agent in the channel rules needs the owner to be a member of the inbox.
+    if (await ensureOwnerInboxMember(ctx, have.id, ownerId)) {
+      ctx.log(`  [update] inbox ${entry.name}: owner member`)
+      changed = true
+    }
+    if (changed) counts.update++
+    else counts.unchanged++
   }
 
   refs.set(web.name, site.id)
@@ -644,12 +733,32 @@ async function syncAutomation(ctx) {
     teams: await ctx.teamMap(),
     inboxes: await ctx.inboxMap(),
   }
-  const { rules, skipped, allNames } = expandAutomationRules(config, refs)
+  const expanded = expandAutomationRules(config, refs, { windowDelayOverride: ctx.windowDelayOverride })
+  const { skipped, allNames } = expanded
+  let rules = expanded.rules
   const existing = await listAllAutomationRules(ctx)
 
   for (const s of skipped) {
     ctx.log(`  skipped: ${s.name} (${s.reason})`)
     counts.skipped++
+  }
+
+  // Window rules need the delayed_automations account feature (off by default).
+  if (rules.some((r) => r.windowRule)) {
+    if (ctx.windowDelayOverride != null) {
+      ctx.log(`  window delay override: ${ctx.windowDelayOverride} minutes for this run only (not persisted)`)
+    }
+    const state = await ctx.featureState('delayed_automations')
+    if (state === 'off') {
+      for (const r of rules.filter((x) => x.windowRule)) {
+        ctx.log(`  skipped: ${r.name} (delayed_automations off)`)
+        counts.skipped++
+      }
+      rules = rules.filter((r) => !r.windowRule)
+    } else if (state === 'unknown') {
+      ctx.log('  warning: delayed_automations state unknown (no features in the account payload); window rules are created as optional')
+      rules = rules.map((r) => (r.windowRule ? { ...r, optional: true } : r))
+    }
   }
 
   const plan = planCollection({
@@ -658,12 +767,19 @@ async function syncAutomation(ctx) {
     keyOf: (r) => r.name,
     differs: (want, have) =>
       !subsetEqual(
-        { event_name: want.event_name, active: want.active, conditions: want.conditions, actions: want.actions },
+        {
+          event_name: want.event_name,
+          active: want.active,
+          conditions: want.conditions,
+          actions: want.actions,
+          // only rules that carry a delay compare it; undefined is ignored by subsetEqual
+          execution_delay: want.execution_delay,
+        },
         have,
       ),
   })
 
-  const body = ({ optional: _optional, ...rest }) => rest
+  const body = ({ optional: _optional, windowRule: _windowRule, ...rest }) => rest
 
   for (const want of plan.create) {
     try {
@@ -711,7 +827,7 @@ const HANDLERS = {
 // ---------------------------------------------------------------------------
 
 /**
- * @param {{ client?: any, only?: string[], dryRun?: boolean, log?: (line: string) => void, configDir?: string, repoRoot?: string }} [options]
+ * @param {{ client?: any, only?: string[], dryRun?: boolean, log?: (line: string) => void, configDir?: string, repoRoot?: string, windowDelayOverride?: number | null }} [options]
  */
 export async function runSync({
   client,
@@ -720,12 +836,16 @@ export async function runSync({
   log = console.log,
   configDir = HERE,
   repoRoot = REPO_ROOT,
+  windowDelayOverride = null,
 } = {}) {
+  if (windowDelayOverride != null && !isValidWindowDelay(windowDelayOverride)) {
+    throw new ChatwootConfigError(`--window-delay-override needs ${WINDOW_DELAY_HELP}`)
+  }
   const selected = only && only.length ? only : RESOURCE_ORDER
   const unknown = selected.filter((r) => !RESOURCE_ORDER.includes(r))
   if (unknown.length) throw new ChatwootConfigError(`Unknown resource for --only: ${unknown.join(', ')}`)
 
-  const ctx = makeContext({ client, dryRun, log, configDir, repoRoot })
+  const ctx = makeContext({ client, dryRun, log, configDir, repoRoot, windowDelayOverride })
   const totals = { create: 0, update: 0, skipped: 0 }
   const results = {}
 
@@ -762,6 +882,10 @@ export function parseArgs(argv) {
       opts.only = value.split(',').map((s) => s.trim()).filter(Boolean)
     } else if (arg.startsWith('--only=')) {
       opts.only = arg.slice('--only='.length).split(',').map((s) => s.trim()).filter(Boolean)
+    } else if (arg === '--window-delay-override') {
+      opts.windowDelayOverride = parseWindowDelayOverride(argv[++i])
+    } else if (arg.startsWith('--window-delay-override=')) {
+      opts.windowDelayOverride = parseWindowDelayOverride(arg.slice('--window-delay-override='.length))
     } else throw new ChatwootConfigError(`Unknown argument: ${arg}`)
   }
   return opts
@@ -771,7 +895,7 @@ async function main(argv) {
   try {
     const opts = parseArgs(argv)
     const client = createChatwootClient(loadChatwootConfig())
-    await runSync({ client, only: opts.only, dryRun: opts.dryRun })
+    await runSync({ client, only: opts.only, dryRun: opts.dryRun, windowDelayOverride: opts.windowDelayOverride })
   } catch (err) {
     if (err instanceof ChatwootApiError) {
       console.error(`API error: ${err.message}`)

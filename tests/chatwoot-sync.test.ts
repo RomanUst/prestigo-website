@@ -10,10 +10,21 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import {
   ChatwootApiError,
+  ChatwootConfigError,
   createChatwootClient,
   loadChatwootConfig,
 } from '../infra/chatwoot/lib/client.mjs'
-import { buildInboxRefs, expandAutomationRules, planCollection, resolveRefs, runSync } from '../infra/chatwoot/sync.mjs'
+import {
+  buildInboxRefs,
+  expandAutomationRules,
+  featureState,
+  isValidWindowDelay,
+  parseArgs,
+  parseWindowDelayOverride,
+  planCollection,
+  resolveRefs,
+  runSync,
+} from '../infra/chatwoot/sync.mjs'
 
 const FAKE_TOKEN = 'tok_SECRET_0123456789abcdef'
 const FAKE_HMAC = 'hmac_SECRET_fedcba9876543210'
@@ -37,12 +48,20 @@ interface FakeOptions {
   rejectRouting?: boolean
   /** Reject this inbox channel field as unknown (422 naming the field). */
   rejectChannelField?: string
+  /** Reject the delayed window rules (execution_delay or a "window:" name) with a 422. */
+  rejectWindowRules?: boolean
+  /** Account payload feature map (absent by default, like the unverified real payload). */
+  features?: Record<string, boolean> | string[]
 }
 
 /** In-memory Chatwoot: state keyed by resource, every request recorded. */
 function createFakeChatwoot(options: FakeOptions = {}) {
   const state = {
-    account: { id: 1, support_email: 'Prestigo <notifications@example.test>' } as any,
+    account: {
+      id: 1,
+      support_email: 'Prestigo <notifications@example.test>',
+      ...(options.features ? { features: options.features } : {}),
+    } as any,
     labels: [] as any[],
     teams: [] as any[],
     teamMembers: new Map<number, number[]>(),
@@ -189,6 +208,9 @@ function createFakeChatwoot(options: FakeOptions = {}) {
       if (options.rejectRouting && body.event_name === 'conversation_updated') {
         return json({ error: 'unsupported condition' }, 422)
       }
+      if (options.rejectWindowRules && String(body.name).startsWith('window:')) {
+        return json({ error: 'execution_delay is not supported' }, 422)
+      }
       const row = { id: nextId++, ...body }
       state.rules.push(row)
       return json(row)
@@ -218,11 +240,21 @@ function collectLog() {
   return { lines, log: (line: string) => lines.push(line) }
 }
 
-async function sync(fake: Fake, opts: { only?: string[]; dryRun?: boolean } = {}) {
+async function sync(fake: Fake, opts: { only?: string[]; dryRun?: boolean; windowDelayOverride?: number } = {}) {
   const out = collectLog()
-  await runSync({ client: makeClient(fake), only: opts.only, dryRun: opts.dryRun, log: out.log })
+  await runSync({
+    client: makeClient(fake),
+    only: opts.only,
+    dryRun: opts.dryRun,
+    windowDelayOverride: opts.windowDelayOverride,
+    log: out.log,
+  })
   return out.lines
 }
+
+const WINDOW_RULE = 'window: whatsapp closing soon'
+const CLEAR_RULE = 'window: whatsapp reply clears label'
+const PREP = ['labels', 'teams', 'inboxes']
 
 const emailInboxes = () => [
   { id: 11, name: 'Email info@', channel_type: 'Channel::Email', enable_auto_assignment: true, business_name: 'Old', sender_name_type: 'friendly' },
@@ -292,16 +324,18 @@ describe('resolveRefs / expandAutomationRules', () => {
     expect(missing).toEqual(['@inbox:Email info@'])
   })
 
-  it('expands 5 channel rules, one rule per keyword and the routing rule; skips rules with a missing inbox', () => {
+  it('expands 5 channel rules, 2 window rules, one rule per keyword and the routing rule; skips rules with a missing inbox', () => {
     const { rules, skipped, allNames } = expandAutomationRules(automationConfig, refs)
-    expect(allNames).toHaveLength(5 + KEYWORD_RULES + 1)
+    expect(allNames).toHaveLength(5 + 2 + KEYWORD_RULES + 1)
     expect(skipped.map((s) => s.name).sort()).toEqual([
       'channel: email bookings@',
       'channel: email info@',
       'channel: telegram',
       'channel: whatsapp',
+      WINDOW_RULE,
+      CLEAR_RULE,
     ])
-    expect(rules).toHaveLength(allNames.length - 4)
+    expect(rules).toHaveLength(allNames.length - 6)
 
     const web = rules.find((r) => r.name === 'channel: website')
     expect(web.event_name).toBe('conversation_created')
@@ -433,14 +467,14 @@ describe('client', () => {
 })
 
 describe('runSync labels (tracer)', () => {
-  it('creates 12 labels, then a second run reports create=0 update=0 unchanged=12', async () => {
+  it('creates 13 labels, then a second run reports create=0 update=0 unchanged=13', async () => {
     const fake = createFakeChatwoot()
     const first = await sync(fake, { only: ['labels'] })
-    expect(first).toContain('labels: create=12 update=0 unchanged=0 skipped=0 deleted=0')
-    expect(fake.state.labels).toHaveLength(12)
+    expect(first).toContain('labels: create=13 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(fake.state.labels).toHaveLength(13)
 
     const second = await sync(fake, { only: ['labels'] })
-    expect(second).toContain('labels: create=0 update=0 unchanged=12 skipped=0 deleted=0')
+    expect(second).toContain('labels: create=0 update=0 unchanged=13 skipped=0 deleted=0')
     expect(second).toContain('summary: create=0 update=0 skipped=0')
   })
 
@@ -451,7 +485,7 @@ describe('runSync labels (tracer)', () => {
     fake.state.labels.push({ id: 900, title: 'operator-made', description: 'x', color: '#111111', show_on_sidebar: true })
 
     const run = await sync(fake, { only: ['labels'] })
-    expect(run).toContain('labels: create=0 update=1 unchanged=11 skipped=0 deleted=0')
+    expect(run).toContain('labels: create=0 update=1 unchanged=12 skipped=0 deleted=0')
     expect(fake.state.labels.find((l) => l.title === 'payment').color).toBe('#BFA06A')
     expect(fake.state.labels.find((l) => l.title === 'operator-made').color).toBe('#111111')
   })
@@ -461,7 +495,7 @@ describe('runSync labels (tracer)', () => {
     const run = await sync(fake, { only: ['labels'], dryRun: true })
     expect(fake.requests.length).toBeGreaterThan(0)
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
-    expect(run).toContain('labels: create=12 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(run).toContain('labels: create=13 update=0 unchanged=0 skipped=0 deleted=0')
     expect(fake.state.labels).toHaveLength(0)
   })
 
@@ -582,13 +616,13 @@ describe('runSync automation', () => {
     await sync(fake, { only: ['labels', 'teams', 'inboxes'] })
     const first = await sync(fake, { only: ['automation'] })
     // website + telegram channel rules and every keyword rule and the routing rule; 2 email rules + whatsapp skipped
-    expect(first).toContain(`automation: create=${2 + KEYWORD_RULES + 1} update=0 unchanged=0 skipped=3 deleted=0`)
+    expect(first).toContain(`automation: create=${2 + KEYWORD_RULES + 1} update=0 unchanged=0 skipped=5 deleted=0`)
     expect(first).toContain('  skipped: channel: email info@ (missing @inbox:Email info@)')
     expect(fake.state.rules.some((r) => r.name === 'channel: email info@')).toBe(false)
     expect(fake.state.rules.length).toBeGreaterThan(25)
 
     const second = await sync(fake, { only: ['automation'] })
-    expect(second).toContain(`automation: create=0 update=0 unchanged=${2 + KEYWORD_RULES + 1} skipped=3 deleted=0`)
+    expect(second).toContain(`automation: create=0 update=0 unchanged=${2 + KEYWORD_RULES + 1} skipped=5 deleted=0`)
   })
 
   it('deletes only stale generated "topic:" rules, never operator-made ones', async () => {
@@ -610,7 +644,7 @@ describe('runSync automation', () => {
     await sync(fake, { only: ['labels', 'teams', 'inboxes'] })
     const run = await sync(fake, { only: ['automation'] })
     expect(run).toContain('  skipped: route: b2b label to B2B team (unsupported on this version)')
-    expect(run).toContain(`automation: create=${2 + KEYWORD_RULES} update=0 unchanged=0 skipped=4 deleted=0`)
+    expect(run).toContain(`automation: create=${2 + KEYWORD_RULES} update=0 unchanged=0 skipped=6 deleted=0`)
   })
 })
 
@@ -669,6 +703,186 @@ describe('WhatsApp inbox (78-04 tracer)', () => {
     const lines = await sync(fake)
     const seen = [...lines, ...spies.flatMap((s) => s.mock.calls.flat().map(String))].join('\n')
     for (const value of WA_FAKE_VALUES) expect(seen).not.toContain(value)
+  })
+})
+
+describe('WhatsApp window rules, feature check and override (78-04)', () => {
+  const refs = {
+    ownerId: OWNER_ID,
+    teams: new Map([['Bookings', 21], ['B2B', 22]]),
+    inboxes: new Map([['Website', 31], ['WhatsApp', 99]]),
+  }
+
+  it('expands the two window rules: delay on the first only, both optional, labels only', () => {
+    const { rules } = expandAutomationRules(automationConfig, refs)
+    const closing = rules.find((r) => r.name === WINDOW_RULE)
+    const clear = rules.find((r) => r.name === CLEAR_RULE)
+    expect(closing).toMatchObject({ event_name: 'message_created', active: true, execution_delay: 1200, optional: true })
+    expect(closing.conditions).toEqual([
+      { attribute_key: 'inbox_id', filter_operator: 'equal_to', values: [99], query_operator: 'and' },
+      { attribute_key: 'message_type', filter_operator: 'equal_to', values: ['incoming'], query_operator: null },
+    ])
+    expect(closing.actions).toEqual([{ action_name: 'add_label', action_params: ['wa-window-closing'] }])
+    expect(clear).toMatchObject({ event_name: 'message_created', active: true, optional: true })
+    expect(clear.execution_delay).toBeUndefined()
+    expect(clear.conditions[1]).toMatchObject({ attribute_key: 'message_type', values: ['outgoing'] })
+    expect(clear.actions).toEqual([{ action_name: 'remove_label', action_params: ['wa-window-closing'] }])
+  })
+
+  it('T-78-14: every rule scoped to the WhatsApp inbox only adds/removes labels or assigns', () => {
+    const { rules } = expandAutomationRules(automationConfig, refs)
+    const scoped = rules.filter((r) => r.conditions.some((c: any) => c.attribute_key === 'inbox_id' && c.values[0] === 99))
+    expect(scoped.map((r) => r.name).sort()).toEqual([CLEAR_RULE, WINDOW_RULE, 'channel: whatsapp'].sort())
+    const allowed = new Set(['add_label', 'remove_label', 'assign_team', 'assign_agent'])
+    for (const rule of scoped) for (const action of rule.actions) expect(allowed.has(action.action_name)).toBe(true)
+    expect(JSON.stringify(automationConfig)).not.toMatch(/send_message|send_email|send_webhook/)
+  })
+
+  it('a delay override replaces delayMinutes in the expansion only', () => {
+    const { rules } = expandAutomationRules(automationConfig, refs, { windowDelayOverride: 10 })
+    expect(rules.find((r) => r.name === WINDOW_RULE).execution_delay).toBe(10)
+    expect(automationConfig.windowRules[0].delayMinutes).toBe(1200)
+  })
+
+  it('rejects an out-of-range or fractional configured delay', () => {
+    for (const bad of [9, 43201, 1200.5]) {
+      const config = { ...automationConfig, windowRules: [{ ...automationConfig.windowRules[0], delayMinutes: bad }] }
+      expect(() => expandAutomationRules(config, refs)).toThrow(ChatwootConfigError)
+    }
+  })
+
+  it('delay validator: 10, 1200 and 43200 pass; 9, 43201, 1200.5 and strings fail', () => {
+    for (const ok of [10, 1200, 43200]) expect(isValidWindowDelay(ok)).toBe(true)
+    for (const bad of [9, 43201, 1200.5, NaN, '1200', null, undefined]) expect(isValidWindowDelay(bad as any)).toBe(false)
+  })
+
+  it('parseArgs --window-delay-override accepts 10 / 1200 / 43200 and rejects 9, 43201, 12.5, abc, empty and a missing value', () => {
+    expect(parseArgs(['--window-delay-override', '10']).windowDelayOverride).toBe(10)
+    expect(parseArgs(['--window-delay-override=1200']).windowDelayOverride).toBe(1200)
+    expect(parseArgs(['--dry-run', '--window-delay-override', '43200'])).toMatchObject({ dryRun: true, windowDelayOverride: 43200 })
+    for (const bad of ['9', '43201', '12.5', 'abc', '', '1e3', '-10']) {
+      expect(() => parseArgs(['--window-delay-override', bad])).toThrow(ChatwootConfigError)
+    }
+    expect(() => parseArgs(['--window-delay-override'])).toThrow(ChatwootConfigError)
+    expect(() => parseWindowDelayOverride('1200.5')).toThrow(/whole number/)
+    expect(parseArgs([])).toEqual({ dryRun: false, only: [] })
+  })
+
+  it('runSync itself refuses an invalid override', async () => {
+    const fake = createFakeChatwoot()
+    await expect(runSync({ client: makeClient(fake), windowDelayOverride: 9, log: () => {} })).rejects.toThrow(ChatwootConfigError)
+  })
+
+  it('featureState reads a boolean map, a list of enabled names, or reports unknown', () => {
+    expect(featureState({ features: { delayed_automations: true } }, 'delayed_automations')).toBe('on')
+    expect(featureState({ features: { delayed_automations: false } }, 'delayed_automations')).toBe('off')
+    expect(featureState({ features: {} }, 'delayed_automations')).toBe('off')
+    expect(featureState({ features: ['delayed_automations'] }, 'delayed_automations')).toBe('on')
+    expect(featureState({ features: ['other'] }, 'delayed_automations')).toBe('off')
+    expect(featureState({}, 'delayed_automations')).toBe('unknown')
+    expect(featureState(null, 'delayed_automations')).toBe('unknown')
+  })
+
+  it('feature reported on: both window rules are created, a rerun is a no-op', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()], features: { delayed_automations: true } })
+    const first = await sync(fake, { only: [...PREP, 'automation'] })
+    expect(first).toContain(`  [create] rule ${WINDOW_RULE}`)
+    expect(first).toContain(`  [create] rule ${CLEAR_RULE}`)
+    expect(first.join('\n')).not.toContain('delayed_automations')
+    const closing = fake.state.rules.find((r) => r.name === WINDOW_RULE)
+    expect(closing.execution_delay).toBe(1200)
+    expect(closing.optional).toBeUndefined()
+    expect(closing.windowRule).toBeUndefined()
+    expect(closing.conditions[0].values).toEqual([14])
+    const second = await sync(fake, { only: [...PREP, 'automation'] })
+    expect(second.find((l) => l.startsWith('automation: '))).toMatch(/create=0 update=0 /)
+  })
+
+  it('feature present but off: both window rules are reported skipped with that reason and nothing is posted', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()], features: { inbound_emails: true } })
+    const lines = await sync(fake, { only: [...PREP, 'automation'] })
+    expect(lines).toContain(`  skipped: ${WINDOW_RULE} (delayed_automations off)`)
+    expect(lines).toContain(`  skipped: ${CLEAR_RULE} (delayed_automations off)`)
+    expect(fake.state.rules.some((r) => r.name.startsWith('window:'))).toBe(false)
+    expect(fake.requests.some((r) => r.method === 'POST' && r.path === '/automation_rules' && String(r.body?.name).startsWith('window:'))).toBe(false)
+    expect(lines.find((l) => l.startsWith('automation: '))).toMatch(/skipped=(\d+) /)
+  })
+
+  it('no features map: rules are created as optional with an "unknown" warning', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()] })
+    const lines = await sync(fake, { only: [...PREP, 'automation'] })
+    expect(lines.some((l) => l.includes('delayed_automations state unknown'))).toBe(true)
+    expect(fake.state.rules.some((r) => r.name === WINDOW_RULE)).toBe(true)
+    expect(fake.state.rules.some((r) => r.name === CLEAR_RULE)).toBe(true)
+  })
+
+  it('a 422 on the window rules is reported as skipped (optional) and the run continues', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()], rejectWindowRules: true, features: { delayed_automations: true } })
+    const lines = await sync(fake, { only: [...PREP, 'automation'] })
+    expect(lines).toContain(`  skipped: ${WINDOW_RULE} (unsupported on this version)`)
+    expect(lines).toContain(`  skipped: ${CLEAR_RULE} (unsupported on this version)`)
+    expect(fake.state.rules.some((r) => r.name === 'channel: whatsapp')).toBe(true)
+    expect(fake.state.rules.some((r) => r.name.startsWith('topic:'))).toBe(true)
+  })
+
+  it('differs(): a remote closing-soon rule with execution_delay 600 is updated back to 1200', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()], features: { delayed_automations: true } })
+    await sync(fake, { only: [...PREP, 'automation'] })
+    fake.state.rules.find((r) => r.name === WINDOW_RULE).execution_delay = 600
+    const run = await sync(fake, { only: ['automation'] })
+    expect(run).toContain(`  [update] rule ${WINDOW_RULE}`)
+    expect(run.find((l) => l.startsWith('automation: '))).toMatch(/create=0 update=1 /)
+    expect(fake.state.rules.find((r) => r.name === WINDOW_RULE).execution_delay).toBe(1200)
+  })
+
+  it('--window-delay-override applies to one run only: override run, restore run (update=1), then update=0', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()], features: { delayed_automations: true } })
+    await sync(fake, { only: [...PREP, 'automation'] })
+    expect(fake.state.rules.find((r) => r.name === WINDOW_RULE).execution_delay).toBe(1200)
+
+    const overridden = await sync(fake, { only: ['automation'], windowDelayOverride: 10 })
+    expect(overridden.some((l) => l.includes('10 minutes') && l.includes('not persisted'))).toBe(true)
+    expect(overridden.find((l) => l.startsWith('automation: '))).toMatch(/create=0 update=1 /)
+    expect(fake.state.rules.find((r) => r.name === WINDOW_RULE).execution_delay).toBe(10)
+
+    const restored = await sync(fake, { only: ['automation'] })
+    expect(restored.find((l) => l.startsWith('automation: '))).toMatch(/create=0 update=1 /)
+    expect(fake.state.rules.find((r) => r.name === WINDOW_RULE).execution_delay).toBe(1200)
+
+    const settled = await sync(fake, { only: ['automation'] })
+    expect(settled.find((l) => l.startsWith('automation: '))).toMatch(/create=0 update=0 /)
+    expect(readConfig('automation-rules.json').windowRules[0].delayMinutes).toBe(1200)
+  })
+
+  it('--dry-run of the window rules only reads', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()], features: { delayed_automations: true } })
+    await sync(fake, { only: [...PREP, 'automation'], dryRun: true })
+    expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
+  })
+
+  it('adds the owner to every existing managed inbox (email, telegram, whatsapp) once; a rerun changes nothing', async () => {
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
+    const first = await sync(fake, { only: ['inboxes'] })
+    for (const [name, id] of [['Email info@', 11], ['Email bookings@', 12], ['Telegram', 13], ['WhatsApp', 14]] as const) {
+      expect(first).toContain(`  [update] inbox ${name}: owner member`)
+      expect(fake.state.inboxMembers.get(id)).toEqual([OWNER_ID])
+    }
+    const second = await sync(fake, { only: ['inboxes'] })
+    expect(second.some((l) => l.includes('owner member'))).toBe(false)
+    expect(second.find((l) => l.startsWith('inboxes: '))).toMatch(/create=0 update=0 unchanged=5 /)
+  })
+
+  it('keeps existing members when adding the owner, and never touches a missing inbox', async () => {
+    const fake = createFakeChatwoot({ inboxes: [telegramInbox()] })
+    fake.state.inboxMembers.set(13, [3, 4])
+    const lines = await sync(fake, { only: ['inboxes'] })
+    expect(fake.state.inboxMembers.get(13)).toEqual([3, 4, OWNER_ID])
+    expect(lines).toContain('  missing: WhatsApp')
+    expect(lines).toContain('  missing: Email info@')
+    const memberPosts = fake.requests.filter((r) => r.method === 'POST' && r.path === '/inbox_members').map((r) => r.body.inbox_id)
+    expect(memberPosts).toContain(13)
+    expect(memberPosts).toHaveLength(2) // Website (created by this run) + Telegram
+    expect(fake.state.inboxes.some((i) => i.channel_type === 'Channel::Whatsapp')).toBe(false)
   })
 })
 

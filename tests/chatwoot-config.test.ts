@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
 import { hasCurrencyToken } from '../scripts/qa/chatwoot_price_gate.mjs'
+import { isValidWindowDelay, WINDOW_DELAY_MAX, WINDOW_DELAY_MIN } from '../infra/chatwoot/sync.mjs'
 
 /**
  * Phase 77-03: config-as-code validation for infra/chatwoot/.
@@ -262,6 +263,7 @@ const D20_LABELS = [
   'ch-web',
   'ch-telegram',
   'ch-whatsapp',
+  'wa-window-closing',
   'booking-new',
   'booking-change',
   'payment',
@@ -299,7 +301,7 @@ describe('infra/chatwoot/labels.json (D-20)', () => {
     labels: { title: string; description: string; color: string; show_on_sidebar: boolean }[]
   }>('labels.json')
 
-  it('titles equal exactly the D-20 labels plus ch-whatsapp (12)', () => {
+  it('titles equal exactly the D-20 labels plus ch-whatsapp and wa-window-closing (13)', () => {
     expect(data.labels.map((l) => l.title).sort()).toEqual([...D20_LABELS].sort())
   })
 
@@ -437,6 +439,7 @@ describe('infra/chatwoot/automation-rules.json (D-20/D-21/OPS-02)', () => {
   )
   const data = readInfraJson<{
     channelRules: { name: string; inbox: string; label: string; team: string }[]
+    windowRules: { name: string; clearName: string; inbox: string; label: string; delayMinutes: number; optional: boolean }[]
     topicRules: { label: string; team: string | null; keywords: Record<Locale, string[]> }[]
     labelRouting: { name: string; label: string; team: string; optional: boolean }[]
   }>('automation-rules.json')
@@ -465,6 +468,28 @@ describe('infra/chatwoot/automation-rules.json (D-20/D-21/OPS-02)', () => {
   it("has the 'channel: whatsapp' rule on the WhatsApp inbox with the ch-whatsapp label and the Bookings team", () => {
     const rule = data.channelRules.find((r) => r.name === 'channel: whatsapp')
     expect(rule).toEqual({ name: 'channel: whatsapp', inbox: 'WhatsApp', label: 'ch-whatsapp', team: 'Bookings' })
+  })
+
+  it('windowRules: one WhatsApp closing-soon rule, 1200 minutes, optional, label and inbox exist (D-16)', () => {
+    expect(data.windowRules).toHaveLength(1)
+    const rule = data.windowRules[0]
+    expect(rule.name).toBe('window: whatsapp closing soon')
+    expect(rule.clearName).toBe('window: whatsapp reply clears label')
+    expect(rule.delayMinutes).toBe(1200)
+    expect(rule.optional).toBe(true)
+    expect(inboxNames.has(rule.inbox)).toBe(true)
+    expect(labelTitles.has(rule.label)).toBe(true)
+  })
+
+  it('windowRules delayMinutes is an integer inside Chatwoot execution_delay range 10..43200 (edge boundary/precision)', () => {
+    expect([WINDOW_DELAY_MIN, WINDOW_DELAY_MAX]).toEqual([10, 43200])
+    for (const rule of data.windowRules) expect(isValidWindowDelay(rule.delayMinutes)).toBe(true)
+    for (const ok of [10, 1200, 43200]) expect(isValidWindowDelay(ok)).toBe(true)
+    for (const bad of [9, 43201, 1200.5]) expect(isValidWindowDelay(bad)).toBe(false)
+  })
+
+  it('no automation rule carries a send action: WhatsApp rules only label and assign (D-12)', () => {
+    expect(JSON.stringify(data)).not.toMatch(/send_message|send_email|send_webhook/)
   })
 
   it('topicRules cover exactly booking-new, booking-change, payment, b2b, complaint, lost-item, review (not other)', () => {
