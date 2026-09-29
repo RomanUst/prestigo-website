@@ -118,7 +118,7 @@ export default function ChatLauncher() {
   return (
     <div
       ref={containerRef}
-      className={`fixed end-4 z-40 flex flex-col items-end gap-6 md:bottom-6 md:end-6 ${
+      className={`chat-launcher-enter fixed end-4 z-40 flex flex-col items-end gap-6 md:bottom-6 md:end-6 ${
         onBookingPage ? 'bottom-24' : 'bottom-4'
       }`}
     >
@@ -178,6 +178,9 @@ export default function ChatLauncher() {
           </div>
         </div>
       )}
+      {/* Gold pulse ring: CSS-only (transform/opacity, no layout shift), only while closed, off under prefers-reduced-motion.
+          While closed the fixed container is exactly the 56px button, so inset:0 rings the button. */}
+      {!open && <span className="chat-launcher-pulse" aria-hidden="true" />}
       <button
         ref={launcherRef}
         type="button"
@@ -185,7 +188,7 @@ export default function ChatLauncher() {
         aria-controls={MENU_ID}
         aria-label={open ? t('closeAria') : t('openAria')}
         onClick={toggleMenu}
-        className={`flex h-14 w-14 items-center justify-center rounded-full border border-copper bg-anthracite-mid text-copper transition-all duration-300 ease-in-out hover:bg-anthracite-light active:scale-[0.97] ${FOCUS_RING}`}
+        className={`relative flex h-14 w-14 items-center justify-center rounded-full border border-copper bg-anthracite-mid text-copper transition-all duration-300 ease-in-out hover:bg-anthracite-light active:scale-[0.97] ${FOCUS_RING}`}
       >
         {open ? <X className="h-6 w-6" aria-hidden="true" /> : <MessageCircle className="h-6 w-6" aria-hidden="true" />}
       </button>

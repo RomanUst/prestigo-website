@@ -725,3 +725,36 @@ h4 {
 input[type='date']::-webkit-date-and-time-value {
   text-align: start;
 }
+
+/* ── Chat launcher (Phase 77) ───────────────────────── */
+/* Slide-in after load, then a few soft champagne-gold rings. transform/opacity only (no CLS). */
+@keyframes chatLauncherEnter {
+  from { opacity: 0; transform: translateY(16px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes chatLauncherPulse {
+  0%   { opacity: 0.55; transform: scale(1); }
+  100% { opacity: 0;    transform: scale(1.7); }
+}
+
+.chat-launcher-enter {
+  animation: chatLauncherEnter 0.6s cubic-bezier(0.22, 1, 0.36, 1) 1.8s backwards;
+}
+
+.chat-launcher-pulse {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1px solid var(--copper);
+  opacity: 0;
+  pointer-events: none;
+  animation: chatLauncherPulse 2.4s ease-out 2.6s 3;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-launcher-enter,
+  .chat-launcher-pulse {
+    animation: none !important;
+  }
+}
