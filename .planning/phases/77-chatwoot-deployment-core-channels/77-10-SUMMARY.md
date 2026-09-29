@@ -148,3 +148,11 @@ None. No new endpoints or trust boundaries; the launcher consumes the existing i
 
 - Files present: components/ChatLauncher.tsx, components/chat/load-chat-widget.ts, lib/chat-visit-context.ts, tests/chat-launcher.test.tsx, tests/chat-visit-context.test.ts, app/[locale]/layout.tsx (modified)
 - Commits present: b371d84b, e6df6429, 21bb2232 (3 commits since base 386f034c)
+
+## Orchestrator browser verification (local dev, 2026-09-29)
+
+- `chat_widget_probe.py --consent http://localhost:3000 --expect-launcher`: 21 locale × page combos, 0 findings.
+- `--overlap --pages /book,/`: 1 finding on /book at 375px — the launcher (bottom-24) intersects the in-flow `role="tablist"` Trip type row (`position:sticky; top:0`, scrolls with the form). It is content passing under a floating button at some scroll positions, not a collision with a bottom-pinned bar; no bottom-fixed price/action bar exists on step 1. Re-check on production in 77-12 (steps 2–6 with the price bar).
+- Menu opens with Chat on site / WhatsApp / Telegram + reply-time hint (screenshot at 375px on /book).
+- Chat on site with no local CHATWOOT_* env: identity route returns `{enabled:false}`, the error line shows in the `role=status` region, no chat-host script or iframe is injected (fail-closed).
+- /ar: `dir=rtl`, launcher sits at the inline-end (left: 16px), Arabic aria-label.
