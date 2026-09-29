@@ -135,3 +135,27 @@ The Telegram bot profile (name, description in 7 languages) is applied with
 `~/.config/prestigo/telegram-chat-bot.env` and in Chatwoot. Canned-response
 templates, labels and automation rules are described in
 `infra/chatwoot/README.md`; they are price-free by design.
+
+## Verified 2026-09-29 (Phase 77 UAT)
+
+Owner UAT: steps 1–8 all pass. T0 = 2026-09-29T12:56:20Z.
+
+| Channel | Arrived | Auto label / owner / team | Reply delivered |
+|---|---|---|---|
+| Website (signed-in + anonymous) | yes (#42, #43 scripted; #44 owner) | ch-web (+payment / b2b by keyword), owner assigned, team bookings / b2b | yes |
+| Email bookings@ | yes (#40) | ch-email, owner, team bookings | yes — From bookings@ (owner confirmed in Gmail) |
+| Email info@ | yes (#41) | ch-email, owner, team bookings | yes (#41 reply via API, owner confirmed receipt; #36 From info@ confirmed) |
+| Telegram (inbox named `PrestigoChauffeurBot`) | yes (#39) | ch-telegram, owner, team bookings | yes (#39 reply via API, owner confirmed receipt in Telegram) |
+
+- Identity (INBOX-03): `inspect --contact <owner sign-in email> --expect-identifier <Supabase auth user id>` → `contact_found=true identifier_matches=true`; no pre-chat email form for the signed-in visitor.
+- Continuity (D-04): anonymous chat with an email → Chatwoot reply arrived by email → the email answer landed back in Chatwoot (owner step 5 pass).
+- Canned responses (OPS-01): `/short-code` templates used from Chatwoot (owner step 4 pass).
+- Reports (INBOX-06): `inspect --report --since 2026-09-28` shows conversations>0 and a first-response time for Website, Email info@, Email bookings@ and the Telegram inbox (reported under its Chatwoot name `PrestigoChauffeurBot`). Native `summary_reports` per inbox and per label show conversations, first-response and resolution times (owner step 7 pass; API readback via `inspect --report`).
+
+Known limitations:
+- Pre-chat form field labels are single-language in Chatwoot CE.
+- Widget chrome in Hindi: owner reported step 8 pass (accepted as-is).
+- Topic labels are additive keyword matches — the operator corrects them.
+- Reply time shows "in a few minutes" because Chatwoot's `reply_time` is an enum.
+- Team names are stored lower-case by Chatwoot (`bookings`, `b2b`).
+- Importing a mailbox pulls its existing INBOX mail into conversations — archive old mail before connecting a new mailbox.
