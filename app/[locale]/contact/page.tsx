@@ -10,6 +10,7 @@ import ContactForm from '@/components/ContactForm'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { BUSINESS_PHONE_DISPLAY, BUSINESS_TEL_URL, whatsappUrlWithText } from '@/lib/contact-channels'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 
 type ContactContent = {
@@ -47,7 +48,6 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   }
 }
 
-const WHATSAPP_NUMBER = '420725986855'
 
 
 function buildBreadcrumbSchema(locale: string) {
@@ -98,7 +98,7 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
 
             {/* WhatsApp CTA */}
             <a
-              href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hello%20PRESTIGO%2C%20I%20would%20like%20to%20book%20a%20transfer.`}
+              href={whatsappUrlWithText('Hello PRESTIGO, I would like to book a transfer.')}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-4 border border-[#25D366]/40 hover:border-[#25D366] px-6 py-5 transition-colors group"
@@ -124,8 +124,8 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
             <div className="flex flex-col gap-6">
               <div>
                 <p className="label mb-3">{content.details.phoneLabel}</p>
-                <a href="tel:+420725986855" className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
-                  +420 725 986 855
+                <a href={BUSINESS_TEL_URL} className="font-body font-light text-[14px] text-offwhite hover:text-copper-light transition-colors">
+                  {BUSINESS_PHONE_DISPLAY}
                 </a>
               </div>
               <div>

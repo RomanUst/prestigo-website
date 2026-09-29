@@ -57,6 +57,10 @@ const THIRD_PARTY_NUMBERS: { file: string; digits: string; reason: string }[] = 
 const REFACTORED_FILES: string[] = [
   'components/Footer.tsx',
   'components/HeroWhatsApp.tsx',
+  'app/[locale]/contact/page.tsx',
+  'app/[locale]/privacy/page.tsx',
+  'components/booking/steps/Step2DateTime.tsx',
+  'components/ContactForm.tsx',
 ]
 
 const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh']
