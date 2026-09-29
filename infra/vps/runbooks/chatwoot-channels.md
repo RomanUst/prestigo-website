@@ -19,14 +19,18 @@ and inspect tooling) and `infra/vps/runbooks/monitoring.md` (alerts).
 | Email info@ | Channel::Email | info@rideprestigo.com | `ch-email` |
 | Email bookings@ | Channel::Email | bookings@rideprestigo.com | `ch-email` |
 | Telegram | Channel::Telegram | bot @PrestigoChauffeurBot (plan 77-06) | `ch-telegram` |
+| WhatsApp | Channel::Whatsapp | the business number (`lib/contact-channels.ts`, `BUSINESS_PHONE_E164`), Cloud API only | `ch-whatsapp` |
 
 The inbox names are a contract with `infra/chatwoot/inboxes.json` and
 `infra/chatwoot/automation-rules.json`: exactly `Email info@` and
 `Email bookings@`. Rename one in the Chatwoot UI and its channel rule silently
 stops matching until sync is edited to follow.
 
-WhatsApp is not a Chatwoot inbox yet (Cloud API is Phase 78). The existing
-`wa.me` links on the site keep working as before.
+WhatsApp runs as its own Chatwoot inbox on the WhatsApp Cloud API (Phase 78).
+Recovery, pricing, token and PIN handling, the never-delete-without-a-backup
+rule and the owner checklists are in `infra/vps/runbooks/whatsapp.md`. Until the
+public number switch ships, the existing `wa.me` links on the site keep working
+as before.
 
 ## Email: how it is wired
 
@@ -91,7 +95,9 @@ on. So:
 Operators answer mail in the Chatwoot web app or the mobile app (server
 `https://chat.rideprestigo.com`; push notifications keep the operator reachable).
 Replies typed anywhere else are invisible in the conversation thread and in the
-reply-time statistics.
+reply-time statistics. The WhatsApp business number has no phone-app client at
+all (D-13, Phase 78): it is not installed in any WhatsApp app, so Chatwoot is
+the only place its messages can be read or answered.
 
 ## Webmail emergency procedure
 
