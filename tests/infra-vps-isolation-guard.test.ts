@@ -426,3 +426,88 @@ describe('CSP directive-line exemption (Phase 77, D-09/T-77-19)', () => {
     expect(violations[0].path).toBe('middleware.ts')
   })
 })
+
+/**
+ * Phase 78 (D-12), plan 78-02 — the public site never talks to the WhatsApp
+ * Cloud API. Every outbound WhatsApp message in Phase 78 is chosen by an
+ * operator in Chatwoot; the site must not hold the messaging credentials, call
+ * the template endpoint, or name a WhatsApp Business permission. Scans the SAME
+ * site files as the guard above (same walk, same scan floor). There is NO
+ * allowlist for this block: an entry here would be the exact regression it
+ * exists to catch.
+ */
+const WA_API_RE = /META_WA_[A-Z0-9_]+|message_templates|whatsapp_business_(?:messaging|management)/
+
+/** Pure function: file map -> one Violation per file with a match. */
+function findWhatsAppApiUses(files: Map<string, string>): Violation[] {
+  const violations: Violation[] = []
+  for (const [filePath, content] of files) {
+    const lines = getLineNumbers(content, WA_API_RE)
+    if (lines.length > 0) {
+      violations.push({ path: filePath, why: lines.map((n) => `WhatsApp Cloud API reference at line ${n}`) })
+    }
+  }
+  return violations.sort((a, b) => a.path.localeCompare(b.path))
+}
+
+describe('Phase 78 (D-12): no site code uses the WhatsApp Cloud API', () => {
+  it('scans a non-vacuous set of site files', () => {
+    expect(listScanFiles(REPO_ROOT).length).toBeGreaterThanOrEqual(SCAN_FLOOR)
+  })
+
+  it('has zero WhatsApp Cloud API references on the real tree', () => {
+    const fileMap = new Map<string, string>()
+    for (const f of listScanFiles(REPO_ROOT)) {
+      fileMap.set(f, fs.readFileSync(path.join(REPO_ROOT, f), 'utf-8'))
+    }
+    const violations = findWhatsAppApiUses(fileMap)
+    const message = violations.map((v) => `${v.path}: ${v.why.join('; ')}`).join('\n')
+    expect(violations, message).toEqual([])
+  })
+
+  it('flags a META_WA_ environment variable name (assembled from parts)', () => {
+    const token = ['META', 'WA', 'SYSTEM_USER_TOKEN'].join('_')
+    const files = new Map([['lib/a.ts', `line1\nconst t = process.env.${token}\nline3`]])
+    const violations = findWhatsAppApiUses(files)
+    expect(violations).toHaveLength(1)
+    expect(violations[0].path).toBe('lib/a.ts')
+    expect(violations[0].why[0]).toContain('line 2')
+  })
+
+  it('flags the message_templates endpoint (assembled from parts)', () => {
+    const endpoint = ['message', 'templates'].join('_')
+    const files = new Map([['app/api/x/route.ts', `fetch("https://graph.facebook.com/v25.0/1/${endpoint}")`]])
+    expect(findWhatsAppApiUses(files)).toHaveLength(1)
+  })
+
+  it('flags both whatsapp_business_ permissions (assembled from parts)', () => {
+    const messaging = ['whatsapp', 'business', 'messaging'].join('_')
+    const management = ['whatsapp', 'business', 'management'].join('_')
+    const files = new Map([
+      ['lib/m.ts', `const scope = "${messaging}"`],
+      ['lib/n.ts', `const scope = "${management}"`],
+    ])
+    expect(findWhatsAppApiUses(files).map((v) => v.path)).toEqual(['lib/m.ts', 'lib/n.ts'])
+  })
+
+  it('ignores the site META_APP_SECRET and a plain graph.facebook.com Pixel URL', () => {
+    const files = new Map([
+      ['app/api/facebook/data-deletion/route.ts', 'const s = process.env.META_APP_SECRET'],
+      ['app/api/meta-capi/route.ts', 'const url = `https://graph.facebook.com/v21.0/${pixelId}/events`'],
+    ])
+    expect(findWhatsAppApiUses(files)).toEqual([])
+  })
+
+  it('whatsapp-meta.env.example: every non-comment line is NAME= with an empty value and no name contains PIN', () => {
+    const raw = fs.readFileSync(path.join(REPO_ROOT, 'infra/vps/env/whatsapp-meta.env.example'), 'utf-8')
+    const assignments = raw
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l !== '' && !l.startsWith('#'))
+    expect(assignments.length).toBeGreaterThanOrEqual(6)
+    for (const line of assignments) {
+      expect(line, `not an empty NAME= assignment: ${line.split('=')[0]}`).toMatch(/^[A-Z][A-Z0-9_]*=$/)
+      expect(line.split('=')[0], `PIN-like name: ${line}`).not.toMatch(/PIN/)
+    }
+  })
+})

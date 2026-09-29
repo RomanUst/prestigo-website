@@ -197,4 +197,21 @@ run_probe "meta-wa-waba-id-identifier" "$PROBE_DIR/probe-meta-waba-id.md" "allow
 printf 'META_WA_SYSTEM_USER_TOKEN=\nMETA_WA_APP_SECRET=\nMETA_WA_WABA_ID=\nMETA_WA_PHONE_NUMBER_ID=\nMETA_WA_APP_ID=\nMETA_WA_GRAPH_VERSION=\n' > "$PROBE_DIR/probe-meta.env.example"
 run_probe "meta-wa-empty-example" "$PROBE_DIR/probe-meta.env.example" "allow"
 
+# --- Probe K (Phase 78 plan 02, T-78-04): the Meta access-token shape (EAA +
+# 40+ alphanumerics) added to SECRET_RE must be blocked. Assembled at runtime
+# from the fragments 'EA' + 'A' plus 80 random alphanumerics, so the shape never
+# exists as a literal in any tracked file (including this script). The variable
+# name is deliberately not one of the META_WA_ names, so this exercises SECRET_RE
+# alone, not the name gate. ---
+META_SHAPE_FRAG1='EA'
+META_SHAPE_FRAG2='A'
+META_SHAPE_RAND=$(LC_ALL=C tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 80)
+printf '#!/usr/bin/env sh\nGRAPH_ACCESS=%s%s%s\n' "$META_SHAPE_FRAG1" "$META_SHAPE_FRAG2" "$META_SHAPE_RAND" > "$PROBE_DIR/probe-meta-shape.sh"
+run_probe "meta-token-shape" "$PROBE_DIR/probe-meta-shape.sh" "block" "ERROR: Possible secret"
+
+# --- Probe K2: EAA followed by only 10 letters is an ordinary word/short
+# string, not a token; the pattern must not over-block it. ---
+printf '# notes\nEAAabcdefghij is a short harmless string\n' > "$PROBE_DIR/probe-meta-shape-short.md"
+run_probe "meta-token-shape-short-allowed" "$PROBE_DIR/probe-meta-shape-short.md" "allow"
+
 exit "$FAIL"
