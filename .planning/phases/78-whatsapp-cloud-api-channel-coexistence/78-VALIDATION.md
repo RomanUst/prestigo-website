@@ -38,7 +38,25 @@ created: "2026-09-29"
 
 ## Per-Task Verification Map
 
-Filled in by the planner / validate-phase once PLAN task IDs exist. Requirement → test mapping from RESEARCH.md:
+Task-level map (planner, 2026-09-29):
+
+| Task | Requirement / Decision | Automated verify | Manual / owner |
+|------|------------------------|------------------|----------------|
+| 78-01 T1 | WA-01 (D-01..D-04) | public preflight curl chain (api 4.18.0, webhook 401, legal pages 200) | — |
+| 78-01 T2-T3 | WA-01 (D-01, D-02, D-03, D-04, D-16) | — | owner Meta track + coexistence popup rehearsal |
+| 78-02 T1-T2 | WA-02 (D-07, D-08, D-09, D-11) | `npx vitest run tests/whatsapp-templates.test.ts` | — |
+| 78-03 T1-T2 | WA-02 (D-09, D-12) | `npx vitest run tests/whatsapp-graph.test.ts` | — |
+| 78-03 T3 | security (D-09 custody) | `sh scripts/qa/secret_gate_probe.sh`; `! git grep -nE 'EAA[A-Za-z0-9]{40,}'` | — |
+| 78-04 T1-T2 | WA-01, WA-02 (D-15, D-16, D-17) | `npx vitest run tests/chatwoot-sync.test.ts tests/chatwoot-config.test.ts tests/chatwoot-inspect.test.ts` | — |
+| 78-05 T1 | WA-03 (D-20 recovery tooling) | `npx vitest run tests/chatwoot-inspect.test.ts` | — |
+| 78-05 T2 | WA-03 (D-06, D-12..D-16, D-18..D-20) | `npx vitest run tests/whatsapp-runbook.test.ts` | — |
+| 78-06 T1-T3 | WA-01 (privacy, Open Question 4) | `npx vitest run tests/static-pages-locale.test.tsx`; freeze `--verify`; `i18n-translate --check` | owner decision |
+| 78-07 T1, T3 | WA-02 (D-07, D-08, D-10, D-11) | `npx vitest run tests/whatsapp-templates.test.ts tests/whatsapp-graph.test.ts`; `--validate` → valid=35 / valid=56 | owner invoice decision (T2) |
+| 78-08 T3 | WA-01, WA-03 (D-03, D-06, D-17, D-18) | `inspect.mjs --whatsapp --expect-coexistence`; unsigned POST 401; `sync.mjs --dry-run` no-op | go/no-go (T1), cutover + test matrix (T2) |
+| 78-09 T2-T3 | WA-02 (D-07, D-09, D-10) | `whatsapp-templates.mjs --status --require-approved ...`; `--dry-run` create=0 | owner System User token (T1) |
+| 78-10 T1, T3 | WA-01..03 (D-05, D-16, D-19, D-20) | `inspect --expect-coexistence`; `sync.mjs --dry-run`; `git diff --quiet HEAD -- infra/chatwoot/automation-rules.json`; `npx vitest run` | owner UAT (T2) |
+
+Requirement → test mapping from RESEARCH.md:
 
 | Requirement | Behavior | Test Type | Automated Command | File Exists | Status |
 |-------------|----------|-----------|-------------------|-------------|--------|

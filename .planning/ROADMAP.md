@@ -196,7 +196,26 @@ Plans:
   3. Operator can message a customer outside the 24-hour window using pre-approved WhatsApp templates (booking change, payment help, review request, trip reminder).
   4. A documented runbook covers WhatsApp channel recovery, current per-message pricing, and the rule that inboxes are never deleted without a fresh backup.
 
-**Plans**: TBD
+**Plans**: 10 plans
+
+Plans:
+**Wave 1**
+- [ ] 78-01-PLAN.md — Owner Meta track: business verification, new Live app "Prestigo Messaging", Embedded Signup config, Super Admin, Tech Provider start, coexistence rehearsal
+- [ ] 78-02-PLAN.md — WhatsApp templates as code part 1 (booking change, payment help, review request) in 7 locales + template validation test
+- [ ] 78-03-PLAN.md — Graph API client + idempotent template script (dry-run/validate/status/drift) + Meta secret gate (security)
+- [ ] 78-04-PLAN.md — Chatwoot sync: WhatsApp inbox settings, ch-whatsapp channel rule, wa-window-closing delayed rules, owner membership
+- [ ] 78-05-PLAN.md — inspect --whatsapp health view + WhatsApp runbook (recovery, pricing, never-delete, rollback) + channel inventory
+- [ ] 78-06-PLAN.md — WhatsApp/Meta privacy disclosure (owner decision; 7 locales if chosen)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 78-07-PLAN.md — Templates part 2 (trip reminder, driver details, re-open, invoice ready, payment received) + invoice decision (D-10)
+- [ ] 78-08-PLAN.md — Coexistence cutover: go/no-go (D-03/D-18), owner onboarding + two-direction test, verified end to end
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 78-09-PLAN.md — Live template submission: System User token, 56 variants submitted, WA-02 four approved, template register
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 78-10-PLAN.md — Live UAT on every WhatsApp path, window-rule test, launch-time pricing re-check, verified record
 
 ### Phase 79: Instagram + Facebook Channels
 
