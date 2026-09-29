@@ -115,3 +115,7 @@ Continue with plan 77-12. Owner follow-ups: finish removing info@/bookings@ from
 
 - infra/vps/runbooks/chatwoot-channels.md exists; monitoring.md contains the pointer.
 - Task commit 7515cc13 exists on the worktree branch.
+
+## Owner confirmation (2026-09-29)
+
+Owner confirmed in Gmail that the Chatwoot replies arrived From info@rideprestigo.com and From bookings@rideprestigo.com respectively. Round trip D-10 fully verified.
