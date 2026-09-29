@@ -17,8 +17,17 @@ import { BUSINESS_PHONE_DIGITS } from '@/lib/contact-channels'
 const TEMPLATES_DIR = path.join(process.cwd(), 'infra/chatwoot/whatsapp-templates')
 const CANNED_DIR = path.join(process.cwd(), 'infra/chatwoot/canned-responses')
 
-// The WA-02 set (plan 78-08 shipped the first four; plan 78-10 adds driver-details first, then the rest).
-const REQUIRED_KEYS = ['booking-change', 'payment-help', 'review-request', 'trip-reminder', 'driver-details']
+// The 8 D-07 templates (plan 78-08 shipped the first four; plan 78-10 the rest).
+const REQUIRED_KEYS = [
+  'booking-change',
+  'payment-help',
+  'review-request',
+  'trip-reminder',
+  'driver-details',
+  'reopen-conversation',
+  'invoice-ready',
+  'payment-received',
+]
 
 // The one phone-shaped string a template may carry: the non-dialable synthetic driver_phone example.
 const SYNTHETIC_PHONE = '+420 000 000 000'
@@ -43,6 +52,13 @@ describe('WhatsApp templates: required set', () => {
   it.each(REQUIRED_KEYS)('%s exists as a file', (key) => {
     expect(fs.existsSync(path.join(TEMPLATES_DIR, `${key}.json`))).toBe(true)
     expect(byKey.has(key)).toBe(true)
+  })
+})
+
+describe('WhatsApp templates: exact set', () => {
+  it('the templates directory holds exactly the 8 D-07 keys (set equality)', () => {
+    expect(new Set(byKey.keys())).toEqual(new Set(REQUIRED_KEYS))
+    expect(loaded).toHaveLength(8)
   })
 })
 
@@ -165,5 +181,39 @@ describe('WhatsApp templates: per-template rules (D-07, D-11)', () => {
     expect(digits).not.toBe(BUSINESS_PHONE_DIGITS)
     expect(digits.includes(BUSINESS_PHONE_DIGITS)).toBe(false)
     expect(digits.slice(3)).toMatch(/^0+$/) // only the +420 country code, then zeros: never dialable
+  })
+
+  it('reopen-conversation: first_name + booking_ref, single quick reply continue that reopens the window', () => {
+    const t = byKey.get('reopen-conversation')
+    expect(t.name).toBe('prestigo_reopen_conversation')
+    expect(shape(t)).toEqual(['QUICK_REPLY:continue'])
+    expect(t.header).toBeNull()
+    expect(t.variables.map((v: any) => v.name)).toEqual(['first_name', 'booking_ref'])
+    for (const code of locales) expect(t.locales[code].body, code).toContain('{{booking_ref}}')
+  })
+
+  it('invoice-ready (D-10 body-attachment): no header, no link, one quick reply send_invoice, digit-free copy', () => {
+    const t = byKey.get('invoice-ready')
+    expect(t.name).toBe('prestigo_invoice_ready')
+    expect(t.header).toBeNull() // owner chose body-attachment: the PDF is never at a public URL
+    expect(shape(t)).toEqual(['QUICK_REPLY:send_invoice'])
+    expect(t.variables.map((v: any) => v.name)).toEqual(['first_name', 'booking_ref'])
+    for (const code of locales) {
+      expect(t.locales[code].body, code).not.toMatch(/\p{Nd}/u)
+      expect(t.locales[code].body, code).not.toMatch(/https?:|www\./i)
+      expect(t.locales[code].body, code).toContain('{{booking_ref}}')
+    }
+  })
+
+  it('payment-received: body-only, no buttons, no digit of any script, no amount', () => {
+    const t = byKey.get('payment-received')
+    expect(t.name).toBe('prestigo_payment_received')
+    expect(t.buttons).toEqual([])
+    expect(t.header).toBeNull()
+    expect(t.variables.map((v: any) => v.name)).toEqual(['first_name', 'booking_ref'])
+    for (const code of locales) {
+      expect(t.locales[code].body, code).not.toMatch(/\p{Nd}/u)
+      expect(t.locales[code].body, code).toContain('{{booking_ref}}')
+    }
   })
 })

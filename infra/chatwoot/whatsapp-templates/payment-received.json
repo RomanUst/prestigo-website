@@ -1,0 +1,43 @@
+{
+  "key": "payment-received",
+  "name": "prestigo_payment_received",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": null,
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" }
+  ],
+  "buttons": [],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, we have received your payment for booking {{booking_ref}}. Thank you. If you need anything, just reply here. — Prestigo"
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! Мы получили вашу оплату по бронированию {{booking_ref}}. Спасибо. Если что-то понадобится, просто напишите нам здесь. — Prestigo"
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, hemos recibido tu pago de la reserva {{booking_ref}}. Gracias. Si necesitas algo, solo escríbenos aquí. — Prestigo"
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, nous avons bien reçu votre paiement pour la réservation {{booking_ref}}. Merci. Si vous avez besoin de quoi que ce soit, répondez simplement ici. — Prestigo"
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، استلمنا دفعتك لحجز {{booking_ref}}. شكرًا لك. إذا احتجت إلى أي شيء، ما عليك سوى الرد هنا. — Prestigo"
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, हमें बुकिंग {{booking_ref}} का आपका भुगतान मिल गया है। धन्यवाद। किसी भी चीज़ की ज़रूरत हो तो बस यहीं जवाब दें। — Prestigo"
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，我们已收到您预订 {{booking_ref}} 的付款。谢谢。如需任何帮助，请直接在此回复。— Prestigo"
+    }
+  }
+}
