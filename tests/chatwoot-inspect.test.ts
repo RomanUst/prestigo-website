@@ -8,13 +8,15 @@ import { describe, expect, it } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
+import { ChatwootConfigError, createChatwootClient } from '../infra/chatwoot/lib/client.mjs'
 import {
   formatActivity,
   formatContact,
   formatReport,
   formatStatus,
+  formatWhatsapp,
   gatherStatus,
+  gatherWhatsapp,
   parseArgs,
   printSecret,
   runInspect,
@@ -41,6 +43,11 @@ interface FakeState {
   messages: Map<number, any[]>
   contacts: any[]
   reports: { summary?: Map<string, any>; legacy?: Map<string, any>; summary404?: boolean }
+  /** Account payload returned by GET '' (feature flags). */
+  account?: any
+  /** /inboxes/:id/health payload per inbox id, and /message_templates rows per inbox id. */
+  health: Map<number, any>
+  templates: Map<number, any[]>
 }
 
 function websiteInbox(): any {
@@ -81,6 +88,8 @@ function createFake(partial: Partial<FakeState> = {}) {
     messages: new Map(),
     contacts: [],
     reports: {},
+    health: new Map(),
+    templates: new Map(),
     ...partial,
   }
   const requests: Req[] = []
@@ -97,6 +106,9 @@ function createFake(partial: Partial<FakeState> = {}) {
 
     if (p === '/api/v1/profile') return json({ id: OWNER_ID })
     const base = p.replace(/^\/api\/v1\/accounts\/1/, '')
+    if (base === '') return json(state.account ?? { id: 1 })
+    if ((m = base.match(/^\/inboxes\/(\d+)\/health$/))) return json(state.health.get(Number(m[1])) ?? {})
+    if ((m = base.match(/^\/inboxes\/(\d+)\/message_templates$/))) return json({ payload: state.templates.get(Number(m[1])) ?? [] })
     if (base === '/labels') return json({ payload: state.labels })
     if (base === '/teams') return json(state.teams)
     if ((m = base.match(/^\/teams\/(\d+)\/team_members$/))) {
@@ -207,6 +219,203 @@ describe('inspect --status (tracer)', () => {
     expect(() => parseArgs(['--status', '--report'])).toThrow()
     expect(() => parseArgs(['--bogus'])).toThrow()
     expect(() => parseArgs([])).toThrow()
+  })
+})
+
+// Distinctive strings that must never appear in any --whatsapp output line (T-78-12).
+const WA_SECRETS = [
+  'DISTINCT-API-KEY-9f3',
+  'DISTINCT-PHONE-ID-77',
+  'DISTINCT-WABA-55',
+  'DISTINCT-APP-SECRET-31',
+  'DISTINCT-PIN-864209',
+  'DISTINCT Verified Name Ltd',
+  '+420 777 123 456',
+  'secret_template_name',
+  '+420 999 000 111',
+]
+
+function whatsappInbox(overrides: Record<string, any> = {}, providerOverrides: Record<string, any> = {}): any {
+  return {
+    id: 8,
+    name: 'Prestigo WhatsApp',
+    channel_type: 'Channel::Whatsapp',
+    phone_number: '+420 999 000 111',
+    provider_config: {
+      api_key: 'DISTINCT-API-KEY-9f3',
+      phone_number_id: 'DISTINCT-PHONE-ID-77',
+      business_account_id: 'DISTINCT-WABA-55',
+      source: 'manual_setup_v2',
+      app_secret: 'DISTINCT-APP-SECRET-31',
+      ...providerOverrides,
+    },
+    ...overrides,
+  }
+}
+
+const healthy = (overrides: Record<string, any> = {}) => ({
+  id: '1234',
+  display_phone_number: '+420 777 123 456',
+  verified_name: 'DISTINCT Verified Name Ltd',
+  status: 'CONNECTED',
+  code_verification_status: 'VERIFIED',
+  platform_type: 'CLOUD_API',
+  name_status: 'APPROVED',
+  quality_rating: 'GREEN',
+  messaging_limit_tier: 'TIER_1K',
+  throughput_level: 'STANDARD',
+  ...overrides,
+})
+
+const WA_TEMPLATES = [
+  { name: 'secret_template_name', status: 'APPROVED' },
+  { name: 'other_a', status: 'approved' },
+  { name: 'other_b', status: 'PENDING' },
+  { name: 'other_c', status: 'REJECTED' },
+  { name: 'other_d', status: 'PAUSED' },
+  { name: 'other_e' },
+]
+
+function waFake(partial: Partial<FakeState> = {}, inbox: any = whatsappInbox()) {
+  return createFake({
+    inboxes: [websiteInbox(), inbox],
+    health: new Map([[inbox.id, healthy()]]),
+    templates: new Map([[inbox.id, WA_TEMPLATES]]),
+    rules: [{ id: 1, name: 'window: whatsapp closing soon', execution_delay: 1200 }],
+    account: { id: 1, features: { delayed_automations: true } },
+    ...partial,
+  })
+}
+
+describe('inspect --whatsapp (78-04, T-78-12: enums, counts and booleans only)', () => {
+  it('prints exactly the documented lines in order', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--whatsapp']), { client: makeClient(waFake()), ...cap.io })
+    expect(code).toBe(0)
+    expect(cap.out).toEqual([
+      'status=CONNECTED',
+      'code_verification_status=VERIFIED',
+      'platform_type=CLOUD_API',
+      'name_status=APPROVED',
+      'quality_rating=GREEN',
+      'messaging_limit_tier=TIER_1K',
+      'signature_secret_configured=true',
+      'verification_pin_stored=false',
+      'provider_source=manual_setup_v2',
+      'templates total=6 approved=2 pending=1 rejected=1 other=2',
+      'window_rule_delay_minutes=1200',
+      'delayed_automations=true',
+    ])
+  })
+
+  it('never prints a provider_config value, phone number, verified name, template name or token', async () => {
+    const fake = waFake({}, whatsappInbox({}, { verification_pin: 'DISTINCT-PIN-864209' }))
+    const cap = capture()
+    await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(fake), ...cap.io })
+    const all = [...cap.out, ...cap.err].join('\n')
+    for (const secret of [...WA_SECRETS, FAKE_TOKEN, FAKE_HMAC]) expect(all).not.toContain(secret)
+    expect(all).not.toMatch(/provider_config|api_key|phone_number_id|business_account_id/)
+  })
+
+  it('prints a non-enum health value as "other" instead of echoing it', async () => {
+    const fake = waFake({ health: new Map([[8, healthy({ quality_rating: '+420 777 123 456', name_status: 'DISTINCT Verified Name Ltd' })]]) })
+    const cap = capture()
+    await runInspect(parseArgs(['--whatsapp']), { client: makeClient(fake), ...cap.io })
+    expect(cap.out).toContain('quality_rating=other')
+    expect(cap.out).toContain('name_status=other')
+    expect(cap.out.join('\n')).not.toContain('420')
+  })
+
+  it('signature_secret_configured is true for any of app_secret, app_secret_key, client_secret, api_secret and false when empty or absent', async () => {
+    for (const key of ['app_secret', 'app_secret_key', 'client_secret', 'api_secret']) {
+      const inbox = whatsappInbox({}, { app_secret: undefined, [key]: 'DISTINCT-APP-SECRET-31' })
+      const state = await gatherWhatsapp(makeClient(waFake({}, inbox)))
+      expect(state.signature_secret_configured, key).toBe(true)
+    }
+    for (const empty of [{ app_secret: '' }, { app_secret: null }, { app_secret: undefined }]) {
+      const inbox = whatsappInbox({}, empty)
+      const state = await gatherWhatsapp(makeClient(waFake({}, inbox)))
+      expect(state.signature_secret_configured).toBe(false)
+    }
+  })
+
+  it('verification_pin_stored is true only when a pin value is stored; provider_source is a fixed enum', async () => {
+    const pinned = await gatherWhatsapp(makeClient(waFake({}, whatsappInbox({}, { verification_pin: 'DISTINCT-PIN-864209' }))))
+    expect(pinned.verification_pin_stored).toBe(true)
+    const plain = await gatherWhatsapp(makeClient(waFake()))
+    expect(plain.verification_pin_stored).toBe(false)
+
+    const embedded = await gatherWhatsapp(makeClient(waFake({}, whatsappInbox({}, { source: 'embedded_signup' }))))
+    expect(embedded.provider_source).toBe('embedded_signup')
+    const odd = await gatherWhatsapp(makeClient(waFake({}, whatsappInbox({}, { source: 'DISTINCT-API-KEY-9f3' }))))
+    expect(odd.provider_source).toBe('other')
+    expect(JSON.stringify(odd)).not.toContain('DISTINCT')
+  })
+
+  it('window_rule_delay_minutes is missing without the rule; delayed_automations is false or unknown as reported', async () => {
+    const noRule = await gatherWhatsapp(makeClient(waFake({ rules: [{ id: 2, name: 'other rule', execution_delay: 5 }] })))
+    expect(noRule.window_rule_delay_minutes).toBe('missing')
+    const off = await gatherWhatsapp(makeClient(waFake({ account: { id: 1, features: { delayed_automations: false } } })))
+    expect(off.delayed_automations).toBe('false')
+    const unknown = await gatherWhatsapp(makeClient(waFake({ account: { id: 1 } })))
+    expect(unknown.delayed_automations).toBe('unknown')
+    expect(formatWhatsapp(unknown)).toContain('delayed_automations=unknown')
+  })
+
+  it('no WhatsApp inbox: prints "whatsapp inbox missing" and exits 1', async () => {
+    const cap = capture()
+    const code = await runInspect(parseArgs(['--whatsapp']), { client: makeClient(createFake()), ...cap.io })
+    expect(code).toBe(1)
+    expect(cap.out).toEqual(['whatsapp inbox missing'])
+  })
+
+  it('two WhatsApp inboxes is a config error, never a guess', async () => {
+    const fake = waFake({ inboxes: [websiteInbox(), whatsappInbox(), whatsappInbox({ id: 9, name: 'Second' })] })
+    await expect(runInspect(parseArgs(['--whatsapp']), { client: makeClient(fake), ...capture().io })).rejects.toThrow(ChatwootConfigError)
+  })
+
+  it('every request issued by --whatsapp is a GET', async () => {
+    const fake = waFake()
+    await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(fake), ...capture().io })
+    expect(fake.requests.length).toBeGreaterThan(0)
+    expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
+    expect(fake.requests.some((r) => r.path.endsWith('/inboxes/8/health'))).toBe(true)
+    expect(fake.requests.some((r) => r.path.endsWith('/inboxes/8/message_templates'))).toBe(true)
+  })
+
+  it('--expect-connected exits 0 only for CONNECTED + signature secret + no stored pin', async () => {
+    const ok = capture()
+    expect(await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(waFake()), ...ok.io })).toBe(0)
+    expect(ok.err).toEqual([])
+
+    const disconnected = capture()
+    const fakeDown = waFake({ health: new Map([[8, healthy({ status: 'DISCONNECTED' })]]) })
+    expect(await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(fakeDown), ...disconnected.io })).toBe(1)
+    expect(disconnected.err.join('\n')).toContain('status is not CONNECTED')
+
+    const noSecret = capture()
+    const fakeNoSecret = waFake({}, whatsappInbox({}, { app_secret: undefined }))
+    expect(await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(fakeNoSecret), ...noSecret.io })).toBe(1)
+    expect(noSecret.err.join('\n')).toContain('signature_secret_configured is not true')
+
+    const pinned = capture()
+    const fakePinned = waFake({}, whatsappInbox({}, { verification_pin: 'DISTINCT-PIN-864209' }))
+    expect(await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(fakePinned), ...pinned.io })).toBe(1)
+    expect(pinned.err.join('\n')).toContain('verification_pin_stored is not false')
+    expect(pinned.err.join('\n')).not.toContain('DISTINCT-PIN-864209')
+  })
+
+  it('--expect-connected exits 1 when the inbox is missing', async () => {
+    const cap = capture()
+    expect(await runInspect(parseArgs(['--whatsapp', '--expect-connected']), { client: makeClient(createFake()), ...cap.io })).toBe(1)
+  })
+
+  it('parseArgs registers --whatsapp, keeps modes exclusive and only allows --expect-connected with it', () => {
+    expect(parseArgs(['--whatsapp']).mode).toBe('whatsapp')
+    expect(parseArgs(['--whatsapp', '--expect-connected']).expectConnected).toBe(true)
+    expect(() => parseArgs(['--status', '--whatsapp'])).toThrow(/--whatsapp/)
+    expect(() => parseArgs(['--status', '--expect-connected'])).toThrow(ChatwootConfigError)
+    expect(() => parseArgs([])).toThrow(/--whatsapp/)
   })
 })
 
