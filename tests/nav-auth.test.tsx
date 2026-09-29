@@ -265,5 +265,29 @@ describe('Nav — auth state rendering (NAV-01, NAV-02)', () => {
       // customerSignOut should be wired as the form action
       expect(form).toBeDefined()
     })
+
+    it('T-77-20: submitting sign-out resets a loaded chat widget; does nothing when it was never opened', () => {
+      const session = makeSignedInSession()
+      mockOnAuthStateChange.mockImplementation((cb: (event: string, session: ReturnType<typeof makeSignedInSession>) => void) => {
+        cb('SIGNED_IN', session)
+        return { data: { subscription: { unsubscribe: vi.fn() } } }
+      })
+
+      render(<Nav />)
+      fireEvent.click(document.querySelector('[aria-expanded]') as HTMLElement)
+      const form = screen.getByRole('menuitem', { name: /sign out/i }).closest('form') as HTMLFormElement
+
+      // Never opened: no $chatwoot, submit must not throw.
+      fireEvent.submit(form)
+
+      const reset = vi.fn()
+      ;(window as unknown as { $chatwoot?: { reset: () => void } }).$chatwoot = { reset }
+      try {
+        fireEvent.submit(form)
+        expect(reset).toHaveBeenCalledTimes(1)
+      } finally {
+        delete (window as unknown as { $chatwoot?: unknown }).$chatwoot
+      }
+    })
   })
 })

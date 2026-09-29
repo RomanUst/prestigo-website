@@ -21,6 +21,17 @@ const NAV_LINKS: ReadonlyArray<{ href: string; isNew?: boolean }> = [
   { href: '/contact' },
 ]
 
+// T-77-20: sign-out is a Server Action + soft navigation, so an already-open
+// chat widget would survive in memory. Reset it (no-op when never opened —
+// nothing third-party is loaded or imported here).
+function resetChatWidgetOnSignOut(): void {
+  try {
+    window.$chatwoot?.reset?.()
+  } catch {
+    // Never block sign-out on the widget.
+  }
+}
+
 export default function Nav() {
   const t = useTranslations('Nav')
   const locale = useLocale()
@@ -303,7 +314,7 @@ export default function Nav() {
                   </Link>
                   {/* Divider */}
                   <div style={{ height: '1px', background: 'var(--anthracite-light)', margin: '4px 8px' }} />
-                  <form action={customerSignOut}>
+                  <form action={customerSignOut} onSubmit={resetChatWidgetOnSignOut}>
                     <button
                       type="submit"
                       role="menuitem"
@@ -416,7 +427,7 @@ export default function Nav() {
             >
               {t('profile')}
             </Link>
-            <form action={customerSignOut}>
+            <form action={customerSignOut} onSubmit={resetChatWidgetOnSignOut}>
               <button
                 type="submit"
                 className="font-body font-light text-[11px] tracking-[0.2em] uppercase transition-colors text-warmgrey hover:text-offwhite min-h-[44px] flex items-center w-full text-start bg-transparent border-none cursor-pointer"

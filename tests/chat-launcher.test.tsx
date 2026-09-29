@@ -72,6 +72,7 @@ type FakeCw = {
   setCustomAttributes: ReturnType<typeof vi.fn>
   setConversationCustomAttributes: ReturnType<typeof vi.fn>
   toggle: ReturnType<typeof vi.fn>
+  reset: ReturnType<typeof vi.fn>
 }
 
 /**
@@ -87,6 +88,10 @@ function installFakeSdk(opts: { neverReady?: boolean; failScript?: boolean } = {
     setCustomAttributes: vi.fn(),
     setConversationCustomAttributes: vi.fn(),
     toggle: vi.fn(),
+    // Real SDK: reset() clears cookies and reloads the iframe -> ready fires again.
+    reset: vi.fn(() => {
+      setTimeout(() => window.dispatchEvent(new Event('chatwoot:ready')), 0)
+    }),
   }
   const run = vi.fn(() => {
     ;(window as unknown as { $chatwoot: FakeCw }).$chatwoot = cw
@@ -292,7 +297,49 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     fireEvent.click(menuItems()[0])
     await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2))
     expect(sdk.scripts).toHaveLength(1)
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    // Identity is re-checked on every open (T-77-20) — the route is the only extra call.
+    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(sdk.cw.reset).not.toHaveBeenCalled()
+    expect(sdk.cw.setUser).toHaveBeenCalledTimes(1)
+  })
+
+  it('CR-01: after sign-out the next open resets the widget instead of reusing the previous customer\'s chat', async () => {
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk()
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1))
+    expect(sdk.cw.setUser).toHaveBeenCalledTimes(1)
+
+    // Visitor signs out (soft navigation: widget stays in memory), next person clicks.
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2))
+    expect(sdk.cw.reset).toHaveBeenCalledTimes(1)
+    expect(sdk.cw.reset.mock.invocationCallOrder[0]).toBeLessThan(sdk.cw.toggle.mock.invocationCallOrder[1])
+    expect(sdk.cw.setUser).toHaveBeenCalledTimes(1) // no identity re-applied for the anonymous visitor
+    expect(sdk.scripts).toHaveLength(1)
+  })
+
+  it('CR-01: login mid-visit resets the anonymous widget and applies the identity before opening', async () => {
+    mockGetUser.mockResolvedValue({ data: { user: null }, error: null })
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk()
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(1))
+    expect(sdk.cw.setUser).not.toHaveBeenCalled()
+
+    mockGetUser.mockResolvedValue({ data: { user: USER }, error: null })
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledTimes(2))
+    expect(sdk.cw.reset).toHaveBeenCalledTimes(1)
+    expect(sdk.cw.setUser).toHaveBeenCalledWith(USER.id, expect.objectContaining({ email: USER.email }))
+    expect(sdk.cw.setUser.mock.invocationCallOrder[0]).toBeLessThan(sdk.cw.toggle.mock.invocationCallOrder[1])
   })
 
   it('maps the site locale to the widget locale (zh -> zh_CN) and positions left for ar', async () => {

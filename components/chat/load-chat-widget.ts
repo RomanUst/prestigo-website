@@ -36,6 +36,8 @@ interface WidgetApi {
   setCustomAttributes: (attrs: Record<string, string>) => void
   setConversationCustomAttributes: (attrs: Record<string, string>) => void
   toggle: (state?: 'open' | 'close') => void
+  /** Clears the widget's cookies and reloads its iframe; fires 'chatwoot:ready' again. */
+  reset: () => void
 }
 
 declare global {
@@ -79,6 +81,16 @@ function readWidgetApi(): WidgetApi | undefined {
 }
 
 let inFlight: Promise<void> | null = null
+
+/**
+ * Identity the loaded widget was configured with (T-77-20): the user id, or
+ * null for an anonymous visitor. undefined = no widget configured yet.
+ */
+let configuredIdentifier: string | null | undefined
+
+function identifierOf(config: { user: WidgetIdentity | null }): string | null {
+  return config.user?.identifier && config.user.identifierHash ? config.user.identifier : null
+}
 
 async function fetchWidgetConfig(): Promise<Extract<WidgetConfigResponse, { enabled: true }>> {
   const controller = new AbortController()
@@ -140,8 +152,13 @@ function identityAttributes(user: WidgetIdentity): Record<string, string> {
   return attrs
 }
 
-function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<void> {
-  return new Promise<void>((resolve, reject) => {
+/**
+ * Resolves on 'chatwoot:ready'; rejects on 'chatwoot:error', on `fail`, or
+ * after STEP_TIMEOUT_MS.
+ */
+function awaitReady(): { promise: Promise<void>; fail: (err: Error) => void } {
+  let fail: (err: Error) => void = () => {}
+  const promise = new Promise<void>((resolve, reject) => {
     const cleanups: Array<() => void> = []
     const settle = (fn: () => void) => {
       cleanups.forEach((c) => c())
@@ -161,36 +178,48 @@ function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<
     cleanups.push(() => window.removeEventListener('chatwoot:ready', onReady))
     cleanups.push(() => window.removeEventListener('chatwoot:error', onError))
 
-    const run = () => {
-      try {
-        window.chatwootSDK?.run({ websiteToken: config.websiteToken, baseUrl: config.baseUrl })
-      } catch (err) {
-        settle(() => reject(err instanceof Error ? err : new Error('chat-run-failed')))
-      }
-    }
-
-    if (window.chatwootSDK) {
-      // A previous attempt already loaded the SDK bundle (e.g. it timed out
-      // before ready) — never inject it twice, just run again.
-      run()
-      return
-    }
-
-    const script = document.createElement('script')
-    script.src = `${config.baseUrl}/packs/js/sdk.js`
-    script.async = true
-    script.onload = run
-    script.onerror = () => {
-      script.remove()
-      settle(() => reject(new Error('chat-script-failed')))
-    }
-    document.body.appendChild(script)
+    fail = (err) => settle(() => reject(err))
   })
+  return { promise, fail }
+}
+
+function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<void> {
+  const { promise, fail } = awaitReady()
+
+  const run = () => {
+    try {
+      window.chatwootSDK?.run({ websiteToken: config.websiteToken, baseUrl: config.baseUrl })
+    } catch (err) {
+      fail(err instanceof Error ? err : new Error('chat-run-failed'))
+    }
+  }
+
+  if (window.chatwootSDK) {
+    // A previous attempt already loaded the SDK bundle (e.g. it timed out
+    // before ready) — never inject it twice, just run again.
+    run()
+    return promise
+  }
+
+  const script = document.createElement('script')
+  script.src = `${config.baseUrl}/packs/js/sdk.js`
+  script.async = true
+  script.onload = run
+  script.onerror = () => {
+    script.remove()
+    fail(new Error('chat-script-failed'))
+  }
+  document.body.appendChild(script)
+  return promise
 }
 
 async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
   const existing = window.$chatwoot
-  if (existing) {
+  if (!existing) {
+    // No live widget (first open, or the page was reloaded): forget any state.
+    configuredIdentifier = undefined
+  }
+  if (existing && configuredIdentifier === undefined) {
     existing.toggle('open')
     return
   }
@@ -198,7 +227,15 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
   // Click-time snapshot: the page, UTM, referrer and booking state as they are
   // now, not as they will be when the widget finishes loading.
   const visitContext = await collectVisitContext(options)
+  // Identity is re-read on EVERY open (T-77-20): a sign-out is a soft
+  // navigation that leaves the loaded widget — and the previous customer's
+  // conversation — alive in this tab.
   const config = await fetchWidgetConfig()
+  const identifier = identifierOf(config)
+  if (existing && configuredIdentifier === identifier) {
+    existing.toggle('open')
+    return
+  }
   const widgetLocale = WIDGET_LOCALE_BY_SITE_LOCALE[options.locale] ?? 'en'
 
   // chatwootSettings must exist before sdk.js runs.
@@ -215,13 +252,21 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     availableMessage: options.texts.replyTimeHint,
   }
 
-  await loadAndRun(config)
+  if (existing) {
+    // Identity changed (signed out, signed in, or another account): drop the
+    // previous customer's contact and conversation before anything is shown.
+    const reloaded = awaitReady()
+    existing.reset()
+    await reloaded.promise
+  } else {
+    await loadAndRun(config)
+  }
 
   // Re-read: the SDK assigns window.$chatwoot during run().
   const cw = readWidgetApi()
   if (!cw) throw new Error('chat-widget-missing')
 
-  if (config.user?.identifier && config.user.identifierHash) {
+  if (identifier && config.user) {
     cw.setUser(config.user.identifier, identityAttributes(config.user))
   }
   cw.setLocale(widgetLocale)
@@ -234,6 +279,7 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     () => cw.setConversationCustomAttributes(visitContext),
     { once: true },
   )
+  configuredIdentifier = identifier
   cw.toggle('open')
 }
 
