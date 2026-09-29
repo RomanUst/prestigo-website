@@ -12,12 +12,16 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { loadTemplates, validateTemplate, SITE_LOCALES } from '../infra/chatwoot/whatsapp-templates.mjs'
 import { hasCurrencyToken } from '../scripts/qa/chatwoot_price_gate.mjs'
+import { BUSINESS_PHONE_DIGITS } from '@/lib/contact-channels'
 
 const TEMPLATES_DIR = path.join(process.cwd(), 'infra/chatwoot/whatsapp-templates')
 const CANNED_DIR = path.join(process.cwd(), 'infra/chatwoot/canned-responses')
 
-// The WA-02 four (Task 1 started with ['booking-change']).
-const REQUIRED_KEYS = ['booking-change', 'payment-help', 'review-request', 'trip-reminder']
+// The WA-02 set (plan 78-08 shipped the first four; plan 78-10 adds driver-details first, then the rest).
+const REQUIRED_KEYS = ['booking-change', 'payment-help', 'review-request', 'trip-reminder', 'driver-details']
+
+// The one phone-shaped string a template may carry: the non-dialable synthetic driver_phone example.
+const SYNTHETIC_PHONE = '+420 000 000 000'
 
 const loaded = loadTemplates() as Array<{ file: string; template: any }>
 const byKey = new Map<string, any>(loaded.map(({ template }) => [template.key, template]))
@@ -72,7 +76,7 @@ describe.each(loaded.map(({ template }) => [template.key, template] as const))('
   })
 
   it('carries only synthetic examples (no real booking reference, email or phone)', () => {
-    const text = allStrings(t).join('\n')
+    const text = allStrings(t).join('\n').split(SYNTHETIC_PHONE).join('')
     expect(text).not.toMatch(/PRG-\d{8}/i)
     expect(text).not.toMatch(/@/)
     expect(text).not.toMatch(/\+?\d[\d ()-]{8,}\d/)
@@ -146,5 +150,20 @@ describe('WhatsApp templates: per-template rules (D-07, D-11)', () => {
     const names = ['first_name', 'booking_ref', 'pickup_date', 'pickup_time', 'pickup_place']
     expect(t.variables.map((v: any) => v.name)).toEqual(names)
     for (const code of locales) for (const n of names) expect(t.locales[code].body, `${code} ${n}`).toContain(`{{${n}}}`)
+  })
+
+  it('driver-details: seven named variables in every locale body, synthetic non-dialable driver_phone, quick replies ok + question', () => {
+    const t = byKey.get('driver-details')
+    expect(t.name).toBe('prestigo_driver_details')
+    expect(shape(t)).toEqual(['QUICK_REPLY:ok', 'QUICK_REPLY:question'])
+    const names = ['first_name', 'booking_ref', 'driver_name', 'driver_phone', 'vehicle', 'plate', 'meeting_point']
+    expect(t.variables.map((v: any) => v.name)).toEqual(names)
+    for (const code of locales) for (const n of names) expect(t.locales[code].body, `${code} ${n}`).toContain(`{{${n}}}`)
+    const phone = t.variables.find((v: any) => v.name === 'driver_phone').example as string
+    expect(phone).toBe(SYNTHETIC_PHONE)
+    const digits = phone.replace(/\D/g, '')
+    expect(digits).not.toBe(BUSINESS_PHONE_DIGITS)
+    expect(digits.includes(BUSINESS_PHONE_DIGITS)).toBe(false)
+    expect(digits.slice(3)).toMatch(/^0+$/) // only the +420 country code, then zeros: never dialable
   })
 })

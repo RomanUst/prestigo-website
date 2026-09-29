@@ -1,0 +1,58 @@
+{
+  "key": "driver-details",
+  "name": "prestigo_driver_details",
+  "category": "UTILITY",
+  "parameterFormat": "NAMED",
+  "sourceCanned": null,
+  "variables": [
+    { "name": "first_name", "example": "Anna" },
+    { "name": "booking_ref", "example": "PRG-EXAMPLE" },
+    { "name": "driver_name", "example": "Petr" },
+    { "name": "driver_phone", "example": "+420 000 000 000" },
+    { "name": "vehicle", "example": "Mercedes-Benz V-Class" },
+    { "name": "plate", "example": "1AB 2345" },
+    { "name": "meeting_point", "example": "Arrivals hall, Terminal 1, with a name sign" }
+  ],
+  "buttons": [
+    { "type": "QUICK_REPLY", "textKey": "ok" },
+    { "type": "QUICK_REPLY", "textKey": "question" }
+  ],
+  "header": null,
+  "locales": {
+    "en": {
+      "language": "en",
+      "body": "Hi {{first_name}}, here are the driver details for your booking {{booking_ref}}. Driver: {{driver_name}}, phone {{driver_phone}}. Car: {{vehicle}}, plate {{plate}}. Meeting point: {{meeting_point}}. Tap a button below or reply here if you have a question. — Prestigo",
+      "buttons": { "ok": "Got it", "question": "I have a question" }
+    },
+    "ru": {
+      "language": "ru",
+      "body": "Здравствуйте, {{first_name}}! Данные водителя по вашему бронированию {{booking_ref}}. Водитель: {{driver_name}}, телефон {{driver_phone}}. Автомобиль: {{vehicle}}, номер {{plate}}. Место встречи: {{meeting_point}}. Если есть вопрос, нажмите кнопку ниже или напишите нам здесь. — Prestigo",
+      "buttons": { "ok": "Понятно", "question": "У меня вопрос" }
+    },
+    "es": {
+      "language": "es",
+      "body": "Hola {{first_name}}, estos son los datos de tu conductor para la reserva {{booking_ref}}. Conductor: {{driver_name}}, teléfono {{driver_phone}}. Coche: {{vehicle}}, matrícula {{plate}}. Punto de encuentro: {{meeting_point}}. Si tienes alguna pregunta, pulsa un botón de abajo o escríbenos aquí. — Prestigo",
+      "buttons": { "ok": "Entendido", "question": "Tengo una pregunta" }
+    },
+    "fr": {
+      "language": "fr",
+      "body": "Bonjour {{first_name}}, voici les informations sur votre chauffeur pour la réservation {{booking_ref}}. Chauffeur : {{driver_name}}, téléphone {{driver_phone}}. Voiture : {{vehicle}}, plaque {{plate}}. Point de rendez-vous : {{meeting_point}}. Pour toute question, appuyez sur un bouton ci-dessous ou répondez ici. — Prestigo",
+      "buttons": { "ok": "C'est noté", "question": "J'ai une question" }
+    },
+    "ar": {
+      "language": "ar",
+      "body": "مرحبًا {{first_name}}، هذه بيانات السائق لحجزك {{booking_ref}}. السائق: {{driver_name}}، الهاتف {{driver_phone}}. السيارة: {{vehicle}}، اللوحة {{plate}}. مكان اللقاء: {{meeting_point}}. إذا كان لديك سؤال، اضغط على أحد الأزرار أدناه أو رد هنا. — Prestigo",
+      "buttons": { "ok": "تمام", "question": "لدي سؤال" }
+    },
+    "hi": {
+      "language": "hi",
+      "body": "नमस्ते {{first_name}}, आपकी बुकिंग {{booking_ref}} के लिए ड्राइवर की जानकारी यह है। ड्राइवर: {{driver_name}}, फ़ोन {{driver_phone}}। गाड़ी: {{vehicle}}, नंबर प्लेट {{plate}}। मिलने की जगह: {{meeting_point}}। कोई सवाल हो तो नीचे दिया बटन दबाएँ या यहीं जवाब दें। — Prestigo",
+      "buttons": { "ok": "समझ गया", "question": "मेरा एक सवाल है" }
+    },
+    "zh": {
+      "language": "zh_CN",
+      "body": "您好 {{first_name}}，这是您预订 {{booking_ref}} 的司机信息。司机：{{driver_name}}，电话 {{driver_phone}}。车辆：{{vehicle}}，车牌 {{plate}}。会合地点：{{meeting_point}}。如有问题，请点击下方按钮或直接在此回复。— Prestigo",
+      "buttons": { "ok": "收到", "question": "我有个问题" }
+    }
+  }
+}
