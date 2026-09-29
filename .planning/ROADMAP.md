@@ -196,7 +196,36 @@ Plans:
   3. Operator can message a customer outside the 24-hour window using pre-approved WhatsApp templates (booking change, payment help, review request, trip reminder).
   4. A documented runbook covers WhatsApp channel recovery, current per-message pricing, and the rule that inboxes are never deleted without a fresh backup.
 
-**Plans**: TBD (replanning)
+**Plans**: 16 plans
+
+Plans:
+**Wave 1**
+- [ ] 78-01-PLAN.md — Single business-number constant (current value) + link surfaces (Footer, Hero, contact, privacy, booking, form) + repo guard A (WA-04 stage a)
+- [ ] 78-02-PLAN.md — Meta credential custody: env example, pre-commit name gate + token shape, isolation guard forbids WhatsApp API in site code (security)
+- [ ] 78-03-PLAN.md — Graph client + idempotent templates-as-code CLI (--validate/--dry-run/--status/--only/--allow-edit), never deletes
+- [ ] 78-04-PLAN.md — Chatwoot config-as-code: WhatsApp inbox, ch-whatsapp + window-closing rules (execution_delay), owner membership, inspect --whatsapp
+- [ ] 78-05-PLAN.md — WhatsApp runbook: recovery, never-delete-without-backup, dated EUR pricing, PIN/SIM custody, transition + off-site checklists (WA-03)
+- [ ] 78-06-PLAN.md — Owner decision: WhatsApp/Meta privacy disclosure now (7 locales + freeze) or defer to Phase 82
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 78-07-PLAN.md — JSON-LD, email footers, llms text read the constant; code-wide single source; live check script proven on prod (WA-04 stage a)
+- [ ] 78-08-PLAN.md — WA-02 templates as code: booking change, payment help, review request, trip reminder x 7 locales
+- [ ] 78-09-PLAN.md — WhatsApp channel ops CLI: signature probe, --harden (app_secret), --number/--register (owner PIN), recovery levers (security)
+
+**Wave 3** *(blocked on Wave 2 completion)*
+- [ ] 78-10-PLAN.md — Remaining templates (driver details, re-open, invoice ready per D-10 owner decision, payment received) — 56 submissions valid
+- [ ] 78-11-PLAN.md — EUR confirmation (one-way) + owner Meta onboarding: new SIM, "Prestigo Messaging" app Live, number + display name, own-PIN registration, token
+
+**Wave 4** *(blocked on Wave 3 completion)*
+- [ ] 78-12-PLAN.md — Chatwoot manual inbox + enforced webhook signatures + D-06 go-live matrix from a second phone
+- [ ] 78-13-PLAN.md — Submit all 56 templates to the new WABA (slice first, idempotent rerun)
+
+**Wave 5** *(blocked on Wave 4 completion)*
+- [ ] 78-14-PLAN.md — Owner go/no-go (one-way) -> flip the constant, replace 7-locale content, snapshots, deploy + live check, guard B, manifest freeze (WA-04 stage b)
+- [ ] 78-15-PLAN.md — WA-02 acceptance: approved templates sent outside the 24 h window, quick-reply reopen, window-closing label test
+
+**Wave 6** *(blocked on Wave 5 completion)*
+- [ ] 78-16-PLAN.md — Stored-text inventory (Supabase/Chatwoot), transition away message on the former number, off-site checklist, verified end state
 
 ### Phase 79: Instagram + Facebook Channels
 
@@ -324,7 +353,7 @@ Plans:
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
-| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 0/0 | Not started | - |
+| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 0/16 | Planned | - |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
