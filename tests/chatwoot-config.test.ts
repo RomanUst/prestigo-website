@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import fs from 'node:fs'
 import path from 'node:path'
+import { hasCurrencyToken } from '../scripts/qa/chatwoot_price_gate.mjs'
 
 /**
  * Phase 77-03: config-as-code validation for infra/chatwoot/.
@@ -183,6 +184,29 @@ describe('infra/chatwoot template price guard (D-18)', () => {
     )
     expect(probe).toContain('template-price')
     expect(probe).toContain('template-clean')
+  })
+
+  it('WR-04: the gate flags every currency form the shipped locales use, case-insensitively', () => {
+    for (const text of [
+      'Total \u20AC50', 'EUR 99', 'eur 99', '50 Euros', 'un precio de 50 euros', 'cuesta 1 euro',
+      '50 CZK', '1200 kc', '1200 K\u010D', 'about 1000 koruna', '\u0441\u0442\u043E\u0438\u0442 50 \u0435\u0432\u0440\u043E',
+      '\u4EF7\u683C 50 \u6B27\u5143', '50 \u064A\u0648\u0631\u0648', '50 \u092F\u0942\u0930\u094B',
+    ]) {
+      expect(hasCurrencyToken(text), text).toBe(true)
+    }
+  })
+
+  it('WR-04: the gate does not fire on words that merely contain a currency token', () => {
+    for (const text of ['We serve Europe', 'neuron', 'Kcal', '\u0415\u0432\u0440\u043E\u043F\u0430 \u0438 \u0435\u0432\u0440\u043E\u043F\u0435\u0439\u0441\u043A\u0438\u0439', 'Hello, [BOOKING_REF] is confirmed.']) {
+      expect(hasCurrencyToken(text), text).toBe(false)
+    }
+  })
+
+  it('WR-04: .husky/pre-commit scans staged content through the gate script, not the working tree', () => {
+    const hook = fs.readFileSync(path.join(process.cwd(), '.husky/pre-commit'), 'utf8')
+    expect(hook).toContain('scripts/qa/chatwoot_price_gate.mjs')
+    expect(hook).toContain('git diff --cached --name-only --diff-filter=ACMR -- infra/chatwoot')
+    expect(hook).not.toMatch(/grep -rIlE/)
   })
 
   it('infra/chatwoot directory exists on disk', () => {

@@ -18,19 +18,28 @@ if [ -n "$MATCHES" ]; then
   exit 1
 fi
 
-# Phase 77 / D-18: fail the commit if any Chatwoot template source (json/md)
-# under infra/chatwoot contains a price or currency token. These templates
-# are sent to customers verbatim via canned responses — a baked-in price
-# would go stale and could contradict the actual charge. Scans the working
-# tree (not the staged index), matching the app/components check above.
-CHATWOOT_MATCHES=$(grep -rIlE '€|EUR|CZK|Kč' --include='*.json' --include='*.md' infra/chatwoot 2>/dev/null || true)
-
-if [ -n "$CHATWOOT_MATCHES" ]; then
-  echo "ERROR: Price or currency found in Chatwoot template source (D-18)"
-  echo ""
-  echo "Matched files:"
-  echo "$CHATWOOT_MATCHES"
-  exit 1
+# Phase 77 / D-18: fail the commit if any staged Chatwoot template source
+# (json/md) under infra/chatwoot contains a price or currency token. These
+# templates are sent to customers verbatim via canned responses — a baked-in
+# price would go stale and could contradict the actual charge. Unlike the
+# app/components check above, this scans the STAGED blobs (git show :path),
+# case-insensitively and with the localized currency words (euro/euros, евро,
+# 欧元, يورو, यूरो, koruna, ...) — see scripts/qa/chatwoot_price_gate.mjs.
+# node only starts when a template file is actually staged, so ordinary
+# commits pay nothing.
+if [ -n "$(git diff --cached --name-only --diff-filter=ACMR -- infra/chatwoot)" ]; then
+  CHATWOOT_MATCHES=$(node scripts/qa/chatwoot_price_gate.mjs)
+  CHATWOOT_RC=$?
+  if [ "$CHATWOOT_RC" -eq 1 ]; then
+    echo "ERROR: Price or currency found in Chatwoot template source (D-18)"
+    echo ""
+    echo "Matched files:"
+    echo "$CHATWOOT_MATCHES"
+    exit 1
+  elif [ "$CHATWOOT_RC" -ne 0 ]; then
+    echo "ERROR: Chatwoot template price gate failed to run (exit $CHATWOOT_RC)"
+    exit 1
+  fi
 fi
 
 # Secret scan: block staged .env files and added lines that look like live

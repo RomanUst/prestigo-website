@@ -113,10 +113,8 @@ run_probe "infra-env-key-search-pattern" "$PROBE_DIR/probe-grep-pattern.sh" "all
 # --- Probe G (Phase 77 D-18): a Chatwoot template source file containing a
 # currency token must be blocked. The token is assembled at runtime from
 # fragments so the literal never exists in a tracked file (including this
-# script). The price guard scans the WORKING TREE (not the staged index),
-# so the file only needs to exist on disk under infra/chatwoot for the hook
-# to see it — run_probe's git add -f is harmless but not what makes this
-# probe work. ---
+# script). The price guard scans the STAGED blobs, so run_probe's git add -f
+# (into the throwaway index) is what puts the file in front of the hook. ---
 mkdir -p "$CHATWOOT_PROBE_DIR"
 CUR_FRAG1='EU'
 CUR_FRAG2='R'
@@ -124,12 +122,42 @@ CUR_TOKEN="${CUR_FRAG1}${CUR_FRAG2} 99"
 printf '{"topic":"probe","responses":{"en":"Total %s"}}\n' "$CUR_TOKEN" > "$CHATWOOT_PROBE_DIR/probe-price.json"
 run_probe "template-price" "$CHATWOOT_PROBE_DIR/probe-price.json" "block" "Price or currency found in Chatwoot template source"
 
+# --- Probe G2 (WR-04): localized / lowercase currency words the shipped
+# locales use must also be blocked (euros es/fr, евро ru, 欧元 zh, يورو ar,
+# यूरो hi, koruna). ---
+i=0
+for WORD in 'costs 50 euros' 'стоит 50 евро' '价格 50 欧元' '50 يورو' '50 यूरो' 'about 1000 koruna'; do
+  i=$((i + 1))
+  printf '{"topic":"probe","responses":{"en":"%s"}}\n' "$WORD" > "$CHATWOOT_PROBE_DIR/probe-word-$i.json"
+  run_probe "template-currency-word-$i" "$CHATWOOT_PROBE_DIR/probe-word-$i.json" "block" "Price or currency found in Chatwoot template source"
+  rm -f "$CHATWOOT_PROBE_DIR/probe-word-$i.json"
+done
+
+# --- Probe G3 (WR-04): the staged blob is what counts. A price staged and
+# then removed from the working tree is still blocked; an unstaged price in
+# the working tree does not block an unrelated staged clean file. ---
+printf '{"topic":"probe","responses":{"en":"Total %s"}}\n' "$CUR_TOKEN" > "$CHATWOOT_PROBE_DIR/probe-staged-price.json"
+reset_index
+GIT_INDEX_FILE="$TMP_INDEX" git add -f "$CHATWOOT_PROBE_DIR/probe-staged-price.json" >/dev/null 2>&1
+printf '{"topic":"probe","responses":{"en":"Clean now."}}\n' > "$CHATWOOT_PROBE_DIR/probe-staged-price.json"
+set +e
+STAGED_OUT=$(GIT_INDEX_FILE="$TMP_INDEX" sh .husky/pre-commit 2>&1)
+STAGED_RC=$?
+set -e
+if [ "$STAGED_RC" -ne 0 ] && printf '%s' "$STAGED_OUT" | grep -qF "Price or currency found in Chatwoot template source"; then
+  echo "PROBE template-staged-blob: BLOCKED"
+else
+  echo "PROBE template-staged-blob: NOT BLOCKED"
+  echo "$STAGED_OUT" >&2
+  FAIL=1
+fi
+rm -f "$CHATWOOT_PROBE_DIR/probe-staged-price.json"
+
 # --- Probe H (Phase 77 D-18): a clean template JSON (no price/currency
-# token) must be ALLOWED. Probe G's file is removed first — the price guard
-# greps infra/chatwoot recursively, so a leftover probe-price.json anywhere
-# under that tree would make this probe fail for the wrong reason. ---
+# token, incl. words that merely contain one such as "Europe") must be
+# ALLOWED. Probe G's file is removed first so it cannot influence this probe. ---
 rm -f "$CHATWOOT_PROBE_DIR/probe-price.json"
-printf '{"topic":"probe","responses":{"en":"Hello there, no price mentioned here."}}\n' > "$CHATWOOT_PROBE_DIR/probe-clean.json"
+printf '{"topic":"probe","responses":{"en":"Hello there, we serve Europe. No price mentioned here."}}\n' > "$CHATWOOT_PROBE_DIR/probe-clean.json"
 run_probe "template-clean" "$CHATWOOT_PROBE_DIR/probe-clean.json" "allow"
 
 # --- Probe I (Phase 77 plan 09, T-77-22): the new Chatwoot/Telegram secret
