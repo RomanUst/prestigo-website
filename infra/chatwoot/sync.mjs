@@ -871,7 +871,9 @@ export async function runSync({
 // CLI
 // ---------------------------------------------------------------------------
 
+/** @returns {{ dryRun: boolean, only: string[], windowDelayOverride?: number }} */
 export function parseArgs(argv) {
+  /** @type {{ dryRun: boolean, only: string[], windowDelayOverride?: number }} */
   const opts = { dryRun: false, only: [] }
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i]
