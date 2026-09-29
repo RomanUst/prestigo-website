@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v4.0
 milestone_name: Helpdesk + CRM
 current_phase: 78
-current_phase_name: WhatsApp Cloud API Channel (Coexistence)
+current_phase_name: WhatsApp Cloud API Channel (Dedicated Number)
 status: executing
 stopped_at: Phase 78 context gathered
 last_updated: "2026-09-29T16:10:47.925Z"
@@ -29,7 +29,7 @@ See: .planning/PROJECT.md (updated 2026-09-27)
 
 ## Current Position
 
-Phase: 78 (WhatsApp Cloud API Channel (Coexistence)) — READY TO EXECUTE
+Phase: 78 (WhatsApp Cloud API Channel (Dedicated Number)) — READY TO EXECUTE
 Plan: Not started
 Status: Ready to execute
 Last activity: 2026-09-29 — Phase 77 complete, transitioned to Phase 78
@@ -238,7 +238,7 @@ Recent decisions affecting current work:
 - Milestone: Helpdesk + CRM — self-hosted Chatwoot (omnichannel inbox) + EspoCRM (B2B CRM) on a new Hostinger VPS, two-way linked to production; Supabase stays source of truth for bookings/customers; public site never depends on VPS uptime.
 - Phase 76: VPS Infrastructure — INFRA-01..05 (foundation: Docker/Caddy/TLS, backups+restore drill, independent alerting, OS/app upgrade runbook, VPS-offline resilience proof)
 - Phase 77: Chatwoot Deployment + Core Channels — INBOX-01..06, OPS-01/02 (email, widget, Telegram, native reports, canned responses, automation)
-- Phase 78: WhatsApp Cloud API Channel (Coexistence) — WA-01..03 (own phase: highest business risk, Meta verification lead time)
+- Phase 78: WhatsApp Cloud API Channel (Dedicated Number) — WA-01..03 (own phase: highest business risk, Meta verification lead time)
 - Phase 79: Instagram + Facebook Channels — SOC-01/02 (after WhatsApp per blast-radius sequencing)
 - Phase 80: EspoCRM Deployment + Core Entities — CRM-01..05 (parallel to 77-79, only needs Phase 76)
 - Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM) — LEAD-01..05

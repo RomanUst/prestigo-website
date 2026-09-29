@@ -15,7 +15,7 @@
 
 - [x] **Phase 76: VPS Infrastructure** - Hostinger VPS KVM 2 (Docker/Caddy) running Chatwoot + EspoCRM with TLS, backups, restore drill, and independent alerting; public site keeps working if VPS is down (completed 2026-09-28)
 - [x] **Phase 77: Chatwoot Deployment + Core Channels** - Chatwoot live with email (info@/bookings@), consent-gated CWV-safe website widget, Telegram, native reports, canned responses and automation (completed 2026-09-29)
-- [ ] **Phase 78: WhatsApp Cloud API Channel (Coexistence)** - WhatsApp Business Coexistence onboarding for the existing +420 number, pre-approved outbound templates, recovery runbook
+- [ ] **Phase 78: WhatsApp Cloud API Channel (Dedicated Number)** - New dedicated business number on the Cloud API in Chatwoot, site switched off the personal number, pre-approved outbound templates, recovery runbook
 - [ ] **Phase 79: Instagram + Facebook Channels** - Instagram DMs and Facebook Page messages join the same Chatwoot inbox
 - [ ] **Phase 80: EspoCRM Deployment + Core Entities** - EspoCRM live with Accounts/Contacts, B2B Opportunity Kanban pipeline, read-only Booking history, sales mailbox, roles/ACL
 - [ ] **Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)** - Contact, corporate and multi-day-quote forms (plus abandoned-checkout/calculator signals) persist to Supabase and appear as EspoCRM Leads, with no regression if storage fails
@@ -185,37 +185,18 @@ Plans:
 
 **UI hint**: yes
 
-### Phase 78: WhatsApp Cloud API Channel (Coexistence)
+### Phase 78: WhatsApp Cloud API Channel (Dedicated Number)
 
-**Goal**: WhatsApp messages to the existing +420 number flow through Chatwoot without breaking the live number, its app access, or its history. Meta Business verification has external lead time and can be started early, in parallel with Phase 76/77 build work, even though the Chatwoot-side channel connection itself depends on Phase 77.
+**Goal**: WhatsApp conversations with Prestigo run on a new dedicated business number connected to Chatwoot through the WhatsApp Cloud API, and the site stops publishing the owner's personal number +420 725 986 855 (which returns to personal use after a transition period). Replanned 2026-09-29: Coexistence on the personal number was dropped by owner decision.
 **Depends on**: Phase 77
-**Requirements**: WA-01, WA-02, WA-03
+**Requirements**: WA-01, WA-02, WA-03, WA-04
 **Success Criteria** (what must be TRUE):
-  1. WhatsApp messages to +420 725 986 855 arrive in Chatwoot and can be answered from Chatwoot.
-  2. The WhatsApp Business app on the phone keeps working with the same number and full message history (Coexistence onboarding, Meta Business verified) — no hard-cutover migration.
+  1. WhatsApp messages to the new dedicated business number arrive in Chatwoot and can be answered from Chatwoot.
+  2. Every public contact surface of the site (WhatsApp and phone links, JSON-LD, email footers, llms.txt, 7-locale content) shows the new number; the personal number is no longer published, and its transition auto-reply points customers to the new number.
   3. Operator can message a customer outside the 24-hour window using pre-approved WhatsApp templates (booking change, payment help, review request, trip reminder).
   4. A documented runbook covers WhatsApp channel recovery, current per-message pricing, and the rule that inboxes are never deleted without a fresh backup.
 
-**Plans**: 10 plans
-
-Plans:
-**Wave 1**
-- [ ] 78-01-PLAN.md — Owner Meta track: business verification, new Live app "Prestigo Messaging", Embedded Signup config, Super Admin, Tech Provider start, coexistence rehearsal
-- [ ] 78-02-PLAN.md — WhatsApp templates as code part 1 (booking change, payment help, review request) in 7 locales + template validation test
-- [ ] 78-03-PLAN.md — Graph API client + idempotent template script (dry-run/validate/status/drift) + Meta secret gate (security)
-- [ ] 78-04-PLAN.md — Chatwoot sync: WhatsApp inbox settings, ch-whatsapp channel rule, wa-window-closing delayed rules, owner membership
-- [ ] 78-05-PLAN.md — inspect --whatsapp health view + WhatsApp runbook (recovery, pricing, never-delete, rollback) + channel inventory
-- [ ] 78-06-PLAN.md — WhatsApp/Meta privacy disclosure (owner decision; 7 locales if chosen)
-
-**Wave 2** *(blocked on Wave 1 completion)*
-- [ ] 78-07-PLAN.md — Templates part 2 (trip reminder, driver details, re-open, invoice ready, payment received) + invoice decision (D-10)
-- [ ] 78-08-PLAN.md — Coexistence cutover: go/no-go (D-03/D-18), owner onboarding + two-direction test, verified end to end
-
-**Wave 3** *(blocked on Wave 2 completion)*
-- [ ] 78-09-PLAN.md — Live template submission: System User token, 56 variants submitted, WA-02 four approved, template register
-
-**Wave 4** *(blocked on Wave 3 completion)*
-- [ ] 78-10-PLAN.md — Live UAT on every WhatsApp path, window-rule test, launch-time pricing re-check, verified record
+**Plans**: TBD (replanning)
 
 ### Phase 79: Instagram + Facebook Channels
 
@@ -343,7 +324,7 @@ Plans:
 | 75. E2E Verification & Launch | v3.0 | 36/36 | Complete    | 2026-09-27 |
 | 76. VPS Infrastructure | v4.0 | 9/9 | Complete    | 2026-09-28 |
 | 77. Chatwoot Deployment + Core Channels | v4.0 | 13/13 | Complete    | 2026-09-29 |
-| 78. WhatsApp Cloud API Channel (Coexistence) | v4.0 | 0/0 | Not started | - |
+| 78. WhatsApp Cloud API Channel (Dedicated Number) | v4.0 | 0/0 | Not started | - |
 | 79. Instagram + Facebook Channels | v4.0 | 0/0 | Not started | - |
 | 80. EspoCRM Deployment + Core Entities | v4.0 | 0/0 | Not started | - |
 | 81. Lead Capture (Site Forms → Supabase + EspoCRM) | v4.0 | 0/0 | Not started | - |
