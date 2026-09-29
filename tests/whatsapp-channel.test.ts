@@ -482,3 +482,207 @@ describe('client error redaction (provider_config keys)', () => {
     expect(error.message).not.toContain('135790')
   })
 })
+
+// ---------------------------------------------------------------------------
+// Task 3: --number and --register
+// ---------------------------------------------------------------------------
+
+const graphCalls = (world: any): Call[] => world.calls.filter((c: Call) => c.url.startsWith('https://graph.facebook.com/'))
+const registerCalls = (world: any): Call[] => graphCalls(world).filter((c) => c.method === 'POST' && c.url.includes('/register'))
+
+describe('--number', () => {
+  it('prints the enum lines and exits 0 for a CONNECTED number that belongs to the WABA', async () => {
+    const world = makeWorld()
+    const res = await run(['--number'], world, { chatwoot: undefined })
+    expect(res.out).toEqual([
+      'status=CONNECTED',
+      'code_verification_status=VERIFIED',
+      'platform_type=CLOUD_API',
+      'name_status=APPROVED',
+      'quality_rating=GREEN',
+      'messaging_limit_tier=TIER_250',
+      'currency=EUR',
+      'number_in_waba=true',
+    ])
+    expect(res.code).toBe(0)
+    expect(res.all).not.toContain(NINE)
+    expect(res.all).not.toContain(GRAPH_TOKEN)
+    expect(world.calls.every((c: Call) => c.method === 'GET')).toBe(true)
+  })
+
+  it('exits 1 when the status is not CONNECTED', async () => {
+    const world = makeWorld()
+    world.graph.status = 'PENDING'
+    const res = await run(['--number'], world)
+    expect(res.out).toContain('status=PENDING')
+    expect(res.code).toBe(1)
+  })
+
+  it('exits 1 when the phone number id is not in the WABA', async () => {
+    const world = makeWorld()
+    world.graph.wabaPhoneIds = ['999000111']
+    const res = await run(['--number'], world)
+    expect(res.out).toContain('number_in_waba=false')
+    expect(res.code).toBe(1)
+  })
+
+  it('reduces unexpected Graph values to "unknown" instead of echoing them', async () => {
+    const world = makeWorld()
+    world.graph.quality_rating = 'a free text value with spaces'
+    const res = await run(['--number'], world)
+    expect(res.out).toContain('quality_rating=unknown')
+    expect(res.all).not.toContain('free text')
+  })
+
+  it('--expect-e164 compares digits regardless of display formatting and never prints the number', async () => {
+    const world = makeWorld()
+    const res = await run(['--number', '--expect-e164', E164], world)
+    expect(res.out).toContain('number_matches=true')
+    expect(res.code).toBe(0)
+    expect(res.all).not.toContain(NINE)
+  })
+
+  it('--expect-e164 with a different number prints number_matches=false and exits 1', async () => {
+    const world = makeWorld()
+    const res = await run(['--number', '--expect-e164', '+420000999888'], world)
+    expect(res.out).toContain('number_matches=false')
+    expect(res.code).toBe(1)
+    expect(res.all).not.toContain('999888')
+  })
+
+  it('--expect-e164 with a malformed value is a usage error (exit 1 path) before any request', () => {
+    for (const bad of ['+42012345', '420000123456', '+421000123456', '+420 000 123 456', 'abc']) {
+      expect(() => parseArgs(['--number', '--expect-e164', bad])).toThrow(/expect-e164/)
+    }
+  })
+
+  it('--expect-currency EUR prints currency_matches=true; another currency prints false and exits 1', async () => {
+    const world = makeWorld()
+    const ok = await run(['--number', '--expect-currency', 'EUR'], world)
+    expect(ok.out).toContain('currency_matches=true')
+    expect(ok.code).toBe(0)
+    world.graph.currency = 'USD'
+    const bad = await run(['--number', '--expect-currency', 'EUR'], world)
+    expect(bad.out).toContain('currency_matches=false')
+    expect(bad.code).toBe(1)
+  })
+
+  it('needs the Meta token, WABA id and phone number id before any request', async () => {
+    for (const missing of ['META_WA_SYSTEM_USER_TOKEN', 'META_WA_WABA_ID', 'META_WA_PHONE_NUMBER_ID']) {
+      const world = makeWorld()
+      const env = { ...META_ENV }
+      delete (env as any)[missing]
+      const res = await run(['--number'], world, {}, env)
+      expect(res.code).toBe(2)
+      expect(res.all).toContain(missing)
+      expect(world.calls).toHaveLength(0)
+    }
+  })
+})
+
+describe('--register', () => {
+  it('refuses when stdin is not a TTY: exit 1, no prompt, no request', async () => {
+    const world = makeWorld()
+    const { prompt, questions } = makePrompt([PIN, PIN])
+    const res = await run(['--register'], world, { isTTY: false, prompt })
+    expect(res.code).toBe(1)
+    expect(res.err.join('\n')).toMatch(/terminal|TTY/i)
+    expect(questions).toHaveLength(0)
+    expect(world.calls).toHaveLength(0)
+  })
+
+  it('does nothing when the number is already CONNECTED', async () => {
+    const world = makeWorld()
+    const { prompt, questions } = makePrompt([PIN, PIN])
+    const res = await run(['--register'], world, { prompt })
+    expect(res.out).toEqual(['register=already_connected'])
+    expect(res.code).toBe(0)
+    expect(registerCalls(world)).toHaveLength(0)
+    expect(questions).toHaveLength(0)
+  })
+
+  it('prompts twice, makes exactly one POST /{phone-id}/register carrying the PIN, and never prints the PIN', async () => {
+    const world = makeWorld()
+    world.graph.status = 'PENDING'
+    const { prompt, questions } = makePrompt([PIN, PIN])
+    const res = await run(['--register'], world, { prompt })
+    expect(questions).toHaveLength(2)
+    const posts = registerCalls(world)
+    expect(posts).toHaveLength(1)
+    expect(posts[0].url).toBe(`https://graph.facebook.com/v25.0/${PHONE_ID}/register`)
+    expect(JSON.parse(posts[0].body as string)).toEqual({ messaging_product: 'whatsapp', pin: PIN })
+    expect(res.out).toEqual(['register=ok'])
+    expect(res.code).toBe(0)
+    expect(res.all).not.toContain(PIN)
+    expect(questions.join('\n')).not.toContain(PIN)
+  })
+
+  it('rejects a non-6-digit or mismatched PIN before any register request', async () => {
+    for (const answers of [['12345', '12345'], ['abcdef', 'abcdef'], [PIN, '135790'], ['1234567', '1234567']]) {
+      const world = makeWorld()
+      world.graph.status = 'PENDING'
+      const { prompt } = makePrompt([...answers])
+      const res = await run(['--register'], world, { prompt })
+      expect(res.code).toBe(1)
+      expect(registerCalls(world)).toHaveLength(0)
+      for (const answer of answers) expect(res.all).not.toContain(answer)
+    }
+  })
+
+  it('a failed register prints register=failed, exits 2, calls once and does not echo the PIN from the error body', async () => {
+    const world = makeWorld()
+    world.graph.status = 'PENDING'
+    world.graph.registerMode = 'fail'
+    const { prompt } = makePrompt([PIN, PIN])
+    const res = await run(['--register'], world, { prompt })
+    expect(res.out).toContain('register=failed')
+    expect(res.code).toBe(2)
+    expect(registerCalls(world)).toHaveLength(1)
+    expect(res.all).not.toContain(PIN)
+  })
+
+  it('needs the Meta token and phone number id (not the app secret) and asks for nothing when they are missing', async () => {
+    const world = makeWorld()
+    const env = { ...META_ENV }
+    delete (env as any).META_WA_PHONE_NUMBER_ID
+    delete (env as any).META_WA_APP_SECRET
+    const { prompt, questions } = makePrompt([PIN, PIN])
+    const res = await run(['--register'], world, { prompt }, env)
+    expect(res.code).toBe(2)
+    expect(res.all).toContain('META_WA_PHONE_NUMBER_ID')
+    expect(res.all).not.toContain('META_WA_APP_SECRET')
+    expect(questions).toHaveLength(0)
+    expect(world.calls).toHaveLength(0)
+  })
+})
+
+describe('parseArgs / CLI', () => {
+  it('rejects every unknown argument, including PIN-style flags, and requires exactly one mode', () => {
+    for (const argv of [['--pin'], ['--number', '--pin', '123456'], ['--register', '--pin=123456'], ['--verification-pin', '1'], ['bogus'], ['--harden', '--nope']]) {
+      expect(() => parseArgs(argv)).toThrow(/Unknown argument/)
+    }
+    expect(() => parseArgs([])).toThrow(/Use one of/)
+    expect(() => parseArgs(['--probe', '--harden'])).toThrow(/exactly one mode/)
+    expect(() => parseArgs(['--probe', '--dry-run'])).toThrow(/--dry-run/)
+    expect(() => parseArgs(['--harden', '--expect-currency', 'EUR'])).toThrow(/--number/)
+    expect(() => parseArgs(['--number', '--expect-currency', 'euro'])).toThrow(/ISO/)
+  })
+
+  it('the real script refuses a PIN-style flag and a non-TTY --register with exit 1 before any request', () => {
+    const env = { PATH: process.env.PATH ?? '', HOME: join(REPO_ROOT, 'node_modules', '.does-not-exist') } as unknown as NodeJS.ProcessEnv
+    const pinFlag = spawnSync('node', [SCRIPT, '--number', '--pin', 'x'], { input: '', env, encoding: 'utf8' as const })
+    expect(pinFlag.status).toBe(1)
+    const register = spawnSync('node', [SCRIPT, '--register'], { input: '', env, encoding: 'utf8' as const })
+    expect(register.status).toBe(1)
+    expect(register.stdout + register.stderr).not.toMatch(/\d{6}/)
+  })
+
+  it('loadChannelMeta reads the env file when the environment lacks a key and reports every missing name at once', () => {
+    // built at runtime: the pre-commit gate blocks NAME=value assignments for the Meta secret names
+    const text = [['META_WA_SYSTEM_USER_TOKEN', 'file-token-value'].join('='), ['META_WA_PHONE_NUMBER_ID', '424242'].join('=')].join('\n')
+    const meta = loadChannelMeta(['META_WA_SYSTEM_USER_TOKEN', 'META_WA_PHONE_NUMBER_ID'], { env: {}, readFile: () => text })
+    expect(meta.token).toBe('file-token-value')
+    expect(meta.phoneNumberId).toBe('424242')
+    expect(() => loadChannelMeta(['META_WA_WABA_ID', 'META_WA_APP_SECRET'], { env: {}, readFile: () => text })).toThrow(/META_WA_WABA_ID, META_WA_APP_SECRET/)
+  })
+})

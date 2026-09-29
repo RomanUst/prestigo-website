@@ -15,6 +15,16 @@
  *                                 api_key and phone_number_id are unchanged. Idempotent.
  *   --sync-templates              POST /inboxes/:id/sync_templates (recovery lever)
  *   --register-webhook            POST /inboxes/:id/register_webhook (recovery lever)
+ *   --number [--expect-e164 <E164>] [--expect-currency <ISO code>]
+ *                                 read the number and WABA from Graph; prints enums
+ *                                 only. --expect-e164 (+420 and 9 digits) prints
+ *                                 number_matches without printing the number.
+ *   --register                    register the number with the owner's own 6-digit PIN,
+ *                                 typed at a hidden prompt in the owner's own terminal.
+ *                                 Refuses without a TTY; reads status first; at most
+ *                                 one register call per run (Meta allows 10 per 72 h).
+ *                                 The PIN is never accepted from argv, env, a file or a
+ *                                 pipe and is never printed, logged or stored.
  *
  * Config sources (never a command-line argument):
  *   - Chatwoot admin token: env CHATWOOT_API_TOKEN / CHATWOOT_BASE_URL /
@@ -34,6 +44,8 @@
 
 import { createHmac } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
+import readline from 'node:readline'
+import { Writable } from 'node:stream'
 import { pathToFileURL } from 'node:url'
 import {
   ChatwootApiError,
@@ -170,24 +182,48 @@ const MODES = new Map([
   ['--harden', 'harden'],
   ['--sync-templates', 'sync-templates'],
   ['--register-webhook', 'register-webhook'],
+  ['--number', 'number'],
+  ['--register', 'register'],
 ])
 const MODE_LIST = [...MODES.keys()].join(', ')
 
+const E164_RE = /^\+420\d{9}$/
+const CURRENCY_RE = /^[A-Z]{3}$/
+
+/**
+ * Anything that is not a listed mode or option is a usage error, so a PIN-style
+ * flag (--pin, --verification-pin, ...) is rejected before any request is made.
+ */
 export function parseArgs(argv) {
-  const opts = { mode: null, dryRun: false }
-  for (const arg of argv) {
+  const opts = { mode: null, dryRun: false, expectE164: null, expectCurrency: null }
+  const takeValue = (i, flag) => {
+    const v = argv[i + 1]
+    if (v === undefined || v.startsWith('--')) throw new UsageError(`${flag} needs a value`)
+    return v
+  }
+  for (let i = 0; i < argv.length; i++) {
+    const arg = argv[i]
     if (MODES.has(arg)) {
       const mode = MODES.get(arg)
       if (opts.mode && opts.mode !== mode) throw new UsageError('Use exactly one mode')
       opts.mode = mode
     } else if (arg === '--dry-run') {
       opts.dryRun = true
+    } else if (arg === '--expect-e164') {
+      opts.expectE164 = takeValue(i++, '--expect-e164')
+      if (!E164_RE.test(opts.expectE164)) throw new UsageError('--expect-e164 must look like +420 followed by 9 digits, no spaces')
+    } else if (arg === '--expect-currency') {
+      opts.expectCurrency = takeValue(i++, '--expect-currency')
+      if (!CURRENCY_RE.test(opts.expectCurrency)) throw new UsageError('--expect-currency must be a 3-letter uppercase ISO currency code')
     } else {
       throw new UsageError(`Unknown argument: ${arg}`)
     }
   }
   if (!opts.mode) throw new UsageError(`Use one of ${MODE_LIST}`)
   if (opts.dryRun && opts.mode !== 'harden') throw new UsageError('--dry-run only works with --harden')
+  if ((opts.expectE164 || opts.expectCurrency) && opts.mode !== 'number') {
+    throw new UsageError('--expect-e164 and --expect-currency only work with --number')
+  }
   return opts
 }
 
@@ -332,6 +368,132 @@ async function modeLever(ctx, { path, line }) {
   return 0
 }
 
+const PHONE_FIELDS = [
+  'status',
+  'code_verification_status',
+  'platform_type',
+  'name_status',
+  'quality_rating',
+  'messaging_limit_tier',
+  'display_phone_number',
+]
+
+/** Fixed-set-shaped enum or "unknown": free text from Graph is never echoed. */
+const enumOf = (value) => (typeof value === 'string' && /^[A-Za-z0-9_]{1,40}$/.test(value) ? value : 'unknown')
+
+async function readPhoneStatus(graph, phoneId) {
+  return (await graph.request('GET', `/${phoneId}?fields=${PHONE_FIELDS.join(',')}`)) ?? {}
+}
+
+async function modeNumber(ctx, opts) {
+  const meta = ctx.loadMeta([TOKEN_KEY, WABA_KEY, PHONE_KEY])
+  const graph = ctx.graph(meta)
+  const phone = await readPhoneStatus(graph, meta.phoneNumberId)
+  const waba = (await graph.request('GET', `/${meta.wabaId}?fields=currency`)) ?? {}
+  const ids = await graph.paginate(`/${meta.wabaId}/phone_numbers?fields=id`)
+  const inWaba = ids.some((row) => String(row?.id) === meta.phoneNumberId)
+  const currency = typeof waba.currency === 'string' && CURRENCY_RE.test(waba.currency.toUpperCase()) ? waba.currency.toUpperCase() : 'unknown'
+
+  const failures = []
+  const status = enumOf(phone.status)
+  if (status !== 'CONNECTED') failures.push('status is not CONNECTED')
+  if (!inWaba) failures.push('phone number id is not in the WABA')
+
+  for (const key of PHONE_FIELDS.slice(0, 6)) ctx.out(`${key}=${enumOf(phone[key])}`)
+  ctx.out(`currency=${currency}`)
+  ctx.out(`number_in_waba=${inWaba}`)
+
+  if (opts.expectE164) {
+    const shown = String(phone.display_phone_number ?? '').replace(/\D/g, '')
+    const matches = shown !== '' && shown === opts.expectE164.replace(/\D/g, '')
+    ctx.out(`number_matches=${matches}`)
+    if (!matches) failures.push('number does not match --expect-e164')
+  }
+  if (opts.expectCurrency) {
+    const matches = currency === opts.expectCurrency
+    ctx.out(`currency_matches=${matches}`)
+    if (!matches) failures.push('currency does not match --expect-currency')
+  }
+  if (failures.length) {
+    ctx.err(`expectation failed: ${failures.join('; ')}`)
+    return 1
+  }
+  return 0
+}
+
+async function modeRegister(ctx) {
+  // The PIN is typed by the owner at a hidden prompt in their own terminal: no
+  // argument, env var, file or pipe can supply it, so refuse before anything else.
+  if (!ctx.isTTY) {
+    ctx.err('Refusing to run: --register needs an interactive terminal (TTY) so the PIN can be typed at a hidden prompt')
+    return 1
+  }
+  const meta = ctx.loadMeta([TOKEN_KEY, PHONE_KEY])
+  const graph = ctx.graph(meta)
+  const phone = await readPhoneStatus(graph, meta.phoneNumberId)
+  if (enumOf(phone.status) === 'CONNECTED') {
+    ctx.out('register=already_connected')
+    return 0
+  }
+
+  const ask = ctx.prompt ?? promptHidden
+  const pin = await ask('Enter your 6-digit two-step verification PIN (input hidden): ')
+  ctx.addSecret(pin)
+  const confirm = await ask('Repeat the PIN: ')
+  ctx.addSecret(confirm)
+  if (!/^\d{6}$/.test(pin) || pin !== confirm) {
+    ctx.err('The PIN must be exactly 6 digits and both entries must match. Nothing was sent.')
+    return 1
+  }
+
+  // One attempt only (Meta allows 10 register calls per number per 72 h): no retry loop.
+  try {
+    const res = await graph.request('POST', `/${meta.phoneNumberId}/register`, { messaging_product: 'whatsapp', pin })
+    if (res && res.success === false) {
+      ctx.out('register=failed')
+      return 2
+    }
+    ctx.out('register=ok')
+    return 0
+  } catch (error) {
+    if (!(error instanceof MetaApiError)) throw error
+    ctx.err(`API error: ${error.message}`)
+    ctx.out('register=failed')
+    return 2
+  }
+}
+
+/**
+ * Reads one line from the owner's terminal without echoing it.
+ * @param {string} question
+ */
+export function promptHidden(question, { input = process.stdin, output = process.stdout } = {}) {
+  return new Promise((resolve, reject) => {
+    let muted = false
+    let answered = false
+    const sink = new Writable({
+      write(chunk, encoding, callback) {
+        if (!muted) output.write(chunk, encoding)
+        callback()
+      },
+    })
+    const rl = readline.createInterface({ input, output: sink, terminal: true })
+    rl.on('close', () => {
+      if (!answered) reject(new Error('input closed before a PIN was entered'))
+    })
+    rl.on('SIGINT', () => rl.close())
+    output.write(question)
+    muted = true
+    rl.question('', (answer) => {
+      answered = true
+      muted = false
+      rl.close()
+      output.write('\n')
+      resolve(answer)
+    })
+  })
+}
+
 /**
  * @param {ReturnType<typeof parseArgs>} opts
  * @param {{
@@ -390,6 +552,8 @@ export async function runChannel(opts, deps = {}) {
     if (opts.mode === 'harden') return await modeHarden(ctx, opts)
     if (opts.mode === 'sync-templates') return await modeLever(ctx, { path: 'sync_templates', line: 'sync_templates=requested' })
     if (opts.mode === 'register-webhook') return await modeLever(ctx, { path: 'register_webhook', line: 'register_webhook=ok' })
+    if (opts.mode === 'number') return await modeNumber(ctx, opts)
+    if (opts.mode === 'register') return await modeRegister(ctx)
     throw new UsageError('Unknown mode')
   } catch (error) {
     if (error instanceof UsageError) {
