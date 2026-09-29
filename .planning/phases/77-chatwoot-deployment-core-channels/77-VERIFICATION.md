@@ -3,7 +3,34 @@ phase: 77-chatwoot-deployment-core-channels
 verified: 2026-09-29T14:00:00Z
 status: passed
 score: 6/6 must-haves verified
-covered_digest: "v2:sha256:fe19d2b0f6cd41c04bb8368fae19f8b4d010b2b71ff8a84cf958651b14cfdf19"
+covered_files:
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-01-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-01-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-02-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-02-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-03-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-03-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-04-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-04-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-05-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-05-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-06-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-06-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-07-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-07-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-08-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-08-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-09-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-09-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-10-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-10-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-11-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-11-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-12-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-12-SUMMARY.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-13-PLAN.md
+  - .planning/phases/77-chatwoot-deployment-core-channels/77-13-SUMMARY.md
+covered_digest: "v2:sha256:e98638a9299f9f011ea7329e1bd9787e0853075fccad7c7c68c0f39d934e29cc"
 behavior_unverified: 0
 overrides_applied: 2
 overrides:
