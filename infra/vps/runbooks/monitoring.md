@@ -128,6 +128,10 @@ fired. Start there.
    rollback path.
 4. Once fixed, `smoke.sh` should print only `OK` lines; UptimeRobot re-checks
    every 5 minutes and clears the alert automatically.
+5. If Chatwoot stays down and customer mail to info@/bookings@ cannot wait, use
+   the webmail emergency procedure in
+   `infra/vps/runbooks/chatwoot-channels.md` (webmail only, never delete mail,
+   paste replies back as private notes after recovery).
 
 ### "prestigo-backup" missed (Healthchecks.io)
 
