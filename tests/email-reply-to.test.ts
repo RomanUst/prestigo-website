@@ -17,6 +17,7 @@ import {
   sendContactInquiry,
   sendEmergencyAlert,
   sendRoundTripClientConfirmation,
+  buildRoundTripConfirmationHtml,
   sendRoundTripManagerAlert,
   sendMultidayOperatorAlert,
   sendMultidayClientAck,
@@ -326,6 +327,12 @@ describe('lib/email — D-11 full classification (Phase 77-02, Task 2)', () => {
       await sendBespokeEmails(BASE_BESPOKE)
       expect(sendStub.mock.calls[1][0].replyTo).toBeUndefined()
     })
+  })
+
+  it('IN-06: the round-trip customer email advertises bookings@, not the sales mailbox, in its body', () => {
+    const html = buildRoundTripConfirmationHtml(BASE_RT)
+    expect(html).toContain('contact bookings@rideprestigo.com')
+    expect(html).not.toContain('roman@rideprestigo.com')
   })
 
   it('no customer payload ever carries replyTo roman@rideprestigo.com', async () => {

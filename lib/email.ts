@@ -678,7 +678,7 @@ export function buildRoundTripConfirmationHtml(data: RoundTripEmailData): string
     </div>
 
     <div style="padding: 24px 32px; border-top: 1px solid #2B4056;">
-      <p style="color: #8C949B; font-size: 12px; margin: 0 0 4px;">Questions? Reply to this email or contact roman@rideprestigo.com.</p>
+      <p style="color: #8C949B; font-size: 12px; margin: 0 0 4px;">Questions? Reply to this email or contact ${CUSTOMER_REPLY_TO}.</p>
       <p style="color: #8C949B; font-size: 11px; margin: 0;">PRESTIGO Chauffeur Service · Prague</p>
     </div>
     <div style="height: 2px; background: #BFA06A; margin: 24px 32px 0;"></div>
