@@ -229,6 +229,25 @@ const emailInboxes = () => [
   { id: 12, name: 'Email bookings@', channel_type: 'Channel::Email', enable_auto_assignment: false, business_name: 'Prestigo', sender_name_type: 'professional' },
 ]
 const telegramInbox = () => ({ id: 13, name: 'PrestigoChauffeurBot', channel_type: 'Channel::Telegram', enable_auto_assignment: true })
+// Owner-created WhatsApp Cloud inbox: display name differs from the managed "WhatsApp" entry, and the payload
+// carries provider_config exactly like an admin token would receive it (plain fake words, never real secrets).
+const WA_FAKE_VALUES = ['fake-api-key', 'fake-phone-id', 'fake-waba-id', 'fake-app-secret']
+const whatsappInbox = () => ({
+  id: 14,
+  name: 'Prestigo WhatsApp',
+  channel_type: 'Channel::Whatsapp',
+  enable_auto_assignment: true,
+  greeting_enabled: true,
+  csat_survey_enabled: true,
+  working_hours_enabled: true,
+  provider_config: {
+    api_key: 'fake-api-key',
+    phone_number_id: 'fake-phone-id',
+    business_account_id: 'fake-waba-id',
+    source: 'manual_setup_v2',
+    app_secret: 'fake-app-secret',
+  },
+})
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -273,11 +292,16 @@ describe('resolveRefs / expandAutomationRules', () => {
     expect(missing).toEqual(['@inbox:Email info@'])
   })
 
-  it('expands 4 channel rules, one rule per keyword and the routing rule; skips rules with a missing inbox', () => {
+  it('expands 5 channel rules, one rule per keyword and the routing rule; skips rules with a missing inbox', () => {
     const { rules, skipped, allNames } = expandAutomationRules(automationConfig, refs)
-    expect(allNames).toHaveLength(4 + KEYWORD_RULES + 1)
-    expect(skipped.map((s) => s.name).sort()).toEqual(['channel: email bookings@', 'channel: email info@', 'channel: telegram'])
-    expect(rules).toHaveLength(allNames.length - 3)
+    expect(allNames).toHaveLength(5 + KEYWORD_RULES + 1)
+    expect(skipped.map((s) => s.name).sort()).toEqual([
+      'channel: email bookings@',
+      'channel: email info@',
+      'channel: telegram',
+      'channel: whatsapp',
+    ])
+    expect(rules).toHaveLength(allNames.length - 4)
 
     const web = rules.find((r) => r.name === 'channel: website')
     expect(web.event_name).toBe('conversation_created')
@@ -409,14 +433,14 @@ describe('client', () => {
 })
 
 describe('runSync labels (tracer)', () => {
-  it('creates 11 labels, then a second run reports create=0 update=0 unchanged=11', async () => {
+  it('creates 12 labels, then a second run reports create=0 update=0 unchanged=12', async () => {
     const fake = createFakeChatwoot()
     const first = await sync(fake, { only: ['labels'] })
-    expect(first).toContain('labels: create=11 update=0 unchanged=0 skipped=0 deleted=0')
-    expect(fake.state.labels).toHaveLength(11)
+    expect(first).toContain('labels: create=12 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(fake.state.labels).toHaveLength(12)
 
     const second = await sync(fake, { only: ['labels'] })
-    expect(second).toContain('labels: create=0 update=0 unchanged=11 skipped=0 deleted=0')
+    expect(second).toContain('labels: create=0 update=0 unchanged=12 skipped=0 deleted=0')
     expect(second).toContain('summary: create=0 update=0 skipped=0')
   })
 
@@ -427,7 +451,7 @@ describe('runSync labels (tracer)', () => {
     fake.state.labels.push({ id: 900, title: 'operator-made', description: 'x', color: '#111111', show_on_sidebar: true })
 
     const run = await sync(fake, { only: ['labels'] })
-    expect(run).toContain('labels: create=0 update=1 unchanged=10 skipped=0 deleted=0')
+    expect(run).toContain('labels: create=0 update=1 unchanged=11 skipped=0 deleted=0')
     expect(fake.state.labels.find((l) => l.title === 'payment').color).toBe('#BFA06A')
     expect(fake.state.labels.find((l) => l.title === 'operator-made').color).toBe('#111111')
   })
@@ -437,7 +461,7 @@ describe('runSync labels (tracer)', () => {
     const run = await sync(fake, { only: ['labels'], dryRun: true })
     expect(fake.requests.length).toBeGreaterThan(0)
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
-    expect(run).toContain('labels: create=11 update=0 unchanged=0 skipped=0 deleted=0')
+    expect(run).toContain('labels: create=12 update=0 unchanged=0 skipped=0 deleted=0')
     expect(fake.state.labels).toHaveLength(0)
   })
 
@@ -510,23 +534,33 @@ describe('runSync inboxes', () => {
       '  missing: Email info@',
       '  missing: Email bookings@',
       '  missing: Telegram',
+      '  missing: WhatsApp',
     ])
-    expect(lines).toContain('inboxes: create=1 update=0 unchanged=0 skipped=3 deleted=0')
+    expect(lines).toContain('inboxes: create=1 update=0 unchanged=0 skipped=4 deleted=0')
 
     const rerun = await sync(fake, { only: ['inboxes'] })
-    expect(rerun).toContain('inboxes: create=0 update=0 unchanged=1 skipped=3 deleted=0')
+    expect(rerun).toContain('inboxes: create=0 update=0 unchanged=1 skipped=4 deleted=0')
     expect(fake.state.avatarUploads).toBe(1)
   })
 
   it('patches only the listed non-secret settings of owner-made inboxes, never channel fields', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
     const lines = await sync(fake, { only: ['inboxes'] })
     expect(lines.filter((l) => l.startsWith('  missing: '))).toEqual([])
-    const patches = fake.requests.filter((r) => r.method === 'PATCH' && /^\/inboxes\/1[123]$/.test(r.path))
-    expect(patches.map((p) => p.path).sort()).toEqual(['/inboxes/11', '/inboxes/13'])
+    const patches = fake.requests.filter((r) => r.method === 'PATCH' && /^\/inboxes\/1[1234]$/.test(r.path))
+    expect(patches.map((p) => p.path).sort()).toEqual(['/inboxes/11', '/inboxes/13', '/inboxes/14'])
+    const allowed = [
+      'enable_auto_assignment',
+      'business_name',
+      'sender_name_type',
+      'greeting_enabled',
+      'csat_survey_enabled',
+      'working_hours_enabled',
+    ]
     for (const patch of patches) {
       expect(patch.body.channel).toBeUndefined()
-      expect(Object.keys(patch.body).every((k) => ['enable_auto_assignment', 'business_name', 'sender_name_type'].includes(k))).toBe(true)
+      expect(patch.body.provider_config).toBeUndefined()
+      expect(Object.keys(patch.body).every((k) => allowed.includes(k))).toBe(true)
     }
     expect(fake.state.inboxes.find((i) => i.id === 11).business_name).toBe('Prestigo')
     expect(fake.state.inboxes.find((i) => i.id === 13).enable_auto_assignment).toBe(false)
@@ -547,14 +581,14 @@ describe('runSync automation', () => {
     const fake = createFakeChatwoot({ inboxes: [telegramInbox()] })
     await sync(fake, { only: ['labels', 'teams', 'inboxes'] })
     const first = await sync(fake, { only: ['automation'] })
-    // website + telegram channel rules and every keyword rule and the routing rule; 2 email rules skipped
-    expect(first).toContain(`automation: create=${2 + KEYWORD_RULES + 1} update=0 unchanged=0 skipped=2 deleted=0`)
+    // website + telegram channel rules and every keyword rule and the routing rule; 2 email rules + whatsapp skipped
+    expect(first).toContain(`automation: create=${2 + KEYWORD_RULES + 1} update=0 unchanged=0 skipped=3 deleted=0`)
     expect(first).toContain('  skipped: channel: email info@ (missing @inbox:Email info@)')
     expect(fake.state.rules.some((r) => r.name === 'channel: email info@')).toBe(false)
     expect(fake.state.rules.length).toBeGreaterThan(25)
 
     const second = await sync(fake, { only: ['automation'] })
-    expect(second).toContain(`automation: create=0 update=0 unchanged=${2 + KEYWORD_RULES + 1} skipped=2 deleted=0`)
+    expect(second).toContain(`automation: create=0 update=0 unchanged=${2 + KEYWORD_RULES + 1} skipped=3 deleted=0`)
   })
 
   it('deletes only stale generated "topic:" rules, never operator-made ones', async () => {
@@ -576,13 +610,71 @@ describe('runSync automation', () => {
     await sync(fake, { only: ['labels', 'teams', 'inboxes'] })
     const run = await sync(fake, { only: ['automation'] })
     expect(run).toContain('  skipped: route: b2b label to B2B team (unsupported on this version)')
-    expect(run).toContain(`automation: create=${2 + KEYWORD_RULES} update=0 unchanged=0 skipped=3 deleted=0`)
+    expect(run).toContain(`automation: create=${2 + KEYWORD_RULES} update=0 unchanged=0 skipped=4 deleted=0`)
+  })
+})
+
+describe('WhatsApp inbox (78-04 tracer)', () => {
+  it('resolves the owner-named Channel::Whatsapp inbox by channel_type and patches only the four listed settings', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()] })
+    const lines = await sync(fake, { only: ['inboxes'] })
+    expect(lines.filter((l) => l.startsWith('  missing: '))).not.toContain('  missing: WhatsApp')
+
+    const patches = fake.requests.filter((r) => r.method === 'PATCH' && r.path === '/inboxes/14')
+    expect(patches).toHaveLength(1)
+    expect(Object.keys(patches[0].body).sort()).toEqual([
+      'csat_survey_enabled',
+      'enable_auto_assignment',
+      'greeting_enabled',
+      'working_hours_enabled',
+    ])
+    // T-78-13: never a channel or provider_config key in the PATCH
+    expect(patches[0].body.channel).toBeUndefined()
+    expect(patches[0].body.provider_config).toBeUndefined()
+
+    const wa = fake.state.inboxes.find((i) => i.id === 14)
+    expect(wa.enable_auto_assignment).toBe(false)
+    expect(wa.greeting_enabled).toBe(false)
+    expect(wa.csat_survey_enabled).toBe(false)
+    expect(wa.working_hours_enabled).toBe(false)
+    // provider_config untouched
+    expect(wa.provider_config).toEqual(whatsappInbox().provider_config)
+  })
+
+  it('creates the channel rule with inbox_id resolved, labels/routes/assigns, and a rerun is a no-op', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()] })
+    await sync(fake, { only: ['labels', 'teams', 'inboxes', 'automation'] })
+
+    const rule = fake.state.rules.find((r) => r.name === 'channel: whatsapp')
+    expect(rule).toBeTruthy()
+    expect(rule.event_name).toBe('conversation_created')
+    expect(rule.conditions).toEqual([{ attribute_key: 'inbox_id', filter_operator: 'equal_to', values: [14], query_operator: null }])
+    const bookings = fake.state.teams.find((t) => t.name === 'bookings')
+    expect(rule.actions).toEqual([
+      { action_name: 'add_label', action_params: ['ch-whatsapp'] },
+      { action_name: 'assign_team', action_params: [bookings.id] },
+      { action_name: 'assign_agent', action_params: [OWNER_ID] },
+    ])
+    expect(fake.state.labels.some((l) => l.title === 'ch-whatsapp' && l.color === '#0F1D2C')).toBe(true)
+
+    const second = await sync(fake, { only: ['labels', 'teams', 'inboxes', 'automation'] })
+    for (const resource of ['labels', 'inboxes', 'automation']) {
+      expect(second.find((l) => l.startsWith(`${resource}: `))).toMatch(/create=0 update=0 /)
+    }
+  })
+
+  it('never prints a provider_config value while syncing', async () => {
+    const fake = createFakeChatwoot({ inboxes: [whatsappInbox()] })
+    const spies = (['log', 'info', 'warn', 'error'] as const).map((k) => vi.spyOn(console, k).mockImplementation(() => {}))
+    const lines = await sync(fake)
+    const seen = [...lines, ...spies.flatMap((s) => s.mock.calls.flat().map(String))].join('\n')
+    for (const value of WA_FAKE_VALUES) expect(seen).not.toContain(value)
   })
 })
 
 describe('full run', () => {
   it('second full run is a no-op and the first run never prints a secret', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
     const spies = (['log', 'info', 'warn', 'error'] as const).map((k) => vi.spyOn(console, k).mockImplementation(() => {}))
 
     const first = await sync(fake)
@@ -599,7 +691,7 @@ describe('full run', () => {
   })
 
   it('--dry-run of a full sync issues only GET requests and prints the full plan', async () => {
-    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox()] })
+    const fake = createFakeChatwoot({ inboxes: [...emailInboxes(), telegramInbox(), whatsappInbox()] })
     const lines = await sync(fake, { dryRun: true })
     expect(fake.requests.every((r) => r.method === 'GET')).toBe(true)
     expect(lines.some((l) => l.startsWith('summary: create='))).toBe(true)

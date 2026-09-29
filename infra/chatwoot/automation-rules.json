@@ -3,7 +3,8 @@
     { "name": "channel: website", "inbox": "Website", "label": "ch-web", "team": "Bookings" },
     { "name": "channel: email info@", "inbox": "Email info@", "label": "ch-email", "team": "Bookings" },
     { "name": "channel: email bookings@", "inbox": "Email bookings@", "label": "ch-email", "team": "Bookings" },
-    { "name": "channel: telegram", "inbox": "Telegram", "label": "ch-telegram", "team": "Bookings" }
+    { "name": "channel: telegram", "inbox": "Telegram", "label": "ch-telegram", "team": "Bookings" },
+    { "name": "channel: whatsapp", "inbox": "WhatsApp", "label": "ch-whatsapp", "team": "Bookings" }
   ],
   "topicRules": [
     {
