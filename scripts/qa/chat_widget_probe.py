@@ -205,6 +205,10 @@ document.addEventListener('securitypolicyviolation', (e) => {
 });
 """
 
+# Records a "necessary only" cookie decision so the first-visit consent modal
+# does not cover the page (mirrors what --overlap seeds inline).
+CONSENT_SEED_JS = "try { localStorage.setItem('prestigo_consent_v2', JSON.stringify({analytics:false,marketing:false})) } catch (e) {}"
+
 # Excludes the launcher's own subtree (button + its aria-controls menu) and
 # any fixed/sticky ancestor wrapper of the launcher, per read_first note:
 # exclude only the launcher subtree, never the CookieBanner.
@@ -308,6 +312,15 @@ def measure_once(browser, url: str, click_launcher: bool = False) -> dict:
         if click_launcher:
             launcher = page.query_selector(LAUNCHER_SELECTOR)
             if launcher:
+                # LCP/CLS/TBT were read above with the first-visit cookie modal
+                # showing (same as the baseline). That modal is full-screen and
+                # intercepts pointer events, so model a visitor who has already
+                # answered it before the launcher click, and only count the
+                # launcher click's own interaction durations.
+                page.evaluate(
+                    "() => { const d = document.querySelector('[role=dialog][aria-labelledby=consent-title]'); if (d) d.remove(); "
+                    "if (window.__prestigoPerf) window.__prestigoPerf.eventDurations = []; }"
+                )
                 launcher.click()
                 page.wait_for_timeout(300)
                 durations = page.evaluate(READ_EVENT_DURATIONS_JS)
@@ -521,6 +534,12 @@ def do_click(base: str, locales, pages) -> int:
                     combo = f'{locale} {path}'
                     context = browser.new_context()
                     context.add_init_script(CSP_LISTENER_JS)
+                    # The first-visit cookie-consent dialog is a full-screen modal
+                    # (z-[400]) that intercepts pointer events, so a fresh context
+                    # can never click the launcher. Seed the same "necessary only"
+                    # decision --overlap uses; the chat gate (D-02) is the click
+                    # itself and independent of cookie consent.
+                    context.add_init_script(CONSENT_SEED_JS)
                     page = context.new_page()
                     console_csp_msgs = []
                     page.on(

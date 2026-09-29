@@ -17,9 +17,21 @@ This script intentionally never widens the CSP to make a diff pass — a
 detected drift is a regression to investigate, never something to "fix" by
 loosening the policy (RESEARCH Pitfall 8 / plan prohibition).
 
+--expect-added TOKEN [TOKEN ...] (compare mode only) verifies an intentional,
+enumerated CSP addition (Phase 77-12: the chat origin tokens). It never
+accepts any other drift. For every route class the drift passes only if
+(a) the current CSP with every listed token removed (each occurrence, plus
+its single leading space, at a token boundary) equals the baseline CSP
+exactly, and (b) at least one listed token is present on every route class
+whose baseline used the static policy (non-empty, no nonce). The
+Report-Only header must still match the baseline exactly. The per-route
+unified diff is printed for review. After it passes, re-capture the golden
+with --capture so plain --compare is clean again.
+
 Usage:
   python3 scripts/qa/csp_regression.py --capture [base_url]
   python3 scripts/qa/csp_regression.py --compare [base_url]   (default mode)
+  python3 scripts/qa/csp_regression.py --compare [base_url] --expect-added TOKEN [TOKEN ...]
 Writes scripts/qa/out/csp_regression.json (compare-mode diff report) and,
 in --capture mode, scripts/qa/baselines/csp_baseline.json (the golden
 snapshot).
@@ -27,6 +39,7 @@ Exit codes: 0 = clean/self-consistent, 1 = findings/drift present,
 2 = infrastructure error.
 """
 import argparse
+import difflib
 import json
 import os
 import re
@@ -109,7 +122,23 @@ def do_capture(base: str) -> int:
     return 0
 
 
-def do_compare(base: str) -> int:
+def strip_tokens(csp: str, tokens) -> str:
+    """Remove every occurrence of each token (plus its single leading space)
+    at a source-list token boundary (followed by space, ';' or end)."""
+    for tok in tokens:
+        csp = re.sub(' ' + re.escape(tok) + r'(?=[ ;]|$)', '', csp)
+    return csp
+
+
+def csp_unified_diff(route_class: str, before: str, after: str) -> str:
+    """Unified diff of the two policies, one directive per line."""
+    a = [d.strip() + ';' for d in before.split(';') if d.strip()]
+    b = [d.strip() + ';' for d in after.split(';') if d.strip()]
+    return '\n'.join(difflib.unified_diff(
+        a, b, fromfile=f'baseline {route_class}', tofile=f'current {route_class}', lineterm='', n=0))
+
+
+def do_compare(base: str, expect_added=None) -> int:
     if not os.path.exists(BASELINE_PATH):
         print(f'INFRA ERROR: no baseline at {BASELINE_PATH} — run --capture first', file=sys.stderr)
         return 2
@@ -138,7 +167,24 @@ def do_compare(base: str) -> int:
         if base_entry.get('status') != cur_entry.get('status'):
             # Status drift is reported but never fails the check on its own.
             print(f"NOTE {route_class}: status changed {base_entry.get('status')} -> {cur_entry.get('status')}")
-        if base_entry.get('csp') != cur_entry.get('csp'):
+        if expect_added:
+            base_csp = base_entry.get('csp') or ''
+            cur_csp = cur_entry.get('csp') or ''
+            if strip_tokens(cur_csp, expect_added) != base_csp:
+                findings.append(f'{route_class}: CSP differs from baseline by more than the expected tokens')
+                print(f'--- baseline CSP [{route_class}]')
+                print(base_csp)
+                print(f'+++ current CSP [{route_class}]')
+                print(cur_csp)
+            else:
+                is_static = bool(base_csp) and 'nonce-' not in base_csp
+                if is_static and not any(t in cur_csp for t in expect_added):
+                    findings.append(f'{route_class}: static-policy route has none of the expected tokens')
+                diff = csp_unified_diff(route_class, base_csp, cur_csp)
+                print(f'REVIEWED DIFF [{route_class}]' + ('' if diff else ' (no difference)'))
+                if diff:
+                    print(diff)
+        elif base_entry.get('csp') != cur_entry.get('csp'):
             findings.append(f'{route_class}: Content-Security-Policy header drift')
             print(f'--- baseline CSP [{route_class}]')
             print(base_entry.get('csp'))
@@ -162,12 +208,16 @@ def main() -> int:
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument('--capture', action='store_true', help='write scripts/qa/baselines/csp_baseline.json')
     mode.add_argument('--compare', action='store_true', help='diff against the existing baseline (default)')
+    parser.add_argument('--expect-added', nargs='+', metavar='TOKEN', default=None,
+                        help='(--compare only) pass only if the current CSP minus these exact tokens equals the baseline')
     args = parser.parse_args()
     base = args.base_url.rstrip('/')
+    if args.expect_added and args.capture:
+        parser.error('--expect-added is compare-mode only')
 
     if args.capture:
         return do_capture(base)
-    return do_compare(base)
+    return do_compare(base, args.expect_added)
 
 
 if __name__ == '__main__':
