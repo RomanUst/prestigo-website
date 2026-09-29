@@ -21,7 +21,8 @@ const ARTICLE_MODIFIED = '2026-04-09'
 // fare updates (1 Jan 2026), Honest Guide scam reporting, and PRESTIGO's own
 // published pricing in the Notion ledger. Every number is cross-checked.
 
-const DESCRIPTION = 'Prague airport taxi vs private chauffeur 2026: Uber holds the official rank, AAA Taxi is gone. Real fares, scam alerts, and a decision tree by passenger profile.'
+const TITLE = 'Prague Airport Taxi 2026: Official Rank, Fares & Scams to Avoid'
+const DESCRIPTION = 'Taking a taxi from Prague Airport in 2026? Who runs the official rank now, what the ride into town really costs, the scams to avoid, and when a pre-booked chauffeur is worth it.'
 
 // CR-01: converted from a static `metadata` export to generateMetadata() so
 // the current locale is available. EN-only legacy JSX article (D-08) — no
@@ -36,12 +37,12 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     locale,
   })
   return {
-    title: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
+    title: TITLE,
     description: DESCRIPTION,
     alternates,
     openGraph: {
       url: toAbsoluteUrl(alternates.canonical),
-      title: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
+      title: TITLE,
       description: DESCRIPTION,
       images: [{ url: 'https://rideprestigo.com/hero-airport-transfer.webp', width: 1200, height: 630 }],
     },
@@ -183,6 +184,10 @@ const profiles = [
 
 const scamFaqs = [
   {
+    q: 'Are taxis available 24/7 at Prague Airport, including late-night arrivals?',
+    a: 'Yes. The official taxi rank at Václav Havel Airport operates 24 hours a day, 7 days a week, from the kiosks and counter in both Terminal 1 and Terminal 2 Arrivals, so a walk-up ride is possible even at 02:00 or 03:00. What changes at night is everything around it: public transport stops completely between 03:54 and 04:22, app-based rides surge and can take ten to twenty minutes to accept, and after a delayed long-haul flight the queue at the kiosk is often the longest of the day. If you land late, the calmest option is a pre-booked chauffeur: the driver tracks your flight number, adjusts to delays automatically, and is standing inside Arrivals with your name on a board whatever time you actually clear customs. Book at least a few hours before departure and include the flight number.',
+  },
+  {
     q: 'Is Uber really the only official taxi at Prague Airport in 2026?',
     a: 'Yes. Since 26 September 2023, Uber holds the exclusive contract for the official taxi rank at Václav Havel Airport Prague, running until at least 2028. This is a genuine change from the pre-2023 arrangement when Fix Taxi and Taxi Praha held the rank. AAA Taxi never held the exclusive rank and is now not present at the official pickup zone at all — you can still book AAA by phone or app for airport pickup, but they will not be waiting at the terminal stand. The practical result is that the only "walk-up" options inside the airport are Uber (via the kiosks, service counter, or app) and the public transport stops. Anyone else offering you a taxi ride inside the arrivals hall or just outside the doors is, by definition, not operating from the official rank. The airport has also rolled out specific anti-scam signage and trained its staff to wear red Uber vests exactly to reduce confusion with the fake "Info" touts who still occasionally target tourists.',
   },
@@ -235,7 +240,7 @@ const pageSchemaGraph = {
     {
       '@type': 'BlogPosting',
       '@id': `${CANONICAL_ABS}#article`,
-      headline: 'Prague Airport Taxi vs Chauffeur 2026 — Uber Took the Rank',
+      headline: TITLE,
       description: DESCRIPTION,
       image: {
         '@type': 'ImageObject',
