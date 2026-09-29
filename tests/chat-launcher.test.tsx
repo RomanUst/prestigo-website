@@ -11,7 +11,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { renderWithIntl } from './helpers/renderWithIntl'
 import type { AbstractIntlMessages } from 'next-intl'
 import enMessages from '@/messages/en.json'
@@ -416,6 +417,181 @@ describe('ChatLauncher — visit context after the click (D-06, T-77-25/26)', ()
     await openChatOnSite(sdk2)
     const ctx2 = sdk2.cw.setConversationCustomAttributes.mock.calls[0][0] as Record<string, string>
     expect(Object.keys(ctx2).some((k) => k.startsWith('book_'))).toBe(false)
+  })
+})
+
+describe('ChatLauncher — loading and error states (UI-SPEC E3)', () => {
+  it('while the widget opens: Chat on site is aria-busy, disabled and announces loading; other channels stay clickable', async () => {
+    let release: (r: Response) => void = () => {}
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>((resolve) => (release = resolve))),
+    )
+    installFakeSdk()
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+
+    const chatItem = await screen.findByRole('button', { name: /chat on site/i })
+    await waitFor(() => expect(chatItem).toHaveAttribute('aria-busy', 'true'))
+    expect(chatItem).toBeDisabled()
+    expect(chatItem).toHaveTextContent(enMessages.ChatLauncher.widgetLoading)
+    const [, wa, tg] = menuItems()
+    expect(wa).not.toHaveAttribute('aria-disabled')
+    expect(tg).not.toHaveAttribute('aria-disabled')
+    expect(wa).toHaveAttribute('href', WHATSAPP_CHAT_URL)
+
+    await act(async () => {
+      release(await identityGET())
+    })
+    await waitFor(() => expect(document.getElementById('chat-launcher-menu')).toBeNull())
+  })
+
+  it('shows the inline error (role=status, aria-live=polite) when the config route reports chat disabled', async () => {
+    delete process.env.CHATWOOT_BASE_URL // real route fails closed -> { enabled: false }
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk()
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+
+    const status = await screen.findByRole('status')
+    await waitFor(() => expect(status).toHaveTextContent(enMessages.ChatLauncher.widgetError))
+    expect(status).toHaveAttribute('aria-live', 'polite')
+    expect(sdk.scripts).toHaveLength(0)
+    // menu stays open, chat item usable again, other channels untouched
+    const [chatItem, wa, tg] = menuItems()
+    expect(chatItem).not.toBeDisabled()
+    expect(chatItem).toHaveAttribute('aria-busy', 'false')
+    expect(wa).toHaveAttribute('href', WHATSAPP_CHAT_URL)
+    expect(tg).toHaveAttribute('href', TELEGRAM_CHAT_URL)
+  })
+
+  it('shows the error when sdk.js fails to load, and a retry clears it', async () => {
+    wireFetchToIdentityRoute()
+    installFakeSdk({ failScript: true })
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(enMessages.ChatLauncher.widgetError),
+    )
+
+    vi.restoreAllMocks()
+    resetWidgetGlobals()
+    const sdk = installFakeSdk()
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+  })
+
+  it('shows the error when chatwoot:ready does not arrive within 10 s', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk({ neverReady: true })
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+
+    // vi.waitFor advances the fake clock while the (real-async) route resolves.
+    await vi.waitFor(() => expect(sdk.scripts).toHaveLength(1))
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5_000)
+    })
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6_000)
+    })
+    expect(screen.getByRole('status')).toHaveTextContent(enMessages.ChatLauncher.widgetError)
+    expect(sdk.cw.toggle).not.toHaveBeenCalled()
+  })
+})
+
+describe('ChatLauncher — keyboard and focus (UI-SPEC)', () => {
+  it('Enter and Space on the launcher toggle the menu', async () => {
+    const user = userEvent.setup()
+    renderWithIntl(<ChatLauncher />)
+    const btn = launcherButton()
+    btn.focus()
+    await user.keyboard('{Enter}')
+    expect(document.getElementById('chat-launcher-menu')).toBeTruthy()
+    expect(screen.getByRole('button', { name: /close chat menu/i })).toHaveAttribute('aria-expanded', 'true')
+    await user.keyboard(' ')
+    expect(document.getElementById('chat-launcher-menu')).toBeNull()
+  })
+
+  it('Esc closes the menu and returns focus to the launcher', async () => {
+    const user = userEvent.setup()
+    renderWithIntl(<ChatLauncher />)
+    await user.click(launcherButton())
+    menuItems()[1].focus()
+    await user.keyboard('{Escape}')
+    expect(document.getElementById('chat-launcher-menu')).toBeNull()
+    expect(screen.getByRole('button', { name: /open chat/i })).toHaveFocus()
+  })
+
+  it('a mousedown outside closes the menu; inside the menu it stays open', async () => {
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.mouseDown(menuItems()[1])
+    expect(document.getElementById('chat-launcher-menu')).toBeTruthy()
+    fireEvent.mouseDown(document.body)
+    expect(document.getElementById('chat-launcher-menu')).toBeNull()
+  })
+
+  it('registers the outside/Esc listeners only while the menu is open', () => {
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+    renderWithIntl(<ChatLauncher />)
+    const openingCalls = () => add.mock.calls.filter(([type]) => type === 'mousedown' || type === 'keydown').length
+    expect(openingCalls()).toBe(0)
+    fireEvent.click(launcherButton())
+    expect(openingCalls()).toBeGreaterThan(0)
+    fireEvent.click(screen.getByRole('button', { name: /close chat menu/i }))
+    expect(remove.mock.calls.filter(([type]) => type === 'mousedown').length).toBeGreaterThan(0)
+  })
+
+  it('menu items are tabbable in D-01 order', async () => {
+    const user = userEvent.setup()
+    renderWithIntl(<ChatLauncher />)
+    await user.click(launcherButton())
+    const [chat, wa, tg] = menuItems()
+    chat.focus()
+    await user.tab()
+    expect(wa).toHaveFocus()
+    await user.tab()
+    expect(tg).toHaveFocus()
+  })
+})
+
+describe('ChatLauncher — placement (RTL, /book)', () => {
+  const container = () => launcherButton().parentElement as HTMLElement
+
+  it('uses the standard offset on ordinary pages and the raised mobile offset under /book', () => {
+    pathnameRef.current = '/routes/prague-vienna'
+    const first = renderWithIntl(<ChatLauncher />)
+    expect(container().className).toMatch(/\bbottom-4\b/)
+    expect(container().className).not.toMatch(/\bbottom-24\b/)
+    first.unmount()
+
+    pathnameRef.current = '/book'
+    renderWithIntl(<ChatLauncher />)
+    expect(container().className).toMatch(/\bbottom-24\b/)
+    expect(container().className).toMatch(/\bmd:bottom-6\b/)
+  })
+
+  it('anchors to the inline-end corner, above the CookieBanner (z-40 < z-[400]) and below the Nav (z-50)', () => {
+    renderWithIntl(<ChatLauncher />)
+    expect(container().className).toMatch(/\bend-4\b/)
+    expect(container().className).toMatch(/\bz-40\b/)
+    expect(container().className).toMatch(/\bmd:end-6\b/)
+  })
+
+  it('the open menu wraps long labels and fits a 320px viewport', () => {
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    const menu = document.getElementById('chat-launcher-menu') as HTMLElement
+    expect(menu.className).toMatch(/max-w-\[calc\(100vw-32px\)\]/)
+    expect(menu.innerHTML).not.toMatch(/truncate|whitespace-nowrap|overflow-hidden/)
   })
 })
 
