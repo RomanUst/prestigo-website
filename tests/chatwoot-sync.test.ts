@@ -329,6 +329,36 @@ describe('client', () => {
     expect(Object.keys(headers)).not.toContain('api_access_token')
   })
 
+  it('WR-06: never follows redirects (the token header must not leave the instance) and always passes a timeout signal', async () => {
+    const seen: any[] = []
+    const fetchImpl = async (_url: string, init: any) => {
+      seen.push(init)
+      return new Response('[]', { status: 200 })
+    }
+    const client = createChatwootClient({ baseUrl: BASE, token: FAKE_TOKEN, accountId: '1', fetchImpl: fetchImpl as any })
+    await client.request('GET', '/labels')
+    expect(seen[0].redirect).toBe('error')
+    expect(seen[0].signal).toBeInstanceOf(AbortSignal)
+  })
+
+  it('WR-06: a stalled request rejects with a ChatwootApiError instead of hanging', async () => {
+    const fetchImpl = (_url: string, init: any) =>
+      new Promise((_resolve, reject) => {
+        init.signal.addEventListener('abort', () => reject(init.signal.reason))
+      })
+    const client = createChatwootClient({
+      baseUrl: BASE,
+      token: FAKE_TOKEN,
+      accountId: '1',
+      fetchImpl: fetchImpl as any,
+      timeoutMs: 25,
+    })
+    const err = await client.request('GET', '/labels').catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(ChatwootApiError)
+    expect((err as Error).message).toMatch(/timed out/)
+    expect((err as Error).message).not.toContain(FAKE_TOKEN)
+  })
+
   it('ChatwootApiError message carries method, path and status but never the token', async () => {
     const fetchImpl = async () =>
       new Response(JSON.stringify({ error: `bad token ${FAKE_TOKEN}` }), { status: 401 })

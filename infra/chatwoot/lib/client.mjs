@@ -117,7 +117,16 @@ function makeRedactor(token) {
   }
 }
 
-export function createChatwootClient({ baseUrl, token, accountId, fetchImpl = globalThis.fetch }) {
+/** A stalled connection must not hang sync.mjs/inspect.mjs forever. */
+export const REQUEST_TIMEOUT_MS = 30_000
+
+export function createChatwootClient({
+  baseUrl,
+  token,
+  accountId,
+  fetchImpl = globalThis.fetch,
+  timeoutMs = REQUEST_TIMEOUT_MS,
+}) {
   if (!baseUrl || !token || !accountId) throw new ChatwootConfigError('createChatwootClient needs baseUrl, token and accountId')
   const redact = makeRedactor(token)
   const root = baseUrl.replace(/\/+$/, '')
@@ -132,9 +141,20 @@ export function createChatwootClient({ baseUrl, token, accountId, fetchImpl = gl
         method,
         headers: { [AUTH_HEADER]: token, Accept: 'application/json', ...headers },
         body,
+        // Never follow a redirect: undici strips only authorization/cookie on a
+        // cross-origin hop, so the custom api-access-token header (the owner's
+        // full Application API token) would be forwarded to the redirect target.
+        redirect: 'error',
+        signal: AbortSignal.timeout(timeoutMs),
       })
     } catch (err) {
-      throw new ChatwootApiError(method, apiPath, 0, redact(err instanceof Error ? err.message : String(err)))
+      const timedOut = err instanceof Error && (err.name === 'TimeoutError' || err.name === 'AbortError')
+      throw new ChatwootApiError(
+        method,
+        apiPath,
+        0,
+        timedOut ? `request timed out after ${timeoutMs} ms` : redact(err instanceof Error ? err.message : String(err)),
+      )
     }
     const text = await res.text()
     if (!res.ok) throw new ChatwootApiError(method, apiPath, res.status, redact(text))
