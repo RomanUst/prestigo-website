@@ -9,6 +9,7 @@
  * no chat host literal and no uppercase env-var name (the VPS isolation guard
  * would otherwise taint every importer).
  */
+import { buildVisitContext, type BookingVisitData, type VisitContext } from '@/lib/chat-visit-context'
 import {
   WIDGET_CONFIG_PATH,
   isSafeWidgetBaseUrl,
@@ -100,6 +101,37 @@ async function fetchWidgetConfig(): Promise<Extract<WidgetConfigResponse, { enab
   }
 }
 
+/** Booking-wizard selections, read only while the visitor is inside /book. */
+async function readBookingData(pathname: string | undefined): Promise<BookingVisitData | null> {
+  if (!pathname || !pathname.startsWith('/book')) return null
+  try {
+    const { useBookingStore } = await import('@/lib/booking-store')
+    const state = useBookingStore.getState()
+    return {
+      tripType: state.tripType,
+      origin: state.origin?.address ?? null,
+      destination: state.destination?.address ?? null,
+      vehicle: state.vehicleClass,
+    }
+  } catch {
+    // Booking context is a nicety — never let it block the chat.
+    return null
+  }
+}
+
+async function collectVisitContext(options: OpenChatWidgetOptions): Promise<VisitContext> {
+  const openedAt = new Date().toISOString()
+  const booking = await readBookingData(options.pathname)
+  return buildVisitContext({
+    pageHref: window.location.href,
+    landingHref: options.landingHref,
+    referrer: document.referrer,
+    siteLocale: options.locale,
+    openedAt,
+    booking,
+  })
+}
+
 function identityAttributes(user: WidgetIdentity): Record<string, string> {
   const attrs: Record<string, string> = { identifier_hash: user.identifierHash }
   if (user.email) attrs.email = user.email
@@ -163,6 +195,9 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     return
   }
 
+  // Click-time snapshot: the page, UTM, referrer and booking state as they are
+  // now, not as they will be when the widget finishes loading.
+  const visitContext = await collectVisitContext(options)
   const config = await fetchWidgetConfig()
   const widgetLocale = WIDGET_LOCALE_BY_SITE_LOCALE[options.locale] ?? 'en'
 
@@ -190,6 +225,15 @@ async function performOpen(options: OpenChatWidgetOptions): Promise<void> {
     cw.setUser(config.user.identifier, identityAttributes(config.user))
   }
   cw.setLocale(widgetLocale)
+  cw.setCustomAttributes({ site_locale: options.locale })
+  cw.setConversationCustomAttributes(visitContext)
+  // The conversation only exists once the visitor sends a message — set the
+  // attributes again then so they land on the created conversation.
+  window.addEventListener(
+    'chatwoot:on-message',
+    () => cw.setConversationCustomAttributes(visitContext),
+    { once: true },
+  )
   cw.toggle('open')
 }
 

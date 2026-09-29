@@ -57,6 +57,8 @@ import { GET as identityGET } from '@/app/api/chatwoot/identity/route'
 import { computeIdentifierHash } from '@/lib/chatwoot-identity'
 import { WIDGET_CONFIG_PATH } from '@/lib/chat-widget-contract'
 import { WHATSAPP_CHAT_URL, TELEGRAM_CHAT_URL } from '@/lib/contact-channels'
+import { getLandingHref, resetLandingHrefForTests, VISIT_CONTEXT_KEYS } from '@/lib/chat-visit-context'
+import { useBookingStore } from '@/lib/booking-store'
 
 const BASE_URL = 'https://chat.rideprestigo.com'
 const WEBSITE_TOKEN = 'test-website-token'
@@ -138,6 +140,9 @@ beforeEach(() => {
   mockGetUser.mockResolvedValue({ data: { user: USER }, error: null })
   mockMaybeSingle.mockResolvedValue({ data: null, error: null })
   resetWidgetGlobals()
+  resetLandingHrefForTests()
+  window.history.replaceState({}, '', '/')
+  useBookingStore.getState().resetBooking()
 })
 
 afterEach(() => {
@@ -318,6 +323,99 @@ describe('ChatLauncher — click -> real identity route -> identified widget (D-
     fireEvent.click(menuItems()[0])
     await waitFor(() => expect(sdkAr.cw.toggle).toHaveBeenCalledWith('open'))
     expect(sdkAr.settingsAtAppend[0]).toMatchObject({ locale: 'ar', position: 'left' })
+  })
+})
+
+describe('ChatLauncher — visit context after the click (D-06, T-77-25/26)', () => {
+  async function openChatOnSite(sdk: ReturnType<typeof installFakeSdk>) {
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
+  }
+
+  it('records the landing href on first mount without fetch, cookies or storage', () => {
+    const fetchMock = wireFetchToIdentityRoute()
+    window.history.replaceState({}, '', '/ru?utm_source=newsletter&email=a%40b.cz')
+    const setItem = vi.spyOn(Storage.prototype, 'setItem')
+    renderWithIntl(<ChatLauncher />)
+    expect(getLandingHref()).toBe(`${window.location.origin}/ru?utm_source=newsletter&email=a%40b.cz`)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(setItem).not.toHaveBeenCalled()
+    expect(document.cookie).toBe('')
+  })
+
+  it('sends site_locale to the contact and the sanitized context to the conversation', async () => {
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk()
+    window.history.replaceState({}, '', '/?utm_source=google&utm_medium=cpc&gclid=secret')
+    renderWithIntl(<ChatLauncher />)
+    // visitor navigates inside the SPA before clicking
+    window.history.pushState({}, '', '/routes/prague-vienna?email=a%40b.cz#x')
+    await openChatOnSite(sdk)
+
+    expect(sdk.cw.setCustomAttributes).toHaveBeenCalledWith({ site_locale: 'en' })
+    expect(sdk.cw.setConversationCustomAttributes).toHaveBeenCalledTimes(1)
+    const ctx = sdk.cw.setConversationCustomAttributes.mock.calls[0][0] as Record<string, string>
+    const origin = window.location.origin
+    expect(ctx).toMatchObject({
+      page_url: `${origin}/routes/prague-vienna`,
+      landing_url: `${origin}/?utm_source=google&utm_medium=cpc`,
+      site_locale: 'en',
+      utm_source: 'google',
+      utm_medium: 'cpc',
+      chat_consent: 'click-to-open',
+    })
+    expect(ctx.chat_opened_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/)
+    expect(JSON.stringify(ctx)).not.toMatch(/gclid|secret|email/)
+    for (const key of Object.keys(ctx)) expect(VISIT_CONTEXT_KEYS as readonly string[]).toContain(key)
+    expect(Object.keys(ctx).some((k) => k.startsWith('book_'))).toBe(false)
+  })
+
+  it('re-sends the conversation context once on the first visitor message', async () => {
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk()
+    renderWithIntl(<ChatLauncher />)
+    await openChatOnSite(sdk)
+    expect(sdk.cw.setConversationCustomAttributes).toHaveBeenCalledTimes(1)
+
+    window.dispatchEvent(new Event('chatwoot:on-message'))
+    expect(sdk.cw.setConversationCustomAttributes).toHaveBeenCalledTimes(2)
+    window.dispatchEvent(new Event('chatwoot:on-message'))
+    expect(sdk.cw.setConversationCustomAttributes).toHaveBeenCalledTimes(2)
+    expect(sdk.cw.setConversationCustomAttributes.mock.calls[1][0]).toEqual(
+      sdk.cw.setConversationCustomAttributes.mock.calls[0][0],
+    )
+  })
+
+  it('adds book_* attributes inside /book (locale-stripped) and never elsewhere', async () => {
+    wireFetchToIdentityRoute()
+    useBookingStore.setState({
+      tripType: 'transfer',
+      origin: { address: 'Prague Airport (PRG)', placeId: 'p1', lat: 50.1, lng: 14.26 },
+      destination: { address: 'Vienna', placeId: 'p2', lat: 48.2, lng: 16.37 },
+      vehicleClass: 'business',
+    })
+
+    pathnameRef.current = '/book'
+    const sdk = installFakeSdk()
+    const first = renderWithIntl(<ChatLauncher />)
+    await openChatOnSite(sdk)
+    expect(sdk.cw.setConversationCustomAttributes.mock.calls[0][0]).toMatchObject({
+      book_trip_type: 'transfer',
+      book_origin: 'Prague Airport (PRG)',
+      book_destination: 'Vienna',
+      book_vehicle: 'business',
+    })
+    first.unmount()
+    vi.restoreAllMocks()
+    resetWidgetGlobals()
+
+    pathnameRef.current = '/routes/prague-vienna'
+    const sdk2 = installFakeSdk()
+    renderWithIntl(<ChatLauncher />)
+    await openChatOnSite(sdk2)
+    const ctx2 = sdk2.cw.setConversationCustomAttributes.mock.calls[0][0] as Record<string, string>
+    expect(Object.keys(ctx2).some((k) => k.startsWith('book_'))).toBe(false)
   })
 })
 

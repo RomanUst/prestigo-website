@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocale, useTranslations } from 'next-intl'
 import type { LucideIcon } from 'lucide-react'
 import { LoaderCircle, MessageCircle, MessagesSquare, Phone, Send, X } from 'lucide-react'
-import { rtlLocales, type AppLocale } from '@/i18n/routing'
+import { rtlLocales, usePathname, type AppLocale } from '@/i18n/routing'
 import { trackMetaEvent } from '@/components/MetaPixel'
 import { WHATSAPP_CHAT_URL, TELEGRAM_CHAT_URL } from '@/lib/contact-channels'
+import { getLandingHref, rememberLandingHref } from '@/lib/chat-visit-context'
 
 const MENU_ID = 'chat-launcher-menu'
 
@@ -33,10 +34,17 @@ const CHANNELS: Channel[] = [
 export default function ChatLauncher() {
   const t = useTranslations('ChatLauncher')
   const locale = useLocale()
+  const pathname = usePathname()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const isRtl = rtlLocales.includes(locale as AppLocale)
+
+  // First-touch landing URL (D-06): remembered in memory only — no cookie, no
+  // storage, no network. Not a loader start: nothing third-party happens here.
+  useEffect(() => {
+    rememberLandingHref(window.location.href)
+  }, [])
 
   async function handleChatOnSite(analyticsName: string) {
     if (loading) return
@@ -48,6 +56,8 @@ export default function ChatLauncher() {
       await openChatWidget({
         locale,
         isRtl,
+        landingHref: getLandingHref(),
+        pathname,
         texts: {
           welcomeTitle: t('widget.welcomeTitle'),
           welcomeDescription: t('widget.welcomeDescription'),
