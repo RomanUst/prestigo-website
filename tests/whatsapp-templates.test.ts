@@ -16,8 +16,8 @@ import { hasCurrencyToken } from '../scripts/qa/chatwoot_price_gate.mjs'
 const TEMPLATES_DIR = path.join(process.cwd(), 'infra/chatwoot/whatsapp-templates')
 const CANNED_DIR = path.join(process.cwd(), 'infra/chatwoot/canned-responses')
 
-// Task 1 tracer set; Task 2 widens this to the WA-02 four.
-const REQUIRED_KEYS = ['booking-change']
+// The WA-02 four (Task 1 started with ['booking-change']).
+const REQUIRED_KEYS = ['booking-change', 'payment-help', 'review-request', 'trip-reminder']
 
 const loaded = loadTemplates() as Array<{ file: string; template: any }>
 const byKey = new Map<string, any>(loaded.map(({ template }) => [template.key, template]))
@@ -103,5 +103,48 @@ describe.each(loaded.map(({ template }) => [template.key, template] as const))('
     if (t.sourceCanned !== null) {
       expect(fs.existsSync(path.join(CANNED_DIR, `${t.sourceCanned}.json`)), t.sourceCanned).toBe(true)
     }
+  })
+})
+
+describe('WhatsApp templates: per-template rules (D-07, D-11)', () => {
+  const shape = (t: any) => t.buttons.map((b: any) => `${b.type}:${b.textKey}`)
+
+  it('booking-change: quick replies ok + question, three variables', () => {
+    const t = byKey.get('booking-change')
+    expect(t.name).toBe('prestigo_booking_change')
+    expect(shape(t)).toEqual(['QUICK_REPLY:ok', 'QUICK_REPLY:question'])
+    expect(t.variables.map((v: any) => v.name)).toEqual(['first_name', 'booking_ref', 'change_summary'])
+  })
+
+  it('payment-help: no digit of any script in any locale body, quick replies new_link + question', () => {
+    const t = byKey.get('payment-help')
+    expect(t.name).toBe('prestigo_payment_help')
+    expect(shape(t)).toEqual(['QUICK_REPLY:new_link', 'QUICK_REPLY:question'])
+    for (const code of locales) {
+      expect(t.locales[code].body, code).not.toMatch(/\p{Nd}/u)
+      expect(t.locales[code].body, code).not.toMatch(/https?:|www\./i) // the link is sent on request, never baked in
+    }
+  })
+
+  it('review-request: exactly one URL button equal to the Phase 77 canned-response review link', () => {
+    const t = byKey.get('review-request')
+    expect(t.name).toBe('prestigo_review_request')
+    const canned = JSON.parse(fs.readFileSync(path.join(CANNED_DIR, 'review-request.json'), 'utf8'))
+    const link = (canned.responses.en as string).match(/https:\/\/g\.page\/\S+/)?.[0]
+    expect(link).toBeTruthy()
+    const urls = t.buttons.filter((b: any) => b.type === 'URL')
+    expect(urls).toHaveLength(1)
+    expect(urls[0].url).toBe(link)
+    expect(t.buttons).toHaveLength(1)
+    for (const code of locales) expect(t.locales[code].body, code).toContain('{{booking_ref}}') // tied to the trip (UTILITY)
+  })
+
+  it('trip-reminder: all five variables in every locale body, quick replies all_good + change', () => {
+    const t = byKey.get('trip-reminder')
+    expect(t.name).toBe('prestigo_trip_reminder')
+    expect(shape(t)).toEqual(['QUICK_REPLY:all_good', 'QUICK_REPLY:change'])
+    const names = ['first_name', 'booking_ref', 'pickup_date', 'pickup_time', 'pickup_place']
+    expect(t.variables.map((v: any) => v.name)).toEqual(names)
+    for (const code of locales) for (const n of names) expect(t.locales[code].body, `${code} ${n}`).toContain(`{{${n}}}`)
   })
 })
