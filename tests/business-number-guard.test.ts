@@ -16,6 +16,7 @@ import { describe, it, expect } from 'vitest'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
+import { businessNode } from '@/lib/jsonld'
 import {
   BUSINESS_PHONE_E164,
   BUSINESS_PHONE_DIGITS,
@@ -61,6 +62,8 @@ const REFACTORED_FILES: string[] = [
   'app/[locale]/privacy/page.tsx',
   'components/booking/steps/Step2DateTime.tsx',
   'components/ContactForm.tsx',
+  'lib/jsonld.ts',
+  'app/[locale]/page.tsx',
 ]
 
 const LOCALES = ['en', 'ru', 'es', 'fr', 'ar', 'hi', 'zh']
@@ -204,5 +207,18 @@ describe('assertion A: every Czech-number-shaped string equals the business numb
 describe('refactored files hold no number literal (D-21)', () => {
   it.each(REFACTORED_FILES)('%s has zero Czech-number matches', (file) => {
     expect(czMatches(readRepoFile(file))).toEqual([])
+  })
+})
+
+describe('structured data follows the constant (D-21, D-22)', () => {
+  it('businessNode().telephone is the E.164 constant', () => {
+    expect(businessNode().telephone).toBe(BUSINESS_PHONE_E164)
+  })
+
+  it('the home page graph uses E.164 for the business node and the hyphen form for contactPoint', () => {
+    const src = readRepoFile('app/[locale]/page.tsx')
+    expect(src).toMatch(/telephone:\s*BUSINESS_PHONE_E164,/)
+    expect(src).toMatch(/telephone:\s*BUSINESS_PHONE_SCHEMA_HYPHEN,/)
+    expect(src).toMatch(/from '@\/lib\/contact-channels'/)
   })
 })

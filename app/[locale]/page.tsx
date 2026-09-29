@@ -10,6 +10,7 @@ import { AIRPORT_FALLBACK, HOURLY_FALLBACK } from '@/lib/price-fallbacks'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
+import { BUSINESS_PHONE_E164, BUSINESS_PHONE_SCHEMA_HYPHEN } from '@/lib/contact-channels'
 import Nav from '@/components/Nav'
 import Hero from '@/components/Hero'
 import FeatureStrip from '@/components/FeatureStrip'
@@ -86,7 +87,7 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   vatID: 'CZ05650801',
   description: content.schema.description,
   url: 'https://rideprestigo.com',
-  telephone: '+420725986855',
+  telephone: BUSINESS_PHONE_E164,
   email: 'info@rideprestigo.com',
   priceRange: '€€€',
   currenciesAccepted: 'CZK, EUR',
@@ -150,7 +151,7 @@ function buildLocalBusinessSchema(content: HomeContent, locale: string) {
   ],
   contactPoint: {
     '@type': 'ContactPoint',
-    telephone: '+420-725-986-855',
+    telephone: BUSINESS_PHONE_SCHEMA_HYPHEN,
     contactType: 'customer service',
     availableLanguage: ['English', 'Czech'],
     hoursAvailable: {
