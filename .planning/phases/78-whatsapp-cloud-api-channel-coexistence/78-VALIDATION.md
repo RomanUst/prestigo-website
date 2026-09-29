@@ -39,7 +39,7 @@ created: "2026-09-29"
 
 ## Per-Task Verification Map
 
-Filled by the planner on 2026-09-29 (16 plans, 6 waves). Task ID = `78-<plan>-<task>`. Checkpoint tasks carry no automated command; their proof is the owner reply plus the `<verification>` read Claude runs afterwards.
+Filled by the planner on 2026-09-29 (16 plans, 6 waves); revised the same day per the plan checker (17 plans, 7 waves: the old 78-14 Task 3 and the away-message confirmation became plan 78-16, the end-state plan became 78-17). Task ID = `78-<plan>-<task>`. Checkpoint tasks carry no automated command; their proof is the owner reply plus the `<verification>` read Claude runs afterwards.
 
 | Task ID | Plan | Wave | Requirement | Threat Ref | Secure Behavior | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|------------|-----------------|-----------|-------------------|-------------|--------|
@@ -63,7 +63,7 @@ Filled by the planner on 2026-09-29 (16 plans, 6 waves). Task ID = `78-<plan>-<t
 | 78-08-02 | 08 | 2 | WA-02 | T-78-23, T-78-25 | no digits in payment copy; utility copy non-promotional | unit + offline validate | `npx vitest run tests/whatsapp-templates.test.ts` ; `node infra/chatwoot/whatsapp-templates.mjs --validate` | ✅ after 08-01 | ⬜ pending |
 | 78-09-01 | 09 | 2 | WA-01 | T-78-26, T-78-29, T-78-31 | probe proves signature enforcement; message-less payload; no token on webhook requests | unit (fake Chatwoot + webhook) | `npx vitest run tests/whatsapp-channel.test.ts` | ❌ W0 (created in task) | ⬜ pending |
 | 78-09-02 | 09 | 2 | WA-01 | T-78-26, T-78-27, T-78-28 | app_secret merged, rest preserved; provider_config redacted | unit (fake Chatwoot) | `npx vitest run tests/whatsapp-channel.test.ts tests/chatwoot-sync.test.ts tests/chatwoot-inspect.test.ts` | ✅ after 09-01 | ⬜ pending |
-| 78-09-03 | 09 | 2 | WA-01 | T-78-30 | PIN only at a hidden TTY prompt; never printed | unit (fake Graph) | `npx vitest run tests/whatsapp-channel.test.ts tests/whatsapp-graph.test.ts` ; `node infra/chatwoot/whatsapp-channel.mjs --register < /dev/null; test $? -eq 1` | ✅ after 09-01 | ⬜ pending |
+| 78-09-03 | 09 | 2 | WA-01 | T-78-30 | PIN only at a hidden TTY prompt; never printed; README free of currency tokens | unit (fake Graph) | `npx vitest run tests/whatsapp-channel.test.ts tests/whatsapp-graph.test.ts` ; `node infra/chatwoot/whatsapp-channel.mjs --register < /dev/null; test $? -eq 1` ; README price-gate check (`hasCurrencyToken` from `scripts/qa/chatwoot_price_gate.mjs` on `infra/chatwoot/README.md` is false) | ✅ after 09-01 | ⬜ pending |
 | 78-10-01 | 10 | 3 | WA-02 | T-78-34 | synthetic driver phone example | unit + offline validate | `npx vitest run tests/whatsapp-templates.test.ts` ; `node infra/chatwoot/whatsapp-templates.mjs --validate` | ✅ | ⬜ pending |
 | 78-10-02 | 10 | 3 | WA-02 | T-78-32 | — (owner decision D-10) | checkpoint:decision | — | — | ⬜ pending |
 | 78-10-03 | 10 | 3 | WA-02 | T-78-32, T-78-33 | no public invoice link unless chosen; no amounts | unit + offline validate | `npx vitest run tests/whatsapp-templates.test.ts tests/whatsapp-graph.test.ts` ; `node infra/chatwoot/whatsapp-templates.mjs --validate` | ✅ | ⬜ pending |
@@ -76,13 +76,15 @@ Filled by the planner on 2026-09-29 (16 plans, 6 waves). Task ID = `78-<plan>-<t
 | 78-13-01 | 13 | 4 | WA-02 | T-78-44, T-78-45 | idempotent live submission; no token in output | live (Graph) | `node infra/chatwoot/whatsapp-templates.mjs --only booking-change` | ✅ | ⬜ pending |
 | 78-13-02 | 13 | 4 | WA-02 | T-78-45 | never delete; rerun create=0 | live (Graph) | `node infra/chatwoot/whatsapp-templates.mjs` ; `node infra/chatwoot/whatsapp-templates.mjs --status` | ✅ | ⬜ pending |
 | 78-14-01 | 14 | 5 | WA-04 | T-78-47 | — (owner go/no-go D-21, one-way) | checkpoint:decision | — | — | ⬜ pending |
-| 78-14-02 | 14 | 5 | WA-04 | T-78-46, T-78-47, T-78-49 | number verified against Meta before flip; exact replace counts; snapshots phone-only diff | unit/render + live (prod) | number-switch set (see Test Infrastructure + `tests/business-number-live-check.test.ts tests/static-pages-locale.test.tsx`) ; `node scripts/qa/business_number_live_check.mjs` | ✅ | ⬜ pending |
-| 78-14-03 | 14 | 5 | WA-04 | T-78-46, T-78-48 | former number absent from every tracked file; manifest frozen | unit + script | `npx vitest run tests/business-number-guard.test.ts tests/whatsapp-runbook.test.ts` ; `node scripts/i18n-freeze-manifest.mjs --dir .planning/phases/78-whatsapp-cloud-api-channel-coexistence/freeze --verify` | ✅ | ⬜ pending |
+| 78-14-02 | 14 | 5 | WA-04 | T-78-46, T-78-47, T-78-49 | number verified against Meta before flip; exact replace counts; snapshots phone-only diff; bulk edit never opened by the executor (context bound) | unit/render + live (prod) | number-switch set (see Test Infrastructure + `tests/business-number-live-check.test.ts tests/static-pages-locale.test.tsx`) ; `node scripts/qa/business_number_live_check.mjs` | ✅ | ⬜ pending |
 | 78-15-01 | 15 | 5 | WA-02 | T-78-52 | rejected templates fixed in git, never deleted | live (Graph + Chatwoot) | `node infra/chatwoot/whatsapp-templates.mjs --status` ; `node infra/chatwoot/inspect.mjs --whatsapp` | ✅ | ⬜ pending |
 | 78-15-02 | 15 | 5 | WA-02 | T-78-50, T-78-51, T-78-52 | test sends only to consenting recipients; delay restored | checkpoint:human-action | — (owner reply + `inspect --whatsapp`, `inspect --activity`) | — | ⬜ pending |
-| 78-16-01 | 16 | 6 | WA-04 | T-78-53, T-78-54 | stored text cleaned; customer data untouched | live (Supabase + Chatwoot + prod) | `node scripts/qa/business_number_live_check.mjs` ; `npx vitest run tests/whatsapp-runbook.test.ts tests/business-number-guard.test.ts` | ✅ | ⬜ pending |
-| 78-16-02 | 16 | 6 | WA-04 | T-78-55, T-78-56 | away message points only to the new number; test data deleted | checkpoint:human-action | — (owner reply) | — | ⬜ pending |
-| 78-16-03 | 16 | 6 | WA-03, WA-04 | T-78-26 | final hardened state | live + full suite | `node infra/chatwoot/inspect.mjs --whatsapp --expect-connected` ; `node infra/chatwoot/whatsapp-channel.mjs --probe` ; `npx vitest run` | ✅ | ⬜ pending |
+| 78-16-01 | 16 | 6 | WA-04 | T-78-46, T-78-48 | former number absent from every tracked file; switched units frozen | unit + script | `npx vitest run tests/business-number-guard.test.ts` ; `node scripts/i18n-freeze-manifest.mjs --dir .planning/phases/78-whatsapp-cloud-api-channel-coexistence/freeze --verify` | ✅ | ⬜ pending |
+| 78-16-02 | 16 | 6 | WA-04, WA-03 | T-78-57, T-78-58 | away-message text from the constants; pricing re-verified and dated at launch (D-19) | unit (file assertions) | `npx vitest run tests/whatsapp-runbook.test.ts tests/business-number-guard.test.ts` | ✅ | ⬜ pending |
+| 78-16-03 | 16 | 6 | WA-04 | T-78-55, T-78-57 | away message live on the former number right after the switch, independent of template approval | checkpoint:human-action | — (owner reply "transition live") | — | ⬜ pending |
+| 78-17-01 | 17 | 7 | WA-04 | T-78-53, T-78-54 | stored text cleaned; customer data untouched | live (Supabase + Chatwoot + prod) | `node scripts/qa/business_number_live_check.mjs` ; `npx vitest run tests/whatsapp-runbook.test.ts tests/business-number-guard.test.ts` | ✅ | ⬜ pending |
+| 78-17-02 | 17 | 7 | WA-04 | T-78-55, T-78-56 | test data deleted; off-site checklist statuses | checkpoint:human-action | — (owner reply "cleanup done") | — | ⬜ pending |
+| 78-17-03 | 17 | 7 | WA-03, WA-04 | T-78-26, T-78-58 | final hardened state; pricing dated at or after the switch (backstop) | live + full suite | `node infra/chatwoot/inspect.mjs --whatsapp --expect-connected` ; `node infra/chatwoot/whatsapp-channel.mjs --probe` ; `npx vitest run` | ✅ | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -90,7 +92,7 @@ Filled by the planner on 2026-09-29 (16 plans, 6 waves). Task ID = `78-<plan>-<t
 
 ## Wave 0 Requirements
 
-- [ ] `tests/business-number-guard.test.ts` — consistency assertion A in 78-01; code-wide single source in 78-07; old-number-absent assertion B in 78-14
+- [ ] `tests/business-number-guard.test.ts` — consistency assertion A in 78-01; code-wide single source in 78-07; old-number-absent assertion B in 78-16
 - [ ] `tests/whatsapp-templates.test.ts` — 78-08 (widened to all 8 keys in 78-10)
 - [ ] `tests/whatsapp-graph.test.ts` — fake Graph API harness, 78-03 (model on `FakeOptions` in `tests/chatwoot-sync.test.ts`)
 - [ ] `tests/whatsapp-channel.test.ts` — fake Chatwoot + webhook + Graph harness, 78-09

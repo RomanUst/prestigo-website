@@ -14,7 +14,7 @@ Integrated services: Meta WhatsApp Cloud API / Graph API v25.0 (new dedicated nu
 | Phone number status read (status, name, quality, limit tier, display number) | INTEGRATE | `whatsapp-channel.mjs --number` prints enums only, plus the `--expect-e164` typo guard for the site switch (plans 78-09, 78-11, 78-14) |
 | WABA read (`currency`, `phone_numbers`) | INTEGRATE | D-18 EUR check and number-belongs-to-WABA check in `--number` (plans 78-09, 78-11) |
 | Deregister number (`POST /{phone-id}/deregister`) | OPT-OUT | rollback-only, one-off, documented as an owner step in the runbook; no script so it can never run by accident (inbox/number teardown hazard, D-20) |
-| Display name submission and change requests | INTEGRATE | D-05 exact string, owner submits in the App Dashboard; `name_status` read by `--number`; on DECLINED stop and ask the owner (plans 78-11, 78-16) |
+| Display name submission and change requests | INTEGRATE | D-05 exact string, owner submits in the App Dashboard; `name_status` read by `--number`; on DECLINED stop and ask the owner (plans 78-11, 78-17) |
 | WhatsApp business profile (about, description, website, email, photo) | INTEGRATE | owner sets it in WhatsApp Manager during onboarding with the brand logo and site URL (plan 78-11 checklist); single-language, one-time, no drift to sync |
 | Business verification (portfolio) | INTEGRATE | D-04, started in parallel by the owner with chelautotrans s.r.o. / IČO exactly as on the legal pages; not a launch blocker |
 | Message templates — create (`POST /{waba}/message_templates`) | INTEGRATE | D-09 templates as code, 8 × 7 = 56 submissions (plans 78-03, 78-13) |
@@ -58,7 +58,7 @@ Integrated services: Meta WhatsApp Cloud API / Graph API v25.0 (new dedicated nu
 | `provider_config.app_secret` via admin inbox PATCH (merged hash) | INTEGRATE | enforces webhook signatures on a manual channel; `whatsapp-channel.mjs --harden`, `rails runner` fallback (plans 78-09, 78-12) |
 | Inbox health endpoint (`/inboxes/:id/health`) | INTEGRATE | `inspect --whatsapp` enums and booleans only (plan 78-04) |
 | Synced templates listing (`/inboxes/:id/message_templates`) | INTEGRATE | `inspect --whatsapp` template counts by status (plan 78-04) |
-| Force template sync (`POST /inboxes/:id/sync_templates`) | INTEGRATE | `whatsapp-channel.mjs --sync-templates` after submission (plans 78-09, 78-13, 78-15) |
+| Force template sync (`POST /inboxes/:id/sync_templates`) | INTEGRATE | `whatsapp-channel.mjs --sync-templates` after Meta approval (plans 78-09, 78-15) |
 | Webhook re-registration (`POST /inboxes/:id/register_webhook`) | INTEGRATE | recovery lever, `whatsapp-channel.mjs --register-webhook` + runbook (plans 78-05, 78-09) |
 | Token rotation ("Update API key" field, keeps the rest of `provider_config`) | INTEGRATE | runbook token-rotation procedure (plan 78-05) |
 | Template sending from the composer and the New Conversation dialog | INTEGRATE | D-12 manual sending, WA-02 acceptance (plan 78-15) |

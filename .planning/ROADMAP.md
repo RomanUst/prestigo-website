@@ -196,7 +196,7 @@ Plans:
   3. Operator can message a customer outside the 24-hour window using pre-approved WhatsApp templates (booking change, payment help, review request, trip reminder).
   4. A documented runbook covers WhatsApp channel recovery, current per-message pricing, and the rule that inboxes are never deleted without a fresh backup.
 
-**Plans**: 16 plans
+**Plans**: 17 plans
 
 Plans:
 **Wave 1**
@@ -221,11 +221,14 @@ Plans:
 - [ ] 78-13-PLAN.md — Submit all 56 templates to the new WABA (slice first, idempotent rerun)
 
 **Wave 5** *(blocked on Wave 4 completion)*
-- [ ] 78-14-PLAN.md — Owner go/no-go (one-way) -> flip the constant, replace 7-locale content, snapshots, deploy + live check, guard B, manifest freeze (WA-04 stage b)
+- [ ] 78-14-PLAN.md — Owner go/no-go (one-way) -> flip the constant, scripted 7-locale content replace (context-bounded), snapshots, deploy + live check (WA-04 stage b)
 - [ ] 78-15-PLAN.md — WA-02 acceptance: approved templates sent outside the 24 h window, quick-reply reopen, window-closing label test
 
-**Wave 6** *(blocked on Wave 5 completion)*
-- [ ] 78-16-PLAN.md — Stored-text inventory (Supabase/Chatwoot), transition away message on the former number, off-site checklist, verified end state
+**Wave 6** *(needs only 78-14; does not wait for Meta template approval in 78-15)*
+- [ ] 78-16-PLAN.md — Guard B + manifest freeze, final away-message text + launch-day pricing re-check, owner confirms the away message is live on the former number
+
+**Wave 7** *(blocked on 78-15 and 78-16)*
+- [ ] 78-17-PLAN.md — Stored-text inventory (Supabase/Chatwoot), test-data cleanup, off-site checklist, verified end state (pricing backstop)
 
 ### Phase 79: Instagram + Facebook Channels
 
