@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useTranslations } from 'next-intl'
+import { BUSINESS_PHONE_DISPLAY } from '@/lib/contact-channels'
 
 // Values posted to /api/contact and used as the GA4 `service` param stay the
 // English identifier (matches CorporateForm's trips-value pattern) — only the
@@ -200,7 +201,7 @@ export default function ContactForm() {
             type="tel"
             value={form.phone}
             onChange={set('phone')}
-            placeholder="+420 725 986 855"
+            placeholder={BUSINESS_PHONE_DISPLAY}
             className={inputClass}
           />
         </div>

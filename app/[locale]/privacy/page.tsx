@@ -7,6 +7,7 @@ import Footer from '@/components/Footer'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { BUSINESS_TEL_URL } from '@/lib/contact-channels'
 
 type PrivacyContent = {
   metadata: { title: string; description: string; ogTitle: string }
@@ -105,7 +106,7 @@ function buildSections(content: PrivacyContent) {
               {content.section1.contactEmailLabel}
             </a>
             {content.section1.contactMiddle}
-            <a href="tel:+420725986855" className="text-offwhite hover:text-copper transition-colors">
+            <a href={BUSINESS_TEL_URL} className="text-offwhite hover:text-copper transition-colors">
               {content.section1.contactPhoneLabel}
             </a>
             {content.section1.contactSuffix}

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useTranslations } from 'next-intl'
 import { DayPicker } from 'react-day-picker'
 import { useBookingStore } from '@/lib/booking-store'
+import { whatsappUrlWithText } from '@/lib/contact-channels'
 
 // Hours 00–23 and minutes in 5-minute increments
 const HOURS: string[] = Array.from({ length: 24 }, (_, i) =>
@@ -305,7 +306,7 @@ export default function Step2DateTime() {
               hours: MIN_LEAD_HOURS,
               wa: (chunks) => (
                 <a
-                  href="https://wa.me/420725986855?text=Hello%20PRESTIGO%2C%20I%20need%20an%20urgent%20transfer."
+                  href={whatsappUrlWithText('Hello PRESTIGO, I need an urgent transfer.')}
                   target="_blank"
                   rel="noopener noreferrer"
                   style={{ color: '#25D366', textDecoration: 'underline', textUnderlineOffset: 3 }}
