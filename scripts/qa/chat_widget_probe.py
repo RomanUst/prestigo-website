@@ -78,7 +78,8 @@ This script never loosens a threshold or rewrites the baseline to make a
 
 Exit codes: 0 = clean, 1 = findings (regression / violation / overlap /
 consent leak), 2 = infrastructure error (e.g. missing baseline), 3 = the
-chat launcher element could not be found at all (--click mode only).
+chat launcher element could not be found at all (--click and --overlap; in
+--cwv-compare a page without a launcher measurement is a finding, exit 1).
 
 Usage:
   python3 scripts/qa/chat_widget_probe.py --cwv-capture [base_url]
@@ -341,6 +342,17 @@ def measure_once(browser, url: str, click_launcher: bool = False) -> dict:
         context.close()
 
 
+def missing_launcher_findings(current: dict, pages) -> list:
+    """--cwv-compare gate (WR-07): every page must have produced a launcher
+    click measurement; a page where the launcher was absent (or recorded no
+    event durations) must fail the gate, not be silently omitted."""
+    return [
+        f'{path}: no launcher_inp_ms measured (launcher absent or click recorded no interaction)'
+        for path in pages
+        if 'launcher_inp_ms' not in current.get(path, {})
+    ]
+
+
 def do_cwv_capture(base: str) -> int:
     os.makedirs(BASELINE_DIR, exist_ok=True)
     pages_out = {}
@@ -444,7 +456,10 @@ def do_cwv_compare(base: str) -> int:
         if not ok:
             findings.append(f'{path}: CLS regression +{delta:.3f} > {limit:.3f}')
 
-        if 'launcher_inp_ms' in c:
+        if 'launcher_inp_ms' not in c:
+            findings.extend(missing_launcher_findings({path: c}, [path]))
+            rows.append((path, 'launcher_inp_ms', '-', 'MISSING', '-', 'MISSING'))
+        else:
             limit = thresholds['launcher_inp_ms']
             ok = c['launcher_inp_ms'] <= limit
             rows.append((path, 'launcher_inp_ms', '-', f"{c['launcher_inp_ms']:.0f}", f"{limit:.0f}", 'OK' if ok else 'REGRESSION'))
@@ -750,6 +765,7 @@ def do_send_message(base: str, text: str, email: str, locale: str, name: str) ->
 def do_overlap(base: str, pages) -> int:
     findings = []
     checked = 0
+    launchers_found = 0
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch()
@@ -770,7 +786,9 @@ def do_overlap(base: str, pages) -> int:
                     checked += 1
                     launcher = page.query_selector(LAUNCHER_SELECTOR)
                     if not launcher:
-                        continue  # nothing to check yet — launcher not deployed
+                        print(f'NOTE {path}: launcher not found on this page')
+                        continue
+                    launchers_found += 1
                     result = page.evaluate(OVERLAP_JS, LAUNCHER_SELECTOR)
                     for item in result:
                         findings.append(f'{path}: launcher overlaps {item}')
@@ -781,10 +799,19 @@ def do_overlap(base: str, pages) -> int:
         print(f'INFRA ERROR: {e}', file=sys.stderr)
         return 2
 
-    print(f'overlap: {checked} pages checked, {len(findings)} findings')
+    print(f'overlap: {checked} pages checked, {launchers_found} with a launcher, {len(findings)} findings')
     for f_ in findings:
         print('FINDING:', f_)
-    return 1 if findings else 0
+    return overlap_exit_code(checked, launchers_found, len(findings))
+
+
+def overlap_exit_code(checked: int, launchers_found: int, finding_count: int) -> int:
+    """WR-07: --overlap is a launch gate, so "no launcher on any page" must fail
+    loudly (3, same as --click) instead of passing vacuously."""
+    if launchers_found == 0:
+        print('FINDING: launcher not found on any checked page — nothing was verified', file=sys.stderr)
+        return 3
+    return 1 if finding_count else 0
 
 
 def main() -> int:

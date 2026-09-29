@@ -57,3 +57,33 @@ describe.skipIf(!HAS_PYTHON)('csp_regression --expect-added (WR-03)', () => {
     expect(r.stdout).toContain('--expect-added')
   })
 })
+
+describe.skipIf(!HAS_PYTHON)('chat_widget_probe launch gates fail loudly (WR-07)', () => {
+  function run(code: string) {
+    const r = py(`import chat_widget_probe as p, json\n${code}`)
+    expect(r.status, r.stderr).toBe(0)
+    return r.stdout
+  }
+
+  it('--overlap exits 3 when no page had a launcher, 1 on overlap findings, 0 when clean', () => {
+    expect(run('print(p.overlap_exit_code(2, 0, 0))')).toBe('3')
+    expect(run('print(p.overlap_exit_code(2, 2, 1))')).toBe('1')
+    expect(run('print(p.overlap_exit_code(2, 1, 0))')).toBe('0')
+  })
+
+  it('--cwv-compare reports every page that produced no launcher_inp_ms', () => {
+    const out = run(
+      `print(json.dumps(p.missing_launcher_findings({'/': {'launcher_inp_ms': 90}, '/book': {'lcp_ms': 1}}, ['/', '/book', '/x'])))`,
+    )
+    const findings = JSON.parse(out) as string[]
+    expect(findings).toHaveLength(2)
+    expect(findings[0]).toContain('/book')
+    expect(findings[1]).toContain('/x')
+  })
+
+  it('--help keeps working', () => {
+    const r = spawnSync('python3', [join(QA_DIR, 'chat_widget_probe.py'), '--help'], { encoding: 'utf8' })
+    expect(r.status).toBe(0)
+    expect(r.stdout).toContain('--overlap')
+  })
+})
