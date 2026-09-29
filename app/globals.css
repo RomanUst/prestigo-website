@@ -727,7 +727,7 @@ input[type='date']::-webkit-date-and-time-value {
 }
 
 /* ── Chat launcher (Phase 77) ───────────────────────── */
-/* Slide-in after load, then a few soft champagne-gold rings. transform/opacity only (no CLS). */
+/* Slide-in after load, then a continuous soft champagne-gold ring (expand, then rest). transform/opacity only (no CLS). */
 @keyframes chatLauncherEnter {
   from { opacity: 0; transform: translateY(16px) scale(0.9); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
@@ -735,6 +735,7 @@ input[type='date']::-webkit-date-and-time-value {
 
 @keyframes chatLauncherPulse {
   0%   { opacity: 0.55; transform: scale(1); }
+  60%  { opacity: 0;    transform: scale(1.7); }
   100% { opacity: 0;    transform: scale(1.7); }
 }
 
@@ -749,7 +750,7 @@ input[type='date']::-webkit-date-and-time-value {
   border: 1px solid var(--copper);
   opacity: 0;
   pointer-events: none;
-  animation: chatLauncherPulse 2.4s ease-out 2.6s 3;
+  animation: chatLauncherPulse 3s ease-out 2.6s infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
