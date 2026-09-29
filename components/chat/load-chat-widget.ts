@@ -203,6 +203,24 @@ function awaitReady(): { promise: Promise<void>; fail: (err: Error) => void } {
 function loadAndRun(config: { baseUrl: string; websiteToken: string }): Promise<void> {
   const { promise, fail } = awaitReady()
 
+  // WR-02: the page CSP allow-lists one fixed widget origin. If the configured
+  // base URL ever differs, the browser blocks the iframe/socket and no ready
+  // event arrives — surface that at once (and in the console) instead of after
+  // the generic 10 s timeout.
+  const onViolation = (event: Event) => {
+    const blocked = (event as SecurityPolicyViolationEvent).blockedURI
+    if (typeof blocked === 'string' && blocked.startsWith(config.baseUrl)) {
+      console.error(
+        `[chat] ${config.baseUrl} was blocked by the page CSP (${(event as SecurityPolicyViolationEvent).effectiveDirective}); the widget base URL and the middleware CSP origin must match.`,
+      )
+      fail(new Error('chat-csp-blocked'))
+    }
+  }
+  document.addEventListener('securitypolicyviolation', onViolation)
+  void promise
+    .catch(() => {})
+    .finally(() => document.removeEventListener('securitypolicyviolation', onViolation))
+
   const run = () => {
     try {
       window.chatwootSDK?.run({ websiteToken: config.websiteToken, baseUrl: config.baseUrl })

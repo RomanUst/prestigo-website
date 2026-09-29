@@ -587,6 +587,42 @@ describe('ChatLauncher — loading and error states (UI-SPEC E3)', () => {
     await waitFor(() => expect(sdk.cw.toggle).toHaveBeenCalledWith('open'))
   })
 
+  it('WR-02: a CSP block of the widget origin fails immediately and loudly, not after the 10 s timeout', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+    wireFetchToIdentityRoute()
+    const sdk = installFakeSdk({ neverReady: true })
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    fireEvent.click(menuItems()[0])
+    await waitFor(() => expect(sdk.scripts).toHaveLength(1))
+    await waitFor(() => expect(window.$chatwoot).toBeDefined())
+
+    // An unrelated violation is ignored.
+    act(() => {
+      document.dispatchEvent(
+        Object.assign(new Event('securitypolicyviolation'), {
+          blockedURI: 'https://example.org/x.js',
+          effectiveDirective: 'script-src',
+        }),
+      )
+    })
+    expect(screen.getByRole('status')).toBeEmptyDOMElement()
+
+    act(() => {
+      document.dispatchEvent(
+        Object.assign(new Event('securitypolicyviolation'), {
+          blockedURI: `${BASE_URL}/widget?website_token=x`,
+          effectiveDirective: 'frame-src',
+        }),
+      )
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveTextContent(enMessages.ChatLauncher.widgetError),
+    )
+    expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('blocked by the page CSP'))
+    expect(sdk.cw.toggle).not.toHaveBeenCalled()
+  })
+
   it('shows the error when chatwoot:ready does not arrive within 10 s', async () => {
     vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] })
     wireFetchToIdentityRoute()

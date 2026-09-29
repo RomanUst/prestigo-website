@@ -14,6 +14,8 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { NextRequest, NextResponse } from 'next/server'
 import { routing, rtlLocales, type AppLocale } from '@/i18n/routing'
 
@@ -379,6 +381,21 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
           'report-uri /api/csp-report',
         ].join('; ')
       )
+    })
+
+    it('WR-02: every chat origin in the static CSP is one and the same host, matching the instance host the infra scripts target', async () => {
+      const response = await middleware(makeRequest('/'))
+      const csp = response.headers.get('Content-Security-Policy')!
+      const hosts = new Set(
+        [...csp.matchAll(/(?:https|wss):\/\/(chat\.[a-z0-9.-]+)/gi)].map((m) => m[1].toLowerCase()),
+      )
+      expect([...hosts]).toHaveLength(1)
+      const profileSrc = readFileSync(
+        join(process.cwd(), 'infra/chatwoot/telegram/set-bot-profile.mjs'),
+        'utf8',
+      )
+      const instanceHost = /const CHATWOOT_HOST = '([^']+)'/.exec(profileSrc)?.[1]
+      expect(instanceHost).toBe([...hosts][0])
     })
 
     it('/admin nonce CSP carries no chat origin (D-03: launcher never mounts there)', async () => {

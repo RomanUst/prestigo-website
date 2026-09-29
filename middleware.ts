@@ -83,6 +83,15 @@ function buildCsp(nonce: string): string {
  * exact origin (the widget's VPS subdomain, below) is added here only —
  * never a wildcard subdomain, never to buildCsp() (the nonce CSP for /admin
  * and /driver, which never mount the launcher).
+ *
+ * WR-02: this host must equal the origin of the widget base URL that the
+ * identity route serves from the Vercel env (the client builds sdk.js, the
+ * iframe and the websocket from it). The Phase 76 isolation guard forbids the
+ * host literal anywhere but these directive lines, so it cannot live in a
+ * shared constant: tests/middleware-i18n.test.ts pins every occurrence here
+ * to one host, and the client loader reports a CSP block of the widget origin
+ * immediately (console + error state) instead of waiting out the 10 s timeout.
+ * On a host change update every line below together with the env value.
  */
 function buildCspStatic(): string {
   return [
