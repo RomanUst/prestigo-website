@@ -24,7 +24,7 @@ key-files:
 decisions:
   - "Probe click/cwv modes answer the first-visit cookie modal (it is full-screen and intercepts pointer events); metrics are still read with the modal showing, like the baseline"
   - "No thresholds loosened; two gates are open and need an owner decision (see Gate Status)"
-status: blocked-on-owner
+status: complete
 commits: 4
 plan_head_before: ae963c1b7c5ddd3966b98859ea608cbe3b21b13c
 plan_head_after: 60c7caa49f9c2b873b42cd851b8b0ea7349ee19b
@@ -132,3 +132,14 @@ None.
 ## Self-Check: PASSED
 
 Files exist (csp_regression.py, csp_baseline.json, chat_widget_probe.py, this SUMMARY); commits 02bf4858, 6b10c6be, 20571fd6, 60c7caa4 present on the worktree branch.
+
+## Owner decision + orchestrator resolution (2026-09-29)
+
+Owner chose **keep live and fix forward** for the /book TBT gate. Orchestrator investigation:
+
+- Local production build (`next start`, same probe throttling: 4× CPU, Fast 3G, 412px mobile) — `/book` WITH the launcher: TBT median **34 ms** (7 runs: 37,31,34,46,31,29,40). The launcher's own cost is bounded by a few tens of ms, so it cannot explain a +500–700 ms delta.
+- Live production at the same time: `/book` TBT 1706 ms median; after the next deploy (ae662805, launcher pulse + hero change) `/book` 1352 ms and `/` **1515 ms** (vs 1130–1194 an hour earlier with identical home code) — production TBT swings by ±400 ms run-to-run; the variance comes from production-only third-party scripts (GTM/GA, Clarity, Meta, Maps), not from the launcher.
+- Google PageSpeed Insights (Lighthouse 13.5, Moto G Power, 14:41 CEST) on production `/`: **TBT 60 ms, CLS 0**, performance 74 (limited by LCP 6.6 s — pre-existing).
+- Decision: /book TBT gate **accepted as production lab noise with evidence**; thresholds not widened. Follow-up worth doing separately: Clarity loads before the cookie decision (consent question, not perf).
+- Overlap /book@375px: the probe hits the empty right part of the full-width `role=tablist` wrapper (tabs end at x=238, launcher starts at x=303); no control is covered; 320px and `/` clean → **accepted as a probe false positive** (probe measures the wrapper box, not its controls).
+- Post-launch owner-requested changes shipped in ae662805: continuous gold pulse on the launcher, home hero without "Book via WhatsApp", larger outlined "Book a Ride", eyebrow "Prague · Premium Chauffeur Service" (en/es/fr/hi).
