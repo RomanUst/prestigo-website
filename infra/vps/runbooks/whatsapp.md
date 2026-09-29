@@ -249,3 +249,298 @@ WhatsApp number. The site publishes the number for calls.
   number switch.
 - If the SIM is stored in a spare phone, that phone must not have WhatsApp
   installed with this number.
+
+## Owner onboarding checklist
+
+The owner performs these Meta and Chatwoot steps once, in this order, from an
+exact checklist. Order matters: registering the number with the owner's own PIN
+must happen before Chatwoot is connected. Nothing secret is pasted into chat or
+git; tokens go straight into the Chatwoot form and the password manager. The
+owner facts (display-name status, probe results, messaging tier) are appended to
+this section by plans 78-11 and 78-12 when the steps are done.
+
+Before starting:
+
+- The new Czech SIM or eSIM (+420, O2, T-Mobile or Vodafone) is active in a
+  device that receives SMS and voice calls. A data-only tourist eSIM does not
+  work: Meta cannot verify it.
+- The number is not active on any WhatsApp app. A recycled number can still carry
+  an old WhatsApp account; open the number's `wa.me` address once and check that
+  WhatsApp reports it as not on WhatsApp. If it is on WhatsApp, install WhatsApp
+  on a spare phone with that SIM, then delete the account from Settings,
+  Account, wait, and retry. Never install WhatsApp on the SIM again once it is on
+  the API.
+- Prepare a password-manager entry for the PIN and one for the token.
+
+Steps:
+
+1. Create the Meta app "Prestigo Messaging" inside the existing Prestigo Business
+   portfolio (D-01). Do not add WhatsApp to the Marketing-API app "Prestigo v2".
+   Choose the WhatsApp use case. Make sure a real WhatsApp Business Account
+   belongs to the portfolio; the auto-created test account and test number are
+   ignored.
+2. Switch the app to Live mode with the privacy policy address
+   `https://rideprestigo.com/privacy` (D-02). Real-message webhooks are delivered
+   only to Live apps.
+3. API Setup, "From", Add phone number: enter the business number, the business
+   profile, and the display name exactly
+   "Prestigo - Premium Chauffeur Service Prague" (D-05). Verify with the one-time code by SMS, or by voice if SMS does
+   not arrive. Record `name_status` (`inspect --whatsapp` or the Meta page).
+   If Meta rejects the name, stop and ask the owner: there is no automatic
+   fallback and Claude never picks a name. Candidates to offer the owner:
+   "PRESTIGO" (matches the site casing), "Prestigo Prague", "Prestigo Chauffeur
+   Service". Until a name is approved, customers see the number, not the name;
+   that is not a launch blocker.
+4. Read the state first: `node infra/chatwoot/whatsapp-channel.mjs --number`
+   (status, code verification, platform type). If the number is not yet
+   connected, register it with the owner's own 6-digit PIN:
+   `node infra/chatwoot/whatsapp-channel.mjs --register`. The PIN is typed when
+   asked and saved only in the password manager. Registration is limited to 10
+   calls per number per 72 hours, so do it once.
+5. Business Settings, Users, System users: create an admin system user, assign it
+   the app and the WhatsApp account with full control, and generate a token with
+   expiration "Never" and the two permissions `whatsapp_business_management` and
+   `whatsapp_business_messaging`. Save it in `~/.config/prestigo/meta-whatsapp.env`
+   (mode 600) and the password manager. Also save the app secret (App settings,
+   Basic), the WhatsApp Business Account ID and the Phone Number ID there under
+   the names listed in "Channel facts".
+6. Chatwoot, Settings, Inboxes, Add Inbox, WhatsApp, WhatsApp Cloud, manual
+   setup: type the account ID, the Phone Number ID and the token. Name the inbox
+   `WhatsApp` if the form allows; otherwise `sync.mjs` finds it by channel type.
+   Add yourself as an inbox agent if `sync.mjs` did not.
+7. Run `node infra/chatwoot/whatsapp-channel.mjs --harden` and then `--probe`
+   (see "Signature enforcement"). Both must pass before any real message.
+8. Check `inspect --whatsapp --expect-connected`: status connected,
+   `signature_secret_configured` true, `verification_pin_stored` false, and
+   record the messaging tier (expect the 250 tier). If inbound never arrives,
+   set the same callback address and verify token at app level in the Meta
+   WhatsApp configuration and subscribe to `messages`.
+
+In parallel, not blocking launch (D-04): start Meta business verification with
+the legal entity name chelautotrans s.r.o. and the IČO exactly as they appear on
+the site's legal pages. Unverified limits are about 250 business-initiated
+unique users per 24 hours and at most 2 numbers, which is far above Prestigo's
+volume; user-initiated conversations are not limited. Verification lifts those
+limits and is probably needed for Phase 79.
+
+Billing (D-18, one-way): the owner adds the payment card in WhatsApp Manager,
+in EUR, before the first template send. The billing currency cannot be changed
+later, so the owner confirms EUR before the card is saved. Claude never enters
+card data.
+
+Embedded Signup inside Chatwoot is only a documented fallback if the manual
+route ever fails; it needs extra Meta login configuration and its Tech Provider
+requirements are not confirmed.
+
+Also test, before the site switch: a Chatwoot mobile-app push reaches the owner's
+phone, and Chatwoot email notifications for new WhatsApp conversations go to the
+owner's personal address (never info@ or bookings@, see `chatwoot-channels.md`).
+With no phone-app fallback, a missed notification is a lost lead.
+
+## Pricing and the monthly check
+
+Meta charges per delivered template message. The rate depends on the template
+category and on the calling code of the recipient. Non-template replies inside
+an open 24-hour customer service window were free until the change below.
+Messages inside a 72-hour free entry point window (a customer who starts from an
+ad or page button) stay free.
+
+Rates as of 2026-09-29, EUR per message, applying from 2026-10-01:
+
+| Recipient market | Marketing (EUR) | Utility (EUR) | Authentication (EUR) | Service (EUR) |
+|------------------|-----------------|---------------|----------------------|---------------|
+| Czech Republic (priced as Rest of Central and Eastern Europe) | 0.11 | 0.03 | 0.03 | 0.03 |
+| Germany | 0.17 | 0.07 | 0.07 | 0.07 |
+| United Kingdom | 0.09 | 0.03 | 0.03 | 0.03 |
+| France | 0.11 | 0.04 | 0.04 | 0.04 |
+| Spain | 0.10 | 0.03 | 0.03 | 0.03 |
+| Italy | 0.11 | 0.04 | 0.04 | 0.04 |
+| Russia | 0.11 | 0.05 | 0.05 | 0.05 |
+| India | 0.03 | 0.01 | 0.01 | 0.01 |
+| United Arab Emirates | 0.08 | 0.02 | 0.02 | 0.02 |
+| Saudi Arabia | 0.08 | 0.02 | 0.02 | 0.02 |
+| United States (North America) | 0.04 | 0.01 | 0.01 | 0.01 |
+| China (Rest of Asia Pacific) | 0.11 | 0.02 | 0.02 | 0.02 |
+
+Sources and caveats for the table above:
+
+- Meta's pricing page states the model and the current rate cards; it links
+  the EUR rate card as a download, which the tools used here cannot open. The
+  figures in the table come from a business-messaging provider's republication of
+  Meta's EUR card, whose "after 2026-10-01" table matches the figures checked in
+  the phase research on the same day. Treat them as MEDIUM confidence and confirm
+  in WhatsApp Manager, Pricing.
+- Service messages: from 2026-10-01 Meta charges per message for non-template
+  replies inside the 24-hour window (service messages) and for utility templates
+  sent inside an open window. By market the service rate equals the utility rate.
+  There are no volume tiers for service messages. Replies typed by the operator
+  in Chatwoot are API-sent, so they count as service messages.
+- The provider's page also says the first 1,000 service messages per month are
+  free. That is unconfirmed on Meta's own page. Do not rely on it; check
+  WhatsApp Manager, Billing, after the first full month.
+- Meta may update rates up to quarterly and publishes changes ahead of time
+  (the October 2026 update was due by 2026-09-01). The provider's card may lag.
+- Meta can re-categorize a template, and the price follows the category Meta
+  assigns, not the one we declared.
+- The rows are the countries suggested by the phase research (the site's
+  locales and main traveller markets). The booking data could not be queried when
+  this was written, so the top calling codes of real bookings have not been
+  substituted; replace or add rows when they are known.
+
+The table is re-verified and re-dated at launch, right after the public number
+switch, by plan 78-16 (plan 78-17 is the backstop), so the date above always
+says when the numbers were last checked.
+
+Estimated monthly spend (assumed volumes, not measured): 150 utility templates a
+month to Czech numbers is about 4.50 EUR; 300 utility templates to German
+numbers is about 21 EUR; 100 review requests that Meta bills as marketing at the
+Czech rate is about 11 EUR. Prestigo's realistic spend is single-digit to low
+double-digit EUR a month, and a very busy month stays under about 40 EUR.
+Service replies are the wild card from 2026-10-01: at the Czech rate, 1,000
+service messages would cost about 30 EUR if none of them were free.
+
+Monthly owner check (D-19): once a month the owner opens WhatsApp Manager,
+Billing, and looks at the month's charges by category and country. If the total
+is well above the estimate, look for review requests billed as marketing or for
+templates sent to many recipients by mistake. There is no spend alerting.
+
+## Templates, quality rating and messaging limits
+
+There are 8 templates in 7 languages (56 submissions), kept as code under
+`infra/chatwoot/whatsapp-templates/` and price-free by design. Meta language
+codes: `ar`, `zh_CN` (the site's `zh`), `en`, `fr`, `hi`, `ru`, `es`. The
+Meta name is the same for all seven languages of a template.
+
+Workflow, run from the owner's Mac:
+
+1. `node infra/chatwoot/whatsapp-templates.mjs --validate` (local rules: name,
+   lengths, variables, examples, buttons; no network).
+2. `node infra/chatwoot/whatsapp-templates.mjs --dry-run` (reads Meta, prints the
+   plan, changes nothing).
+3. The real run (no flag). A second run right after must report nothing to create.
+4. `node infra/chatwoot/whatsapp-templates.mjs --status` for approval states, and
+   `--only <key>` to work on one template.
+5. `node infra/chatwoot/whatsapp-channel.mjs --sync-templates` so Chatwoot
+   picks up the approved ones.
+
+Rules:
+
+- Never delete a template. Deleting blocks that name for 30 days.
+- An approved template is never edited by default. An edit needs
+  `--allow-edit`; Meta allows 1 edit per 24 hours and 10 per 30 days, and each
+  edit sends it back to review. The category cannot be edited.
+- Rejected: read `rejected_reason` in `--status`, fix the copy (or drop a button
+  type Meta does not accept, D-11) and run again.
+- Paused or disabled: Meta paused it for quality. Check recent customer feedback
+  and the quality rating below before resuming.
+- Meta may re-categorize a utility template as marketing; the price follows.
+  Record the category Meta assigns and write requests such as review asks as
+  "about your trip" so they read as utility.
+- The invoice template has no PDF header: an invoice PDF is a private file and a
+  header needs a public link. Send the text template, then attach the PDF as a
+  normal attachment once the customer replies and the window is open.
+- Templates can only be chosen by the operator in the Chatwoot composer (D-12);
+  nothing sends them automatically.
+- Variables must be short and single-line. Chatwoot strips angle brackets and
+  quotes from variable values.
+
+Quality rating and messaging limits: `node infra/chatwoot/inspect.mjs
+--whatsapp` shows the quality rating and the messaging tier. Look at it weekly.
+A falling rating (customers blocking or reporting) can pause templates and lower
+the limit. The unverified tier is about 250 business-initiated unique users per
+24 hours, far above Prestigo's needs.
+
+## Window-closing label
+
+WhatsApp only lets the operator send a free-form reply within 24 hours of the
+customer's last message (D-16). Chatwoot shows the window indicator itself and
+insists on a template after it closes. On top of that, a delayed automation
+adds the label `wa-window-closing` to a WhatsApp conversation 20 hours (1,200
+minutes) after an incoming message if no operator has replied; any operator
+reply clears it. That leaves about 4 hours to answer.
+
+- The rules and the label live in `infra/chatwoot/` and are applied by
+  `node infra/chatwoot/sync.mjs`.
+- Chatwoot needs the account feature flag `delayed_automations` switched on
+  (it is off by default). Until it is on, `sync.mjs` skips the delayed rule
+  instead of failing; the window indicator alone still works.
+- 10-minute live test: run `node infra/chatwoot/sync.mjs --window-delay-override
+  10`, send a message from a second phone, do not reply, and confirm the label
+  appears after about 10 minutes; then reply and confirm it disappears.
+- Restore the normal delay: run `node infra/chatwoot/sync.mjs` without the
+  override, then run it once more and expect `create=0 update=0`. Never leave the
+  10-minute override in place: it would label every conversation.
+
+## Personal number transition
+
+The owner's former number is being retired from every public surface (D-21).
+For 1 to 3 months it stays reachable and points people to the business number
+(D-23). This is owner-performed on the owner's phone, not repo work.
+
+1. On the former number, in the WhatsApp Business app, set an Away message with
+   schedule "Always send" and recipients "Everyone". A greeting message alone is
+   limited (about 140 characters, sent once per 14 days per person), so use the
+   away message and keep the text short anyway.
+2. Text: Claude drafts one short message in the main customer languages (English
+   first, then Russian and the other site languages that fit the counter), with
+   no prices and no marketing, in the form "Prestigo has a new WhatsApp number:
+   the business number. Please write there." The number becomes tappable in the
+   chat. The final text, the end date and the business-line arrangement are
+   recorded here by plan 78-16, where the owner also confirms the away message is
+   live; plan 78-17 records the live date and the checklist status.
+3. Test from a second phone: send a message to the former number and confirm the
+   away message arrives and how quickly. Whether it still fires when the phone is
+   offline is unverified.
+4. Put the end date in a calendar reminder.
+5. Return to plain WhatsApp after the period: first take a full chat backup, then
+   install and verify plain WhatsApp on the same number with the same Google Drive
+   or iCloud account and restore. Business-only data (business profile, catalog,
+   labels, automated messages) does not carry over, and the auto-reply ends at that
+   moment. The owner may instead keep the Business app for good if they never want
+   to lose the auto-reply.
+6. People who still hold the old number (saved contacts, old emails and invoices,
+   partner hotels, listings) keep writing to it for months, which is why the
+   off-site checklist below exists.
+
+| Fact | Value | Recorded by |
+|------|-------|-------------|
+| Away message text (final) | pending | plan 78-16 |
+| Transition end date | pending | plan 78-16 |
+| Away message confirmed live on | pending | plan 78-16 / 78-17 |
+
+## Off-site listings checklist
+
+The repo cannot change these; the owner does (D-24). Until they show the
+business number, keep the transition away message in place. Tick each when done
+and date it.
+
+- Google Business Profile: phone number and the WhatsApp/chat button.
+- Directories and review sites (travel, chauffeur and airport-transfer
+  listings, map apps): every listing that shows a phone number.
+- Every place that lists the number for partners: send the new number to the
+  partner hotels and other partners, and have the old one removed from their
+  materials and booking sheets.
+- Printed material: the business cards, flyers and any QR codes that point to
+  `wa.me` with the former number. Reprint before the stock runs out.
+- All email signatures, on every mailbox and mail client, and any signature in
+  Chatwoot canned responses typed by hand (the ones kept in the repo are
+  number-free).
+- Invoice scripts in the owner's ops folder (`generate_invoice_*.py`) and their
+  templates.
+- The root-level owner scripts `send-*.mjs` in the repo folder (for example the
+  time-change, vehicle-change and payment-help email senders). They are
+  untracked owner tools and still contain the owner's former number.
+- Telegram bot profile: the bot's name and description come from
+  `infra/chatwoot/telegram/set-bot-profile.mjs`, which reads the site's WhatsApp
+  link. Re-run it after the public switch ships so the bot shows the new number.
+- Facebook Page and Instagram profile: the contact buttons, the WhatsApp button
+  and the "Contact info" fields.
+- Stripe: the business support phone and the receipt and invoice branding.
+- The WhatsApp Business profile on the former number (the away message covers
+  it, but the profile text may show the old number too).
+- Search engines cache structured data and FAQ text for weeks. After the deploy,
+  confirm `/llms.txt` and one route page show the new number, and request a
+  re-crawl with the IndexNow script.
+- Text typed into third-party tools that git does not hold: Supabase content
+  rows and Chatwoot texts typed in the UI (greetings, widget copy). Search them
+  once for the former number when the switch is done and update any hit.

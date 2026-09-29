@@ -29,8 +29,16 @@ const TASK1_HEADINGS = [
   '## SIM custody and the business line',
 ]
 
-// Task 2 only appends to this list.
-const REQUIRED_HEADINGS = [...TASK1_HEADINGS]
+const TASK2_HEADINGS = [
+  '## Owner onboarding checklist',
+  '## Pricing and the monthly check',
+  '## Templates, quality rating and messaging limits',
+  '## Window-closing label',
+  '## Personal number transition',
+  '## Off-site listings checklist',
+]
+
+const REQUIRED_HEADINGS = [...TASK1_HEADINGS, ...TASK2_HEADINGS]
 
 const runbookExists = fs.existsSync(RUNBOOK)
 const text = runbookExists ? fs.readFileSync(RUNBOOK, 'utf8') : ''
@@ -126,6 +134,77 @@ describe('WhatsApp runbook: structure', () => {
       'BUSINESS_PHONE_E164',
     ]) {
       expect(text, `runbook must mention ${needle}`).toContain(needle)
+    }
+  })
+})
+
+function sectionBody(heading: string): string[] {
+  return parsed.all.find((s) => s.heading === heading)?.body ?? []
+}
+
+describe('WhatsApp runbook: pricing (D-19)', () => {
+  const body = sectionBody('## Pricing and the monthly check')
+  const tableLines = body.filter((l) => l.trim().startsWith('|'))
+  const isSeparator = (l: string) => /^\s*\|[\s:|-]+\|\s*$/.test(l)
+
+  it('has a markdown table whose header names EUR', () => {
+    expect(tableLines.length).toBeGreaterThan(2)
+    expect(tableLines[0]).toMatch(/EUR/)
+    expect(isSeparator(tableLines[1])).toBe(true)
+  })
+
+  it('has at least 8 data rows', () => {
+    const dataRows = tableLines.slice(2).filter((l) => !isSeparator(l))
+    expect(dataRows.length).toBeGreaterThanOrEqual(8)
+  })
+
+  it('covers Czechia', () => {
+    expect(tableLines.join('\n')).toMatch(/Czech/)
+  })
+
+  it('has exactly one "Rates as of YYYY-MM-DD" line', () => {
+    const hits = lines.filter((l) => /Rates as of \d{4}-\d{2}-\d{2}/.test(l))
+    expect(hits).toHaveLength(1)
+  })
+
+  it('states the 2026-10-01 service-message billing and the monthly owner check', () => {
+    const joined = body.join('\n')
+    expect(joined).toContain('2026-10-01')
+    expect(joined).toMatch(/WhatsApp Manager/)
+    expect(joined).toMatch(/monthly/i)
+  })
+})
+
+describe('WhatsApp runbook: onboarding, transition and listings', () => {
+  it('holds the exact D-05 display name and the stop-and-ask rule', () => {
+    const body = sectionBody('## Owner onboarding checklist').join('\n')
+    expect(body).toContain('Prestigo - Premium Chauffeur Service Prague')
+    expect(body).toMatch(/stop and ask/i)
+  })
+
+  it('transition section covers Always send, the return path and the end date', () => {
+    const body = sectionBody('## Personal number transition').join('\n')
+    expect(body).toContain('Always send')
+    expect(body).toMatch(/backup/i)
+    expect(body).toMatch(/restore/i)
+    expect(body).toMatch(/end date/i)
+  })
+
+  it('off-site checklist names every required surface', () => {
+    const body = sectionBody('## Off-site listings checklist').join('\n')
+    for (const needle of [
+      'Google Business Profile',
+      'partner hotels',
+      'business cards',
+      'email signatures',
+      'generate_invoice',
+      'send-*.mjs',
+      'Telegram',
+      'Facebook',
+      'Instagram',
+      'Stripe',
+    ]) {
+      expect(body, `off-site checklist must name ${needle}`).toContain(needle)
     }
   })
 })
