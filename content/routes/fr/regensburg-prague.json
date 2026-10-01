@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Ratisbonne → Prague",
+    "headlineLine1": "De Ratisbonne à Prague,",
+    "headlineItalic": "du Danube à la Vltava.",
+    "intro": "De Ratisbonne à Prague avec chauffeur privé, c'est un transfert de porte à porte de 285 km par l'A93, l'A6 et la D5, soit environ 3 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quelle adresse de Ratisbonne ou à la Regensburg Hauptbahnhof, dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Ratisbonne à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Ratisbonne à Prague couvre 285 km — vers le nord par l'A93 à travers le Haut-Palatinat, vers l'est par l'A6 jusqu'à la frontière tchèque de Waidhaus–Rozvadov, puis l'autoroute D5 par Pilsen et Beroun jusqu'à Prague — et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Ratisbonne, à un bureau ou à la Regensburg Hauptbahnhof, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Le tarif est convenu à l'avance et ne change pas : carburant, vignette autoroutière tchèque, chaque péage, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Pas de correspondance à attraper, pas de valises à hisser dans un porte-bagages, pas de file d'attente pour un taxi en arrivant à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Ratisbonne à Prague",
+    "headingItalic": "en trois heures environ.",
+    "paragraphs": [
+      "Après une prise en charge dans l'Altstadt, près du Pont de pierre ou à un hôtel au bord du Danube, votre chauffeur quitte Ratisbonne par l'A93 en direction du nord. L'autoroute suit la vallée de la Naab à travers le Haut-Palatinat, passe Schwandorf et rejoint l'A6, où l'itinéraire bifurque vers l'est en direction de la frontière tchèque.",
+      "Le passage de Waidhaus–Rozvadov se trouve dans l'espace Schengen : aucun arrêt, aucune file d'attente ni contrôle de documents en temps normal. De là, la D5 traverse tout droit la Bohême de l'Ouest : elle passe Pilsen et les cheminées de ses brasseries, Rokycany et Beroun, puis entre dans le sud-ouest de Prague. La distance totale est d'environ 285 kilomètres ; le temps de conduite est de trois heures en circulation normale, plus 15 à 20 minutes le vendredi après-midi, lorsque la D5 se charge à l'entrée de la ville.",
+      "Votre chauffeur vérifie l'A93 et la D5 avant le départ. Le trafic des vacances d'été et les travaux vont et viennent sur ces deux axes ; en cas de ralentissement, il adapte l'itinéraire sans avoir à demander. Vous arrivez à Prague à temps pour un déjeuner tardif à Malá Strana ou un rendez-vous l'après-midi dans la Nouvelle Ville."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Ratisbonne à la dépose à Prague : la voiture, le chauffeur, le carburant, la vignette tchèque et chaque péage en route. Voyage d'affaires, vacances en famille ou étape suivante d'un circuit en Europe centrale — vous arrivez devant la porte sans rien d'autre à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière tchèque. Les autoroutes allemandes sont sans péage pour les voitures. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse de Ratisbonne ou à la Regensburg Hauptbahnhof, à l'heure exacte que vous choisissez.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en route — le Walhalla, Pilsen ou le château de Karlštejn — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Ratisbonne à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Ratisbonne", "note": "Prise en charge à votre hôtel, à votre bureau ou à la Regensburg Hauptbahnhof. Votre chauffeur est devant la porte à l'heure convenue et charge les bagages.", "anchor": true, "custom": false },
+    { "city": "Pilsen (en option)", "note": "La capitale de la Bohême de l'Ouest se trouve sur la D5 — la brasserie Pilsner Urquell, la cathédrale Saint-Barthélemy et une vaste place ancienne.", "anchor": false, "custom": false },
+    { "city": "Karlštejn (en option)", "note": "Le château gothique de Charles IV domine une vallée boisée, à un court détour de la D5 près de Beroun, à une demi-heure de Prague.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Une pause déjeuner, un point de vue, une dégustation dans une brasserie ? Dites-le-nous à la réservation et nous l'intégrons à la journée.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Frontière Schengen germano-tchèque à Waidhaus–Rozvadov. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
+    { "label": "Péages", "value": "La vignette autoroutière tchèque et tous les péages sont inclus. Les autoroutes allemandes sont gratuites pour les voitures." },
+    { "label": "Aéroports les plus proches", "value": "Ratisbonne n'a pas d'aéroport. Si vous arrivez par avion à Munich ou à Nuremberg, nous pouvons venir vous y chercher et vous conduire directement à Prague." },
+    { "label": "Transfert retour", "value": "Vous rentrez à Ratisbonne plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Faites du trajet",
+    "headingItalic": "une partie du voyage.",
+    "intro": "Trois heures de route laissent le temps d'une vraie étape. Voici les trois que les clients demandent le plus entre Ratisbonne et Prague.",
+    "configurations": [
+      { "title": "Le Walhalla au-dessus du Danube", "body": "Commencez par un court détour à l'est de Ratisbonne jusqu'au Walhalla de Donaustauf, le temple de marbre dédié aux grandes figures allemandes, perché au-dessus du fleuve. Quarante-cinq minutes pour le monument et la vue, puis l'A93 vers le nord et arrivée à Prague en milieu d'après-midi.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Pilsner Urquell à Pilsen", "body": "Pilsen se trouve à environ une heure de Prague. Visitez la brasserie et ses caves historiques, ou déjeunez près de la grand-place, puis parcourez le dernier tronçon de la D5 en fin d'après-midi.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Le château de Karlštejn", "body": "Quittez la D5 près de Beroun et montez à Karlštejn, le château que Charles IV fit bâtir pour abriter les joyaux de la couronne. Une heure et demie avec la visite guidée, et Prague n'est plus qu'à trente minutes.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous attend devant votre hôtel de Ratisbonne avant l'heure convenue, sans tourner dans la vieille ville à sa recherche. L'Altstadt compte des ruelles étroites et des accès réglementés : il convient avec vous du point de prise en charge à l'avance, pour que vous n'ayez qu'à sortir vers une portière ouverte.",
+    "Trois heures, c'est du temps utile. Travaillez, reposez-vous ou posez vos questions sur Prague — votre chauffeur y vit et peut vous dire combien de temps il faut pour aller à pied de votre hôtel au Château, où les Pragois mangent à Vinohrady ou à quel moment le pont Charles est calme.",
+    "Eau, chargeur et Wi-Fi sont prêts dans l'habitacle. Si vous voulez un café à la frontière ou un arrêt à Pilsen, dites-le en route. À Prague, les bagages entrent avec vous dans le hall de l'hôtel, ils ne restent pas sur le trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Ratisbonne à Prague.",
+    "items": [
+      { "title": "Un devis, un paiement", "body": "Carburant, vignette tchèque, péages et temps du chauffeur sont compris dans le tarif. Le montant réservé à Ratisbonne est celui que vous payez à Prague." },
+      { "title": "Directement à destination", "body": "La voiture emprunte la route la plus courte, l'A93, l'A6 et la D5, sans gare ni changement. Vos bagages sont chargés une seule fois à Ratisbonne et déchargés devant votre porte à Prague." },
+      { "title": "Organisé depuis Prague", "body": "Prestigo est une société pragoise qui exploite sa propre flotte Mercedes. Votre chauffeur connaît parfaitement la destination : entrées des hôtels, rues à sens unique et chemin le plus rapide à travers le centre à toute heure." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé de Ratisbonne à Prague ?", "a": "Environ 3 heures de porte à porte : l'A93 vers le nord, l'A6 vers l'est jusqu'à la frontière de Waidhaus–Rozvadov, puis la D5 par Pilsen jusqu'à Prague. La circulation du vendredi après-midi à l'entrée de Prague ou les travaux d'été peuvent ajouter 15 à 20 minutes." },
+    { "q": "Combien coûte un taxi ou un chauffeur de Ratisbonne à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, la vignette tchèque, tous les péages et le temps du chauffeur — il s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à la Regensburg Hauptbahnhof ou à mon hôtel ?", "a": "Oui. Nous assurons la prise en charge à n'importe quelle adresse de Ratisbonne, y compris les hôtels de l'Altstadt, ainsi qu'à la Regensburg Hauptbahnhof. Ratisbonne n'a pas d'aéroport : si vous arrivez par avion à Munich ou à Nuremberg, nous pouvons venir vous y chercher et vous conduire directement à Prague." },
+    { "q": "Un transfert privé est-il préférable au train de Ratisbonne à Prague ?", "a": "Les trains directs passent par Furth im Wald et Pilsen et mettent nettement plus de temps que la route, de gare à gare. Un transfert privé vous conduit de porte à porte, part quand vous le souhaitez et coûte le même prix pour un passager ou pour trois. Pour un voyageur seul avec peu de bagages, le train reste l'option la moins chère." },
+    { "q": "Peut-on s'arrêter en route entre Ratisbonne et Prague ?", "a": "Oui. Le Walhalla, Pilsen et le château de Karlštejn sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Ai-je besoin de mon passeport entre l'Allemagne et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Waidhaus–Rozvadov. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux." }
+  ],
+  "relatedRoutesIntro": "Le trajet de Ratisbonne à Prague s'inscrit souvent dans un voyage plus long à travers la Bavière et la Bohême. Les clients qui partent de Nuremberg, de Munich ou de Passau, ou qui font étape à Pilsen, réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "360 km", "duration": "3 h 30" },
+    { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4 h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2 h 30" },
+    { "slug": "plzen-prague", "city": "Pilsen", "label": "Pilsen → Prague", "distance": "90 km", "duration": "1 h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "285 km" },
+    { "label": "Durée", "value": "~3 heures" },
+    { "label": "Véhicules", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Ratisbonne à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Ratisbonne – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Ratisbonne à Prague — 285 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à toute adresse ou à la gare. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Ratisbonne à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Ratisbonne à Prague — 285 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à toute adresse ou à la gare. Prix fixe dès {ePrice} €."
+  }
+}

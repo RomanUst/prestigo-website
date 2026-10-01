@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Graz → Prague",
+    "headlineLine1": "De Graz à Prague,",
+    "headlineItalic": "sans correspondance.",
+    "intro": "De Graz à Prague avec chauffeur privé, c'est un transfert de porte à porte de 450 km vers le nord à travers la Styrie, en passant par Vienne puis la Moravie, soit environ 4 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages et vignettes autrichienne et tchèque inclus. Prise en charge à n'importe quelle adresse de Graz ou à l'aéroport de Graz (GRZ), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Graz à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Graz à Prague couvre 450 km — vers le nord par l'A2 Südautobahn en direction de Vienne, l'A5 jusqu'à la frontière tchèque de Drasenhofen–Mikulov, puis la D52 jusqu'à Brno et l'autoroute D1 jusqu'à Prague — et demande environ 4 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de la Vieille Ville, à un bureau, à Graz Hauptbahnhof ou à l'aéroport de Graz, et vous dépose devant la porte de votre adresse à Prague.",
+    "Le tarif est fixé à la réservation et n'en bouge plus : carburant, péages, vignettes autrichienne et tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Pas de changement de train à Vienne, pas de valises à porter d'un quai à l'autre, pas de taxi à chercher à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Graz à Prague",
+    "headingItalic": "en quatre heures et demie.",
+    "paragraphs": [
+      "Après une prise en charge au pied du Schlossberg, dans le quartier universitaire ou à l'aéroport de Graz au sud de la ville, votre chauffeur emprunte l'A2 Südautobahn vers le nord-est à travers les collines de Styrie orientale, puis franchit le Wechsel pour entrer en Basse-Autriche. L'autoroute passe Wiener Neustadt et contourne Vienne par le sud avant que l'itinéraire ne remonte vers le nord par l'A5, à travers les vignobles du Weinviertel.",
+      "La frontière austro-tchèque de Drasenhofen–Mikulov est un passage Schengen — aucun arrêt, aucun contrôle de documents en temps normal. Depuis Mikulov, la D52 traverse la Moravie du Sud jusqu'à Brno, puis la D1 vous emmène sur les 205 derniers kilomètres à travers les Hautes-Terres de Bohême-Moravie jusqu'à Prague. La distance totale est d'environ 450 kilomètres.",
+      "Votre chauffeur vérifie le trafic autour de Vienne et sur la D1 avant le départ. Si les rocades viennoises sont saturées, il existe une alternative par l'ouest : l'autoroute A9 Pyhrn vers le nord jusqu'à Linz, puis la frontière à Wullowitz et la D3 par České Budějovice. Dans les deux cas, vous arrivez à Prague avec toute la soirée devant vous."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Graz à la dépose à Prague : la voiture, le chauffeur, le carburant, les vignettes autrichienne et tchèque et chaque péage. Voyage d'affaires, séjour en ville ou prochaine étape d'un circuit plus long — vous descendez à Prague sans rien d'autre à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, pratique pour la prise en charge à votre hôtel de Graz.",
+    "Carburant, tous les péages, la vignette autoroutière autrichienne et la vignette autoroutière tchèque. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse de Graz, à Graz Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Graz (GRZ), avec suivi du vol.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Arrêts en route — Vienne, Mikulov ou Brno — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Classe Affaires", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Classe Direction", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Van Affaires", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Graz à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Graz", "note": "Prise en charge à votre hôtel, à votre bureau, à Graz Hauptbahnhof ou à l'aéroport de Graz (GRZ). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.", "anchor": true, "custom": false },
+    { "city": "Vienne (en option)", "note": "La capitale autrichienne se trouve juste à côté de l'itinéraire — arrêt pour un déjeuner, un rendez-vous ou une dernière heure dans l'Innere Stadt.", "anchor": false, "custom": false },
+    { "city": "Brno (en option)", "note": "La capitale morave, où la route rejoint la D1 pour le dernier tronçon jusqu'à Prague. Un bon endroit pour faire une pause.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Une cave à vin à Mikulov, un point de vue, un restaurant que vous voulez essayer ? Dites-le-nous à la réservation. L'itinéraire est le vôtre.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Frontière Schengen austro-tchèque à Drasenhofen–Mikulov. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
+    { "label": "Péages", "value": "Les vignettes autoroutières autrichienne et tchèque ainsi que tous les péages de l'itinéraire sont inclus dans le prix indiqué." },
+    { "label": "Prise en charge à l'aéroport", "value": "Indiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à l'aéroport de Graz et ajuste automatiquement l'heure de prise en charge. 60 minutes d'attente sont offertes." },
+    { "label": "Transfert retour", "value": "Vous rentrez à Graz plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Quatre heures et demie,",
+    "headingItalic": "trois bonnes raisons de s'arrêter.",
+    "intro": "Un trajet de cette longueur se vit mieux avec une pause, et la route de Graz à Prague passe par trois endroits qui méritent une heure de votre temps.",
+    "configurations": [
+      { "title": "Une heure à Vienne", "body": "Départ de Graz à 8h30, arrivée à Vienne vers 10h30. Un café sur la Ringstraße, une promenade devant la cathédrale Saint-Étienne ou un court rendez-vous, puis cap au nord, de l'autre côté de la frontière, pour rejoindre Prague en milieu d'après-midi.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Mikulov et les collines de Pálava", "body": "La première ville tchèque après la frontière : un château perché, l'ancien quartier juif et des caves à vin creusées dans le calcaire. Une heure à pied coupe le trajet en deux de façon idéale.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Déjeuner à Brno", "body": "Une heure et demie dans la capitale morave — déjeuner dans le centre ou visite réservée à l'avance de la villa Tugendhat de Mies van der Rohe, inscrite à l'UNESCO. De Brno, c'est deux heures en ligne droite sur la D1 jusqu'à Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur s'arrête devant la porte de votre hôtel à Graz, prêt à l'heure convenue. À l'aéroport de Graz, il vous attend dans le hall des arrivées avec une pancarte à votre nom, suit votre vol et installe vos bagages dans la voiture.",
+    "Quatre heures et demie, c'est long, et ce temps vous appartient. Préparer le lendemain, passer des appels ou dormir — votre chauffeur limite la conversation à ce que vous souhaitez. Si vous découvrez Prague, posez-lui vos questions sur la ville : où se trouve votre hôtel, quelles rues sont piétonnes, comment passer une première soirée.",
+    "Eau, chargeur et Wi-Fi sont déjà à bord. Une pause sur une aire d'autoroute est prévue en route, et c'est vous qui choisissez quand. À Prague, votre chauffeur porte les bagages jusqu'à la réception et vous n'avez plus qu'à entrer."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Graz à Prague.",
+    "items": [
+      { "title": "Un tarif fixe pour toute la distance", "body": "Carburant, péages, vignettes autrichienne et tchèque et temps du chauffeur sont compris dans le prix réservé. Un long trajet ne signifie pas de suppléments à l'arrivée." },
+      { "title": "Pas de changement à Vienne", "body": "Il n'existe pas de liaison ferroviaire directe et rapide entre Graz et Prague. En voiture, vos bagages sont chargés une seule fois à Graz et en ressortent devant votre porte à Prague, sans aucun quai entre les deux." },
+      { "title": "Une société pragoise", "body": "Prestigo est basée à Prague et exploite sa propre flotte Mercedes. Votre chauffeur connaît la ville où vous arrivez — les entrées des hôtels, les sens uniques et le chemin le plus rapide vers votre adresse." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé de Graz à Prague ?", "a": "Environ 4 heures 30 de porte à porte : l'A2 vers le nord en direction de Vienne, l'A5 jusqu'à la frontière de Drasenhofen–Mikulov, la D52 jusqu'à Brno et la D1 jusqu'à Prague. Une circulation dense autour de Vienne ou sur la D1 le vendredi après-midi peut ajouter 20 à 30 minutes." },
+    { "q": "Combien coûte un taxi ou un chauffeur de Graz à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, tous les péages, les vignettes autrichienne et tchèque et le temps du chauffeur — il s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à l'aéroport de Graz et me conduire directement à Prague ?", "a": "Oui. Envoyez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de l'aéroport de Graz (GRZ) avec votre nom et vous conduit directement à votre adresse à Prague. Jusqu'à 60 minutes d'attente à l'aéroport sont offertes." },
+    { "q": "Un transfert privé est-il préférable au train de Graz à Prague ?", "a": "La plupart des liaisons ferroviaires de Graz à Prague imposent un changement à Vienne et prennent nettement plus de temps que la route, sans compter le trajet jusqu'à la gare et un taxi à l'arrivée à Prague. Une voiture privée vous conduit de porte à porte et coûte le même prix pour un passager ou pour trois. Pour un voyageur seul avec peu de bagages, le train reste l'option la moins chère." },
+    { "q": "Peut-on s'arrêter en route entre Graz et Prague ?", "a": "Oui. Vienne, Mikulov et Brno sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Ai-je besoin de mon passeport entre l'Autriche et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Drasenhofen–Mikulov. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux." }
+  ],
+  "relatedRoutesIntro": "Graz marque souvent l'extrémité sud d'un voyage à travers l'Autriche et l'Europe centrale. Les voyageurs qui arrivent de Vienne, Linz, Salzbourg ou Bratislava réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "vienna-prague", "city": "Vienne", "label": "Vienne → Prague", "distance": "330 km", "duration": "3 h 30" },
+    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "195 km", "duration": "2 h 30" },
+    { "slug": "salzburg-prague", "city": "Salzbourg", "label": "Salzbourg → Prague", "distance": "305 km", "duration": "3 h 30" },
+    { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3 h 30" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "450 km" },
+    { "label": "Durée", "value": "~4 h 30" },
+    { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Graz à Prague.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Graz – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Graz à Prague — 450 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Graz ou à l'aéroport GRZ. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Graz à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Graz à Prague — 450 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Graz ou à l'aéroport GRZ. Prix fixe dès {ePrice} €."
+  }
+}

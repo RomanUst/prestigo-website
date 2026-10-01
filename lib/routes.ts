@@ -624,3 +624,40 @@ export const YELLOW_ROUTES = ROUTES.filter((r) => r.tier === 'yellow')
 
 // Countries in ascending distance order (natural for hub grouping)
 export const ROUTE_COUNTRIES = Array.from(new Set(ROUTES.map((r) => r.country)))
+
+/**
+ * Mirror routes — the inbound direction of every indexed route
+ * ({city} → Prague), e.g. 'vienna-prague' mirrors 'prague-vienna'.
+ *
+ * Served by app/[locale]/routes/[slug]/page.tsx (one dynamic template; the
+ * 30 outbound pages keep their own static folders, which take precedence).
+ * Fares are direction-independent, so a mirror page reads its prices from
+ * the source route's route_prices row (`sourceSlug`). Body copy lives in
+ * content/routes/<locale>/<slug>.json like every other route.
+ */
+export type MirrorRoute = {
+  slug: string        // 'vienna-prague'
+  sourceSlug: string  // 'prague-vienna'
+  city: string        // 'Vienna' (origin display name)
+  country: string
+  distance: string
+  duration: string
+}
+
+export const MIRROR_ROUTES: MirrorRoute[] = ROUTES.map((r) => ({
+  slug: `${r.slug.replace(/^prague-/, '')}-prague`,
+  sourceSlug: r.slug,
+  city: r.city,
+  country: r.country,
+  distance: r.distance,
+  duration: r.duration,
+}))
+
+export const MIRROR_ROUTES_BY_SLUG: Record<string, MirrorRoute> = Object.fromEntries(
+  MIRROR_ROUTES.map((r) => [r.slug, r])
+)
+
+/** Outbound slug → its inbound mirror slug ('prague-vienna' → 'vienna-prague'). */
+export const MIRROR_SLUG_BY_SOURCE: Record<string, string> = Object.fromEntries(
+  MIRROR_ROUTES.map((r) => [r.sourceSlug, r.slug])
+)

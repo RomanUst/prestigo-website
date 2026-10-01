@@ -43,6 +43,13 @@
     "bookButton": "预订 布拉格 → {city}",
     "routeDetails": "线路详情"
   },
+  "inbound": {
+    "label": "前往布拉格",
+    "headingLine1": "要去布拉格？",
+    "headingItalic": "同一辆车，反方向出发。",
+    "intro": "每条线路均可双向预订，固定价格不变。可在以下任一城市的酒店、办公室或机场上车，送达布拉格任意地址或瓦茨拉夫·哈维尔机场。",
+    "toPragueLabel": "{city} → 布拉格"
+  },
   "destinationNames": {
     "prague-kutna-hora": "库特纳霍拉",
     "prague-plzen": "比尔森",

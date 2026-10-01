@@ -75,6 +75,9 @@ export type RouteContent = {
     city: string;
     distance: string;
     duration: string;
+    // Optional localized card label ("Vienna → Prague"); the template
+    // falls back to "Prague → {city}" when absent (outbound routes).
+    label?: string;
   }>;
   highlights: Array<{
     label: string;

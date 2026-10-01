@@ -1,0 +1,171 @@
+{
+  "metadata": {
+    "title": "Chófer privado en Praga: alquiler de coche con conductor",
+    "description": "Contrate un chófer privado en Praga: un Mercedes con conductor por horas, para una excursión o varios días por Europa Central. Desde {hourlyFrom} €/hora, 24/7.",
+    "ogTitle": "Chófer privado en Praga: coche con conductor por horas, por día o por viaje"
+  },
+  "breadcrumbName": "Chófer privado en Praga",
+  "hero": {
+    "label": "Chófer privado · Praga",
+    "headlineLine1": "Un chófer privado en Praga.",
+    "headlineItalic": "Su coche, su plan.",
+    "intro": "Contrate un coche con chófer privado en Praga durante el tiempo que necesite: unas horas en la ciudad, un día completo en Kutná Hora o Český Krumlov, una jornada de reuniones de trabajo o varios días por Europa Central. Un Mercedes y un chófer profesional quedan a su disposición, desde {hourlyFrom} € por hora.",
+    "ctaPrimary": "Reservar un chófer",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Chófer privado de pie junto a un Mercedes en una calle de Praga"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      {
+        "label": "Por horas",
+        "value": "Desde {hourlyFrom} €/hora en un E-Class, mínimo 2 horas"
+      },
+      {
+        "label": "Excursiones de un día",
+        "value": "Kutná Hora, Karlovy Vary, Český Krumlov, Dresde y más"
+      },
+      {
+        "label": "Vehículos",
+        "value": "Mercedes E-Class, S-Class y V-Class para hasta seis personas"
+      },
+      {
+        "label": "Idiomas",
+        "value": "Inglés; ruso, alemán o checo previa solicitud"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Traslado o chófer privado:",
+    "headingItalic": "cuál necesita.",
+    "paragraphs": [
+      "Un traslado le lleva de A a B por un precio fijo: del aeropuerto a su hotel, de Praga a Viena. El chófer le deja en destino y la reserva termina. Es la opción adecuada cuando sabe exactamente adónde va y cuándo.",
+      "Un chófer privado es otra cosa. Reserva tiempo, no un único trayecto. El coche y el chófer se quedan con usted, le esperan mientras está dentro y van adonde le lleve el día: tres reuniones, un almuerzo que se alarga, una parada que nadie había previsto.",
+      "Prestigo ofrece ambos servicios, con los mismos coches y los mismos chóferes. Esta página trata del segundo: contratar un chófer en Praga por horas, por un día o para un viaje de varios días."
+    ]
+  },
+  "features": {
+    "label": "Formas de contar con un chófer",
+    "headingLine1": "Un solo chófer,",
+    "headingItalic": "sea cual sea su agenda.",
+    "items": [
+      {
+        "title": "Por horas en Praga",
+        "body": "Desde {hourlyFrom} €/hora en un E-Class, {hourlyV} €/hora en un V-Class y {hourlyS} €/hora en un S-Class, con un mínimo de 2 horas. Ideal para una salida nocturna, ir de compras o un recorrido sin prisas por la ciudad."
+      },
+      {
+        "title": "Excursiones de un día desde Praga",
+        "body": "Kutná Hora, Karlovy Vary, Český Krumlov o Dresde en un solo día. El chófer le espera mientras hace la visita y le trae de vuelta cuando usted quiera."
+      },
+      {
+        "title": "Una jornada de trabajo",
+        "body": "Varias reuniones en distintas zonas de la ciudad, con el coche esperando a la salida de cada una. Su equipaje se queda en el maletero y la siguiente dirección ya está fijada."
+      },
+      {
+        "title": "Varios días por Europa Central",
+        "body": "Un viaje de varios días —Praga, Viena, Salzburgo, Múnich o Budapest— con el mismo coche y el mismo chófer de principio a fin. Planifíquelo en /book/multi-day."
+      },
+      {
+        "title": "Un chófer que conoce la ciudad",
+        "body": "Qué calles están cerradas al tráfico, dónde puede esperar el coche, cómo llegar a un hotel de la Ciudad Vieja sin dar vueltas. Usted no necesita saber nada de eso."
+      },
+      {
+        "title": "Planes que pueden cambiar",
+        "body": "Añada una parada, cambie el orden, quédese más tiempo. Dígaselo a su chófer ese mismo día; las horas adicionales se cobran a la misma tarifa."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Reservar un chófer en cuatro pasos.",
+    "items": [
+      {
+        "title": "Cuéntenos el plan",
+        "body": "Elija alquiler por horas, excursión de un día o viaje de varios días, e indique la hora de inicio y la dirección de recogida. Basta con un esquema aproximado del día."
+      },
+      {
+        "title": "Elija el coche",
+        "body": "E-Class para hasta tres personas, S-Class para una jornada ejecutiva, V-Class para hasta seis con equipaje. Verá el precio antes de pagar."
+      },
+      {
+        "title": "Conozca a su chófer",
+        "body": "Recibirá con antelación el nombre y el teléfono del chófer. Llegará a su dirección a la hora acordada."
+      },
+      {
+        "title": "Use el tiempo como quiera",
+        "body": "El coche es suyo durante las horas reservadas. Cambie el orden de las paradas o amplíe el servicio ese mismo día diciéndoselo al chófer."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Qué hace un chófer privado",
+    "headingLine1": "Mucho más que",
+    "headingItalic": "alguien al volante.",
+    "paragraphs": [
+      "Un buen chófer privado hace tres cosas que un mapa no puede hacer. Espera —a la salida de la reunión, cerca del restaurante, en la puerta del castillo— para que usted nunca tenga que buscar un coche. Se adapta: si el almuerzo se alarga o cambia el tiempo, el plan cambia sin necesidad de una nueva reserva. Y conoce Praga: las calles de sentido único, las zonas peatonales, la forma más rápida de cruzar el río a las cinco de la tarde.",
+      "Todos los chóferes hablan inglés, y puede solicitar ruso, alemán o checo al reservar. Los coches son Mercedes E-Class, S-Class y V-Class, todos con menos de tres años, con wifi, agua y cargador a bordo. Las sillas infantiles son gratuitas previa solicitud.",
+      "Si solo necesita unas horas dentro de la ciudad, nuestra página de trayectos urbanos explica en detalle el alquiler por horas. Para un único viaje a otra ciudad, una ruta a precio fijo suele ser más sencilla. Y si aterriza en Praga, un traslado desde el aeropuerto le lleva primero al hotel. Elija la forma de su día y adaptaremos la reserva a ella."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre el chófer privado",
+  "faqs": [
+    {
+      "q": "¿Cuánto cuesta un chófer privado en Praga?",
+      "a": "El alquiler por horas parte de {hourlyFrom} € por hora en un Mercedes E-Class, {hourlyV} € en un V-Class y {hourlyS} € en un S-Class, con un mínimo de 2 horas. La tarifa se fija al reservar; no hay taxímetro."
+    },
+    {
+      "q": "¿Qué diferencia hay entre un traslado y contratar un chófer?",
+      "a": "Un traslado es un único trayecto de A a B a precio fijo. Contratar un chófer reserva el coche y el conductor durante un periodo de tiempo, así que le esperan y van adonde necesite dentro de esas horas."
+    },
+    {
+      "q": "¿Puedo alquilar un coche con chófer para una excursión de un día desde Praga?",
+      "a": "Sí. Entre las excursiones de un día más populares están Kutná Hora, Karlovy Vary, Český Krumlov y Dresde. El chófer le acompaña durante todo el día y le lleva de vuelta a Praga."
+    },
+    {
+      "q": "¿Puedo reservar un chófer para varios días?",
+      "a": "Sí. Para viajes de varios días por Europa Central, reserve un itinerario de varios días en /book/multi-day y conserve el mismo coche y el mismo chófer de principio a fin."
+    },
+    {
+      "q": "¿Qué idiomas hablan sus chóferes?",
+      "a": "Todos los chóferes hablan inglés. Puede solicitar ruso, alemán o checo al reservar."
+    },
+    {
+      "q": "¿Puedo cambiar el plan durante el día?",
+      "a": "Sí. Añada paradas, cambie el orden o amplíe la reserva diciéndoselo a su chófer. El tiempo adicional se cobra a la misma tarifa por hora."
+    },
+    {
+      "q": "¿Con cuánta antelación debo reservar?",
+      "a": "Reserve en línea con al menos 12 horas de antelación. Para cualquier servicio con menos margen, llame al +420 725 986 855: operamos 24/7."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Elija la forma de su día.",
+    "links": [
+      {
+        "href": "/services/city-rides",
+        "title": "Trayectos urbanos por horas",
+        "body": "El alquiler por horas dentro de Praga en detalle: tarifas, mínimos y qué cabe en dos horas."
+      },
+      {
+        "href": "/routes",
+        "title": "Rutas desde Praga",
+        "body": "Trayectos a precio fijo a Viena, Múnich, Dresde, Český Krumlov y más."
+      },
+      {
+        "href": "/blog/private-day-trips-from-prague",
+        "title": "Excursiones privadas de un día",
+        "body": "Ideas para pasar un día completo fuera de Praga con su propio coche y chófer."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Empiece el viaje con un trayecto a precio fijo desde PRG hasta su hotel."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Un coche y un chófer, durante el tiempo que necesite.",
+    "headingItalic": "Desde {hourlyFrom} € por hora."
+  }
+}

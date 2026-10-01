@@ -1,0 +1,257 @@
+{
+  "hero": {
+    "label": "Mariánské Lázně → Prague",
+    "headlineLine1": "De Mariánské Lázně à Prague,",
+    "headlineItalic": "de l'hôtel thermal à votre porte en ville.",
+    "intro": "De Mariánské Lázně à Prague avec chauffeur privé, c'est un transfert de porte à porte de 165 km vers l'est via Pilsen et la D5, soit environ 2 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quel hôtel thermal ou adresse de Mariánské Lázně, dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Mariánské Lázně à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Mariánské Lázně à Prague représente 165 km — on quitte la vallée thermale boisée, on traverse les collines de Bohême de l'Ouest jusqu'à l'autoroute D5, puis on file vers l'est en passant Pilsen jusqu'à Prague — et dure environ 2 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel thermal, votre appartement ou à la gare de Mariánské Lázně, et vous dépose à votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
+    "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. À la fin d'une cure, la dernière chose dont vous avez besoin, c'est d'une correspondance à Pilsen avec vos valises — la voiture vous mène de l'entrée de votre hôtel jusqu'à votre porte à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Mariánské Lázně à Prague",
+    "headingItalic": "en deux heures.",
+    "paragraphs": [
+      "Après une prise en charge près de la Colonnade principale, de la Fontaine chantante ou de l'un des hôtels thermaux à flanc de colline, votre chauffeur quitte la ville à travers la forêt et traverse les douces hauteurs de Bohême de l'Ouest pour rejoindre l'autoroute D5. L'itinéraire reste en République tchèque du début à la fin — pas de frontière, pas de seconde vignette.",
+      "Sur la D5, la voiture file vers l'est en contournant Pilsen, puis passe Rokycany et Beroun en direction de Prague. La distance totale est d'environ 165 kilomètres ; le temps de trajet est de deux heures en conditions normales. Le vendredi après-midi et le dimanche soir, la circulation est plus dense à l'approche de Prague : comptez 15 à 20 minutes de plus.",
+      "La D5 arrive à Prague par le sud-ouest. De là, votre chauffeur prend le périphérique jusqu'à l'aéroport Václav Havel pour un vol de correspondance, ou se dirige vers le centre — Smíchov, Malá Strana, la Vieille Ville ou Vinohrady — directement jusqu'à votre porte."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Mariánské Lázně à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Après une cure, une semaine de golf ou une retraite au calme, vous arrivez à Prague sans rien avoir à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, utile pour le passage de relais avec l'hôtel thermal.",
+    "Carburant et vignette autoroutière tchèque. Aucun supplément.",
+    "Prise en charge à n'importe quelle adresse de Mariánské Lázně — votre hôtel thermal, votre appartement ou la gare de Mariánské Lázně.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Arrêts en route — le monastère de Teplá, Pilsen ou une pause café sur la D5 — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Mariánské Lázně à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Mariánské Lázně",
+      "note": "Prise en charge à votre hôtel thermal, votre appartement ou à la gare de Mariánské Lázně. Votre chauffeur vous accueille à l'entrée et charge les bagages.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Monastère de Teplá (en option)",
+      "note": "Une abbaye prémontrée dans les collines à l'est de la ville — une première halte paisible, avec une bibliothèque baroque.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Pilsen (en option)",
+      "note": "Directement sur la D5. Une halte pour déjeuner sur la place principale ou visiter la brasserie Pilsner Urquell.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un point de vue, un restaurant, une courte promenade ? Dites-le-nous à la réservation. L'itinéraire est le vôtre.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à n'importe quelle adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun. L'itinéraire se trouve entièrement en République tchèque."
+    },
+    {
+      "label": "Péages",
+      "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué."
+    },
+    {
+      "label": "Départ de l'hôtel",
+      "value": "Indiquez-nous votre heure de départ de l'hôtel. La voiture vous attend à l'entrée de l'hôtel quand vous descendez, pas sur un parking plus loin sur la promenade."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez pour une nouvelle cure ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Deux heures,",
+    "headingItalic": "avec une pause ou deux.",
+    "intro": "La route de Mariánské Lázně à Prague traverse quelques-uns des plus beaux lieux de Bohême de l'Ouest. Trois arrêts couvrent l'essentiel des demandes que nous recevons sur ce trajet.",
+    "configurations": [
+      {
+        "title": "Le monastère de Teplá",
+        "body": "Quittez votre hôtel à 9h30 et passez une heure à l'abbaye de Teplá — l'église, la bibliothèque et le domaine. Poursuivez jusqu'à la D5 et arrivez à Prague en début d'après-midi.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Déjeuner et brasserie à Pilsen",
+        "body": "Pilsen se trouve sur la D5, à peu près à mi-chemin. Quatre-vingt-dix minutes pour déjeuner sur la place principale, près de la cathédrale Saint-Barthélemy, ou pour une visite réservée à l'avance de la brasserie Pilsner Urquell. Prague n'est plus qu'à une heure environ.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Le monastère de Kladruby",
+        "body": "Un court détour depuis la D5 près de Stříbro vous mène à Kladruby, un monastère bénédictin dont l'église fut remaniée par Jan Blažej Santini. Une heure de visite, puis direction Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous confirmons un devis ferme avant votre réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous attend devant votre hôtel thermal à l'heure convenue, récupère les bagages à la réception et vous installe à l'arrière. Pas de descente à pied jusqu'à la gare, pas d'attente de correspondance.",
+    "Deux heures, c'est le bon moment pour vous reposer après un programme de soins. Si vous préférez le calme, vous l'aurez. Si vous voulez en savoir plus sur Prague — à quelle distance votre hôtel se trouve de la place de la Vieille Ville, où dîner, combien de temps prévoir pour l'aéroport —, il suffit de demander.",
+    "Eau, chargeur et Wi-Fi sont déjà à bord. Si vous souhaitez un café à Pilsen ou une halte pour vous dégourdir les jambes, dites-le simplement. À Prague, votre chauffeur porte vos bagages jusqu'à la réception, pas seulement jusqu'au trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Mariánské Lázně à Prague.",
+    "items": [
+      {
+        "title": "Un tarif qui reste fixe",
+        "body": "Le carburant, la vignette tchèque et le temps du chauffeur sont inclus. Ce que vous convenez à la réservation est ce que vous payez à Prague."
+      },
+      {
+        "title": "Pas de changement à Pilsen",
+        "body": "Le train depuis Mariánské Lázně passe généralement par Pilsen et se termine par un taxi à Prague. En voiture, vos bagages sont chargés une fois à l'hôtel et déchargés une fois devant votre porte."
+      },
+      {
+        "title": "Une équipe basée à Prague",
+        "body": "Prestigo exploite sa propre flotte Mercedes depuis Prague. Votre chauffeur connaît la ville où vous vous rendez — les entrées des hôtels, les sens uniques, le chemin le plus rapide vers l'aéroport."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Mariánské Lázně à Prague ?",
+      "a": "Environ 2 heures de porte à porte, à travers les collines de Bohême de l'Ouest jusqu'à la D5, puis vers l'est en passant Pilsen jusqu'à Prague. Le trafic du vendredi après-midi ou du dimanche soir à l'entrée de Prague peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Mariánské Lázně à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Le prix comprend le carburant, la vignette tchèque et le temps du chauffeur — il s'entend par voiture, pas par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à mon hôtel thermal à Mariánské Lázně ?",
+      "a": "Oui. Indiquez-nous le nom de l'hôtel et votre heure de départ. Votre chauffeur se présente à l'entrée de l'hôtel, vous aide avec les bagages et vous conduit directement à votre adresse à Prague. Une prise en charge à la gare de Mariánské Lázně est également possible."
+    },
+    {
+      "q": "Un transfert privé est-il préférable au train de Mariánské Lázně à Prague ?",
+      "a": "Le train met environ trois heures de gare à gare, souvent avec un changement, sans compter le taxi à l'arrivée à Prague. Pour un voyageur seul avec peu de bagages, le train est moins cher. Un transfert privé vous conduit de porte à porte, part quand vous le souhaitez, emporte tous vos bagages et coûte le même prix pour un passager ou pour trois."
+    },
+    {
+      "q": "Peut-on s'arrêter en route entre Mariánské Lázně et Prague ?",
+      "a": "Oui. Le monastère de Teplá, Pilsen et le monastère de Kladruby sont les arrêts les plus demandés. Dites-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse."
+    },
+    {
+      "q": "Pouvez-vous prendre en charge des clients dans deux hôtels thermaux différents ?",
+      "a": "Oui. Si votre groupe séjourne dans plusieurs hôtels à Mariánské Lázně, indiquez-le à la réservation : votre chauffeur passe chercher chacun à tour de rôle avant de prendre la route de Prague."
+    }
+  ],
+  "relatedRoutesIntro": "Mariánské Lázně est l'une des trois villes thermales de Bohême de l'Ouest. Les curistes qui quittent Karlovy Vary, Františkovy Lázně, Pilsen ou Ratisbonne réservent de la même façon — une voiture, un tarif fixe, une dépose devant votre porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "karlovy-vary-prague",
+      "city": "Karlovy Vary",
+      "label": "Karlovy Vary → Prague",
+      "distance": "130 km",
+      "duration": "1 h 30"
+    },
+    {
+      "slug": "frantiskovy-lazne-prague",
+      "city": "Františkovy Lázně",
+      "label": "Františkovy Lázně → Prague",
+      "distance": "175 km",
+      "duration": "2 h 30"
+    },
+    {
+      "slug": "plzen-prague",
+      "city": "Pilsen",
+      "label": "Pilsen → Prague",
+      "distance": "90 km",
+      "duration": "1 h"
+    },
+    {
+      "slug": "regensburg-prague",
+      "city": "Ratisbonne",
+      "label": "Ratisbonne → Prague",
+      "distance": "285 km",
+      "duration": "3 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~165 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "À partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Mariánské Lázně à Prague.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Mariánské Lázně – Prague — dès {ePrice} €",
+    "description": "Transfert privé de Mariánské Lázně à Prague — 165 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à l'hôtel thermal. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Mariánské Lázně à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Mariánské Lázně à Prague — 165 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à l'hôtel thermal. Prix fixe dès {ePrice} €."
+  }
+}

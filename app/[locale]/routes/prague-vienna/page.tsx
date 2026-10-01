@@ -7,6 +7,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import ReverseRouteLink from '@/components/ReverseRouteLink'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
@@ -328,6 +329,10 @@ export default async function PragueViennaPage() {
           </div>
         </div>
       </section>
+
+      <Divider />
+
+      <ReverseRouteLink slug="prague-vienna" locale={locale} heading={t('otherDirection')} cta={t('otherDirectionCta')} />
 
       <Divider />
 

@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Linz → Prague",
+    "headlineLine1": "De Linz à Prague,",
+    "headlineItalic": "par le Mühlviertel.",
+    "intro": "De Linz à Prague avec chauffeur privé, c'est un transfert de porte à porte de 195 km vers le nord par la S10 et la D3, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages et vignettes autrichienne et tchèque inclus. Prise en charge à n'importe quelle adresse de Linz, à la Linz Hauptbahnhof ou à l'aéroport de Linz (LNZ), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Linz à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Linz à Prague couvre 195 km — sortie de la ville par l'A7, cap au nord sur la voie express S10 à travers le Mühlviertel, passage de la frontière tchèque à Wullowitz–Dolní Dvořiště, puis České Budějovice et la D3 par Tábor jusqu'à Prague — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Linz, à un bureau sur la Landstraße, à la Linz Hauptbahnhof ou à l'aéroport de Linz, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Le tarif est fixé avant le départ : carburant, péages, vignettes autoroutières autrichienne et tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas de changement de train à České Budějovice, pas de file de taxis à la gare centrale de Prague, rien à régler à l'arrivée."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Linz à Prague",
+    "headingItalic": "en deux heures et demie.",
+    "paragraphs": [
+      "Après une prise en charge sur la Hauptplatz, au bord du Danube près du Lentos ou à votre hôtel du quartier de la Landstraße, votre chauffeur quitte Linz vers le nord par l'A7 et rejoint la voie express S10 du Mühlviertel à Unterweitersdorf. La S10 franchit une série de tunnels pour gagner les hautes terres agricoles et vallonnées du Mühlviertel, puis passe Freistadt, la ville médiévale fortifiée qui marque le dernier tronçon autrichien.",
+      "La frontière de Wullowitz–Dolní Dvořiště se trouve dans l'espace Schengen : aucun arrêt ni contrôle en temps normal. Côté tchèque, la route file vers le nord à travers la Bohême du Sud jusqu'à České Budějovice, puis l'autoroute D3 vous mène par Tábor en direction de Prague. La distance totale est d'environ 195 kilomètres ; le temps de conduite est de deux heures et demie en circulation normale, avec 15 à 20 minutes de plus le vendredi après-midi, lorsque le dernier tronçon de la D1 se charge à l'entrée de Prague.",
+      "En hiver, le plateau du Mühlviertel peut être enneigé alors qu'à Linz il ne fait que pleuvoir ; votre chauffeur vérifie la S10 et la route frontalière avant de partir. Vous arrivez à Prague bien à temps pour un rendez-vous l'après-midi, un déjeuner tardif à Vinohrady ou l'enregistrement dans un hôtel de la Vieille Ville."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Linz à la dépose à Prague : la voiture, le chauffeur, le carburant, les vignettes autrichienne et tchèque et chaque péage en route. Que Prague soit l'étape suivante d'un voyage d'affaires ou le début d'un long week-end, vous arrivez devant la porte sans rien d'autre à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, pratique pour la prise en charge à l'hôtel à Linz.",
+    "Carburant, tous les péages, la vignette autoroutière autrichienne et la vignette autoroutière tchèque. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse de Linz, à la Linz Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Linz (LNZ), avec suivi du vol.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en route — Freistadt, Český Krumlov ou České Budějovice — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Van d'affaires", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Linz à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Linz", "note": "Prise en charge à votre hôtel, à votre bureau, à la Linz Hauptbahnhof ou à l'aéroport de Linz (LNZ). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.", "anchor": true, "custom": false },
+    { "city": "Freistadt (en option)", "note": "La dernière ville autrichienne avant la frontière — un centre médiéval fortifié, avec ses tours-portes et sa grand-place paisible, juste à côté de la S10.", "anchor": false, "custom": false },
+    { "city": "České Budějovice (en option)", "note": "La capitale de la Bohême du Sud se trouve sur l'itinéraire. L'une des plus grandes places à arcades d'Europe centrale, et le berceau de la Budvar.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Un château, un déjeuner au bord d'un lac, la visite d'une brasserie ? Dites-le-nous à la réservation et nous intégrons l'arrêt au trajet.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Frontière Schengen austro-tchèque à Wullowitz–Dolní Dvořiště. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
+    { "label": "Péages", "value": "Les vignettes autoroutières autrichienne et tchèque ainsi que tous les péages sont inclus dans le prix indiqué." },
+    { "label": "Conduite en hiver", "value": "Le plateau du Mühlviertel, au nord de Linz, peut voir la neige avant Prague. Votre chauffeur vérifie l'état des routes avant le départ et prévoit du temps supplémentaire si nécessaire." },
+    { "label": "Transfert retour", "value": "Vous rentrez à Linz plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Faites du trajet",
+    "headingItalic": "une partie du voyage.",
+    "intro": "Deux heures et demie laissent la place à une belle étape. Voici les trois que l'on nous demande le plus souvent entre Linz et Prague.",
+    "configurations": [
+      { "title": "Freistadt, la ville fortifiée", "body": "Départ de Linz à 9h00 et arrêt à Freistadt quarante minutes plus tard. Une heure pour longer les remparts de la vieille ville et flâner sur la grand-place, un café, puis passage de la frontière et arrivée à Prague en début d'après-midi.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Český Krumlov et son château", "body": "Un détour d'environ une demi-heure depuis la route principale vous mène à Český Krumlov, la ville classée à l'UNESCO nichée dans les méandres de la Vltava. Deux heures pour les cours du château et la vieille ville, puis route vers Prague pour la soirée.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Déjeuner à České Budějovice", "body": "La route traverse directement České Budějovice. Arrêtez-vous pour déjeuner sur la place Přemysl Otakar II, ou réservez une visite de la brasserie Budvar, avant la dernière ligne droite sur la D3 jusqu'à Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos en route est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur est devant la porte de votre hôtel à Linz à l'heure convenue, voiture prête et habitacle à bonne température. À l'aéroport de Linz, il vous attend dans le hall des arrivées avec une pancarte à votre nom, suit votre vol et porte vos bagages du tapis jusqu'au coffre.",
+    "Le trajet est assez court pour travailler et assez long pour se reposer. Passez vos appels, terminez vos notes ou regardez défiler le Mühlviertel — votre chauffeur ne parle que si vous le souhaitez. Posez-lui vos questions sur Prague si cela vous aide : où se trouve votre hôtel, quel pont traverser à pied au crépuscule, combien de temps il faut vraiment pour traverser la Vieille Ville.",
+    "Eau, chargeur et Wi-Fi sont à bord dès le départ. Si vous voulez un arrêt café à Freistadt ou un habitacle plus chaud sur le plateau, il suffit de le dire. À Prague, votre chauffeur porte vos bagages jusque dans le hall de l'hôtel et vous accompagne jusqu'à la réception."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Linz à Prague.",
+    "items": [
+      { "title": "Un prix unique, convenu à l'avance", "body": "Carburant, péages, vignettes autrichienne et tchèque et temps du chauffeur sont compris dans le tarif. Le prix annoncé à Linz est celui que vous payez à Prague." },
+      { "title": "Aucune correspondance", "body": "Le train entre Linz et Prague passe par České Budějovice et cette ligne est lente. En voiture, pas de changement, pas de quai, pas de taxi à l'arrivée — simplement d'une porte à l'autre." },
+      { "title": "Prague, notre ville", "body": "Prestigo est une société pragoise qui exploite sa propre flotte Mercedes. Votre chauffeur connaît les entrées des hôtels, les zones piétonnes et le meilleur endroit où s'arrêter dans la Vieille Ville : le dernier kilomètre est aussi fluide que le premier." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé de Linz à Prague ?", "a": "Environ 2 heures 30 de porte à porte : l'A7 et la S10 vers le nord depuis Linz, la frontière de Wullowitz–Dolní Dvořiště, České Budějovice et la D3 jusqu'à Prague. La circulation du vendredi après-midi à l'entrée de Prague peut ajouter 15 à 20 minutes, et la neige sur le plateau du Mühlviertel davantage en hiver." },
+    { "q": "Combien coûte un taxi ou un chauffeur de Linz à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, tous les péages, les vignettes autrichienne et tchèque et le temps du chauffeur — il s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à l'aéroport de Linz ou à la Linz Hauptbahnhof ?", "a": "Oui. À l'aéroport de Linz (LNZ), votre chauffeur suit votre vol et vous attend dans le hall des arrivées avec votre nom ; 60 minutes d'attente sont offertes. À la Linz Hauptbahnhof, nous vous retrouvons à l'entrée de la gare convenue à la réservation." },
+    { "q": "Un transfert privé est-il préférable au train de Linz à Prague ?", "a": "Le train passe par České Budějovice et met nettement plus de temps que la route, avec peu de liaisons directes. Un transfert privé part quand vous le décidez, vous conduit de porte à porte et coûte le même prix pour un passager ou pour trois. Pour un voyageur seul avec peu de bagages, le train reste l'option la moins chère." },
+    { "q": "Peut-on s'arrêter en route entre Linz et Prague ?", "a": "Oui. Freistadt, Český Krumlov et České Budějovice sont les choix habituels. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Ai-je besoin de mon passeport entre l'Autriche et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Wullowitz–Dolní Dvořiště. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux." }
+  ],
+  "relatedRoutesIntro": "Le trajet de Linz à Prague n'est souvent qu'une étape d'un voyage plus long à travers l'Autriche et la Bohême. Les clients qui arrivent de Salzbourg, de Passau ou des villes de Bohême du Sud réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "cesky-krumlov-prague", "city": "Český Krumlov", "label": "Český Krumlov → Prague", "distance": "175 km", "duration": "2 h 30" },
+    { "slug": "ceske-budejovice-prague", "city": "České Budějovice", "label": "České Budějovice → Prague", "distance": "155 km", "duration": "2 h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2 h 30" },
+    { "slug": "salzburg-prague", "city": "Salzbourg", "label": "Salzbourg → Prague", "distance": "305 km", "duration": "3 h 30" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "195 km" },
+    { "label": "Durée", "value": "~2 h 30" },
+    { "label": "Véhicules", "value": ["Business Class", "First Class", "Van d'affaires"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Linz à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Linz – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Linz à Prague — 195 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Linz ou à l'aéroport LNZ. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Linz à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Linz à Prague — 195 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Linz ou à l'aéroport LNZ. Prix fixe dès {ePrice} €."
+  }
+}

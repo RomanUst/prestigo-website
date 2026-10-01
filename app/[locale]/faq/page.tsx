@@ -11,10 +11,12 @@ import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { BCP47_TAG, type AppLocale } from '@/i18n/locales'
 import { localizedHref } from '@/lib/localized-href'
+import { landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 
 type FaqContent = {
   metadata: { title: string; description: string; ogTitle: string }
   hero: { label: string; headlineLine1: string; headlineItalic: string }
+  guidesLabel: string
   sections: { title: string; faqs: { q: string; a: string }[] }[]
   cta: { headingLine1: string; headingItalic: string; contactButton: string; bookButton: string; emailPrefix: string }
 }
@@ -109,6 +111,25 @@ export default async function FaqPage({ params }: { params: Promise<{ locale: st
               </div>
             </div></Reveal>
           ))}
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Topic guides — /faq/<slug> cluster pages */}
+      <section className="bg-anthracite py-16 md:py-20">
+        <div className="max-w-3xl mx-auto px-6 md:px-12">
+          <h2 className="label mb-8">{content.guidesLabel}</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {landingPagesFor('faq').map((g) => {
+              const guide = getPageContent(`faq/${g.slug}`, locale) as LandingContent
+              return (
+                <a key={g.slug} href={localizedHref(locale, `/faq/${g.slug}`)} className="border border-anthracite-light p-6 hover:border-[var(--copper)] transition-colors">
+                  <p className="font-display font-light text-[18px] text-offwhite">{guide.breadcrumbName}</p>
+                </a>
+              )
+            })}
+          </div>
         </div>
       </section>
 

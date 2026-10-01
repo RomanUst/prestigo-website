@@ -1,0 +1,171 @@
+{
+  "metadata": {
+    "title": "Recepción personalizada en el aeropuerto de Praga — PRG",
+    "description": "Recepción personalizada en el aeropuerto de Praga: su chófer le espera en Llegadas de PRG con su nombre, 60 min de espera gratis. Mercedes desde €{businessPrice}.",
+    "ogTitle": "Recepción personalizada en el aeropuerto de Praga — Cartel con su nombre en Llegadas de PRG"
+  },
+  "breadcrumbName": "Recepción en el aeropuerto",
+  "hero": {
+    "label": "Recepción personalizada · Aeropuerto de Praga",
+    "headlineLine1": "Recepción personalizada en el aeropuerto de Praga.",
+    "headlineItalic": "Le recibimos; no tiene que buscarnos.",
+    "intro": "La recepción personalizada de Prestigo significa que su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con su nombre en un cartel antes de que salga de la recogida de equipajes. Se ocupa de su equipaje, le acompaña hasta un Mercedes aparcado a pocos pasos y le lleva a cualquier dirección de Praga. Incluida en todos los traslados al aeropuerto, desde €{businessPrice} por vehículo.",
+    "ctaPrimary": "Reservar recepción",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Chófer con un cartel con el nombre del pasajero en la sala de Llegadas del aeropuerto de Praga"
+  },
+  "glance": {
+    "label": "En resumen",
+    "items": [
+      {
+        "label": "Dónde",
+        "value": "Dentro de Llegadas de la Terminal 1 (extra-Schengen) y de la Terminal 2 (Schengen)"
+      },
+      {
+        "label": "Espera",
+        "value": "Hasta 60 minutos gratuitos tras el aterrizaje, con seguimiento del vuelo en directo"
+      },
+      {
+        "label": "Precio",
+        "value": "Incluida en la tarifa: Mercedes E-Class desde €{businessPrice} por vehículo"
+      },
+      {
+        "label": "Horario",
+        "value": "24/7, todos los días del año; reserve con al menos 12 horas de antelación"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Qué significa de verdad",
+    "headingItalic": "la recepción personalizada en PRG.",
+    "paragraphs": [
+      "La expresión «recepción personalizada» se usa con mucha ligereza. Algunas empresas envían un mensaje con una matrícula y una zona de recogida, y usted sale con sus maletas a buscar el vehículo correcto. Eso es una recogida, no una recepción personalizada.",
+      "En Prestigo significa una sola cosa: una persona, a pie, dentro de la sala de Llegadas, con un cartel con su nombre —o el de su invitado— antes de que llegue a las puertas de salida. No abre ninguna aplicación, no cruza ningún aparcamiento y no espera en la acera. Su chófer se encarga del carrito de equipaje, y el coche está a un breve paseo acompañado.",
+      "Está incluida en todos los traslados al aeropuerto de Prestigo. No hay un cargo aparte por la recepción; usted paga por el vehículo: un Mercedes E-Class desde €{businessPrice}, un V-Class para hasta seis personas desde €{vClassAirport} o un S-Class desde €{sClassAirport}."
+    ]
+  },
+  "features": {
+    "label": "Qué incluye",
+    "headingLine1": "Todo lo que hay entre la puerta de embarque",
+    "headingItalic": "y la puerta de su casa.",
+    "items": [
+      {
+        "title": "Cartel con su nombre dentro de Llegadas",
+        "body": "Su chófer le espera en la sala pública de Llegadas de la terminal correcta con un cartel con el nombre del pasajero. Recibe el nombre y el teléfono del chófer antes de aterrizar."
+      },
+      {
+        "title": "Seguimiento del vuelo en directo",
+        "body": "Seguimos su número de vuelo, no su horario previsto. Si aterriza antes, después o en otra terminal, el chófer se adapta sin que usted tenga que llamar."
+      },
+      {
+        "title": "60 minutos de espera gratuita",
+        "body": "El tiempo empieza a contar cuando su avión aterriza. Una cola lenta en el control de pasaportes de la Terminal 1 o una larga espera en la cinta de equipajes no le cuestan nada extra."
+      },
+      {
+        "title": "Nos ocupamos del equipaje",
+        "body": "El chófer lleva sus maletas desde la sala hasta el coche y desde el coche hasta la recepción de su hotel. Un V-Class transporta a seis pasajeros con seis maletas grandes."
+      },
+      {
+        "title": "Precio fijo, acordado de antemano",
+        "body": "La tarifa que ve al reservar es la tarifa que paga: sin taxímetro, sin recargo nocturno y sin cargos por el tráfico de camino a la ciudad."
+      },
+      {
+        "title": "VIP y fast-track a petición",
+        "body": "Para llegadas ejecutivas, diplomáticas o de quienes visitan Praga por primera vez, podemos añadir un S-Class con chófer sénior, fast-track en el control de pasaportes y servicio de mozo de equipajes. Solicítelo al menos 24–48 horas antes del aterrizaje."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "Cuatro pasos y nada que gestionar a la llegada.",
+    "items": [
+      {
+        "title": "Reserve en línea",
+        "body": "Indique su número de vuelo, el nombre del pasajero y la dirección en Praga. Verá el precio fijo antes de pagar."
+      },
+      {
+        "title": "Seguimos el vuelo",
+        "body": "Su chófer sigue el vuelo desde el despegue. Recibe su nombre y su teléfono antes de aterrizar."
+      },
+      {
+        "title": "Salga y encuentre su nombre",
+        "body": "Tras la recogida de equipajes y la aduana, su chófer le espera en la sala de Llegadas con un cartel con su nombre."
+      },
+      {
+        "title": "De puerta a puerta",
+        "body": "Un breve paseo hasta el coche y directamente a su hotel, apartamento o reunión. Unos 30 minutos hasta el centro de Praga con tráfico normal."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Terminal por terminal",
+    "headingLine1": "Terminal 1 o Terminal 2:",
+    "headingItalic": "no necesita saberlo.",
+    "paragraphs": [
+      "El aeropuerto de Praga tiene dos terminales de pasajeros. La Terminal 2 atiende los vuelos procedentes del espacio Schengen —Alemania, Francia, Italia, los Países Bajos y la mayor parte de la UE—, sin control de pasaportes a la llegada. La Terminal 1 atiende los vuelos extra-Schengen: Reino Unido, Estados Unidos, Oriente Medio y todas las rutas de larga distancia, en las que primero se hace cola en el control de pasaportes.",
+      "No tiene que averiguar cuál es la suya. El número de vuelo nos indica la terminal, y su chófer le espera en la sala de Llegadas correcta. Si la terminal cambia o el vuelo se desvía, el seguimiento lo detecta y el chófer se desplaza.",
+      "¿Reserva para otra persona: un cliente, uno de sus padres, un colega en su primer viaje a Praga? Indique su nombre al finalizar la reserva. El cartel mostrará su nombre, el chófer tendrá su vuelo y usted recibirá la confirmación."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre la recepción personalizada",
+  "faqs": [
+    {
+      "q": "¿Qué es el servicio de recepción personalizada en el aeropuerto de Praga?",
+      "a": "Su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre, se ocupa de su equipaje y le acompaña hasta el coche. Está incluida en todos los traslados al aeropuerto de Prestigo sin coste adicional."
+    },
+    {
+      "q": "¿Cuánto cuesta la recepción personalizada en el aeropuerto de Praga?",
+      "a": "La recepción en sí es gratuita: usted paga un precio fijo por el vehículo, desde €{businessPrice} por un Mercedes E-Class, €{vClassAirport} por un V-Class y €{sClassAirport} por un S-Class. El fast-track y el servicio de mozo de equipajes son los únicos extras y se presupuestan por llegada."
+    },
+    {
+      "q": "¿Dónde me esperará mi chófer en el aeropuerto de Praga?",
+      "a": "Dentro de la sala pública de Llegadas de su terminal —la Terminal 1 para vuelos extra-Schengen y la Terminal 2 para vuelos Schengen—, con un cartel con el nombre del pasajero. Además, recibe el teléfono del chófer antes de aterrizar."
+    },
+    {
+      "q": "¿Qué ocurre si mi vuelo se retrasa?",
+      "a": "Para usted no cambia nada. Seguimos el vuelo en directo y su chófer se adapta a la hora real de aterrizaje. Hasta 60 minutos de espera tras el aterrizaje están incluidos sin coste adicional."
+    },
+    {
+      "q": "¿Pueden organizar fast-track o una recepción VIP?",
+      "a": "Sí, a petición. Podemos añadir fast-track en el control de pasaportes y de seguridad, servicio de mozo de equipajes y un S-Class con chófer sénior. Como requiere la confirmación del aeropuerto, solicítelo al menos 24–48 horas antes de aterrizar."
+    },
+    {
+      "q": "¿Puedo reservar la recepción personalizada para otra persona?",
+      "a": "Sí. Indique el nombre del pasajero al reservar. El cartel mostrará su nombre, y usted recibirá la confirmación de la reserva y los datos del chófer."
+    },
+    {
+      "q": "¿Ofrecen también recepción personalizada para las salidas?",
+      "a": "Sí. Para una salida, su chófer le recoge en su puerta, le deja en la terminal correcta y, si lo desea, le ayuda con el equipaje hasta la zona de facturación."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Planifique el resto de su llegada.",
+    "links": [
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Tarifas, clases de vehículo y duración de los trayectos desde PRG a cualquier zona de Praga."
+      },
+      {
+        "href": "/faq/flight-delays",
+        "title": "Retrasos y cancelaciones de vuelos",
+        "body": "Qué ocurre cuando su vuelo llega tarde, antes de tiempo, se desvía o se cancela."
+      },
+      {
+        "href": "/faq/child-seats",
+        "title": "Sillas infantiles",
+        "body": "Portabebés, sillas infantiles y alzadores instalados antes de la recogida, sin coste."
+      },
+      {
+        "href": "/blog/prague-airport-meet-and-greet",
+        "title": "Guía de recepción personalizada",
+        "body": "Una guía más extensa sobre las opciones VIP, fast-track y salas en el aeropuerto de Praga."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Aterrice en Praga. Salga y encuentre su nombre.",
+    "headingItalic": "Desde €{businessPrice}, precio fijo."
+  }
+}

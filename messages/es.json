@@ -911,7 +911,9 @@
     "ctaFootnote": "Sin sorpresas. Sin taxímetros. Su chófer le estará esperando.",
     "bookOnline": "Reservar en línea",
     "bookNow": "Reservar ahora",
-    "allRoutes": "Todas las rutas"
+    "allRoutes": "Todas las rutas",
+    "otherDirection": "¿Viaja en sentido contrario?",
+    "otherDirectionCta": "Ver ruta"
   },
   "Common": {
     "loadingBooking": "Cargando formulario de reserva",

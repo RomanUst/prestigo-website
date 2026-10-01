@@ -911,7 +911,9 @@
     "ctaFootnote": "لا مفاجآت. لا عدّادات. سائقك في انتظارك.",
     "bookOnline": "احجز عبر الإنترنت",
     "bookNow": "احجز الآن",
-    "allRoutes": "جميع المسارات"
+    "allRoutes": "جميع المسارات",
+    "otherDirection": "هل تسافر في الاتجاه المعاكس؟",
+    "otherDirectionCta": "عرض المسار"
   },
   "Common": {
     "loadingBooking": "جارٍ تحميل نموذج الحجز",

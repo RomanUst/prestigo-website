@@ -911,7 +911,9 @@
     "ctaFootnote": "कोई आश्चर्य नहीं। कोई मीटर नहीं। आपका ड्राइवर प्रतीक्षा कर रहा है।",
     "bookOnline": "ऑनलाइन बुक करें",
     "bookNow": "अभी बुक करें",
-    "allRoutes": "सभी रूट"
+    "allRoutes": "सभी रूट",
+    "otherDirection": "उल्टी दिशा में यात्रा कर रहे हैं?",
+    "otherDirectionCta": "रूट देखें"
   },
   "Common": {
     "loadingBooking": "बुकिंग फ़ॉर्म लोड हो रहा है",

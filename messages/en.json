@@ -861,7 +861,9 @@
     "ctaFootnote": "No surprises. No meters. Your driver is waiting.",
     "bookOnline": "Book Online",
     "bookNow": "Book Now",
-    "allRoutes": "All Routes"
+    "allRoutes": "All Routes",
+    "otherDirection": "Travelling the other way?",
+    "otherDirectionCta": "View route"
   },
   "Common": {
     "loadingBooking": "Loading booking form",

@@ -31,7 +31,7 @@ type AirportTransferContent = {
   hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string; ctaPrimary: string; ctaSecondary: string; imageAlt: string }
   featuresHeading: string
   features: { title: string; body: string }[]
-  meetGreet: { label: string; heading: string; paragraph1: string; paragraph2: string; items: string[] }
+  meetGreet: { label: string; heading: string; paragraph1: string; paragraph2: string; items: string[]; moreLink: string }
   howItWorksHeading: string
   howItWorks: { step: string; title: string; body: string }[]
   journeyTimesHeading: string
@@ -211,6 +211,7 @@ export default async function AirportTransferPage() {
               <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>
                 {content.meetGreet.paragraph2}
               </p>
+              <a href={localizedHref(locale, '/services/airport-meet-and-greet')} className="font-body font-light text-[11px] tracking-[0.15em] uppercase mt-6 inline-block hover:text-offwhite transition-colors" style={{ color: 'var(--copper-light)' }}>{content.meetGreet.moreLink}</a>
             </div>
             <div className="flex flex-col gap-0">
               {meetGreetItems.map((line) => (

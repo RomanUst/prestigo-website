@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Hradec Králové → Praga",
+    "headlineLine1": "De Hradec Králové a Praga,",
+    "headlineItalic": "de puerta a puerta.",
+    "intro": "Un traslado de Hradec Králové a Praga con chófer privado: 115 km de puerta a puerta hacia el oeste por la autopista D11, en aproximadamente una hora y media de conducción. La tarifa fija de Prestigo comienza en €{ePrice} en un Mercedes-Benz E-Class, con combustible y viñeta checa incluidos. Recogida en cualquier dirección de Hradec Králové o en la estación principal, y llegada a cualquier dirección de Praga.",
+    "imageAlt": "Traslado con chófer privado de Hradec Králové a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Hradec Králové a Praga cubre 115 km —hacia el oeste por la autopista D11, pasando por Chlumec nad Cidlinou y Poděbrady, directamente hasta Praga— y dura aproximadamente una hora y media de puerta a puerta. La tarifa fija comienza en €{ePrice} en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde €{vPrice}; el S-Class está disponible desde €{sPrice} para viajes ejecutivos o VIP. Su chófer le recoge en su hotel, oficina o universidad de Hradec Králové, o en la estación principal, y le deja en la puerta de su hotel, apartamento o reunión en Praga, o en el aeropuerto Václav Havel para un vuelo de conexión.",
+    "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Sin horarios, sin transbordos, sin un segundo taxi al llegar a Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Hradec Králové a Praga",
+    "headingItalic": "en noventa minutos.",
+    "paragraphs": [
+      "Desde la recogida en el casco antiguo, a los pies de la Torre Blanca, en las calles funcionalistas trazadas por Kotěra y Gočár, o en la estación principal, su chófer sale de Hradec Králové hacia el oeste y toma la D11 a las afueras de la ciudad. En esta ruta no hay frontera: transcurre íntegramente dentro de la República Checa.",
+      "La D11 es una única autopista directa entre las dos ciudades. Avanza hacia el oeste por las llanuras agrícolas de los valles del Cidlina y del Elba, pasando por Chlumec nad Cidlinou y la ciudad balneario de Poděbrady, y entra en Praga por su borde nororiental. La distancia total es de aproximadamente 115 kilómetros; el tiempo de conducción, de una hora y media en condiciones normales de tráfico.",
+      "Su chófer consulta el estado de la D11 antes de salir. La hora punta de las tardes laborables y los domingos por la tarde ralentizan los últimos kilómetros hacia Praga; si hay un accidente u obras, deja la autopista por la carretera paralela sin preguntar. Llega a su dirección de Praga con el resto del día libre."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Hradec Králové hasta la llegada a Praga: el coche, el chófer, el combustible y la viñeta checa. Tras un congreso en la universidad, una visita al hospital o un fin de semana en familia, baja del coche en su puerta de Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro — E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional — inglés y checo fluidos. Alemán a petición.",
+    "Combustible, todos los peajes y la viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Hradec Králové, en la universidad o en la estación principal de Hradec Králové.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
+    "Paradas en el camino — Chlumec nad Cidlinou, Poděbrady o Nymburk — acordadas al reservar."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Clase Business", "capacity": "1–3 pasajeros", "bags": "2 maletas", "price": "Desde €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Clase Ejecutiva", "capacity": "1–3 pasajeros", "bags": "2 maletas", "price": "Desde €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Furgoneta Business", "capacity": "1–6 pasajeros", "bags": "6 maletas", "price": "Desde €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Hradec Králové a Praga,", "italic": "la ruta." },
+  "journeyStops": [
+    { "city": "Hradec Králové", "note": "Recogida en su hotel, su oficina, la universidad o la estación principal de Hradec Králové.", "anchor": true, "custom": false },
+    { "city": "Chlumec nad Cidlinou (opcional)", "note": "El palacio barroco de Karlova Koruna, a pocos minutos de la D11.", "anchor": false, "custom": false },
+    { "city": "Poděbrady (opcional)", "note": "Una ciudad balneario a orillas del Elba con un palacio junto al río y una larga columnata en el parque.", "anchor": false, "custom": false },
+    { "city": "Donde usted desee", "note": "¿Un palacio, una cervecería, un restaurante del que le han hablado? Díganoslo al reservar. La ruta es suya.", "anchor": false, "custom": true },
+    { "city": "Praga", "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Paso de frontera", "value": "Sin paso de frontera: Hradec Králové y Praga están ambas en la República Checa." },
+    { "label": "Peajes", "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado." },
+    { "label": "Ciudades gemelas", "value": "Pardubice está al lado. Podemos recoger pasajeros en ambas ciudades de camino a Praga: solicítelo al reservar." },
+    { "label": "Traslado de vuelta", "value": "¿Regresa a Hradec Králové más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida." }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga del trayecto",
+    "headingItalic": "parte del viaje.",
+    "intro": "La D11 pasa junto a una serie de pequeñas ciudades que merecen una hora de su tiempo. Tres paradas cubren la mayoría de lo que nos piden en el camino de Hradec Králové a Praga.",
+    "configurations": [
+      { "title": "El palacio de Karlova Koruna", "body": "Deje la D11 en Chlumec nad Cidlinou para visitar el palacio de Karlova Koruna, una residencia barroca sobre una suave colina construida según un diseño de Jan Blažej Santini. Cuarenta y cinco minutos en el interior y el parque y, después, de vuelta a la autopista.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." },
+      { "title": "La ciudad balneario de Poděbrady", "body": "A mitad de camino hacia Praga, Poděbrady tiene un palacio a orillas del Elba, un parque balneario y una columnata hecha para pasear sin prisas. Una hora para un café o un almuerzo y, después, cuarenta minutos hasta su dirección de Praga.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." },
+      { "title": "Las antiguas murallas de Nymburk", "body": "Un breve desvío desde Poděbrady le lleva a Nymburk, una ciudad real que conserva sus fortificaciones de ladrillo y una iglesia gótica. Cuarenta y cinco minutos a pie y, después, a Praga a media tarde.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se tarifican según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmamos un presupuesto en firme antes de reservar. Una breve parada en la autopista para tomar un café o descansar siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le espera en la puerta de su hotel, oficina o facultad en Hradec Králové, no al otro lado de la plaza. Las maletas se cargan una sola vez y no salen del maletero hasta Praga.",
+    "Aproveche los noventa minutos como prefiera: una llamada, un informe, una siesta. Si quiere saber qué le espera en Praga —cómo es el barrio de su hotel por la noche, dónde comer cerca de la Ciudad Vieja, cuánto tiempo necesita de verdad el aeropuerto—, pregunte. Su chófer trabaja en Praga todos los días.",
+    "El agua, el cargador y el wifi ya están en la cabina. Si desea un café en Poděbrady o una cabina más fresca, solo tiene que decirlo. A la llegada, su chófer lleva el equipaje hasta la recepción, no solo hasta la acera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Hradec Králové a Praga.",
+    "items": [
+      { "title": "El precio es fijo", "body": "El combustible, la viñeta checa y el tiempo del chófer están incluidos en la tarifa. No se añade nada al llegar a Praga." },
+      { "title": "De puerta a puerta, sin transbordos", "body": "Sin desplazarse a la estación, sin andenes, sin taxi al otro extremo. Su equipaje se carga en Hradec Králové y se descarga en su dirección de Praga." },
+      { "title": "Conocemos Praga", "body": "Prestigo es una empresa de Praga con su propia flota de Mercedes. Su chófer conoce las entradas de los hoteles, las normas de acceso a la Ciudad Vieja y la ruta más rápida al aeropuerto." }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    { "q": "¿Cuánto dura un traslado privado de Hradec Králové a Praga?", "a": "Aproximadamente 1 hora y 30 minutos de puerta a puerta por la autopista D11, que une directamente las dos ciudades. La hora punta de las tardes laborables a la entrada de Praga puede añadir 10–15 minutos." },
+    { "q": "¿Cuánto cuesta un taxi o un chófer de Hradec Králové a Praga?", "a": "Una tarifa fija desde €{ePrice} en un Mercedes E-Class para un máximo de 3 pasajeros, €{vPrice} en el V-Class para un máximo de 6, o €{sPrice} en el S-Class. El precio incluye combustible, la viñeta de autopista checa y el tiempo del chófer, y es por vehículo, no por persona." },
+    { "q": "¿Pueden recogerme en la estación de Hradec Králové o en mi hotel?", "a": "Sí. Su chófer puede recogerle en la estación principal de Hradec Králové, en cualquier hotel, oficina o edificio universitario, o en una dirección particular. Indíquenos el lugar y la hora al reservar, y le estará esperando en la puerta." },
+    { "q": "¿Es mejor un traslado privado que el autobús o el tren de Hradec Králové a Praga?", "a": "Entre las dos ciudades circulan autobuses y trenes directos y, para quien viaja solo y con poco equipaje, son la opción más económica. Un traslado privado le ahorra los desplazamientos a y desde las estaciones, sale cuando usted esté listo, lleva todo su equipaje y cuesta lo mismo para un pasajero que para tres." },
+    { "q": "¿Podemos parar en el camino de Hradec Králové a Praga?", "a": "Sí. Chlumec nad Cidlinou, Poděbrady y Nymburk son las paradas habituales. Díganoslo al reservar y la incluiremos en un presupuesto fijo. Una breve parada para tomar un café o descansar siempre está incluida." },
+    { "q": "¿Pueden recoger pasajeros en Hradec Králové y Pardubice en una sola reserva?", "a": "Sí. Las dos ciudades son vecinas y podemos recoger pasajeros en ambas de camino a Praga. Indíquenos las dos direcciones al reservar y le confirmaremos un único presupuesto fijo." }
+  ],
+  "relatedRoutesIntro": "Hradec Králové es una de las varias rutas de Bohemia Oriental y del Norte hacia Praga. Los clientes que llegan desde Pardubice, Liberec o Kutná Hora reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": { "line1": "Más formas de llegar", "italic": "a Praga." },
+  "relatedRoutes": [
+    { "slug": "pardubice-prague", "city": "Pardubice", "label": "Pardubice → Praga", "distance": "110 km", "duration": "1 h 30 min" },
+    { "slug": "liberec-prague", "city": "Liberec", "label": "Liberec → Praga", "distance": "105 km", "duration": "1 h 30 min" },
+    { "slug": "kutna-hora-prague", "city": "Kutná Hora", "label": "Kutná Hora → Praga", "distance": "70 km", "duration": "1 h" },
+    { "slug": "wroclaw-prague", "city": "Breslavia", "label": "Breslavia → Praga", "distance": "285 km", "duration": "3 h" }
+  ],
+  "highlights": [
+    { "label": "Distancia", "value": "~115 km" },
+    { "label": "Duración", "value": "~1,5 horas" },
+    { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Furgoneta Business"] },
+    { "label": "Precio desde", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Hradec Králové a Praga.",
+    "headingItalic": "Desde €{ePrice}, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Hradec Králové a Praga — Desde €{ePrice}",
+    "description": "Traslado privado de Hradec Králové a Praga: 115 km de puerta a puerta en un Mercedes E, S o V-Class. Recogida en cualquier dirección. Precio fijo desde €{ePrice}.",
+    "ogTitle": "Traslado privado con chófer de Hradec Králové a Praga — Desde €{ePrice}",
+    "ogDescription": "Traslado privado de Hradec Králové a Praga: 115 km de puerta a puerta en un Mercedes E, S o V-Class. Recogida en cualquier dirección. Precio fijo desde €{ePrice}."
+  }
+}

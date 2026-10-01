@@ -911,7 +911,9 @@
     "ctaFootnote": "Aucune surprise. Aucun compteur. Votre chauffeur vous attend.",
     "bookOnline": "Réserver en ligne",
     "bookNow": "Réserver maintenant",
-    "allRoutes": "Tous les itinéraires"
+    "allRoutes": "Tous les itinéraires",
+    "otherDirection": "Vous voyagez dans l’autre sens ?",
+    "otherDirectionCta": "Voir l’itinéraire"
   },
   "Common": {
     "loadingBooking": "Chargement du formulaire de réservation",

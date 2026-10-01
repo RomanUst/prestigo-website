@@ -1,8 +1,9 @@
 import { MetadataRoute } from 'next'
-import { ROUTES } from '@/lib/routes'
+import { ROUTES, MIRROR_ROUTES } from '@/lib/routes'
 import { lastModFor } from '@/lib/lastmod'
 import { getAllPosts, JSX_POSTS } from '@/lib/blog'
 import { getAlternates, type ContentRef } from '@/lib/seo'
+import { LANDING_PAGES } from '@/lib/landing-pages'
 
 const BASE = 'https://rideprestigo.com'
 
@@ -43,6 +44,24 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry(`/routes/${r.slug}`, `app/[locale]/routes/${r.slug}/page.tsx`, {
       indexable: true,
       content: { kind: 'route', key: r.slug },
+    }),
+  )
+
+  // Inbound mirrors ({city} → Prague) share one dynamic template, so their
+  // lastmod tracks that template file.
+  const mirrorRouteEntries: MetadataRoute.Sitemap = MIRROR_ROUTES.map((r) =>
+    entry(`/routes/${r.slug}`, 'app/[locale]/routes/[slug]/page.tsx', {
+      indexable: true,
+      content: { kind: 'route', key: r.slug },
+    }),
+  )
+
+  // Keyword-variant landing pages (/services/<slug>, /faq/<slug>) share the
+  // dynamic [slug] template of their section.
+  const landingEntries: MetadataRoute.Sitemap = LANDING_PAGES.map((p) =>
+    entry(`/${p.section}/${p.slug}`, `app/[locale]/${p.section}/[slug]/page.tsx`, {
+      indexable: true,
+      content: { kind: 'page', key: `${p.section}/${p.slug}` },
     }),
   )
 
@@ -91,6 +110,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entry('/fleet', 'app/[locale]/fleet/page.tsx', { indexable: true }),
     entry('/routes', 'app/[locale]/routes/page.tsx', { indexable: true }),
     ...routeEntries,
+    ...mirrorRouteEntries,
     // Blog hub + migrated JSX articles (Phase 56 MIG-04)
     // JSX_POSTS is the single source of truth — slugs are derived, not hardcoded.
     entry('/blog', 'app/[locale]/blog/page.tsx', { indexable: true, content: { kind: 'page', key: 'blog' } }),
@@ -110,6 +130,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     }),
     entry('/about', 'app/[locale]/about/page.tsx', { indexable: true, content: { kind: 'page', key: 'about' } }),
     entry('/faq', 'app/[locale]/faq/page.tsx', { indexable: true, content: { kind: 'page', key: 'faq' } }),
+    ...landingEntries,
     entry('/contact', 'app/[locale]/contact/page.tsx', {
       indexable: true,
       content: { kind: 'page', key: 'contact' },

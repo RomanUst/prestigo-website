@@ -1,0 +1,257 @@
+{
+  "hero": {
+    "label": "Leipzig → Prague",
+    "headlineLine1": "De Leipzig à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Leipzig à Prague avec chauffeur privé, c'est un transfert de porte à porte de 260 km via Dresde par l'A14, l'A17 et la D8, soit environ 2 h 45 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Leipzig, à Leipzig Hauptbahnhof ou à l'aéroport de Leipzig/Halle (LEJ), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Leipzig à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Leipzig à Prague couvre environ 260 km — vers le sud-est à travers la Saxe en direction de Dresde, vers le sud par l'A17 à travers les monts Métallifères, puis l'autoroute tchèque D8 jusqu'à Prague — et demande environ 2 h 45 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel près du Markt, à la Messe, à Leipzig Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Leipzig/Halle, et vous dépose devant la porte à Prague.",
+    "Le tarif est fixé à la réservation : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Pas de changement de train à Dresde, pas de valises à porter d'un quai à l'autre et pas de taxi à chercher à l'arrivée à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Leipzig à Prague",
+    "headingItalic": "en moins de trois heures.",
+    "paragraphs": [
+      "Après une prise en charge dans le centre, à la Neue Messe ou à l'aéroport de Leipzig/Halle, votre chauffeur part vers le sud-est par l'A14 à travers les grandes plaines agricoles de Saxe, puis rejoint l'A4 jusqu'à Dresde. Les autoroutes allemandes sont gratuites pour les voitures. Meissen se trouve juste à côté de ce tronçon, et Dresde arrive à peu près à mi-parcours — un endroit idéal pour une pause.",
+      "Au sud de Dresde, l'A17 grimpe dans l'est des monts Métallifères et franchit la frontière tchèque sur l'autoroute, au sein de l'espace Schengen : pas de contrôle systématique, pas de file. La route devient la D8, descend au-delà d'Ústí nad Labem et de Lovosice et traverse la plaine de Bohême jusqu'à Prague. La distance totale est d'environ 260 kilomètres ; le temps de conduite est d'environ 2 h 45 en circulation normale.",
+      "Votre chauffeur vérifie l'A14, l'A17 et la D8 avant le départ. Si des travaux ou un accident ferment un tronçon, il change d'itinéraire sans avoir à demander. Vous arrivez à Prague avec l'après-midi ou la soirée devant vous — le temps de vous installer, de marcher jusqu'à la place de la Vieille-Ville et de passer à table."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Leipzig à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Après un salon, un concert ou une semaine de travail en Saxe, vous descendez devant la porte sans plus rien à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant et vignette autoroutière tchèque. Les autoroutes allemandes sont gratuites pour les voitures : aucun supplément facturé.",
+    "Prise en charge à toute adresse de Leipzig, à la Messe, à Leipzig Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Leipzig/Halle (LEJ), avec suivi de vol.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en chemin — Meissen, Dresde ou Terezín — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Leipzig à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Leipzig",
+      "note": "Prise en charge à votre hôtel, à votre bureau, à la Messe, à Leipzig Hauptbahnhof ou à l'aéroport de Leipzig/Halle (LEJ). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Meissen (facultatif)",
+      "note": "La ville de la porcelaine au bord de l'Elbe, à un court détour de l'autoroute — le château d'Albrechtsburg et la cathédrale au-dessus du fleuve.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Dresde (facultatif)",
+      "note": "À peu près à mi-chemin. Un déjeuner dans l'Altstadt, une heure au Zwinger ou une promenade devant la Frauenkirche.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un point de vue dans les monts Métallifères, un restaurant, un rendez-vous en chemin ? Dites-le-nous à la réservation.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à toute adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen germano-tchèque sur l'autoroute A17/D8, au sud de Dresde. Pas de contrôle de passeport systématique — les passagers hors UE doivent tout de même se munir de leur passeport et de leur visa."
+    },
+    {
+      "label": "Péages",
+      "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué. Les autoroutes allemandes sont gratuites pour les voitures."
+    },
+    {
+      "label": "Prise en charge à l'aéroport",
+      "value": "L'aéroport de Leipzig/Halle se trouve au nord-ouest de la ville. Communiquez-nous votre numéro de vol : votre chauffeur suit l'atterrissage, avec 60 minutes d'attente offertes."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez à Leipzig plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    }
+  ],
+  "dayTripLabel": "Arrêts en chemin",
+  "dayTrip": {
+    "headingLine1": "La Saxe en chemin",
+    "headingItalic": "vers la Bohême.",
+    "intro": "La route de Leipzig à Prague passe par quelques-unes des villes les plus connues de Saxe. Trois arrêts couvrent l'essentiel de ce que nos clients nous demandent d'ajouter.",
+    "configurations": [
+      {
+        "title": "Meissen et l'Albrechtsburg",
+        "body": "Départ de Leipzig à 9 h et une heure à Meissen — la cathédrale gothique, le château au-dessus de l'Elbe et, si vous le souhaitez, les salles d'exposition de la manufacture de porcelaine. Retour sur l'autoroute et arrivée à Prague en milieu d'après-midi.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Déjeuner à Dresde",
+        "body": "Dresde se trouve à peu près à mi-chemin. Quatre-vingt-dix minutes pour déjeuner près du Neumarkt, ou une visite réservée à l'avance de la Voûte verte. De là, comptez environ deux heures jusqu'à votre porte à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Mémorial de Terezín",
+        "body": "À quelques minutes de la D8, près de Lovosice, l'ancienne ville forteresse et son mémorial demandent environ deux heures. Le reste du trajet jusqu'à Prague prend moins d'une heure.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — indiquez-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos en chemin est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous attend dans le hall de l'hôtel ou à l'entrée de la Messe que vous indiquez, pas quelque part sur le parking. À l'aéroport de Leipzig/Halle, il vous attend dans le hall des arrivées avec une pancarte à votre nom et s'occupe des bagages à partir de là.",
+    "Près de trois heures, c'est du temps utile. Terminez vos notes de salon, passez vos appels ou dormez — votre chauffeur ne cherchera pas à combler le silence. Si vous souhaitez quelques mots sur Prague avant d'arriver, il la connaît bien : les quartiers, les hôtels, le chemin le plus court à travers la Vieille Ville.",
+    "Eau, chargeur et Wi-Fi vous attendent dans la cabine. Si vous voulez un café à Dresde ou une route plus calme à travers les monts Métallifères, dites-le. À Prague, vos bagages vous accompagnent jusqu'à la réception."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Leipzig à Prague.",
+    "items": [
+      {
+        "title": "Un prix qui ne bouge pas",
+        "body": "Carburant, vignette tchèque et temps du chauffeur sont inclus. Le tarif annoncé à Leipzig est celui que vous payez à Prague."
+      },
+      {
+        "title": "Pas de changement à Dresde",
+        "body": "En train, le trajet de Leipzig à Prague implique généralement une correspondance. En voiture, les bagages sont chargés une fois à votre hôtel de Leipzig et ressortent devant votre porte à Prague."
+      },
+      {
+        "title": "Basés à Prague",
+        "body": "Prestigo est une société pragoise avec sa propre flotte Mercedes. Votre chauffeur connaît la ville où vous vous rendez — les entrées d'hôtels, les sens uniques, le chemin le plus rapide vers une réservation de dîner tardive."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Leipzig à Prague ?",
+      "a": "Environ 2 h 45 de porte à porte, via Dresde par l'A14, l'A4 et l'A17, puis la D8 de la frontière jusqu'à Prague. Le vendredi après-midi, la circulation peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Leipzig à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Carburant, vignette autoroutière tchèque et temps du chauffeur sont inclus — par véhicule, et non par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à l'aéroport de Leipzig/Halle ou à Leipzig Hauptbahnhof ?",
+      "a": "Oui. Communiquez-nous votre numéro de vol : votre chauffeur suit l'atterrissage à l'aéroport de Leipzig/Halle, vous attend dans le hall des arrivées avec votre nom et vous conduit directement à Prague. Les prises en charge à Leipzig Hauptbahnhof, à la Messe ou dans n'importe quel hôtel s'organisent de la même façon."
+    },
+    {
+      "q": "Un transfert privé vaut-il mieux que le train de Leipzig à Prague ?",
+      "a": "Le train implique généralement un changement à Dresde et prend plus de temps que la route une fois ajoutés les trajets vers et depuis les gares. Pour un voyageur seul et peu chargé, le train reste l'option la moins chère. Pour un groupe, une famille ou toute personne avec des bagages, la voiture privée va de porte à porte et coûte le même prix pour un ou trois passagers."
+    },
+    {
+      "q": "Peut-on s'arrêter en chemin entre Leipzig et Prague ?",
+      "a": "Oui. Meissen, Dresde et le mémorial de Terezín sont les demandes les plus courantes. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse."
+    },
+    {
+      "q": "Faut-il un passeport entre l'Allemagne et la République tchèque ?",
+      "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc pas de contrôle systématique à la frontière sur l'autoroute. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux."
+    }
+  ],
+  "relatedRoutesIntro": "Le trajet de Leipzig à Prague suit souvent un salon professionnel ou un circuit dans l'est de l'Allemagne. Les clients venant de Dresde, Berlin ou Nuremberg réservent de la même façon — une voiture, un tarif fixe, une dépose devant la porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "dresden-prague",
+      "city": "Dresde",
+      "label": "Dresde → Prague",
+      "distance": "150 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "berlin-prague",
+      "city": "Berlin",
+      "label": "Berlin → Prague",
+      "distance": "350 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "nuremberg-prague",
+      "city": "Nuremberg",
+      "label": "Nuremberg → Prague",
+      "distance": "360 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "karlovy-vary-prague",
+      "city": "Karlovy Vary",
+      "label": "Karlovy Vary → Prague",
+      "distance": "130 km",
+      "duration": "1 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~260 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 h 45"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Leipzig à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Leipzig – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Leipzig à Prague — 260 km de porte à porte en Mercedes E, S ou V. Prise en charge à Leipzig ou à l'aéroport LEJ. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé Leipzig – Prague avec chauffeur — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Leipzig à Prague — 260 km de porte à porte en Mercedes E, S ou V. Prise en charge à Leipzig ou à l'aéroport LEJ. Prix fixe dès {ePrice} €."
+  }
+}

@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Liberec → Prague",
+    "headlineLine1": "Liberec to Prague,",
+    "headlineItalic": "door to door.",
+    "intro": "Liberec to Prague by private chauffeur is a 105 km door-to-door transfer south through Turnov and Mladá Boleslav on the D10, around one and a half hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech vignette included. Pickup from any Liberec address or a Jizera Mountains hotel, drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Liberec to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Liberec to Prague covers 105 km — south out of the Jizera foothills to Turnov, then the D10 motorway through Mladá Boleslav into Prague — and takes approximately one and a half hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Liberec hotel or office, Liberec station, or a mountain hotel in the Jizera Mountains, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "The fare is agreed before you travel and does not move: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. Skis, boots and suitcases go in the boot once, and come out again at your Prague address."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Liberec to Prague",
+    "headingItalic": "in ninety minutes.",
+    "paragraphs": [
+      "From a pickup near the Town Hall, at the foot of Ještěd or at a hotel in the hills, your chauffeur leaves Liberec on the four-lane road south. The first half hour runs through wooded valleys to Turnov, the northern gateway to the Bohemian Paradise — sandstone rock towns and the ruined towers of Trosky Castle visible to the east on a clear day.",
+      "At Turnov the road becomes the D10 motorway, which carries you past Mladá Boleslav, home of Škoda, and on across the flat Elbe plain to the north-eastern edge of Prague. Total distance is approximately 105 kilometres; driving time is about one and a half hours in normal traffic. There is no border on this route — it stays entirely inside the Czech Republic.",
+      "Your chauffeur checks the D10 before you leave. Sunday evenings in ski season and weekday rush hour slow the approach to Prague; if there is an accident or roadwork, they take an older road through the villages without asking. You arrive with the afternoon or evening still yours."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Liberec pickup to your Prague drop-off: the car, the chauffeur, fuel and the Czech vignette. After a week in the mountains, a business visit or a stay with family in North Bohemia, you step out at your Prague door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request.",
+    "Fuel, all tolls and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any Liberec address, Liberec station, or a Jizera Mountains hotel agreed at booking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Jablonec nad Nisou, the Bohemian Paradise or Mladá Boleslav — agreed at booking."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Liberec to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Liberec", "note": "Pickup from your hotel, office, Liberec station or a Jizera Mountains hotel agreed at booking.", "anchor": true, "custom": false },
+    { "city": "Turnov (optional)", "note": "The gateway to the Bohemian Paradise — sandstone rocks, castle ruins and a good place to stretch your legs.", "anchor": false, "custom": false },
+    { "city": "Mladá Boleslav (optional)", "note": "Right on the D10. The Škoda Museum, or simply lunch before the last stretch into Prague.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A castle, a glassworks, a restaurant you have heard about? Tell us at booking. The route is yours.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "No border crossing — Liberec and Prague are both in the Czech Republic." },
+    { "label": "Tolls", "value": "The Czech motorway vignette and any tolls are included in the quoted price." },
+    { "label": "Mountain pickup", "value": "Staying at a Jizera Mountains hotel? Give us the address at booking and it is included in your fixed quote. Ski bags fit in the V-Class with room to spare." },
+    { "label": "Return transfer", "value": "Travelling back to Liberec later? Book both directions together for a reduced rate." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Make the drive",
+    "headingItalic": "part of the trip.",
+    "intro": "Ninety minutes through North Bohemia passes some of the country’s most distinctive landscape. Three stops cover most of the requests we get on the way from Liberec to Prague.",
+    "configurations": [
+      { "title": "Glass and Jewellery in Jablonec", "body": "Start in Jablonec nad Nisou, a few minutes from Liberec, at the Museum of Glass and Jewellery — the story of the Bohemian bead and costume-jewellery trade. An hour inside, then south toward Prague.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "The Bohemian Paradise", "body": "Turn off near Turnov for Hrubá Skála and the sandstone rock town below it, or the twin towers of Trosky Castle. Ninety minutes on foot among the rocks, then on to Prague by mid-afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "The Škoda Museum in Mladá Boleslav", "body": "Mladá Boleslav sits directly on the D10. The Škoda Museum traces more than a century of Czech car-making, from Laurin & Klement to today. An hour inside, then forty minutes into Prague.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur meets you at the door — of your Liberec hotel, your office, or the mountain hotel where you have spent the week. Skis, boots and cases are loaded for you; there is no carrying gear down to a bus stop.",
+    "Ninety minutes is enough for a short sleep after a week on the slopes, a call or two, or a few questions about Prague. Which district is your hotel in, where to walk in the evening, how long the airport really needs — your chauffeur lives in Prague and will tell you.",
+    "Water, charger and Wi-Fi are ready in the back. If you want a coffee in Turnov or a different temperature in the cabin, say so. In Prague your chauffeur carries the bags to reception, not just to the kerb."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Liberec to Prague.",
+    "items": [
+      { "title": "One fixed fare", "body": "Fuel, the Czech vignette and the chauffeur’s time are all in the price. Nothing is added on arrival in Prague." },
+      { "title": "Gear and all, door to door", "body": "No hauling ski bags onto a coach, no taxi from the Prague bus terminal. Everything goes into the car once in Liberec and comes out at your Prague door." },
+      { "title": "Based in Prague", "body": "Prestigo is a Prague company with its own Mercedes fleet. Your chauffeur knows the city you are heading into — hotel entrances, Old Town access, the fastest way to the airport." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Liberec to Prague take?", "a": "Approximately 1 hour 30 minutes door to door: south to Turnov, then the D10 motorway through Mladá Boleslav into Prague. Sunday evenings in ski season and weekday rush hour can add 15–20 minutes." },
+    { "q": "How much is a taxi or chauffeur from Liberec to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech motorway vignette and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at Liberec station or my hotel?", "a": "Yes. Your chauffeur can meet you at Liberec station, at any hotel or office in the city, or at a Jizera Mountains hotel agreed at booking. Give us the address and time and they are waiting at the door." },
+    { "q": "Is a private transfer better than the bus or train from Liberec to Prague?", "a": "The direct bus is the usual public option and, for a solo traveller with light luggage, the cheaper one; the train is noticeably slower. A private transfer leaves from your door when you are ready, carries skis and suitcases without fuss and costs the same for one passenger or three." },
+    { "q": "Can we stop on the way from Liberec to Prague?", "a": "Yes. Jablonec nad Nisou, the Bohemian Paradise around Turnov and the Škoda Museum in Mladá Boleslav are the usual stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included." },
+    { "q": "Can you collect us from a ski hotel in the Jizera Mountains?", "a": "Yes. Tell us the hotel at booking and we include the extra distance in your fixed quote. For a family or group with ski equipment, the V-Class takes up to 6 passengers and 6 bags." }
+  ],
+  "relatedRoutesIntro": "Liberec is one of several northern routes into Prague. Clients arriving from Dresden, Hradec Králové or Wrocław book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "dresden-prague", "city": "Dresden", "label": "Dresden → Prague", "distance": "150 km", "duration": "2h" },
+    { "slug": "hradec-kralove-prague", "city": "Hradec Králové", "label": "Hradec Králové → Prague", "distance": "115 km", "duration": "1h 30min" },
+    { "slug": "wroclaw-prague", "city": "Wrocław", "label": "Wrocław → Prague", "distance": "285 km", "duration": "3h" },
+    { "slug": "pardubice-prague", "city": "Pardubice", "label": "Pardubice → Prague", "distance": "110 km", "duration": "1h 30min" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~105 km" },
+    { "label": "Duration", "value": "~1.5 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Liberec to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Liberec to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Liberec to Prague transfer — 105 km door to door in a Mercedes E, S or V-Class. Pickup at any Liberec address. Fixed price from €{ePrice}.",
+    "ogTitle": "Liberec to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Liberec to Prague transfer — 105 km door to door in a Mercedes E, S or V-Class. Pickup at any Liberec address. Fixed price from €{ePrice}."
+  }
+}

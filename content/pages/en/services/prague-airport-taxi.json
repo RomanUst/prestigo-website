@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Prague Airport Taxi — Fixed-Price PRG Car to the City",
+    "description": "Prague airport taxi alternative: a pre-booked fixed-price Mercedes from PRG to the city centre, driver waiting inside Arrivals, 24/7. From €{businessPrice}.",
+    "ogTitle": "Prague Airport Taxi — Fixed Price from PRG to the City Centre"
+  },
+  "breadcrumbName": "Prague Airport Taxi",
+  "hero": {
+    "label": "Airport Taxi · Prague PRG",
+    "headlineLine1": "A Prague airport taxi,",
+    "headlineItalic": "priced before you land.",
+    "intro": "Looking for a taxi from Prague Václav Havel Airport (PRG)? Prestigo is the pre-booked alternative to the taxi rank: a private Mercedes with a fixed price agreed at booking, a driver waiting inside Arrivals with your name, and no queue at the kerb. Day or night, to any address in Prague, from €{businessPrice} per car.",
+    "ctaPrimary": "Book Your Airport Car",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Mercedes S-Class rear cabin at sunset with the Prague skyline through the window"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      { "label": "Price", "value": "Fixed at booking — Mercedes E-Class from €{businessPrice} per car, tolls included" },
+      { "label": "Time to centre", "value": "About 25–30 minutes to central Prague in normal traffic" },
+      { "label": "Waiting", "value": "Driver inside Arrivals, 60 minutes free after landing" },
+      { "label": "Hours", "value": "24/7, including late-night and early-morning arrivals" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Taxi rank or pre-booked car —",
+    "headingItalic": "the honest difference.",
+    "paragraphs": [
+      "When you walk out of Arrivals at PRG, you can take a car from the rank outside or a car you booked in advance. Both get you to the city. The difference is what you know, and when you know it.",
+      "With a car from the rank, the final fare depends on the meter, the route and the traffic on the day. With Prestigo, you agree the price when you book, before you leave home. Your driver is already inside the terminal when you come through the doors, and there is no line to stand in after a long flight.",
+      "We are not a street taxi. We do not pick up passengers at the rank, and every journey is booked ahead. That is the point: the car, the driver and the fare are settled before your plane touches down."
+    ]
+  },
+  "features": {
+    "label": "Why pre-book",
+    "headingLine1": "What changes when the car",
+    "headingItalic": "is booked in advance.",
+    "items": [
+      { "title": "Price known before you fly", "body": "The fare you see at checkout is the fare you pay. No meter, no surcharge for night arrivals, no extra for traffic on the motorway into the city." },
+      { "title": "No queue at the kerb", "body": "Your driver waits inside the Arrivals hall with a name board — Terminal 1 for non-Schengen flights, Terminal 2 for Schengen. You walk out to a person, not to a line." },
+      { "title": "Late flights covered", "body": "We track your flight live. If you land at midnight or two hours late, the driver adjusts, and 60 minutes of waiting after landing costs nothing." },
+      { "title": "Room for luggage", "body": "An E-Class takes up to three passengers. A V-Class takes six passengers and six large bags, so a family or a group travels in one car at one price." },
+      { "title": "Recent Mercedes cars", "body": "E-Class, S-Class and V-Class, every vehicle under three years old, with Wi-Fi, water and a phone charger on board." },
+      { "title": "Child seats at no charge", "body": "Infant, toddler and booster seats are free on request. Tell us the child’s age at booking and the seat is fitted before pickup." }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "From booking to your hotel door.",
+    "items": [
+      { "title": "Book online", "body": "Enter your flight number and the Prague address. Choose E-Class, V-Class or S-Class and see the fixed price before you pay." },
+      { "title": "Get your driver’s details", "body": "You receive the driver’s name and phone number before you land. We follow the flight from take-off." },
+      { "title": "Walk out to your name", "body": "After baggage reclaim, your driver is waiting in the Arrivals hall with a name board and takes your cases." },
+      { "title": "Straight to the address", "body": "About 25 minutes to the Old Town or Smíchov, around 30 to Vinohrady or Holešovice. The price stays the same whatever the traffic." }
+    ]
+  },
+  "editorial": {
+    "label": "District by district",
+    "headingLine1": "How long, and how much,",
+    "headingItalic": "to each part of Prague.",
+    "paragraphs": [
+      "Prague Airport is about 20 km northwest of the centre. In normal daytime traffic, the drive takes around 25 minutes to the Old Town, Wenceslas Square or Smíchov, about 28 minutes to Nusle and Pankrác, and around 30 minutes to Vinohrady, Žižkov, Holešovice and Letná. Karlín is about 32 minutes. Allow five to ten minutes more in the morning and evening rush.",
+      "The fare does not change with the district or the clock. Inside Prague, an E-Class costs from €{businessPrice}, a V-Class for up to six from €{vClassAirport} and an S-Class from €{sClassAirport} — per car, not per person, with tolls included.",
+      "Whatever car you take from any airport, a few habits keep the fare fair: agree the price before you set off, use a licensed service you can identify, and ask for a receipt at the end. Pre-booking does all three for you — the price, the company and the driver are on your confirmation before you travel."
+    ]
+  },
+  "faqsHeading": "Prague airport taxi questions",
+  "faqs": [
+    { "q": "How much is a taxi from Prague airport to the city centre?", "a": "With Prestigo, a private Mercedes E-Class from PRG to any address in central Prague costs from €{businessPrice} per car, fixed at booking. A V-Class for up to six is from €{vClassAirport} and an S-Class from €{sClassAirport}. Tolls are included and there is no night surcharge." },
+    { "q": "Are taxis available 24/7 at Prague Airport, including late-night arrivals?", "a": "Yes. Prestigo runs 24/7, every day of the year, and late-night and early-morning arrivals are routine. Book online at least 12 hours ahead; for a last-minute arrival call +420 725 986 855." },
+    { "q": "How long is the taxi ride from Prague airport to the centre?", "a": "About 25–30 minutes in normal traffic. The Old Town and Smíchov are around 25 minutes away, Vinohrady and Holešovice around 30, Karlín about 32. Allow 5–10 minutes more at rush hour." },
+    { "q": "How do I avoid being overcharged by a taxi in Prague?", "a": "Agree the price before the journey starts, use a licensed service you can identify, and ask for a receipt. With a pre-booked car the price is fixed when you book, so there is nothing to negotiate on arrival." },
+    { "q": "Can I pre-book a taxi from Prague airport?", "a": "Yes. Book online with your flight number and destination at least 12 hours ahead. Your driver tracks the flight and waits inside Arrivals with a name board, with 60 minutes free waiting after landing." },
+    { "q": "Is there a taxi big enough for 6 people and luggage?", "a": "Yes. The Mercedes V-Class seats up to six passengers with six large bags, from €{vClassAirport} per car to central Prague. For larger groups we send more than one vehicle." },
+    { "q": "What if my flight is cancelled or I need to cancel?", "a": "If your flight is cancelled, you can reschedule free of charge or receive a full refund. You can also cancel free of charge up to 1 hour before pickup." },
+    { "q": "How can I pay?", "a": "By Visa or Mastercard when you book online, or by bank transfer. Companies can receive invoices." }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "More about arriving in Prague.",
+    "links": [
+      { "href": "/services/airport-transfer", "title": "Prague Airport Transfer", "body": "Vehicle classes, fares and journey times from PRG to every part of Prague." },
+      { "href": "/services/airport-meet-and-greet", "title": "Airport Meet & Greet", "body": "How the name-board welcome inside Arrivals works at Terminal 1 and Terminal 2." },
+      { "href": "/blog/prague-airport-taxi-vs-chauffeur", "title": "Taxi or chauffeur?", "body": "A closer look at the options for getting from PRG into the city." },
+      { "href": "/services/group-transfers", "title": "Group transfers", "body": "Several vehicles for larger parties, teams and events arriving together." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Know the fare before you fly.",
+    "headingItalic": "From €{businessPrice}, fixed."
+  }
+}

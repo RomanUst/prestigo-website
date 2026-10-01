@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "布拉格机场接送与举牌接机服务 — PRG",
-    "description": "布拉格机场举牌接机与专车接送服务，从 PRG 出发。抵达大厅举牌迎接、航班实时追踪，可应требование安排 VIP 与快速通道。€{businessPrice} 起，全天候 24/7 服务。",
+    "description": "布拉格机场举牌接机与专车接送服务，从 PRG 出发。抵达大厅举牌迎接、航班实时追踪，可应要求安排 VIP 与快速通道。€{businessPrice} 起，全天候 24/7 服务。",
     "ogTitle": "布拉格机场举牌接机与接送服务 — PRG | PRESTIGO"
   },
   "hero": {
@@ -44,7 +44,8 @@
       "行李从大厅一路搬运至车辆",
       "可应要求安排入境快速通道",
       "可应要求安排 VIP S-Class 及多车团队用车"
-    ]
+    ],
+    "moreLink": "了解布拉格机场接机服务详情 →"
   },
   "howItWorksHeading": "服务流程",
   "howItWorks": [

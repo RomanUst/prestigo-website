@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "title": "Accueil personnalisé à l'aéroport de Prague — PRG",
+    "description": "Accueil personnalisé à l'aéroport de Prague : chauffeur aux arrivées de PRG avec pancarte, 60 min d'attente offertes, suivi du vol. Mercedes dès {businessPrice} €.",
+    "ogTitle": "Accueil personnalisé à l'aéroport de Prague — pancarte nominative aux arrivées de PRG"
+  },
+  "breadcrumbName": "Accueil personnalisé à l'aéroport",
+  "hero": {
+    "label": "Accueil personnalisé · Aéroport de Prague",
+    "headlineLine1": "Accueil personnalisé à l'aéroport de Prague.",
+    "headlineItalic": "On vous attend, vous n'avez pas à chercher.",
+    "intro": "Avec l'accueil personnalisé Prestigo, votre chauffeur se tient dans le hall des arrivées de l'aéroport Václav Havel de Prague (PRG), une pancarte à votre nom à la main, avant même que vous ne quittiez la livraison des bagages. Il prend vos valises, vous accompagne jusqu'à une Mercedes garée à quelques pas et vous conduit à n'importe quelle adresse de Prague. Inclus dans chaque transfert aéroport, à partir de {businessPrice} € par voiture.",
+    "ctaPrimary": "Réserver l'accueil personnalisé",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Chauffeur tenant une pancarte nominative dans le hall des arrivées de l'aéroport de Prague"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      { "label": "Où", "value": "Dans le hall des arrivées du terminal 1 (hors Schengen) et du terminal 2 (Schengen)" },
+      { "label": "Attente", "value": "Jusqu'à 60 minutes offertes après l'atterrissage, vol suivi en temps réel" },
+      { "label": "Prix", "value": "Inclus dans le tarif — Mercedes E-Class à partir de {businessPrice} € par voiture" },
+      { "label": "Horaires", "value": "24h/24, 7j/7, toute l'année — réservez au moins 12 heures à l'avance" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Ce que signifie vraiment",
+    "headingItalic": "l'accueil personnalisé à PRG.",
+    "paragraphs": [
+      "L'expression « accueil personnalisé » est souvent employée à la légère. Certaines sociétés envoient un message avec une plaque d'immatriculation et une zone de prise en charge ; vous sortez avec vos valises et cherchez le bon véhicule. Ce n'est pas un accueil, c'est une simple prise en charge.",
+      "Chez Prestigo, cela veut dire une seule chose : une personne, à pied, à l'intérieur du hall des arrivées, qui tient une pancarte à votre nom — ou à celui de votre invité — avant que vous n'atteigniez les portes de sortie. Vous n'ouvrez aucune application, vous ne traversez aucun parking et vous n'attendez pas au bord du trottoir. Votre chauffeur prend le chariot à bagages, et la voiture n'est qu'à quelques pas, en sa compagnie.",
+      "Il est inclus dans chaque transfert aéroport Prestigo. Il n'y a pas de frais d'accueil séparés ; vous payez la voiture — une Mercedes E-Class à partir de {businessPrice} €, un van V-Class jusqu'à six personnes à partir de {vClassAirport} €, ou une S-Class à partir de {sClassAirport} €."
+    ]
+  },
+  "features": {
+    "label": "Ce qui est inclus",
+    "headingLine1": "Tout ce qui se passe entre la porte d'embarquement",
+    "headingItalic": "et votre porte d'entrée.",
+    "items": [
+      { "title": "Pancarte nominative aux arrivées", "body": "Votre chauffeur vous attend dans le hall public des arrivées du bon terminal, avec une pancarte au nom du passager. Vous recevez le nom et le numéro de téléphone du chauffeur avant l'atterrissage." },
+      { "title": "Suivi du vol en temps réel", "body": "Nous suivons votre numéro de vol, pas l'horaire prévu. Si vous atterrissez en avance, en retard ou à un autre terminal, le chauffeur s'adapte sans que vous ayez à appeler." },
+      { "title": "60 minutes d'attente offertes", "body": "Le décompte commence à l'atterrissage de votre avion. Une longue file au contrôle des passeports du terminal 1 ou une attente prolongée au tapis à bagages ne vous coûte rien de plus." },
+      { "title": "Bagages pris en charge", "body": "Le chauffeur porte vos valises du hall jusqu'à la voiture, puis de la voiture jusqu'à la réception de votre hôtel. Un V-Class accueille six passagers avec six grandes valises." },
+      { "title": "Prix fixe, convenu à l'avance", "body": "Le tarif affiché à la réservation est celui que vous payez — pas de compteur, pas de supplément de nuit, pas de frais liés à la circulation en entrant en ville." },
+      { "title": "VIP et coupe-file sur demande", "body": "Pour les arrivées de dirigeants, de diplomates ou de voyageurs qui découvrent Prague, nous pouvons ajouter une S-Class avec chauffeur senior, un passage coupe-file au contrôle des passeports et l'aide d'un porteur. Faites-en la demande au moins 24 à 48 heures avant l'atterrissage." }
+    ]
+  },
+  "steps": {
+    "label": "Comment ça fonctionne",
+    "heading": "Quatre étapes, rien à gérer à l'arrivée.",
+    "items": [
+      { "title": "Réservez en ligne", "body": "Indiquez votre numéro de vol, le nom du passager et l'adresse à Prague. Vous voyez le prix fixe avant de payer." },
+      { "title": "Nous suivons le vol", "body": "Votre chauffeur suit le vol dès le décollage. Vous recevez son nom et son numéro de téléphone avant l'atterrissage." },
+      { "title": "Votre nom vous attend", "body": "Après la livraison des bagages et la douane, votre chauffeur vous attend dans le hall des arrivées avec une pancarte nominative." },
+      { "title": "De porte à porte", "body": "Quelques pas jusqu'à la voiture, puis direction votre hôtel, votre appartement ou votre rendez-vous. Environ 30 minutes jusqu'au centre de Prague en circulation normale." }
+    ]
+  },
+  "editorial": {
+    "label": "Terminal par terminal",
+    "headingLine1": "Terminal 1 ou terminal 2 —",
+    "headingItalic": "vous n'avez pas besoin de le savoir.",
+    "paragraphs": [
+      "L'aéroport de Prague compte deux terminaux passagers. Le terminal 2 accueille les vols en provenance de l'espace Schengen — Allemagne, France, Italie, Pays-Bas et la majeure partie de l'UE — sans contrôle des passeports à l'arrivée. Le terminal 1 accueille les vols hors Schengen : Royaume-Uni, États-Unis, Moyen-Orient et toutes les liaisons long-courriers, où vous passez d'abord le contrôle des passeports.",
+      "Vous n'avez pas à savoir lequel est le vôtre. Le numéro de vol nous indique le terminal, et votre chauffeur vous attend dans le bon hall des arrivées. Si le terminal change ou si le vol est dérouté, le suivi le signale et le chauffeur se déplace.",
+      "Vous réservez pour quelqu'un d'autre — un client, un parent, un collègue qui vient à Prague pour la première fois ? Indiquez son nom lors de la réservation. La pancarte affiche son nom, le chauffeur dispose de son vol, et c'est vous qui recevez la confirmation."
+    ]
+  },
+  "faqsHeading": "Questions sur l'accueil personnalisé",
+  "faqs": [
+    { "q": "En quoi consiste le service d'accueil personnalisé à l'aéroport de Prague ?", "a": "Votre chauffeur vous attend dans le hall des arrivées de l'aéroport Václav Havel de Prague (PRG) avec une pancarte nominative, prend vos bagages et vous accompagne jusqu'à la voiture. Ce service est inclus dans chaque transfert aéroport Prestigo, sans supplément." },
+    { "q": "Combien coûte un accueil personnalisé à l'aéroport de Prague ?", "a": "L'accueil lui-même est gratuit — vous payez un prix fixe pour la voiture : à partir de {businessPrice} € pour une Mercedes E-Class, {vClassAirport} € pour un van V-Class et {sClassAirport} € pour une S-Class. Le coupe-file et le service de porteur sont les seuls suppléments, chiffrés pour chaque arrivée." },
+    { "q": "Où mon chauffeur m'attendra-t-il à l'aéroport de Prague ?", "a": "Dans le hall public des arrivées de votre terminal — le terminal 1 pour les vols hors Schengen, le terminal 2 pour les vols Schengen — avec une pancarte au nom du passager. Vous recevez également le numéro de téléphone du chauffeur avant l'atterrissage." },
+    { "q": "Que se passe-t-il si mon vol est retardé ?", "a": "Rien ne change pour vous. Nous suivons le vol en temps réel et votre chauffeur s'adapte à l'heure d'atterrissage effective. Jusqu'à 60 minutes d'attente après l'atterrissage sont incluses, sans supplément." },
+    { "q": "Pouvez-vous organiser un coupe-file ou un accueil VIP ?", "a": "Oui, sur demande. Nous pouvons ajouter un passage coupe-file au contrôle des passeports et à la sécurité, l'aide d'un porteur et une S-Class avec chauffeur senior. Ces services nécessitant une confirmation de l'aéroport, merci d'en faire la demande au moins 24 à 48 heures avant votre atterrissage." },
+    { "q": "Puis-je réserver un accueil personnalisé pour quelqu'un d'autre ?", "a": "Oui. Indiquez le nom du passager lors de la réservation. La pancarte affiche son nom, et c'est vous qui recevez la confirmation de réservation et les coordonnées du chauffeur." },
+    { "q": "Proposez-vous aussi un accueil pour les départs ?", "a": "Oui. Pour un départ, votre chauffeur vient vous chercher à votre porte, vous dépose au bon terminal et, sur demande, vous aide à porter vos bagages jusqu'à la zone d'enregistrement." }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "Préparez la suite de votre arrivée.",
+    "links": [
+      { "href": "/services/airport-transfer", "title": "Transfert aéroport de Prague", "body": "Tarifs, catégories de véhicules et temps de trajet depuis PRG vers tous les quartiers de Prague." },
+      { "href": "/faq/flight-delays", "title": "Retards et annulations de vols", "body": "Ce qui se passe lorsque votre vol est en retard, en avance, dérouté ou annulé." },
+      { "href": "/faq/child-seats", "title": "Sièges enfant", "body": "Coques, sièges enfant et réhausseurs installés avant la prise en charge, sans frais." },
+      { "href": "/blog/prague-airport-meet-and-greet", "title": "Guide de l'accueil personnalisé", "body": "Un guide plus complet sur les options VIP, coupe-file et salons à l'aéroport de Prague." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Atterrissez à Prague. Votre nom vous attend.",
+    "headingItalic": "À partir de {businessPrice} €, tarif fixe."
+  }
+}

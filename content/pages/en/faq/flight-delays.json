@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Flight Delayed? Prague Airport Transfer Explained",
+    "description": "Flight delayed at Prague Airport? We track your flight live and wait 60 minutes free from actual landing. Cancelled? Free reschedule. From €{businessPrice}.",
+    "ogTitle": "Flight Delayed at Prague Airport? What Happens to Your Chauffeur"
+  },
+  "breadcrumbName": "Flight Delays",
+  "hero": {
+    "label": "Flight Delays · Prague Airport",
+    "headlineLine1": "Your flight is late.",
+    "headlineItalic": "Your chauffeur already knows.",
+    "intro": "A delayed flight should not cost you a missed pickup or an extra fee. Prestigo follows your flight by its number, moves the pickup to the real landing time and gives you 60 minutes of free waiting from the moment the aircraft touches down. If the flight is cancelled, we reschedule for free or refund you in full.",
+    "ctaPrimary": "Book a Transfer",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Arrivals board at Prague Airport showing a delayed flight"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      { "label": "Tracking", "value": "Live, by flight number — no need to call us" },
+      { "label": "Waiting", "value": "60 minutes free, counted from actual landing" },
+      { "label": "Cancelled flight", "value": "Free reschedule or a full refund" },
+      { "label": "Contact", "value": "+420 725 986 855, 24/7" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "We follow the aircraft,",
+    "headingItalic": "not the timetable.",
+    "paragraphs": [
+      "When you book a Prestigo airport transfer, you give us your flight number. From then on, the pickup is tied to that flight, not to the time printed on your ticket. If it leaves late, lands late or arrives early, the chauffeur’s plan changes with it.",
+      "That matters most when you cannot tell anyone. You may be in the air when the delay grows, or your phone may be off until you reach the gate. You do not need to message us, rebook or worry about a driver giving up. The chauffeur sees the new landing time and is in the Arrivals hall for it.",
+      "The 60 minutes of free waiting only start once the aircraft has landed. Passport control, the baggage belt and a lost-luggage desk all fit inside that hour, and a delay before landing never eats into it."
+    ]
+  },
+  "features": {
+    "label": "What is covered",
+    "headingLine1": "Late, early, diverted",
+    "headingItalic": "or cancelled.",
+    "items": [
+      { "title": "Live flight tracking", "body": "We follow the flight number you give us at booking, so the chauffeur knows the actual landing time and the right terminal without you calling." },
+      { "title": "60 minutes from landing", "body": "Free waiting starts when the aircraft lands, not at the scheduled time. A delay of any length before landing is not counted against you." },
+      { "title": "Early arrivals", "body": "Tailwinds bring flights in early. Because we track the flight, the chauffeur aims to be in Arrivals for the actual landing time, not the booked one." },
+      { "title": "Cancelled flights", "body": "If the airline cancels, contact us and we move your transfer to the new flight at no charge, or refund the fare in full." },
+      { "title": "Diversions", "body": "If your flight lands at another airport, call or message us. We re-plan the journey with you — a later pickup at PRG, or a collection from where you land." },
+      { "title": "A person on the line", "body": "Our team answers on +420 725 986 855 at any hour, so a problem at midnight is solved at midnight, not the next morning." }
+    ]
+  },
+  "steps": {
+    "label": "If your flight is late",
+    "heading": "Four things happen, none of them on you.",
+    "items": [
+      { "title": "The delay is detected", "body": "Flight tracking shows the new departure or landing time as soon as the airline publishes it." },
+      { "title": "The pickup moves", "body": "Your chauffeur’s arrival at the terminal is moved to match the new landing time." },
+      { "title": "The hour starts at landing", "body": "Your 60 minutes of free waiting begin when the aircraft is on the ground." },
+      { "title": "You walk out to your name", "body": "The chauffeur is in Arrivals with your name board, whatever time it now is." }
+    ]
+  },
+  "editorial": {
+    "label": "The harder cases",
+    "headingLine1": "Long delays, missed connections",
+    "headingItalic": "and the trip home.",
+    "paragraphs": [
+      "A delay of several hours, or one that pushes your arrival past midnight, is handled the same way: we track the flight and the chauffeur comes for the real landing time. If the airline moves you to a flight the next day, or you are rerouted through another city, call us on +420 725 986 855 with the new flight number and we move the booking. If you decide not to travel, the free cancellation window — up to one hour before pickup — still applies.",
+      "Missed connections are the case tracking cannot see. If you miss a connection in Frankfurt or Vienna, the flight we are following may land without you on it. Send us your new flight number as soon as the airline rebooks you, and we transfer the pickup to it. If you cannot reach us before landing, call on arrival and we will find the quickest way to get a car to you.",
+      "For departures from Prague, the timing is yours to set. We pick you up at the time you book, so allow enough for the drive — around 25–30 minutes from central Prague in normal traffic — plus check-in, security and, for non-Schengen flights, passport control. Your airline’s advice on how early to arrive is the best guide. If your departing flight is delayed before you leave, call us and we can move the pickup."
+    ]
+  },
+  "faqsHeading": "Flight delay questions",
+  "faqs": [
+    { "q": "What happens if my flight to Prague is delayed?", "a": "Nothing changes for you. We track your flight live by its number and your chauffeur moves to the new landing time automatically. There is no fee for the delay itself and no need to call us." },
+    { "q": "How long will the chauffeur wait after I land?", "a": "Up to 60 minutes free, counted from the actual landing time, not the scheduled one. That covers passport control and the baggage belt. If you expect to need longer — a lost-bag report, for example — call us and let us know." },
+    { "q": "What if my flight lands early?", "a": "Because we track the flight, the chauffeur aims to be in the Arrivals hall for the actual landing time. If you land very early and walk out quickly, call the chauffeur — you receive their number before you land." },
+    { "q": "What if my flight is cancelled?", "a": "Contact us and we will reschedule your transfer to the new flight at no charge, or refund the fare in full." },
+    { "q": "My flight was delayed overnight or moved to the next day. What now?", "a": "Call us on +420 725 986 855 with the new flight number and date and we move the booking. If the flight still lands the same night, tracking picks up the new time and the chauffeur comes for it." },
+    { "q": "What if my flight is diverted to another airport?", "a": "Call or message us on +420 725 986 855. We re-plan the journey with you, whether that means waiting for an onward flight to Prague or arranging a collection from the airport where you landed." },
+    { "q": "I missed my connection. Will the driver still be there?", "a": "Tracking follows the flight you booked, so tell us your new flight number as soon as the airline rebooks you. We move the pickup to it at no charge." },
+    { "q": "How early should I be picked up for a flight from Prague?", "a": "Allow for the drive — around 25–30 minutes from central Prague in normal traffic — plus the time your airline asks you to be at the airport before departure. Long-haul and non-Schengen flights need more, because of passport control. You choose the pickup time when you book." }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "More about arriving in Prague.",
+    "links": [
+      { "href": "/services/airport-meet-and-greet", "title": "Airport meet & greet", "body": "Your chauffeur inside Arrivals at Terminal 1 or 2 with a name board." },
+      { "href": "/services/airport-transfer", "title": "Prague Airport Transfer", "body": "Fixed fares, vehicle classes and journey times from PRG." },
+      { "href": "/faq/child-seats", "title": "Child seats", "body": "Infant, toddler and booster seats fitted before pickup, free of charge." },
+      { "href": "/faq", "title": "All questions", "body": "Booking, payment, cancellation and the rest of our FAQ." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Book once. We follow the flight.",
+    "headingItalic": "From €{businessPrice}, fixed."
+  }
+}

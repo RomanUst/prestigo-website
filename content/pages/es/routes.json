@@ -43,6 +43,13 @@
     "bookButton": "Reservar Praga → {city}",
     "routeDetails": "Detalles de la ruta"
   },
+  "inbound": {
+    "label": "Traslados a Praga",
+    "headingLine1": "¿Viaja a Praga?",
+    "headingItalic": " El mismo coche, en sentido contrario.",
+    "intro": "Cada ruta funciona en ambos sentidos con la misma tarifa fija. Recogida en su hotel, oficina o aeropuerto en cualquiera de estas ciudades y llegada a cualquier dirección de Praga o al aeropuerto Václav Havel.",
+    "toPragueLabel": "{city} → Praga"
+  },
   "destinationNames": {
     "prague-kutna-hora": "Kutná Hora",
     "prague-plzen": "Pilsen",

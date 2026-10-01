@@ -1,0 +1,175 @@
+{
+  "metadata": {
+    "title": "Taxi con silla infantil en Praga: sillas gratis e instaladas",
+    "description": "Taxi con silla infantil en Praga: capazos, sillas y alzadores gratis, instalados antes de la recogida. Traslados al aeropuerto desde {businessPrice} €.",
+    "ogTitle": "Taxi con silla infantil en Praga: capazos, sillas y alzadores gratis"
+  },
+  "breadcrumbName": "Sillas infantiles",
+  "hero": {
+    "label": "Sillas infantiles · Familias en Praga",
+    "headlineLine1": "Sillas infantiles en Praga, instaladas",
+    "headlineItalic": "antes de que llegue.",
+    "intro": "¿Viaja a Praga con un bebé, un niño pequeño o un niño en edad escolar? Todos los coches de Prestigo pueden llevar la silla infantil adecuada —capazo en sentido contrario a la marcha, silla para niños pequeños en el sentido de la marcha o alzador— sin coste alguno. Indíquenos la edad de su hijo al reservar y la silla quedará instalada y revisada antes de que el chófer salga a recogerle.",
+    "ctaPrimary": "Reservar un traslado",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Silla infantil instalada en la parte trasera de un Mercedes con chófer en Praga"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      {
+        "label": "Tipos de silla",
+        "value": "Capazo en sentido contrario a la marcha, silla para niños pequeños en el sentido de la marcha, alzador"
+      },
+      {
+        "label": "Precio",
+        "value": "Gratuito: solicítela al reservar"
+      },
+      {
+        "label": "Instalación",
+        "value": "La instala el chófer antes de la recogida"
+      },
+      {
+        "label": "Familias",
+        "value": "Mercedes V-Class para varias sillas más el equipaje"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "La silla ya está en el coche",
+    "headingItalic": "antes de que usted llegue.",
+    "paragraphs": [
+      "Lo más difícil de una llegada en familia suelen ser los diez primeros minutos: niños cansados, un carro de equipaje, un cochecito que plegar y un coche que puede tener o no una silla adecuada. Una silla infantil que hay que buscar, desembalar y sujetar en la acera convierte un paseo corto en una larga espera.",
+      "Con Prestigo, la silla ya está instalada. Al reservar, añade el número de sillas y la edad de cada niño. El chófer instala la silla adecuada para esa edad, revisa el arnés y el paso del cinturón, y solo entonces se dirige al aeropuerto, al hotel o a la estación. Cuando llega al coche, su hijo se sienta directamente.",
+      "Las sillas infantiles no tienen coste en ningún trayecto de Prestigo: un traslado al aeropuerto, una reserva por horas por la ciudad o un largo viaje a Viena o Múnich. La tarifa que ve al reservar es la misma tanto si necesita una silla como si no necesita ninguna."
+    ]
+  },
+  "features": {
+    "label": "Qué ofrecemos",
+    "headingLine1": "Una silla para cada edad,",
+    "headingItalic": "bien instalada.",
+    "items": [
+      {
+        "title": "Capazo en sentido contrario a la marcha",
+        "body": "Para bebés desde el nacimiento. La silla mira hacia la parte trasera del coche, lo que protege la cabeza y el cuello de los pasajeros más pequeños. Indíquenos la edad del bebé para que llevemos la talla adecuada."
+      },
+      {
+        "title": "Silla para niños pequeños en el sentido de la marcha",
+        "body": "Para niños pequeños que ya no caben en el capazo, con arnés integrado. Adaptamos la silla a la edad que nos indique al reservar."
+      },
+      {
+        "title": "Alzador",
+        "body": "Para niños mayores que usan el cinturón de seguridad del coche, pero que aún no tienen la estatura suficiente para que les quede bien sobre el hombro y la cadera."
+      },
+      {
+        "title": "Instalada antes de la recogida",
+        "body": "Su chófer instala y revisa cada silla antes de salir, para que nadie tenga que ajustar correas en el aparcamiento de un aeropuerto."
+      },
+      {
+        "title": "Sin coste",
+        "body": "Las sillas infantiles nunca se suman a la tarifa. Solicítelas al reservar, con la edad de cada niño, y quedan incluidas."
+      },
+      {
+        "title": "Espacio para toda la familia",
+        "body": "Un Mercedes V-Class lleva hasta seis pasajeros y seis maletas, así que varias sillas infantiles, los adultos y un cochecito viajan en un solo coche."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo solicitar una silla",
+    "heading": "Cuatro pasos, resueltos antes de viajar.",
+    "items": [
+      {
+        "title": "Elija el coche",
+        "body": "Un E-Class es adecuado para una familia pequeña con poco equipaje. Con varios niños o mucho equipaje, elija el V-Class."
+      },
+      {
+        "title": "Añada sillas y edades",
+        "body": "En el formulario de reserva, añada el número de sillas infantiles y la edad de cada niño. Si conoce el peso o la estatura, también ayuda."
+      },
+      {
+        "title": "Instalamos las sillas",
+        "body": "Su chófer instala las sillas y las revisa antes de dirigirse a su punto de recogida."
+      },
+      {
+        "title": "Suban y en marcha",
+        "body": "Los niños se sientan en sus sillas, el cochecito va al maletero y ya están en camino."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Las normas en la República Checa",
+    "headingLine1": "Lo que exige la ley checa",
+    "headingItalic": "a las familias en coche.",
+    "paragraphs": [
+      "Como norma general en la República Checa, un niño que mida menos de 150 cm y pese menos de 36 kg debe viajar en un sistema de retención infantil adecuado a su estatura y peso. Esto se aplica en un coche con chófer igual que en un coche particular, y por eso le pedimos la edad de su hijo en lugar de dejarlo al azar el día del viaje.",
+      "Las sillas infantiles que se venden en la UE están homologadas para un rango de estatura o peso, y las etapas generales son las mismas en todas partes: los bebés viajan en sentido contrario a la marcha, los niños pequeños pasan a una silla en el sentido de la marcha con arnés, y los niños mayores usan un alzador con el cinturón de adulto hasta que les queda bien. Si su hijo está entre dos etapas, indíquenos su estatura y su peso y elegiremos la silla que le corresponda.",
+      "Si su hijo está acostumbrado a su propia silla, puede traerla. Indíquelo al reservar para que el chófer deje el espacio libre y pueda ayudarle a instalarla. Muchos padres viajan solo con un cochecito ligero y usan nuestras sillas, lo que les ahorra cargar con una silla por dos aeropuertos."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre sillas infantiles",
+  "faqs": [
+    {
+      "q": "¿Ofrecen sillas infantiles en sus taxis de Praga?",
+      "a": "Sí. Prestigo ofrece capazos en sentido contrario a la marcha, sillas para niños pequeños en el sentido de la marcha y alzadores previa solicitud, en todo tipo de trayectos. Solicítelos al reservar e indique la edad de cada niño."
+    },
+    {
+      "q": "¿Tiene coste la silla infantil?",
+      "a": "No. Las sillas infantiles son gratuitas en todos los trayectos de Prestigo, incluidos los traslados al aeropuerto, las reservas por horas y los viajes de larga distancia. El precio fijo que ve al reservar no cambia."
+    },
+    {
+      "q": "¿Qué silla necesita mi hijo?",
+      "a": "Los bebés viajan en un capazo en sentido contrario a la marcha, los niños pequeños en una silla en el sentido de la marcha con arnés, y los niños mayores en un alzador con el cinturón de adulto. En la República Checa, como norma general, los niños de menos de 150 cm y menos de 36 kg deben usar un sistema de retención infantil adecuado. Indíquenos la edad de su hijo, y su estatura o peso si los conoce, y elegiremos la silla correcta."
+    },
+    {
+      "q": "¿Estará instalada la silla cuando llegue el coche?",
+      "a": "Sí. Su chófer instala y revisa cada silla antes de salir a recogerle, de modo que esté lista cuando llegue al coche en el aeropuerto, el hotel o la estación."
+    },
+    {
+      "q": "¿Cuántas sillas infantiles caben en un coche?",
+      "a": "Depende de las sillas y de cuánto equipaje lleve. Para familias con varios niños, varias sillas y todo el equipaje, el Mercedes V-Class es la opción adecuada. Indíquenos su grupo al reservar y le confirmaremos el coche."
+    },
+    {
+      "q": "¿Puedo llevar mi propia silla infantil?",
+      "a": "Sí. Muchas familias prefieren su propia silla. Indíquelo al reservar para que dejemos el espacio libre; su chófer puede ayudarle a instalarla."
+    },
+    {
+      "q": "¿Hay espacio para un cochecito o un carrito de bebé?",
+      "a": "Sí. Los cochecitos plegables y los carritos van en el maletero con el equipaje. Si además viaja con varias maletas grandes, elija el V-Class para que todo quepa en un solo coche."
+    },
+    {
+      "q": "¿Podemos parar en un trayecto largo con niños pequeños?",
+      "a": "Sí. En los trayectos entre ciudades —a Viena, Múnich o Český Krumlov, por ejemplo—, pida una pausa siempre que la necesite, para dar de comer, cambiar un pañal o dar un pequeño paseo. Indíquelo al reservar si ya sabe que querrá hacer paradas frecuentes."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Planifique el resto de su viaje en familia.",
+    "links": [
+      {
+        "href": "/services/group-transfers",
+        "title": "Traslados para familias y grupos",
+        "body": "El Mercedes V-Class para hasta seis pasajeros con seis maletas, en un solo coche."
+      },
+      {
+        "href": "/faq/flight-delays",
+        "title": "Retrasos de vuelos",
+        "body": "Qué ocurre cuando su vuelo aterriza tarde, antes de tiempo o no llega a aterrizar."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Tarifas fijas y tiempos de trayecto desde PRG a todas las zonas de Praga."
+      },
+      {
+        "href": "/faq",
+        "title": "Todas las preguntas",
+        "body": "Reservas, pagos, cancelaciones y todo lo demás sobre viajar con Prestigo."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Sillas instaladas, equipaje cargado, todos a bordo.",
+    "headingItalic": "Sillas infantiles siempre gratis."
+  }
+}

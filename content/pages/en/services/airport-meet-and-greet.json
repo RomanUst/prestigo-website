@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "title": "Prague Airport Meet & Greet Service — PRG Arrivals",
+    "description": "Book a Prague Airport meet & greet: your chauffeur waits inside PRG Arrivals with a name board, 60 min free waiting, flight tracking. Mercedes from €{businessPrice}.",
+    "ogTitle": "Prague Airport Meet & Greet Service — Name Board at PRG Arrivals"
+  },
+  "breadcrumbName": "Airport Meet & Greet",
+  "hero": {
+    "label": "Meet & Greet · Prague Airport",
+    "headlineLine1": "Prague Airport meet & greet.",
+    "headlineItalic": "Collected, not found.",
+    "intro": "A Prestigo meet & greet means your chauffeur is standing inside the Arrivals hall at Prague Václav Havel Airport (PRG) with your name on a board before you walk out of baggage reclaim. They take your luggage, walk you to a Mercedes parked a short distance away and drive you to any address in Prague. Included on every airport transfer, from €{businessPrice} per car.",
+    "ctaPrimary": "Book Meet & Greet",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Chauffeur holding a name board in the Arrivals hall at Prague Airport"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      { "label": "Where", "value": "Inside Arrivals at Terminal 1 (non-Schengen) and Terminal 2 (Schengen)" },
+      { "label": "Waiting", "value": "Up to 60 minutes free after landing, flight tracked live" },
+      { "label": "Price", "value": "Included in the fare — Mercedes E-Class from €{businessPrice} per car" },
+      { "label": "Hours", "value": "24/7, every day of the year — book at least 12 hours ahead" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "What meet & greet",
+    "headingItalic": "actually means at PRG.",
+    "paragraphs": [
+      "The phrase “meet and greet” is used loosely. Some companies send a message with a car registration and a pickup zone; you walk outside with your cases and look for the right vehicle. That is a pickup, not a meet and greet.",
+      "At Prestigo it means one thing: a person, on foot, inside the Arrivals hall, holding a board with your name — or your guest’s name — before you reach the exit doors. You do not open an app, you do not cross a car park, and you do not wait at a kerb. Your chauffeur takes the luggage trolley, and the car is a short guided walk away.",
+      "It is included on every Prestigo airport transfer. There is no separate meet & greet fee; you pay for the car — a Mercedes E-Class from €{businessPrice}, a V-Class van for up to six from €{vClassAirport}, or an S-Class from €{sClassAirport}."
+    ]
+  },
+  "features": {
+    "label": "What is included",
+    "headingLine1": "Everything between the gate",
+    "headingItalic": "and your front door.",
+    "items": [
+      { "title": "Name board inside Arrivals", "body": "Your chauffeur waits in the public Arrivals hall of the correct terminal with a board showing the passenger’s name. You receive the chauffeur’s name and phone number before you land." },
+      { "title": "Live flight tracking", "body": "We follow your flight number, not your scheduled time. If you land early, late or at another terminal, the chauffeur adjusts without you having to call." },
+      { "title": "60 minutes free waiting", "body": "The clock starts when your aircraft lands. A slow passport queue at Terminal 1 or a long wait at the baggage belt does not cost you anything extra." },
+      { "title": "Luggage handled", "body": "The chauffeur takes your cases from the hall to the car and from the car to your hotel reception. A V-Class carries six passengers with six large bags." },
+      { "title": "Fixed price, agreed in advance", "body": "The fare you see when you book is the fare you pay — no meter, no night surcharge, no fee for traffic on the way into the city." },
+      { "title": "VIP and fast-track on request", "body": "For executive, diplomatic or first-time arrivals we can add an S-Class with a senior chauffeur, fast-track through passport control and porter help. Ask at least 24–48 hours before landing." }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Four steps, nothing to manage on arrival.",
+    "items": [
+      { "title": "Book online", "body": "Enter your flight number, the passenger name and the Prague address. You see the fixed price before you pay." },
+      { "title": "We track the flight", "body": "Your chauffeur follows the flight from take-off. You get their name and phone number before you land." },
+      { "title": "Walk out to your name", "body": "After baggage reclaim and customs, your chauffeur is waiting in the Arrivals hall with a name board." },
+      { "title": "Door to door", "body": "A short walk to the car, then straight to your hotel, apartment or meeting. About 30 minutes to central Prague in normal traffic." }
+    ]
+  },
+  "editorial": {
+    "label": "Terminal by terminal",
+    "headingLine1": "Terminal 1 or Terminal 2 —",
+    "headingItalic": "you do not need to know.",
+    "paragraphs": [
+      "Prague Airport has two passenger terminals. Terminal 2 handles flights from inside the Schengen Area — Germany, France, Italy, the Netherlands and most of the EU — with no passport control on arrival. Terminal 1 handles non-Schengen flights: the United Kingdom, the United States, the Middle East and all long-haul routes, where you queue for passport control first.",
+      "You do not have to work out which one is yours. The flight number tells us the terminal, and your chauffeur waits in the right Arrivals hall. If the terminal changes or the flight diverts, the tracking flags it and the chauffeur moves.",
+      "Booking for someone else — a client, a parent, a colleague on their first trip to Prague? Enter their name at checkout. The board shows their name, the chauffeur has their flight, and you get the confirmation."
+    ]
+  },
+  "faqsHeading": "Meet & greet questions",
+  "faqs": [
+    { "q": "What is the meet and greet service at Prague Airport?", "a": "Your chauffeur waits inside the Arrivals hall at Prague Václav Havel Airport (PRG) holding a name board, takes your luggage and walks you to the car. It is included on every Prestigo airport transfer at no extra charge." },
+    { "q": "How much does a meet and greet at Prague Airport cost?", "a": "The meet & greet itself is free — you pay a fixed price for the car: from €{businessPrice} for a Mercedes E-Class, €{vClassAirport} for a V-Class van and €{sClassAirport} for an S-Class. Fast-track and porter service are the only extras and are quoted per arrival." },
+    { "q": "Where will my driver wait at Prague Airport?", "a": "Inside the public Arrivals hall of your terminal — Terminal 1 for non-Schengen flights, Terminal 2 for Schengen flights — holding a board with the passenger’s name. You also receive the chauffeur’s phone number before you land." },
+    { "q": "What happens if my flight is delayed?", "a": "Nothing changes for you. We track the flight live and your chauffeur adjusts to the actual landing time. Up to 60 minutes of waiting after landing is included at no extra charge." },
+    { "q": "Can you arrange fast-track or VIP meet and greet?", "a": "Yes, on request. We can add fast-track through passport control and security, porter help and an S-Class with a senior chauffeur. Because it needs confirmation from the airport, please ask at least 24–48 hours before you land." },
+    { "q": "Can I book a meet and greet for someone else?", "a": "Yes. Enter the passenger’s name when you book. The name board shows their name, and you receive the booking confirmation and the chauffeur’s details." },
+    { "q": "Do you offer meet and greet for departures too?", "a": "Yes. For a departure your chauffeur collects you at your door, drops you at the correct terminal and helps with the luggage to the check-in area on request." }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "Plan the rest of your arrival.",
+    "links": [
+      { "href": "/services/airport-transfer", "title": "Prague Airport Transfer", "body": "Fares, vehicle classes and journey times from PRG to every part of Prague." },
+      { "href": "/faq/flight-delays", "title": "Flight delays and cancellations", "body": "What happens when your flight is late, early, diverted or cancelled." },
+      { "href": "/faq/child-seats", "title": "Child seats", "body": "Infant, toddler and booster seats fitted before pickup, free of charge." },
+      { "href": "/blog/prague-airport-meet-and-greet", "title": "Meet & greet guide", "body": "A longer guide to VIP, fast-track and lounge options at Prague Airport." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Land in Prague. Walk out to your name.",
+    "headingItalic": "From €{businessPrice}, fixed."
+  }
+}

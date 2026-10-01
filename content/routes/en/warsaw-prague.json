@@ -1,0 +1,257 @@
+{
+  "hero": {
+    "label": "Warsaw → Prague",
+    "headlineLine1": "Warsaw to Prague,",
+    "headlineItalic": "door to door.",
+    "intro": "Warsaw to Prague by private chauffeur is a 660 km door-to-door transfer south through Poland and across Moravia, around seven hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, motorway tolls and the Czech vignette included. Pickup from any Warsaw address, Warszawa Centralna or Warsaw Chopin Airport (WAW), drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Warsaw to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Warsaw to Prague covers about 660 km — southwest on the S8 expressway, south on the A1 past Częstochowa, across the Czech border near Ostrava, then the D1 motorway through Moravia to Prague — and takes around seven hours door to door, with breaks. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in Śródmieście, from Warszawa Centralna or from Arrivals at Warsaw Chopin Airport, and drops you at the door in Prague.",
+    "The fare is agreed before departure and stays fixed: fuel, motorway tolls, the Czech vignette, bottled water, Wi-Fi and child seats on request are all included. It is a long day, but one car, one chauffeur and no changes from your Warsaw door to your Prague address."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Warsaw to Prague",
+    "headingItalic": "in a single day.",
+    "paragraphs": [
+      "From a pickup in the city centre, near the Old Town or at Warsaw Chopin Airport, your chauffeur leaves Warsaw southwest on the S8 expressway toward Piotrków Trybunalski, where the route joins the A1 motorway heading south. The A1 runs past Częstochowa and the Upper Silesian cities to the Czech border near Ostrava.",
+      "The crossing sits inside the Schengen Area: no routine check, no queue. On the Czech side the D1 motorway carries on across Moravia — past Přerov and on via Brno or Olomouc — and enters Prague from the southeast. An alternative line runs west via Wrocław and the Kłodzko valley to Náchod and the D11; your chauffeur picks the faster route on the morning of travel. Total distance is approximately 660 kilometres; driving time is about seven hours including short breaks.",
+      "Your chauffeur plans the rest stops before you set off and checks traffic on the A1 and D1 as the day goes on. Leave Warsaw after breakfast and you are in Prague for dinner, with no luggage to manage and no station to find."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers the whole journey from your Warsaw pickup to your Prague drop-off: car, chauffeur, fuel, motorway tolls and the Czech vignette. For a relocation, a family move with luggage or simply a preference for the road, you arrive at the door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech.",
+    "Fuel, any Polish motorway tolls on the way and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any Warsaw address, Warszawa Centralna, or inside Arrivals at Warsaw Chopin Airport (WAW) with flight tracking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Częstochowa, Olomouc or Wrocław — agreed at booking."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 passengers",
+      "bags": "2 bags",
+      "price": "From €{ePrice}",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 passengers",
+      "bags": "2 bags",
+      "price": "From €{sPrice}",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 passengers",
+      "bags": "6 bags",
+      "price": "From €{vPrice}",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "Warsaw to Prague,",
+    "italic": "the route."
+  },
+  "journeyStops": [
+    {
+      "city": "Warsaw",
+      "note": "Pickup from your hotel, office, Warszawa Centralna or Warsaw Chopin Airport (WAW). At the airport your chauffeur waits inside Arrivals with your name.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Częstochowa (optional)",
+      "note": "Jasna Góra monastery, a short way off the A1 — a good place to break the first half of the drive.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Olomouc (optional)",
+      "note": "A Moravian city close to the route, with a UNESCO-listed column and a quiet old centre for lunch.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Anywhere you like",
+      "note": "A long route has room for more. Name a town, a restaurant or a viewpoint at booking.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Border crossing",
+      "value": "Polish–Czech Schengen border near Ostrava, or at Kudowa-Zdrój/Náchod on the western route. No routine passport check — non-EU passengers should still carry their passport and visa."
+    },
+    {
+      "label": "Tolls",
+      "value": "Polish motorway tolls on the way and the Czech motorway vignette are included in the quoted price."
+    },
+    {
+      "label": "Airport pickup",
+      "value": "Give us your flight number. Your chauffeur tracks the landing at Warsaw Chopin Airport and the first 60 minutes of waiting are free."
+    },
+    {
+      "label": "Return transfer",
+      "value": "Going back to Warsaw later? Book both directions together for a reduced rate."
+    }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "A long road,",
+    "headingItalic": "well broken up.",
+    "intro": "Seven hours is best taken with a proper break or two. These three stops fit the route between Warsaw and Prague.",
+    "configurations": [
+      {
+        "title": "Jasna Góra, Częstochowa",
+        "body": "Leave Warsaw at 8:00 and reach Częstochowa in around two and a half hours. An hour at the Jasna Góra monastery and its chapel, then south on the A1 toward the Czech border.",
+        "price": "Add a stop at booking — contact us for a quote."
+      },
+      {
+        "title": "Lunch in Olomouc",
+        "body": "Olomouc comes up in the Moravian stretch of the drive. Ninety minutes for lunch on the Upper Square by the Holy Trinity Column, then around two and a half hours on to Prague.",
+        "price": "Add a stop at booking — contact us for a quote."
+      },
+      {
+        "title": "Wrocław on the western route",
+        "body": "If you prefer the western line, Wrocław sits roughly halfway. Lunch on the Rynek and a walk to Ostrów Tumski, then south through the Kłodzko valley and over the border at Náchod to Prague.",
+        "price": "Add a stop at booking — contact us for a quote."
+      }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. Short coffee and rest stops on the way are always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur arrives at your Warsaw door at the agreed time and loads everything — useful on a route people often take with more luggage than a flight allows. At Warsaw Chopin Airport they wait inside Arrivals with your name.",
+    "A full day in the car needs a good rhythm. Your chauffeur plans breaks at sensible intervals and keeps the cabin quiet when you are working or resting. Toward the end, if you want to know about Prague — your neighbourhood, a good first walk, where to eat — ask.",
+    "Water, charger and Wi-Fi are on board all the way. Ask for a longer lunch, a different stop or a warmer cabin and it is done. In Prague the bags go to the door with you."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Warsaw to Prague.",
+    "items": [
+      {
+        "title": "One fare for the whole day",
+        "body": "Fuel, the Polish tolls, the Czech vignette and seven hours of the chauffeur’s time are in the price. Nothing is added on arrival."
+      },
+      {
+        "title": "All your luggage, no limits",
+        "body": "No baggage allowance, no airport transfers at either end, no change of train. Everything goes in the car in Warsaw and comes out at your Prague door."
+      },
+      {
+        "title": "Prague is our city",
+        "body": "Prestigo is a Prague company with its own Mercedes fleet. Your chauffeur knows where you are going — the hotel entrances, the restricted streets, the right approach to your building."
+      }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    {
+      "q": "How long does a private transfer from Warsaw to Prague take?",
+      "a": "About seven hours door to door including short breaks: the S8 and A1 south through Poland, across the border near Ostrava, then the D1 through Moravia to Prague. Longer stops for lunch or sightseeing add to that."
+    },
+    {
+      "q": "How much is a taxi or chauffeur from Warsaw to Prague?",
+      "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. Fuel, Polish motorway tolls, the Czech vignette and the chauffeur’s time are included — per car, not per person."
+    },
+    {
+      "q": "Can you pick me up at Warsaw Chopin Airport and drive me straight to Prague?",
+      "a": "Yes. Give us your flight number when you book. Your chauffeur tracks the landing, waits inside Arrivals at Chopin with your name and drives you directly to your Prague address."
+    },
+    {
+      "q": "Is a private transfer better than flying or taking the train from Warsaw to Prague?",
+      "a": "For one person with light luggage, a flight is faster and the train is cheaper — we say so plainly. A private transfer makes sense for families, groups, pets, heavy luggage or a relocation: no baggage limits, no airport at either end, door to door, and the same fare for one passenger or three."
+    },
+    {
+      "q": "Can we stop on the way from Warsaw to Prague?",
+      "a": "Yes. Częstochowa, Olomouc and Wrocław are the usual choices. Tell us at booking and we include the stop in a fixed quote. Short coffee and rest breaks are always included."
+    },
+    {
+      "q": "Do I need my passport between Poland and the Czech Republic?",
+      "a": "Both countries are in the Schengen Area, so there is no routine border control. Carry your passport or EU ID card anyway — spot checks happen, and non-EU travellers must have their documents with them."
+    }
+  ],
+  "relatedRoutesIntro": "Warsaw to Prague is the longest road into Prague that we drive from Poland. Clients arriving from Kraków, Wrocław or Ostrava book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": {
+    "line1": "More ways",
+    "italic": "into Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "krakow-prague",
+      "city": "Kraków",
+      "label": "Kraków → Prague",
+      "distance": "385 km",
+      "duration": "4h"
+    },
+    {
+      "slug": "wroclaw-prague",
+      "city": "Wrocław",
+      "label": "Wrocław → Prague",
+      "distance": "285 km",
+      "duration": "3h"
+    },
+    {
+      "slug": "ostrava-prague",
+      "city": "Ostrava",
+      "label": "Ostrava → Prague",
+      "distance": "370 km",
+      "duration": "4h"
+    },
+    {
+      "slug": "brno-prague",
+      "city": "Brno",
+      "label": "Brno → Prague",
+      "distance": "205 km",
+      "duration": "2h 30min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~660 km"
+    },
+    {
+      "label": "Duration",
+      "value": "~7 hours"
+    },
+    {
+      "label": "Vehicles",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Price from",
+      "value": "€{ePrice}",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "Warsaw to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Warsaw to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Warsaw to Prague transfer — 660 km door to door in a Mercedes E, S or V-Class. Pickup in Warsaw or at WAW airport. Fixed price from €{ePrice}.",
+    "ogTitle": "Warsaw to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Warsaw to Prague transfer — 660 km door to door in a Mercedes E, S or V-Class. Pickup in Warsaw or at WAW airport. Fixed price from €{ePrice}."
+  }
+}

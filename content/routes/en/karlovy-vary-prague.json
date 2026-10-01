@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Karlovy Vary → Prague",
+    "headlineLine1": "Karlovy Vary to Prague,",
+    "headlineItalic": "from the colonnade to your door.",
+    "intro": "Karlovy Vary to Prague by private chauffeur is a 130 km door-to-door transfer east on the D6, around 1h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Karlovy Vary hotel or address, drop-off anywhere in Prague or at Václav Havel Airport.",
+    "imageAlt": "Private chauffeur transfer from Karlovy Vary to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Karlovy Vary to Prague covers 130 km — out of the spa valley and east along the D6 across the Bohemian plateau into the western edge of Prague — and takes approximately 1.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel, apartment or office in Karlovy Vary, and drops you at your Prague hotel, your meeting or the departures hall at Václav Havel Airport.",
+    "The fare is set before you travel and stays the same: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. After a week of treatments or a festival programme, there is nothing left to organise — no bus timetable, no taxi rank at the other end."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Karlovy Vary to Prague",
+    "headingItalic": "in ninety minutes.",
+    "paragraphs": [
+      "From a pickup in the spa quarter along the Teplá, at the Grandhotel Pupp or in the newer part of town, your chauffeur climbs out of the valley and joins the D6 heading east. The road runs through open West Bohemian farmland and forest past Lubenec and Nové Strašecí. The whole journey stays inside the Czech Republic — no border, no second vignette, no document check.",
+      "Total distance is approximately 130 kilometres; driving time is one and a half hours in normal conditions. The D6 has been upgraded to motorway standard section by section, and a few stretches still carry roadworks. Your chauffeur checks the road before departure and uses the older parallel road where a works zone would slow you down.",
+      "The D6 enters Prague on its western side, close to Václav Havel Airport — if you are flying out, the terminal is minutes from the end of the motorway. For the city centre, allow another 20–30 minutes through Břevnov or Dejvice to Malá Strana, the Old Town or Vinohrady, depending on the time of day."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Karlovy Vary pickup to your Prague drop-off: the car, the chauffeur, fuel and the Czech motorway vignette. Leaving after a spa stay, a film festival or a business visit, you step out at your Prague door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German or Russian on request, useful for the spa hotel handover.",
+    "Fuel and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any Karlovy Vary address — your spa hotel, apartment, office, Karlovy Vary main station or Karlovy Vary Airport (KLV).",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Loket, the Lidice Memorial or a coffee break on the D6 — agreed at booking."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Karlovy Vary to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Karlovy Vary", "note": "Pickup from your spa hotel, apartment, office or Karlovy Vary main station. Your chauffeur meets you at the door and loads the luggage.", "anchor": true, "custom": false },
+    { "city": "Loket (optional)", "note": "A castle town on a bend of the Ohře, a short drive from Karlovy Vary — worth an hour before you head east.", "anchor": false, "custom": false },
+    { "city": "Lidice Memorial (optional)", "note": "Just off the D6 near Prague. A quiet, moving stop at the site of the village destroyed in 1942.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A brewery, a viewpoint, a late lunch on the way? Tell us at booking. The route is yours.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "None. Karlovy Vary to Prague is entirely inside the Czech Republic." },
+    { "label": "Tolls", "value": "The Czech motorway vignette is included in the quoted price." },
+    { "label": "Airport drop-off", "value": "The D6 ends close to Václav Havel Airport. Give us your flight time and we plan the departure from Karlovy Vary around it." },
+    { "label": "Return transfer", "value": "Coming back to Karlovy Vary later? Book both directions together for a reduced rate." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Break the drive",
+    "headingItalic": "where it suits you.",
+    "intro": "Ninety minutes is a short run, but there is a lot of West and Central Bohemia along it. Three stops cover most of the requests we get on the way from Karlovy Vary to Prague.",
+    "configurations": [
+      { "title": "Loket Castle on the Ohře", "body": "Leave your hotel at 9:00 and spend an hour in Loket — the castle above the river bend and the small square below it. Back on the D6 by late morning and in Prague in time for lunch.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Krušovice Royal Brewery", "body": "A short detour off the D6 near Nové Strašecí brings you to the Krušovice brewery. Book a guided tour in advance, then continue to Prague — about an hour from the brewery gate to the city centre.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "The Lidice Memorial", "body": "Just before Prague, a few minutes off the D6. Forty-five minutes for the museum and the memorial grounds, then on to your Prague address or the airport.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur arrives at the entrance of your Karlovy Vary hotel, not at a car park down the hill. Bags go from the reception desk into the boot, and you leave when you are ready — after a last glass from the springs, if you like.",
+    "The cabin is quiet unless you want it otherwise. Ninety minutes is enough for a call, a nap after an early treatment, or a few questions about Prague — which neighbourhood your hotel is in, where to eat near it, how long to allow for the airport.",
+    "Water, charger and Wi-Fi are ready in the back. If you want a stop for coffee halfway, say so. In Prague your chauffeur carries the luggage to reception or to the check-in area at the airport, not just to the kerb."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Karlovy Vary to Prague.",
+    "items": [
+      { "title": "One price, agreed in advance", "body": "Fuel, the Czech vignette and the chauffeur’s time are in the fare. Nothing is added on arrival in Prague, whatever the traffic." },
+      { "title": "Spa door to Prague door", "body": "No walk to the bus station with suitcases, no taxi at the Prague end. Your luggage goes in once in Karlovy Vary and comes out at your hotel or the airport." },
+      { "title": "Based in Prague", "body": "Prestigo is a Prague company with its own Mercedes fleet. Your chauffeur knows the arrival end — hotel entrances, the quickest way through the centre, the right terminal at Václav Havel Airport." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Karlovy Vary to Prague take?", "a": "Approximately 1 hour 30 minutes door to door on the D6. The motorway ends near Václav Havel Airport; the Prague city centre is another 20–30 minutes depending on traffic." },
+    { "q": "How much is a taxi or chauffeur from Karlovy Vary to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette and driver time — it is per car, not per person." },
+    { "q": "Can you collect me from my spa hotel in Karlovy Vary?", "a": "Yes. Give us the hotel name and the time you want to leave. Your chauffeur comes to the hotel entrance and helps with the luggage. Where cars cannot reach the door in the spa quarter, they meet you at the nearest permitted point and carry the bags from there." },
+    { "q": "Is a private transfer better than the bus or train from Karlovy Vary to Prague?", "a": "Direct buses take around two hours from the bus station to Prague, and the train is slower. For a solo traveller with light luggage, the bus is cheaper. A private transfer is door to door, leaves when you want, takes all your luggage and costs the same for one passenger or three." },
+    { "q": "Can we stop on the way from Karlovy Vary to Prague?", "a": "Yes. Loket, the Krušovice brewery and the Lidice Memorial are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included." },
+    { "q": "Can you take me straight to Prague Airport for a flight?", "a": "Yes. The D6 ends close to Václav Havel Airport, so the airport is the quickest Prague drop-off on this route. Tell us your flight time and we set a departure that gets you to the terminal with time to spare." }
+  ],
+  "relatedRoutesIntro": "Karlovy Vary is one corner of the West Bohemian spa triangle. Guests leaving Mariánské Lázně, Františkovy Lázně, Plzeň or Dresden book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "marianske-lazne-prague", "city": "Mariánské Lázně", "label": "Mariánské Lázně → Prague", "distance": "165 km", "duration": "2h" },
+    { "slug": "frantiskovy-lazne-prague", "city": "Františkovy Lázně", "label": "Františkovy Lázně → Prague", "distance": "175 km", "duration": "2h 30min" },
+    { "slug": "plzen-prague", "city": "Plzeň", "label": "Plzeň → Prague", "distance": "90 km", "duration": "1h" },
+    { "slug": "dresden-prague", "city": "Dresden", "label": "Dresden → Prague", "distance": "150 km", "duration": "2h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~130 km" },
+    { "label": "Duration", "value": "~1.5 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Karlovy Vary to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Karlovy Vary to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Karlovy Vary to Prague transfer — 130 km door to door in a Mercedes E, S or V-Class. Pickup at any spa hotel. Fixed price from €{ePrice}.",
+    "ogTitle": "Karlovy Vary to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Karlovy Vary to Prague transfer — 130 km door to door in a Mercedes E, S or V-Class. Pickup at any spa hotel. Fixed price from €{ePrice}."
+  }
+}

@@ -1,0 +1,257 @@
+{
+  "hero": {
+    "label": "Núremberg → Praga",
+    "headlineLine1": "De Núremberg a Praga,",
+    "headlineItalic": "de Franconia a Bohemia.",
+    "intro": "El traslado de Núremberg a Praga con chófer privado es un trayecto puerta a puerta de 360 km hacia el este por la A6 y la D5, con unas 3 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Núremberg, en la Nürnberg Hauptbahnhof o en el aeropuerto de Núremberg (NUE), y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Núremberg a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Núremberg a Praga cubre 360 km —hacia el este por la A6 a través del Alto Palatinado pasando por Amberg, paso de la frontera checa en Waidhaus–Rozvadov y, por último, la autopista D5 pasando por Pilsen y Beroun hasta Praga— y dura aproximadamente 3,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Núremberg, en una oficina, en la Nürnberg Hauptbahnhof o en la sala de llegadas del aeropuerto de Núremberg, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "El precio se fija antes de salir: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Sin transbordos de tren, sin arrastrar maletas entre andenes, sin buscar taxi al llegar a Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Núremberg a Praga",
+    "headingItalic": "en tres horas y media.",
+    "paragraphs": [
+      "Desde la recogida al pie del Kaiserburg, cerca del Hauptmarkt o en el recinto ferial, su chófer se incorpora a la A6 y sale de Franconia en dirección este. La autopista atraviesa el Alto Palatinado —colinas boscosas, pequeñas villas con mercado, Amberg un poco al norte— y pasa el enlace con la A93 antes de ascender suavemente hacia la frontera checa.",
+      "El paso de Waidhaus–Rozvadov está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. En el lado checo, la D5 le lleva a través de Bohemia Occidental, pasando por Stříbro y bordeando Pilsen, y después por Rokycany y Beroun hasta el extremo suroeste de Praga. La distancia total es de aproximadamente 360 kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Un viernes por la tarde, cuente con 20–30 minutos más para la entrada en la ciudad.",
+      "Su chófer comprueba la A6 y la D5 antes de salir. Las obras y el tráfico de vacaciones cambian de una semana a otra, y si hay un atasco ajusta la ruta sin necesidad de preguntar. Llegará a Praga con la tarde o la noche todavía por delante: tiempo para hacer el check-in y salir a cenar a pie por la Ciudad Vieja."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Núremberg hasta la llegada a Praga: el coche, el chófer, el combustible, la viñeta checa y todos los peajes del camino. Después de una feria, una visita al mercado navideño o una semana de trabajo en Franconia, llegará a la puerta en Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán previa solicitud, práctico para la entrega en el hotel de Núremberg.",
+    "Combustible, todos los peajes y la viñeta de autopista checa. Las autopistas alemanas no tienen peaje para turismos. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Núremberg, en la Nürnberg Hauptbahnhof o dentro de la sala de llegadas del aeropuerto de Núremberg (NUE), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
+    "Paradas en el camino —Amberg, Kladruby o Pilsen— acordadas al reservar."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Núremberg a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Núremberg",
+      "note": "Recogida en su hotel, oficina, en la Nürnberg Hauptbahnhof o en el aeropuerto de Núremberg (NUE). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Amberg (opcional)",
+      "note": "Una ciudad amurallada del Alto Palatinado junto a la A6, conocida por la Stadtbrille, el puente en arco que se refleja en el río Vils.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Pilsen (opcional)",
+      "note": "La capital de Bohemia Occidental, en la D5 y a una hora de Praga: la cervecería Pilsner Urquell y una amplia plaza en el casco antiguo.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "¿Un monasterio, una cervecería, un restaurante del que le han hablado? Díganoslo al reservar e incluiremos la parada.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen germano-checa en Waidhaus–Rozvadov. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y todos los peajes están incluidos. Las autopistas alemanas son gratuitas para turismos."
+    },
+    {
+      "label": "Recogida en el aeropuerto",
+      "value": "Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en el aeropuerto de Núremberg y ajusta la hora de recogida, con 60 minutos de espera gratuita."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Regresa a Núremberg más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga del trayecto",
+    "headingItalic": "parte del viaje.",
+    "intro": "Tres horas y media dan para una parada que merezca la pena recordar. Estas tres están cerca de la carretera entre Núremberg y Praga.",
+    "configurations": [
+      {
+        "title": "Amberg y la Stadtbrille",
+        "body": "Salga de Núremberg a las 9:00 y pare en Amberg cuarenta y cinco minutos después. Una hora dentro de las murallas —la plaza del mercado, la iglesia de San Martín y el puente sobre el Vils— y después hacia el este, hasta la frontera, para llegar a Praga a media tarde.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "El monasterio de Kladruby",
+        "body": "A pocos minutos de la D5, cerca de Stříbro, el monasterio benedictino de Kladruby tiene una iglesia reconstruida por Santini en su llamativo estilo gótico barroco. Una visita guiada dura alrededor de una hora antes de continuar hacia Praga.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "Almuerzo y visita a la cervecería en Pilsen",
+        "body": "Pilsen es la pausa natural a mitad de camino. Almuerce en el casco antiguo o haga la visita a la cervecería Pilsner Urquell con sus bodegas; después, una hora por la D5 le deja en Praga para la noche.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se calculan según el tiempo y la distancia adicionales: díganos dónde quiere parar y le confirmaremos un presupuesto firme antes de reservar. Una breve parada para tomar un café o descansar en la autopista siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le espera en la puerta de su hotel de Núremberg o a la salida del pabellón ferial que usted indique. En el aeropuerto de Núremberg le espera dentro de la sala de llegadas con un cartel con su nombre, ya al tanto de la hora de aterrizaje, y se ocupa del equipaje desde allí.",
+    "La cabina es silenciosa y el tiempo es suyo. Prepare la reunión de mañana, duerma después de una larga jornada de feria o pregunte por Praga: su chófer vive en la ciudad y puede decirle en qué barrio está su hotel, cuándo conviene visitar el Castillo y dónde comer cerca del río.",
+    "El agua, el cargador y el wifi ya están a bordo. Si quiere un café en la frontera o prefiere la cabina más fresca o más cálida, solo tiene que decirlo. En Praga, su chófer lleva el equipaje hasta la recepción, no solo hasta el bordillo."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Núremberg a Praga.",
+    "items": [
+      {
+        "title": "Precio fijado antes de viajar",
+        "body": "El combustible, la viñeta checa, los peajes y el tiempo del chófer están incluidos en la tarifa. No hay nada que liquidar al llegar a Praga."
+      },
+      {
+        "title": "Sin conexiones",
+        "body": "Entre Núremberg y Praga, el transporte público significa un autocar o un tren con transbordos. El coche va directo, y su equipaje se queda en el maletero desde su puerta en Núremberg hasta su puerta en Praga."
+      },
+      {
+        "title": "Un operador de Praga",
+        "body": "Prestigo tiene su sede en Praga y opera su propia flota Mercedes. Su chófer conoce la ciudad a la que se dirige, hasta el detalle de qué entrada del hotel se puede usar cuando la calle principal está cerrada al tráfico."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Núremberg a Praga?",
+      "a": "Aproximadamente 3 horas y 30 minutos puerta a puerta: la A6 hacia el este pasando por Amberg hasta la frontera de Waidhaus–Rozvadov, y después la D5 pasando por Pilsen hasta Praga. El tráfico de entrada a Praga los viernes por la tarde puede añadir 20–30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Núremberg a Praga?",
+      "a": "Tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye combustible, la viñeta checa, todos los peajes y el tiempo del chófer; es por vehículo, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Núremberg y llevarme directamente a Praga?",
+      "a": "Sí. Envíenos su número de vuelo al reservar. Su chófer sigue el vuelo, le espera dentro de la sala de llegadas del aeropuerto de Núremberg (NUE) con su nombre y le lleva directamente a su dirección en Praga. La recogida en la Nürnberg Hauptbahnhof o en cualquier hotel funciona del mismo modo."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren o el autobús de Núremberg a Praga?",
+      "a": "El tren entre ambas ciudades suele requerir un transbordo y tarda más que el coche; el autocar directo es la principal opción de transporte público. Para quien viaja solo y con poco equipaje, el autocar o el tren son más económicos. Para dos o tres personas, o con mucho equipaje, el coche privado va puerta a puerta y cuesta lo mismo por vehículo."
+    },
+    {
+      "q": "¿Podemos parar en el camino de Núremberg a Praga?",
+      "a": "Sí. Amberg, el monasterio de Kladruby y Pilsen son las paradas más solicitadas. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para tomar un café o descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Alemania y la República Checa?",
+      "a": "Ambos países están en el espacio Schengen, así que no hay control fronterizo rutinario en Waidhaus–Rozvadov. Lleve de todos modos su pasaporte o documento de identidad de la UE: hay controles puntuales, y los viajeros de fuera de la UE deben llevar su documentación."
+    }
+  ],
+  "relatedRoutesIntro": "El trayecto de Núremberg a Praga suele ser una etapa de un viaje más amplio por Baviera y Bohemia. Los clientes que salen de Ratisbona, Múnich, Pilsen o Mariánské Lázně reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Más formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "regensburg-prague",
+      "city": "Ratisbona",
+      "label": "Ratisbona → Praga",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "munich-prague",
+      "city": "Múnich",
+      "label": "Múnich → Praga",
+      "distance": "385 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "plzen-prague",
+      "city": "Pilsen",
+      "label": "Pilsen → Praga",
+      "distance": "90 km",
+      "duration": "1 h"
+    },
+    {
+      "slug": "marianske-lazne-prague",
+      "city": "Mariánské Lázně",
+      "label": "Mariánské Lázně → Praga",
+      "distance": "165 km",
+      "duration": "2 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "360 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Van Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Núremberg a Praga.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Núremberg a Praga — desde {ePrice} €",
+    "description": "Traslado privado de Núremberg a Praga: 360 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o en NUE. Desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Núremberg a Praga: desde {ePrice} €",
+    "ogDescription": "Traslado privado de Núremberg a Praga: 360 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o en NUE. Desde {ePrice} €."
+  }
+}

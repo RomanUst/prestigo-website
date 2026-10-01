@@ -1,0 +1,175 @@
+{
+  "metadata": {
+    "title": "Taxi aeropuerto de Praga: coche a precio fijo desde PRG",
+    "description": "Alternativa al taxi del aeropuerto de Praga: un Mercedes reservado a precio fijo de PRG al centro, con el chófer en Llegadas, 24/7. Desde {businessPrice} €.",
+    "ogTitle": "Taxi aeropuerto de Praga: precio fijo de PRG al centro de la ciudad"
+  },
+  "breadcrumbName": "Taxi aeropuerto de Praga",
+  "hero": {
+    "label": "Taxi al aeropuerto · Praga PRG",
+    "headlineLine1": "Un taxi desde el aeropuerto de Praga,",
+    "headlineItalic": "con precio antes de aterrizar.",
+    "intro": "¿Busca un taxi desde el aeropuerto Václav Havel de Praga (PRG)? Prestigo es la alternativa reservada a la parada de taxis: un Mercedes privado con un precio fijo acordado al reservar, un chófer que le espera dentro de la sala de Llegadas con su nombre y sin colas en la acera. De día o de noche, a cualquier dirección de Praga, desde {businessPrice} € por vehículo.",
+    "ctaPrimary": "Reservar coche al aeropuerto",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Cabina trasera de un Mercedes S-Class al atardecer con el perfil de Praga tras la ventanilla"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      {
+        "label": "Precio",
+        "value": "Fijado al reservar: Mercedes E-Class desde {businessPrice} € por vehículo, peajes incluidos"
+      },
+      {
+        "label": "Tiempo hasta el centro",
+        "value": "Unos 25–30 minutos hasta el centro de Praga con tráfico normal"
+      },
+      {
+        "label": "Espera",
+        "value": "Chófer dentro de la sala de Llegadas, 60 minutos gratuitos tras el aterrizaje"
+      },
+      {
+        "label": "Horario",
+        "value": "24/7, incluidas las llegadas de madrugada y a primera hora"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Parada de taxis o coche reservado:",
+    "headingItalic": "la diferencia, con franqueza.",
+    "paragraphs": [
+      "Al salir de Llegadas en PRG, puede tomar un coche de la parada de fuera o uno que haya reservado de antemano. Ambos le llevan a la ciudad. La diferencia está en lo que sabe y en cuándo lo sabe.",
+      "Con un coche de la parada, la tarifa final depende del taxímetro, de la ruta y del tráfico de ese día. Con Prestigo, acuerda el precio al reservar, antes de salir de casa. Su chófer ya está dentro de la terminal cuando usted cruza las puertas, y no hay colas que hacer después de un vuelo largo.",
+      "No somos un taxi de calle. No recogemos pasajeros en la parada y todos los trayectos se reservan con antelación. Esa es precisamente la idea: el coche, el chófer y la tarifa quedan resueltos antes de que su avión toque tierra."
+    ]
+  },
+  "features": {
+    "label": "Por qué reservar",
+    "headingLine1": "Lo que cambia cuando el coche",
+    "headingItalic": "está reservado de antemano.",
+    "items": [
+      {
+        "title": "Precio conocido antes de volar",
+        "body": "La tarifa que ve al pagar es la tarifa que paga. Sin taxímetro, sin recargo por llegadas nocturnas, sin extras por el tráfico en la autopista hacia la ciudad."
+      },
+      {
+        "title": "Sin colas en la acera",
+        "body": "Su chófer le espera dentro de la sala de Llegadas con un cartel con su nombre: Terminal 1 para vuelos extra-Schengen, Terminal 2 para vuelos Schengen. Sale al encuentro de una persona, no de una cola."
+      },
+      {
+        "title": "Vuelos tardíos cubiertos",
+        "body": "Seguimos su vuelo en tiempo real. Si aterriza a medianoche o con dos horas de retraso, el chófer se adapta, y los 60 minutos de espera tras el aterrizaje no cuestan nada."
+      },
+      {
+        "title": "Espacio para el equipaje",
+        "body": "Un E-Class lleva hasta tres pasajeros. Un V-Class lleva seis pasajeros y seis maletas grandes, así que una familia o un grupo viaja en un solo coche por un único precio."
+      },
+      {
+        "title": "Mercedes recientes",
+        "body": "E-Class, S-Class y V-Class, todos los vehículos con menos de tres años, con wifi, agua y cargador de móvil a bordo."
+      },
+      {
+        "title": "Sillas infantiles sin coste",
+        "body": "Los capazos, las sillas para niños pequeños y los alzadores son gratuitos previa solicitud. Indique la edad del niño al reservar y la silla estará instalada antes de la recogida."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Cómo funciona",
+    "heading": "De la reserva a la puerta de su hotel.",
+    "items": [
+      {
+        "title": "Reserve en línea",
+        "body": "Introduzca su número de vuelo y la dirección en Praga. Elija E-Class, V-Class o S-Class y vea el precio fijo antes de pagar."
+      },
+      {
+        "title": "Reciba los datos de su chófer",
+        "body": "Recibirá el nombre y el teléfono del chófer antes de aterrizar. Seguimos el vuelo desde el despegue."
+      },
+      {
+        "title": "Salga al encuentro de su nombre",
+        "body": "Tras recoger el equipaje, su chófer le espera en la sala de Llegadas con un cartel con su nombre y se ocupa de sus maletas."
+      },
+      {
+        "title": "Directo a la dirección",
+        "body": "Unos 25 minutos hasta la Ciudad Vieja o Smíchov, alrededor de 30 hasta Vinohrady o Holešovice. El precio no cambia, haya el tráfico que haya."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Barrio a barrio",
+    "headingLine1": "Cuánto se tarda y cuánto cuesta",
+    "headingItalic": "llegar a cada zona de Praga.",
+    "paragraphs": [
+      "El aeropuerto de Praga está a unos 20 km al noroeste del centro. Con el tráfico normal de día, el trayecto dura unos 25 minutos hasta la Ciudad Vieja, la plaza de Wenceslao o Smíchov, unos 28 minutos hasta Nusle y Pankrác, y alrededor de 30 minutos hasta Vinohrady, Žižkov, Holešovice y Letná. Karlín está a unos 32 minutos. Cuente con cinco a diez minutos más en la hora punta de la mañana y de la tarde.",
+      "La tarifa no cambia según el barrio ni la hora. Dentro de Praga, un E-Class cuesta desde {businessPrice} €, un V-Class para hasta seis personas desde {vClassAirport} € y un S-Class desde {sClassAirport} €, por vehículo y no por persona, con peajes incluidos.",
+      "Sea cual sea el coche que tome en cualquier aeropuerto, unos pocos hábitos mantienen la tarifa justa: acuerde el precio antes de salir, utilice un servicio con licencia que pueda identificar y pida un recibo al final. La reserva anticipada cumple los tres por usted: el precio, la empresa y el chófer figuran en su confirmación antes de viajar."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre el taxi del aeropuerto de Praga",
+  "faqs": [
+    {
+      "q": "¿Cuánto cuesta un taxi del aeropuerto de Praga al centro de la ciudad?",
+      "a": "Con Prestigo, un Mercedes E-Class privado de PRG a cualquier dirección del centro de Praga cuesta desde {businessPrice} € por vehículo, con precio fijado al reservar. Un V-Class para hasta seis personas cuesta desde {vClassAirport} € y un S-Class desde {sClassAirport} €. Los peajes están incluidos y no hay recargo nocturno."
+    },
+    {
+      "q": "¿Hay taxis 24/7 en el aeropuerto de Praga, también para llegadas nocturnas?",
+      "a": "Sí. Prestigo funciona 24/7, todos los días del año, y las llegadas de madrugada y a primera hora son habituales. Reserve en línea con al menos 12 horas de antelación; para una llegada de última hora, llame al +420 725 986 855."
+    },
+    {
+      "q": "¿Cuánto dura el trayecto en taxi del aeropuerto de Praga al centro?",
+      "a": "Unos 25–30 minutos con tráfico normal. La Ciudad Vieja y Smíchov están a unos 25 minutos, Vinohrady y Holešovice a unos 30, y Karlín a unos 32. Cuente con 5–10 minutos más en hora punta."
+    },
+    {
+      "q": "¿Cómo evito que un taxi me cobre de más en Praga?",
+      "a": "Acuerde el precio antes de iniciar el trayecto, utilice un servicio con licencia que pueda identificar y pida un recibo. Con un coche reservado, el precio queda fijado al reservar, así que no hay nada que negociar a la llegada."
+    },
+    {
+      "q": "¿Puedo reservar con antelación un taxi desde el aeropuerto de Praga?",
+      "a": "Sí. Reserve en línea con su número de vuelo y su destino con al menos 12 horas de antelación. Su chófer sigue el vuelo y le espera dentro de la sala de Llegadas con un cartel con su nombre, con 60 minutos de espera gratuita tras el aterrizaje."
+    },
+    {
+      "q": "¿Hay un taxi con capacidad para 6 personas y su equipaje?",
+      "a": "Sí. El Mercedes V-Class tiene capacidad para hasta seis pasajeros con seis maletas grandes, desde {vClassAirport} € por vehículo hasta el centro de Praga. Para grupos más grandes enviamos más de un vehículo."
+    },
+    {
+      "q": "¿Y si mi vuelo se cancela o necesito cancelar?",
+      "a": "Si su vuelo se cancela, puede reprogramar el servicio sin coste o recibir el reembolso íntegro. También puede cancelar sin coste hasta 1 hora antes de la recogida."
+    },
+    {
+      "q": "¿Cómo puedo pagar?",
+      "a": "Con Visa o Mastercard al reservar en línea, o por transferencia bancaria. Las empresas pueden recibir factura."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Más sobre la llegada a Praga.",
+    "links": [
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Categorías de vehículos, tarifas y tiempos de trayecto desde PRG a todas las zonas de Praga."
+      },
+      {
+        "href": "/services/airport-meet-and-greet",
+        "title": "Recepción personalizada en el aeropuerto",
+        "body": "Cómo funciona la bienvenida con cartel con su nombre en Llegadas, en la Terminal 1 y la Terminal 2."
+      },
+      {
+        "href": "/blog/prague-airport-taxi-vs-chauffeur",
+        "title": "¿Taxi o chófer?",
+        "body": "Un análisis más detallado de las opciones para ir de PRG a la ciudad."
+      },
+      {
+        "href": "/services/group-transfers",
+        "title": "Traslados de grupos",
+        "body": "Varios vehículos para grupos grandes, equipos y eventos que llegan juntos."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Conozca la tarifa antes de volar.",
+    "headingItalic": "Desde {businessPrice} €, precio fijo."
+  }
+}

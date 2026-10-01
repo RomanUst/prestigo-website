@@ -1,0 +1,113 @@
+{
+  "hero": {
+    "label": "Salzbourg → Prague",
+    "headlineLine1": "De Salzbourg à Prague,",
+    "headlineItalic": "une voiture, un tarif.",
+    "intro": "De Salzbourg à Prague avec chauffeur privé, c'est un transfert de porte à porte de 305 km vers l'est par l'A1 jusqu'à Linz, puis vers le nord à travers la Bohême du Sud, soit environ 3 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignettes autrichienne et tchèque incluses. Prise en charge à n'importe quelle adresse de Salzbourg ou à l'aéroport de Salzbourg (SZG), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Salzbourg à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Salzbourg à Prague couvre 305 km — vers l'est par l'A1 Westautobahn jusqu'à Linz, vers le nord par la S10 à travers le Mühlviertel jusqu'à la frontière tchèque de Wullowitz–Dolní Dvořiště, puis par České Budějovice et l'autoroute D3 jusqu'à Prague — et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de l'Altstadt, à votre résidence de festival, à Salzburg Hauptbahnhof ou à l'aéroport de Salzbourg, et vous conduit jusqu'à la porte de votre hôtel, appartement ou bureau à Prague.",
+    "Le tarif est fixé avant de quitter Salzbourg. Carburant, péages, vignettes autrichienne et tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande en font partie. Pas de changement de train à Linz, pas de valises sur un quai, rien à régler en arrivant à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Salzbourg à Prague",
+    "headingItalic": "en trois heures et demie.",
+    "paragraphs": [
+      "Après une prise en charge sur l'une ou l'autre rive de la Salzach — l'Altstadt, les hôtels autour de Mirabell ou l'aéroport à l'ouest de la ville —, votre chauffeur rejoint l'A1 en direction de l'est. L'autoroute longe le Salzkammergut en passant par Mondsee, puis traverse les terres agricoles de Haute-Autriche vers Wels et Linz, sur le Danube.",
+      "À Linz, l'itinéraire bifurque vers le nord sur la voie rapide S10 du Mühlviertel, qui grimpe dans des collines boisées et vallonnées jusqu'à la frontière tchèque de Wullowitz–Dolní Dvořiště. C'est un passage Schengen : aucune guérite, aucun arrêt en temps normal. Côté tchèque, la route continue par Kaplice jusqu'à České Budějovice, où l'autoroute D3 prend le relais vers le nord, par Tábor, jusqu'à Prague. La distance totale est d'environ 305 kilomètres.",
+      "Votre chauffeur vérifie la route avant le départ. Pendant le Festival de Salzbourg, fin juillet et en août, et les week-ends d'hiver où le trafic des skieurs remplit l'A1, le tronçon vers Linz peut être lent — dans ce cas, il ajuste l'heure de départ ou l'itinéraire sans avoir à demander. Vous arrivez à Prague à temps pour vous installer, avec encore toute la soirée pour la Vieille Ville."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout le trajet, de la prise en charge à Salzbourg jusqu'à votre porte à Prague : la voiture, le chauffeur, le carburant, les vignettes autrichienne et tchèque et chaque péage. Après le festival, une semaine de ski ou un déplacement professionnel, vous arrivez à Prague sans rien d'autre à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, pratique pour la prise en charge à l'hôtel à Salzbourg.",
+    "Carburant, tous les péages, la vignette autoroutière autrichienne et la vignette autoroutière tchèque. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse de Salzbourg, à Salzburg Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Salzbourg (SZG), avec suivi du vol.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Arrêts en route — Linz, Český Krumlov ou České Budějovice — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Classe Affaires", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Classe Direction", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Van Affaires", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Salzbourg à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Salzbourg", "note": "Prise en charge à votre hôtel, à votre résidence, à Salzburg Hauptbahnhof ou à l'aéroport de Salzbourg (SZG). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.", "anchor": true, "custom": false },
+    { "city": "Linz (en option)", "note": "La capitale de la Haute-Autriche, sur le Danube, où l'itinéraire bifurque vers le nord — l'endroit idéal pour un café ou une courte promenade au bord du fleuve.", "anchor": false, "custom": false },
+    { "city": "Český Krumlov (en option)", "note": "Un court détour depuis Kaplice vers la ville-château au bord de la Vltava, première grande étape côté tchèque.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Un café au bord d'un lac, un château, une brasserie à České Budějovice ? Dites-le-nous à la réservation. L'itinéraire est le vôtre.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Frontière Schengen austro-tchèque à Wullowitz–Dolní Dvořiště. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
+    { "label": "Péages", "value": "Les vignettes autoroutières autrichienne et tchèque ainsi que tous les péages sont inclus dans le prix indiqué." },
+    { "label": "Saison du festival", "value": "Le Festival de Salzbourg se déroule de fin juillet à fin août. Les départs après les dernières représentations sont vite complets — réservez votre date à l'avance." },
+    { "label": "Transfert retour", "value": "Vous rentrez à Salzbourg plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Faites une pause",
+    "headingItalic": "en Bohême du Sud.",
+    "intro": "La route de Salzbourg à Prague passe par quelques-unes des plus belles petites villes d'Autriche et de République tchèque. Voici les trois arrêts que les voyageurs demandent le plus.",
+    "configurations": [
+      { "title": "Linz, sur le Danube", "body": "Départ de Salzbourg à 9h00 et arrêt à Linz une heure et quart plus tard. Promenade sur la Hauptplatz, coup d'œil à l'Ars Electronica Center ou café au bord du fleuve, puis cap au nord vers Prague pour une arrivée en fin d'après-midi.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Déjeuner à Český Krumlov", "body": "Un court détour après la frontière vous mène à Český Krumlov, ville classée à l'UNESCO lovée dans un méandre de la Vltava. Une heure et demie pour les cours du château et un déjeuner au bord de l'eau, puis deux heures et demie jusqu'à Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "České Budějovice et Hluboká", "body": "Arrêtez-vous sur la grande place à arcades de České Budějovice, berceau de la brasserie Budweiser Budvar, ou au château blanc néogothique de style Tudor de Hluboká, à quelques minutes au nord. Une heure suffit, et la D3 vous mène ensuite directement à Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos en route est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur arrive devant l'entrée de votre hôtel salzbourgeois, pas au bout d'une ruelle piétonne de l'Altstadt. À l'aéroport de Salzbourg, il vous attend dans le hall des arrivées avec une pancarte à votre nom, suit votre vol et porte vos bagages du chariot jusqu'au coffre.",
+    "L'habitacle est à vous pendant trois heures et demie. Travail, repos ou appels — votre chauffeur s'adapte. Si vous voulez en savoir plus sur votre destination, demandez : quel pont traverser à pied en premier, où se situe votre hôtel pragois par rapport au Château, combien de temps il faut pour rejoindre à pied la place de la Vieille Ville.",
+    "Eau, chargeur et Wi-Fi sont prêts dès que vous montez. Dites à votre chauffeur si vous souhaitez une pause près de Linz ou une température précise à l'arrière. À Prague, il porte vos bagages jusqu'à la réception et vous laisse sans rien d'autre à organiser."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Salzbourg à Prague.",
+    "items": [
+      { "title": "Un prix unique, convenu à l'avance", "body": "Carburant, péages, vignettes autrichienne et tchèque et temps du chauffeur sont compris dans le tarif réservé. Les bouchons près de Linz n'y changent rien, et rien n'est ajouté à votre arrivée à Prague." },
+      { "title": "Pas de correspondance à Linz", "body": "En train, le trajet de Salzbourg à Prague impose généralement un changement en route. En voiture, vos bagages sont chargés une seule fois devant votre porte à Salzbourg et déchargés devant votre porte à Prague." },
+      { "title": "Basés à Prague", "body": "Prestigo est une société pragoise qui exploite sa propre flotte Mercedes. Votre chauffeur parcourt ces rues chaque jour et connaît les entrées des hôtels, les zones piétonnes et le chemin le plus rapide vers votre adresse." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé de Salzbourg à Prague ?", "a": "Environ 3 heures 30 de porte à porte : l'A1 vers l'est jusqu'à Linz, la S10 vers le nord jusqu'à la frontière de Wullowitz–Dolní Dvořiště, puis České Budějovice et la D3 jusqu'à Prague. Les week-ends de festival et le trafic des skieurs en hiver sur l'A1 peuvent rallonger le trajet." },
+    { "q": "Combien coûte un taxi ou un chauffeur de Salzbourg à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, tous les péages, les vignettes autrichienne et tchèque et le temps du chauffeur — il s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à l'aéroport de Salzbourg et me conduire directement à Prague ?", "a": "Oui. Envoyez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de l'aéroport de Salzbourg (SZG) avec votre nom et vous conduit directement à votre adresse à Prague. Jusqu'à 60 minutes d'attente à l'aéroport sont offertes." },
+    { "q": "Un transfert privé est-il préférable au train de Salzbourg à Prague ?", "a": "Les liaisons ferroviaires entre Salzbourg et Prague comportent généralement un changement, souvent à Linz, et prennent plus de temps que la route une fois ajoutés le trajet jusqu'à la gare et un taxi à Prague. Une voiture privée vous conduit de porte à porte et coûte le même prix pour un passager ou pour trois. Pour un voyageur seul avec peu de bagages, le train reste l'option la moins chère." },
+    { "q": "Peut-on s'arrêter en route entre Salzbourg et Prague ?", "a": "Oui. Linz, Český Krumlov et České Budějovice sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Ai-je besoin de mon passeport entre l'Autriche et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Wullowitz–Dolní Dvořiště. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux." }
+  ],
+  "relatedRoutesIntro": "Salzbourg n'est souvent qu'une étape d'un voyage plus long à travers l'Autriche, la Bavière et la Bohême. Les voyageurs qui arrivent de Linz, Munich, Passau ou Vienne réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "195 km", "duration": "2 h 30" },
+    { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4 h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2 h 30" },
+    { "slug": "vienna-prague", "city": "Vienne", "label": "Vienne → Prague", "distance": "330 km", "duration": "3 h 30" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "305 km" },
+    { "label": "Durée", "value": "~3 h 30" },
+    { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Salzbourg à Prague.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Salzbourg – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Salzbourg à Prague — 305 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Salzbourg ou à SZG. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Salzbourg à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Salzbourg à Prague — 305 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Salzbourg ou à SZG. Prix fixe dès {ePrice} €."
+  }
+}

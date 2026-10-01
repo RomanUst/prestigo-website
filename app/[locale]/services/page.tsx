@@ -14,6 +14,7 @@ import { getPageContent } from '@/lib/page-content'
 import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { localizedHref } from '@/lib/localized-href'
+import { landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 
 interface ServiceEntry {
   label: string
@@ -33,6 +34,7 @@ type ServicesHubContent = {
   metadata: { title: string; description: string; ogTitle: string }
   hero: { label: string; headlineLine1: string; headlineItalic: string; intro: string }
   services: ServiceEntry[]
+  alsoPopularLabel: string
   trustHeading: string
   trust: { title: string; body: string }[]
   faqHeading: { label: string; title: string }
@@ -251,6 +253,23 @@ export default async function ServicesPage() {
         </div>
         {/* bottom divider */}
         <div style={{ height: '1px', background: 'linear-gradient(to right, transparent 0%, var(--copper) 50%, transparent 100%)' }} />
+      </section>
+
+      {/* Keyword-variant service pages (/services/<slug>) */}
+      <section className="bg-anthracite py-12">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <p className="label mb-6">{content.alsoPopularLabel}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {landingPagesFor('services').map((p) => {
+              const page = getPageContent(`services/${p.slug}`, locale) as LandingContent
+              return (
+                <a key={p.slug} href={localizedHref(locale, `/services/${p.slug}`)} className="border border-anthracite-light p-6 hover:border-[var(--copper)] transition-colors">
+                  <p className="font-display font-light text-[18px] text-offwhite">{page.breadcrumbName}</p>
+                </a>
+              )
+            })}
+          </div>
+        </div>
       </section>
 
       {/* Trust block */}

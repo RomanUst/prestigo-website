@@ -1,0 +1,257 @@
+{
+  "hero": {
+    "label": "Kutná Hora → Prague",
+    "headlineLine1": "De Kutná Hora à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Kutná Hora à Prague avec chauffeur privé, c'est un transfert de porte à porte de 70 km vers l'ouest via Kolín et la D11, soit environ une heure de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette tchèque inclus. Prise en charge à n'importe quel hôtel de Kutná Hora, à l'ossuaire de Sedlec ou à la gare principale, dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Kutná Hora à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Kutná Hora à Prague représente 70 km — vers le nord en quittant la cité de l'argent jusqu'à Kolín, puis vers l'ouest par l'autoroute D11 jusqu'à la ville — et dure environ une heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Kutná Hora, à l'entrée de l'ossuaire de Sedlec ou à la gare principale de Kutná Hora, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague — ou à l'aéroport Václav Havel pour un vol en soirée.",
+    "Le tarif est convenu avant le départ et ne bouge pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas d'horaire à consulter après une longue journée de visites, pas de correspondance à Kolín, pas de file d'attente aux taxis à l'arrivée à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Kutná Hora à Prague",
+    "headingItalic": "en une heure.",
+    "paragraphs": [
+      "Après une prise en charge dans la vieille ville, au pied de la cathédrale Sainte-Barbe, ou à Sedlec, à côté de l'ossuaire, votre chauffeur file vers le nord à travers la plaine de l'Elbe jusqu'à Kolín. La route est courte et plate — champs, vergers et quelques clochers çà et là — et l'église gothique Saint-Barthélemy de Kolín se dessine à l'horizon au bout d'une vingtaine de minutes.",
+      "Après Kolín, la voiture rejoint l'autoroute D11 et file vers l'ouest en passant Poděbrady, puis entre dans Prague par sa périphérie nord-est. La distance totale est d'environ 70 kilomètres ; le temps de trajet est d'une heure environ en conditions normales. Aucune frontière sur cet itinéraire — il reste entièrement en République tchèque.",
+      "Votre chauffeur vérifie le trafic sur la D11 avant le départ. Le dimanche en fin d'après-midi et aux heures de pointe du soir en semaine, la dernière portion vers Prague ralentit ; en cas d'accident ou de travaux, il prend une route de campagne sans avoir à demander. Vous quittez Kutná Hora après la dernière visite de la journée et vous êtes de retour à Prague à temps pour le dîner."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Kutná Hora à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette tchèque. Que vous rentriez après une journée à la cathédrale, une nuit dans la vieille ville ou une visite en famille, vous descendez devant votre porte à Prague sans rien avoir à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant, tous les péages et la vignette autoroutière tchèque. Aucun supplément.",
+    "Prise en charge à n'importe quelle adresse de Kutná Hora, à l'ossuaire de Sedlec, à la cathédrale Sainte-Barbe ou à la gare principale de Kutná Hora.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Arrêts en route — Kolín, Poděbrady ou le château de Kačina — convenus à la réservation."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Kutná Hora à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Kutná Hora",
+      "note": "Prise en charge à votre hôtel de la vieille ville, à l'ossuaire de Sedlec, à la cathédrale Sainte-Barbe ou à la gare principale de Kutná Hora.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Kolín (en option)",
+      "note": "Une petite place de la vieille ville et le chœur gothique de Saint-Barthélemy. À vingt minutes du départ.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Poděbrady (en option)",
+      "note": "Une ville thermale au bord de l'Elbe, tout près de la D11. Une promenade le long de la colonnade et dans la cour du château.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un château, une brasserie, un restaurant dont on vous a parlé ? Dites-le-nous à la réservation. L'itinéraire est le vôtre.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à n'importe quelle adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun passage de frontière — Kutná Hora et Prague se trouvent toutes deux en République tchèque."
+    },
+    {
+      "label": "Péages",
+      "value": "La vignette autoroutière tchèque et les éventuels péages sont inclus dans le prix indiqué."
+    },
+    {
+      "label": "Points de prise en charge",
+      "value": "Hôtels de la vieille ville, parking de l'ossuaire de Sedlec ou gare principale de Kutná Hora. Indiquez-nous l'adresse exacte et votre chauffeur vous y attend."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous faites Prague–Kutná Hora–Prague ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+    }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Faites de la route",
+    "headingItalic": "une partie du voyage.",
+    "intro": "Une heure, c'est court, mais la campagne entre Kutná Hora et Prague compte quelques lieux qui valent une heure de plus. Trois arrêts couvrent l'essentiel des demandes que nous recevons sur le chemin du retour vers Prague.",
+    "configurations": [
+      {
+        "title": "Le château de Kačina",
+        "body": "À dix minutes au nord de Kutná Hora, Kačina est un château Empire aux teintes claires, posé dans un parc à l'anglaise et rarement fréquenté. Trois quarts d'heure dans le domaine, puis direction Prague en passant par Kolín.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "La vieille ville de Kolín",
+        "body": "Une halte à Kolín pour un café sur la place principale et une visite de l'église Saint-Barthélemy, dont le chœur fut conçu par Peter Parler, l'architecte de la cathédrale Saint-Guy de Prague. Une heure à pied, puis quarante minutes jusqu'à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Poděbrady au bord de l'Elbe",
+        "body": "Une courte sortie de la D11 vous mène à Poděbrady — une ville thermale avec un château au bord de la rivière et une longue colonnade dans le parc. Un déjeuner ou une promenade tranquille, puis la dernière demi-heure jusqu'à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous confirmons un devis ferme avant votre réservation. Une courte pause café ou repos est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur se présente devant votre hôtel à Kutná Hora, ou à l'entrée de l'ossuaire à la fin de votre visite — pas sur un parking à l'autre bout de la ville. Les bagages vont une seule fois dans le coffre, et vous voilà partis.",
+    "L'heure jusqu'à Prague vous appartient. Reposez-vous après une journée à pied, répondez à vos e-mails ou posez des questions sur la ville qui vous attend — dans quel quartier se trouve votre hôtel, à quelle heure le pont Charles est le plus calme, où dîner près du château de Prague. Votre chauffeur vit à Prague et vous répond d'expérience.",
+    "Eau, chargeur et Wi-Fi vous attendent dans l'habitacle. Si vous voulez un café à Kolín ou une température précise à l'arrière, dites-le simplement. À Prague, votre chauffeur porte vos bagages jusqu'à la réception, pas seulement jusqu'au trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Kutná Hora à Prague.",
+    "items": [
+      {
+        "title": "Un seul prix, convenu à l'avance",
+        "body": "Le carburant, la vignette tchèque et le temps du chauffeur sont compris dans le tarif. Rien n'est ajouté à votre arrivée à Prague."
+      },
+      {
+        "title": "Aucune correspondance",
+        "body": "Pas de marche jusqu'à une gare hors de la vieille ville, pas de changement à Kolín, pas de taxi à Praha hlavní nádraží. La voiture vous mène de votre porte à Kutná Hora jusqu'à votre porte à Prague."
+      },
+      {
+        "title": "Prague, c'est chez nous",
+        "body": "Prestigo est basé à Prague et exploite sa propre flotte Mercedes. Votre chauffeur connaît les entrées des hôtels, les sens uniques de la Vieille Ville et le chemin le plus rapide vers l'aéroport à toute heure."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Kutná Hora à Prague ?",
+      "a": "Environ une heure de porte à porte : vers le nord jusqu'à Kolín, puis vers l'ouest par l'autoroute D11 jusqu'à Prague. Les heures de pointe du soir en semaine et le trafic de retour du dimanche peuvent ajouter 15 à 20 minutes sur la dernière portion."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Kutná Hora à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Le prix comprend le carburant, la vignette autoroutière tchèque et le temps du chauffeur — il s'entend par voiture, pas par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à la gare de Kutná Hora ou à l'ossuaire de Sedlec ?",
+      "a": "Oui. La gare principale de Kutná Hora se trouve à Sedlec, tout près de l'ossuaire, et votre chauffeur peut vous retrouver à l'un ou l'autre — ou à n'importe quel hôtel ou adresse de la vieille ville. Indiquez-nous le lieu et l'heure exacts à la réservation."
+    },
+    {
+      "q": "Un transfert privé est-il préférable au train de Kutná Hora à Prague ?",
+      "a": "Le train met environ une heure, parfois avec un changement à Kolín, et part d'une gare située hors de la vieille ville. Pour un voyageur seul avec peu de bagages, c'est l'option la moins chère. Un transfert privé part de votre porte quand vous êtes prêt, emporte tous vos bagages et coûte le même prix pour un passager ou pour trois."
+    },
+    {
+      "q": "Peut-on s'arrêter en route entre Kutná Hora et Prague ?",
+      "a": "Oui. Le château de Kačina, Kolín et Poděbrady sont les arrêts habituels. Dites-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse."
+    },
+    {
+      "q": "Pouvez-vous me conduire de Kutná Hora directement à l'aéroport de Prague ?",
+      "a": "Oui. L'aéroport Václav Havel se trouve à l'autre extrémité de Prague, à l'ouest ; prévoyez donc un peu plus de temps que pour une dépose au centre-ville. Indiquez-nous l'heure de votre vol et nous fixons l'heure de prise en charge à Kutná Hora avec une marge confortable."
+    }
+  ],
+  "relatedRoutesIntro": "Kutná Hora est l'une des villes de Bohême d'où nos clients regagnent Prague. Pardubice, Hradec Králové et Liberec se réservent de la même façon — une voiture, un tarif fixe, une dépose devant votre porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "pardubice-prague",
+      "city": "Pardubice",
+      "label": "Pardubice → Prague",
+      "distance": "110 km",
+      "duration": "1 h 30"
+    },
+    {
+      "slug": "hradec-kralove-prague",
+      "city": "Hradec Králové",
+      "label": "Hradec Králové → Prague",
+      "distance": "115 km",
+      "duration": "1 h 30"
+    },
+    {
+      "slug": "liberec-prague",
+      "city": "Liberec",
+      "label": "Liberec → Prague",
+      "distance": "105 km",
+      "duration": "1 h 30"
+    },
+    {
+      "slug": "brno-prague",
+      "city": "Brno",
+      "label": "Brno → Prague",
+      "distance": "205 km",
+      "duration": "2 h 30"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~70 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~1 heure"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "À partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Kutná Hora à Prague.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Kutná Hora – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Kutná Hora à Prague — 70 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à l'hôtel ou à la gare. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Kutná Hora à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Kutná Hora à Prague — 70 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à l'hôtel ou à la gare. Prix fixe dès {ePrice} €."
+  }
+}

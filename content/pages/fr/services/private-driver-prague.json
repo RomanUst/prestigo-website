@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "title": "Chauffeur privé à Prague — voiture avec chauffeur",
+    "description": "Chauffeur privé à Prague : une Mercedes avec chauffeur à l'heure, pour une excursion ou plusieurs jours en Europe centrale. Dès {hourlyFrom} €/heure, 24h/24.",
+    "ogTitle": "Chauffeur privé à Prague — voiture avec chauffeur à l'heure, à la journée ou pour un voyage"
+  },
+  "breadcrumbName": "Chauffeur privé à Prague",
+  "hero": {
+    "label": "Chauffeur privé · Prague",
+    "headlineLine1": "Un chauffeur privé à Prague.",
+    "headlineItalic": "Votre voiture, votre programme.",
+    "intro": "Louez une voiture avec chauffeur privé à Prague aussi longtemps que nécessaire : quelques heures en ville, une journée complète à Kutná Hora ou à Český Krumlov, une journée de rendez-vous d'affaires ou plusieurs jours à travers l'Europe centrale. Une Mercedes et un chauffeur professionnel restent à votre disposition, à partir de {hourlyFrom} € de l'heure.",
+    "ctaPrimary": "Réserver un chauffeur",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Chauffeur privé debout à côté d'une Mercedes dans une rue de Prague"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      { "label": "À l'heure", "value": "À partir de {hourlyFrom} €/heure en E-Class, 2 heures minimum" },
+      { "label": "Excursions", "value": "Kutná Hora, Karlovy Vary, Český Krumlov, Dresde et bien d'autres" },
+      { "label": "Véhicules", "value": "Mercedes E-Class, S-Class et V-Class jusqu'à six personnes" },
+      { "label": "Langues", "value": "Anglais ; russe, allemand ou tchèque sur demande" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Transfert ou chauffeur privé —",
+    "headingItalic": "ce dont vous avez besoin.",
+    "paragraphs": [
+      "Un transfert vous conduit d'un point A à un point B à prix fixe : de l'aéroport à votre hôtel, de Prague à Vienne. Le chauffeur vous dépose et la réservation s'arrête là. C'est le bon choix quand vous savez exactement où vous allez, et quand.",
+      "Un chauffeur privé, c'est autre chose. Vous réservez du temps, pas un trajet unique. La voiture et le chauffeur restent avec vous, attendent pendant que vous êtes à l'intérieur et vont là où la journée vous mène — trois rendez-vous, un déjeuner qui s'éternise, un arrêt que personne n'avait prévu.",
+      "Prestigo propose les deux, avec les mêmes voitures et les mêmes chauffeurs. Cette page concerne la seconde formule : réserver un chauffeur à Prague à l'heure, à la journée ou pour un voyage de plusieurs jours."
+    ]
+  },
+  "features": {
+    "label": "Comment faire appel à un chauffeur",
+    "headingLine1": "Un seul chauffeur,",
+    "headingItalic": "quel que soit le rythme de vos journées.",
+    "items": [
+      { "title": "À l'heure dans Prague", "body": "À partir de {hourlyFrom} €/heure en E-Class, {hourlyV} €/heure en V-Class et {hourlyS} €/heure en S-Class, avec 2 heures minimum. Idéal pour une soirée, du shopping ou une découverte tranquille de la ville." },
+      { "title": "Excursions depuis Prague", "body": "Kutná Hora, Karlovy Vary, Český Krumlov ou Dresde en une seule journée. Le chauffeur attend pendant vos visites et vous ramène quand vous êtes prêt." },
+      { "title": "Une journée d'affaires", "body": "Plusieurs rendez-vous dans différents quartiers de la ville, avec la voiture qui attend devant chacun. Vos bagages restent dans le coffre et l'adresse suivante est déjà programmée." },
+      { "title": "Plusieurs jours en Europe centrale", "body": "Un voyage de plusieurs jours — Prague, Vienne, Salzbourg, Munich ou Budapest — avec la même voiture et le même chauffeur du début à la fin. Organisez-le sur /book/multi-day." },
+      { "title": "Un chauffeur qui connaît la ville", "body": "Quelles rues sont fermées aux voitures, où la voiture peut attendre, comment rejoindre un hôtel de la Vieille Ville sans tourner en rond. Vous n'avez besoin de rien savoir de tout cela." },
+      { "title": "Un programme qui peut changer", "body": "Ajoutez un arrêt, changez l'ordre, restez plus longtemps. Dites-le à votre chauffeur le jour même ; les heures supplémentaires sont facturées au même tarif." }
+    ]
+  },
+  "steps": {
+    "label": "Comment ça fonctionne",
+    "heading": "Réserver un chauffeur en quatre étapes.",
+    "items": [
+      { "title": "Décrivez-nous votre programme", "body": "Choisissez la mise à disposition à l'heure, une excursion ou un voyage de plusieurs jours, et indiquez l'heure de départ et l'adresse de prise en charge. Les grandes lignes de la journée suffisent." },
+      { "title": "Choisissez la voiture", "body": "E-Class jusqu'à trois personnes, S-Class pour une journée de direction, V-Class jusqu'à six personnes avec bagages. Vous voyez le prix avant de payer." },
+      { "title": "Rencontrez votre chauffeur", "body": "Vous recevez à l'avance le nom et le numéro de téléphone du chauffeur. Il arrive à votre adresse à l'heure convenue." },
+      { "title": "Utilisez le temps comme vous le souhaitez", "body": "La voiture est à vous pour les heures réservées. Changez l'ordre des arrêts ou prolongez le jour même en le disant au chauffeur." }
+    ]
+  },
+  "editorial": {
+    "label": "Le rôle d'un chauffeur privé",
+    "headingLine1": "Bien plus",
+    "headingItalic": "qu'une personne au volant.",
+    "paragraphs": [
+      "Un bon chauffeur privé fait trois choses qu'aucune carte ne sait faire. Il attend — devant la réunion, près du restaurant, à la porte du château — pour que vous n'ayez jamais à chercher une voiture. Il s'adapte — si le déjeuner se prolonge ou si le temps tourne, le programme change sans nouvelle réservation. Et il connaît Prague : les rues à sens unique, les zones piétonnes, le chemin le plus rapide pour traverser la Vltava à cinq heures de l'après-midi.",
+      "Chaque chauffeur parle anglais, et le russe, l'allemand ou le tchèque peuvent être demandés à la réservation. Les voitures sont des Mercedes E-Class, S-Class et V-Class, toutes de moins de trois ans, avec Wi-Fi, eau et chargeur à bord. Les sièges enfant sont gratuits sur demande.",
+      "Si vous n'avez besoin que de quelques heures en ville, notre page sur les trajets en ville détaille la mise à disposition à l'heure. Pour un trajet unique vers une autre ville, un itinéraire à prix fixe est souvent plus simple. Et si vous atterrissez à Prague, un transfert aéroport vous conduit d'abord à l'hôtel. Choisissez la forme de votre journée, et nous adaptons la réservation."
+    ]
+  },
+  "faqsHeading": "Questions sur le chauffeur privé",
+  "faqs": [
+    { "q": "Combien coûte un chauffeur privé à Prague ?", "a": "La mise à disposition à l'heure commence à {hourlyFrom} € de l'heure en Mercedes E-Class, {hourlyV} € en V-Class et {hourlyS} € en S-Class, avec 2 heures minimum. Le tarif est fixé à la réservation ; il n'y a pas de compteur." },
+    { "q": "Quelle est la différence entre un transfert et la location d'un chauffeur ?", "a": "Un transfert est un trajet unique d'un point A à un point B à prix fixe. Louer un chauffeur revient à réserver la voiture et le chauffeur pour une durée donnée : il vous attend et vous conduit partout où vous en avez besoin pendant ces heures." },
+    { "q": "Puis-je louer une voiture avec chauffeur pour une excursion depuis Prague ?", "a": "Oui. Parmi les excursions les plus prisées figurent Kutná Hora, Karlovy Vary, Český Krumlov et Dresde. Le chauffeur reste avec vous toute la journée et vous ramène à Prague." },
+    { "q": "Puis-je réserver un chauffeur pour plusieurs jours ?", "a": "Oui. Pour un voyage de plusieurs jours à travers l'Europe centrale, réservez un trajet multi-jours sur /book/multi-day et gardez la même voiture et le même chauffeur du début à la fin." },
+    { "q": "Quelles langues parlent vos chauffeurs ?", "a": "Tous les chauffeurs parlent anglais. Le russe, l'allemand ou le tchèque peuvent être demandés à la réservation." },
+    { "q": "Puis-je modifier le programme en cours de journée ?", "a": "Oui. Ajoutez des arrêts, changez l'ordre ou prolongez la réservation en le disant à votre chauffeur. Le temps supplémentaire est facturé au même tarif horaire." },
+    { "q": "Combien de temps à l'avance faut-il réserver ?", "a": "Réservez en ligne au moins 12 heures à l'avance. Pour une demande plus urgente, appelez le +420 725 986 855 — nous fonctionnons 24h/24, 7j/7." }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "Choisissez la forme de votre journée.",
+    "links": [
+      { "href": "/services/city-rides", "title": "Trajets en ville à l'heure", "body": "La mise à disposition à l'heure dans Prague en détail — tarifs, durée minimale et ce que l'on peut faire en deux heures." },
+      { "href": "/routes", "title": "Itinéraires depuis Prague", "body": "Trajets à prix fixe vers Vienne, Munich, Dresde, Český Krumlov et bien d'autres." },
+      { "href": "/blog/private-day-trips-from-prague", "title": "Excursions privées", "body": "Des idées pour une journée complète hors de Prague avec votre propre voiture et votre chauffeur." },
+      { "href": "/services/airport-transfer", "title": "Transfert aéroport de Prague", "body": "Commencez le voyage par un trajet à prix fixe de PRG jusqu'à votre hôtel." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Une voiture et un chauffeur, aussi longtemps que nécessaire.",
+    "headingItalic": "À partir de {hourlyFrom} € de l'heure."
+  }
+}
