@@ -120,6 +120,27 @@ can reasonably wait.
    so the thread and the history are complete.
 6. Close the webmail tab. The mailbox goes back to Chatwoot as its only client.
 
+## Mail missed during a long outage
+
+Chatwoot's IMAP poll (v4.18, `Imap::BaseFetchEmailService#since`) searches
+`SINCE today - 1 day` only. Mail that arrived more than a day before Chatwoot
+(or sidekiq) came back is never fetched automatically. After any outage longer
+than ~20 hours, or after connecting a mailbox:
+
+1. Diff the mailbox against Chatwoot, read-only: in `chatwoot-rails-1`, open the
+   channel's IMAP with `examine('INBOX')`, `search(['SINCE', <date>])`, fetch
+   `BODY.PEEK[HEADER.FIELDS (MESSAGE-ID DATE FROM SUBJECT)]` and check
+   `inbox.messages.exists?(source_id: message_id)` for each.
+2. Import only the wanted messages, oldest first, through Chatwoot's own path:
+   `Inboxes::FetchImapEmailsJob.new.send(:process_mail, mail, channel)` with the
+   full `BODY.PEEK[]` (PEEK keeps them unread; dedup is by Message-ID, so a
+   re-run is safe). Check that no outgoing message was created.
+
+2026-10-01: 16 client mails from 24-27.09 (before the info@ connection) were
+imported this way at the owner's request (7 conversations, #51-#57; Kazuaki's
+replies threaded into his existing conversation). Spam and test mail stayed in
+the mailbox.
+
 ## No history import (D-13)
 
 Chatwoot shows mail from the connection date forward. Older mail stays in the
