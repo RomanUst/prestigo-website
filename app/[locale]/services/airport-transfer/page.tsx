@@ -23,6 +23,7 @@ import { getAllPosts } from '@/lib/blog'
 const GUIDE_SLUGS = [
   'prague-airport-meet-and-greet',
   'prague-airport-arrivals-guide',
+  'prague-airport-late-night-arrivals',
   'prague-to-munich-airport-private-transfer',
 ]
 
@@ -300,7 +301,7 @@ export default async function AirportTransferPage() {
             <div className="max-w-7xl mx-auto px-6 md:px-12">
               <p className="label mb-6">{content.guidesHeading}</p>
               <span className="copper-line mb-10 block" />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {guides.map((post) => (
                   <a
                     key={post.slug}
