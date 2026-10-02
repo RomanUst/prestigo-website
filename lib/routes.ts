@@ -259,17 +259,17 @@ export const ROUTES: Route[] = [
     h2: 'Prague to Linz Private Transfer',
     country: 'Austria',
     tier: 'green',
-    distanceKm: 195,
-    distance: '~195 km',
+    distanceKm: 235,
+    distance: '~235 km',
     duration: '~2.5 hours',
     road: null,
-    prices: { eClass: 320, sClass: 480, vClass: 370 },
-    priceFrom: 'From €320',
+    prices: { eClass: 365, sClass: 600, vClass: 400 },
+    priceFrom: 'From €365',
     description: 'Austria\'s industrial capital and European Capital of Culture. 195 km south — Ars Electronica, the Danube, and a two-and-a-half-hour drive from Prague\'s centre.',
     notes: [],
     image: null,
     wordTarget: 1500,
-    metadataTitle: 'Prague to Linz Private Transfer — From €320',
+    metadataTitle: 'Prague to Linz Private Transfer — From €365',
   },
   {
     slug: 'prague-brno',
@@ -411,17 +411,17 @@ export const ROUTES: Route[] = [
     h2: 'Prague to Salzburg Chauffeur',
     country: 'Austria',
     tier: 'green',
-    distanceKm: 305,
-    distance: '~305 km',
-    duration: '~3.5 hours',
+    distanceKm: 375,
+    distance: '~375 km',
+    duration: '~4 hours',
     road: null,
-    prices: { eClass: 505, sClass: 750, vClass: 580 },
-    priceFrom: 'From €505',
+    prices: { eClass: 580, sClass: 955, vClass: 640 },
+    priceFrom: 'From €580',
     description: 'Mozart, the Fortress, and the Alps. 305 km southwest — business, leisure, or a Festspiele weekend.',
     notes: [],
     image: null,
     wordTarget: 1500,
-    metadataTitle: 'Prague to Salzburg Private Transfer — From €505',
+    metadataTitle: 'Prague to Salzburg Private Transfer — From €580',
   },
   {
     slug: 'prague-zlin',
@@ -487,17 +487,17 @@ export const ROUTES: Route[] = [
     h2: 'Prague to Nuremberg Chauffeur',
     country: 'Germany',
     tier: 'green',
-    distanceKm: 360,
-    distance: '~360 km',
-    duration: '~3.5 hours',
+    distanceKm: 295,
+    distance: '~295 km',
+    duration: '~3 hours',
     road: 'Motorway D5/A93',
-    prices: { eClass: 595, sClass: 880, vClass: 685 },
-    priceFrom: 'From €595',
+    prices: { eClass: 455, sClass: 750, vClass: 505 },
+    priceFrom: 'From €455',
     description: 'Medieval Altstadt, the Christmas market, BMW day trips. 360 km southwest through Pilsen and Bavaria.',
     notes: [],
     image: null,
     wordTarget: 1500,
-    metadataTitle: 'Prague to Nuremberg Private Transfer — From €595',
+    metadataTitle: 'Prague to Nuremberg Private Transfer — From €455',
   },
   {
     slug: 'prague-ostrava',
@@ -525,17 +525,17 @@ export const ROUTES: Route[] = [
     h2: 'Prague to Kraków Chauffeur',
     country: 'Poland',
     tier: 'green',
-    distanceKm: 385,
-    distance: '~385 km',
-    duration: '~4 hours',
+    distanceKm: 530,
+    distance: '~530 km',
+    duration: '~5.5 hours',
     road: null,
-    prices: { eClass: 635, sClass: 945, vClass: 730 },
-    priceFrom: 'From €635',
+    prices: { eClass: 820, sClass: 1350, vClass: 905 },
+    priceFrom: 'From €820',
     description: 'The royal capital and cultural heart of Poland. Four hours east on the expressway — Wawel, Kazimierz, and Auschwitz visits.',
     notes: [],
     image: null,
     wordTarget: 1500,
-    metadataTitle: 'Prague to Kraków Private Transfer — From €635',
+    metadataTitle: 'Prague to Kraków Private Transfer — From €820',
   },
   {
     slug: 'prague-munich',
@@ -624,3 +624,40 @@ export const YELLOW_ROUTES = ROUTES.filter((r) => r.tier === 'yellow')
 
 // Countries in ascending distance order (natural for hub grouping)
 export const ROUTE_COUNTRIES = Array.from(new Set(ROUTES.map((r) => r.country)))
+
+/**
+ * Mirror routes — the inbound direction of every indexed route
+ * ({city} → Prague), e.g. 'vienna-prague' mirrors 'prague-vienna'.
+ *
+ * Served by app/[locale]/routes/[slug]/page.tsx (one dynamic template; the
+ * 30 outbound pages keep their own static folders, which take precedence).
+ * Fares are direction-independent, so a mirror page reads its prices from
+ * the source route's route_prices row (`sourceSlug`). Body copy lives in
+ * content/routes/<locale>/<slug>.json like every other route.
+ */
+export type MirrorRoute = {
+  slug: string        // 'vienna-prague'
+  sourceSlug: string  // 'prague-vienna'
+  city: string        // 'Vienna' (origin display name)
+  country: string
+  distance: string
+  duration: string
+}
+
+export const MIRROR_ROUTES: MirrorRoute[] = ROUTES.map((r) => ({
+  slug: `${r.slug.replace(/^prague-/, '')}-prague`,
+  sourceSlug: r.slug,
+  city: r.city,
+  country: r.country,
+  distance: r.distance,
+  duration: r.duration,
+}))
+
+export const MIRROR_ROUTES_BY_SLUG: Record<string, MirrorRoute> = Object.fromEntries(
+  MIRROR_ROUTES.map((r) => [r.slug, r])
+)
+
+/** Outbound slug → its inbound mirror slug ('prague-vienna' → 'vienna-prague'). */
+export const MIRROR_SLUG_BY_SOURCE: Record<string, string> = Object.fromEntries(
+  MIRROR_ROUTES.map((r) => [r.sourceSlug, r.slug])
+)

@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Berlin → Prague",
+    "headlineLine1": "De Berlin à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Berlin à Prague avec chauffeur privé, c'est un transfert de porte à porte de 350 km vers le sud par l'A13, l'A17 et la D8, soit environ quatre heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Berlin, à Berlin Hauptbahnhof ou à l'aéroport de Berlin-Brandebourg (BER), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Berlin à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Berlin à Prague couvre environ 350 km — vers le sud en passant par l'aéroport de Berlin-Brandebourg, l'A13 à travers le Brandebourg jusqu'à Dresde, l'A17 à travers les monts Métallifères, puis la D8 tchèque jusqu'à Prague — et demande environ quatre heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel à Mitte ou Charlottenburg, à Berlin Hauptbahnhof ou dans le hall des arrivées de BER, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Une seule voiture, de votre porte à Berlin à votre porte à Prague — aucun trajet vers une gare, ni au départ ni à l'arrivée."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Berlin à Prague",
+    "headingItalic": "en quatre heures environ.",
+    "paragraphs": [
+      "Après une prise en charge à Mitte, à Charlottenburg ou à l'aéroport de Berlin-Brandebourg, votre chauffeur quitte la ville vers le sud-est et rejoint l'A13 en direction du sud à travers le Brandebourg — forêts de pins, lacs et lisière du Spreewald autour de Lübbenau. Les autoroutes allemandes sont gratuites pour les voitures : le seul arrêt est celui que vous choisissez. L'A13 entre en Saxe et rejoint le périphérique de Dresde environ deux heures et demie après Berlin.",
+      "Après Dresde, l'A17 grimpe dans l'est des monts Métallifères et franchit la frontière tchèque sur l'autoroute, au sein de l'espace Schengen : pas de contrôle systématique, pas de file. Côté tchèque, la D8 descend au-delà d'Ústí nad Labem et de Lovosice et traverse la plaine de Bohême jusqu'à Prague. La distance totale est d'environ 350 kilomètres ; le temps de conduite est d'environ quatre heures en circulation normale. Le vendredi après-midi, la sortie de Berlin peut ajouter 20 à 30 minutes.",
+      "Votre chauffeur vérifie l'A13, l'A17 et la D8 avant le départ et contourne les fermetures sans avoir à demander. Une pause café est prévue si vous le souhaitez. Vous arrivez à Prague à temps pour vous installer, vous changer et traverser la rivière à pied pour dîner."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, entre la prise en charge à Berlin et la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Que vous veniez pour un congrès, un long week-end ou la prochaine étape d'un circuit en Europe, vous arrivez devant la porte sans rien à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, pratique pour la prise en charge à l'hôtel à Berlin.",
+    "Carburant et vignette autoroutière tchèque. Les autoroutes allemandes sont gratuites pour les voitures : aucun supplément facturé.",
+    "Prise en charge à toute adresse de Berlin, à Berlin Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Berlin-Brandebourg (BER), avec suivi de vol.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en chemin — le Spreewald, Dresde ou la Suisse saxonne — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Berlin à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Berlin",
+      "note": "Prise en charge à votre hôtel, à votre bureau, à Berlin Hauptbahnhof ou à l'aéroport de Berlin-Brandebourg (BER). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Spreewald (facultatif)",
+      "note": "Le pays de rivières et de canaux autour de Lübbenau, à quelques minutes de l'A13. Idéal pour un café au bord de l'eau.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Dresde (facultatif)",
+      "note": "Après environ deux heures et demie de route — un déjeuner dans l'Altstadt ou une heure au Zwinger avant le dernier tronçon.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un point de vue, un restaurant, un rendez-vous en chemin ? Dites-le-nous à la réservation et l'itinéraire s'adapte.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à toute adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen germano-tchèque sur l'autoroute A17/D8, au sud de Dresde. Pas de contrôle de passeport systématique — les passagers hors UE doivent tout de même se munir de leur passeport et de leur visa."
+    },
+    {
+      "label": "Péages",
+      "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué. Les autoroutes allemandes sont gratuites pour les voitures."
+    },
+    {
+      "label": "Prise en charge à l'aéroport",
+      "value": "Communiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à BER, vous attend dans le hall des arrivées avec une pancarte à votre nom, et les 60 premières minutes d'attente sont offertes."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez à Berlin plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
+    }
+  ],
+  "dayTripLabel": "Arrêts en chemin",
+  "dayTrip": {
+    "headingLine1": "Quatre heures,",
+    "headingItalic": "une belle pause.",
+    "intro": "Quatre heures, c'est assez long pour que la plupart des clients aiment s'arrêter une fois. Ces trois arrêts s'intègrent naturellement entre Berlin et Prague.",
+    "configurations": [
+      {
+        "title": "Lübbenau et le Spreewald",
+        "body": "Départ de Berlin à 8 h 30 et sortie de l'A13 vers le Spreewald — une heure le long des canaux de Lübbenau, peut-être une courte balade en barque. Retour sur l'autoroute et arrivée à Prague en milieu d'après-midi.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Déjeuner à Dresde",
+        "body": "Dresde arrive après environ deux heures et demie de route. Quatre-vingt-dix minutes pour déjeuner près de la Frauenkirche ou une visite programmée de la Galerie des maîtres anciens, puis environ deux heures jusqu'à votre porte à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "La Bastei en Suisse saxonne",
+        "body": "Un détour à l'est de Dresde mène à la Bastei — le pont de grès et les tours rocheuses qui dominent l'Elbe. Une heure à pied, puis retour sur l'A17 et arrivée à Prague en début de soirée.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — indiquez-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur est devant la porte de votre hôtel à Berlin à l'heure convenue. À l'aéroport de Berlin-Brandebourg, il vous attend dans le hall des arrivées avec votre nom avant même que vous n'atteigniez la sortie, et porte les bagages jusqu'à la voiture.",
+    "Quatre heures, c'est un après-midi de travail ou un long moment de repos. Votre chauffeur s'adapte à vous — discret si vous êtes en ligne, bavard si vous voulez entendre parler de Prague : quel pont traverser au coucher du soleil, comment éviter la foule au Château, ce qu'il y a près de votre hôtel.",
+    "Eau, chargeur et Wi-Fi vous attendent à l'arrière. Un arrêt, une autre température, un itinéraire particulier : il suffit de demander. À Prague, les bagages entrent dans l'hôtel avec vous, ils ne restent pas sur le trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Berlin à Prague.",
+    "items": [
+      {
+        "title": "Le tarif annoncé, rien de plus",
+        "body": "Carburant, vignette tchèque et quatre heures de temps du chauffeur sont déjà compris dans le prix. Rien n'est ajouté devant votre porte à Prague."
+      },
+      {
+        "title": "De votre porte à votre porte",
+        "body": "Pas de taxi jusqu'à Berlin Hauptbahnhof, pas de valises à traîner sur le quai, pas de file à Praha hlavní nádraží. Une seule voiture, du début à la fin."
+      },
+      {
+        "title": "Une société pragoise",
+        "body": "Prestigo est basée à Prague et exploite sa propre flotte Mercedes. Votre chauffeur connaît la ville où vous arrivez — les entrées d'hôtels, les rues à accès restreint, le chemin le plus rapide vers votre rendez-vous."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Berlin à Prague ?",
+      "a": "Environ quatre heures de porte à porte : l'A13 vers le sud à travers le Brandebourg jusqu'à Dresde, l'A17 jusqu'à la frontière et la D8 jusqu'à Prague. Le vendredi après-midi, la circulation à la sortie de Berlin peut ajouter 20 à 30 minutes."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Berlin à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Carburant, vignette autoroutière tchèque et temps du chauffeur sont inclus — par véhicule, et non par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à l'aéroport de Berlin-Brandebourg et me conduire directement à Prague ?",
+      "a": "Oui. Communiquez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de BER avec votre nom et vous conduit directement à votre adresse à Prague — sans passer par Berlin."
+    },
+    {
+      "q": "Un transfert privé vaut-il mieux que le train de Berlin à Prague ?",
+      "a": "Le train direct met un peu plus de quatre heures de gare à gare, avant même d'ajouter le trajet jusqu'à Berlin Hauptbahnhof et un taxi à Prague. Pour un voyageur seul et peu chargé, le train revient moins cher. Le transfert privé, lui, va de porte à porte, part à l'heure qui vous convient, emporte tous vos bagages et coûte le même prix pour un ou trois passagers."
+    },
+    {
+      "q": "Peut-on s'arrêter en chemin entre Berlin et Prague ?",
+      "a": "Oui. Le Spreewald, Dresde et la Bastei en Suisse saxonne sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse."
+    },
+    {
+      "q": "Faut-il un passeport entre l'Allemagne et la République tchèque ?",
+      "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc pas de contrôle systématique à la frontière sur l'autoroute. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux."
+    }
+  ],
+  "relatedRoutesIntro": "Le trajet de Berlin à Prague est souvent une étape d'un plus long voyage à travers l'Allemagne et l'Europe centrale. Les clients venant de Dresde, Leipzig ou Wrocław réservent de la même façon — une voiture, un tarif fixe, une dépose devant la porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "dresden-prague",
+      "city": "Dresde",
+      "label": "Dresde → Prague",
+      "distance": "150 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "leipzig-prague",
+      "city": "Leipzig",
+      "label": "Leipzig → Prague",
+      "distance": "260 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "wroclaw-prague",
+      "city": "Wrocław",
+      "label": "Wrocław → Prague",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "nuremberg-prague",
+      "city": "Nuremberg",
+      "label": "Nuremberg → Prague",
+      "distance": "295 km",
+      "duration": "3 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~350 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~4 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Berlin à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Berlin – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Berlin à Prague — 350 km de porte à porte en Mercedes E, S ou V. Prise en charge partout à Berlin ou à l'aéroport BER. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé Berlin – Prague avec chauffeur — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Berlin à Prague — 350 km de porte à porte en Mercedes E, S ou V. Prise en charge partout à Berlin ou à l'aéroport BER. Prix fixe dès {ePrice} €."
+  }
+}

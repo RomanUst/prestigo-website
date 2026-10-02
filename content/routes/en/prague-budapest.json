@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "A private transfer from Prague to Budapest covers 535 km and takes approximately 5.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech, Slovak, and Hungarian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Bratislava — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, three borders, and a fare that does not change."
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, three borders, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Budapest",
@@ -91,7 +91,7 @@
     { "slug": "prague-vienna", "city": "Vienna", "distance": "330 km", "duration": "3h 30min" },
     { "slug": "prague-bratislava", "city": "Bratislava", "distance": "330 km", "duration": "3h 30min" },
     { "slug": "prague-brno", "city": "Brno", "distance": "205 km", "duration": "2h 15min" },
-    { "slug": "prague-krakow", "city": "Kraków", "distance": "540 km", "duration": "5h 30min" }
+    { "slug": "prague-krakow", "city": "Kraków", "distance": "530 km", "duration": "5h 30min" }
   ],
   "highlights": [
     { "label": "Distance", "value": "~535 km" },

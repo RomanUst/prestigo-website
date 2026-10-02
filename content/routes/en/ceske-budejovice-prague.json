@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "České Budějovice → Prague",
+    "headlineLine1": "České Budějovice to Prague,",
+    "headlineItalic": "north, door to door.",
+    "intro": "České Budějovice to Prague by private chauffeur is a 155 km door-to-door transfer north on the D3 through Tábor, around 2 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any České Budějovice address or the main station, drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from České Budějovice to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from České Budějovice to Prague covers 155 km — north on the D3 motorway past Tábor, then the last stretch through Central Bohemia into Prague — and takes approximately 2 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel, office or České Budějovice main station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
+    "The fare is agreed before you travel and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. No taxi to the station, no luggage on the platform, no second taxi in Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "České Budějovice to Prague",
+    "headingItalic": "in two hours.",
+    "paragraphs": [
+      "From a pickup on Náměstí Přemysla Otakara II, at a hotel in the centre or at an office on the edge of town, your chauffeur joins the D3 on the city’s northern side. The motorway runs north through the South Bohemian pond country, past Hluboká and Veselí nad Lužnicí, to Tábor. The whole route is inside the Czech Republic — no border, no second vignette.",
+      "North of Tábor the D3 is still being completed, so the last part of the drive follows the older Highway 3 through Central Bohemia before joining the D1 into Prague. Total distance is approximately 155 kilometres; driving time is two hours in normal traffic. Allow 15–20 minutes more on a Friday afternoon or a Sunday evening on the approach to Prague.",
+      "Your chauffeur checks the road before departure and adjusts if there is roadwork or an accident. You arrive in Prague from the south-east — Vinohrady, the New Town and the Old Town are close, and Václav Havel Airport is reached on the ring road."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your České Budějovice pickup to your Prague drop-off: the car, the chauffeur, fuel and the Czech motorway vignette. Leaving after a business visit, a brewery tour or a South Bohemian weekend, you arrive at your Prague door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request.",
+    "Fuel and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any České Budějovice address — hotel, office, the Budvar brewery or České Budějovice main station.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Hluboká Castle, Tábor or Konopiště — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "České Budějovice to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "České Budějovice", "note": "Pickup from your hotel, office, the Budvar brewery or České Budějovice main station. Your chauffeur meets you at the door.", "anchor": true, "custom": false },
+    { "city": "Hluboká nad Vltavou (optional)", "note": "Ten minutes north of the city. The white neo-Gothic castle and its park make an easy first stop.", "anchor": false, "custom": false },
+    { "city": "Tábor (optional)", "note": "Right on the D3. The Hussite old town on its hill, with a square and tunnels beneath it.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A lunch, a viewpoint, a short walk? Tell us at booking. The route is yours.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "None. České Budějovice to Prague is entirely inside the Czech Republic." },
+    { "label": "Tolls", "value": "The Czech motorway vignette is included in the quoted price." },
+    { "label": "Český Krumlov first?", "value": "Staying in Český Krumlov, 20 km south? We collect you there instead — see Český Krumlov to Prague." },
+    { "label": "Return transfer", "value": "Heading back to České Budějovice later? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Two hours north,",
+    "headingItalic": "with time to look around.",
+    "intro": "The D3 corridor between České Budějovice and Prague passes castles and old towns worth an hour of your time. Three stops cover most of what clients ask for.",
+    "configurations": [
+      { "title": "Hluboká Castle", "body": "Leave at 9:00 and be at Hluboká ten minutes later. An hour for the castle grounds and the view over the Vltava, or a pre-booked interior tour. Arrive in Prague around lunchtime.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Tábor Old Town", "body": "Tábor sits on the D3 about halfway. An hour on Žižkovo náměstí and in the narrow streets around it, or a guided walk through the underground passages. Prague is about an hour further.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Konopiště Château", "body": "Near Benešov, a short detour off Highway 3. Franz Ferdinand’s country residence, with its rose garden and park. Ninety minutes on site, then on to Prague.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur meets you at the door — the hotel entrance on the square, the office reception or the front of České Budějovice station. Bags go into the boot once and do not come out until Prague.",
+    "Two hours is enough for a call, a report or a nap. Your chauffeur keeps the cabin quiet unless you want to talk. If Prague is new to you, ask about it — which district you are staying in, how to get around, how much time to leave for the airport.",
+    "Water, charger and Wi-Fi are ready in the back. A coffee stop near Tábor is easy to add. In Prague your chauffeur carries the luggage to reception, not just to the kerb."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from České Budějovice to Prague.",
+    "items": [
+      { "title": "Fixed price, set in advance", "body": "Fuel, the Czech vignette and driver time are included. The fare you agree is the fare you pay when you reach Prague." },
+      { "title": "Your address to your address", "body": "No ride to the station, no wait on the platform, no taxi queue at Praha hlavní nádraží. The car goes from your door in České Budějovice to your door in Prague." },
+      { "title": "Run from Prague", "body": "Prestigo is a Prague company with its own Mercedes fleet. Your chauffeur knows the arrival end well — hotel entrances, one-way streets in the centre, the fastest way to the airport." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from České Budějovice to Prague take?", "a": "Approximately 2 hours door to door: the D3 north past Tábor, then Highway 3 and the D1 into Prague. Friday afternoon or Sunday evening traffic into Prague can add 15–20 minutes." },
+    { "q": "How much is a taxi or chauffeur from České Budějovice to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at České Budějovice station?", "a": "Yes. Give us your arrival time and your chauffeur meets you at the front of České Budějovice main station, helps with the luggage and drives you directly to your Prague address." },
+    { "q": "Is a private transfer better than the train from České Budějovice to Prague?", "a": "Direct trains take around two to two and a half hours station to station, and you still need a taxi at each end. For a solo traveller with light luggage, the train is cheaper. A private transfer is door to door, leaves when you want, carries all your luggage and costs the same for one passenger or three." },
+    { "q": "Can we stop on the way from České Budějovice to Prague?", "a": "Yes. Hluboká Castle, Tábor and Konopiště are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included." },
+    { "q": "Can you collect us from the Budvar brewery after a tour?", "a": "Yes. Tell us your tour time and your chauffeur waits at the brewery entrance when you finish, then drives you to Prague. Luggage can stay in the car during the tour if you are picked up from your hotel first." }
+  ],
+  "relatedRoutesIntro": "České Budějovice is the gateway to South Bohemia and the Austrian border. Travellers coming from Český Krumlov, Linz, Passau or Salzburg book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "cesky-krumlov-prague", "city": "Český Krumlov", "label": "Český Krumlov → Prague", "distance": "175 km", "duration": "2h 30min" },
+    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "235 km", "duration": "2h 30min" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
+    { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "375 km", "duration": "4h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~155 km" },
+    { "label": "Duration", "value": "~2 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "České Budějovice to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "České Budějovice to Prague Transfer — From €{ePrice}",
+    "description": "Private České Budějovice to Prague transfer — 155 km door to door in a Mercedes E, S or V-Class. Hotel or station pickup. Fixed price from €{ePrice}.",
+    "ogTitle": "České Budějovice to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private České Budějovice to Prague transfer — 155 km door to door in a Mercedes E, S or V-Class. Hotel or station pickup. Fixed price from €{ePrice}."
+  }
+}

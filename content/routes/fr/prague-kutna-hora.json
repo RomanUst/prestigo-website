@@ -7,16 +7,16 @@
     "imageAlt": "Kutná Hora — transfert en chauffeur privé de Prague à Kutná Hora"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Kutná Hora représente 70 km et environ 1 heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfant sans supplément. Cet itinéraire ne comporte aucun péage autoroutier — la route traverse la Bohême centrale sans exiger de vignette. Rien n'est ajouté à l'arrivée. Des arrêts en cours de route ou un temps d'attente prolongé devant l'ossuaire de Sedlec ou la cathédrale Sainte-Barbe sont inclus dans le tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
+    "Un transfert privé de Prague à Kutná Hora représente 70 km et environ 1 heure de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et, sur demande, des sièges enfant sans supplément. Le trajet emprunte l'autoroute D11, soumise à la vignette tchèque, déjà comprise dans le tarif. Rien n'est ajouté à l'arrivée. Des arrêts en cours de route ou un temps d'attente prolongé devant l'ossuaire de Sedlec ou la cathédrale Sainte-Barbe sont inclus dans le tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de ralentissement.",
     "Il ne s'agit pas d'une excursion en autocar partagé. Ni d'un transfert en train suivi de dix minutes de marche à l'arrivée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas — vers une ville qui, il y a six siècles, rivalisait avec Prague elle-même."
   ],
   "routeNarrative": {
     "headingLine1": "De Prague à Kutná Hora",
     "headingItalic": "en une heure.",
     "paragraphs": [
-      "Après une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D1 vers l'est, sort à Mirošovice et suit la route 38 à travers la plaine de l'Elbe en passant par Kolín. Aucun passage de frontière : Kutná Hora se situe en Bohême centrale, entièrement en République tchèque. C'est d'ailleurs la destination de catégorie Green la plus proche sur la carte des itinéraires Prestigo.",
+      "Après une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel —, votre chauffeur emprunte l'autoroute D11 vers l'est en direction de Kolín, puis rejoint Kutná Hora vers le sud par les routes de campagne de la plaine de l'Elbe. Autre option : la route 2 via Kostelec nad Černými lesy. Aucun passage de frontière : Kutná Hora se situe en Bohême centrale, entièrement en République tchèque. C'est d'ailleurs la destination de catégorie Green la plus proche sur la carte des itinéraires Prestigo.",
       "La distance totale est d'environ 70 kilomètres. Le temps de trajet est d'une heure en conditions normales. L'approche de la vieille ville vous fait passer devant la silhouette de la cathédrale Sainte-Barbe sur sa colline — joyau du gothique tardif inscrit à l'UNESCO depuis 1995 — tandis que la Cour italienne (Vlašský Dvůr) et l'ossuaire de Sedlec (l'église des ossements) vous attendent dans le centre historique. Pour une visite de Sedlec en groupe, votre chauffeur confirme la réservation préalable que l'église exige désormais pour les groupes organisés.",
-      "Votre chauffeur surveille le trafic sur la D1 avant chaque départ. Si la sortie de Mirošovice est encombrée — comme c'est souvent le cas le vendredi après-midi à la sortie de Prague —, il passe par la route 333 sans avoir à demander. Vous ne payez pas pour les embouteillages ; vous payez pour votre temps."
+      "Votre chauffeur surveille le trafic sur la D11 avant chaque départ. Si la sortie de Prague est encombrée — comme c'est souvent le cas le vendredi après-midi —, il passe par la route 2 via Kostelec nad Černými lesy sans avoir à demander. Vous ne payez pas pour les embouteillages ; vous payez pour votre temps."
     ]
   },
   "includedLabel": "Ce qui est inclus",
@@ -127,7 +127,7 @@
   "chauffeurNarrative": [
     "Votre chauffeur vous accueillera devant votre adresse de prise en charge — un hôtel du centre de Prague, un appartement privé à Vinohrady ou l'aéroport Václav Havel, où il vous attendra dans le hall des arrivées avec une tablette Prestigo affichant votre nom. Pas de parking. Pas de point de rendez-vous à dix minutes de marche.",
     "La conversation est un choix. Si vous souhaitez une heure de trajet dans une cabine silencieuse — pour vous reposer, travailler ou contempler la campagne de Bohême —, le chauffeur comprendra ce signal et vous laissera tranquille. Si vous voulez des éclairages sur Kutná Hora, votre chauffeur les a : la capitale médiévale de l'argent qui rivalisa brièvement de richesse avec Prague au XIVe siècle ; l'église des ossements de Sedlec et la cathédrale cistercienne voisine ; le gothique de Bohême de Sainte-Barbe et sa restauration de la fin du XIXe siècle ; l'inscription à l'UNESCO de 1995 qui réunit la vieille ville et Sedlec.",
-    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez vous arrêter à l'aire de service OMV près de Mirošovice pour un café avant la route, c'est inclus. Température, musique, un petit détour par Kolín au retour — dites-le simplement."
+    "Chargeur de téléphone, eau en bouteille et Wi-Fi sont déjà à bord. Si vous souhaitez vous arrêter à une station-service sur la D11 pour un café avant la route, c'est inclus. Température, musique, un petit détour par Kolín au retour — dites-le simplement."
   ],
   "whyBook": {
     "headingLine1": "Pourquoi réserver avec Prestigo",
@@ -143,7 +143,7 @@
       },
       {
         "title": "Un service qui anticipe",
-        "body": "Si la D1 connaît les encombrements habituels à la sortie de Mirošovice, votre chauffeur passe par la route 333 sans avoir à demander. Pour les visites de l'ossuaire de Sedlec, il connaît les créneaux d'entrée horodatés et les contraintes de stationnement autour de l'église, et planifie l'arrivée en conséquence."
+        "body": "Si la D11 connaît les encombrements habituels à la sortie de Prague, votre chauffeur passe par la route 2 via Kostelec nad Černými lesy sans avoir à demander. Pour les visites de l'ossuaire de Sedlec, il connaît les créneaux d'entrée horodatés et les contraintes de stationnement autour de l'église, et planifie l'arrivée en conséquence."
       }
     ]
   },
@@ -151,11 +151,11 @@
   "faqs": [
     {
       "q": "Combien de temps dure un transfert privé de Prague à Kutná Hora ?",
-      "a": "Environ une heure de porte à porte, par l'autoroute D1 vers l'est à la sortie de Prague puis la route 38 via Kolín. C'est le trajet le plus court de tous les itinéraires patrimoniaux Prestigo. Même avec le trafic matinal au départ de Prague, le voyage dépasse rarement 75 minutes."
+      "a": "Environ une heure de porte à porte, par l'autoroute D11 vers l'est en direction de Kolín, puis par les routes de campagne vers le sud. C'est le trajet le plus court de tous les itinéraires patrimoniaux Prestigo. Même avec le trafic matinal au départ de Prague, le voyage dépasse rarement 75 minutes."
     },
     {
       "q": "Combien coûte un chauffeur de Prague à Kutná Hora ?",
-      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. C'est le tarif le plus bas de tous les itinéraires de la catégorie Green de Prestigo. Les prix comprennent le carburant, les péages et le temps du chauffeur. Aucun frais caché."
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. C'est le tarif le plus bas de tous les itinéraires de la catégorie Green de Prestigo. Les prix comprennent le carburant, la vignette autoroutière tchèque et le temps du chauffeur. Aucun frais caché."
     },
     {
       "q": "Puis-je réserver un aller-retour le même jour et demander au chauffeur d'attendre ?",

@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Karlovy Vary → Praga",
+    "headlineLine1": "De Karlovy Vary a Praga,",
+    "headlineItalic": "de la columnata a su puerta.",
+    "intro": "Un traslado de Karlovy Vary a Praga con chófer privado: 130 km de puerta a puerta hacia el este por la D6, en aproximadamente 1 h 30 min de conducción. La tarifa fija de Prestigo comienza en €{ePrice} en un Mercedes-Benz E-Class, con combustible y viñeta de autopista checa incluidos. Recogida en cualquier hotel o dirección de Karlovy Vary, y llegada a cualquier dirección de Praga o al aeropuerto Václav Havel.",
+    "imageAlt": "Traslado con chófer privado de Karlovy Vary a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Karlovy Vary a Praga cubre 130 km —saliendo del valle balneario y hacia el este por la D6, a través de la meseta de Bohemia, hasta el extremo occidental de Praga— y dura aproximadamente 1,5 horas de puerta a puerta. La tarifa fija comienza en €{ePrice} en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde €{vPrice}; el S-Class está disponible desde €{sPrice} para viajes ejecutivos o VIP. Su chófer le recoge en su hotel balneario, apartamento u oficina de Karlovy Vary, y le deja en su hotel de Praga, en su reunión o en la terminal de salidas del aeropuerto Václav Havel.",
+    "La tarifa se fija antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Tras una semana de tratamientos o un programa de festival, no queda nada por organizar: ni horarios de autobús ni paradas de taxi al llegar."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Karlovy Vary a Praga",
+    "headingItalic": "en noventa minutos.",
+    "paragraphs": [
+      "Desde la recogida en el barrio balneario a orillas del Teplá, en el Grandhotel Pupp o en la parte más moderna de la ciudad, su chófer sube desde el valle y toma la D6 en dirección este. La carretera atraviesa campos abiertos y bosques de Bohemia Occidental, pasando por Lubenec y Nové Strašecí. Todo el trayecto transcurre dentro de la República Checa: sin frontera, sin segunda viñeta, sin control de documentos.",
+      "La distancia total es de aproximadamente 130 kilómetros; el tiempo de conducción, de una hora y media en condiciones normales. La D6 se ha ido convirtiendo en autopista tramo a tramo, y algunos sectores todavía tienen obras. Su chófer consulta el estado de la carretera antes de salir y utiliza la antigua carretera paralela donde una zona de obras le retrasaría.",
+      "La D6 entra en Praga por su lado occidental, cerca del aeropuerto Václav Havel: si tiene un vuelo, la terminal está a pocos minutos del final de la autopista. Para el centro de la ciudad, cuente con otros 20–30 minutos por Břevnov o Dejvice hasta Malá Strana, la Ciudad Vieja o Vinohrady, según la hora del día."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Karlovy Vary hasta la llegada a Praga: el coche, el chófer, el combustible y la viñeta de autopista checa. Tanto si se marcha tras una estancia en el balneario, un festival de cine o una visita de negocios, baja del coche en su puerta de Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro — E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional — inglés y checo fluidos. Alemán o ruso a petición, útiles para la entrega en el hotel balneario.",
+    "Combustible y viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Karlovy Vary: su hotel balneario, apartamento, oficina, la estación principal de Karlovy Vary o el aeropuerto de Karlovy Vary (KLV).",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
+    "Paradas en el camino — Loket, el Memorial de Lidice o una pausa para el café en la D6 — acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 pasajeros", "bags": "2 maletas", "price": "Desde €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 pasajeros", "bags": "2 maletas", "price": "Desde €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 pasajeros", "bags": "6 maletas", "price": "Desde €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Karlovy Vary a Praga,", "italic": "la ruta." },
+  "journeyStops": [
+    { "city": "Karlovy Vary", "note": "Recogida en su hotel balneario, apartamento, oficina o la estación principal de Karlovy Vary. Su chófer le recibe en la puerta y carga el equipaje.", "anchor": true, "custom": false },
+    { "city": "Loket (opcional)", "note": "Una ciudad con castillo en un meandro del Ohře, a poca distancia de Karlovy Vary: merece una hora antes de poner rumbo al este.", "anchor": false, "custom": false },
+    { "city": "Memorial de Lidice (opcional)", "note": "Junto a la D6, cerca de Praga. Una parada serena y conmovedora en el lugar del pueblo destruido en 1942.", "anchor": false, "custom": false },
+    { "city": "Donde usted desee", "note": "¿Una cervecería, un mirador, un almuerzo tardío por el camino? Díganoslo al reservar. La ruta es suya.", "anchor": false, "custom": true },
+    { "city": "Praga", "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Paso de frontera", "value": "Ninguno. El trayecto de Karlovy Vary a Praga transcurre íntegramente dentro de la República Checa." },
+    { "label": "Peajes", "value": "La viñeta de autopista checa está incluida en el precio indicado." },
+    { "label": "Llegada al aeropuerto", "value": "La D6 termina cerca del aeropuerto Václav Havel. Indíquenos la hora de su vuelo y planificaremos la salida desde Karlovy Vary en función de ella." },
+    { "label": "Traslado de vuelta", "value": "¿Regresa a Karlovy Vary más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta." }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga una pausa",
+    "headingItalic": "donde le convenga.",
+    "intro": "Noventa minutos es un trayecto corto, pero a lo largo de él hay mucho de Bohemia Occidental y Central. Tres paradas cubren la mayoría de lo que nos piden en el camino de Karlovy Vary a Praga.",
+    "configurations": [
+      { "title": "El castillo de Loket, sobre el Ohře", "body": "Salga de su hotel a las 9:00 y pase una hora en Loket: el castillo sobre el meandro del río y la pequeña plaza a sus pies. De vuelta en la D6 a media mañana y en Praga a tiempo para almorzar.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." },
+      { "title": "La Cervecería Real de Krušovice", "body": "Un breve desvío de la D6 cerca de Nové Strašecí le lleva a la cervecería de Krušovice. Reserve una visita guiada con antelación y continúe después hacia Praga: alrededor de una hora desde la puerta de la cervecería hasta el centro.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." },
+      { "title": "El Memorial de Lidice", "body": "Justo antes de Praga, a pocos minutos de la D6. Cuarenta y cinco minutos para el museo y el recinto conmemorativo y, después, hacia su dirección de Praga o el aeropuerto.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se tarifican según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmamos un presupuesto en firme antes de reservar. Una breve parada en la autopista para tomar un café o descansar siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer llega a la entrada de su hotel en Karlovy Vary, no a un aparcamiento colina abajo. Las maletas pasan de la recepción al maletero y usted sale cuando esté listo, después de un último vaso de agua de los manantiales, si lo desea.",
+    "La cabina es tranquila, salvo que usted prefiera otra cosa. Noventa minutos dan para una llamada, una siesta tras un tratamiento temprano o algunas preguntas sobre Praga: en qué barrio está su hotel, dónde comer cerca, cuánto tiempo reservar para el aeropuerto.",
+    "El agua, el cargador y el wifi le esperan en la parte trasera. Si desea parar a mitad de camino para tomar un café, solo tiene que decirlo. En Praga, su chófer lleva el equipaje hasta la recepción o hasta la zona de facturación del aeropuerto, no solo hasta la acera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Karlovy Vary a Praga.",
+    "items": [
+      { "title": "Un precio, acordado de antemano", "body": "El combustible, la viñeta checa y el tiempo del chófer están incluidos en la tarifa. No se añade nada al llegar a Praga, haya el tráfico que haya." },
+      { "title": "Del balneario a su puerta en Praga", "body": "Sin caminar hasta la estación de autobuses con las maletas, sin taxi al llegar a Praga. Su equipaje se carga una vez en Karlovy Vary y se descarga en su hotel o en el aeropuerto." },
+      { "title": "Con sede en Praga", "body": "Prestigo es una empresa de Praga con su propia flota de Mercedes. Su chófer conoce bien el destino: las entradas de los hoteles, el camino más rápido por el centro y la terminal correcta del aeropuerto Václav Havel." }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    { "q": "¿Cuánto dura un traslado privado de Karlovy Vary a Praga?", "a": "Aproximadamente 1 hora y 30 minutos de puerta a puerta por la D6. La autopista termina cerca del aeropuerto Václav Havel; el centro de Praga está a otros 20–30 minutos según el tráfico." },
+    { "q": "¿Cuánto cuesta un taxi o un chófer de Karlovy Vary a Praga?", "a": "Una tarifa fija desde €{ePrice} en un Mercedes E-Class para un máximo de 3 pasajeros, €{vPrice} en el V-Class para un máximo de 6, o €{sPrice} en el S-Class. El precio incluye combustible, la viñeta checa y el tiempo del chófer, y es por vehículo, no por persona." },
+    { "q": "¿Pueden recogerme en mi hotel balneario de Karlovy Vary?", "a": "Sí. Indíquenos el nombre del hotel y la hora a la que desea salir. Su chófer llega a la entrada del hotel y le ayuda con el equipaje. Donde los coches no pueden llegar hasta la puerta en el barrio balneario, le espera en el punto autorizado más cercano y lleva las maletas desde allí." },
+    { "q": "¿Es mejor un traslado privado que el autobús o el tren de Karlovy Vary a Praga?", "a": "Los autobuses directos tardan unas dos horas desde la estación de autobuses hasta Praga, y el tren es más lento. Para quien viaja solo y con poco equipaje, el autobús es más económico. Un traslado privado es de puerta a puerta, sale cuando usted quiera, lleva todo su equipaje y cuesta lo mismo para un pasajero que para tres." },
+    { "q": "¿Podemos parar en el camino de Karlovy Vary a Praga?", "a": "Sí. Loket, la cervecería de Krušovice y el Memorial de Lidice son las paradas más solicitadas. Díganoslo al reservar y la incluiremos en un presupuesto fijo. Una breve parada para tomar un café o descansar siempre está incluida." },
+    { "q": "¿Pueden llevarme directamente al aeropuerto de Praga para tomar un vuelo?", "a": "Sí. La D6 termina cerca del aeropuerto Václav Havel, por lo que el aeropuerto es el destino más rápido en Praga en esta ruta. Indíquenos la hora de su vuelo y fijaremos una hora de salida que le deje en la terminal con tiempo de sobra." }
+  ],
+  "relatedRoutesIntro": "Karlovy Vary es un vértice del triángulo balneario de Bohemia Occidental. Los huéspedes que salen de Mariánské Lázně, Františkovy Lázně, Pilsen o Dresde reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": { "line1": "Más formas de llegar", "italic": "a Praga." },
+  "relatedRoutes": [
+    { "slug": "marianske-lazne-prague", "city": "Mariánské Lázně", "label": "Mariánské Lázně → Praga", "distance": "165 km", "duration": "2 h" },
+    { "slug": "frantiskovy-lazne-prague", "city": "Františkovy Lázně", "label": "Františkovy Lázně → Praga", "distance": "175 km", "duration": "2 h 30 min" },
+    { "slug": "plzen-prague", "city": "Pilsen", "label": "Pilsen → Praga", "distance": "90 km", "duration": "1 h" },
+    { "slug": "dresden-prague", "city": "Dresde", "label": "Dresde → Praga", "distance": "150 km", "duration": "2 h" }
+  ],
+  "highlights": [
+    { "label": "Distancia", "value": "~130 km" },
+    { "label": "Duración", "value": "~1,5 horas" },
+    { "label": "Vehículos", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Precio desde", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Karlovy Vary a Praga.",
+    "headingItalic": "Desde €{ePrice}, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Karlovy Vary a Praga — Desde €{ePrice}",
+    "description": "Traslado privado de Karlovy Vary a Praga: 130 km de puerta a puerta en un Mercedes E, S o V-Class. Recogida en cualquier hotel balneario. Precio fijo desde €{ePrice}.",
+    "ogTitle": "Traslado privado con chófer de Karlovy Vary a Praga — Desde €{ePrice}",
+    "ogDescription": "Traslado privado de Karlovy Vary a Praga: 130 km de puerta a puerta en un Mercedes E, S o V-Class. Recogida en cualquier hotel balneario. Precio fijo desde €{ePrice}."
+  }
+}

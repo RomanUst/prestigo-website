@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "A private transfer from Prague to Plzeň covers 90 km via the D5 motorway and takes approximately 1 hour door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Beroun, Rokycany, or a Pilsner Urquell brewery visit — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Plzeň",
@@ -85,7 +85,7 @@
   "relatedRoutes": [
     { "slug": "prague-karlovy-vary", "city": "Karlovy Vary", "distance": "130 km", "duration": "1h 30min" },
     { "slug": "prague-marianske-lazne", "city": "Mariánské Lázně", "distance": "160 km", "duration": "1h 45min" },
-    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "360 km", "duration": "4h" },
+    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "295 km", "duration": "3h" },
     { "slug": "prague-cesky-krumlov", "city": "Český Krumlov", "distance": "170 km", "duration": "2h 15min" }
   ],
   "highlights": [

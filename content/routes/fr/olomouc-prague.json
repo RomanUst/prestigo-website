@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Olomouc → Prague",
+    "headlineLine1": "D'Olomouc à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "D'Olomouc à Prague avec chauffeur privé, c'est un transfert de porte à porte de 280 km par la D46 et la D1, soit environ 3 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quelle adresse d'Olomouc ou à la gare centrale d'Olomouc, dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé d'Olomouc à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé d'Olomouc à Prague couvre 280 km — vers le sud-ouest par la D46 en passant par Prostějov jusqu'à Vyškov, puis la D1 via Brno et à travers les Hautes-Terres de Bohême-Moravie jusqu'à Prague — et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel, à votre appartement, à un bâtiment de l'université ou à Olomouc hlavní nádraží, et vous dépose devant votre hôtel ou bureau à Prague, ou à l'aéroport Václav Havel.",
+    "Un seul tarif, fixé avant le départ : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Rien à porter d'un quai à l'autre, rien à organiser en arrivant à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "D'Olomouc à Prague",
+    "headingItalic": "en trois heures.",
+    "paragraphs": [
+      "Après une prise en charge près de la Place Haute, dans le quartier universitaire ou à la gare centrale, votre chauffeur quitte Olomouc vers le sud-ouest par la D46, à travers les terres agricoles plates de la plaine de la Haná. La route passe Prostějov et rejoint la D1 à Vyškov. Il n'y a aucune frontière sur cet itinéraire — il reste en République tchèque du début à la fin.",
+      "Depuis Vyškov, la D1 passe par Slavkov u Brna, l'Austerlitz de 1805, puis contourne Brno par le nord. De là, il reste 205 km vers l'ouest jusqu'à Prague à travers la Vysočina, en passant par Velké Meziříčí, Jihlava et Humpolec, avant que la route ne descende vers la Bohême centrale et n'atteigne la périphérie sud-est de la capitale. La distance totale est d'environ 280 kilomètres ; le temps de conduite est de trois heures en circulation normale.",
+      "Votre chauffeur vérifie l'état de la D1 avant de quitter Olomouc. En cas de fermeture sur les hauteurs, il la contourne par les routes parallèles sans avoir à demander. Le vendredi après-midi et le dimanche soir, l'entrée dans Prague est la plus lente et peut ajouter 20 à 30 minutes ; le reste du temps, le trajet est régulier et prévisible."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Olomouc à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Après une visite universitaire, un déplacement professionnel ou un week-end en Moravie, vous descendez devant votre porte à Prague sans rien d'autre à régler.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Autres langues sur demande.",
+    "Carburant et vignette autoroutière tchèque sur la D46 et la D1. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse ou hôtel d'Olomouc ou à la gare centrale d'Olomouc — au point le plus proche accessible en voiture dans la vieille ville.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Arrêts en route — Slavkov u Brna, Brno ou Kutná Hora — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Classe Affaires", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Classe Direction", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Van Affaires", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "D'Olomouc à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Olomouc", "note": "Prise en charge à votre hôtel, à votre appartement, à l'université ou à la gare centrale d'Olomouc. Dans la vieille ville piétonne, votre chauffeur vous retrouve au point le plus proche accessible en voiture.", "anchor": true, "custom": false },
+    { "city": "Slavkov u Brna (en option)", "note": "Austerlitz — le château baroque et le champ de bataille de 1805, juste à côté de la D1 avant Brno.", "anchor": false, "custom": false },
+    { "city": "Brno (en option)", "note": "La capitale morave, directement sur l'itinéraire. Arrêt pour un rendez-vous, un déjeuner ou la villa Tugendhat.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Une cave à vin, un point de vue, un restaurant qu'on vous a recommandé ? Dites-le-nous à la réservation et il fera partie de l'itinéraire.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Aucune frontière — tout l'itinéraire se trouve en République tchèque." },
+    { "label": "Péages", "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué." },
+    { "label": "Prise en charge en vieille ville", "value": "La Place Haute et la Place Basse sont en grande partie piétonnes. Votre chauffeur convient d'un point de prise en charge en bordure de la vieille ville ou devant l'entrée de votre hôtel." },
+    { "label": "Transfert retour", "value": "Vous rentrez à Olomouc plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Trois heures,",
+    "headingItalic": "trois belles étapes.",
+    "intro": "La route d'Olomouc à Prague passe par un champ de bataille napoléonien, la capitale morave et, avec un court détour, une ville médiévale de l'argent. Chacune trouve sa place dans la journée.",
+    "configurations": [
+      { "title": "Slavkov u Brna, ou Austerlitz", "body": "Quarante minutes après avoir quitté Olomouc, sortez de la D1 à Slavkov pour le château baroque où fut signé l'armistice de 1805. Ajoutez le Monument de la Paix sur la colline du champ de bataille si vous avez le temps, puis continuez vers Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Déjeuner à Brno", "body": "Brno se trouve à environ une heure d'Olomouc, l'endroit tout trouvé pour couper le trajet. Déjeuner dans le centre ou visite réservée à l'avance de la villa Tugendhat, puis deux heures et demie sur la D1 jusqu'à Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Kutná Hora avant Prague", "body": "Un détour vers le nord depuis la D1 vous mène à Kutná Hora — la cathédrale Sainte-Barbe et l'ossuaire de Sedlec, tous deux inscrits à l'UNESCO. Comptez environ une heure de route supplémentaire, et Prague n'est qu'à une heure de là.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous attend devant votre hôtel à Olomouc à l'heure convenue. Si vous logez dans la vieille ville piétonne, il patiente dans la rue accessible la plus proche et vient vous aider à porter vos bagages.",
+    "Trois heures dans un habitacle silencieux, c'est le temps de travailler, de lire ou de dormir. Votre chauffeur s'adapte à vous pour la conversation. Si vous voulez en savoir plus sur le quartier de votre hôtel à Prague, ou sur le meilleur chemin vers une réunion le lendemain matin, il peut vous renseigner.",
+    "Eau, chargeur et Wi-Fi sont déjà à bord. Une pause café près de Brno ou sur les hauteurs est possible quand vous le souhaitez. À Prague, la voiture s'arrête devant votre entrée et vos bagages vous suivent à l'intérieur."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "d'Olomouc à Prague.",
+    "items": [
+      { "title": "Un tarif qui reste fixe", "body": "Carburant, vignette tchèque et temps du chauffeur sont déjà compris dans le prix. La circulation n'y change rien, et il n'y a aucun supplément à payer à Prague." },
+      { "title": "Depuis votre porte, pas depuis un quai", "body": "Pas de marche jusqu'à la gare avec vos bagages, pas de réservation de place, pas de taxi à l'arrivée. Une seule voiture, de votre adresse à Olomouc jusqu'à votre porte à Prague." },
+      { "title": "Une société basée à Prague", "body": "Prestigo exploite sa propre flotte Mercedes depuis Prague. Votre chauffeur connaît la ville où vous arrivez — quels hôtels ont une entrée accessible en voiture, quelles rues sont fermées, combien de temps prend réellement le trajet vers l'aéroport." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé d'Olomouc à Prague ?", "a": "Environ 3 heures de porte à porte : la D46 vers le sud-ouest jusqu'à Vyškov, puis la D1 via Brno et à travers la Vysočina jusqu'à Prague. Le trafic du vendredi après-midi ou du dimanche soir à l'entrée de Prague peut ajouter 20 à 30 minutes." },
+    { "q": "Combien coûte un taxi ou un chauffeur d'Olomouc à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Carburant, vignette autoroutière tchèque et temps du chauffeur sont inclus. Le prix s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à la gare centrale d'Olomouc ou dans la vieille ville ?", "a": "Oui. À Olomouc hlavní nádraží, votre chauffeur vous retrouve à un point convenu devant la gare. Dans la vieille ville, dont les places sont en grande partie piétonnes, il vous attend dans la rue accessible en voiture la plus proche ou devant l'entrée de votre hôtel, et vous aide avec vos bagages." },
+    { "q": "Le train est-il plus rapide qu'un transfert privé d'Olomouc à Prague ?", "a": "Oui — le train direct met un peu plus de deux heures de gare à gare et reste l'option la moins chère pour un voyageur seul avec peu de bagages. Un transfert privé prend environ trois heures, mais se fait de porte à porte, part quand vous le décidez, emporte tous vos bagages et coûte le même prix pour un passager ou pour trois. Il convient aux familles, aux groupes et à tous ceux qui se rendent directement à une adresse à Prague ou à l'aéroport." },
+    { "q": "Peut-on s'arrêter en route entre Olomouc et Prague ?", "a": "Oui. Slavkov u Brna, Brno et Kutná Hora sont les arrêts qu'on nous demande le plus. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Pouvez-vous nous conduire d'Olomouc directement à l'aéroport de Prague pour un vol ?", "a": "Oui. Indiquez-nous l'heure de votre vol et nous fixons la prise en charge à Olomouc avec une marge confortable pour le trafic sur la D1. Votre chauffeur vous dépose au niveau des départs de l'aéroport Václav Havel, sans aucun changement de transport en route." }
+  ],
+  "relatedRoutesIntro": "Olomouc est l'un des nombreux points de départ moraves pour rejoindre Prague en voiture. Les clients qui arrivent de Brno, Zlín, Ostrava ou de Bohême orientale réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "brno-prague", "city": "Brno", "label": "Brno → Prague", "distance": "205 km", "duration": "2 h 30" },
+    { "slug": "zlin-prague", "city": "Zlín", "label": "Zlín → Prague", "distance": "310 km", "duration": "3 h 30" },
+    { "slug": "ostrava-prague", "city": "Ostrava", "label": "Ostrava → Prague", "distance": "370 km", "duration": "4 h" },
+    { "slug": "pardubice-prague", "city": "Pardubice", "label": "Pardubice → Prague", "distance": "110 km", "duration": "1 h 30" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~280 km" },
+    { "label": "Durée", "value": "~3 heures" },
+    { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "D'Olomouc à Prague.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Olomouc – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé d'Olomouc à Prague — 280 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à toute adresse d'Olomouc. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur d'Olomouc à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé d'Olomouc à Prague — 280 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à toute adresse d'Olomouc. Prix fixe dès {ePrice} €."
+  }
+}

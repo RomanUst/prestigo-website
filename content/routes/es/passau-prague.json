@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Passau → Praga",
+    "headlineLine1": "De Passau a Praga,",
+    "headlineItalic": "a través del Bosque de Bohemia.",
+    "intro": "El traslado de Passau a Praga con chófer privado es un trayecto puerta a puerta de 220 km hacia el norte, cruzando el Bosque Bávaro y el Bosque de Bohemia, con unas 2 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier hotel de Passau, en el embarcadero de cruceros del Danubio o en la Passau Hauptbahnhof, y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Passau a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Passau a Praga cubre 220 km —hacia el norte por la B12 a través del Bosque Bávaro, paso de la frontera checa en Philippsreut–Strážný, descenso por las estribaciones de Šumava pasando por Vimperk y Strakonice y, por último, la autopista D4 pasando por Příbram hasta Praga— y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Passau, en el embarcadero de cruceros fluviales del Danubio o en la Passau Hauptbahnhof, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "La tarifa se fija antes del viaje: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Si llega de un crucero por el Danubio con el equipaje de una semana, lo carga una sola vez junto al barco y no vuelve a verlo hasta su hotel de Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Passau a Praga",
+    "headingItalic": "en dos horas y media.",
+    "paragraphs": [
+      "Desde la península del casco antiguo, la Residenzplatz o el embarcadero de cruceros bajo la catedral, su chófer se dirige hacia el norte por la B12, adentrándose en el Bosque Bávaro. La carretera sube de forma constante por Freyung y las colinas boscosas hasta la frontera de Philippsreut–Strážný, en lo alto del bosque. Está dentro del espacio Schengen: sin paradas ni controles en condiciones normales.",
+      "En el lado checo, la carretera 4 desciende por las estribaciones de Šumava hasta Vimperk y continúa por el campo abierto de Bohemia del Sur hasta Strakonice. Más al norte, la vía se convierte en la autopista D4, que pasa por Příbram y entra directamente en el suroeste de Praga. La distancia total es de aproximadamente 220 kilómetros; el tiempo de conducción es de dos horas y media en condiciones normales, cerca de tres en un fin de semana de verano con mucho tráfico.",
+      "En invierno, el paso de la B12 puede tener nieve y hielo cuando en Passau solo está nublado. Su chófer comprueba la carretera fronteriza antes de salir y, si el paso está complicado, toma el camino más largo en lugar de arriesgarse. Aun así, llegará a Praga esa misma tarde, con tiempo para instalarse antes de la cena."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Passau hasta la llegada a Praga: el coche, el chófer, el combustible, la viñeta checa y todos los peajes del camino. Después de un crucero fluvial o una estancia junto al Danubio, llegará a Praga con su equipaje, sus planes y nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán previa solicitud.",
+    "Combustible, todos los peajes y la viñeta de autopista checa. Las carreteras alemanas de esta ruta no tienen peaje para turismos. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Passau, en la Passau Hauptbahnhof o en el embarcadero de cruceros fluviales del Danubio, con ayuda desde la pasarela hasta el coche.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
+    "Paradas en el camino —el Bosque Bávaro, Prachatice o Příbram— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Passau a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Passau",
+      "note": "Recogida en su hotel, en la Passau Hauptbahnhof o en el embarcadero de cruceros del Danubio. Su chófer le recibe al desembarcar y se ocupa del equipaje.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Bosque Bávaro (opcional)",
+      "note": "La B12 atraviesa el Bosque Bávaro. Un breve desvío lleva al parque nacional y a su pasarela entre las copas de los árboles, cerca de Neuschönau.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Strakonice (opcional)",
+      "note": "Una ciudad de Bohemia del Sur en la carretera 4, con un castillo junto al río: un punto intermedio natural para un café o un almuerzo.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "¿Un mirador de Šumava, la iglesia de un pueblo, un almuerzo tranquilo? Díganoslo al reservar y formará parte del trayecto.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen germano-checa en Philippsreut–Strážný. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y todos los peajes están incluidos. En el lado alemán de esta ruta no hay peaje para turismos."
+    },
+    {
+      "label": "Recogidas de cruceros",
+      "value": "Indíquenos el nombre del barco y el día de desembarque. Su chófer le recibe en el embarcadero y carga el equipaje, por muchas maletas que haya necesitado una semana en el río."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Embarca más adelante en un crucero en Passau? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga del trayecto",
+    "headingItalic": "parte del viaje.",
+    "intro": "La carretera de Passau a Praga cruza dos bosques y una serie de tranquilas ciudades de Bohemia del Sur. Tres paradas encajan especialmente bien en la ruta.",
+    "configurations": [
+      {
+        "title": "Pasarela entre las copas del Bosque Bávaro",
+        "body": "Salga de Passau a las 9:00 y pase una hora en la pasarela elevada cerca de Neuschönau, en el Parque Nacional del Bosque Bávaro, muy por encima de las copas. De vuelta en la B12, cruce la frontera antes del mediodía y llegue a Praga a media tarde.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "Prachatice, la ciudad de la Ruta de la Sal",
+        "body": "Un breve desvío desde la carretera 4 cerca de Vimperk le lleva a Prachatice, una ciudad renacentista amurallada que se enriqueció con el comercio medieval de la sal procedente de Passau. Una hora en la plaza y después, rumbo a Praga.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "Svatá Hora, sobre Příbram",
+        "body": "La iglesia de peregrinación de Svatá Hora se alza sobre una colina junto a la D4, en Příbram, a menos de una hora de Praga. Cuarenta minutos para los claustros barrocos y las vistas, y después el último tramo hasta la ciudad.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se calculan según el tiempo y la distancia adicionales: díganos dónde quiere parar y le confirmaremos un presupuesto firme antes de reservar. Una breve parada para tomar un café o descansar siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibe donde esté en Passau: en la puerta del hotel, en la estación o al pie de la pasarela cuando su barco atraca. Maletas, portatrajes y las compras de una semana por el Danubio entran en el coche una sola vez y no se vuelven a tocar hasta Praga.",
+    "La carretera del Bosque Bávaro es un trayecto tranquilo y pintoresco, y usted decide cómo aprovecharlo. Duerma, lea, haga llamadas o pregunte por Praga: qué puente cruzar al atardecer, a qué distancia está su hotel de la plaza de la Ciudad Vieja, dónde cenar la primera noche.",
+    "El agua, el cargador y el wifi están en la cabina. Si quiere parar a tomar un café en el bosque o prefiere un ritmo más pausado en la carretera de montaña, dígalo. En Praga, su chófer lleva el equipaje hasta el vestíbulo del hotel en lugar de dejarlo en la acera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Passau a Praga.",
+    "items": [
+      {
+        "title": "Una tarifa que no cambia",
+        "body": "El combustible, la viñeta checa, los peajes y el tiempo del chófer están incluidos en el precio presupuestado. No se añade nada en la carretera del bosque ni en su puerta de Praga."
+      },
+      {
+        "title": "Pensado para el equipaje de un crucero",
+        "body": "No hay tren directo de Passau a Praga. Un coche privado lleva todo su equipaje desde el embarcadero hasta su hotel de Praga, sin conexiones intermedias."
+      },
+      {
+        "title": "Con base en Praga, conocedores de Praga",
+        "body": "Prestigo opera su propia flota Mercedes desde Praga. Su chófer recorre estas calles a diario y sabe cómo llegar a la entrada de su hotel en la Ciudad Vieja o en Malá Strana sin dar vueltas."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Passau a Praga?",
+      "a": "Aproximadamente 2 horas y 30 minutos puerta a puerta: la B12 a través del Bosque Bávaro, la frontera de Philippsreut–Strážný, la carretera 4 pasando por Vimperk y Strakonice, y la D4 hasta Praga. Los fines de semana de verano con mucho tráfico o la nieve en el paso fronterizo pueden añadir 30 minutos o más."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Passau a Praga?",
+      "a": "Tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye combustible, la viñeta checa, todos los peajes y el tiempo del chófer; es por vehículo, no por persona."
+    },
+    {
+      "q": "¿Pueden recogernos de nuestro crucero por el Danubio en Passau?",
+      "a": "Sí, y es una de las reservas más habituales en esta ruta. Envíenos el nombre del barco y la fecha de desembarque. Su chófer le recibe en el embarcadero, carga su equipaje y le lleva directamente a su hotel de Praga. La recogida en la Passau Hauptbahnhof o en cualquier hotel funciona del mismo modo."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren o el autobús de Passau a Praga?",
+      "a": "No hay tren directo, y las conexiones ferroviarias requieren al menos un transbordo y tardan bastante más que el coche. Los autocares directos son la opción más económica para quien viaja solo y con poco equipaje. Para dos o más personas, o con el equipaje de todo un crucero, el coche privado va puerta a puerta y la tarifa es la misma para uno que para tres pasajeros."
+    },
+    {
+      "q": "¿Podemos parar en el camino de Passau a Praga?",
+      "a": "Sí. La pasarela entre las copas del Bosque Bávaro, Prachatice y Svatá Hora sobre Příbram son las favoritas. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para tomar un café o descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿La carretera fronteriza está abierta en invierno?",
+      "a": "La B12 por Philippsreut–Strážný es una carretera principal que se usa todo el año, pero sube hacia el bosque y puede tener nieve y hielo. Su chófer comprueba las condiciones antes de salir y toma la ruta más larga si es necesario. Ambos países están en el espacio Schengen, así que no hay control rutinario de pasaportes; aun así, lleve su pasaporte o documento de identidad de la UE."
+    }
+  ],
+  "relatedRoutesIntro": "El trayecto de Passau a Praga suele ser la última etapa de un crucero por el Danubio o de un recorrido por Baviera y Austria. Los clientes que salen de Linz, Ratisbona o Múnich reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Más formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "linz-prague",
+      "city": "Linz",
+      "label": "Linz → Praga",
+      "distance": "235 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "cesky-krumlov-prague",
+      "city": "Český Krumlov",
+      "label": "Český Krumlov → Praga",
+      "distance": "175 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "regensburg-prague",
+      "city": "Ratisbona",
+      "label": "Ratisbona → Praga",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "munich-prague",
+      "city": "Múnich",
+      "label": "Múnich → Praga",
+      "distance": "385 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "220 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~2,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Passau a Praga.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Passau a Praga: desde {ePrice} €",
+    "description": "Traslado privado de Passau a Praga: 220 km puerta a puerta en Mercedes E, S o V-Class. Recogida en hotel o crucero. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Passau a Praga: desde {ePrice} €",
+    "ogDescription": "Traslado privado de Passau a Praga: 220 km puerta a puerta en Mercedes E, S o V-Class. Recogida en hotel o crucero. Precio fijo desde {ePrice} €."
+  }
+}

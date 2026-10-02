@@ -7,6 +7,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import ReverseRouteLink from '@/components/ReverseRouteLink'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
@@ -330,6 +331,10 @@ export default async function PragueSalzburgPage() {
           </div>
         </div>
       </section>
+
+      <Divider />
+
+      <ReverseRouteLink slug="prague-salzburg" locale={locale} heading={t('otherDirection')} cta={t('otherDirectionCta')} />
 
       <Divider />
 

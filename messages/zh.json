@@ -911,7 +911,9 @@
     "ctaFootnote": "没有意外费用。没有计价器。您的司机正在等候。",
     "bookOnline": "在线预订",
     "bookNow": "立即预订",
-    "allRoutes": "所有路线"
+    "allRoutes": "所有路线",
+    "otherDirection": "反方向出行？",
+    "otherDirectionCta": "查看路线"
   },
   "Common": {
     "loadingBooking": "正在加载预订表单",

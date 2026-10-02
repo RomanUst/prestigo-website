@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un traslado privado de Praga a Hradec Králové recorre 115 km por la autopista D11 y dura aproximadamente 1,5 horas puerta a puerta. La tarifa fija parte de €{ePrice} en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde €{vPrice}; el S-Class está disponible desde €{sPrice} para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Poděbrady o Chlumec nad Cidlinou— están disponibles con la misma tarifa fija si se organizan en el momento de la reserva. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
-    "No es un servicio compartido. No es una aplicación de taxi. Un Mercedes privado, un chófer y una tarifa que no cambia entre la reserva y la llegada."
+    "No es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia entre la reserva y la llegada."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Hradec Králové",
@@ -125,7 +125,7 @@
     "items": [
       {
         "title": "Tarifa fija, sin sorpresas",
-        "body": "El precio que ve es el precio que paga. Combustible, viñeta de autopista checa y tiempo del chófer. Nada añadido al llegar, sin taxímetro ni tarifas dinámicas de aplicación."
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta de autopista checa y tiempo del chófer. Nada añadido al llegar, sin taxímetro ni tarifas dinámicas."
       },
       {
         "title": "Flota propia, chóferes verificados",

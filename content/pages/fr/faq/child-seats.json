@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Taxi avec siège enfant à Prague — sièges auto offerts",
+    "description": "Taxi avec siège enfant à Prague : coques, sièges et rehausseurs offerts sur demande, installés avant la prise en charge. Transferts aéroport dès {businessPrice} €.",
+    "ogTitle": "Taxi avec siège enfant à Prague — coques, sièges et rehausseurs gratuits"
+  },
+  "breadcrumbName": "Sièges enfant",
+  "hero": {
+    "label": "Sièges enfant · En famille à Prague",
+    "headlineLine1": "Des sièges enfant à Prague, installés",
+    "headlineItalic": "avant votre arrivée.",
+    "intro": "Vous voyagez à Prague avec un bébé, un tout-petit ou un enfant en âge scolaire ? Chaque voiture Prestigo peut accueillir le siège enfant adapté — coque dos à la route, siège face à la route ou rehausseur — gratuitement. Indiquez l'âge de votre enfant à la réservation : le siège est installé et vérifié avant que le chauffeur ne parte vous chercher.",
+    "ctaPrimary": "Réserver un transfert",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Siège enfant installé à l'arrière d'une Mercedes avec chauffeur à Prague"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      { "label": "Types de sièges", "value": "Coque dos à la route, siège face à la route, rehausseur" },
+      { "label": "Prix", "value": "Gratuit — à demander à la réservation" },
+      { "label": "Installation", "value": "Effectuée par le chauffeur avant la prise en charge" },
+      { "label": "Familles", "value": "Mercedes V-Class pour plusieurs sièges et les bagages" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Le siège est dans la voiture",
+    "headingItalic": "avant même que vous n'y arriviez.",
+    "paragraphs": [
+      "Le moment le plus difficile d'une arrivée en famille, ce sont souvent les dix premières minutes : des enfants fatigués, un chariot à bagages, une poussette à plier et une voiture qui aura — ou non — un siège adapté. Un siège enfant qu'il faut trouver, déballer et attacher sur le trottoir transforme une courte marche en longue attente.",
+      "Avec Prestigo, le siège est déjà installé. À la réservation, vous indiquez le nombre de sièges et l'âge de chaque enfant. Le chauffeur installe le siège adapté à cet âge, vérifie le harnais et le passage de la ceinture, puis seulement se rend à l'aéroport, à l'hôtel ou à la gare. Quand vous arrivez à la voiture, votre enfant s'installe directement.",
+      "Les sièges enfant ne sont jamais facturés, quel que soit le trajet Prestigo — transfert aéroport, mise à disposition à l'heure en ville ou long trajet vers Vienne ou Munich. Le tarif affiché à la réservation reste le même, que vous ayez besoin d'un siège ou d'aucun."
+    ]
+  },
+  "features": {
+    "label": "Ce que nous fournissons",
+    "headingLine1": "Un siège pour chaque âge,",
+    "headingItalic": "correctement installé.",
+    "items": [
+      { "title": "Coque dos à la route", "body": "Pour les bébés dès la naissance. Le siège est orienté vers l'arrière de la voiture, ce qui protège la tête et le cou des plus jeunes passagers. Indiquez-nous l'âge du bébé pour que nous apportions la bonne taille." },
+      { "title": "Siège face à la route", "body": "Pour les jeunes enfants devenus trop grands pour la coque, avec harnais intégré. Nous choisissons le siège en fonction de l'âge indiqué à la réservation." },
+      { "title": "Rehausseur", "body": "Pour les enfants plus grands qui utilisent la ceinture de sécurité de la voiture, mais ne sont pas encore assez grands pour qu'elle passe correctement sur l'épaule et les hanches." },
+      { "title": "Installé avant la prise en charge", "body": "Votre chauffeur installe et vérifie chaque siège avant de partir : personne ne règle de sangles sur un parking d'aéroport." },
+      { "title": "Gratuit", "body": "Les sièges enfant ne sont jamais ajoutés au tarif. Demandez-les à la réservation, avec l'âge de chaque enfant, et ils sont inclus." },
+      { "title": "De la place pour toute la famille", "body": "Une Mercedes V-Class accueille jusqu'à six passagers et six bagages : plusieurs sièges enfant, des adultes et une poussette voyagent dans une seule voiture." }
+    ]
+  },
+  "steps": {
+    "label": "Comment demander un siège",
+    "heading": "Quatre étapes, tout est réglé avant le départ.",
+    "items": [
+      { "title": "Choisissez la voiture", "body": "Une E-Class convient à une petite famille avec peu de bagages. Avec plusieurs enfants ou beaucoup de valises, choisissez la V-Class." },
+      { "title": "Ajoutez les sièges et les âges", "body": "Dans le formulaire de réservation, indiquez le nombre de sièges enfant et l'âge de chaque enfant. Le poids ou la taille aident aussi, si vous les connaissez." },
+      { "title": "Nous installons les sièges", "body": "Votre chauffeur installe les sièges et les vérifie avant de se rendre au lieu de prise en charge." },
+      { "title": "On charge et on part", "body": "Les enfants s'installent dans leur siège, la poussette va dans le coffre et vous voilà en route." }
+    ]
+  },
+  "editorial": {
+    "label": "La réglementation en République tchèque",
+    "headingLine1": "Ce que la loi tchèque demande",
+    "headingItalic": "aux familles en voiture.",
+    "paragraphs": [
+      "En règle générale, en République tchèque, un enfant qui mesure moins de 150 cm et pèse moins de 36 kg doit voyager dans un dispositif de retenue adapté à sa taille et à son poids. Cela s'applique dans une voiture avec chauffeur comme dans une voiture particulière : c'est pourquoi nous vous demandons l'âge de votre enfant plutôt que de laisser le hasard décider le jour même.",
+      "Les sièges enfant vendus dans l'UE sont homologués pour une plage de taille ou de poids, et les grandes étapes sont les mêmes partout : les bébés voyagent dos à la route, les tout-petits passent à un siège face à la route avec harnais, et les enfants plus grands utilisent un rehausseur avec la ceinture adulte jusqu'à ce qu'elle leur convienne parfaitement. Si votre enfant se situe entre deux étapes, indiquez-nous sa taille et son poids et nous choisirons le siège adapté.",
+      "Vous pouvez tout à fait apporter votre propre siège si votre enfant y est habitué. Signalez-le à la réservation pour que le chauffeur laisse la place nécessaire et puisse vous aider à l'installer. Beaucoup de parents voyagent avec une simple poussette légère et utilisent nos sièges : cela évite de porter un siège auto à travers deux aéroports."
+    ]
+  },
+  "faqsHeading": "Questions sur les sièges enfant",
+  "faqs": [
+    { "q": "Proposez-vous des sièges enfant dans vos taxis à Prague ?", "a": "Oui. Prestigo fournit sur demande des coques dos à la route, des sièges face à la route et des rehausseurs, pour tous les types de trajets. Demandez-les à la réservation en indiquant l'âge de chaque enfant." },
+    { "q": "Le siège enfant est-il payant ?", "a": "Non. Les sièges enfant sont gratuits pour tous les trajets Prestigo, y compris les transferts aéroport, les mises à disposition à l'heure et les longs trajets. Le prix fixe affiché à la réservation ne change pas." },
+    { "q": "Quel siège faut-il pour mon enfant ?", "a": "Les bébés voyagent dans une coque dos à la route, les tout-petits dans un siège face à la route avec harnais, et les enfants plus grands sur un rehausseur avec la ceinture adulte. En République tchèque, en règle générale, les enfants de moins de 150 cm et de moins de 36 kg doivent utiliser un dispositif de retenue adapté. Indiquez-nous l'âge de votre enfant, ainsi que sa taille ou son poids si vous les connaissez, et nous choisissons le bon siège." },
+    { "q": "Le siège sera-t-il installé à l'arrivée de la voiture ?", "a": "Oui. Votre chauffeur installe et vérifie chaque siège avant de partir vous chercher : il est prêt quand vous arrivez à la voiture, à l'aéroport, à l'hôtel ou à la gare." },
+    { "q": "Combien de sièges enfant peut-on installer dans une voiture ?", "a": "Cela dépend des sièges et de la quantité de bagages. Pour les familles avec plusieurs enfants, plusieurs sièges et tous leurs bagages, la Mercedes V-Class est le bon choix. Décrivez-nous votre groupe à la réservation et nous vous confirmons la voiture." },
+    { "q": "Puis-je apporter mon propre siège auto ?", "a": "Oui. Beaucoup de familles préfèrent leur propre siège. Prévenez-nous à la réservation pour que nous laissions la place libre ; votre chauffeur peut vous aider à l'installer." },
+    { "q": "Y a-t-il de la place pour une poussette ou un landau ?", "a": "Oui. Les poussettes et landaus pliables vont dans le coffre avec vos bagages. Si vous voyagez aussi avec plusieurs grandes valises, choisissez la V-Class pour que tout tienne dans une seule voiture." },
+    { "q": "Peut-on faire des pauses lors d'un long trajet avec de jeunes enfants ?", "a": "Oui. Sur les trajets interurbains — vers Vienne, Munich ou Český Krumlov, par exemple — demandez une pause dès que vous en avez besoin, pour un biberon, un change ou une courte promenade. Signalez-le à la réservation si vous savez déjà que vous souhaiterez des arrêts réguliers." }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "Préparez la suite de votre voyage en famille.",
+    "links": [
+      { "href": "/services/group-transfers", "title": "Transferts pour familles et groupes", "body": "La Mercedes V-Class pour jusqu'à six passagers et six bagages, dans une seule voiture." },
+      { "href": "/faq/flight-delays", "title": "Retards de vol", "body": "Ce qui se passe quand votre vol atterrit en retard, en avance ou pas du tout." },
+      { "href": "/services/airport-transfer", "title": "Transfert aéroport de Prague", "body": "Tarifs fixes et temps de trajet de PRG vers tous les quartiers de Prague." },
+      { "href": "/faq", "title": "Toutes les questions", "body": "Réservation, paiement, annulation et tout ce qu'il faut savoir pour voyager avec Prestigo." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Sièges installés, bagages chargés, tout le monde à bord.",
+    "headingItalic": "Sièges enfant toujours gratuits."
+  }
+}

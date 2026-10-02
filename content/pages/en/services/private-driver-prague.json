@@ -1,0 +1,92 @@
+{
+  "metadata": {
+    "title": "Private Driver in Prague — Hire a Car with Driver",
+    "description": "Hire a private driver in Prague: a Mercedes with driver by the hour, for a day trip or several days across Central Europe. From €{hourlyFrom}/hour, 24/7.",
+    "ogTitle": "Private Driver in Prague — Car with Driver by the Hour, Day or Trip"
+  },
+  "breadcrumbName": "Private Driver in Prague",
+  "hero": {
+    "label": "Private Driver · Prague",
+    "headlineLine1": "A private driver in Prague.",
+    "headlineItalic": "Your car, your plan.",
+    "intro": "Hire a car with a private driver in Prague for as long as you need: a few hours in the city, a full day out to Kutná Hora or Český Krumlov, a business day of meetings, or several days across Central Europe. A Mercedes and a professional driver stay at your disposal, from €{hourlyFrom} per hour.",
+    "ctaPrimary": "Book a Driver",
+    "ctaSecondary": "Ask a Question",
+    "imageAlt": "Private driver standing beside a Mercedes on a Prague street"
+  },
+  "glance": {
+    "label": "At a glance",
+    "items": [
+      { "label": "By the hour", "value": "From €{hourlyFrom}/hour in an E-Class, minimum 2 hours" },
+      { "label": "Day trips", "value": "Kutná Hora, Karlovy Vary, Český Krumlov, Dresden and more" },
+      { "label": "Vehicles", "value": "Mercedes E-Class, S-Class and V-Class for up to six" },
+      { "label": "Languages", "value": "English; Russian, German or Czech on request" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Transfer or private driver —",
+    "headingItalic": "which one you need.",
+    "paragraphs": [
+      "A transfer takes you from A to B for a fixed price: the airport to your hotel, Prague to Vienna. The driver drops you off and the booking ends. It is the right choice when you know exactly where you are going and when.",
+      "A private driver is different. You book time, not a single journey. The car and the driver stay with you, wait while you are inside, and go wherever the day takes you — three meetings, a lunch that runs long, a stop nobody planned.",
+      "Prestigo offers both, with the same cars and the same drivers. This page is about the second: hiring a driver in Prague by the hour, for a day, or for a trip of several days."
+    ]
+  },
+  "features": {
+    "label": "Ways to use a driver",
+    "headingLine1": "One driver,",
+    "headingItalic": "however your days run.",
+    "items": [
+      { "title": "By the hour in Prague", "body": "From €{hourlyFrom}/hour in an E-Class, €{hourlyV}/hour in a V-Class and €{hourlyS}/hour in an S-Class, with a 2-hour minimum. Good for an evening out, shopping or a slow tour of the city." },
+      { "title": "Day trips out of Prague", "body": "Kutná Hora, Karlovy Vary, Český Krumlov or Dresden in a single day. The driver waits while you visit and brings you back when you are ready." },
+      { "title": "A business day", "body": "Several meetings in different parts of the city, with the car waiting outside each one. Your bags stay in the boot and the next address is already set." },
+      { "title": "Several days across Central Europe", "body": "A multi-day trip — Prague, Vienna, Salzburg, Munich or Budapest — with the same car and driver throughout. Plan it at /book/multi-day." },
+      { "title": "A driver who knows the city", "body": "Which streets are closed to cars, where the car can wait, how to reach a hotel in the Old Town without circling. You do not need to know any of it." },
+      { "title": "Plans that can change", "body": "Add a stop, swap the order, stay longer. Tell your driver on the day; extra hours are added at the same rate." }
+    ]
+  },
+  "steps": {
+    "label": "How it works",
+    "heading": "Booking a driver in four steps.",
+    "items": [
+      { "title": "Tell us the plan", "body": "Choose hourly hire, a day trip or a multi-day trip, and give the start time and pickup address. A rough outline of the day is enough." },
+      { "title": "Choose the car", "body": "E-Class for up to three, S-Class for an executive day, V-Class for up to six with luggage. You see the price before you pay." },
+      { "title": "Meet your driver", "body": "You receive the driver’s name and phone number in advance. They arrive at your address at the agreed time." },
+      { "title": "Use the time as you like", "body": "The car is yours for the booked hours. Change the order of stops or extend on the day by telling the driver." }
+    ]
+  },
+  "editorial": {
+    "label": "What a private driver does",
+    "headingLine1": "More than",
+    "headingItalic": "a person behind the wheel.",
+    "paragraphs": [
+      "A good private driver does three things a map cannot. They wait — outside the meeting, near the restaurant, at the castle gate — so you never look for a car. They adapt — if the lunch runs late or the weather turns, the plan changes without a new booking. And they know Prague: the one-way streets, the pedestrian zones, the quickest way across the river at five in the afternoon.",
+      "Every driver speaks English, and Russian, German or Czech can be requested at booking. The cars are Mercedes E-Class, S-Class and V-Class, all under three years old, with Wi-Fi, water and a charger on board. Child seats are free on request.",
+      "If you only need a few hours inside the city, our city rides page covers hourly hire in detail. For a single trip to another city, a fixed-price route is often simpler. And if you are landing in Prague, an airport transfer gets you to the hotel first. Pick the shape of the day, and we will match the booking to it."
+    ]
+  },
+  "faqsHeading": "Private driver questions",
+  "faqs": [
+    { "q": "How much does a private driver in Prague cost?", "a": "Hourly hire starts at €{hourlyFrom} per hour in a Mercedes E-Class, €{hourlyV} in a V-Class and €{hourlyS} in an S-Class, with a 2-hour minimum. The rate is fixed at booking; there is no meter." },
+    { "q": "What is the difference between a transfer and hiring a driver?", "a": "A transfer is one journey from A to B at a fixed price. Hiring a driver books the car and driver for a period of time, so they wait for you and go wherever you need within those hours." },
+    { "q": "Can I hire a car with a driver for a day trip from Prague?", "a": "Yes. Popular day trips include Kutná Hora, Karlovy Vary, Český Krumlov and Dresden. The driver stays with you for the day and drives you back to Prague." },
+    { "q": "Can I book a driver for several days?", "a": "Yes. For trips across Central Europe over several days, book a multi-day journey at /book/multi-day and keep the same car and driver throughout." },
+    { "q": "What languages do your drivers speak?", "a": "All drivers speak English. Russian, German or Czech can be requested at booking." },
+    { "q": "Can I change the plan during the day?", "a": "Yes. Add stops, change the order or extend the booking by telling your driver. Extra time is charged at the same hourly rate." },
+    { "q": "How far in advance should I book?", "a": "Book online at least 12 hours ahead. For anything at shorter notice, call +420 725 986 855 — we operate 24/7." }
+  ],
+  "related": {
+    "label": "Related",
+    "heading": "Choose the shape of your day.",
+    "links": [
+      { "href": "/services/city-rides", "title": "City rides by the hour", "body": "Hourly hire inside Prague in detail — rates, minimums and what fits in two hours." },
+      { "href": "/routes", "title": "Routes from Prague", "body": "Fixed-price journeys to Vienna, Munich, Dresden, Český Krumlov and more." },
+      { "href": "/blog/private-day-trips-from-prague", "title": "Private day trips", "body": "Ideas for a full day out of Prague with your own car and driver." },
+      { "href": "/services/airport-transfer", "title": "Prague Airport Transfer", "body": "Start the trip with a fixed-price ride from PRG to your hotel." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "A car and a driver, for as long as you need.",
+    "headingItalic": "From €{hourlyFrom} per hour."
+  }
+}

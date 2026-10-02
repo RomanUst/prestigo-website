@@ -16,6 +16,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
+import ReverseRouteLink from '@/components/ReverseRouteLink'
 
 export async function generateMetadata(): Promise<Metadata> {
   const locale = await getLocale()
@@ -351,6 +352,10 @@ export default async function PraguePardubicePage() {
           </div>
         </div>
       </section>
+
+      <Divider />
+
+      <ReverseRouteLink slug="prague-pardubice" locale={locale} heading={t('otherDirection')} cta={t('otherDirectionCta')} />
 
       <Divider />
 

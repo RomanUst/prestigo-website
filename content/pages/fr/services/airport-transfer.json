@@ -29,13 +29,13 @@
     },
     {
       "title": "À quel terminal mon chauffeur m'accueille-t-il ?",
-      "body": "Le terminal 2 accueille les arrivées Schengen — vols en provenance d'Allemagne, d'Autriche, de France, des Pays-Bas et de la plupart des liaisons européennes. Le terminal 1 couvre toutes les arrivées hors Schengen : Royaume-Uni, États-Unis, Moyen-Orient et long-courrier. Les deux terminaux sont desservis à chaque réservation. Indiquez votre numéro de vol et votre chauffeur vous accueille automatiquement dans le bon hall des arrivées avec votre pancarte nominative — sans parking ni zone VTC."
+      "body": "Le terminal 2 accueille les arrivées Schengen — vols en provenance d'Allemagne, d'Autriche, de France, des Pays-Bas et de la plupart des liaisons européennes. Le terminal 1 couvre toutes les arrivées hors Schengen : Royaume-Uni, États-Unis, Moyen-Orient et long-courrier. Les deux terminaux sont desservis à chaque réservation. Indiquez votre numéro de vol et votre chauffeur vous accueille automatiquement dans le bon hall des arrivées avec votre pancarte nominative — sans recherche dans le parking ni zone de prise en charge."
     }
   ],
   "meetGreet": {
     "label": "Accueil personnalisé",
     "heading": "L'accueil personnalisé à l'aéroport de Prague, inclus de série",
-    "paragraph1": "Chaque transfert aéroport Prestigo comprend un accueil personnalisé complet. Votre chauffeur se trouve à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), pancarte nominative en main, avant même que vous n'atteigniez la sortie — et non dans un parking ou une file d'attente VTC. Dès la sortie des douanes, il prend vos bagages et vous accompagne jusqu'à la voiture.",
+    "paragraph1": "Chaque transfert aéroport Prestigo comprend un accueil personnalisé complet. Votre chauffeur se trouve à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), pancarte nominative en main, avant même que vous n'atteigniez la sortie — et non dans un parking ou une file d'attente de taxis. Dès la sortie des douanes, il prend vos bagages et vous accompagne jusqu'à la voiture.",
     "paragraph2": "Pour les arrivées VIP, diplomatiques et de dirigeants, une Mercedes-Benz S-Class avec chauffeur senior, un passage coupe-file au contrôle des passeports et l'assistance d'un porteur peuvent être organisés à l'avance. C'est l'accueil que nous réservons aux voyageurs venus des États-Unis, du Royaume-Uni et du Golfe, qui atterrissent fatigués et ne souhaitent plus rien avoir à gérer.",
     "items": [
       "Accueil avec pancarte nominative à l'intérieur des arrivées (terminaux 1 et 2)",
@@ -44,7 +44,8 @@
       "Bagages portés du hall jusqu'à la voiture",
       "Passage coupe-file à l'immigration sur demande",
       "S-Class VIP et groupes multi-véhicules sur demande"
-    ]
+    ],
+    "moreLink": "En savoir plus sur l’accueil à l’aéroport de Prague →"
   },
   "howItWorksHeading": "Comment ça fonctionne",
   "howItWorks": [
@@ -136,7 +137,7 @@
     },
     {
       "q": "En quoi consiste le service d'accueil personnalisé à l'aéroport de Prague ?",
-      "a": "L'accueil personnalisé signifie que votre chauffeur vous attend à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), avec une pancarte à votre nom — et non au bord du trottoir ou dans une zone VTC. Dès la sortie des douanes, il prend vos bagages et vous accompagne directement jusqu'à la voiture. Ce service est inclus dans chaque transfert aéroport Prestigo, sans supplément."
+      "a": "L'accueil personnalisé signifie que votre chauffeur vous attend à l'intérieur du hall des arrivées de l'aéroport Václav Havel de Prague (PRG), avec une pancarte à votre nom — et non au bord du trottoir ou dans une zone de prise en charge. Dès la sortie des douanes, il prend vos bagages et vous accompagne directement jusqu'à la voiture. Ce service est inclus dans chaque transfert aéroport Prestigo, sans supplément."
     },
     {
       "q": "Proposez-vous un accueil VIP ou premium à l'aéroport de Prague ?",
@@ -149,10 +150,6 @@
     {
       "q": "Puis-je réserver pour une arrivée très tôt le matin ou tard le soir ?",
       "a": "Oui. PRESTIGO opère 24h/24, 7j/7, 365 jours par an. Les départs au petit matin et les arrivées nocturnes font partie de notre quotidien."
-    },
-    {
-      "q": "Comment PRESTIGO se compare-t-il à un Uber depuis l'aéroport ?",
-      "a": "Uber détient la station de taxis officielle exclusive de PRG depuis septembre 2023. Un Uber standard vers le centre de Prague coûte entre 650 et 800 CZK — moins que le tarif de départ de PRESTIGO. La différence tient à la manière dont vous êtes accueilli : votre chauffeur PRESTIGO se trouve à l'intérieur du hall des arrivées avec une pancarte nominative avant même que vous n'atteigniez la sortie. Avec Uber, il faut marcher 120 mètres jusqu'à la zone de prise en charge P11 et attendre qu'un véhicule vous soit attribué. Pour un voyageur seul, avec peu de bagages et arrivant en heures creuses, Uber est une option pratique. Pour les arrivées d'affaires, les familles ou toute personne avec des bagages et une correspondance serrée, l'accueil personnalisé et le suivi des vols justifient amplement la différence."
     }
   ],
   "cta": {

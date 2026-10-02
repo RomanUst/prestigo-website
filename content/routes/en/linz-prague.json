@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Linz → Prague",
+    "headlineLine1": "Linz to Prague,",
+    "headlineItalic": "over the Mühlviertel.",
+    "intro": "Linz to Prague by private chauffeur is a 235 km door-to-door transfer north on the S10 and the D3, around 2h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, tolls and both Austrian and Czech vignettes included. Pickup from any Linz address, Linz Hauptbahnhof or Linz Airport (LNZ), drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Linz to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Linz to Prague covers 235 km — out of the city on the A7, north over the Mühlviertel on the S10 expressway, across the Czech border at Wullowitz–Dolní Dvořiště, then through České Budějovice and up the D3 past Tábor to Prague — and takes approximately 2.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Linz hotel, an office on the Landstraße, Linz Hauptbahnhof or Linz Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "The fare is fixed before you travel: fuel, tolls, the Austrian and Czech motorway vignettes, bottled water, Wi-Fi and child seats on request are all included. No train change in České Budějovice, no taxi rank at Prague main station, nothing to sort out when you arrive."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Linz to Prague",
+    "headingItalic": "in two and a half hours.",
+    "paragraphs": [
+      "From a pickup on the Hauptplatz, along the Danube by the Lentos or at your hotel in the Landstraße quarter, your chauffeur takes the A7 north out of Linz and joins the S10 Mühlviertel expressway at Unterweitersdorf. The S10 climbs through a run of tunnels onto the high, rolling farmland of the Mühlviertel and passes Freistadt, the walled medieval town that marks the last stretch of Austria.",
+      "The border at Wullowitz–Dolní Dvořiště is inside Schengen — no stop and no check in normal conditions. On the Czech side the road runs north through South Bohemia to České Budějovice, then the D3 motorway carries you past Tábor and on toward Prague. Total distance is approximately 235 kilometres; driving time is two and a half hours in normal traffic, with an extra 15–20 minutes on a Friday afternoon as the last stretch of the D1 fills with traffic into Prague.",
+      "In winter the Mühlviertel plateau can hold snow when Linz is only wet, and your chauffeur checks the S10 and the border road before setting off. You reach Prague in good time for an afternoon meeting, a late lunch in Vinohrady or check-in at a hotel in the Old Town."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Linz pickup to your Prague drop-off: the car, the chauffeur, fuel, the Austrian and Czech vignettes and every toll on the way. Whether Prague is the next stop on a business trip or the start of a long weekend, you arrive at the door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request, handy for the hotel handover in Linz.",
+    "Fuel, all tolls, the Austrian motorway vignette and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any Linz address, Linz Hauptbahnhof, or inside Arrivals at Linz Airport (LNZ) with flight tracking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Freistadt, Český Krumlov or České Budějovice — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Linz to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Linz", "note": "Pickup from your hotel, office, Linz Hauptbahnhof or Linz Airport (LNZ). At the airport your chauffeur waits inside Arrivals with your name.", "anchor": true, "custom": false },
+    { "city": "Freistadt (optional)", "note": "The last Austrian town before the border — a walled medieval centre with gate towers and a quiet main square, right beside the S10.", "anchor": false, "custom": false },
+    { "city": "České Budějovice (optional)", "note": "The South Bohemian capital sits on the route. One of the largest arcaded squares in Central Europe and the home of Budvar.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A castle, a lakeside lunch, a brewery tour? Tell us at booking and we plan the stop into the drive.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "Austrian–Czech Schengen border at Wullowitz–Dolní Dvořiště. No routine passport check — non-EU passengers should still carry their passport and visa." },
+    { "label": "Tolls", "value": "Austrian and Czech motorway vignettes and all tolls are included in the quoted price." },
+    { "label": "Winter driving", "value": "The Mühlviertel plateau north of Linz can see snow before Prague does. Your chauffeur checks road conditions before departure and allows extra time when needed." },
+    { "label": "Return transfer", "value": "Heading back to Linz later? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Make the drive",
+    "headingItalic": "part of the trip.",
+    "intro": "Two and a half hours leaves room for one good stop. These are the three we are asked for most often between Linz and Prague.",
+    "configurations": [
+      { "title": "Freistadt, the Walled Town", "body": "Leave Linz at 9:00 and stop in Freistadt forty minutes later. Walk the old town walls and the main square for an hour, have a coffee, then cross the border and reach Prague by early afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Český Krumlov and the Castle", "body": "A detour of around half an hour from the main road brings you to Český Krumlov, the UNESCO town on the bends of the Vltava. Two hours for the castle courtyards and the old town, then on to Prague for the evening.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Lunch in České Budějovice", "body": "The road passes straight through České Budějovice. Stop for lunch on Přemysl Otakar II Square, or book a tour at the Budvar brewery, before the final run up the D3 to Prague.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the way is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur is at the door of your Linz hotel at the agreed time, car ready and engine warm. At Linz Airport they wait inside the Arrivals hall with a name board, track your flight, and take the luggage from the belt to the boot.",
+    "The drive is short enough to work through and long enough to rest. Take calls, finish your notes or watch the Mühlviertel go by — your chauffeur keeps conversation to what you want. Ask about Prague if it helps: where your hotel sits, which bridge to walk at dusk, how long it really takes to get across the Old Town.",
+    "Water, a charger and Wi-Fi are in the cabin from the start. If you want a stop in Freistadt for coffee or a warmer cabin for the plateau, say the word. In Prague your chauffeur carries the bags into the hotel lobby and hands you over at reception."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Linz to Prague.",
+    "items": [
+      { "title": "One price, agreed in advance", "body": "Fuel, tolls, both the Austrian and Czech vignettes and the chauffeur’s time are in the fare. What you are quoted in Linz is what you pay in Prague." },
+      { "title": "No connections to make", "body": "Rail between Linz and Prague runs through České Budějovice and is slow on this line. By car there is no change, no platform, no taxi at the far end — just one door to the next." },
+      { "title": "Prague is our home city", "body": "Prestigo is a Prague company running its own Mercedes fleet. Your chauffeur knows the hotel entrances, the pedestrian zones and the best place to stop in the Old Town, so the last kilometre is as smooth as the first." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Linz to Prague take?", "a": "Approximately 2 hours 30 minutes door to door: the A7 and S10 north from Linz, the Wullowitz–Dolní Dvořiště border, České Budějovice and the D3 to Prague. Friday afternoon traffic into Prague can add 15–20 minutes, and snow on the Mühlviertel plateau can add more in winter." },
+    { "q": "How much is a taxi or chauffeur from Linz to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, all tolls, the Austrian and Czech vignettes and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at Linz Airport or Linz Hauptbahnhof?", "a": "Yes. At Linz Airport (LNZ) your chauffeur tracks your flight and waits inside Arrivals with your name, with 60 minutes of free waiting. At Linz Hauptbahnhof we meet you at the station entrance agreed at booking." },
+    { "q": "Is a private transfer better than the train from Linz to Prague?", "a": "The train runs via České Budějovice and takes noticeably longer than the drive, with few direct services. A private transfer leaves when you choose, goes door to door and costs the same for one passenger or three. For a solo traveller with light luggage, the train is the cheaper option." },
+    { "q": "Can we stop on the way from Linz to Prague?", "a": "Yes. Freistadt, Český Krumlov and České Budějovice are the usual choices. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
+    { "q": "Do I need my passport between Austria and the Czech Republic?", "a": "Both countries are in the Schengen Area, so there is no routine border control at Wullowitz–Dolní Dvořiště. Carry your passport or EU ID card all the same — spot checks do happen, and non-EU travellers must have their documents with them." }
+  ],
+  "relatedRoutesIntro": "Linz to Prague is often one leg of a longer journey through Austria and Bohemia. Clients coming from Salzburg, Passau or the South Bohemian towns book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "cesky-krumlov-prague", "city": "Český Krumlov", "label": "Český Krumlov → Prague", "distance": "175 km", "duration": "2h 30min" },
+    { "slug": "ceske-budejovice-prague", "city": "České Budějovice", "label": "České Budějovice → Prague", "distance": "155 km", "duration": "2h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
+    { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "375 km", "duration": "4h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "235 km" },
+    { "label": "Duration", "value": "~2.5 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Linz to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Linz to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Linz to Prague transfer — 235 km door to door in a Mercedes E, S or V-Class. Pickup at any Linz address or LNZ airport. Fixed price from €{ePrice}.",
+    "ogTitle": "Linz to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Linz to Prague transfer — 235 km door to door in a Mercedes E, S or V-Class. Pickup at any Linz address or LNZ airport. Fixed price from €{ePrice}."
+  }
+}

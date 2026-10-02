@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un traslado privado de Praga a Pilsen recorre 90 km por la autopista D5 y dura aproximadamente 1 hora puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles a petición sin coste añadido. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Beroun, Rokycany o una visita a la cervecería Pilsner Urquell— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna demora.",
-    "No se trata de un servicio compartido. Ni de una aplicación de transporte. Un Mercedes privado, un chófer y una tarifa que no cambia."
+    "No se trata de un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Pilsen",
@@ -179,8 +179,8 @@
     {
       "slug": "prague-nuremberg",
       "city": "Núremberg",
-      "distance": "360 km",
-      "duration": "4 h"
+      "distance": "295 km",
+      "duration": "3 h"
     },
     {
       "slug": "prague-cesky-krumlov",

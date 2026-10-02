@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Dresden → Prague",
+    "headlineLine1": "Dresden to Prague,",
+    "headlineItalic": "door to door.",
+    "intro": "Dresden to Prague by private chauffeur is a 150 km door-to-door transfer south on the A17 and D8, around two hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Dresden address, Dresden Hauptbahnhof or Dresden Airport (DRS), drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Dresden to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Dresden to Prague covers about 150 km — south out of the city on the A17, over the eastern Ore Mountains into the Czech Republic, then the D8 motorway past Ústí nad Labem and down the Bohemian plain into Prague — and takes around two hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel in the Altstadt or Neustadt, from Dresden Hauptbahnhof or from Arrivals at Dresden Airport, and drops you at the door of your Prague hotel, apartment or office.",
+    "The price is set when you book and stays that way: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. Two hours after leaving the Elbe in Saxony you step out in Prague with nothing left to organise — no platform, no luggage on the stairs, no second taxi."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Dresden to Prague",
+    "headingItalic": "in about two hours.",
+    "paragraphs": [
+      "From a pickup near the Frauenkirche, in the Neustadt or at Dresden Airport, your chauffeur joins the A17 on the southern edge of the city and climbs out of the Elbe valley toward the Ore Mountains. Germany charges no motorway toll for cars, so there is nothing to stop for. The border sits on the motorway itself, inside the Schengen Area: no routine check, no queue, just Czech signs and the descent toward Ústí nad Labem.",
+      "On the Czech side the road becomes the D8. It runs past Ústí and Lovosice through the volcanic cones of the České středohoří hills, then flattens out across the Bohemian plain and enters Prague from the north. Total distance is approximately 150 kilometres; driving time is about two hours. Weekday evening traffic on the northern approach to Prague can add 15–20 minutes.",
+      "Your chauffeur checks the D8 before setting off. If there is roadwork or a closure near Lovosice, they take the parallel road without asking. You reach Prague with time to spare — check in at a hotel in Malá Strana, leave the bags, and be on the Charles Bridge before the light goes."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers the whole trip from your Dresden pickup to your Prague drop-off: car, chauffeur, fuel and the Czech motorway vignette. Coming for a weekend, a meeting or the next stop of a longer trip, you arrive at the door with nothing to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request, useful at the Dresden hotel desk.",
+    "Fuel and the Czech motorway vignette. Germany has no motorway toll for cars, so nothing is charged on top.",
+    "Pickup at any Dresden address, Dresden Hauptbahnhof, or inside Arrivals at Dresden Airport (DRS) with flight tracking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Saxon Switzerland, Terezín or Mělník — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 passengers",
+      "bags": "2 bags",
+      "price": "From €{ePrice}",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 passengers",
+      "bags": "2 bags",
+      "price": "From €{sPrice}",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 passengers",
+      "bags": "6 bags",
+      "price": "From €{vPrice}",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "Dresden to Prague,",
+    "italic": "the route."
+  },
+  "journeyStops": [
+    {
+      "city": "Dresden",
+      "note": "Pickup from your hotel, office, Dresden Hauptbahnhof or Dresden Airport (DRS). At the airport your chauffeur waits inside Arrivals with your name.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Saxon Switzerland (optional)",
+      "note": "A short detour to the Bastei sandstone bridge above the Elbe, before the road climbs to the border.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Terezín (optional)",
+      "note": "The former fortress town and memorial sits just off the D8 near Lovosice. A quiet, worthwhile hour.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Anywhere you like",
+      "note": "A viewpoint, a lunch, a castle you have read about? Tell us at booking and we plan it in.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Border crossing",
+      "value": "German–Czech Schengen border on the A17/D8 motorway at Breitenau–Petrovice. No routine passport check — non-EU passengers should still carry their passport and visa."
+    },
+    {
+      "label": "Tolls",
+      "value": "The Czech motorway vignette is included in the quoted price. German motorways carry no toll for cars."
+    },
+    {
+      "label": "Airport pickup",
+      "value": "Give us your flight number. Your chauffeur tracks the landing at Dresden Airport and waits up to 60 minutes free of charge."
+    },
+    {
+      "label": "Return transfer",
+      "value": "Heading back to Dresden later? Book both directions together for the same day and the return leg is 10% off."
+    }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Two hours,",
+    "headingItalic": "or a little longer.",
+    "intro": "The drive itself is short, which leaves room for one good stop. These three are the ones we are asked for most often between Dresden and Prague.",
+    "configurations": [
+      {
+        "title": "The Bastei above the Elbe",
+        "body": "Leave Dresden at 9:00 and spend an hour at the Bastei in Saxon Switzerland — the sandstone bridge, the rock towers and the long view down the Elbe. Back on the A17 by late morning and in Prague in time for lunch.",
+        "price": "Add a stop at booking — contact us for a quote."
+      },
+      {
+        "title": "Terezín Memorial",
+        "body": "Terezín lies a few minutes off the D8 near Lovosice. The Small Fortress and the ghetto museum need around two hours, taken at your own pace. The rest of the drive to Prague is under an hour.",
+        "price": "Add a stop at booking — contact us for a quote."
+      },
+      {
+        "title": "Mělník and the river confluence",
+        "body": "A short detour north of Prague brings you to Mělník, where the Vltava meets the Elbe below a château with its own vineyard. A glass on the terrace, then 40 minutes into the city.",
+        "price": "Add a stop at booking — contact us for a quote."
+      }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur is at the hotel entrance in Dresden at the agreed minute, not waiting around the corner. At Dresden Airport they stand inside Arrivals with your name and take the luggage from there.",
+    "Two hours goes quickly. Use it to answer email, call ahead to your Prague hotel, or simply watch the Elbe valley give way to the Bohemian hills. If you want to know which part of Prague you are staying in, or where to eat near it, ask — your chauffeur lives there.",
+    "Water, a charger and Wi-Fi are ready in the back. On arrival the bags go to the reception desk with you, not onto the pavement."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Dresden to Prague.",
+    "items": [
+      {
+        "title": "One price, set in advance",
+        "body": "Fuel, the Czech vignette and the chauffeur’s time are inside the fare. Nothing is added when you reach Prague."
+      },
+      {
+        "title": "Door to door, no platform",
+        "body": "No walk to Dresden Hauptbahnhof with suitcases, no taxi queue at Praha hlavní nádraží. Bags go in once in Dresden and come out at your Prague address."
+      },
+      {
+        "title": "Prague is home",
+        "body": "Prestigo is a Prague company running its own Mercedes fleet. Your chauffeur knows the Old Town’s restricted streets, the hotel drop-off points and how to reach your door without a detour."
+      }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    {
+      "q": "How long does a private transfer from Dresden to Prague take?",
+      "a": "About two hours door to door: the A17 south to the border, then the D8 past Ústí nad Labem into Prague. Evening traffic on the northern approach to Prague can add 15–20 minutes."
+    },
+    {
+      "q": "How much is a taxi or chauffeur from Dresden to Prague?",
+      "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. Fuel, the Czech motorway vignette and the chauffeur’s time are included — the price is per car, not per person."
+    },
+    {
+      "q": "Can you pick me up at Dresden Airport or Dresden Hauptbahnhof?",
+      "a": "Yes. At Dresden Airport give us your flight number — your chauffeur tracks the landing and waits inside Arrivals with your name. At Dresden Hauptbahnhof we agree a meeting point by the main entrance. Either way you go straight to your Prague address."
+    },
+    {
+      "q": "Is a private transfer better than the train from Dresden to Prague?",
+      "a": "The direct train along the Elbe takes a little over two hours station to station and is a pleasant ride. For a solo traveller with light bags it is the cheaper choice. A private transfer makes sense when you have luggage, children or a group: it leaves when you want, collects you at your door and drops you at your Prague address — the fare is the same for one passenger or three."
+    },
+    {
+      "q": "Can we stop on the way from Dresden to Prague?",
+      "a": "Yes. The Bastei in Saxon Switzerland, the Terezín Memorial and Mělník are the usual requests. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break costs nothing extra."
+    },
+    {
+      "q": "Do I need my passport between Germany and the Czech Republic?",
+      "a": "Both countries are in the Schengen Area, so there is no routine border control on the motorway. Carry your passport or EU ID card anyway — spot checks do happen, and non-EU travellers must have their documents with them."
+    }
+  ],
+  "relatedRoutesIntro": "Dresden to Prague is often part of a longer trip through Saxony and Bohemia. Clients coming from Leipzig, Berlin or Nuremberg book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": {
+    "line1": "More ways",
+    "italic": "into Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "leipzig-prague",
+      "city": "Leipzig",
+      "label": "Leipzig → Prague",
+      "distance": "260 km",
+      "duration": "3h"
+    },
+    {
+      "slug": "berlin-prague",
+      "city": "Berlin",
+      "label": "Berlin → Prague",
+      "distance": "350 km",
+      "duration": "4h"
+    },
+    {
+      "slug": "karlovy-vary-prague",
+      "city": "Karlovy Vary",
+      "label": "Karlovy Vary → Prague",
+      "distance": "130 km",
+      "duration": "1h 30min"
+    },
+    {
+      "slug": "nuremberg-prague",
+      "city": "Nuremberg",
+      "label": "Nuremberg → Prague",
+      "distance": "295 km",
+      "duration": "3h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~150 km"
+    },
+    {
+      "label": "Duration",
+      "value": "~2 hours"
+    },
+    {
+      "label": "Vehicles",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Price from",
+      "value": "€{ePrice}",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "Dresden to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Dresden to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Dresden to Prague transfer — 150 km door to door in a Mercedes E, S or V-Class. Pickup in Dresden or at DRS airport. Fixed price from €{ePrice}.",
+    "ogTitle": "Dresden to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Dresden to Prague transfer — 150 km door to door in a Mercedes E, S or V-Class. Pickup in Dresden or at DRS airport. Fixed price from €{ePrice}."
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "metadata": {
+    "title": "Vol retardé ? Transfert aéroport de Prague expliqué",
+    "description": "Vol retardé à l'aéroport de Prague ? Nous suivons votre vol et attendons 60 min offertes après l'atterrissage. Vol annulé ? Report gratuit. Dès {businessPrice} €.",
+    "ogTitle": "Vol retardé à l'aéroport de Prague ? Ce qu'il advient de votre chauffeur"
+  },
+  "breadcrumbName": "Retards de vol",
+  "hero": {
+    "label": "Retards de vol · Aéroport de Prague",
+    "headlineLine1": "Votre vol est en retard.",
+    "headlineItalic": "Votre chauffeur le sait déjà.",
+    "intro": "Un vol retardé ne doit pas vous coûter une prise en charge manquée ni des frais supplémentaires. Prestigo suit votre vol grâce à son numéro, décale la prise en charge à l'heure réelle d'atterrissage et vous offre 60 minutes d'attente à partir du moment où l'avion touche le sol. Si le vol est annulé, nous reprogrammons gratuitement ou vous remboursons intégralement.",
+    "ctaPrimary": "Réserver un transfert",
+    "ctaSecondary": "Poser une question",
+    "imageAlt": "Tableau des arrivées de l'aéroport de Prague affichant un vol retardé"
+  },
+  "glance": {
+    "label": "En bref",
+    "items": [
+      { "label": "Suivi", "value": "En temps réel, grâce au numéro de vol — inutile de nous appeler" },
+      { "label": "Attente", "value": "60 minutes offertes, comptées à partir de l'atterrissage réel" },
+      { "label": "Vol annulé", "value": "Report gratuit ou remboursement intégral" },
+      { "label": "Contact", "value": "+420 725 986 855, 24h/24, 7j/7" }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Nous suivons l'avion,",
+    "headingItalic": "pas l'horaire.",
+    "paragraphs": [
+      "Lorsque vous réservez un transfert aéroport Prestigo, vous nous donnez votre numéro de vol. À partir de là, la prise en charge est liée à ce vol, et non à l'heure imprimée sur votre billet. S'il part en retard, atterrit en retard ou arrive en avance, le programme du chauffeur s'adapte.",
+      "C'est essentiel quand vous ne pouvez prévenir personne. Vous êtes peut-être en vol quand le retard s'allonge, ou votre téléphone reste éteint jusqu'à la porte. Inutile de nous écrire, de modifier votre réservation ou de craindre que le chauffeur ne reparte. Il voit la nouvelle heure d'atterrissage et vous attend dans le hall des arrivées.",
+      "Les 60 minutes d'attente offertes ne commencent qu'une fois l'avion posé. Le contrôle des passeports, le tapis à bagages et un passage au guichet des bagages perdus tiennent dans cette heure, et un retard avant l'atterrissage ne l'entame jamais."
+    ]
+  },
+  "features": {
+    "label": "Ce qui est couvert",
+    "headingLine1": "En retard, en avance, dérouté",
+    "headingItalic": "ou annulé.",
+    "items": [
+      { "title": "Suivi des vols en temps réel", "body": "Nous suivons le numéro de vol que vous nous donnez à la réservation : le chauffeur connaît l'heure réelle d'atterrissage et le bon terminal sans que vous ayez à appeler." },
+      { "title": "60 minutes après l'atterrissage", "body": "L'attente offerte commence quand l'avion atterrit, et non à l'heure prévue. Un retard avant l'atterrissage, quelle que soit sa durée, n'est pas décompté." },
+      { "title": "Arrivées en avance", "body": "Les vents favorables font parfois arriver les vols en avance. Comme nous suivons le vol, le chauffeur s'efforce d'être aux arrivées pour l'heure réelle d'atterrissage, et non pour l'heure réservée." },
+      { "title": "Vols annulés", "body": "Si la compagnie annule votre vol, contactez-nous : nous reportons gratuitement votre transfert sur le nouveau vol ou vous remboursons intégralement." },
+      { "title": "Déroutements", "body": "Si votre vol atterrit dans un autre aéroport, appelez-nous ou écrivez-nous. Nous réorganisons le trajet avec vous — une prise en charge plus tardive à PRG, ou une prise en charge là où vous atterrissez." },
+      { "title": "Un interlocuteur au bout du fil", "body": "Notre équipe répond au +420 725 986 855 à toute heure : un problème à minuit se règle à minuit, pas le lendemain matin." }
+    ]
+  },
+  "steps": {
+    "label": "Si votre vol est en retard",
+    "heading": "Quatre choses se passent, sans que vous ayez rien à faire.",
+    "items": [
+      { "title": "Le retard est détecté", "body": "Le suivi du vol affiche la nouvelle heure de départ ou d'atterrissage dès que la compagnie la publie." },
+      { "title": "La prise en charge est décalée", "body": "L'arrivée de votre chauffeur au terminal est ajustée à la nouvelle heure d'atterrissage." },
+      { "title": "L'heure démarre à l'atterrissage", "body": "Vos 60 minutes d'attente offertes commencent quand l'avion est au sol." },
+      { "title": "Vous sortez, on vous attend", "body": "Le chauffeur vous attend aux arrivées avec votre pancarte nominative, quelle que soit l'heure." }
+    ]
+  },
+  "editorial": {
+    "label": "Les cas plus complexes",
+    "headingLine1": "Longs retards, correspondances manquées",
+    "headingItalic": "et trajet du retour.",
+    "paragraphs": [
+      "Un retard de plusieurs heures, ou qui repousse votre arrivée après minuit, est géré de la même façon : nous suivons le vol et le chauffeur vient pour l'heure réelle d'atterrissage. Si la compagnie vous place sur un vol le lendemain, ou vous réachemine par une autre ville, appelez-nous au +420 725 986 855 avec le nouveau numéro de vol et nous modifions la réservation. Si vous décidez de ne pas voyager, l'annulation gratuite — jusqu'à une heure avant la prise en charge — reste valable.",
+      "Les correspondances manquées sont le seul cas que le suivi ne peut pas voir. Si vous manquez une correspondance à Francfort ou à Vienne, le vol que nous suivons peut atterrir sans vous à bord. Envoyez-nous votre nouveau numéro de vol dès que la compagnie vous a réaffecté, et nous y transférons la prise en charge. Si vous ne pouvez pas nous joindre avant l'atterrissage, appelez à l'arrivée et nous trouverons le moyen le plus rapide de vous envoyer une voiture.",
+      "Pour les départs de Prague, c'est vous qui fixez l'horaire. Nous venons vous chercher à l'heure réservée : prévoyez donc assez de temps pour le trajet — environ 25 à 30 minutes depuis le centre de Prague en circulation normale — ainsi que pour l'enregistrement, le contrôle de sûreté et, pour les vols hors Schengen, le contrôle des passeports. Les recommandations de votre compagnie sur l'heure d'arrivée à l'aéroport sont le meilleur repère. Si votre vol de départ est retardé avant que vous ne partiez, appelez-nous et nous pourrons décaler la prise en charge."
+    ]
+  },
+  "faqsHeading": "Questions sur les retards de vol",
+  "faqs": [
+    { "q": "Que se passe-t-il si mon vol pour Prague est retardé ?", "a": "Rien ne change pour vous. Nous suivons votre vol en temps réel grâce à son numéro et votre chauffeur s'adapte automatiquement à la nouvelle heure d'atterrissage. Le retard en lui-même n'entraîne aucun frais et vous n'avez pas besoin de nous appeler." },
+    { "q": "Combien de temps le chauffeur attend-il après mon atterrissage ?", "a": "Jusqu'à 60 minutes offertes, comptées à partir de l'heure réelle d'atterrissage et non de l'heure prévue. Cela couvre le contrôle des passeports et le tapis à bagages. Si vous pensez avoir besoin de plus de temps — pour déclarer un bagage perdu, par exemple — appelez-nous pour nous prévenir." },
+    { "q": "Et si mon vol atterrit en avance ?", "a": "Comme nous suivons le vol, le chauffeur s'efforce d'être dans le hall des arrivées pour l'heure réelle d'atterrissage. Si vous atterrissez très en avance et sortez rapidement, appelez le chauffeur — vous recevez son numéro avant l'atterrissage." },
+    { "q": "Et si mon vol est annulé ?", "a": "Contactez-nous : nous reportons gratuitement votre transfert sur le nouveau vol, ou vous remboursons intégralement." },
+    { "q": "Mon vol a été retardé jusqu'au lendemain ou reporté au jour suivant. Que faire ?", "a": "Appelez-nous au +420 725 986 855 avec le nouveau numéro de vol et la nouvelle date, et nous modifions la réservation. Si le vol atterrit malgré tout dans la nuit, le suivi enregistre la nouvelle heure et le chauffeur vient vous chercher." },
+    { "q": "Et si mon vol est dérouté vers un autre aéroport ?", "a": "Appelez-nous ou écrivez-nous au +420 725 986 855. Nous réorganisons le trajet avec vous, qu'il s'agisse d'attendre un vol de continuation vers Prague ou d'organiser une prise en charge à l'aéroport où vous avez atterri." },
+    { "q": "J'ai manqué ma correspondance. Le chauffeur sera-t-il toujours là ?", "a": "Le suivi porte sur le vol réservé : indiquez-nous votre nouveau numéro de vol dès que la compagnie vous a réaffecté. Nous y transférons la prise en charge sans frais." },
+    { "q": "À quelle heure faut-il prévoir la prise en charge pour un vol au départ de Prague ?", "a": "Prévoyez le temps de trajet — environ 25 à 30 minutes depuis le centre de Prague en circulation normale — plus le délai que votre compagnie demande avant le départ. Les long-courriers et les vols hors Schengen demandent davantage, en raison du contrôle des passeports. Vous choisissez l'heure de prise en charge à la réservation." }
+  ],
+  "related": {
+    "label": "À voir aussi",
+    "heading": "Tout savoir sur votre arrivée à Prague.",
+    "links": [
+      { "href": "/services/airport-meet-and-greet", "title": "Accueil personnalisé à l'aéroport", "body": "Votre chauffeur dans le hall des arrivées du terminal 1 ou 2, avec une pancarte nominative." },
+      { "href": "/services/airport-transfer", "title": "Transfert aéroport de Prague", "body": "Tarifs fixes, catégories de véhicules et temps de trajet depuis PRG." },
+      { "href": "/faq/child-seats", "title": "Sièges enfant", "body": "Coques, sièges et rehausseurs installés avant la prise en charge, gratuitement." },
+      { "href": "/faq", "title": "Toutes les questions", "body": "Réservation, paiement, annulation et le reste de notre FAQ." }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Réservez une fois. Nous suivons le vol.",
+    "headingItalic": "À partir de {businessPrice} €, prix fixe."
+  }
+}

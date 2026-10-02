@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Mariánské Lázně → Praga",
+    "headlineLine1": "De Mariánské Lázně a Praga,",
+    "headlineItalic": "del hotel balneario a su puerta.",
+    "intro": "Un traslado de Mariánské Lázně a Praga con chófer privado: 165 km de puerta a puerta hacia el este por Pilsen y la D5, en aproximadamente 2 horas de conducción. La tarifa fija de Prestigo comienza en {ePrice} € en un Mercedes-Benz E-Class, con combustible y viñeta de autopista checa incluidos. Recogida en cualquier hotel balneario o dirección de Mariánské Lázně, y llegada a cualquier dirección de Praga.",
+    "imageAlt": "Traslado con chófer privado de Mariánské Lázně a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Mariánské Lázně a Praga cubre 165 km —saliendo del boscoso valle balneario, a través de las colinas de Bohemia Occidental hasta la autopista D5, y después hacia el este, pasando por Pilsen, hasta Praga— y dura aproximadamente 2 horas de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel balneario, apartamento o en la estación de Mariánské Lázně, y le deja en su hotel de Praga, en su reunión o en el aeropuerto Václav Havel.",
+    "La tarifa se acuerda antes del viaje y no cambia: combustible, viñeta de autopista checa, agua embotellada, wifi y sillas infantiles a petición, todo incluido. Al final de una cura, lo último que necesita es un transbordo en Pilsen con sus maletas: el coche va de la entrada de su hotel a su puerta en Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Mariánské Lázně a Praga",
+    "headingItalic": "en dos horas.",
+    "paragraphs": [
+      "Desde la recogida cerca de la Columnata Principal, la Fuente Cantarina o uno de los hoteles balneario de la ladera, su chófer sale de la ciudad a través del bosque y cruza las suaves tierras altas de Bohemia Occidental hasta la autopista D5. La ruta transcurre dentro de la República Checa de principio a fin: sin frontera, sin segunda viñeta.",
+      "En la D5, el coche avanza hacia el este bordeando Pilsen y continúa por Rokycany y Beroun hacia Praga. La distancia total es de aproximadamente 165 kilómetros; el tiempo de conducción, de dos horas en condiciones normales de tráfico. Los viernes por la tarde y los domingos por la noche hay más tráfico en la llegada a Praga, así que cuente con 15–20 minutos más.",
+      "La D5 llega a Praga por su extremo suroccidental. Desde allí, su chófer toma la circunvalación hacia el aeropuerto Václav Havel si tiene un vuelo de conexión, o se dirige al centro —Smíchov, Malá Strana, la Ciudad Vieja o Vinohrady— directamente hasta su puerta."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Mariánské Lázně hasta la llegada a Praga: el coche, el chófer, el combustible y la viñeta de autopista checa. Tras un programa de balneario, una semana de golf o un retiro tranquilo, llega a Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro — E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional — inglés y checo fluidos. Alemán a petición, útil para la entrega en el hotel balneario.",
+    "Combustible y viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Mariánské Lázně: su hotel balneario, apartamento o la estación de Mariánské Lázně.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
+    "Paradas en el camino — el monasterio de Teplá, Pilsen o una pausa para el café en la D5 — acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Clase Business", "capacity": "1–3 pasajeros", "bags": "2 maletas", "price": "Desde {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Clase Ejecutiva", "capacity": "1–3 pasajeros", "bags": "2 maletas", "price": "Desde {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Monovolumen Business", "capacity": "1–6 pasajeros", "bags": "6 maletas", "price": "Desde {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Mariánské Lázně a Praga,", "italic": "la ruta." },
+  "journeyStops": [
+    { "city": "Mariánské Lázně", "note": "Recogida en su hotel balneario, apartamento o la estación de Mariánské Lázně. Su chófer le recibe en la entrada y carga el equipaje.", "anchor": true, "custom": false },
+    { "city": "Monasterio de Teplá (opcional)", "note": "Una abadía premonstratense en las colinas al este de la ciudad: una primera parada serena con una biblioteca barroca.", "anchor": false, "custom": false },
+    { "city": "Pilsen (opcional)", "note": "Justo en la D5. Pare para almorzar en la plaza mayor o para visitar la fábrica de cerveza Pilsner Urquell.", "anchor": false, "custom": false },
+    { "city": "Donde usted desee", "note": "¿Un mirador, un restaurante, un breve paseo? Díganoslo al reservar. La ruta es suya.", "anchor": false, "custom": true },
+    { "city": "Praga", "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Paso de frontera", "value": "Ninguno. La ruta transcurre íntegramente dentro de la República Checa." },
+    { "label": "Peajes", "value": "La viñeta de autopista checa está incluida en el precio indicado." },
+    { "label": "Salida del hotel", "value": "Indíquenos su hora de salida del hotel. El coche estará en la entrada cuando usted baje, no en un aparcamiento más allá del paseo." },
+    { "label": "Traslado de vuelta", "value": "¿Volverá para otra cura? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta." }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Dos horas,",
+    "headingItalic": "con una o dos pausas.",
+    "intro": "La carretera de Mariánské Lázně a Praga pasa por algunos de los mejores lugares de Bohemia Occidental. Tres paradas cubren la mayoría de lo que nos piden en este trayecto.",
+    "configurations": [
+      { "title": "El monasterio de Teplá", "body": "Salga de su hotel a las 9:30 y pase una hora en la abadía de Teplá: la iglesia, la biblioteca y los jardines. Continúe hasta la D5 y llegue a Praga a primera hora de la tarde.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." },
+      { "title": "Almuerzo y cervecería en Pilsen", "body": "Pilsen está en la D5, más o menos a mitad de camino. Noventa minutos para almorzar en la plaza mayor junto a la catedral de San Bartolomé, o una visita reservada con antelación a la fábrica de cerveza Pilsner Urquell. Praga queda a una hora más.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." },
+      { "title": "El monasterio de Kladruby", "body": "Un breve desvío de la D5 cerca de Stříbro le lleva a Kladruby, un monasterio benedictino con una iglesia remodelada por Jan Blažej Santini. Una hora de visita y, después, rumbo a Praga.", "price": "Añada una parada al reservar — consúltenos para un presupuesto." }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se tarifican según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmamos un presupuesto en firme antes de reservar. Una breve parada en la autopista para tomar un café o descansar siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le espera en la puerta de su hotel balneario a la hora fijada, recoge el equipaje en la recepción y le acomoda en la parte trasera. Sin bajar la colina hasta la estación, sin esperar un transbordo.",
+    "Dos horas son un buen tramo para descansar tras un programa de tratamientos. Si prefiere silencio, tendrá silencio. Si quiere saber algo de Praga —a qué distancia está su hotel de la plaza de la Ciudad Vieja, dónde cenar, cuánto tiempo reservar para el aeropuerto—, solo tiene que preguntar.",
+    "El agua, el cargador y el wifi ya están en la cabina. Si desea un café en Pilsen o una parada para estirar las piernas, solo tiene que decirlo. Al llegar a Praga, su chófer lleva las maletas hasta la recepción, no solo hasta la acera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Mariánské Lázně a Praga.",
+    "items": [
+      { "title": "Una tarifa que no cambia", "body": "El combustible, la viñeta checa y el tiempo del chófer están incluidos. Lo que acuerda al reservar es lo que paga en Praga." },
+      { "title": "Sin transbordo en Pilsen", "body": "El tren desde Mariánské Lázně suele pasar por Pilsen y obliga a tomar un taxi al llegar a Praga. En el coche, su equipaje se carga una vez en el hotel y se descarga una vez en su puerta." },
+      { "title": "Un equipo con sede en Praga", "body": "Prestigo opera su propia flota de Mercedes desde Praga. Su chófer conoce la ciudad a la que se dirige: las entradas de los hoteles, las calles de sentido único y el camino más rápido al aeropuerto." }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    { "q": "¿Cuánto dura un traslado privado de Mariánské Lázně a Praga?", "a": "Aproximadamente 2 horas de puerta a puerta, a través de las colinas de Bohemia Occidental hasta la D5 y después hacia el este, pasando por Pilsen, hasta Praga. El tráfico de entrada a Praga los viernes por la tarde o los domingos por la noche puede añadir 15–20 minutos." },
+    { "q": "¿Cuánto cuesta un taxi o un chófer de Mariánské Lázně a Praga?", "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros, {vPrice} € en el V-Class para un máximo de 6, o {sPrice} € en el S-Class. El precio incluye combustible, la viñeta checa y el tiempo del chófer, y es por vehículo, no por persona." },
+    { "q": "¿Pueden recogerme en mi hotel balneario de Mariánské Lázně?", "a": "Sí. Indíquenos el nombre del hotel y su hora de salida. Su chófer llega a la entrada del hotel, le ayuda con el equipaje y le lleva directamente a su dirección de Praga. También es posible la recogida en la estación de Mariánské Lázně." },
+    { "q": "¿Es mejor un traslado privado que el tren de Mariánské Lázně a Praga?", "a": "El tren tarda unas tres horas de estación a estación, a menudo con transbordo, y después hay que añadir un taxi en Praga. Para quien viaja solo y con poco equipaje, el tren es más económico. Un traslado privado es de puerta a puerta, sale cuando usted quiera, lleva todo su equipaje y cuesta lo mismo para un pasajero que para tres." },
+    { "q": "¿Podemos parar en el camino de Mariánské Lázně a Praga?", "a": "Sí. El monasterio de Teplá, Pilsen y el monasterio de Kladruby son las paradas más solicitadas. Díganoslo al reservar y la incluiremos en un presupuesto fijo. Una breve parada para tomar un café o descansar siempre está incluida." },
+    { "q": "¿Pueden recoger a huéspedes en dos hoteles balneario distintos?", "a": "Sí. Si su grupo se aloja en más de un hotel de Mariánské Lázně, díganoslo al reservar y su chófer recogerá a todos por turnos antes de salir hacia Praga." }
+  ],
+  "relatedRoutesIntro": "Mariánské Lázně es una de las tres ciudades balneario de Bohemia Occidental. Los huéspedes que salen de Karlovy Vary, Františkovy Lázně, Pilsen o Ratisbona reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": { "line1": "Más formas de llegar", "italic": "a Praga." },
+  "relatedRoutes": [
+    { "slug": "karlovy-vary-prague", "city": "Karlovy Vary", "label": "Karlovy Vary → Praga", "distance": "130 km", "duration": "1 h 30 min" },
+    { "slug": "frantiskovy-lazne-prague", "city": "Františkovy Lázně", "label": "Františkovy Lázně → Praga", "distance": "175 km", "duration": "2 h 30 min" },
+    { "slug": "plzen-prague", "city": "Pilsen", "label": "Pilsen → Praga", "distance": "90 km", "duration": "1 h" },
+    { "slug": "regensburg-prague", "city": "Ratisbona", "label": "Ratisbona → Praga", "distance": "285 km", "duration": "3 h" }
+  ],
+  "highlights": [
+    { "label": "Distancia", "value": "~165 km" },
+    { "label": "Duración", "value": "~2 horas" },
+    { "label": "Vehículos", "value": ["Clase Business", "Primera Clase", "Monovolumen Business"] },
+    { "label": "Precio desde", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Mariánské Lázně a Praga.",
+    "headingItalic": "Desde {ePrice} €, fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Mariánské Lázně a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Mariánské Lázně a Praga: 165 km de puerta a puerta en un Mercedes E, S o V-Class. Recogida en su hotel balneario. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Mariánské Lázně a Praga — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Mariánské Lázně a Praga: 165 km de puerta a puerta en un Mercedes E, S o V-Class. Recogida en su hotel balneario. Precio fijo desde {ePrice} €."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Mariánské Lázně → Prague",
+    "headlineLine1": "Mariánské Lázně to Prague,",
+    "headlineItalic": "spa hotel to city door.",
+    "intro": "Mariánské Lázně to Prague by private chauffeur is a 165 km door-to-door transfer east via Plzeň and the D5, around 2 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any spa hotel or address in Mariánské Lázně, drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Mariánské Lázně to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Mariánské Lázně to Prague covers 165 km — out of the wooded spa valley, across the West Bohemian hills to the D5 motorway, then east past Plzeň to Prague — and takes approximately 2 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your spa hotel, apartment or Mariánské Lázně station, and drops you at your Prague hotel, your meeting or Václav Havel Airport.",
+    "The fare is agreed before you travel and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are all included. At the end of a cure, the last thing you need is a connection in Plzeň with your suitcases — the car goes from your hotel entrance to your Prague door."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Mariánské Lázně to Prague",
+    "headingItalic": "in two hours.",
+    "paragraphs": [
+      "From a pickup near the Main Colonnade, the Singing Fountain or one of the spa hotels on the hillside, your chauffeur leaves town through the forest and crosses the gentle West Bohemian uplands to join the D5 motorway. The route stays inside the Czech Republic from start to finish — no border, no second vignette.",
+      "On the D5 the car runs east around Plzeň and on past Rokycany and Beroun toward Prague. Total distance is approximately 165 kilometres; driving time is two hours in normal traffic. Friday afternoons and Sunday evenings bring heavier traffic on the approach to Prague, so allow 15–20 minutes more.",
+      "The D5 reaches Prague on its south-western edge. From there your chauffeur takes the ring road to Václav Havel Airport for an onward flight, or heads into the centre — Smíchov, Malá Strana, the Old Town or Vinohrady — straight to your door."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Mariánské Lázně pickup to your Prague drop-off: the car, the chauffeur, fuel and the Czech motorway vignette. After a spa programme, a golf week or a quiet retreat, you arrive in Prague with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request, useful for the spa hotel handover.",
+    "Fuel and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any Mariánské Lázně address — your spa hotel, apartment or Mariánské Lázně station.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Teplá Monastery, Plzeň or a coffee break on the D5 — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Mariánské Lázně to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Mariánské Lázně", "note": "Pickup from your spa hotel, apartment or Mariánské Lázně station. Your chauffeur meets you at the entrance and loads the luggage.", "anchor": true, "custom": false },
+    { "city": "Teplá Monastery (optional)", "note": "A Premonstratensian abbey in the hills east of town — a calm first stop with a baroque library.", "anchor": false, "custom": false },
+    { "city": "Plzeň (optional)", "note": "Right on the D5. Stop for lunch in the main square or a tour of the Pilsner Urquell brewery.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A viewpoint, a restaurant, a short walk? Tell us at booking. The route is yours.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "None. The route is entirely inside the Czech Republic." },
+    { "label": "Tolls", "value": "The Czech motorway vignette is included in the quoted price." },
+    { "label": "Hotel checkout", "value": "Tell us your checkout time. The car is at the hotel entrance when you come down, not at a car park further along the promenade." },
+    { "label": "Return transfer", "value": "Coming back for another cure? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Two hours,",
+    "headingItalic": "with a pause or two.",
+    "intro": "The road from Mariánské Lázně to Prague passes some of the best of West Bohemia. Three stops cover most of the requests we get on this run.",
+    "configurations": [
+      { "title": "Teplá Monastery", "body": "Leave your hotel at 9:30 and spend an hour at the Teplá abbey — the church, the library and the grounds. Continue to the D5 and arrive in Prague early in the afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Lunch and a brewery in Plzeň", "body": "Plzeň sits on the D5 about halfway. Ninety minutes for lunch on the main square by St Bartholomew’s Cathedral, or a pre-booked tour at the Pilsner Urquell brewery. Prague is about an hour further.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Kladruby Monastery", "body": "A short detour off the D5 near Stříbro brings you to Kladruby, a Benedictine monastery with a church remodelled by Jan Blažej Santini. One hour inside, then on to Prague.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur waits at the door of your spa hotel at the time you set, takes the luggage from reception and settles you in the back. No walk down the hill to the station, no wait for a connection.",
+    "Two hours is a good stretch to rest after a programme of treatments. If you prefer quiet, you get quiet. If you want to know about Prague — how far your hotel is from the Old Town Square, where to have dinner, how long to allow for the airport — just ask.",
+    "Water, charger and Wi-Fi are already in the cabin. If you would like a coffee in Plzeň or a stop to stretch your legs, say so. At the Prague end your chauffeur carries the bags to reception, not just to the pavement."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Mariánské Lázně to Prague.",
+    "items": [
+      { "title": "A fare that stays fixed", "body": "Fuel, the Czech vignette and driver time are included. What you agree at booking is what you pay in Prague." },
+      { "title": "No change in Plzeň", "body": "The train from Mariánské Lázně usually involves Plzeň and a taxi at the Prague end. In the car, your luggage is loaded once at the hotel and unloaded once at your door." },
+      { "title": "A Prague-based team", "body": "Prestigo runs its own Mercedes fleet out of Prague. Your chauffeur knows the city you are heading to — the hotel entrances, the one-way streets, the quickest way to the airport." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Mariánské Lázně to Prague take?", "a": "Approximately 2 hours door to door, across the West Bohemian hills to the D5 and east past Plzeň into Prague. Friday afternoon or Sunday evening traffic into Prague can add 15–20 minutes." },
+    { "q": "How much is a taxi or chauffeur from Mariánské Lázně to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at my spa hotel in Mariánské Lázně?", "a": "Yes. Give us the hotel name and your checkout time. Your chauffeur comes to the hotel entrance, helps with the luggage and drives you directly to your Prague address. Pickup at Mariánské Lázně station is also possible." },
+    { "q": "Is a private transfer better than the train from Mariánské Lázně to Prague?", "a": "The train takes roughly three hours station to station, often with a change, before you add a taxi at the Prague end. For a solo traveller with light bags, the train is cheaper. A private transfer is door to door, leaves when you want, carries all your luggage and costs the same for one passenger or three." },
+    { "q": "Can we stop on the way from Mariánské Lázně to Prague?", "a": "Yes. Teplá Monastery, Plzeň and Kladruby Monastery are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included." },
+    { "q": "Can you collect guests from two different spa hotels?", "a": "Yes. If your party is staying at more than one hotel in Mariánské Lázně, tell us at booking and your chauffeur collects everyone in turn before setting off for Prague." }
+  ],
+  "relatedRoutesIntro": "Mariánské Lázně is one of three spa towns in West Bohemia. Guests leaving Karlovy Vary, Františkovy Lázně, Plzeň or Regensburg book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "karlovy-vary-prague", "city": "Karlovy Vary", "label": "Karlovy Vary → Prague", "distance": "130 km", "duration": "1h 30min" },
+    { "slug": "frantiskovy-lazne-prague", "city": "Františkovy Lázně", "label": "Františkovy Lázně → Prague", "distance": "175 km", "duration": "2h 30min" },
+    { "slug": "plzen-prague", "city": "Plzeň", "label": "Plzeň → Prague", "distance": "90 km", "duration": "1h" },
+    { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~165 km" },
+    { "label": "Duration", "value": "~2 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Mariánské Lázně to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Mariánské Lázně to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Mariánské Lázně to Prague transfer — 165 km door to door in a Mercedes E, S or V-Class. Spa hotel pickup. Fixed price from €{ePrice}.",
+    "ogTitle": "Mariánské Lázně to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Mariánské Lázně to Prague transfer — 165 km door to door in a Mercedes E, S or V-Class. Spa hotel pickup. Fixed price from €{ePrice}."
+  }
+}

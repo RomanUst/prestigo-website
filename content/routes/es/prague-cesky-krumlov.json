@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un traslado privado de Praga a Český Krumlov recorre 175 km y dura aproximadamente 2,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, sea cual sea el tráfico o el tiempo de espera en su destino. Las paradas en ruta —České Budějovice o Třeboň— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
-    "Esto no es una lanzadera compartida. Ni una aplicación de VTC. Un Mercedes privado, un chófer y una tarifa que no cambia."
+    "Esto no es una lanzadera compartida. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Český Krumlov",
@@ -195,8 +195,8 @@
     {
       "slug": "prague-linz",
       "city": "Linz",
-      "distance": "230 km",
-      "duration": "2 h 45 min"
+      "distance": "235 km",
+      "duration": "2 h 30 min"
     },
     {
       "slug": "prague-passau",
@@ -207,8 +207,8 @@
     {
       "slug": "prague-salzburg",
       "city": "Salzburgo",
-      "distance": "360 km",
-      "duration": "4 h 15 min"
+      "distance": "375 km",
+      "duration": "4 h"
     }
   ],
   "highlights": [

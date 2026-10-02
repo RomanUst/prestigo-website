@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Munich → Prague",
+    "headlineLine1": "Munich to Prague,",
+    "headlineItalic": "one car all the way.",
+    "intro": "Munich to Prague by private chauffeur is a 385 km door-to-door transfer north on the A9 and A93, then east on the A6 and D5, around 4 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, the Czech vignette and all tolls included. Pickup from any Munich address, München Hauptbahnhof or Munich Airport (MUC), drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Munich to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Munich to Prague covers 385 km — north on the A9, then the A93 past Regensburg, east on the A6 to the Czech border at Waidhaus–Rozvadov, and the D5 motorway past Plzeň into Prague — and takes approximately 4 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Munich hotel, an office, München Hauptbahnhof or the Arrivals hall at Munich Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "The fare is fixed when you book: fuel, the Czech motorway vignette, every toll, bottled water, Wi-Fi and child seats on request are all included. Landing at MUC with a long-haul flight behind you, you walk out of Arrivals, sit down and next stand up at your hotel in Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Munich to Prague",
+    "headingItalic": "in about four hours.",
+    "paragraphs": [
+      "From a pickup in the Altstadt near Marienplatz, in Schwabing or Maxvorstadt, your chauffeur takes the A9 north out of Munich. From Munich Airport the car reaches the same motorway in a few minutes via the A92. At the Holledau junction the route turns onto the A93 and runs north through the hop fields of the Hallertau to Regensburg and the Danube.",
+      "Beyond Regensburg the A93 follows the Naab valley through the Upper Palatinate to the A6, which leads east to the border at Waidhaus–Rozvadov. The crossing is inside Schengen — no stop, no check in normal conditions. The D5 then carries you across West Bohemia, past Plzeň, Rokycany and Beroun, into the southwest of Prague. Total distance is approximately 385 kilometres; driving time is four hours in normal traffic.",
+      "The slowest parts are usually at the two ends: the Munich ring at rush hour and the approach into Prague on a Friday afternoon, each worth 20–30 minutes. Your chauffeur checks both before departure and times the pickup or shifts the route to avoid them. You arrive in Prague with the evening ahead of you."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Munich pickup to your Prague drop-off: the car, the chauffeur, fuel, the Czech vignette and every toll on the way. Straight off a flight, out of a trade fair or after a weekend in Bavaria, you reach your Prague door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request, useful for the Munich hotel handover.",
+    "Fuel, all tolls and the Czech motorway vignette. German motorways carry no car toll. Nothing is charged on top.",
+    "Pickup at any Munich address, München Hauptbahnhof, or inside Arrivals at Munich Airport (MUC) with flight tracking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Regensburg, Plzeň or Karlštejn Castle — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Munich to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Munich", "note": "Pickup from your hotel, office, München Hauptbahnhof or Munich Airport (MUC). At the airport your chauffeur waits inside Arrivals with your name.", "anchor": true, "custom": false },
+    { "city": "Regensburg (optional)", "note": "The medieval Danube city sits on the A93, about an hour and a quarter from Munich — the Stone Bridge, the cathedral and the old town.", "anchor": false, "custom": false },
+    { "city": "Plzeň (optional)", "note": "West Bohemia’s capital on the D5, an hour short of Prague — the Pilsner Urquell brewery and the main square.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A castle, a beer garden, a viewpoint over the Danube? Tell us at booking and we build it into the drive.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "German–Czech Schengen border at Waidhaus–Rozvadov. No routine passport check — non-EU passengers should still carry their passport and visa." },
+    { "label": "Tolls", "value": "The Czech motorway vignette and all tolls are included. German motorways are toll-free for cars." },
+    { "label": "Airport pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Munich Airport, waits inside Arrivals, and you have 60 minutes of free waiting." },
+    { "label": "Return transfer", "value": "Flying home from Munich later? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Make the drive",
+    "headingItalic": "part of the trip.",
+    "intro": "Four hours is long enough to break with a proper stop. These three fall naturally on the road from Munich to Prague.",
+    "configurations": [
+      { "title": "Lunch in Regensburg", "body": "Leave Munich at 9:00 and reach Regensburg in about an hour and a quarter. Ninety minutes for the Stone Bridge, the cathedral and lunch by the Danube, then on to Prague by late afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "The Brewery in Plzeň", "body": "Plzeň is three hours into the drive, the right moment for a break. Take the Pilsner Urquell brewery tour or an hour on the main square, and Prague is a straight hour along the D5.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Karlštejn Castle", "body": "Leave the D5 near Beroun for Karlštejn, the hilltop castle of Charles IV. Walk up through the village and take the guided tour — about an hour and a half — then arrive in Prague thirty minutes later.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "At Munich Airport your chauffeur is inside Arrivals with a name board, already aware of any delay to your flight. In the city they wait at the door of your hotel at the agreed time and handle the luggage from the lobby to the boot.",
+    "Four hours is a full working session or a long rest, and you set the tone. Your chauffeur stays quiet when you are busy and is happy to talk Prague when you are not — where your hotel sits, how to get the best of a short stay, which restaurants are worth the booking.",
+    "Water, a charger and Wi-Fi are in the cabin from the start. If you want a coffee at the border, a stop in Regensburg or a different temperature in the back, ask. In Prague your chauffeur takes the bags to the hotel reception, not just to the pavement."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Munich to Prague.",
+    "items": [
+      { "title": "The fare is the fare", "body": "Fuel, the Czech vignette, tolls and driver time are in the price you book. Traffic on the Munich ring or into Prague does not change it." },
+      { "title": "Airport to door, no detours", "body": "There is no need to go into Munich after landing. Your chauffeur meets you at MUC and drives straight to your Prague address — one car, one load of luggage, no stations." },
+      { "title": "A company from Prague", "body": "Prestigo is based in Prague and runs its own Mercedes fleet. Your chauffeur knows the arrival end: the Old Town access rules, the hotel entrances, the quickest way across the river at rush hour." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Munich to Prague take?", "a": "Approximately 4 hours door to door: the A9 and A93 north past Regensburg, the A6 east to the Waidhaus–Rozvadov border, and the D5 past Plzeň into Prague. Rush hour around Munich or Friday traffic into Prague can each add 20–30 minutes." },
+    { "q": "How much is a taxi or chauffeur from Munich to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette, all tolls and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at Munich Airport and drive me straight to Prague?", "a": "Yes. Give us your flight number when you book. Your chauffeur tracks the landing, waits inside Arrivals at Munich Airport (MUC) with your name, and drives you directly to your Prague address — there is no need to go into Munich first. Up to 60 minutes of waiting is free." },
+    { "q": "Is a private transfer better than the train from Munich to Prague?", "a": "The direct train runs via Regensburg and Plzeň and takes well over five hours station to station, before the trip to München Hauptbahnhof and a taxi at the Prague end. For a solo traveller with light luggage, train or coach is cheaper; for two or three people, the private car is door to door and costs the same per car." },
+    { "q": "Can we stop on the way from Munich to Prague?", "a": "Yes. Regensburg, Plzeň and Karlštejn Castle are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
+    { "q": "Do I need my passport between Germany and the Czech Republic?", "a": "Both countries are in the Schengen Area, so there is no routine border control at Waidhaus–Rozvadov. Carry your passport or EU ID card anyway — spot checks do happen, and non-EU travellers arriving at Munich Airport should keep their documents to hand." }
+  ],
+  "relatedRoutesIntro": "Munich to Prague is often one leg of a longer trip through Bavaria, Austria and Bohemia. Clients starting in Regensburg, Nuremberg, Passau or Salzburg book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
+    { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "375 km", "duration": "4h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "385 km" },
+    { "label": "Duration", "value": "~4 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Munich to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Munich to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Munich to Prague transfer — 385 km door to door in a Mercedes E, S or V-Class. Pickup at any Munich address or MUC airport. Fixed price from €{ePrice}.",
+    "ogTitle": "Munich to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Munich to Prague transfer — 385 km door to door in a Mercedes E, S or V-Class. Pickup at any Munich address or MUC airport. Fixed price from €{ePrice}."
+  }
+}

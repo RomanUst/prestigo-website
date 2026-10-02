@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Český Krumlov → Prague",
+    "headlineLine1": "De Český Krumlov à Prague,",
+    "headlineItalic": "de la ville-château à la capitale.",
+    "intro": "De Český Krumlov à Prague avec chauffeur privé, c'est un transfert de porte à porte de 175 km vers le nord via České Budějovice et Tábor, soit environ 2 h 30 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à tout hôtel ou adresse de Český Krumlov, dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Český Krumlov à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Český Krumlov à Prague couvre 175 km — vers le nord jusqu'à České Budějovice, puis la D3 au-delà de Tábor et le dernier tronçon à travers la Bohême centrale jusqu'à Prague — et demande environ 2 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou à votre maison d'hôtes à Český Krumlov, et vous dépose devant votre hôtel à Prague, à votre rendez-vous ou à l'aéroport Václav Havel.",
+    "Le tarif est convenu avant le départ et ne change pas : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Pas de bus à réserver, pas de changement de train à České Budějovice, pas de taxi à chercher à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Český Krumlov à Prague",
+    "headingItalic": "en deux heures et demie.",
+    "paragraphs": [
+      "La majeure partie du centre historique de Český Krumlov est fermée aux voitures : votre chauffeur vous attend donc au point autorisé le plus proche de votre hôtel et prend vos bagages en charge à partir de là. La voiture quitte ensuite la vallée de la Vltava par la route 39 et file vers le nord à travers la campagne de Bohême du Sud jusqu'à České Budějovice, à une vingtaine de kilomètres.",
+      "À České Budějovice, l'itinéraire rejoint l'autoroute D3 vers le nord, au-delà de Hluboká et jusqu'à Tábor. Au nord de Tábor, la D3 est encore en cours d'achèvement : la dernière partie suit donc l'ancienne route nationale 3 à travers la Bohême centrale avant de rejoindre la D1 vers Prague. Tout le trajet se fait en République tchèque — aucune frontière, aucune seconde vignette.",
+      "La distance totale est d'environ 175 kilomètres ; le temps de conduite est de deux heures et demie en conditions normales. Comptez 15 à 20 minutes de plus le vendredi après-midi ou le dimanche soir aux abords de Prague. Votre chauffeur vérifie la route avant le départ et adapte l'itinéraire en cas de travaux. Vous arrivez à Prague par le sud-est, près de Vinohrady et du centre, l'aéroport se rejoignant par le périphérique."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Český Krumlov à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Après une nuit ou deux au pied du château, vous arrivez à Prague sans plus rien à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
+    "Carburant et vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Prise en charge à toute adresse de Český Krumlov — à votre hôtel, ou au point autorisé le plus proche s'il se trouve dans le centre historique.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en chemin — Holašovice, České Budějovice ou Tábor — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Český Krumlov à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Český Krumlov",
+      "note": "Prise en charge à votre hôtel, ou au point autorisé le plus proche dans le centre historique. Votre chauffeur s'occupe des bagages.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "České Budějovice (facultatif)",
+      "note": "Vingt kilomètres au nord. La grande place à arcades et la brasserie Budvar.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Tábor (facultatif)",
+      "note": "Directement sur la D3. La vieille ville hussite sur sa colline — une heure facile avant le dernier tronçon.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un village, un château, un déjeuner dont vous avez entendu parler ? Dites-le-nous à la réservation. L'itinéraire est le vôtre.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à toute adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Aucun. Le trajet de Český Krumlov à Prague se fait entièrement en République tchèque."
+    },
+    {
+      "label": "Péages",
+      "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué."
+    },
+    {
+      "label": "Prise en charge en vieille ville",
+      "value": "La majeure partie du centre historique est fermée aux voitures. Votre chauffeur vous attend au point autorisé le plus proche et porte les bagages à partir de là."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez à Český Krumlov plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
+    }
+  ],
+  "dayTripLabel": "Arrêts en chemin",
+  "dayTrip": {
+    "headingLine1": "Un dernier regard",
+    "headingItalic": "sur la Bohême du Sud.",
+    "intro": "Deux heures et demie vers le nord laissent le temps d'un dernier arrêt avant Prague. Trois options couvrent l'essentiel des demandes que nous recevons sur ce trajet.",
+    "configurations": [
+      {
+        "title": "Village de Holašovice",
+        "body": "Un court détour à l'ouest de České Budějovice vers un village inscrit au patrimoine mondial de l'UNESCO, avec ses fermes de style baroque rustique de Bohême du Sud autour d'une longue place verte. Quarante-cinq minutes suffisent, puis retour sur la D3.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Déjeuner à České Budějovice",
+        "body": "Vingt minutes après la prise en charge. Déjeuner sur la Náměstí Přemysla Otakara II, ou visite réservée à l'avance de la brasserie Budvar. De là, Prague est à environ deux heures au nord.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Vieille ville de Tábor",
+        "body": "Tábor se trouve sur la D3, à mi-chemin environ. Une heure sur la place principale et dans les ruelles alentour, ou une visite guidée des passages souterrains. Arrivée à Prague en fin d'après-midi.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — indiquez-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur connaît le fonctionnement de Český Krumlov : où une voiture peut s'arrêter, la distance jusqu'à votre hôtel et comment faire passer les bagages sur les pavés. Vous sortez de la réception et la voiture vous attend au point le plus proche où elle est autorisée.",
+    "Le trajet est à vous. Dormez après un dîner tardif au bord de la rivière, travaillez, ou posez des questions sur Prague — le quartier de votre hôtel, où dîner, combien de temps pour rejoindre l'aéroport. Votre chauffeur s'adapte à vous.",
+    "Eau, chargeur et Wi-Fi vous attendent à l'arrière. Une pause café près de Tábor est toujours possible. À Prague, votre chauffeur porte les bagages jusqu'à la réception, pas seulement jusqu'au trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Český Krumlov à Prague.",
+    "items": [
+      {
+        "title": "Un seul tarif fixe",
+        "body": "Carburant, vignette tchèque et temps du chauffeur sont inclus. Rien n'est ajouté à l'arrivée à Prague."
+      },
+      {
+        "title": "D'hôtel à hôtel",
+        "body": "Pas de gare routière, pas de changement de train à České Budějovice, pas de taxi à Prague. Vos bagages sont chargés une fois à Krumlov et déchargés devant votre porte à Prague."
+      },
+      {
+        "title": "Une société pragoise",
+        "body": "Prestigo est basée à Prague et exploite sa propre flotte Mercedes. Votre chauffeur connaît la ville où vous vous rendez — les entrées d'hôtels, la circulation, le chemin de l'aéroport."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Český Krumlov à Prague ?",
+      "a": "Environ 2 h 30 de porte à porte : la route 39 jusqu'à České Budějovice, la D3 vers le nord au-delà de Tábor, puis la route nationale 3 et la D1 jusqu'à Prague. Le vendredi après-midi ou le dimanche soir, la circulation aux abords de Prague peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Český Krumlov à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Le prix comprend le carburant, la vignette tchèque et le temps du chauffeur — il s'entend par véhicule, et non par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à mon hôtel dans la vieille ville de Český Krumlov ?",
+      "a": "Oui. La majeure partie du centre historique est fermée aux voitures : votre chauffeur vous attend donc au point autorisé le plus proche de votre hôtel et vous aide à porter les bagages. Indiquez-nous le nom de l'hôtel à la réservation et nous vous confirmons le point de rendez-vous exact."
+    },
+    {
+      "q": "Un transfert privé vaut-il mieux que le bus ou le train de Český Krumlov à Prague ?",
+      "a": "Les bus directs mettent environ trois heures, et le train impose un changement à České Budějovice et prend généralement plus de temps. Pour un voyageur seul et peu chargé, le bus revient moins cher. Le transfert privé, lui, va de porte à porte, part à l'heure qui vous convient, emporte tous vos bagages et coûte le même prix pour un ou trois passagers."
+    },
+    {
+      "q": "Peut-on s'arrêter en chemin entre Český Krumlov et Prague ?",
+      "a": "Oui. Holašovice, České Budějovice et Tábor sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse."
+    },
+    {
+      "q": "Y a-t-il un passage de frontière entre Český Krumlov et Prague ?",
+      "a": "Non. Český Krumlov est proche de la frontière autrichienne, mais la route vers Prague part vers le nord et reste entièrement en République tchèque. Seule la vignette tchèque s'applique, et elle est incluse."
+    }
+  ],
+  "relatedRoutesIntro": "Český Krumlov est souvent la dernière étape avant Prague lors d'un voyage à travers la Bohême du Sud et la Haute-Autriche. Les voyageurs venant de České Budějovice, Linz, Passau ou Salzbourg réservent de la même façon — une voiture, un tarif fixe, une dépose devant la porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "ceske-budejovice-prague",
+      "city": "České Budějovice",
+      "label": "České Budějovice → Prague",
+      "distance": "155 km",
+      "duration": "2 h"
+    },
+    {
+      "slug": "linz-prague",
+      "city": "Linz",
+      "label": "Linz → Prague",
+      "distance": "235 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "passau-prague",
+      "city": "Passau",
+      "label": "Passau → Prague",
+      "distance": "220 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "salzburg-prague",
+      "city": "Salzbourg",
+      "label": "Salzbourg → Prague",
+      "distance": "375 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~175 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 h 30"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Český Krumlov à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Český Krumlov – Prague — dès {ePrice} €",
+    "description": "Transfert privé de Český Krumlov à Prague — 175 km de porte à porte en Mercedes E, S ou V. Prise en charge à l'hôtel en vieille ville. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé Český Krumlov – Prague avec chauffeur — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Český Krumlov à Prague — 175 km de porte à porte en Mercedes E, S ou V. Prise en charge à l'hôtel en vieille ville. Prix fixe dès {ePrice} €."
+  }
+}

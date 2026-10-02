@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Ostrava → Prague",
+    "headlineLine1": "D'Ostrava à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "D'Ostrava à Prague avec chauffeur privé, c'est un transfert de porte à porte de 370 km par la D1, soit environ 4 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, carburant et vignette autoroutière tchèque inclus. Prise en charge à n'importe quelle adresse d'Ostrava, à la gare centrale d'Ostrava ou à l'aéroport Leoš Janáček (OSR), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé d'Ostrava à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé d'Ostrava à Prague couvre 370 km par la D1 — vers le sud-ouest hors de la Moravie-Silésie, à travers la Moravie centrale jusqu'à Brno, puis vers l'ouest par les Hautes-Terres de Bohême-Moravie jusqu'à Prague — et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel ou bureau à Ostrava, à Ostrava hlavní nádraží ou à Ostrava-Svinov, ou dans le hall des arrivées de l'aéroport Leoš Janáček, et vous dépose devant votre porte à Prague.",
+    "Le prix est fixé à la réservation : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Une seule voiture pour tout le trajet — pas de correspondance, pas de bagages sur un quai, rien à organiser en arrivant à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "D'Ostrava à Prague",
+    "headingItalic": "en quatre heures.",
+    "paragraphs": [
+      "Après une prise en charge près de Stodolní, à Dolní Vítkovice ou à l'une des gares de la ville, votre chauffeur rejoint la D1 au sud-ouest d'Ostrava. L'aéroport Leoš Janáček, à Mošnov, se trouve juste à côté de ce tronçon : une prise en charge à l'aéroport ne demande donc aucun détour par la ville. Il n'y a aucune frontière sur cet itinéraire — bien qu'Ostrava soit proche de la Pologne et de la Slovaquie, le trajet jusqu'à Prague reste entièrement en République tchèque.",
+      "L'autoroute descend vers le sud-ouest par la Porte de Moravie en passant par Hranice, puis traverse la vaste plaine de la Haná par Přerov et Kroměříž jusqu'à Vyškov et Brno. Depuis Brno, c'est le long tronçon vers l'ouest à travers la Vysočina — Velké Meziříčí, Jihlava, Humpolec — puis la descente vers la Bohême centrale. La distance totale est d'environ 370 kilomètres ; le temps de conduite est de quatre heures en circulation normale.",
+      "Votre chauffeur vérifie l'état de la D1 avant de quitter Ostrava. En cas de travaux ou d'accident sur les hauteurs, il les contourne par les routes parallèles sans avoir à demander. Sur un trajet de quatre heures, une vraie pause fait partie du programme, et le vendredi après-midi ou le dimanche soir, l'entrée dans Prague peut ajouter 20 à 30 minutes."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Ostrava à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Après un déplacement professionnel, un week-end de festival ou un vol vers Ostrava, vous rejoignez Prague sans rien d'autre à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Polonais sur demande.",
+    "Carburant et vignette autoroutière tchèque. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse d'Ostrava, à la gare centrale d'Ostrava ou à Ostrava-Svinov, ou dans le hall des arrivées de l'aéroport Leoš Janáček (OSR), avec suivi du vol.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
+    "Arrêts en route — Štramberk, Olomouc ou Brno — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Classe Affaires", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Classe Direction", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Van Affaires", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "D'Ostrava à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Ostrava", "note": "Prise en charge à votre hôtel, à votre bureau, à la gare centrale d'Ostrava, à Ostrava-Svinov ou à l'aéroport Leoš Janáček (OSR). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.", "anchor": true, "custom": false },
+    { "city": "Olomouc (en option)", "note": "Un court détour depuis la D1 vers la capitale historique de la Moravie — la Place Haute et la colonne de la Sainte-Trinité.", "anchor": false, "custom": false },
+    { "city": "Brno (en option)", "note": "La capitale morave, directement sur l'itinéraire, et l'étape naturelle à mi-chemin pour un déjeuner ou un rendez-vous.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Un château, un point de vue, un restaurant dont vous avez entendu parler ? Dites-le-nous à la réservation et nous l'ajoutons à l'itinéraire.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Aucune frontière — l'itinéraire jusqu'à Prague se trouve entièrement en République tchèque." },
+    { "label": "Péages", "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué." },
+    { "label": "Prise en charge à l'aéroport", "value": "Vous arrivez en avion à Ostrava ? Indiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à Mošnov et attend jusqu'à 60 minutes sans frais." },
+    { "label": "Transfert retour", "value": "Vous rentrez à Ostrava plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Quatre heures,",
+    "headingItalic": "à votre rythme.",
+    "intro": "Un trajet de quatre heures se vit mieux avec une vraie pause. Ces trois arrêts se trouvent sur la route d'Ostrava à Prague ou tout près.",
+    "configurations": [
+      { "title": "Štramberk, au pied de la tour Trúba", "body": "À environ 40 minutes du centre d'Ostrava, la petite ville perchée de Štramberk offre ses maisons à colombages, la tour du château Trúba et une courte montée avec vue sur les contreforts des Beskides. Trois quarts d'heure sur place, puis la D1 en direction de Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Olomouc, la Place Haute", "body": "Un court détour depuis la D1 vous mène à Olomouc. Une heure pour la colonne de la Sainte-Trinité, les fontaines baroques et un café sur la place, puis cap au sud vers Brno et enfin Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Déjeuner à Brno", "body": "Brno arrive au bout d'environ une heure et demie, presque à mi-chemin. Déjeuner dans le centre ou visite réservée à l'avance de la villa Tugendhat, puis deux heures et demie sur la D1 jusqu'à Prague.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur vous attend à votre adresse à Ostrava dès que vous êtes prêt à partir, ou dans le hall des arrivées de l'aéroport Leoš Janáček avec une pancarte à votre nom. Depuis Mošnov, la D1 n'est qu'à quelques minutes : vous êtes sur la route de Prague presque aussitôt.",
+    "Quatre heures, c'est un après-midi de travail. Votre chauffeur garde le silence dans l'habitacle et vous laisse donner le ton. Si vous voulez en savoir plus sur Prague — le quartier de votre hôtel, le temps à prévoir pour l'aéroport, les endroits où la circulation se densifie le soir —, il suffit de demander.",
+    "Eau, chargeur et Wi-Fi sont prêts dans l'habitacle arrière. Une pause à mi-parcours est incluse, pour un café et quelques minutes hors de la voiture. À Prague, la voiture s'arrête devant votre entrée et vos bagages vous suivent à l'intérieur."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "d'Ostrava à Prague.",
+    "items": [
+      { "title": "Un tarif fixe pour 370 km", "body": "Carburant, vignette tchèque et temps du chauffeur sont compris dans le prix. La circulation sur la D1 n'y change rien, et rien n'est ajouté à Prague." },
+      { "title": "Une seule voiture, du départ à l'arrivée", "body": "Pas de trajet jusqu'à Svinov ou à la gare centrale, pas de voiture de train à chercher, pas de file de taxis à Prague. Vos bagages vont dans le coffre une seule fois à Ostrava et en ressortent devant votre porte à Prague." },
+      { "title": "Une société basée à Prague", "body": "Prestigo exploite sa propre flotte Mercedes depuis Prague. Votre chauffeur connaît la ville où vous arrivez — les accès en voiture des hôtels, les rues fermées de la Vieille Ville, le temps de trajet réel jusqu'à l'aéroport." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé d'Ostrava à Prague ?", "a": "Environ 4 heures de porte à porte, presque entièrement sur la D1 via Brno et la Vysočina. Le trafic du vendredi après-midi ou du dimanche soir à l'entrée de Prague peut ajouter 20 à 30 minutes." },
+    { "q": "Combien coûte un taxi ou un chauffeur d'Ostrava à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Carburant, vignette autoroutière tchèque et temps du chauffeur sont inclus. Le prix s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à l'aéroport d'Ostrava et me conduire directement à Prague ?", "a": "Oui. Indiquez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de l'aéroport Leoš Janáček avec votre nom et dispose de 60 minutes d'attente offertes. L'aéroport se trouve à côté de la D1 : vous partez donc directement vers Prague sans passer par Ostrava." },
+    { "q": "Un transfert privé est-il préférable au train d'Ostrava à Prague ?", "a": "Le train direct met un peu plus de trois heures de gare à gare et reste l'option la moins chère pour une personne seule avec peu de bagages. Un transfert privé prend environ quatre heures, mais vous conduit de votre porte à votre adresse à Prague, part quand vous le souhaitez, emporte tous vos bagages et coûte le même prix pour un passager ou pour trois — la meilleure solution pour les familles, les groupes et les bagages volumineux." },
+    { "q": "Peut-on s'arrêter en route entre Ostrava et Prague ?", "a": "Oui. Štramberk, Olomouc et Brno sont les demandes les plus courantes. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Pouvez-vous venir nous chercher à Dolní Vítkovice après un événement ou le festival Colours of Ostrava ?", "a": "Oui. Indiquez-nous l'événement et l'heure à laquelle vous souhaitez partir. Les jours de festival, les rues autour de Dolní Vítkovice sont très fréquentées : nous convenons donc avec vous d'un point de prise en charge précis à l'avance, et votre chauffeur vous y attend." }
+  ],
+  "relatedRoutesIntro": "Ostrava est l'une des nombreuses portes d'entrée vers Prague depuis l'est. Les clients qui arrivent d'Olomouc, Zlín, Cracovie ou Wrocław réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "olomouc-prague", "city": "Olomouc", "label": "Olomouc → Prague", "distance": "280 km", "duration": "3 h" },
+    { "slug": "krakow-prague", "city": "Cracovie", "label": "Cracovie → Prague", "distance": "530 km", "duration": "5 h 30" },
+    { "slug": "wroclaw-prague", "city": "Wrocław", "label": "Wrocław → Prague", "distance": "285 km", "duration": "3 h" },
+    { "slug": "zlin-prague", "city": "Zlín", "label": "Zlín → Prague", "distance": "310 km", "duration": "3 h 30" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~370 km" },
+    { "label": "Durée", "value": "~4 heures" },
+    { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "D'Ostrava à Prague.",
+    "headingItalic": "À partir de {ePrice} €, tarif fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Ostrava – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé d'Ostrava à Prague — 370 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Ostrava ou à l'aéroport OSR. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur d'Ostrava à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé d'Ostrava à Prague — 370 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Ostrava ou à l'aéroport OSR. Prix fixe dès {ePrice} €."
+  }
+}

@@ -29,13 +29,13 @@
     },
     {
       "title": "¿En qué terminal me recibirá mi chófer?",
-      "body": "La Terminal 2 atiende las llegadas del espacio Schengen: vuelos desde Alemania, Austria, Francia, los Países Bajos y la mayoría de las rutas de la UE. La Terminal 1 cubre todas las llegadas extra-Schengen: Reino Unido, Estados Unidos, Oriente Medio y vuelos de larga distancia. Ambas terminales están cubiertas en cada reserva. Indique su número de vuelo y su chófer le recibirá automáticamente en la sala de Llegadas correcta con su cartel con su nombre: sin aparcamientos ni zonas de recogida de VTC."
+      "body": "La Terminal 2 atiende las llegadas del espacio Schengen: vuelos desde Alemania, Austria, Francia, los Países Bajos y la mayoría de las rutas de la UE. La Terminal 1 cubre todas las llegadas extra-Schengen: Reino Unido, Estados Unidos, Oriente Medio y vuelos de larga distancia. Ambas terminales están cubiertas en cada reserva. Indique su número de vuelo y su chófer le recibirá automáticamente en la sala de Llegadas correcta con su cartel con su nombre: sin aparcamientos ni zonas de recogida."
     }
   ],
   "meetGreet": {
     "label": "Recepción personalizada",
     "heading": "Recepción personalizada en el aeropuerto de Praga, incluida de serie",
-    "paragraph1": "Todos los traslados al aeropuerto de Prestigo incluyen una recepción personalizada completa. Su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre antes de que llegue a la salida, no en un aparcamiento ni en una cola de VTC. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña hasta el coche.",
+    "paragraph1": "Todos los traslados al aeropuerto de Prestigo incluyen una recepción personalizada completa. Su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre antes de que llegue a la salida, no en un aparcamiento ni en la cola de taxis. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña hasta el coche.",
     "paragraph2": "Para llegadas VIP, diplomáticas y de alta dirección, se puede organizar con antelación un Mercedes S-Class con chófer sénior, fast-track en el control de pasaportes y servicio de mozo de equipajes. Es la bienvenida que ofrecemos a quienes llegan desde Estados Unidos, el Reino Unido y el Golfo tras un vuelo agotador y no quieren tener que ocuparse de nada.",
     "items": [
       "Bienvenida con cartel con su nombre dentro de Llegadas (Terminal 1 y Terminal 2)",
@@ -44,7 +44,8 @@
       "Equipaje transportado desde la sala hasta el coche",
       "Fast-track en el control de inmigración a petición",
       "S-Class VIP y grupos con varios vehículos a petición"
-    ]
+    ],
+    "moreLink": "Más sobre el servicio de bienvenida en el aeropuerto de Praga →"
   },
   "howItWorksHeading": "Cómo funciona",
   "howItWorks": [
@@ -136,7 +137,7 @@
     },
     {
       "q": "¿En qué consiste el servicio de recepción personalizada en el aeropuerto de Praga?",
-      "a": "La recepción personalizada significa que su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre, y no en la acera ni en una zona de recogida de VTC. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña directamente hasta el coche. Está incluida en todos los traslados al aeropuerto de Prestigo sin coste adicional."
+      "a": "La recepción personalizada significa que su chófer le espera dentro de la sala de Llegadas del aeropuerto Václav Havel de Praga (PRG) con un cartel con su nombre, y no en la acera ni en una zona de recogida. Desde el momento en que pasa la aduana, su chófer se ocupa de su equipaje y le acompaña directamente hasta el coche. Está incluida en todos los traslados al aeropuerto de Prestigo sin coste adicional."
     },
     {
       "q": "¿Ofrecen recepción VIP o premium en el aeropuerto de Praga?",
@@ -149,10 +150,6 @@
     {
       "q": "¿Puedo reservar para llegadas a primera hora de la mañana o de madrugada?",
       "a": "Sí. PRESTIGO opera 24/7, 365 días al año. Las salidas a primera hora de la mañana y las llegadas de madrugada son habituales."
-    },
-    {
-      "q": "¿Cómo se compara PRESTIGO con coger un Uber desde el aeropuerto?",
-      "a": "Uber cuenta con la parada de taxis oficial en exclusiva en PRG desde septiembre de 2023. Un Uber estándar hasta el centro de Praga cuesta entre 650 y 800 CZK, menos que el precio inicial de PRESTIGO. La diferencia está en cómo se le recibe: su chófer de PRESTIGO le espera dentro de la sala de Llegadas con un cartel con su nombre antes de que llegue a la salida. Con Uber hay que caminar 120 metros hasta la zona de recogida designada P11 y esperar a que se le asigne un vehículo. Para viajeros que van solos, con poco equipaje y llegan fuera de las horas punta, Uber es una opción práctica. Para llegadas de negocios, familias o cualquier persona con equipaje y una conexión ajustada, la recepción personalizada y el seguimiento del vuelo justifican con creces la diferencia."
     }
   ],
   "cta": {

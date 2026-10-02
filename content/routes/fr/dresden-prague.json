@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Dresde → Prague",
+    "headlineLine1": "De Dresde à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Dresde à Prague avec chauffeur privé, c'est un transfert de porte à porte de 150 km vers le sud par l'A17 et la D8, soit environ deux heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Dresde, à Dresden Hauptbahnhof ou à l'aéroport de Dresde (DRS), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Dresde à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Dresde à Prague couvre environ 150 km — vers le sud par l'A17, à travers l'est des monts Métallifères jusqu'en République tchèque, puis l'autoroute D8 au-delà d'Ústí nad Labem et la plaine de Bohême jusqu'à Prague — et demande environ deux heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel dans l'Altstadt ou la Neustadt, à Dresden Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Dresde, et vous dépose devant votre hôtel, appartement ou bureau à Prague.",
+    "Le prix est fixé à la réservation et ne bouge plus : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Deux heures après avoir quitté l'Elbe saxonne, vous descendez à Prague sans plus rien à organiser — pas de quai, pas de valises dans les escaliers, pas de second taxi."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Dresde à Prague",
+    "headingItalic": "en deux heures environ.",
+    "paragraphs": [
+      "Après une prise en charge près de la Frauenkirche, dans la Neustadt ou à l'aéroport de Dresde, votre chauffeur rejoint l'A17 au sud de la ville et quitte la vallée de l'Elbe en direction des monts Métallifères. L'Allemagne ne fait pas payer l'autoroute aux voitures : aucun arrêt n'est donc nécessaire. La frontière se trouve sur l'autoroute même, au sein de l'espace Schengen : pas de contrôle systématique, pas de file, simplement des panneaux tchèques et la descente vers Ústí nad Labem.",
+      "Côté tchèque, la route devient la D8. Elle passe Ústí et Lovosice entre les cônes volcaniques du massif de České středohoří, puis s'aplanit à travers la plaine de Bohême et entre dans Prague par le nord. La distance totale est d'environ 150 kilomètres ; le temps de conduite est d'environ deux heures. En semaine, la circulation du soir sur l'accès nord de Prague peut ajouter 15 à 20 minutes.",
+      "Votre chauffeur vérifie l'état de la D8 avant le départ. En cas de travaux ou de fermeture près de Lovosice, il emprunte la route parallèle sans avoir à demander. Vous arrivez à Prague avec du temps devant vous — le temps de vous installer dans un hôtel de Malá Strana, de déposer les bagages et d'être sur le pont Charles avant la tombée du jour."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout le trajet, de la prise en charge à Dresde à la dépose à Prague : la voiture, le chauffeur, le carburant et la vignette autoroutière tchèque. Que vous veniez pour un week-end, une réunion ou la prochaine étape d'un plus long voyage, vous arrivez devant la porte sans rien à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, pratique à la réception de l'hôtel à Dresde.",
+    "Carburant et vignette autoroutière tchèque. Les autoroutes allemandes sont gratuites pour les voitures : aucun supplément facturé.",
+    "Prise en charge à toute adresse de Dresde, à Dresden Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Dresde (DRS), avec suivi de vol.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en chemin — Suisse saxonne, Terezín ou Mělník — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Dresde à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Dresde",
+      "note": "Prise en charge à votre hôtel, à votre bureau, à Dresden Hauptbahnhof ou à l'aéroport de Dresde (DRS). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Suisse saxonne (facultatif)",
+      "note": "Un court détour jusqu'au pont de grès de la Bastei, au-dessus de l'Elbe, avant que la route ne monte vers la frontière.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Terezín (facultatif)",
+      "note": "L'ancienne ville forteresse et son mémorial se trouvent juste à côté de la D8, près de Lovosice. Une heure calme et qui en vaut la peine.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un point de vue, un déjeuner, un château dont vous avez entendu parler ? Dites-le-nous à la réservation et nous l'intégrons.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à toute adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen germano-tchèque sur l'autoroute A17/D8. Pas de contrôle de passeport systématique — les passagers hors UE doivent tout de même se munir de leur passeport et de leur visa."
+    },
+    {
+      "label": "Péages",
+      "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué. Les autoroutes allemandes sont gratuites pour les voitures."
+    },
+    {
+      "label": "Prise en charge à l'aéroport",
+      "value": "Communiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à l'aéroport de Dresde et attend jusqu'à 60 minutes sans supplément."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez à Dresde plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
+    }
+  ],
+  "dayTripLabel": "Arrêts en chemin",
+  "dayTrip": {
+    "headingLine1": "Deux heures,",
+    "headingItalic": "ou un peu plus.",
+    "intro": "Le trajet en lui-même est court, ce qui laisse la place pour un bel arrêt. Voici les trois qu'on nous demande le plus souvent entre Dresde et Prague.",
+    "configurations": [
+      {
+        "title": "La Bastei au-dessus de l'Elbe",
+        "body": "Départ de Dresde à 9 h et une heure à la Bastei, en Suisse saxonne — le pont de grès, les tours rocheuses et la longue vue sur l'Elbe. Retour sur l'A17 en fin de matinée et arrivée à Prague à temps pour le déjeuner.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Mémorial de Terezín",
+        "body": "Terezín se trouve à quelques minutes de la D8, près de Lovosice. La Petite Forteresse et le musée du ghetto demandent environ deux heures, à votre rythme. Le reste du trajet jusqu'à Prague prend moins d'une heure.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Mělník et le confluent",
+        "body": "Un court détour au nord de Prague mène à Mělník, où la Vltava rejoint l'Elbe au pied d'un château doté de son propre vignoble. Un verre en terrasse, puis 40 minutes jusqu'en ville.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — indiquez-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur est devant l'entrée de l'hôtel à Dresde à la minute convenue, pas à attendre au coin de la rue. À l'aéroport de Dresde, il vous attend dans le hall des arrivées avec votre nom et prend les bagages à partir de là.",
+    "Deux heures passent vite. Profitez-en pour répondre à vos e-mails, appeler votre hôtel à Prague ou simplement regarder la vallée de l'Elbe céder la place aux collines de Bohême. Si vous voulez savoir dans quel quartier de Prague vous logez, ou où dîner à proximité, demandez — votre chauffeur y vit.",
+    "Eau, chargeur et Wi-Fi vous attendent à l'arrière. À l'arrivée, les bagages vous accompagnent jusqu'à la réception, pas sur le trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Dresde à Prague.",
+    "items": [
+      {
+        "title": "Un prix fixé à l'avance",
+        "body": "Carburant, vignette tchèque et temps du chauffeur sont compris dans le tarif. Rien n'est ajouté à l'arrivée à Prague."
+      },
+      {
+        "title": "De porte à porte, sans quai",
+        "body": "Pas de marche jusqu'à Dresden Hauptbahnhof avec vos valises, pas de file de taxis à Praha hlavní nádraží. Les bagages sont chargés une fois à Dresde et ressortent à votre adresse à Prague."
+      },
+      {
+        "title": "Prague, chez nous",
+        "body": "Prestigo est une société pragoise qui exploite sa propre flotte Mercedes. Votre chauffeur connaît les rues à accès restreint de la Vieille Ville, les points de dépose des hôtels et le chemin jusqu'à votre porte sans détour."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Dresde à Prague ?",
+      "a": "Environ deux heures de porte à porte : l'A17 vers le sud jusqu'à la frontière, puis la D8 au-delà d'Ústí nad Labem jusqu'à Prague. La circulation du soir sur l'accès nord de Prague peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Dresde à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Carburant, vignette autoroutière tchèque et temps du chauffeur sont inclus — le prix s'entend par véhicule, et non par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à l'aéroport de Dresde ou à Dresden Hauptbahnhof ?",
+      "a": "Oui. À l'aéroport de Dresde, communiquez-nous votre numéro de vol — votre chauffeur suit l'atterrissage et vous attend dans le hall des arrivées avec votre nom. À Dresden Hauptbahnhof, nous convenons d'un point de rendez-vous près de l'entrée principale. Dans les deux cas, vous allez directement à votre adresse à Prague."
+    },
+    {
+      "q": "Un transfert privé vaut-il mieux que le train de Dresde à Prague ?",
+      "a": "Le train direct le long de l'Elbe met un peu plus de deux heures de gare à gare et le trajet est agréable. Pour un voyageur seul et peu chargé, c'est l'option la moins chère. Le transfert privé prend tout son sens avec des bagages, des enfants ou un groupe : il part à l'heure qui vous convient, vous prend à votre porte et vous dépose à votre adresse à Prague — au même tarif pour un ou trois passagers."
+    },
+    {
+      "q": "Peut-on s'arrêter en chemin entre Dresde et Prague ?",
+      "a": "Oui. La Bastei en Suisse saxonne, le mémorial de Terezín et Mělník sont les demandes les plus courantes. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos ne coûte rien de plus."
+    },
+    {
+      "q": "Faut-il un passeport entre l'Allemagne et la République tchèque ?",
+      "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc pas de contrôle systématique à la frontière sur l'autoroute. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux."
+    }
+  ],
+  "relatedRoutesIntro": "Le trajet de Dresde à Prague s'inscrit souvent dans un voyage plus long à travers la Saxe et la Bohême. Les clients venant de Leipzig, Berlin ou Nuremberg réservent de la même façon — une voiture, un tarif fixe, une dépose devant la porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "leipzig-prague",
+      "city": "Leipzig",
+      "label": "Leipzig → Prague",
+      "distance": "260 km",
+      "duration": "2 h 45 min"
+    },
+    {
+      "slug": "berlin-prague",
+      "city": "Berlin",
+      "label": "Berlin → Prague",
+      "distance": "350 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "karlovy-vary-prague",
+      "city": "Karlovy Vary",
+      "label": "Karlovy Vary → Prague",
+      "distance": "130 km",
+      "duration": "1 h 30 min"
+    },
+    {
+      "slug": "nuremberg-prague",
+      "city": "Nuremberg",
+      "label": "Nuremberg → Prague",
+      "distance": "295 km",
+      "duration": "3 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~150 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~2 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Dresde à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Dresde – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Dresde à Prague — 150 km de porte à porte en Mercedes E, S ou V. Prise en charge à Dresde ou à l'aéroport DRS. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé Dresde – Prague avec chauffeur — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Dresde à Prague — 150 km de porte à porte en Mercedes E, S ou V. Prise en charge à Dresde ou à l'aéroport DRS. Prix fixe dès {ePrice} €."
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Regensburg → Prague",
+    "headlineLine1": "Regensburg to Prague,",
+    "headlineItalic": "Danube to Vltava.",
+    "intro": "Regensburg to Prague by private chauffeur is a 285 km door-to-door transfer on the A93, A6 and D5, around 3 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, the Czech vignette and all tolls included. Pickup from any Regensburg address or Regensburg Hauptbahnhof, drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Regensburg to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Regensburg to Prague covers 285 km — north on the A93 through the Upper Palatinate, east on the A6 to the Czech border at Waidhaus–Rozvadov, then the D5 motorway past Plzeň and Beroun into Prague — and takes approximately 3 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Regensburg hotel, an office or Regensburg Hauptbahnhof, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "The fare is agreed in advance and stays that way: fuel, the Czech motorway vignette, every toll, bottled water, Wi-Fi and child seats on request are included. No connection to catch, no bags to lift onto a rack, no queue for a taxi when you reach Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Regensburg to Prague",
+    "headingItalic": "in about three hours.",
+    "paragraphs": [
+      "From a pickup in the Altstadt, near the Steinerne Brücke or at a hotel by the Danube, your chauffeur leaves Regensburg on the A93 heading north. The motorway follows the valley of the Naab through the Upper Palatinate, past Schwandorf, to the junction with the A6, where the route turns east toward the Czech border.",
+      "The crossing at Waidhaus–Rozvadov sits inside Schengen — no stop, no queue and no document check in normal conditions. From there the D5 runs straight across West Bohemia: past Plzeň and its brewery chimneys, through Rokycany and Beroun, and into the southwest of Prague. Total distance is approximately 285 kilometres; driving time is three hours in normal traffic, plus 15–20 minutes on a Friday afternoon when the D5 fills with traffic into the city.",
+      "Your chauffeur checks the A93 and the D5 before departure. Summer holiday traffic and roadworks come and go on both, and if there is a hold-up they adjust the route without asking. You arrive in Prague in time for a late lunch in Malá Strana or an afternoon meeting in the New Town."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Regensburg pickup to your Prague drop-off: the car, the chauffeur, fuel, the Czech vignette and every toll on the way. Business trip, family holiday or the next stop on a tour of Central Europe — you arrive at the door with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request.",
+    "Fuel, all tolls and the Czech motorway vignette. German motorways carry no car toll. Nothing is charged on top.",
+    "Pickup at any Regensburg address or Regensburg Hauptbahnhof, at the exact time you choose.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Walhalla, Plzeň or Karlštejn Castle — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Regensburg to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Regensburg", "note": "Pickup from your hotel, office or Regensburg Hauptbahnhof. Your chauffeur is at the door at the agreed time and loads the luggage.", "anchor": true, "custom": false },
+    { "city": "Plzeň (optional)", "note": "West Bohemia’s capital sits on the D5 — the Pilsner Urquell brewery, the cathedral of St Bartholomew and a large old square.", "anchor": false, "custom": false },
+    { "city": "Karlštejn (optional)", "note": "The Gothic castle of Charles IV stands above a wooded valley a short detour from the D5 near Beroun, half an hour from Prague.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A lunch stop, a viewpoint, a brewery tasting? Tell us at booking and we build it into the day.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "German–Czech Schengen border at Waidhaus–Rozvadov. No routine passport check — non-EU passengers should still carry their passport and visa." },
+    { "label": "Tolls", "value": "The Czech motorway vignette and all tolls are included. German motorways are toll-free for cars." },
+    { "label": "Nearest airports", "value": "Regensburg has no airport of its own. If you fly into Munich or Nuremberg, we can collect you there and drive straight to Prague." },
+    { "label": "Return transfer", "value": "Travelling back to Regensburg later? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Make the drive",
+    "headingItalic": "part of the trip.",
+    "intro": "Three hours on the road leaves time for a proper stop. These three are the ones clients ask for most between Regensburg and Prague.",
+    "configurations": [
+      { "title": "Walhalla above the Danube", "body": "Start with a short detour east of Regensburg to Walhalla at Donaustauf, the marble hall of fame high above the river. Forty-five minutes for the hall and the view, then north on the A93 and into Prague by mid-afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Pilsner Urquell in Plzeň", "body": "Plzeň is about an hour short of Prague. Take the brewery tour with its historic cellars, or have lunch near the main square, then cover the last stretch of the D5 in the late afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Karlštejn Castle", "body": "Turn off the D5 near Beroun and climb to Karlštejn, the castle Charles IV built for the crown jewels. One and a half hours with the guided tour, and Prague is thirty minutes away.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur is waiting outside your Regensburg hotel before the agreed time, not circling the old town looking for it. The Altstadt has narrow lanes and restricted access, and they plan the pickup point with you in advance so you walk out to an open door.",
+    "Three hours is time you can use. Work, rest or ask about Prague — your chauffeur lives there and can tell you how long it takes to walk from your hotel to the Castle, where locals eat in Vinohrady, or when Charles Bridge is quiet.",
+    "Water, a charger and Wi-Fi are ready in the cabin. If you want a coffee at the border or a stop in Plzeň, say so on the way. In Prague the bags go into the hotel lobby with you, not onto the kerb."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Regensburg to Prague.",
+    "items": [
+      { "title": "Quoted once, paid once", "body": "Fuel, the Czech vignette, tolls and the chauffeur’s time are in the fare. The number you book in Regensburg is the number you pay in Prague." },
+      { "title": "Straight there", "body": "The car takes the shortest road, the A93, A6 and D5, with no stations and no changes. Your luggage is loaded once in Regensburg and comes out at your Prague door." },
+      { "title": "Run from Prague", "body": "Prestigo is a Prague company with its own Mercedes fleet. Your chauffeur knows the destination end best: hotel entrances, one-way streets and the quickest way through the centre at any time of day." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Regensburg to Prague take?", "a": "Approximately 3 hours door to door: the A93 north, the A6 east to the Waidhaus–Rozvadov border, and the D5 past Plzeň into Prague. Friday afternoon traffic into Prague or summer roadworks can add 15–20 minutes." },
+    { "q": "How much is a taxi or chauffeur from Regensburg to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette, all tolls and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at Regensburg Hauptbahnhof or my hotel?", "a": "Yes. We collect from any Regensburg address, including hotels in the Altstadt, and from Regensburg Hauptbahnhof. Regensburg has no airport, so if you are flying in to Munich or Nuremberg we can pick you up there instead and drive directly to Prague." },
+    { "q": "Is a private transfer better than the train from Regensburg to Prague?", "a": "Direct trains run via Furth im Wald and Plzeň and take noticeably longer than the drive, station to station. A private transfer is door to door, leaves when you want and costs the same for one passenger or three. For a solo traveller with light luggage, the train is the cheaper option." },
+    { "q": "Can we stop on the way from Regensburg to Prague?", "a": "Yes. Walhalla, Plzeň and Karlštejn Castle are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
+    { "q": "Do I need my passport between Germany and the Czech Republic?", "a": "Both countries are in the Schengen Area, so there is no routine border control at Waidhaus–Rozvadov. Carry your passport or EU ID card anyway — spot checks do happen, and non-EU travellers must have their documents with them." }
+  ],
+  "relatedRoutesIntro": "Regensburg to Prague is often part of a longer trip through Bavaria and Bohemia. Clients starting in Nuremberg, Munich or Passau, or stopping in Plzeň, book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3h" },
+    { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
+    { "slug": "plzen-prague", "city": "Plzeň", "label": "Plzeň → Prague", "distance": "90 km", "duration": "1h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "285 km" },
+    { "label": "Duration", "value": "~3 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Regensburg to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Regensburg to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Regensburg to Prague transfer — 285 km door to door in a Mercedes E, S or V-Class. Pickup at any address or the station. Fixed price from €{ePrice}.",
+    "ogTitle": "Regensburg to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Regensburg to Prague transfer — 285 km door to door in a Mercedes E, S or V-Class. Pickup at any address or the station. Fixed price from €{ePrice}."
+  }
+}

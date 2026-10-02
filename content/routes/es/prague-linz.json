@@ -3,12 +3,12 @@
     "label": "Praga → Linz",
     "headlineLine1": "De Praga a Linz,",
     "headlineItalic": "directo a la Alta Austria.",
-    "intro": "195 km hacia el sur, hasta la capital de la Alta Austria a orillas del Danubio. Ars Electronica, el Museo Lentos y una ciudad que se ha reinventado como polo creativo: dos horas y media, un precio fijo.",
+    "intro": "235 km hacia el sur, hasta la capital de la Alta Austria a orillas del Danubio. Ars Electronica, el Museo Lentos y una ciudad que se ha reinventado como polo creativo: dos horas y media, un precio fijo.",
     "imageAlt": "Linz — traslado en chófer privado desde Praga a Linz"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Linz cubre 195 km y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, wifi a bordo, cargador de móvil y sillitas infantiles previa solicitud sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —České Budějovice o Freistadt— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer comprueba el tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
-    "Esto no es un servicio compartido. Tampoco una aplicación de vehículos con conductor. Un Mercedes privado, un chófer y una tarifa que no cambia."
+    "Un traslado privado de Praga a Linz cubre 235 km y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, wifi a bordo, cargador de móvil y sillitas infantiles previa solicitud sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —České Budějovice o Freistadt— están disponibles con la misma tarifa fija si se acuerdan en el momento de la reserva. Su chófer comprueba el tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
+    "Esto no es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Linz",
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D3 / E55 en dirección sur, pasando por Tábor y České Budějovice. La D3 solo está construida parcialmente: el tramo central, desde Mezno pasando por Tábor hasta la circunvalación de České Budějovice, tiene categoría de autopista, mientras que la aproximación sur hacia la frontera desciende a la carretera 3 y a la ruta 39 hasta que se completen los últimos kilómetros. Es una vía cómoda de conducir que los chóferes de Prestigo conocen de memoria.",
       "La frontera checo-austriaca de Wullowitz/Dolní Dvořiště es invisible dentro del espacio Schengen: sin paradas, sin controles de documentación. En el lado austriaco, la vía se convierte en la autovía S10 del Mühlviertel, finalizada en 2015 como la puerta moderna de Bohemia a la Alta Austria. La S10 atraviesa ocho túneles hasta Unterweitersdorf, donde se une a la A7 para el descenso final hacia Linz, a orillas del Danubio. La llegada puede ser en la Hauptplatz, el Museo de Arte Lentos en la orilla sur, el Ars Electronica Center situado enfrente o la basílica del Pöstlingberg, sobre la ciudad.",
-      "La distancia total es de aproximadamente 195 kilómetros. El tiempo de conducción es de dos horas y media en condiciones normales. En invierno, la meseta del Mühlviertel en torno a Freistadt puede tener nieve cuando en Praga aún está seco, y su chófer comprueba las condiciones antes de cada salida. No paga por el tráfico; paga por el tiempo."
+      "La distancia total es de aproximadamente 235 kilómetros. El tiempo de conducción es de dos horas y media en condiciones normales. En invierno, la meseta del Mühlviertel en torno a Freistadt puede tener nieve cuando en Praga aún está seco, y su chófer comprueba las condiciones antes de cada salida. No paga por el tráfico; paga por el tiempo."
     ]
   },
   "includedLabel": "Qué incluye",
@@ -163,7 +163,7 @@
     },
     {
       "q": "¿Se cruza la frontera austriaca sin problemas?",
-      "a": "Ambos países están dentro del espacio Schengen. El paso de Wullowitz/Dolní Dvořiště, en Bohemia del Sur, es invisible: sin paradas ni controles de documentación para ciudadanos de la UE. Todos los vehículos de Prestigo llevan las viñetas de autopista checa y austriaca, y el chófer posee una licencia internacional de chófer válida y reconocida en Austria."
+      "a": "Ambos países están dentro del espacio Schengen. El paso de Wullowitz/Dolní Dvořiště, en Bohemia del Sur, es invisible: sin paradas ni controles de documentación para ciudadanos de la UE. Todos los vehículos de Prestigo llevan las viñetas de autopista checa y austriaca."
     },
     {
       "q": "¿Hay sillitas infantiles disponibles?",
@@ -195,7 +195,7 @@
     {
       "slug": "prague-salzburg",
       "city": "Salzburgo",
-      "distance": "330 km",
+      "distance": "375 km",
       "duration": "4 h"
     },
     {
@@ -208,7 +208,7 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "~195 km"
+      "value": "~235 km"
     },
     {
       "label": "Duración",
@@ -234,8 +234,8 @@
   },
   "metadata": {
     "title": "Chófer de Praga a Linz: desde {ePrice} €",
-    "description": "Reserve un chófer privado de Praga a Linz. 195 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, capital de la Alta Austria.",
+    "description": "Reserve un chófer privado de Praga a Linz. 235 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, capital de la Alta Austria.",
     "ogTitle": "Traslado privado de Praga a Linz: desde {ePrice} €",
-    "ogDescription": "Reserve un chófer privado de Praga a Linz. 195 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, capital de la Alta Austria."
+    "ogDescription": "Reserve un chófer privado de Praga a Linz. 235 km puerta a puerta en un Mercedes-Benz. Precio fijo desde {ePrice} €, capital de la Alta Austria."
   }
 }

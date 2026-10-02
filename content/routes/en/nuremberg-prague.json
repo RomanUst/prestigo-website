@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Nuremberg → Prague",
+    "headlineLine1": "Nuremberg to Prague,",
+    "headlineItalic": "Franconia to Bohemia.",
+    "intro": "Nuremberg to Prague by private chauffeur is a 295 km door-to-door transfer east on the A6 and the D5, around 3 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, the Czech vignette and all tolls included. Pickup from any Nuremberg address, Nuremberg Hauptbahnhof or Nuremberg Airport (NUE), drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Nuremberg to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Nuremberg to Prague covers 295 km — east on the A6 through the Upper Palatinate past Amberg, across the Czech border at Waidhaus–Rozvadov, then the D5 motorway past Plzeň and Beroun into Prague — and takes approximately 3 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Nuremberg hotel, an office, Nuremberg Hauptbahnhof or the Arrivals hall at Nuremberg Airport, and drops you at the door of your Prague hotel, apartment or meeting.",
+    "The price is fixed before you set off: fuel, the Czech motorway vignette, every toll, bottled water, Wi-Fi and child seats on request are included. No changes of train, no hauling cases between platforms, no taxi to find at the Prague end."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Nuremberg to Prague",
+    "headingItalic": "in about three hours.",
+    "paragraphs": [
+      "From a pickup below the Kaiserburg, near the Hauptmarkt or at the trade fair grounds, your chauffeur joins the A6 and heads east out of Franconia. The motorway crosses the Upper Palatinate — wooded hills, small market towns, Amberg just off to the north — and passes the junction with the A93 before climbing gently toward the Czech border.",
+      "The crossing at Waidhaus–Rozvadov is inside Schengen: no stop and no check in normal conditions. On the Czech side the D5 carries you across West Bohemia, past Stříbro and around Plzeň, then through Rokycany and Beroun to the southwest edge of Prague. Total distance is approximately 295 kilometres; driving time is about three hours in normal traffic. On a Friday afternoon, allow 20–30 minutes more for the run into the city.",
+      "Your chauffeur checks the A6 and the D5 before you leave. Roadworks and holiday traffic shift from week to week, and if there is a hold-up they adjust the route without asking. You arrive in Prague with the afternoon or evening still yours — time to check in and walk to dinner in the Old Town."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Nuremberg pickup to your Prague drop-off: the car, the chauffeur, fuel, the Czech vignette and every toll on the way. After a trade fair, a Christmas market visit or a business week in Franconia, you arrive at the door in Prague with nothing left to arrange.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. German on request, useful for the hotel handover in Nuremberg.",
+    "Fuel, all tolls and the Czech motorway vignette. German motorways carry no car toll. Nothing is charged on top.",
+    "Pickup at any Nuremberg address, Nuremberg Hauptbahnhof, or inside Arrivals at Nuremberg Airport (NUE) with flight tracking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Amberg, Kladruby or Plzeň — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Nuremberg to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Nuremberg", "note": "Pickup from your hotel, office, Nuremberg Hauptbahnhof or Nuremberg Airport (NUE). At the airport your chauffeur waits inside Arrivals with your name.", "anchor": true, "custom": false },
+    { "city": "Amberg (optional)", "note": "A walled Upper Palatinate town just off the A6, known for the Stadtbrille — the arched bridge that mirrors itself in the river Vils.", "anchor": false, "custom": false },
+    { "city": "Plzeň (optional)", "note": "West Bohemia’s capital on the D5, an hour from Prague — the Pilsner Urquell brewery and a broad old town square.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A monastery, a brewery, a lunch you have heard about? Tell us at booking and we plan the stop in.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "German–Czech Schengen border at Waidhaus–Rozvadov. No routine passport check — non-EU passengers should still carry their passport and visa." },
+    { "label": "Tolls", "value": "The Czech motorway vignette and all tolls are included. German motorways are toll-free for cars." },
+    { "label": "Airport pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Nuremberg Airport and adjusts the pickup time, with 60 minutes of free waiting." },
+    { "label": "Return transfer", "value": "Heading back to Nuremberg later? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "Make the drive",
+    "headingItalic": "part of the trip.",
+    "intro": "Three hours can include a stop worth remembering. These three sit close to the road between Nuremberg and Prague.",
+    "configurations": [
+      { "title": "Amberg and the Stadtbrille", "body": "Leave Nuremberg at 9:00 and stop in Amberg forty-five minutes later. An hour inside the old town walls — the market square, St Martin’s church and the bridge over the Vils — then east to the border and Prague by mid-afternoon.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Kladruby Monastery", "body": "A few minutes off the D5 near Stříbro, the Benedictine monastery at Kladruby has a church rebuilt by Santini in his striking Baroque Gothic style. A guided visit takes about an hour before the run on to Prague.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Lunch and a Brewery Tour in Plzeň", "body": "Plzeň is the natural midway pause. Lunch in the old town, or the Pilsner Urquell brewery tour with its cellars, then an hour on the D5 brings you into Prague for the evening.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur is waiting at the door of your Nuremberg hotel or at the exit of the trade fair hall you name. At Nuremberg Airport they stand inside Arrivals with a name board, already aware of your landing time, and take the luggage from there.",
+    "The cabin is quiet and the time is yours. Prepare for tomorrow’s meeting, sleep after a long fair day, or ask about Prague — your chauffeur lives in the city and can tell you which district your hotel is in, how to time the Castle, and where to eat near the river.",
+    "Water, a charger and Wi-Fi are already on board. If you want a coffee at the border or the cabin cooler or warmer, just say. In Prague your chauffeur carries the bags to reception, not just to the kerb."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Nuremberg to Prague.",
+    "items": [
+      { "title": "Fixed before you travel", "body": "Fuel, the Czech vignette, tolls and the chauffeur’s time are in the fare. There is nothing to settle at the Prague end." },
+      { "title": "No connections", "body": "Between Nuremberg and Prague the public options mean a coach or a train with changes. The car goes direct, and your luggage stays in the boot from your Nuremberg door to your Prague door." },
+      { "title": "A Prague operator", "body": "Prestigo is based in Prague and runs its own Mercedes fleet. Your chauffeur knows the city you are heading for, down to which hotel entrance is usable when the front street is closed to traffic." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Nuremberg to Prague take?", "a": "Approximately 3 hours door to door: the A6 east past Amberg to the Waidhaus–Rozvadov border, then the D5 past Plzeň into Prague. Friday afternoon traffic into Prague can add 20–30 minutes." },
+    { "q": "How much is a taxi or chauffeur from Nuremberg to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, the Czech vignette, all tolls and driver time — it is per car, not per person." },
+    { "q": "Can you pick me up at Nuremberg Airport and drive me straight to Prague?", "a": "Yes. Send us your flight number when you book. Your chauffeur tracks the flight, waits inside Arrivals at Nuremberg Airport (NUE) with your name, and drives you directly to your Prague address. Pickup from Nuremberg Hauptbahnhof or any hotel works the same way." },
+    { "q": "Is a private transfer better than the train or bus from Nuremberg to Prague?", "a": "Rail between the two cities usually involves a change and takes longer than the drive; the direct coach is the main public option. For a solo traveller with light luggage, the coach or train is cheaper. For two or three people, or a lot of luggage, the private car is door to door and costs the same per car." },
+    { "q": "Can we stop on the way from Nuremberg to Prague?", "a": "Yes. Amberg, Kladruby Monastery and Plzeň are the most requested. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
+    { "q": "Do I need my passport between Germany and the Czech Republic?", "a": "Both countries are in the Schengen Area, so there is no routine border control at Waidhaus–Rozvadov. Carry your passport or EU ID card anyway — spot checks do happen, and non-EU travellers must have their documents with them." }
+  ],
+  "relatedRoutesIntro": "Nuremberg to Prague is often one leg of a wider trip through Bavaria and Bohemia. Clients starting in Regensburg, Munich, Plzeň or Mariánské Lázně book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" },
+    { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" },
+    { "slug": "plzen-prague", "city": "Plzeň", "label": "Plzeň → Prague", "distance": "90 km", "duration": "1h" },
+    { "slug": "marianske-lazne-prague", "city": "Mariánské Lázně", "label": "Mariánské Lázně → Prague", "distance": "165 km", "duration": "2h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "295 km" },
+    { "label": "Duration", "value": "~3 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Nuremberg to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Nuremberg to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Nuremberg to Prague transfer — 295 km door to door in a Mercedes E, S or V-Class. Pickup at any address or NUE airport. Fixed price from €{ePrice}.",
+    "ogTitle": "Nuremberg to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Nuremberg to Prague transfer — 295 km door to door in a Mercedes E, S or V-Class. Pickup at any address or NUE airport. Fixed price from €{ePrice}."
+  }
+}

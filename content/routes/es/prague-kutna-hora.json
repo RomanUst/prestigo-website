@@ -7,16 +7,16 @@
     "imageAlt": "Kutná Hora — traslado en chófer privado desde Praga a Kutná Hora"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Kutná Hora cubre 70 km y dura aproximadamente 1 hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles a petición sin coste adicional. En esta ruta no hay peajes de autopista: la carretera atraviesa Bohemia Central sin necesidad de viñeta. No se añade nada al llegar al destino. Las paradas en ruta o el tiempo de espera prolongado en el Osario de Sedlec o en la catedral de Santa Bárbara están disponibles con la tarifa fija si se acuerdan al reservar. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin preguntar si hay algún retraso.",
+    "Un traslado privado de Praga a Kutná Hora cubre 70 km y dura aproximadamente 1 hora de puerta a puerta. La tarifa fija comienza en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles a petición sin coste adicional. La viñeta de autopista checa que exige la D11 también está incluida. No se añade nada al llegar al destino. Las paradas en ruta o el tiempo de espera prolongado en el Osario de Sedlec o en la catedral de Santa Bárbara están disponibles con la tarifa fija si se acuerdan al reservar. Su chófer comprueba el tráfico antes de cada salida y modifica el itinerario sin preguntar si hay algún retraso.",
     "No se trata de una excursión en autocar compartido. Ni de un traslado en tren con diez minutos de caminata al llegar. Un Mercedes privado, un chófer y una tarifa que no cambia — desde una ciudad que, hace seis siglos, rivalizaba con Praga misma."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Kutná Hora",
     "headingItalic": "en una hora.",
     "paragraphs": [
-      "Desde un punto de recogida en Praga —Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D1 en dirección este, sale en Mirošovice y sigue la carretera 38 por las llanuras del Elba pasando por Kolín. No hay paso de frontera: Kutná Hora se encuentra en la región de Bohemia Central, íntegramente dentro de la República Checa. De hecho, es el destino de categoría Green más cercano del mapa de rutas de Prestigo.",
+      "Desde un punto de recogida en Praga —Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel—, su chófer toma la autopista D11 en dirección este hacia Kolín y después continúa hacia el sur por carreteras comarcales a través de las llanuras del Elba. No hay paso de frontera: Kutná Hora se encuentra en la región de Bohemia Central, íntegramente dentro de la República Checa. De hecho, es el destino de categoría Green más cercano del mapa de rutas de Prestigo.",
       "La distancia total es de aproximadamente 70 kilómetros. El tiempo de conducción es de una hora en condiciones normales. La llegada al casco antiguo le lleva junto a la silueta de la catedral de Santa Bárbara sobre su ladera —una joya del gótico tardío inscrita en la lista de la UNESCO desde 1995—, con la Corte Italiana (Vlašský Dvůr) y el Osario de Sedlec (la iglesia de los huesos) esperando en el núcleo histórico. Para las visitas a Sedlec con un grupo, su chófer confirma la reserva anticipada que la iglesia exige ahora a los grupos organizados.",
-      "Su chófer consulta el tráfico de la D1 antes de cada salida. Si la salida de Mirošovice está congestionada —como ocurre a menudo los viernes por la tarde al salir de Praga—, modifica el itinerario por la carretera 333 sin preguntar. No paga usted por el tráfico; paga por el tiempo."
+      "Su chófer consulta el tráfico de la D11 antes de cada salida. Si la salida de Praga por la D11 está congestionada —como ocurre a menudo los viernes por la tarde—, modifica el itinerario por la carretera 2, pasando por Kostelec nad Černými lesy, sin preguntar. No paga usted por el tráfico; paga por el tiempo."
     ]
   },
   "includedLabel": "Qué incluye",
@@ -127,7 +127,7 @@
   "chauffeurNarrative": [
     "Su chófer le recibirá delante de la dirección de recogida: un hotel del centro de Praga, un apartamento privado en Vinohrady o el aeropuerto Václav Havel, con una tablet de Prestigo mostrando su nombre en la sala de llegadas. Sin aparcamientos. Sin puntos de encuentro a diez minutos de distancia.",
     "La conversación es opcional. Si prefiere una cabina tranquila durante la hora de viaje —descansar, trabajar, contemplar el campo bohemio por la ventanilla—, el chófer captará la señal y le dejará tranquilo. Si desea contexto sobre Kutná Hora, su chófer lo tiene: la capital medieval de la minería de plata que durante un breve periodo rivalizó en riqueza con Praga en el siglo XIV; la iglesia de los huesos de Sedlec y la catedral cisterciense junto a ella; el gótico bohemio de Santa Bárbara y su restauración de finales del siglo XIX; la inscripción en la UNESCO de 1995 que une el casco antiguo y Sedlec.",
-    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si desea parar en el área de servicio OMV cerca de Mirošovice para tomar un café antes de la carretera abierta, está incluido. La temperatura, la música, un pequeño desvío por Kolín a la vuelta: solo tiene que decirlo."
+    "El cargador de móvil, el agua embotellada y el wifi ya están en la cabina. Si desea parar en un área de servicio de la D11 para tomar un café antes de la carretera abierta, está incluido. La temperatura, la música, un pequeño desvío por Kolín a la vuelta: solo tiene que decirlo."
   ],
   "whyBook": {
     "headingLine1": "Por qué reservar con Prestigo",
@@ -143,7 +143,7 @@
       },
       {
         "title": "Servicio anticipativo",
-        "body": "Si la D1 presenta la habitual congestión en la salida de Mirošovice, su chófer modifica el itinerario por la carretera 333 sin preguntar. Para las visitas al Osario de Sedlec, el chófer conoce las franjas de entrada con hora asignada y las limitaciones de aparcamiento en torno a la iglesia, y planifica la llegada en consecuencia."
+        "body": "Si la D11 presenta la habitual congestión a la salida de Praga, su chófer modifica el itinerario por la carretera 2, pasando por Kostelec nad Černými lesy, sin preguntar. Para las visitas al Osario de Sedlec, el chófer conoce las franjas de entrada con hora asignada y las limitaciones de aparcamiento en torno a la iglesia, y planifica la llegada en consecuencia."
       }
     ]
   },
@@ -151,7 +151,7 @@
   "faqs": [
     {
       "q": "¿Cuánto dura un traslado privado de Praga a Kutná Hora?",
-      "a": "Aproximadamente una hora de puerta a puerta por la autopista D1 en dirección este desde Praga y la carretera 38 pasando por Kolín. Es el trayecto más corto de todas las rutas patrimoniales de Prestigo. Incluso con el tráfico matinal de salida de Praga, el viaje completo rara vez supera los 75 minutos."
+      "a": "Aproximadamente una hora de puerta a puerta por la autopista D11 en dirección este desde Praga hacia Kolín y después hacia el sur por carreteras comarcales. Es el trayecto más corto de todas las rutas patrimoniales de Prestigo. Incluso con el tráfico matinal de salida de Praga, el viaje completo rara vez supera los 75 minutos."
     },
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Kutná Hora?",

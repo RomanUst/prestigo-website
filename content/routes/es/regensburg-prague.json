@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Ratisbona → Praga",
+    "headlineLine1": "De Ratisbona a Praga,",
+    "headlineItalic": "del Danubio al Moldava.",
+    "intro": "El traslado de Ratisbona a Praga con chófer privado es un trayecto puerta a puerta de 285 km por la A93, la A6 y la D5, con unas 3 horas de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Ratisbona o en la Regensburg Hauptbahnhof, y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Ratisbona a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Ratisbona a Praga cubre 285 km —hacia el norte por la A93 a través del Alto Palatinado, hacia el este por la A6 hasta la frontera checa en Waidhaus–Rozvadov y, por último, la autopista D5 pasando por Pilsen y Beroun hasta Praga— y dura aproximadamente 3 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Ratisbona, en una oficina o en la Regensburg Hauptbahnhof, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "La tarifa se acuerda de antemano y no cambia: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Sin conexiones que coger, sin maletas que subir a un portaequipajes, sin cola de taxis al llegar a Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Ratisbona a Praga",
+    "headingItalic": "en unas tres horas.",
+    "paragraphs": [
+      "Desde la recogida en el casco antiguo, cerca del Puente de Piedra o en un hotel junto al Danubio, su chófer sale de Ratisbona por la A93 en dirección norte. La autopista sigue el valle del Naab a través del Alto Palatinado, pasando por Schwandorf, hasta el enlace con la A6, donde la ruta gira hacia el este en dirección a la frontera checa.",
+      "El paso de Waidhaus–Rozvadov está dentro del espacio Schengen: sin paradas, sin colas y sin control de documentación en condiciones normales. A partir de ahí, la D5 cruza en línea recta Bohemia Occidental: pasa por Pilsen y las chimeneas de sus cervecerías, atraviesa Rokycany y Beroun y entra en el suroeste de Praga. La distancia total es de aproximadamente 285 kilómetros; el tiempo de conducción es de tres horas con tráfico normal, más 15–20 minutos un viernes por la tarde, cuando la D5 se llena de tráfico hacia la ciudad.",
+      "Su chófer comprueba la A93 y la D5 antes de salir. El tráfico de las vacaciones de verano y las obras van y vienen en ambas, y si hay un atasco ajusta la ruta sin necesidad de preguntar. Llegará a Praga a tiempo para un almuerzo tardío en Malá Strana o una reunión por la tarde en la Ciudad Nueva."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Ratisbona hasta la llegada a Praga: el coche, el chófer, el combustible, la viñeta checa y todos los peajes del camino. Viaje de negocios, vacaciones en familia o la siguiente parada de un recorrido por Europa Central: llegará a la puerta sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán previa solicitud.",
+    "Combustible, todos los peajes y la viñeta de autopista checa. Las autopistas alemanas no tienen peaje para turismos. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Ratisbona o en la Regensburg Hauptbahnhof, a la hora exacta que usted elija.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
+    "Paradas en el camino —el Walhalla, Pilsen o el castillo de Karlštejn— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Ratisbona a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Ratisbona",
+      "note": "Recogida en su hotel, oficina o en la Regensburg Hauptbahnhof. Su chófer está en la puerta a la hora acordada y carga el equipaje.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Pilsen (opcional)",
+      "note": "La capital de Bohemia Occidental está en la D5: la cervecería Pilsner Urquell, la catedral de San Bartolomé y una gran plaza antigua.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Karlštejn (opcional)",
+      "note": "El castillo gótico de Carlos IV se alza sobre un valle boscoso, a un breve desvío de la D5 cerca de Beroun y a media hora de Praga.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "¿Una parada para almorzar, un mirador, una cata en una cervecería? Díganoslo al reservar y lo incluiremos en la jornada.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen germano-checa en Waidhaus–Rozvadov. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y todos los peajes están incluidos. Las autopistas alemanas son gratuitas para turismos."
+    },
+    {
+      "label": "Aeropuertos más cercanos",
+      "value": "Ratisbona no tiene aeropuerto propio. Si vuela a Múnich o Núremberg, podemos recogerle allí y llevarle directamente a Praga."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Vuelve a Ratisbona más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga del trayecto",
+    "headingItalic": "parte del viaje.",
+    "intro": "Tres horas de carretera dejan tiempo para una parada como es debido. Estas tres son las que más nos piden los clientes entre Ratisbona y Praga.",
+    "configurations": [
+      {
+        "title": "El Walhalla sobre el Danubio",
+        "body": "Empiece con un breve desvío al este de Ratisbona hasta el Walhalla, en Donaustauf, el templo de mármol de la fama que domina el río. Cuarenta y cinco minutos para el templo y las vistas, y después hacia el norte por la A93 para llegar a Praga a media tarde.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "Pilsner Urquell en Pilsen",
+        "body": "Pilsen está a una hora de Praga. Haga la visita a la cervecería con sus bodegas históricas o almuerce cerca de la plaza mayor, y recorra el último tramo de la D5 a última hora de la tarde.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "El castillo de Karlštejn",
+        "body": "Salga de la D5 cerca de Beroun y suba a Karlštejn, el castillo que Carlos IV construyó para guardar las joyas de la corona. Hora y media con la visita guiada, y Praga queda a treinta minutos.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se calculan según el tiempo y la distancia adicionales: díganos dónde quiere parar y le confirmaremos un presupuesto firme antes de reservar. Una breve parada para tomar un café o descansar en la autopista siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le espera frente a su hotel de Ratisbona antes de la hora acordada, sin dar vueltas por el casco antiguo buscándolo. El centro histórico tiene callejuelas estrechas y acceso restringido, así que el punto de recogida se planifica con usted de antemano para que salga directamente a una puerta abierta.",
+    "Tres horas son tiempo que puede aprovechar. Trabaje, descanse o pregunte por Praga: su chófer vive allí y puede decirle cuánto se tarda a pie desde su hotel hasta el Castillo, dónde comen los vecinos en Vinohrady o cuándo está tranquilo el Puente de Carlos.",
+    "El agua, el cargador y el wifi están listos en la cabina. Si quiere un café en la frontera o una parada en Pilsen, dígalo en el camino. En Praga, el equipaje entra con usted en el vestíbulo del hotel, no se queda en el bordillo."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Ratisbona a Praga.",
+    "items": [
+      {
+        "title": "Un presupuesto, un pago",
+        "body": "El combustible, la viñeta checa, los peajes y el tiempo del chófer están incluidos en la tarifa. La cifra que reserva en Ratisbona es la que paga en Praga."
+      },
+      {
+        "title": "Directo al destino",
+        "body": "El coche toma la ruta más corta, la A93, la A6 y la D5, sin estaciones ni transbordos. Su equipaje se carga una vez en Ratisbona y sale en su puerta de Praga."
+      },
+      {
+        "title": "Gestionado desde Praga",
+        "body": "Prestigo es una empresa de Praga con flota Mercedes propia. Su chófer conoce mejor que nadie el destino: entradas de hoteles, calles de sentido único y la forma más rápida de cruzar el centro a cualquier hora del día."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Ratisbona a Praga?",
+      "a": "Aproximadamente 3 horas puerta a puerta: la A93 hacia el norte, la A6 hacia el este hasta la frontera de Waidhaus–Rozvadov y la D5 pasando por Pilsen hasta Praga. El tráfico de entrada a Praga los viernes por la tarde o las obras de verano pueden añadir 15–20 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Ratisbona a Praga?",
+      "a": "Tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye combustible, la viñeta checa, todos los peajes y el tiempo del chófer; es por vehículo, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en la Regensburg Hauptbahnhof o en mi hotel?",
+      "a": "Sí. Recogemos en cualquier dirección de Ratisbona, incluidos los hoteles del casco antiguo, y en la Regensburg Hauptbahnhof. Ratisbona no tiene aeropuerto, así que si vuela a Múnich o Núremberg podemos recogerle allí y llevarle directamente a Praga."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren de Ratisbona a Praga?",
+      "a": "Los trenes directos pasan por Furth im Wald y Pilsen y tardan bastante más que el coche, de estación a estación. Un traslado privado va puerta a puerta, sale cuando usted quiere y cuesta lo mismo para uno que para tres pasajeros. Para quien viaja solo y con poco equipaje, el tren es la opción más económica."
+    },
+    {
+      "q": "¿Podemos parar en el camino de Ratisbona a Praga?",
+      "a": "Sí. El Walhalla, Pilsen y el castillo de Karlštejn son las paradas más populares. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para tomar un café o descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Alemania y la República Checa?",
+      "a": "Ambos países están en el espacio Schengen, así que no hay control fronterizo rutinario en Waidhaus–Rozvadov. Lleve de todos modos su pasaporte o documento de identidad de la UE: hay controles puntuales, y los viajeros de fuera de la UE deben llevar su documentación."
+    }
+  ],
+  "relatedRoutesIntro": "El trayecto de Ratisbona a Praga suele formar parte de un viaje más largo por Baviera y Bohemia. Los clientes que salen de Núremberg, Múnich o Passau, o que paran en Pilsen, reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Más formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "nuremberg-prague",
+      "city": "Núremberg",
+      "label": "Núremberg → Praga",
+      "distance": "295 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "munich-prague",
+      "city": "Múnich",
+      "label": "Múnich → Praga",
+      "distance": "385 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "passau-prague",
+      "city": "Passau",
+      "label": "Passau → Praga",
+      "distance": "220 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "plzen-prague",
+      "city": "Pilsen",
+      "label": "Pilsen → Praga",
+      "distance": "90 km",
+      "duration": "1 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "285 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Ratisbona a Praga.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Ratisbona a Praga: desde {ePrice} €",
+    "description": "Traslado privado de Ratisbona a Praga: 285 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o la estación. Desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Ratisbona a Praga: desde {ePrice} €",
+    "ogDescription": "Traslado privado de Ratisbona a Praga: 285 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o la estación. Desde {ePrice} €."
+  }
+}

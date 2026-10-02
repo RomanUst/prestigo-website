@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un traslado privado de Praga a Viena recorre 330 km por las autopistas D1 y D52, continúa por la A5 hasta Viena y dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y austriaca, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles a petición sin coste adicional. No se añade nada al llegar al destino. Las paradas en ruta —Brno, Bratislava o un viñedo en Moravia del Sur— están disponibles con la misma tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
-    "Esto no es un servicio colectivo. Ni una aplicación de vehículos con conductor. Es un Mercedes privado, un chófer y una tarifa que no cambia."
+    "Esto no es un servicio colectivo. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Viena",
@@ -175,7 +175,7 @@
     },
     {
       "q": "¿Se cruza la frontera austriaca sin problemas?",
-      "a": "Ambos países pertenecen al espacio Schengen. No hay controles fronterizos rutinarios en Mikulov–Drasenhofen. Todos los vehículos de Prestigo llevan la viñeta de autopista austriaca y el chófer dispone de una licencia internacional de chófer válida y reconocida en Austria."
+      "a": "Ambos países pertenecen al espacio Schengen. No hay controles fronterizos rutinarios en Mikulov–Drasenhofen. Todos los vehículos de Prestigo llevan la viñeta de autopista austriaca."
     },
     {
       "q": "¿Hay sillas infantiles disponibles?",
@@ -213,7 +213,7 @@
     {
       "slug": "prague-salzburg",
       "city": "Salzburgo",
-      "distance": "385 km",
+      "distance": "375 km",
       "duration": "4 h"
     }
   ],

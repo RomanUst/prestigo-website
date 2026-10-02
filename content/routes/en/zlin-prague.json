@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Zlín → Prague",
+    "headlineLine1": "Zlín to Prague,",
+    "headlineItalic": "door to door.",
+    "intro": "Zlín to Prague by private chauffeur is a 310 km door-to-door transfer west via the D55 and D1, around 3.5 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, fuel and the Czech motorway vignette included. Pickup from any Zlín address or nearby spa town, drop-off anywhere in Prague.",
+    "imageAlt": "Private chauffeur transfer from Zlín to Prague in a Mercedes"
+  },
+  "openingParagraphs": [
+    "A private transfer from Zlín to Prague covers 310 km — west to Otrokovice, a short run north on the D55 to Hulín, then the D1 past Kroměříž, Vyškov and Brno and across the Bohemian-Moravian Highlands to Prague — and takes approximately 3.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your Zlín hotel, office or home, and drops you at the door of your Prague hotel, meeting or Václav Havel Airport.",
+    "The fare is agreed before departure and does not change: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are included. Zlín has no direct fast train to Prague — with a private car there is no change at Otrokovice and nothing to arrange at the other end."
+  ],
+  "routeNarrative": {
+    "headingLine1": "Zlín to Prague",
+    "headingItalic": "across Moravia.",
+    "paragraphs": [
+      "From a pickup among the red-brick Baťa buildings, at a hotel in the centre or at the university, your chauffeur heads west along the Dřevnice valley to Otrokovice and joins the D55 north to Hulín. There the route meets the D1 and turns west across the Haná plain, past Kroměříž and Vyškov. There is no border on this route — it stays inside the Czech Republic the whole way.",
+      "Around Brno the D1 swings onto its long westward stretch through the Vysočina: Velké Meziříčí, Jihlava, Humpolec, then the gentle descent into Central Bohemia and the south-eastern edge of Prague. Total distance is approximately 310 kilometres; driving time is three and a half hours in normal traffic, with Friday afternoons and Sunday evenings into Prague adding 20–30 minutes.",
+      "Your chauffeur checks the D1 before leaving Zlín. If there is a closure between Brno and Prague, they take the parallel roads around it without asking. A rest stop about halfway is part of the plan on a drive this long."
+    ]
+  },
+  "includedLabel": "What's Included",
+  "includedIntro": "The fixed price covers everything from your Zlín pickup to your Prague drop-off: the car, the chauffeur, fuel and the Czech motorway vignette. Leaving a business visit, a film festival or a spa stay in eastern Moravia, you arrive in Prague with nothing left to organise.",
+  "inclusions": [
+    "A black Mercedes — E-Class, S-Class or V-Class depending on group size and preference. Every vehicle under three years old.",
+    "A professional chauffeur — fluent English and Czech. Other languages on request.",
+    "Fuel and the Czech motorway vignette. Nothing is charged on top.",
+    "Pickup at any Zlín address, hotel or office — or in Luhačovice and other nearby towns, confirmed at booking.",
+    "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
+    "Bottled water, phone charger and Wi-Fi in the rear cabin.",
+    "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
+    "Stops on the way — Kroměříž, Slavkov u Brna or Telč — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
+  ],
+  "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Business Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{ePrice}", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Executive Class", "capacity": "1–3 passengers", "bags": "2 bags", "price": "From €{sPrice}", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Business Van", "capacity": "1–6 passengers", "bags": "6 bags", "price": "From €{vPrice}", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "Zlín to Prague,", "italic": "the route." },
+  "journeyStops": [
+    { "city": "Zlín", "note": "Pickup from your hotel, office or home in Zlín — or from a spa hotel in Luhačovice if arranged at booking.", "anchor": true, "custom": false },
+    { "city": "Kroměříž (optional)", "note": "The Archbishop’s Château and its gardens, a UNESCO site, a few minutes off the D1.", "anchor": false, "custom": false },
+    { "city": "Brno (optional)", "note": "The Moravian capital sits on the route. Stop for lunch, a meeting or the Villa Tugendhat.", "anchor": false, "custom": false },
+    { "city": "Anywhere you like", "note": "A winery, a viewpoint, a friend’s house on the way? Tell us at booking and we plan the stop in.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Drop-off at any Prague address, Prague main station or Václav Havel Airport (PRG) for an onward flight.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Border crossing", "value": "No border crossing — the whole route is inside the Czech Republic." },
+    { "label": "Tolls", "value": "The Czech motorway vignette is included in the quoted price." },
+    { "label": "Rail connection", "value": "Zlín is not on a main rail line, so trains to Prague start with a change at Otrokovice. A private transfer avoids that change." },
+    { "label": "Return transfer", "value": "Travelling back to Zlín later? Book both directions together for the same day and the return leg is 10% off." }
+  ],
+  "dayTripLabel": "Stops on the Way",
+  "dayTrip": {
+    "headingLine1": "A long drive,",
+    "headingItalic": "well spent.",
+    "intro": "Three and a half hours from Zlín to Prague leaves room for a stop or two. These are the ones that fit the route best.",
+    "configurations": [
+      { "title": "Kroměříž, the Archbishop’s Gardens", "body": "Half an hour from Zlín, Kroměříž has the Archbishop’s Château and the formal Flower Garden, both UNESCO-listed. An hour on foot, then back on the D1 towards Brno and Prague.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Slavkov u Brna — Austerlitz", "body": "Just off the D1 before Brno, the baroque château at Slavkov is where the armistice after the 1805 battle was signed. A short visit and a coffee, then the long westward stretch to Prague.", "price": "Add a stop at booking — contact us for a quote." },
+      { "title": "Telč, the Renaissance Square", "body": "Leave the D1 at Jihlava for Telč and its long square of arcaded Renaissance houses, a UNESCO site. An hour for a walk and lunch, then back to the motorway and into Prague by early evening.", "price": "Add a stop at booking — contact us for a quote." }
+    ],
+    "footnote": "Stops are planned at booking and priced by the extra time and distance — tell us where you would like to stop and we confirm a firm quote before you book. A short coffee or rest stop on the motorway is always included."
+  },
+  "chauffeurNarrative": [
+    "Your chauffeur arrives at your Zlín address at the agreed time and loads the luggage. If you are leaving a spa hotel in Luhačovice, they come to the hotel entrance, not to a meeting point down the road.",
+    "Three and a half hours is long enough to finish a report, take calls or sleep. Your chauffeur keeps the cabin quiet unless you want to talk. Questions about Prague — your hotel’s neighbourhood, how far the Castle is, how early to leave for the airport — are welcome.",
+    "Water, a charger and Wi-Fi are already in the back. Around halfway there is a proper rest stop for coffee and a stretch. In Prague your chauffeur stops at the door and carries your bags to reception."
+  ],
+  "whyBook": {
+    "headingLine1": "Why book with Prestigo",
+    "headingItalic": "from Zlín to Prague.",
+    "items": [
+      { "title": "Fixed fare, set at booking", "body": "Fuel, the Czech vignette and 310 km of the chauffeur’s time are in the price. Nothing is added on the road or in Prague." },
+      { "title": "No change at Otrokovice", "body": "No local train or bus to the main line, no connection to make with luggage, no taxi to find in Prague. One car, from your Zlín door to your Prague door." },
+      { "title": "Based in Prague", "body": "Prestigo is a Prague company with its own Mercedes fleet. Your chauffeur knows the city you are heading to — hotel entrances, closed streets, the real time to the airport." }
+    ]
+  },
+  "faqsHeading": "Frequently asked questions",
+  "faqs": [
+    { "q": "How long does a private transfer from Zlín to Prague take?", "a": "Approximately 3.5 hours door to door: west to Otrokovice, the D55 to Hulín, then the D1 through Brno and the Vysočina to Prague. Friday afternoon or Sunday evening traffic into Prague can add 20–30 minutes." },
+    { "q": "How much is a taxi or chauffeur from Zlín to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. Fuel, the Czech motorway vignette and driver time are included. The price is per car, not per person." },
+    { "q": "Can you pick us up from a hotel or spa outside Zlín?", "a": "Yes. Your chauffeur can collect you from any address in Zlín or from nearby towns such as Luhačovice or Otrokovice. Give us the address at booking and we confirm the fixed fare for that pickup point." },
+    { "q": "Is a private transfer better than the train or bus from Zlín to Prague?", "a": "Zlín has no direct fast train to Prague; most rail journeys start with a connection to Otrokovice, and there are also long-distance buses. For a solo traveller with light luggage, public transport is the cheaper option. A private transfer is door to door with no change, leaves when you want and costs the same for one passenger or three." },
+    { "q": "Can we stop on the way from Zlín to Prague?", "a": "Yes. Kroměříž, Slavkov u Brna, Brno and Telč are the most popular stops. Tell us at booking and we include the stop in a fixed quote. A short coffee or rest break is always included at no extra cost." },
+    { "q": "Can you drive us from Zlín straight to Prague Airport?", "a": "Yes. Give us your flight time and we set the pickup with a comfortable margin for D1 traffic. Your chauffeur drops you at Departures at Václav Havel Airport, without a stop in the city unless you ask for one." }
+  ],
+  "relatedRoutesIntro": "Zlín is one of several starting points in Moravia for a drive to Prague. Clients coming from Olomouc, Brno, Ostrava or Bratislava book the same way — one car, one fixed fare, drop-off at the door in Prague.",
+  "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
+  "relatedRoutes": [
+    { "slug": "olomouc-prague", "city": "Olomouc", "label": "Olomouc → Prague", "distance": "280 km", "duration": "3h" },
+    { "slug": "brno-prague", "city": "Brno", "label": "Brno → Prague", "distance": "205 km", "duration": "2h 30min" },
+    { "slug": "ostrava-prague", "city": "Ostrava", "label": "Ostrava → Prague", "distance": "370 km", "duration": "4h" },
+    { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3h 30min" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "~310 km" },
+    { "label": "Duration", "value": "~3.5 hours" },
+    { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
+    { "label": "Price from", "value": "€{ePrice}", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "Zlín to Prague.",
+    "headingItalic": "From €{ePrice}, fixed."
+  },
+  "metadata": {
+    "title": "Zlín to Prague Chauffeur — From €{ePrice}",
+    "description": "Private Zlín to Prague transfer — 310 km door to door in a Mercedes E, S or V-Class. Pickup at any Zlín address. Fixed price from €{ePrice}.",
+    "ogTitle": "Zlín to Prague Private Chauffeur Transfer — From €{ePrice}",
+    "ogDescription": "Private Zlín to Prague transfer — 310 km door to door in a Mercedes E, S or V-Class. Pickup at any Zlín address. Fixed price from €{ePrice}."
+  }
+}

@@ -1,0 +1,175 @@
+{
+  "metadata": {
+    "title": "¿Vuelo retrasado? Su traslado en el aeropuerto de Praga",
+    "description": "¿Vuelo retrasado en Praga? Seguimos su vuelo y esperamos 60 min gratis desde el aterrizaje real. ¿Cancelado? Cambio gratis. Desde {businessPrice} €.",
+    "ogTitle": "¿Vuelo retrasado en el aeropuerto de Praga? Qué pasa con su chófer"
+  },
+  "breadcrumbName": "Retrasos de vuelos",
+  "hero": {
+    "label": "Retrasos de vuelos · Aeropuerto de Praga",
+    "headlineLine1": "Su vuelo llega tarde.",
+    "headlineItalic": "Su chófer ya lo sabe.",
+    "intro": "Un vuelo retrasado no debería costarle una recogida perdida ni un cargo adicional. Prestigo sigue su vuelo por su número, traslada la recogida a la hora real de aterrizaje y le concede 60 minutos de espera gratuita desde el momento en que el avión toca tierra. Si el vuelo se cancela, reprogramamos el servicio sin coste o le reembolsamos el importe íntegro.",
+    "ctaPrimary": "Reservar un traslado",
+    "ctaSecondary": "Hacer una pregunta",
+    "imageAlt": "Panel de llegadas del aeropuerto de Praga con un vuelo retrasado"
+  },
+  "glance": {
+    "label": "De un vistazo",
+    "items": [
+      {
+        "label": "Seguimiento",
+        "value": "En tiempo real, por número de vuelo: no hace falta llamarnos"
+      },
+      {
+        "label": "Espera",
+        "value": "60 minutos gratuitos, contados desde el aterrizaje real"
+      },
+      {
+        "label": "Vuelo cancelado",
+        "value": "Reprogramación gratuita o reembolso íntegro"
+      },
+      {
+        "label": "Contacto",
+        "value": "+420 725 986 855, 24/7"
+      }
+    ]
+  },
+  "intro": {
+    "headingLine1": "Seguimos el avión,",
+    "headingItalic": "no el horario.",
+    "paragraphs": [
+      "Al reservar un traslado al aeropuerto con Prestigo, nos indica su número de vuelo. A partir de ese momento, la recogida queda vinculada a ese vuelo, no a la hora impresa en su billete. Si sale tarde, aterriza tarde o llega antes de tiempo, el plan del chófer cambia con él.",
+      "Esto importa sobre todo cuando no puede avisar a nadie. Puede que esté en el aire mientras el retraso aumenta, o que su teléfono esté apagado hasta llegar a la puerta. No tiene que escribirnos, volver a reservar ni preocuparse de que el chófer se marche. El chófer ve la nueva hora de aterrizaje y está en la sala de Llegadas a tiempo.",
+      "Los 60 minutos de espera gratuita solo empiezan a contar cuando el avión ha aterrizado. El control de pasaportes, la cinta de equipajes y el mostrador de equipaje extraviado caben en esa hora, y un retraso antes del aterrizaje nunca le resta tiempo."
+    ]
+  },
+  "features": {
+    "label": "Qué está cubierto",
+    "headingLine1": "Retrasado, adelantado, desviado",
+    "headingItalic": "o cancelado.",
+    "items": [
+      {
+        "title": "Seguimiento del vuelo en tiempo real",
+        "body": "Seguimos el número de vuelo que nos indica al reservar, así el chófer conoce la hora real de aterrizaje y la terminal correcta sin que usted tenga que llamar."
+      },
+      {
+        "title": "60 minutos desde el aterrizaje",
+        "body": "La espera gratuita empieza cuando el avión aterriza, no a la hora prevista. Un retraso de cualquier duración antes del aterrizaje no cuenta en su contra."
+      },
+      {
+        "title": "Llegadas anticipadas",
+        "body": "El viento de cola adelanta los vuelos. Como seguimos el vuelo, el chófer procura estar en Llegadas a la hora real de aterrizaje, no a la reservada."
+      },
+      {
+        "title": "Vuelos cancelados",
+        "body": "Si la aerolínea cancela el vuelo, contacte con nosotros y trasladaremos su servicio al nuevo vuelo sin coste, o le reembolsaremos la tarifa íntegra."
+      },
+      {
+        "title": "Desvíos",
+        "body": "Si su vuelo aterriza en otro aeropuerto, llámenos o escríbanos. Replanificamos el trayecto con usted: una recogida más tarde en PRG o una recogida en el aeropuerto donde aterrice."
+      },
+      {
+        "title": "Una persona al teléfono",
+        "body": "Nuestro equipo atiende el +420 725 986 855 a cualquier hora, así que un problema a medianoche se resuelve a medianoche, no a la mañana siguiente."
+      }
+    ]
+  },
+  "steps": {
+    "label": "Si su vuelo se retrasa",
+    "heading": "Ocurren cuatro cosas, y ninguna depende de usted.",
+    "items": [
+      {
+        "title": "Se detecta el retraso",
+        "body": "El seguimiento del vuelo muestra la nueva hora de salida o de aterrizaje en cuanto la aerolínea la publica."
+      },
+      {
+        "title": "La recogida se traslada",
+        "body": "La llegada de su chófer a la terminal se ajusta a la nueva hora de aterrizaje."
+      },
+      {
+        "title": "La hora empieza al aterrizar",
+        "body": "Sus 60 minutos de espera gratuita comienzan cuando el avión está en tierra."
+      },
+      {
+        "title": "Sale al encuentro de su nombre",
+        "body": "El chófer está en Llegadas con un cartel con su nombre, sea la hora que sea."
+      }
+    ]
+  },
+  "editorial": {
+    "label": "Los casos más complicados",
+    "headingLine1": "Retrasos largos, conexiones perdidas",
+    "headingItalic": "y el viaje de vuelta.",
+    "paragraphs": [
+      "Un retraso de varias horas, o uno que lleva su llegada más allá de la medianoche, se gestiona del mismo modo: seguimos el vuelo y el chófer acude a la hora real de aterrizaje. Si la aerolínea le cambia a un vuelo del día siguiente o le desvía por otra ciudad, llámenos al +420 725 986 855 con el nuevo número de vuelo y trasladaremos la reserva. Si decide no viajar, sigue aplicándose la cancelación gratuita hasta una hora antes de la recogida.",
+      "Las conexiones perdidas son el caso que el seguimiento no puede ver. Si pierde una conexión en Fráncfort o Viena, el vuelo que estamos siguiendo puede aterrizar sin usted a bordo. Envíenos su nuevo número de vuelo en cuanto la aerolínea le reubique y trasladaremos la recogida a ese vuelo. Si no puede contactar con nosotros antes de aterrizar, llámenos al llegar y buscaremos la forma más rápida de enviarle un coche.",
+      "Para las salidas desde Praga, usted marca los tiempos. Le recogemos a la hora que reserve, así que calcule el trayecto —unos 25–30 minutos desde el centro de Praga con tráfico normal— más la facturación, el control de seguridad y, en vuelos extra-Schengen, el control de pasaportes. La recomendación de su aerolínea sobre la antelación con la que llegar es la mejor guía. Si su vuelo de salida se retrasa antes de que salga, llámenos y podemos cambiar la hora de recogida."
+    ]
+  },
+  "faqsHeading": "Preguntas sobre retrasos de vuelos",
+  "faqs": [
+    {
+      "q": "¿Qué ocurre si mi vuelo a Praga se retrasa?",
+      "a": "Para usted no cambia nada. Seguimos su vuelo en tiempo real por su número y su chófer se ajusta automáticamente a la nueva hora de aterrizaje. El retraso en sí no tiene ningún coste y no hace falta llamarnos."
+    },
+    {
+      "q": "¿Cuánto tiempo me esperará el chófer después de aterrizar?",
+      "a": "Hasta 60 minutos gratuitos, contados desde la hora real de aterrizaje, no desde la prevista. Eso cubre el control de pasaportes y la cinta de equipajes. Si cree que necesitará más tiempo —para denunciar la pérdida de una maleta, por ejemplo—, llámenos y avísenos."
+    },
+    {
+      "q": "¿Y si mi vuelo aterriza antes de tiempo?",
+      "a": "Como seguimos el vuelo, el chófer procura estar en la sala de Llegadas a la hora real de aterrizaje. Si aterriza mucho antes y sale rápido, llame al chófer: recibirá su número antes de aterrizar."
+    },
+    {
+      "q": "¿Y si mi vuelo se cancela?",
+      "a": "Contacte con nosotros y trasladaremos su servicio al nuevo vuelo sin coste, o le reembolsaremos la tarifa íntegra."
+    },
+    {
+      "q": "Mi vuelo se retrasó toda la noche o pasó al día siguiente. ¿Qué hago?",
+      "a": "Llámenos al +420 725 986 855 con el nuevo número de vuelo y la fecha, y trasladaremos la reserva. Si el vuelo sigue aterrizando esa misma noche, el seguimiento detecta la nueva hora y el chófer acude a ella."
+    },
+    {
+      "q": "¿Y si mi vuelo se desvía a otro aeropuerto?",
+      "a": "Llámenos o escríbanos al +420 725 986 855. Replanificamos el trayecto con usted, ya sea esperando un vuelo de conexión a Praga o organizando una recogida en el aeropuerto donde haya aterrizado."
+    },
+    {
+      "q": "He perdido mi conexión. ¿Seguirá allí el chófer?",
+      "a": "El seguimiento se basa en el vuelo que reservó, así que indíquenos su nuevo número de vuelo en cuanto la aerolínea le reubique. Trasladaremos la recogida a ese vuelo sin coste."
+    },
+    {
+      "q": "¿Con cuánta antelación deben recogerme para un vuelo desde Praga?",
+      "a": "Calcule el trayecto —unos 25–30 minutos desde el centro de Praga con tráfico normal— más el tiempo que su aerolínea le pide estar en el aeropuerto antes de la salida. Los vuelos de largo recorrido y los extra-Schengen requieren más, por el control de pasaportes. Usted elige la hora de recogida al reservar."
+    }
+  ],
+  "related": {
+    "label": "Relacionado",
+    "heading": "Más sobre la llegada a Praga.",
+    "links": [
+      {
+        "href": "/services/airport-meet-and-greet",
+        "title": "Recepción personalizada en el aeropuerto",
+        "body": "Su chófer dentro de Llegadas, en la Terminal 1 o la 2, con un cartel con su nombre."
+      },
+      {
+        "href": "/services/airport-transfer",
+        "title": "Traslado al aeropuerto de Praga",
+        "body": "Tarifas fijas, categorías de vehículos y tiempos de trayecto desde PRG."
+      },
+      {
+        "href": "/faq/child-seats",
+        "title": "Sillas infantiles",
+        "body": "Capazos, sillas para niños pequeños y alzadores instalados antes de la recogida, sin coste."
+      },
+      {
+        "href": "/faq",
+        "title": "Todas las preguntas",
+        "body": "Reservas, pagos, cancelaciones y el resto de nuestras preguntas frecuentes."
+      }
+    ]
+  },
+  "cta": {
+    "headingLine1": "Reserve una vez. Nosotros seguimos el vuelo.",
+    "headingItalic": "Desde {businessPrice} €, precio fijo."
+  }
+}

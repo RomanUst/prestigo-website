@@ -1,0 +1,114 @@
+{
+  "hero": {
+    "label": "Munich → Prague",
+    "headlineLine1": "De Munich à Prague,",
+    "headlineItalic": "une seule voiture, de bout en bout.",
+    "intro": "De Munich à Prague avec chauffeur privé, c'est un transfert de porte à porte de 385 km vers le nord par l'A9 et l'A93, puis vers l'est par l'A6 et la D5, soit environ 4 heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette tchèque et tous les péages inclus. Prise en charge à n'importe quelle adresse de Munich, à la München Hauptbahnhof ou à l'aéroport de Munich (MUC), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Munich à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Munich à Prague couvre 385 km — vers le nord par l'A9, puis l'A93 par Ratisbonne, vers l'est par l'A6 jusqu'à la frontière tchèque de Waidhaus–Rozvadov, et l'autoroute D5 par Pilsen jusqu'à Prague — et demande environ 4 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel de Munich, à un bureau, à la München Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Munich, et vous dépose devant votre hôtel, votre appartement ou votre rendez-vous à Prague.",
+    "Le tarif est fixé à la réservation : carburant, vignette autoroutière tchèque, chaque péage, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Vous atterrissez à MUC après un long-courrier, sortez du hall des arrivées, vous asseyez — et ne vous relevez qu'à votre hôtel à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Munich à Prague",
+    "headingItalic": "en quatre heures environ.",
+    "paragraphs": [
+      "Après une prise en charge dans l'Altstadt près de Marienplatz, à Schwabing ou à Maxvorstadt, votre chauffeur quitte Munich vers le nord par l'A9. Depuis l'aéroport de Munich, la voiture rejoint la même autoroute en quelques minutes par l'A92. À l'échangeur de Holledau, l'itinéraire bifurque sur l'A93 et file vers le nord à travers les houblonnières de la Hallertau jusqu'à Ratisbonne et le Danube.",
+      "Après Ratisbonne, l'A93 suit la vallée de la Naab à travers le Haut-Palatinat jusqu'à l'A6, qui mène vers l'est à la frontière de Waidhaus–Rozvadov. Le passage se trouve dans l'espace Schengen : aucun arrêt ni contrôle en temps normal. La D5 vous fait ensuite traverser la Bohême de l'Ouest, par Pilsen, Rokycany et Beroun, jusqu'au sud-ouest de Prague. La distance totale est d'environ 385 kilomètres ; le temps de conduite est de quatre heures en circulation normale.",
+      "Les tronçons les plus lents se trouvent généralement aux deux extrémités : le périphérique de Munich aux heures de pointe et l'entrée dans Prague le vendredi après-midi, chacun pouvant coûter 20 à 30 minutes. Votre chauffeur vérifie les deux avant le départ et ajuste l'heure de prise en charge ou l'itinéraire pour les éviter. Vous arrivez à Prague avec toute la soirée devant vous."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Munich à la dépose à Prague : la voiture, le chauffeur, le carburant, la vignette tchèque et chaque péage en route. À la descente de l'avion, à la sortie d'un salon ou après un week-end en Bavière, vous arrivez devant votre porte à Prague sans rien d'autre à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande, utile pour la prise en charge à l'hôtel à Munich.",
+    "Carburant, tous les péages et la vignette autoroutière tchèque. Les autoroutes allemandes sont sans péage pour les voitures. Rien n'est facturé en supplément.",
+    "Prise en charge à n'importe quelle adresse de Munich, à la München Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Munich (MUC), avec suivi du vol.",
+    "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en route — Ratisbonne, Pilsen ou le château de Karlštejn — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
+  "vehicles": [
+    { "name": "Mercedes-Benz E-Class", "category": "Classe Affaires", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {ePrice} €", "photo": "/vehicles/e-class.avif" },
+    { "name": "Mercedes-Benz S-Class", "category": "Classe Exécutive", "capacity": "1 à 3 passagers", "bags": "2 bagages", "price": "À partir de {sPrice} €", "photo": "/vehicles/s-class.avif" },
+    { "name": "Mercedes-Benz V-Class", "category": "Van Affaires", "capacity": "1 à 6 passagers", "bags": "6 bagages", "price": "À partir de {vPrice} €", "photo": "/vehicles/v-class.avif" }
+  ],
+  "journeyHeading": { "line1": "De Munich à Prague,", "italic": "l'itinéraire." },
+  "journeyStops": [
+    { "city": "Munich", "note": "Prise en charge à votre hôtel, à votre bureau, à la München Hauptbahnhof ou à l'aéroport de Munich (MUC). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.", "anchor": true, "custom": false },
+    { "city": "Ratisbonne (en option)", "note": "La ville médiévale du Danube se trouve sur l'A93, à environ une heure et quart de Munich — le Pont de pierre, la cathédrale et la vieille ville.", "anchor": false, "custom": false },
+    { "city": "Pilsen (en option)", "note": "La capitale de la Bohême de l'Ouest, sur la D5, à une heure de Prague — la brasserie Pilsner Urquell et la grand-place.", "anchor": false, "custom": false },
+    { "city": "Où vous le souhaitez", "note": "Un château, un Biergarten, un point de vue sur le Danube ? Dites-le-nous à la réservation et nous l'intégrons au trajet.", "anchor": false, "custom": true },
+    { "city": "Prague", "note": "Dépose à n'importe quelle adresse de Prague, à la gare centrale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.", "anchor": true, "custom": false }
+  ],
+  "goodToKnow": [
+    { "label": "Passage de frontière", "value": "Frontière Schengen germano-tchèque à Waidhaus–Rozvadov. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
+    { "label": "Péages", "value": "La vignette autoroutière tchèque et tous les péages sont inclus. Les autoroutes allemandes sont gratuites pour les voitures." },
+    { "label": "Prise en charge à l'aéroport", "value": "Indiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à l'aéroport de Munich et vous attend dans le hall des arrivées ; 60 minutes d'attente sont offertes." },
+    { "label": "Transfert retour", "value": "Vous repartez en avion de Munich plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
+  ],
+  "dayTripLabel": "Arrêts en route",
+  "dayTrip": {
+    "headingLine1": "Faites du trajet",
+    "headingItalic": "une partie du voyage.",
+    "intro": "Quatre heures, c'est assez long pour faire une vraie pause. Ces trois étapes se trouvent naturellement sur la route de Munich à Prague.",
+    "configurations": [
+      { "title": "Déjeuner à Ratisbonne", "body": "Départ de Munich à 9h00 et arrivée à Ratisbonne environ une heure et quart plus tard. Quatre-vingt-dix minutes pour le Pont de pierre, la cathédrale et un déjeuner au bord du Danube, puis route vers Prague pour une arrivée en fin d'après-midi.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "La brasserie de Pilsen", "body": "Pilsen arrive après trois heures de route, le bon moment pour une pause. Visitez la brasserie Pilsner Urquell ou passez une heure sur la grand-place ; Prague n'est plus qu'à une heure tout droit par la D5.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." },
+      { "title": "Le château de Karlštejn", "body": "Quittez la D5 près de Beroun pour Karlštejn, le château perché de Charles IV. Montez à pied à travers le village et suivez la visite guidée — environ une heure et demie — puis arrivée à Prague trente minutes plus tard.", "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis." }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — dites-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos sur l'autoroute est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "À l'aéroport de Munich, votre chauffeur vous attend dans le hall des arrivées avec une pancarte à votre nom, déjà informé de tout retard de votre vol. En ville, il vous attend devant votre hôtel à l'heure convenue et s'occupe des bagages, du hall jusqu'au coffre.",
+    "Quatre heures, c'est une séance de travail complète ou un long moment de repos, et c'est vous qui donnez le ton. Votre chauffeur reste discret quand vous êtes occupé et parle volontiers de Prague quand vous ne l'êtes pas — où se trouve votre hôtel, comment profiter au mieux d'un court séjour, quels restaurants valent la réservation.",
+    "Eau, chargeur et Wi-Fi sont à bord dès le départ. Si vous voulez un café à la frontière, un arrêt à Ratisbonne ou une autre température à l'arrière, demandez. À Prague, votre chauffeur porte les bagages jusqu'à la réception de l'hôtel, pas seulement jusqu'au trottoir."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Munich à Prague.",
+    "items": [
+      { "title": "Le tarif, c'est le tarif", "body": "Carburant, vignette tchèque, péages et temps du chauffeur sont compris dans le prix réservé. La circulation sur le périphérique de Munich ou à l'entrée de Prague n'y change rien." },
+      { "title": "De l'aéroport à votre porte, sans détour", "body": "Inutile de passer par Munich après l'atterrissage. Votre chauffeur vous accueille à MUC et vous conduit directement à votre adresse à Prague — une seule voiture, un seul chargement de bagages, aucune gare." },
+      { "title": "Une société pragoise", "body": "Prestigo est basé à Prague et exploite sa propre flotte Mercedes. Votre chauffeur connaît parfaitement la ville d'arrivée : les règles d'accès à la Vieille Ville, les entrées des hôtels, le chemin le plus rapide pour traverser la Vltava aux heures de pointe." }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    { "q": "Combien de temps dure un transfert privé de Munich à Prague ?", "a": "Environ 4 heures de porte à porte : l'A9 et l'A93 vers le nord par Ratisbonne, l'A6 vers l'est jusqu'à la frontière de Waidhaus–Rozvadov, puis la D5 par Pilsen jusqu'à Prague. Les heures de pointe autour de Munich ou la circulation du vendredi à l'entrée de Prague peuvent chacune ajouter 20 à 30 minutes." },
+    { "q": "Combien coûte un taxi ou un chauffeur de Munich à Prague ?", "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 personnes, ou {sPrice} € en S-Class. Le prix comprend le carburant, la vignette tchèque, tous les péages et le temps du chauffeur — il s'entend par voiture, et non par personne." },
+    { "q": "Pouvez-vous me prendre en charge à l'aéroport de Munich et me conduire directement à Prague ?", "a": "Oui. Indiquez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de l'aéroport de Munich (MUC) avec votre nom et vous conduit directement à votre adresse à Prague — inutile de passer d'abord par Munich. Jusqu'à 60 minutes d'attente sont offertes." },
+    { "q": "Un transfert privé est-il préférable au train de Munich à Prague ?", "a": "Le train direct passe par Ratisbonne et Pilsen et met bien plus de cinq heures de gare à gare, sans compter le trajet jusqu'à la München Hauptbahnhof et un taxi à l'arrivée à Prague. Pour un voyageur seul avec peu de bagages, le train ou l'autocar sont moins chers ; à deux ou trois, la voiture privée vous conduit de porte à porte, au même prix par voiture." },
+    { "q": "Peut-on s'arrêter en route entre Munich et Prague ?", "a": "Oui. Ratisbonne, Pilsen et le château de Karlštejn sont les arrêts les plus demandés. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse, sans supplément." },
+    { "q": "Ai-je besoin de mon passeport entre l'Allemagne et la République tchèque ?", "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc aucun contrôle frontalier systématique à Waidhaus–Rozvadov. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE arrivant à l'aéroport de Munich doivent garder leurs documents à portée de main." }
+  ],
+  "relatedRoutesIntro": "Le trajet de Munich à Prague n'est souvent qu'une étape d'un voyage plus long à travers la Bavière, l'Autriche et la Bohême. Les clients qui partent de Ratisbonne, de Nuremberg, de Passau ou de Salzbourg réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
+  "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
+  "relatedRoutes": [
+    { "slug": "regensburg-prague", "city": "Ratisbonne", "label": "Ratisbonne → Prague", "distance": "285 km", "duration": "3 h" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3 h" },
+    { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2 h 30" },
+    { "slug": "salzburg-prague", "city": "Salzbourg", "label": "Salzbourg → Prague", "distance": "375 km", "duration": "4 h" }
+  ],
+  "highlights": [
+    { "label": "Distance", "value": "385 km" },
+    { "label": "Durée", "value": "~4 heures" },
+    { "label": "Véhicules", "value": ["Classe Affaires", "Première Classe", "Van Affaires"] },
+    { "label": "Prix à partir de", "value": "{ePrice} €", "copper": true }
+  ],
+  "cta": {
+    "headingLine1": "De Munich à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Munich – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Munich à Prague — 385 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Munich ou à l'aéroport MUC. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé avec chauffeur de Munich à Prague — à partir de {ePrice} €",
+    "ogDescription": "Transfert privé de Munich à Prague — 385 km de porte à porte en Mercedes E, S ou V-Class. Prise en charge à Munich ou à l'aéroport MUC. Prix fixe dès {ePrice} €."
+  }
+}

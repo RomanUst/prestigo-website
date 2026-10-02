@@ -7,8 +7,8 @@
     "imageAlt": "Regensburg — private chauffeur transfer from Prague to Regensburg"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Regensburg covers 285 km via the D5 and A93 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Waidhaus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Regensburg covers 285 km via the D5 and A93 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Waidhaus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Regensburg",
@@ -24,7 +24,7 @@
   "inclusions": [
     "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
     "A professional chauffeur — fluent English and Czech. German on request.",
-    "Fuel, all tolls, and the German toll vignette. Nothing is charged on top.",
+    "Fuel, the Czech motorway vignette, and any tolls — German motorways are toll-free for cars. Nothing is charged on top.",
     "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
     "Bottled water, phone charger, and WiFi in the rear cabin.",
     "Waiting time at pickup — 15 minutes free at any address.",
@@ -46,7 +46,7 @@
   ],
   "goodToKnow": [
     { "label": "Border crossing", "value": "Czech–German Schengen border at Rozvadov/Waidhaus. No passport check for EU citizens — carry travel documents for non-EU passengers." },
-    { "label": "Tolls", "value": "Czech motorway vignette and German motorway toll both included in the quoted price." },
+    { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
     { "label": "Onward routing", "value": "Regensburg connects directly to Munich (100 km) and Nuremberg (100 km). Prestigo can extend your transfer as a single booking." }
   ],
@@ -71,7 +71,7 @@
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "for Prague to Regensburg.",
     "items": [
-      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off." },
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, any tolls, driver time. Nothing added at drop-off." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel." },
       { "title": "Anticipatory service", "body": "If the A93 has a closure near Cham, your chauffeur reroutes via Schwandorf and the A6 without asking. For Walhalla memorial visits, the chauffeur knows the seasonal access windows and parks at the lower lot so you are not walking the full hill in bad weather. You should not have to manage the trip — that is the job." }
     ]
@@ -79,9 +79,9 @@
   "faqsHeading": "Frequently asked questions",
   "faqs": [
     { "q": "How long does a private transfer from Prague to Regensburg take?", "a": "Approximately 3 hours door-to-door via the D5 motorway southwest through Plzeň, the Czech–German border at Rozvadov/Waidhaus, and the A93 south from the A6 junction. Friday afternoon traffic out of Prague or construction on the A93 corridor can add 15–20 minutes." },
-    { "q": "How much does a chauffeur from Prague to Regensburg cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, the German toll vignette, and driver time. No hidden charges." },
+    { "q": "How much does a chauffeur from Prague to Regensburg cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Regensburg?", "a": "Yes, and it is a comfortable day trip at roughly three hours each way. Most clients book a 6–8 hour round trip with four to five hours on the ground — enough for the Altstadt, the Stone Bridge, lunch on the Danube, and a visit to the Cathedral. If you need the chauffeur to move around the city with you, add hourly city rental." },
-    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The crossing at Rozvadov/Waidhaus is invisible — no routine checks, no document stops. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany." },
+    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The crossing at Rozvadov/Waidhaus is invisible — no routine checks, no document stops. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -89,7 +89,7 @@
   "relatedHeading": { "line1": "Continue across", "italic": "Bavaria and Bohemia." },
   "relatedRoutes": [
     { "slug": "prague-munich", "city": "Munich", "distance": "380 km", "duration": "4h" },
-    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "300 km", "duration": "3h" },
+    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "295 km", "duration": "3h" },
     { "slug": "prague-passau", "city": "Passau", "distance": "250 km", "duration": "3h" },
     { "slug": "prague-plzen", "city": "Plzeň", "distance": "90 km", "duration": "1h" }
   ],

@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Varsovie → Prague",
+    "headlineLine1": "De Varsovie à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Varsovie à Prague avec chauffeur privé, c'est un transfert de porte à porte de 660 km vers le sud à travers la Pologne puis la Moravie, soit environ sept heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages autoroutiers et vignette tchèque inclus. Prise en charge à toute adresse de Varsovie, à Warszawa Centralna ou à l'aéroport Chopin de Varsovie (WAW), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Varsovie à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Varsovie à Prague couvre environ 660 km — vers le sud-ouest par la voie express S8, vers le sud par l'A1 au-delà de Częstochowa, passage de la frontière tchèque près d'Ostrava, puis l'autoroute D1 à travers la Moravie jusqu'à Prague — et demande environ sept heures de porte à porte, pauses comprises. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel à Śródmieście, à Warszawa Centralna ou dans le hall des arrivées de l'aéroport Chopin de Varsovie, et vous dépose devant la porte à Prague.",
+    "Le tarif est convenu avant le départ et reste fixe : carburant, péages autoroutiers, vignette tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. C'est une longue journée, mais une seule voiture, un seul chauffeur et aucune correspondance de votre porte à Varsovie jusqu'à votre adresse à Prague."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Varsovie à Prague",
+    "headingItalic": "en une seule journée.",
+    "paragraphs": [
+      "Après une prise en charge dans le centre-ville, près de la Vieille Ville ou à l'aéroport Chopin de Varsovie, votre chauffeur quitte Varsovie vers le sud-ouest par la voie express S8 en direction de Piotrków Trybunalski, où l'itinéraire rejoint l'autoroute A1 vers le sud. L'A1 passe Częstochowa et les villes de Haute-Silésie jusqu'à la frontière tchèque près d'Ostrava.",
+      "Le passage se fait au sein de l'espace Schengen : pas de contrôle systématique, pas de file. Côté tchèque, l'autoroute D1 continue à travers la Moravie — au-delà de Přerov, puis via Brno ou Olomouc — et entre dans Prague par le sud-est. Un itinéraire alternatif passe à l'ouest par Wrocław et la vallée de Kłodzko jusqu'à Náchod et la D11 ; votre chauffeur choisit la route la plus rapide le matin du départ. La distance totale est d'environ 660 kilomètres ; le temps de conduite est d'environ sept heures, courtes pauses comprises.",
+      "Votre chauffeur planifie les pauses avant le départ et surveille la circulation sur l'A1 et la D1 au fil de la journée. Partez de Varsovie après le petit-déjeuner et vous êtes à Prague pour le dîner, sans bagages à gérer ni gare à trouver."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre l'ensemble du voyage, de la prise en charge à Varsovie à la dépose à Prague : la voiture, le chauffeur, le carburant, les péages autoroutiers et la vignette tchèque. Pour une relocalisation, un déménagement en famille avec bagages ou simplement par goût de la route, vous arrivez devant la porte sans plus rien à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants.",
+    "Carburant, éventuels péages autoroutiers polonais en chemin et vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Prise en charge à toute adresse de Varsovie, à Warszawa Centralna ou dans le hall des arrivées de l'aéroport Chopin de Varsovie (WAW), avec suivi de vol.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en chemin — Częstochowa, Olomouc ou Wrocław — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Varsovie à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Varsovie",
+      "note": "Prise en charge à votre hôtel, à votre bureau, à Warszawa Centralna ou à l'aéroport Chopin de Varsovie (WAW). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Częstochowa (facultatif)",
+      "note": "Le monastère de Jasna Góra, à quelques minutes de l'A1 — l'endroit idéal pour couper la première moitié du trajet.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Olomouc (facultatif)",
+      "note": "Une ville morave toute proche de l'itinéraire, avec sa colonne inscrite à l'UNESCO et un vieux centre paisible pour déjeuner.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Un long trajet laisse de la place pour davantage. Indiquez une ville, un restaurant ou un point de vue à la réservation.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à toute adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen polono-tchèque près d'Ostrava, ou à Kudowa-Zdrój/Náchod par l'itinéraire ouest. Pas de contrôle de passeport systématique — les passagers hors UE doivent tout de même se munir de leur passeport et de leur visa."
+    },
+    {
+      "label": "Péages",
+      "value": "Les péages autoroutiers polonais en chemin et la vignette autoroutière tchèque sont inclus dans le prix indiqué."
+    },
+    {
+      "label": "Prise en charge à l'aéroport",
+      "value": "Communiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à l'aéroport Chopin de Varsovie et les 60 premières minutes d'attente sont offertes."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez à Varsovie plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
+    }
+  ],
+  "dayTripLabel": "Arrêts en chemin",
+  "dayTrip": {
+    "headingLine1": "Une longue route,",
+    "headingItalic": "bien rythmée.",
+    "intro": "Sept heures se vivent mieux avec une ou deux vraies pauses. Ces trois arrêts s'intègrent à l'itinéraire entre Varsovie et Prague.",
+    "configurations": [
+      {
+        "title": "Jasna Góra, Częstochowa",
+        "body": "Départ de Varsovie à 8 h et arrivée à Częstochowa après environ deux heures et demie. Une heure au monastère de Jasna Góra et dans sa chapelle, puis cap au sud par l'A1 vers la frontière tchèque.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Déjeuner à Olomouc",
+        "body": "Olomouc arrive sur la partie morave du trajet. Quatre-vingt-dix minutes pour déjeuner sur la place Haute, près de la colonne de la Sainte-Trinité, puis environ deux heures et demie jusqu'à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Wrocław par l'itinéraire ouest",
+        "body": "Si vous préférez l'itinéraire ouest, Wrocław se trouve à peu près à mi-chemin. Déjeuner sur le Rynek et promenade jusqu'à Ostrów Tumski, puis cap au sud par la vallée de Kłodzko et la frontière à Náchod jusqu'à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — indiquez-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. De courtes pauses café et repos en chemin sont toujours incluses."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur arrive à votre porte à Varsovie à l'heure convenue et charge tout — bien utile sur un trajet que l'on fait souvent avec plus de bagages qu'un vol n'en autorise. À l'aéroport Chopin de Varsovie, il vous attend dans le hall des arrivées avec votre nom.",
+    "Une journée entière en voiture demande un bon rythme. Votre chauffeur prévoit des pauses à intervalles raisonnables et garde la cabine silencieuse quand vous travaillez ou vous reposez. Vers la fin, si vous voulez en savoir plus sur Prague — votre quartier, une belle première promenade, où dîner —, demandez.",
+    "Eau, chargeur et Wi-Fi vous accompagnent tout au long du trajet. Un déjeuner plus long, un autre arrêt, une cabine plus chaude : il suffit de demander. À Prague, les bagages vous accompagnent jusqu'à la porte."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Varsovie à Prague.",
+    "items": [
+      {
+        "title": "Un seul tarif pour toute la journée",
+        "body": "Carburant, péages polonais, vignette tchèque et sept heures de temps du chauffeur sont compris dans le prix. Rien n'est ajouté à l'arrivée."
+      },
+      {
+        "title": "Tous vos bagages, sans limite",
+        "body": "Pas de franchise bagages, pas de trajets vers l'aéroport au départ ni à l'arrivée, pas de changement de train. Tout est chargé dans la voiture à Varsovie et ressort devant votre porte à Prague."
+      },
+      {
+        "title": "Prague est notre ville",
+        "body": "Prestigo est une société pragoise avec sa propre flotte Mercedes. Votre chauffeur sait où vous allez — les entrées d'hôtels, les rues à accès restreint, le bon accès à votre immeuble."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Varsovie à Prague ?",
+      "a": "Environ sept heures de porte à porte, courtes pauses comprises : la S8 et l'A1 vers le sud à travers la Pologne, la frontière près d'Ostrava, puis la D1 à travers la Moravie jusqu'à Prague. Des arrêts plus longs pour un déjeuner ou une visite s'y ajoutent."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Varsovie à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Carburant, péages autoroutiers polonais, vignette tchèque et temps du chauffeur sont inclus — par véhicule, et non par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à l'aéroport Chopin de Varsovie et me conduire directement à Prague ?",
+      "a": "Oui. Communiquez-nous votre numéro de vol à la réservation. Votre chauffeur suit l'atterrissage, vous attend dans le hall des arrivées de Chopin avec votre nom et vous conduit directement à votre adresse à Prague."
+    },
+    {
+      "q": "Un transfert privé vaut-il mieux que l'avion ou le train de Varsovie à Prague ?",
+      "a": "Pour une personne peu chargée, l'avion est plus rapide et le train moins cher — nous le disons franchement. Le transfert privé prend tout son sens pour les familles, les groupes, les animaux, les bagages lourds ou une relocalisation : pas de limite de bagages, pas d'aéroport au départ ni à l'arrivée, de porte à porte, et le même tarif pour un ou trois passagers."
+    },
+    {
+      "q": "Peut-on s'arrêter en chemin entre Varsovie et Prague ?",
+      "a": "Oui. Częstochowa, Olomouc et Wrocław sont les choix habituels. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. De courtes pauses café et repos sont toujours incluses."
+    },
+    {
+      "q": "Faut-il un passeport entre la Pologne et la République tchèque ?",
+      "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc pas de contrôle systématique à la frontière. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux."
+    }
+  ],
+  "relatedRoutesIntro": "Le trajet de Varsovie à Prague est la plus longue route vers Prague que nous assurons depuis la Pologne. Les clients venant de Cracovie, Wrocław ou Ostrava réservent de la même façon — une voiture, un tarif fixe, une dépose devant la porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "krakow-prague",
+      "city": "Cracovie",
+      "label": "Cracovie → Prague",
+      "distance": "530 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "wroclaw-prague",
+      "city": "Wrocław",
+      "label": "Wrocław → Prague",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "ostrava-prague",
+      "city": "Ostrava",
+      "label": "Ostrava → Prague",
+      "distance": "370 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "brno-prague",
+      "city": "Brno",
+      "label": "Brno → Prague",
+      "distance": "205 km",
+      "duration": "2 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~660 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~7 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Varsovie à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Varsovie – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Varsovie à Prague — 660 km de porte à porte en Mercedes E, S ou V. Prise en charge à Varsovie ou à l'aéroport WAW. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé Varsovie – Prague avec chauffeur — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Varsovie à Prague — 660 km de porte à porte en Mercedes E, S ou V. Prise en charge à Varsovie ou à l'aéroport WAW. Prix fixe dès {ePrice} €."
+  }
+}

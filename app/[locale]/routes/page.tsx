@@ -5,7 +5,7 @@ export const revalidate = 120
 import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
-import { ROUTES } from '@/lib/routes'
+import { ROUTES, MIRROR_ROUTES } from '@/lib/routes'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import { getAllRoutes } from '@/lib/route-prices'
@@ -38,6 +38,7 @@ type RoutesContent = {
     bookButton: string
     routeDetails: string
   }
+  inbound: { label: string; headingLine1: string; headingItalic: string; intro: string; toPragueLabel: string }
   destinationNames: Record<string, string>
   countryNames: Record<string, string>
   howItWorks: { heading: string; steps: { title: string; body: string }[] }
@@ -134,6 +135,9 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
 
   const dbRoutes = await getAllRoutes('display_order')
   const top10 = dbRoutes.slice(0, 10)
+  // Country cards show the live route_prices fare; lib/routes.ts prices are
+  // a static snapshot and only serve as the fallback when the DB is absent.
+  const liveFrom: Record<string, number> = Object.fromEntries(dbRoutes.map((r) => [r.slug, r.eClassEur]))
 
   return (
     <main id="main-content">
@@ -299,7 +303,7 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
                       </div>
                       <div>
                         <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.price}</p>
-                        <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>{r.priceFrom}</p>
+                        <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>€<bdi>{liveFrom[r.slug] ?? r.prices.eClass}</bdi></p>
                       </div>
                     </div>
                     {r.notes.length > 0 && (
@@ -359,6 +363,28 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
               )
             })
           })()}
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Inbound mirrors — {city} → Prague */}
+      <section className="bg-anthracite-mid py-16 md:py-24" id="routes-to-prague">
+        <div className="max-w-7xl mx-auto px-6 md:px-12">
+          <Reveal variant="up"><div className="mb-12 max-w-2xl">
+            <p className="label mb-4">{content.inbound.label}</p>
+            <span className="copper-line mb-6 block" />
+            <h2 className="display text-[28px] md:text-[36px]">{content.inbound.headingLine1}<span className="display-italic">{content.inbound.headingItalic}</span></h2>
+            <p className="body-text text-[13px] mt-4" style={{ lineHeight: '1.9' }}>{content.inbound.intro}</p>
+          </div></Reveal>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {MIRROR_ROUTES.slice().sort((a, b) => (ROUTES.find((r) => r.slug === a.sourceSlug)?.distanceKm ?? 0) - (ROUTES.find((r) => r.slug === b.sourceSlug)?.distanceKm ?? 0)).map((m) => (
+              <a key={m.slug} href={getPathname({ locale, href: `/routes/${m.slug}` })} className="border border-anthracite-light p-5 flex justify-between items-center gap-4 hover:border-[var(--copper)] transition-colors">
+                <span className="font-display font-light text-[17px] text-offwhite">{interpolate(content.inbound.toPragueLabel, { city: destinationNames[m.sourceSlug] ?? m.city })}</span>
+                <span className="font-body font-light text-[11px] text-warmgrey whitespace-nowrap">{m.distance}</span>
+              </a>
+            ))}
+          </div>
         </div>
       </section>
 

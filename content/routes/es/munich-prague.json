@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Múnich → Praga",
+    "headlineLine1": "De Múnich a Praga,",
+    "headlineItalic": "un solo coche todo el camino.",
+    "intro": "El traslado de Múnich a Praga con chófer privado es un trayecto puerta a puerta de 385 km hacia el norte por la A9 y la A93, y después hacia el este por la A6 y la D5, con unas 4 horas de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Múnich, en la München Hauptbahnhof o en el aeropuerto de Múnich (MUC), y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Múnich a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Múnich a Praga cubre 385 km —hacia el norte por la A9, después la A93 pasando por Ratisbona, hacia el este por la A6 hasta la frontera checa en Waidhaus–Rozvadov y la autopista D5 pasando por Pilsen hasta Praga— y dura aproximadamente 4 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Múnich, en una oficina, en la München Hauptbahnhof o en la sala de llegadas del aeropuerto de Múnich, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "La tarifa se fija al reservar: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Si aterriza en MUC tras un vuelo de largo recorrido, sale de la sala de llegadas, se sienta y no vuelve a levantarse hasta su hotel en Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Múnich a Praga",
+    "headingItalic": "en unas cuatro horas.",
+    "paragraphs": [
+      "Desde la recogida en el casco antiguo, cerca de Marienplatz, en Schwabing o en Maxvorstadt, su chófer toma la A9 hacia el norte para salir de Múnich. Desde el aeropuerto de Múnich, el coche llega a la misma autopista en pocos minutos por la A92. En el enlace de Holledau, la ruta se desvía a la A93 y avanza hacia el norte entre los campos de lúpulo de la Hallertau hasta Ratisbona y el Danubio.",
+      "Pasada Ratisbona, la A93 sigue el valle del Naab a través del Alto Palatinado hasta la A6, que lleva hacia el este hasta la frontera de Waidhaus–Rozvadov. El paso está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. La D5 le lleva después a través de Bohemia Occidental, pasando por Pilsen, Rokycany y Beroun, hasta el suroeste de Praga. La distancia total es de aproximadamente 385 kilómetros; el tiempo de conducción es de cuatro horas con tráfico normal.",
+      "Los tramos más lentos suelen estar en los dos extremos: el anillo de Múnich en hora punta y la entrada a Praga un viernes por la tarde, cada uno con 20–30 minutos más. Su chófer comprueba ambos antes de salir y ajusta la hora de recogida o cambia la ruta para evitarlos. Llegará a Praga con la tarde por delante."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Múnich hasta la llegada a Praga: el coche, el chófer, el combustible, la viñeta checa y todos los peajes del camino. Recién bajado de un vuelo, al salir de una feria o después de un fin de semana en Baviera, llegará a su puerta en Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán previa solicitud, práctico para la entrega en el hotel de Múnich.",
+    "Combustible, todos los peajes y la viñeta de autopista checa. Las autopistas alemanas no tienen peaje para turismos. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Múnich, en la München Hauptbahnhof o dentro de la sala de llegadas del aeropuerto de Múnich (MUC), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
+    "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
+    "Paradas en el camino —Ratisbona, Pilsen o el castillo de Karlštejn— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1-3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1-3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Business",
+      "capacity": "1-6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Múnich a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Múnich",
+      "note": "Recogida en su hotel, oficina, en la München Hauptbahnhof o en el aeropuerto de Múnich (MUC). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Ratisbona (opcional)",
+      "note": "La ciudad medieval del Danubio está en la A93, a una hora y cuarto de Múnich: el Puente de Piedra, la catedral y el casco antiguo.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Pilsen (opcional)",
+      "note": "La capital de Bohemia Occidental, en la D5 y a una hora de Praga: la cervecería Pilsner Urquell y la plaza mayor.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted desee",
+      "note": "¿Un castillo, una cervecería al aire libre, un mirador sobre el Danubio? Díganoslo al reservar y lo incluiremos en el trayecto.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen germano-checa en Waidhaus–Rozvadov. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa y todos los peajes están incluidos. Las autopistas alemanas son gratuitas para turismos."
+    },
+    {
+      "label": "Recogida en el aeropuerto",
+      "value": "Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en el aeropuerto de Múnich y le espera dentro de la sala de llegadas, con 60 minutos de espera gratuita."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Vuela de regreso desde Múnich más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga del trayecto",
+    "headingItalic": "parte del viaje.",
+    "intro": "Cuatro horas son suficientes para hacer una buena parada. Estas tres quedan de forma natural en la carretera de Múnich a Praga.",
+    "configurations": [
+      {
+        "title": "Almuerzo en Ratisbona",
+        "body": "Salga de Múnich a las 9:00 y llegue a Ratisbona en una hora y cuarto. Noventa minutos para el Puente de Piedra, la catedral y un almuerzo junto al Danubio, y después rumbo a Praga para llegar a última hora de la tarde.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "La cervecería de Pilsen",
+        "body": "Pilsen llega a las tres horas de trayecto, el momento justo para una pausa. Haga la visita a la cervecería Pilsner Urquell o pase una hora en la plaza mayor; Praga queda a una hora directa por la D5.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      },
+      {
+        "title": "El castillo de Karlštejn",
+        "body": "Salga de la D5 cerca de Beroun hacia Karlštejn, el castillo de Carlos IV en lo alto de una colina. Suba a pie por el pueblo y haga la visita guiada —alrededor de hora y media— y llegue a Praga treinta minutos después.",
+        "price": "Añada una parada al reservar: consúltenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se calculan según el tiempo y la distancia adicionales: díganos dónde quiere parar y le confirmaremos un presupuesto firme antes de reservar. Una breve parada para tomar un café o descansar en la autopista siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "En el aeropuerto de Múnich, su chófer le espera dentro de la sala de llegadas con un cartel con su nombre, ya al tanto de cualquier retraso de su vuelo. En la ciudad, le espera en la puerta de su hotel a la hora acordada y se ocupa del equipaje desde el vestíbulo hasta el maletero.",
+    "Cuatro horas son una jornada de trabajo completa o un largo descanso, y usted marca el tono. Su chófer guarda silencio cuando está ocupado y con gusto le habla de Praga cuando no lo está: dónde está su hotel, cómo aprovechar al máximo una estancia corta, qué restaurantes merecen la reserva.",
+    "El agua, el cargador y el wifi están en la cabina desde el principio. Si quiere un café en la frontera, una parada en Ratisbona o otra temperatura en la parte trasera, pídalo. En Praga, su chófer lleva el equipaje hasta la recepción del hotel, no solo hasta la acera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Múnich a Praga.",
+    "items": [
+      {
+        "title": "La tarifa es la tarifa",
+        "body": "El combustible, la viñeta checa, los peajes y el tiempo del chófer están incluidos en el precio que reserva. El tráfico en el anillo de Múnich o a la entrada de Praga no lo cambia."
+      },
+      {
+        "title": "Del aeropuerto a la puerta, sin rodeos",
+        "body": "No hace falta entrar en Múnich después de aterrizar. Su chófer le recibe en MUC y le lleva directamente a su dirección en Praga: un coche, una sola carga de equipaje, sin estaciones."
+      },
+      {
+        "title": "Una empresa de Praga",
+        "body": "Prestigo tiene su sede en Praga y opera su propia flota Mercedes. Su chófer conoce el destino: las normas de acceso a la Ciudad Vieja, las entradas de los hoteles y la forma más rápida de cruzar el río en hora punta."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Múnich a Praga?",
+      "a": "Aproximadamente 4 horas puerta a puerta: la A9 y la A93 hacia el norte pasando por Ratisbona, la A6 hacia el este hasta la frontera de Waidhaus–Rozvadov y la D5 pasando por Pilsen hasta Praga. La hora punta en Múnich o el tráfico de los viernes a la entrada de Praga pueden añadir 20–30 minutos cada uno."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Múnich a Praga?",
+      "a": "Tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye combustible, la viñeta checa, todos los peajes y el tiempo del chófer; es por vehículo, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Múnich y llevarme directamente a Praga?",
+      "a": "Sí. Indíquenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto de Múnich (MUC) con su nombre y le lleva directamente a su dirección en Praga, sin necesidad de pasar antes por Múnich. Hasta 60 minutos de espera son gratuitos."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren de Múnich a Praga?",
+      "a": "El tren directo pasa por Ratisbona y Pilsen y tarda bastante más de cinco horas de estación a estación, sin contar el trayecto hasta la München Hauptbahnhof y el taxi al llegar a Praga. Para quien viaja solo y con poco equipaje, el tren o el autocar son más económicos; para dos o tres personas, el coche privado va puerta a puerta y cuesta lo mismo por vehículo."
+    },
+    {
+      "q": "¿Podemos parar en el camino de Múnich a Praga?",
+      "a": "Sí. Ratisbona, Pilsen y el castillo de Karlštejn son las paradas más populares. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para tomar un café o descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Alemania y la República Checa?",
+      "a": "Ambos países están en el espacio Schengen, así que no hay control fronterizo rutinario en Waidhaus–Rozvadov. Lleve de todos modos su pasaporte o documento de identidad de la UE: hay controles puntuales, y los viajeros de fuera de la UE que llegan al aeropuerto de Múnich deben tener su documentación a mano."
+    }
+  ],
+  "relatedRoutesIntro": "El trayecto de Múnich a Praga suele ser una etapa de un viaje más largo por Baviera, Austria y Bohemia. Los clientes que salen de Ratisbona, Núremberg, Passau o Salzburgo reservan del mismo modo: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Más formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "regensburg-prague",
+      "city": "Ratisbona",
+      "label": "Ratisbona → Praga",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "nuremberg-prague",
+      "city": "Núremberg",
+      "label": "Núremberg → Praga",
+      "distance": "295 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "passau-prague",
+      "city": "Passau",
+      "label": "Passau → Praga",
+      "distance": "220 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "salzburg-prague",
+      "city": "Salzburgo",
+      "label": "Salzburgo → Praga",
+      "distance": "375 km",
+      "duration": "4 h"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "385 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Van Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Múnich a Praga.",
+    "headingItalic": "Desde {ePrice} €, fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Múnich a Praga — desde {ePrice} €",
+    "description": "Traslado privado de Múnich a Praga: 385 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Múnich o en el aeropuerto MUC. Desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Múnich a Praga: desde {ePrice} €",
+    "ogDescription": "Traslado privado de Múnich a Praga: 385 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Múnich o en el aeropuerto MUC. Desde {ePrice} €."
+  }
+}

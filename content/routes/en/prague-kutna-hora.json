@@ -7,16 +7,16 @@
     "imageAlt": "Kutná Hora — private chauffeur transfer from Prague to Kutná Hora"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Kutná Hora covers 70 km and takes approximately 1 hour door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. There are no motorway tolls on this route — the road runs through Central Bohemia without a vignette requirement. Nothing is added at drop-off. Stops en route or extended waiting time at the Sedlec Ossuary or Cathedral of St. Barbara are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "A private transfer from Prague to Kutná Hora covers 70 km and takes approximately 1 hour door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette for the D11, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. Stops en route or extended waiting time at the Sedlec Ossuary or Cathedral of St. Barbara are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
     "This is not a shared coach tour. Not a train transfer with a ten-minute walk at the other end. A private Mercedes, one chauffeur, and a fare that does not change — from a city that, six centuries ago, rivalled Prague itself."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Kutná Hora",
     "headingItalic": "in one hour.",
     "paragraphs": [
-      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east, exits at Mirošovice, and follows Highway 38 through the Elbe lowlands by way of Kolín. There is no border crossing — Kutná Hora sits in the Central Bohemian region, entirely inside the Czech Republic. It is, in fact, the closest Green-tier destination on the Prestigo route map.",
+      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D11 motorway east toward Kolín, then turns south on country roads through the Elbe lowlands to Kutná Hora. There is no border crossing — Kutná Hora sits in the Central Bohemian region, entirely inside the Czech Republic. It is, in fact, the closest Green-tier destination on the Prestigo route map.",
       "Total distance is approximately 70 kilometres. Driving time is one hour in normal conditions. The approach into the old town takes you past the silhouette of the Cathedral of St. Barbara on its hillside — a UNESCO-listed late Gothic jewel since 1995 — with the Italian Court (Vlašský Dvůr) and the Sedlec Ossuary (Bone Church) waiting in the historic core. For Sedlec visits with a group, your chauffeur confirms the advance booking the church now requires for organised parties.",
-      "Your chauffeur watches traffic on the D1 before every departure. If the Mirošovice exit is congested — as it often is on Friday afternoons heading out of Prague — they reroute via Highway 333 without asking. You are not paying for traffic; you are paying for time."
+      "Your chauffeur watches traffic on the D11 before every departure. If it is congested — as it often is on Friday afternoons heading out of Prague — they take the alternative Route 2 via Kostelec nad Černými lesy without asking. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
@@ -64,7 +64,7 @@
   "chauffeurNarrative": [
     "Your chauffeur will meet you in front of your pickup address — a central Prague hotel, a private apartment in Vinohrady, or Václav Havel Airport with a Prestigo tablet displaying your name in the arrivals hall. No parking lots. No meeting points ten minutes away.",
     "Conversation is a choice. If you want a quiet cabin for the hour of driving — rest, work, a window view of the Bohemian countryside — the chauffeur will read that signal and let you be. If you want context on Kutná Hora, your chauffeur has it: the medieval silver-mining capital that briefly rivalled Prague in wealth during the fourteenth century; the bone church at Sedlec and the Cistercian cathedral beside it; the Bohemian Gothic of St. Barbara and its late nineteenth-century restoration; the UNESCO listing of 1995 that ties the old town and Sedlec together.",
-    "Phone charger, bottled water, and WiFi are already in the cabin. If you want to stop at the OMV service area near Mirošovice for a coffee before the open road, that is included. Temperature, music, a quick detour through Kolín on the return — say so."
+    "Phone charger, bottled water, and WiFi are already in the cabin. If you want to stop at a service area on the D11 for a coffee before the open road, that is included. Temperature, music, a quick detour through Kolín on the return — say so."
   ],
   "whyBook": {
     "headingLine1": "Why book with Prestigo",
@@ -72,15 +72,15 @@
     "items": [
       { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, driver time. Nothing added at drop-off, nothing added at the return leg." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, and familiar with the historic streets of Kutná Hora." },
-      { "title": "Anticipatory service", "body": "If the D1 has the usual Mirošovice exit congestion, your chauffeur reroutes via Highway 333 without asking. For Sedlec Ossuary visits, the chauffeur knows the timed-entry windows and the parking constraints around the church, and plans the arrival accordingly." }
+      { "title": "Anticipatory service", "body": "If the D11 has the usual Friday congestion, your chauffeur reroutes via Route 2 and Kostelec nad Černými lesy without asking. For Sedlec Ossuary visits, the chauffeur knows the timed-entry windows and the parking constraints around the church, and plans the arrival accordingly." }
     ]
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Prague to Kutná Hora take?", "a": "Approximately one hour door-to-door via the D1 motorway east out of Prague and Highway 38 through Kolín. It is the shortest drive of any Prestigo heritage route. Even with morning traffic leaving Prague, the full journey rarely exceeds 75 minutes." },
-    { "q": "How much does a chauffeur from Prague to Kutná Hora cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, tolls, and driver time. No hidden charges." },
+    { "q": "How long does a private transfer from Prague to Kutná Hora take?", "a": "Approximately one hour door-to-door via the D11 motorway east toward Kolín, then south on country roads into Kutná Hora. It is the shortest drive of any Prestigo heritage route. Even with morning traffic leaving Prague, the full journey rarely exceeds 75 minutes." },
+    { "q": "How much does a chauffeur from Prague to Kutná Hora cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges." },
     { "q": "Can I book a same-day round trip and have the chauffeur wait?", "a": "Yes — and it is the standard pattern for this route. Kutná Hora is the easiest day trip from Prague, and most clients book the chauffeur to wait on site while they visit. A six-hour round trip covers St. Barbara, Sedlec, and a slow lunch without feeling rushed. If you need the chauffeur to move around the city with you, add hourly city rental." },
-    { "q": "Is there a border crossing on the way to Kutná Hora?", "a": "No. Kutná Hora is entirely within the Czech Republic, about 70 kilometres east of Prague in the Central Bohemian region. No border formalities, no vignettes beyond the Czech one, no passport checks." },
+    { "q": "Is there a border crossing on the way to Kutná Hora?", "a": "No. Kutná Hora is entirely within the Czech Republic, about 70 kilometres east of Prague in the Central Bohemian region. No border formalities and no passport checks. The D11 requires the Czech motorway vignette, which is already on the car and included in the fare." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "What languages does the chauffeur speak?", "a": "Every Prestigo chauffeur speaks fluent Czech and English as standard. Additional languages — German, Italian, French, Russian — are available on request when you book in advance." }
   ],

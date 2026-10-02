@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Wrocław → Prague",
+    "headlineLine1": "De Wrocław à Prague,",
+    "headlineItalic": "de porte à porte.",
+    "intro": "De Wrocław à Prague avec chauffeur privé, c'est un transfert de porte à porte de 285 km vers le sud par la vallée de Kłodzko et la frontière à Náchod, soit environ trois heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, péages et vignette autoroutière tchèque inclus. Prise en charge à toute adresse de Wrocław, à Wrocław Główny ou à l'aéroport de Wrocław (WRO), dépose partout dans Prague.",
+    "imageAlt": "Transfert en chauffeur privé de Wrocław à Prague en Mercedes"
+  },
+  "openingParagraphs": [
+    "Un transfert privé de Wrocław à Prague couvre environ 285 km — vers le sud en direction de Kłodzko, passage de la frontière tchèque à Kudowa-Zdrój et Náchod, puis Hradec Králové et l'autoroute D11 jusqu'à Prague — et demande environ trois heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel près du Rynek, à Wrocław Główny ou dans le hall des arrivées de l'aéroport de Wrocław, et vous dépose devant votre hôtel, appartement ou bureau à Prague.",
+    "Le tarif est fixé à la réservation et ne change pas : carburant, péages, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont tous inclus. Il n'existe pas de train direct rapide sur ce trajet — la voiture privée est le moyen le plus simple de passer de la Basse-Silésie à une porte pragoise."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Wrocław à Prague",
+    "headingItalic": "en trois heures environ.",
+    "paragraphs": [
+      "Après une prise en charge près du Rynek, sur Ostrów Tumski ou à l'aéroport de Wrocław, votre chauffeur quitte la ville vers le sud par la voie express S8 et poursuit à travers la vallée de Kłodzko, les Sudètes s'élevant de part et d'autre. La route passe sous la forteresse de Kłodzko et monte doucement jusqu'à la ville thermale de Kudowa-Zdrój.",
+      "La frontière entre Kudowa-Zdrój et Náchod se trouve au sein de l'espace Schengen : pas de contrôle systématique, pas de file, seulement un changement de langue sur les panneaux et le château de Náchod qui domine la ville. Côté tchèque, la route file vers l'ouest jusqu'à Hradec Králové, où elle rejoint l'autoroute D11 pour le dernier tronçon à travers la plaine de l'Elbe jusqu'à Prague. La distance totale est d'environ 285 kilomètres ; le temps de conduite est d'environ trois heures. Le week-end, la circulation à la frontière peut ajouter 15 à 20 minutes.",
+      "Votre chauffeur vérifie l'itinéraire avant le départ. Si le passage de Náchod est ralenti, il peut emprunter la route nord par Liberec — un peu plus longue, mais régulière. Vous arrivez à Prague avec la journée encore devant vous : le temps de vous installer, puis de sortir à Vinohrady ou dans la Vieille Ville pour la soirée."
+    ]
+  },
+  "includedLabel": "Ce qui est inclus",
+  "includedIntro": "Le prix fixe couvre l'ensemble du trajet, de la prise en charge à Wrocław à la dépose à Prague : la voiture, le chauffeur, le carburant, les éventuels péages en chemin et la vignette autoroutière tchèque. Que vous veniez pour affaires, une visite en famille ou un week-end, vous descendez devant la porte sans plus rien à organiser.",
+  "inclusions": [
+    "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
+    "Un chauffeur professionnel — anglais et tchèque courants.",
+    "Carburant, éventuels péages en chemin et vignette autoroutière tchèque. Aucun supplément facturé.",
+    "Prise en charge à toute adresse de Wrocław, à la gare de Wrocław Główny ou dans le hall des arrivées de l'aéroport de Wrocław (WRO), avec suivi de vol.",
+    "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
+    "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
+    "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
+    "Arrêts en chemin — Kłodzko, Náchod ou Hradec Králové — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
+  ],
+  "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Classe Affaires",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Classe Exécutive",
+      "capacity": "1 à 3 passagers",
+      "bags": "2 bagages",
+      "price": "À partir de {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Affaires",
+      "capacity": "1 à 6 passagers",
+      "bags": "6 bagages",
+      "price": "À partir de {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Wrocław à Prague,",
+    "italic": "l'itinéraire."
+  },
+  "journeyStops": [
+    {
+      "city": "Wrocław",
+      "note": "Prise en charge à votre hôtel, à votre bureau, à Wrocław Główny ou à l'aéroport de Wrocław (WRO). À l'aéroport, votre chauffeur vous attend dans le hall des arrivées avec votre nom.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Kłodzko (facultatif)",
+      "note": "Une forteresse perchée et une vieille ville dotée d'un pont gothique en pierre, directement sur la route du sud.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Náchod (facultatif)",
+      "note": "La première ville tchèque après la frontière, avec un vaste château dominant la place principale.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Où vous le souhaitez",
+      "note": "Une ville thermale, un point de vue dans les Sudètes, un déjeuner dont vous avez entendu parler ? Dites-le-nous à la réservation.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Prague",
+      "note": "Dépose à toute adresse de Prague, à la gare principale de Prague ou à l'aéroport Václav Havel (PRG) pour un vol de correspondance.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Passage de frontière",
+      "value": "Frontière Schengen polono-tchèque à Kudowa-Zdrój/Náchod. Pas de contrôle de passeport systématique — les passagers hors UE doivent tout de même se munir de leur passeport et de leur visa."
+    },
+    {
+      "label": "Péages",
+      "value": "Les éventuels péages en chemin et la vignette autoroutière tchèque sont inclus dans le prix indiqué."
+    },
+    {
+      "label": "Prise en charge à l'aéroport",
+      "value": "Communiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à l'aéroport de Wrocław et les 60 premières minutes d'attente sont offertes."
+    },
+    {
+      "label": "Transfert retour",
+      "value": "Vous revenez à Wrocław plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
+    }
+  ],
+  "dayTripLabel": "Arrêts en chemin",
+  "dayTrip": {
+    "headingLine1": "À travers les Sudètes,",
+    "headingItalic": "à votre rythme.",
+    "intro": "La route de Wrocław à Prague traverse une région de collines où se dresse un château ou une forteresse toutes les demi-heures. Trois arrêts couvrent l'essentiel des demandes.",
+    "configurations": [
+      {
+        "title": "Forteresse de Kłodzko",
+        "body": "Départ de Wrocław à 9 h et arrêt à Kłodzko après environ une heure et quart — les remparts de la forteresse, la vue sur la vallée et le pont de pierre de la vieille ville. Retour sur la route et arrivée à Prague en milieu d'après-midi.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Château de Náchod",
+        "body": "Juste après la frontière, le château de Náchod domine la place de la ville. Une heure pour les cours et les jardins, ou un café sur la place, puis deux heures jusqu'à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      },
+      {
+        "title": "Déjeuner à Hradec Králové",
+        "body": "Hradec Králové se trouve à environ une heure et demie de Prague, là où la route rejoint la D11. Déjeuner sur la Grand-Place de la vieille ville, puis l'autoroute tout droit jusqu'à votre porte à Prague.",
+        "price": "Ajoutez un arrêt à la réservation — contactez-nous pour un devis."
+      }
+    ],
+    "footnote": "Les arrêts sont planifiés à la réservation et facturés selon le temps et la distance supplémentaires — indiquez-nous où vous souhaitez vous arrêter et nous vous confirmons un devis ferme avant la réservation. Une courte pause café ou repos en chemin est toujours incluse."
+  },
+  "chauffeurNarrative": [
+    "Votre chauffeur arrive à votre hôtel de Wrocław à l'heure convenue et vient jusqu'à la porte. À l'aéroport de Wrocław, il vous attend dans le hall des arrivées avec votre nom et porte les bagages du tapis jusqu'à la voiture.",
+    "Trois heures à travers les Sudètes, c'est un trajet paisible. Travaillez, reposez-vous ou regardez défiler les collines — votre chauffeur suit votre humeur. Si vous voulez savoir où vous logez à Prague et ce qui mérite d'être vu à proximité, demandez : Prague, c'est chez lui.",
+    "Eau, chargeur et Wi-Fi vous attendent dans la cabine. Un arrêt à Kłodzko ou un café à Náchod, il suffit de le dire. À l'arrivée, vos bagages vous accompagnent jusqu'à la réception."
+  ],
+  "whyBook": {
+    "headingLine1": "Pourquoi réserver avec Prestigo",
+    "headingItalic": "de Wrocław à Prague.",
+    "items": [
+      {
+        "title": "Convenu avant le départ",
+        "body": "Carburant, péages, vignette tchèque et temps du chauffeur sont compris dans le tarif. Rien n'est ajouté à Prague."
+      },
+      {
+        "title": "Le chemin direct",
+        "body": "Le train entre Wrocław et Prague est lent et implique souvent des correspondances. Une seule voiture vous conduit de votre porte à Wrocław à votre porte à Prague, bagages chargés une seule fois."
+      },
+      {
+        "title": "Basés et gérés à Prague",
+        "body": "Prestigo est une société pragoise avec sa propre flotte Mercedes. Votre chauffeur connaît la ville où vous arrivez — les entrées d'hôtels, les rues à accès restreint de la Vieille Ville, le chemin le plus rapide jusqu'à votre adresse."
+      }
+    ]
+  },
+  "faqsHeading": "Questions fréquentes",
+  "faqs": [
+    {
+      "q": "Combien de temps dure un transfert privé de Wrocław à Prague ?",
+      "a": "Environ trois heures de porte à porte : vers le sud par Kłodzko jusqu'à la frontière à Kudowa-Zdrój et Náchod, puis via Hradec Králové et la D11 jusqu'à Prague. Les week-ends chargés, la frontière peut ajouter 15 à 20 minutes."
+    },
+    {
+      "q": "Combien coûte un taxi ou un chauffeur de Wrocław à Prague ?",
+      "a": "Un tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum, {vPrice} € en V-Class jusqu'à 6 passagers, ou {sPrice} € en S-Class. Carburant, péages, vignette autoroutière tchèque et temps du chauffeur sont inclus — par véhicule, et non par personne."
+    },
+    {
+      "q": "Pouvez-vous venir me chercher à l'aéroport de Wrocław ou à Wrocław Główny ?",
+      "a": "Oui. Communiquez-nous votre numéro de vol : votre chauffeur suit l'atterrissage à l'aéroport de Wrocław, vous attend dans le hall des arrivées avec votre nom et vous conduit directement à Prague. Les prises en charge à Wrocław Główny ou dans n'importe quel hôtel s'organisent de la même façon."
+    },
+    {
+      "q": "Un transfert privé vaut-il mieux que le train ou le bus de Wrocław à Prague ?",
+      "a": "Il n'existe pas de train direct rapide, et le trajet ferroviaire prend généralement plus de temps que la route, avec au moins une correspondance. Des bus longue distance desservent la ligne et constituent l'option la moins chère pour un voyageur seul et peu chargé. Le transfert privé, lui, va de porte à porte, part à l'heure qui vous convient et coûte le même prix pour un ou trois passagers."
+    },
+    {
+      "q": "Peut-on s'arrêter en chemin entre Wrocław et Prague ?",
+      "a": "Oui. Kłodzko, Náchod et Hradec Králové sont les demandes les plus courantes. Indiquez-le-nous à la réservation et nous intégrons l'arrêt dans un devis fixe. Une courte pause café ou repos est toujours incluse."
+    },
+    {
+      "q": "Faut-il un passeport entre la Pologne et la République tchèque ?",
+      "a": "Les deux pays font partie de l'espace Schengen : il n'y a donc pas de contrôle systématique à la frontière entre Kudowa-Zdrój et Náchod. Emportez tout de même votre passeport ou votre carte d'identité européenne — des contrôles ponctuels ont lieu, et les voyageurs hors UE doivent avoir leurs documents sur eux."
+    }
+  ],
+  "relatedRoutesIntro": "Le trajet de Wrocław à Prague est souvent une étape d'un plus long voyage à travers la Pologne et la Bohême. Les clients venant de Cracovie, Varsovie ou Hradec Králové réservent de la même façon — une voiture, un tarif fixe, une dépose devant la porte à Prague.",
+  "relatedHeading": {
+    "line1": "D'autres façons",
+    "italic": "de rejoindre Prague."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "krakow-prague",
+      "city": "Cracovie",
+      "label": "Cracovie → Prague",
+      "distance": "530 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "warsaw-prague",
+      "city": "Varsovie",
+      "label": "Varsovie → Prague",
+      "distance": "660 km",
+      "duration": "7 h"
+    },
+    {
+      "slug": "hradec-kralove-prague",
+      "city": "Hradec Králové",
+      "label": "Hradec Králové → Prague",
+      "distance": "115 km",
+      "duration": "1 h 30 min"
+    },
+    {
+      "slug": "liberec-prague",
+      "city": "Liberec",
+      "label": "Liberec → Prague",
+      "distance": "105 km",
+      "duration": "1 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distance",
+      "value": "~285 km"
+    },
+    {
+      "label": "Durée",
+      "value": "~3 heures"
+    },
+    {
+      "label": "Véhicules",
+      "value": [
+        "Classe Affaires",
+        "Première Classe",
+        "Van Affaires"
+      ]
+    },
+    {
+      "label": "Prix à partir de",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Wrocław à Prague.",
+    "headingItalic": "À partir de {ePrice} €, prix fixe."
+  },
+  "metadata": {
+    "title": "Chauffeur Wrocław – Prague — à partir de {ePrice} €",
+    "description": "Transfert privé de Wrocław à Prague — 285 km de porte à porte en Mercedes E, S ou V. Prise en charge à Wrocław ou à l'aéroport WRO. Prix fixe dès {ePrice} €.",
+    "ogTitle": "Transfert privé Wrocław – Prague avec chauffeur — dès {ePrice} €",
+    "ogDescription": "Transfert privé de Wrocław à Prague — 285 km de porte à porte en Mercedes E, S ou V. Prise en charge à Wrocław ou à l'aéroport WRO. Prix fixe dès {ePrice} €."
+  }
+}

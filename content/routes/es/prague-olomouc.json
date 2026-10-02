@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un traslado privado de Praga a Olomouc recorre 280 km por las autopistas D1 y D46 y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no varía, independientemente del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Brno o Vyškov— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si se produce una demora.",
-    "Esto no es una lanzadera compartida. Ni una aplicación de VTC. Un Mercedes privado, un chófer y una tarifa que no cambia entre la reserva y la llegada."
+    "Esto no es una lanzadera compartida. Un Mercedes privado, un chófer y una tarifa que no cambia entre la reserva y la llegada."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Olomouc",
@@ -191,7 +191,7 @@
     {
       "slug": "prague-krakow",
       "city": "Cracovia",
-      "distance": "540 km",
+      "distance": "530 km",
       "duration": "5 h 30 min"
     }
   ],

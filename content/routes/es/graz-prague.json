@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Graz → Praga",
+    "headlineLine1": "De Graz a Praga,",
+    "headlineItalic": "sin trasbordos.",
+    "intro": "De Graz a Praga con chófer privado son 450 km de traslado puerta a puerta hacia el norte por Estiria y la Alta Austria, pasando por Linz y después a través de Bohemia del Sur, unas 4,5 a 5 horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con los peajes y las viñetas austriaca y checa incluidos. Recogida en cualquier dirección de Graz o en el aeropuerto de Graz (GRZ) y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Graz a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Graz a Praga recorre 450 km: hacia el norte por la autopista A9 del Pyhrn a través de Estiria y la Alta Austria hasta Linz, la S10 hasta la frontera checa de Wullowitz–Dolní Dvořiště y después České Budějovice y la autopista D3, pasando por Tábor, hasta Praga. Dura aproximadamente de 4,5 a 5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel del casco antiguo, en una oficina, en la Graz Hauptbahnhof o en el aeropuerto de Graz, y le deja en la puerta de su dirección en Praga.",
+    "La tarifa se fija al reservar y no cambia: el combustible, los peajes, las viñetas austriaca y checa, el agua embotellada, el wifi y las sillas infantiles a petición están incluidos. Sin cambiar de tren en Viena, sin cargar con el equipaje de un andén a otro, sin buscar un taxi en Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Graz a Praga",
+    "headingItalic": "en cuatro horas y media o cinco.",
+    "paragraphs": [
+      "Desde una recogida al pie del Schlossberg, en el barrio universitario o en el aeropuerto de Graz, al sur de la ciudad, su chófer toma la autopista A9 del Pyhrn hacia el norte por los valles de Estiria y los túneles bajo el Gleinalpe y el Bosruck hasta la Alta Austria. Los tramos de túnel tienen su propio peaje, ya incluido en su tarifa. La autopista desciende por la campiña de Kremsmünster hasta Linz, a orillas del Danubio, donde la ruta gira hacia el norte por la vía rápida S10 del Mühlviertel.",
+      "La frontera austro-checa de Wullowitz–Dolní Dvořiště es un paso Schengen: sin paradas ni control de documentos en condiciones normales. En el lado checo, la carretera pasa por Kaplice hasta České Budějovice, y la autopista D3 le lleva hacia el norte, pasando por Tábor, hasta Praga. La distancia total es de aproximadamente 450 kilómetros; el tiempo de conducción es de cuatro horas y media a cinco con tráfico normal.",
+      "Su chófer consulta los túneles del Pyhrn, la S10 y la D3 antes de salir y, si hay obras, ajusta la ruta sin preguntar. Si desea pasar una tarde en Viena por el camino, es posible como desvío opcional: díganoslo al reservar. Sea cual sea la ruta, llega a Praga con toda la tarde por delante."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Graz hasta la llegada a Praga: el coche, el chófer, el combustible, las viñetas austriaca y checa y todos los peajes. Tanto si viaja por negocios, de escapada urbana o en la siguiente etapa de un recorrido más largo, baja del coche en Praga sin nada que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán a petición, útil para la entrega en su hotel de Graz.",
+    "Combustible, todos los peajes, la viñeta de autopista austriaca y la viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Graz, en la Graz Hauptbahnhof o dentro de la sala de llegadas del aeropuerto de Graz (GRZ), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Sillas infantiles a petición: portabebés a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Paradas en el camino —Linz, Český Krumlov o České Budějovice— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Business Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Executive Class",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Business Van",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Graz a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Graz",
+      "note": "Recogida en su hotel, oficina, la Graz Hauptbahnhof o el aeropuerto de Graz (GRZ). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Linz (opcional)",
+      "note": "La capital de la Alta Austria, a orillas del Danubio, donde termina la autopista del Pyhrn y la ruta gira hacia el norte: el lugar natural para un café o un breve paseo junto al río.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "České Budějovice (opcional)",
+      "note": "La capital de Bohemia del Sur, donde la carretera enlaza con la D3 para el último tramo hasta Praga. Un buen lugar para hacer una pausa.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "¿Un castillo en Český Krumlov, un mirador, un restaurante que quiere probar? Díganoslo al reservar. La ruta es suya.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen austro-checa en Wullowitz–Dolní Dvořiště. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "Las viñetas de autopista austriaca y checa y todos los peajes de la ruta, incluidos los tramos de túnel del Pyhrn, están incluidos en el precio indicado."
+    },
+    {
+      "label": "Recogida en el aeropuerto",
+      "value": "Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en el aeropuerto de Graz y ajusta la hora de recogida automáticamente. 60 minutos de espera gratuitos."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Regresa a Graz más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Cuatro horas y media o más,",
+    "headingItalic": "tres buenos motivos para parar.",
+    "intro": "Un trayecto de esta duración se lleva mejor con una pausa, y la carretera de Graz a Praga pasa por tres lugares que merecen una hora de su tiempo.",
+    "configurations": [
+      {
+        "title": "Linz, a orillas del Danubio",
+        "body": "Salida de Graz a las 8:30 y llegada a Linz poco antes de las 11:00. Un paseo por la Hauptplatz, una visita al Ars Electronica Center o un café junto al río, y después hacia el norte, cruzando la frontera, para llegar a Praga a última hora de la tarde.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Comida en Český Krumlov",
+        "body": "Un breve desvío tras la frontera le lleva a Český Krumlov, ciudad Patrimonio de la UNESCO abrazada por un meandro del Moldava. Noventa minutos para los patios del castillo y una comida junto al río, y después dos horas y media hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "České Budějovice y Hluboká",
+        "body": "Pare en la plaza mayor porticada de České Budějovice, cuna de la cervecería Budweiser Budvar, o en el castillo blanco de Hluboká, a pocos minutos al norte. Basta con una hora, y desde allí quedan unas dos horas por la D3 hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se presupuestan según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmaremos un presupuesto firme antes de reservar. Una breve pausa para el café o para descansar en la autopista siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer se detiene en la puerta de su hotel de Graz, listo a la hora acordada. En el aeropuerto de Graz le espera dentro de la sala de llegadas con un cartel con su nombre, sigue su vuelo y se ocupa de llevar su equipaje al coche.",
+    "Cuatro horas y media o cinco son un trayecto largo, y es suyo para aprovecharlo. Prepare la jornada de mañana, haga llamadas o duerma: su chófer conversa solo lo que usted quiera. Si es su primera vez en Praga, pregunte por la ciudad: dónde está su hotel, qué calles son peatonales, cómo pasar una primera velada.",
+    "El agua, un cargador y el wifi ya están en la cabina. Hay prevista una pausa en un área de servicio de la autopista, y usted decide cuándo. Al llegar a Praga, su chófer lleva las maletas a la recepción y usted entra directamente."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Graz a Praga.",
+    "items": [
+      {
+        "title": "Una tarifa fija para todo el trayecto",
+        "body": "El combustible, los peajes, las viñetas austriaca y checa y el tiempo del chófer están incluidos en el precio que reserva. Una ruta larga no significa suplementos al final."
+      },
+      {
+        "title": "Sin trasbordo en Viena",
+        "body": "No existe una conexión ferroviaria directa y rápida de Graz a Praga. En coche, su equipaje se carga una sola vez en Graz y sale en su puerta de Praga, sin ningún andén de por medio."
+      },
+      {
+        "title": "Una empresa de Praga",
+        "body": "Prestigo tiene su sede en Praga y opera su propia flota Mercedes. Su chófer conoce la ciudad a la que llega: las entradas de los hoteles, las calles de sentido único y el camino más rápido a su dirección."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Graz a Praga?",
+      "a": "Aproximadamente de 4,5 a 5 horas de puerta a puerta: la autopista A9 del Pyhrn hacia el norte hasta Linz, la S10 hasta la frontera de Wullowitz–Dolní Dvořiště y después České Budějovice y la D3 hasta Praga. El tráfico de entrada a Praga un viernes por la tarde o las obras en los túneles del Pyhrn pueden añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Graz a Praga?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye el combustible, todos los peajes, las viñetas austriaca y checa y el tiempo del chófer; es por coche, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Graz y llevarme directamente a Praga?",
+      "a": "Sí. Envíenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto de Graz (GRZ) con su nombre y le lleva directamente a su dirección en Praga. Hasta 60 minutos de espera en el aeropuerto son gratuitos."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren de Graz a Praga?",
+      "a": "La mayoría de las conexiones ferroviarias de Graz a Praga hacen trasbordo en Viena y tardan bastante más que el coche, sin contar el desplazamiento a la estación ni el taxi al llegar a Praga. Un coche privado es de puerta a puerta y cuesta lo mismo para uno que para tres pasajeros. Para quien viaja solo y con poco equipaje, el tren es la opción más económica."
+    },
+    {
+      "q": "¿Podemos hacer paradas en el camino de Graz a Praga?",
+      "a": "Sí. Linz, Český Krumlov y České Budějovice son las paradas más solicitadas; Viena es posible como un desvío más largo. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para el café o para descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Austria y la República Checa?",
+      "a": "Ambos países pertenecen al espacio Schengen, por lo que no hay control fronterizo rutinario en Wullowitz–Dolní Dvořiště. Lleve de todos modos su pasaporte o documento de identidad de la UE: se hacen controles aleatorios, y los viajeros de fuera de la UE deben llevar consigo su documentación."
+    }
+  ],
+  "relatedRoutesIntro": "Graz suele ser el extremo sur de un viaje por Austria y Europa Central. Los viajeros que llegan desde Viena, Linz, Salzburgo o Bratislava reservan del mismo modo: un solo coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Otras formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "vienna-prague",
+      "city": "Viena",
+      "label": "Viena → Praga",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "linz-prague",
+      "city": "Linz",
+      "label": "Linz → Praga",
+      "distance": "235 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "salzburg-prague",
+      "city": "Salzburgo",
+      "label": "Salzburgo → Praga",
+      "distance": "375 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "bratislava-prague",
+      "city": "Bratislava",
+      "label": "Bratislava → Praga",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "450 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4,5–5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Business Class",
+        "First Class",
+        "Business Van"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Graz a Praga.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Graz a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Graz a Praga: 450 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Graz o en el aeropuerto GRZ. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Graz a Praga — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Graz a Praga: 450 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Graz o en el aeropuerto GRZ. Precio fijo desde {ePrice} €."
+  }
+}

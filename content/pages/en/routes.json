@@ -38,10 +38,17 @@
     "cardLabels": {
       "distance": "Distance",
       "duration": "Duration",
-      "price": "Price"
+      "price": "Price from"
     },
     "bookButton": "Book Prague → {city}",
     "routeDetails": "Route Details"
+  },
+  "inbound": {
+    "label": "Inbound transfers",
+    "headingLine1": "Travelling to Prague?",
+    "headingItalic": " The same car, the other way.",
+    "intro": "Every route runs in both directions at the same fixed fare. Pickup from your hotel, office or airport in any of these cities, drop-off at any Prague address or Václav Havel Airport.",
+    "toPragueLabel": "{city} → Prague"
   },
   "destinationNames": {
     "prague-kutna-hora": "Kutná Hora",

@@ -3,12 +3,12 @@
     "label": "Prague → Linz",
     "headlineLine1": "Prague to Linz,",
     "headlineItalic": "Upper Austria direct.",
-    "intro": "195 km south to Upper Austria's capital on the Danube. Ars Electronica, Lentos Museum, and a city that has reinvented itself as a creative hub — two and a half hours, one fixed price.",
+    "intro": "235 km south to Upper Austria's capital on the Danube. Ars Electronica, Lentos Museum, and a city that has reinvented itself as a creative hub — two and a half hours, one fixed price.",
     "imageAlt": "Linz — private chauffeur transfer from Prague to Linz"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Linz covers 195 km and takes approximately 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Freistadt — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Linz covers approximately 235 km and takes about 2.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — České Budějovice or Freistadt — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Linz",
@@ -16,7 +16,7 @@
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D3 / E55 motorway south through Tábor and České Budějovice. The D3 is only partially built — the central section from Mezno past Tábor through the České Budějovice bypass is motorway standard, and the southern approach toward the border drops onto Highway 3 and Route 39 until the final kilometres are completed. It is a well-driven road that Prestigo chauffeurs know by memory.",
       "The Czech–Austrian border at Wullowitz/Dolní Dvořiště is invisible inside the Schengen Area — no stops, no document checks. On the Austrian side, the road becomes the S10 Mühlviertel expressway, completed in 2015 as the modern gateway from Bohemia into Upper Austria. The S10 runs through eight tunnels down to Unterweitersdorf, where it joins the A7 for the final descent into Linz on the Danube. Drop-off is at the Hauptplatz, the Lentos Art Museum on the south bank, the Ars Electronica Center opposite it, or the Pöstlingberg basilica above the city.",
-      "Total distance is approximately 195 kilometres. Driving time is two and a half hours in normal conditions. In winter, the Mühlviertel plateau around Freistadt can carry snow when Prague is still dry, and your chauffeur checks conditions before every departure. You are not paying for traffic; you are paying for time."
+      "Total distance is approximately 235 kilometres. Driving time is two and a half hours in normal conditions. In winter, the Mühlviertel plateau around Freistadt can carry snow when Prague is still dry, and your chauffeur checks conditions before every departure. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
@@ -80,7 +80,7 @@
     { "q": "How long does a private transfer from Prague to Linz take?", "a": "Approximately 2 hours 30 minutes door-to-door via the D3 motorway south through Tábor and České Budějovice, then the Austrian S10 Mühlviertel expressway into Linz. Friday afternoon traffic leaving Prague can add 15–20 minutes." },
     { "q": "How much does a chauffeur from Prague to Linz cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, Czech and Austrian motorway vignettes, and driver time. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Linz?", "a": "Yes, and it is the standard pattern on this route. Linz is close enough that most clients leave Prague in the morning, spend four to six hours in the city, and return the same evening. A same-day return receives a 10% discount. If you need the chauffeur to move around the city with you, add hourly city rental." },
-    { "q": "Do you cross the Austrian border without problems?", "a": "Both countries are inside the Schengen Area. The Wullowitz/Dolní Dvořiště crossing in South Bohemia is invisible — no stops, no document checks for EU citizens. All Prestigo vehicles carry both Czech and Austrian motorway vignettes, and the chauffeur holds a valid international chauffeur licence recognised in Austria." },
+    { "q": "Do you cross the Austrian border without problems?", "a": "Both countries are inside the Schengen Area. The Wullowitz/Dolní Dvořiště crossing in South Bohemia is invisible — no stops, no document checks for EU citizens. All Prestigo vehicles carry both Czech and Austrian motorway vignettes." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -89,11 +89,11 @@
   "relatedRoutes": [
     { "slug": "prague-cesky-krumlov", "city": "Český Krumlov", "distance": "170 km", "duration": "2h 15min" },
     { "slug": "prague-passau", "city": "Passau", "distance": "215 km", "duration": "2h 45min" },
-    { "slug": "prague-salzburg", "city": "Salzburg", "distance": "330 km", "duration": "4h" },
+    { "slug": "prague-salzburg", "city": "Salzburg", "distance": "375 km", "duration": "4h" },
     { "slug": "prague-vienna", "city": "Vienna", "distance": "330 km", "duration": "3h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~195 km" },
+    { "label": "Distance", "value": "~235 km" },
     { "label": "Duration", "value": "~2.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
@@ -104,8 +104,8 @@
   },
   "metadata": {
     "title": "Prague to Linz Chauffeur — From €{ePrice}",
-    "description": "Book a private chauffeur from Prague to Linz. 195 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Upper Austria capital.",
+    "description": "Book a private chauffeur from Prague to Linz. 235 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Upper Austria capital.",
     "ogTitle": "Prague to Linz Private Transfer — From €{ePrice}",
-    "ogDescription": "Book a private chauffeur from Prague to Linz. 195 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Upper Austria capital."
+    "ogDescription": "Book a private chauffeur from Prague to Linz. 235 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Upper Austria capital."
   }
 }

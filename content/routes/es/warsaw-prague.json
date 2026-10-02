@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Varsovia → Praga",
+    "headlineLine1": "De Varsovia a Praga,",
+    "headlineItalic": "de puerta a puerta.",
+    "intro": "De Varsovia a Praga con chófer privado son 660 km de traslado puerta a puerta hacia el sur a través de Polonia y Moravia, unas siete horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con los peajes de autopista y la viñeta checa incluidos. Recogida en cualquier dirección de Varsovia, en Warszawa Centralna o en el aeropuerto Chopin de Varsovia (WAW) y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Varsovia a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Varsovia a Praga cubre unos 660 km —hacia el suroeste por la vía rápida S8, hacia el sur por la A1 pasando por Częstochowa, cruzando la frontera checa cerca de Ostrava y después por la autopista D1 a través de Moravia hasta Praga— y dura unas siete horas de puerta a puerta, con pausas. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel de Śródmieście, en Warszawa Centralna o en la sala de llegadas del aeropuerto Chopin de Varsovia, y le deja en la puerta en Praga.",
+    "La tarifa se acuerda antes de salir y no cambia: el combustible, los peajes de autopista, la viñeta checa, el agua embotellada, el Wi-Fi y las sillas infantiles bajo petición están incluidos. Es un día largo, pero con un solo coche, un solo chófer y ningún transbordo desde su puerta en Varsovia hasta su dirección en Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Varsovia a Praga",
+    "headingItalic": "en un solo día.",
+    "paragraphs": [
+      "Desde la recogida en el centro, cerca de la Ciudad Vieja o en el aeropuerto Chopin de Varsovia, su chófer sale de Varsovia hacia el suroeste por la vía rápida S8 en dirección a Piotrków Trybunalski, donde la ruta enlaza con la autopista A1 hacia el sur. La A1 pasa por Częstochowa y las ciudades de la Alta Silesia hasta la frontera checa, cerca de Ostrava.",
+      "El cruce está dentro del espacio Schengen: sin control rutinario, sin colas. En el lado checo, la autopista D1 continúa a través de Moravia —pasando por Přerov y siguiendo por Brno u Olomouc— y entra en Praga por el sureste. Hay una ruta alternativa hacia el oeste por Breslavia y el valle de Kłodzko hasta Náchod y la D11; su chófer elige la más rápida la misma mañana del viaje. La distancia total es de unos 660 kilómetros; el tiempo de conducción es de unas siete horas, incluidas breves pausas.",
+      "Su chófer planifica las paradas de descanso antes de salir y sigue el tráfico en la A1 y la D1 a lo largo del día. Salga de Varsovia después del desayuno y estará en Praga para la cena, sin equipaje que gestionar ni estación que buscar."
+    ]
+  },
+  "includedLabel": "Qué está incluido",
+  "includedIntro": "El precio fijo cubre todo el viaje, desde la recogida en Varsovia hasta la llegada a Praga: el coche, el chófer, el combustible, los peajes de autopista y la viñeta checa. Para una mudanza, un traslado familiar con mucho equipaje o simplemente porque prefiere la carretera, llega a la puerta sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años de antigüedad.",
+    "Un chófer profesional, con inglés y checo fluidos.",
+    "Combustible, los peajes de autopista polacos del camino y la viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Varsovia, en Warszawa Centralna o dentro de la sala de llegadas del aeropuerto Chopin de Varsovia (WAW), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: la entrada del hotel, la puerta del apartamento, la oficina o el aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de móvil y Wi-Fi en la cabina trasera.",
+    "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Paradas por el camino —Częstochowa, Olomouc o Breslavia—, acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Executive",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Varsovia a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Varsovia",
+      "note": "Recogida en su hotel, su oficina, Warszawa Centralna o el aeropuerto Chopin de Varsovia (WAW). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Częstochowa (opcional)",
+      "note": "El monasterio de Jasna Góra, a poca distancia de la A1: un buen lugar para hacer una pausa en la primera mitad del trayecto.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Olomouc (opcional)",
+      "note": "Una ciudad morava cerca de la ruta, con una columna Patrimonio de la UNESCO y un tranquilo centro histórico para comer.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted quiera",
+      "note": "Una ruta larga da para más. Indíquenos una ciudad, un restaurante o un mirador al reservar.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación principal de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen polaco-checa cerca de Ostrava, o en Kudowa-Zdrój/Náchod por la ruta occidental. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "Los peajes de autopista polacos del camino y la viñeta de autopista checa están incluidos en el precio indicado."
+    },
+    {
+      "label": "Recogida en el aeropuerto",
+      "value": "Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en el aeropuerto Chopin de Varsovia y los primeros 60 minutos de espera son gratuitos."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Regresa a Varsovia más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Un largo camino,",
+    "headingItalic": "bien repartido.",
+    "intro": "Siete horas se llevan mejor con una o dos pausas de verdad. Estas tres paradas encajan en la ruta entre Varsovia y Praga.",
+    "configurations": [
+      {
+        "title": "Jasna Góra, Częstochowa",
+        "body": "Salida de Varsovia a las 8:00 y llegada a Częstochowa en unas dos horas y media. Una hora en el monasterio de Jasna Góra y su capilla, y después hacia el sur por la A1 en dirección a la frontera checa.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Comida en Olomouc",
+        "body": "Olomouc aparece en el tramo moravo del trayecto. Noventa minutos para comer en la Plaza Alta, junto a la Columna de la Santísima Trinidad, y después unas dos horas y media hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Breslavia por la ruta occidental",
+        "body": "Si prefiere la ruta occidental, Breslavia queda más o menos a mitad de camino. Comida en el Rynek y un paseo hasta Ostrów Tumski, y después hacia el sur por el valle de Kłodzko, cruzando la frontera en Náchod, hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se presupuestan según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmamos un presupuesto cerrado antes de reservar. Las breves paradas para tomar un café o descansar por el camino siempre están incluidas."
+  },
+  "chauffeurNarrative": [
+    "Su chófer llega a su puerta en Varsovia a la hora acordada y lo carga todo: muy útil en una ruta que mucha gente hace con más equipaje del que permite un vuelo. En el aeropuerto Chopin de Varsovia le espera dentro de la sala de llegadas con su nombre.",
+    "Un día entero en el coche necesita un buen ritmo. Su chófer planifica las pausas a intervalos razonables y mantiene la cabina en silencio mientras usted trabaja o descansa. Hacia el final, si quiere saber de Praga —su barrio, un buen primer paseo, dónde comer—, pregunte.",
+    "El agua, el cargador y el Wi-Fi le acompañan durante todo el trayecto. Pida una comida más larga, otra parada o una cabina más cálida y está hecho. En Praga, las maletas llegan con usted hasta la puerta."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Varsovia a Praga.",
+    "items": [
+      {
+        "title": "Una tarifa para todo el día",
+        "body": "El combustible, los peajes polacos, la viñeta checa y siete horas del tiempo del chófer están en el precio. No se añade nada a la llegada."
+      },
+      {
+        "title": "Todo su equipaje, sin límites",
+        "body": "Sin franquicia de equipaje, sin traslados al aeropuerto en ninguno de los dos extremos, sin transbordos de tren. Todo entra en el coche en Varsovia y sale en su puerta de Praga."
+      },
+      {
+        "title": "Praga es nuestra ciudad",
+        "body": "Prestigo es una empresa de Praga con su propia flota Mercedes. Su chófer sabe adónde va: las entradas de los hoteles, las calles restringidas, el acceso correcto a su edificio."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Varsovia a Praga?",
+      "a": "Unas siete horas de puerta a puerta, incluidas breves pausas: la S8 y la A1 hacia el sur a través de Polonia, la frontera cerca de Ostrava y después la D1 a través de Moravia hasta Praga. Las paradas más largas para comer o hacer turismo se suman a ese tiempo."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Varsovia a Praga?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El combustible, los peajes de autopista polacos, la viñeta checa y el tiempo del chófer están incluidos; por coche, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto Chopin de Varsovia y llevarme directamente a Praga?",
+      "a": "Sí. Indíquenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto Chopin con su nombre y le lleva directamente a su dirección en Praga."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el avión o el tren de Varsovia a Praga?",
+      "a": "Para una persona con poco equipaje, el avión es más rápido y el tren más barato: lo decimos con claridad. Un traslado privado tiene sentido para familias, grupos, mascotas, mucho equipaje o una mudanza: sin límites de equipaje, sin aeropuerto en ninguno de los dos extremos, de puerta a puerta y con la misma tarifa para un pasajero que para tres."
+    },
+    {
+      "q": "¿Podemos parar en el camino de Varsovia a Praga?",
+      "a": "Sí. Częstochowa, Olomouc y Breslavia son las opciones habituales. Indíquenoslo al reservar e incluimos la parada en un presupuesto cerrado. Las breves pausas para un café o para descansar siempre están incluidas."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Polonia y la República Checa?",
+      "a": "Ambos países forman parte del espacio Schengen, así que no hay control fronterizo rutinario. Lleve de todos modos su pasaporte o documento de identidad de la UE: hay controles puntuales, y los viajeros de fuera de la UE deben llevar consigo su documentación."
+    }
+  ],
+  "relatedRoutesIntro": "De Varsovia a Praga es la ruta más larga hacia Praga que hacemos desde Polonia. Los clientes que llegan desde Cracovia, Breslavia u Ostrava reservan de la misma forma: un coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Más formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "krakow-prague",
+      "city": "Cracovia",
+      "label": "Cracovia → Praga",
+      "distance": "530 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "wroclaw-prague",
+      "city": "Breslavia",
+      "label": "Breslavia → Praga",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "ostrava-prague",
+      "city": "Ostrava",
+      "label": "Ostrava → Praga",
+      "distance": "370 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "brno-prague",
+      "city": "Brno",
+      "label": "Brno → Praga",
+      "distance": "205 km",
+      "duration": "2 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~660 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~7 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Varsovia a Praga.",
+    "headingItalic": "Desde {ePrice} €, precio fijo."
+  },
+  "metadata": {
+    "title": "Chófer de Varsovia a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Varsovia a Praga: 660 km puerta a puerta en un Mercedes E, S o V-Class. Recogida en Varsovia o en el aeropuerto WAW. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Varsovia a Praga — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Varsovia a Praga: 660 km puerta a puerta en un Mercedes E, S o V-Class. Recogida en Varsovia o en el aeropuerto WAW. Precio fijo desde {ePrice} €."
+  }
+}

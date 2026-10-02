@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un transfert privé de Prague à Vienne couvre 330 km par les autoroutes D1 et D52, puis l'A5 jusqu'à Vienne, et demande environ 3 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Les arrêts en route — Brno, Bratislava ou un domaine viticole de Moravie du Sud — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille le trafic avant chaque départ et modifie l'itinéraire de lui-même en cas de ralentissement.",
-    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+    "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
     "headingLine1": "De Prague à Vienne",
@@ -175,7 +175,7 @@
     },
     {
       "q": "Le passage de la frontière autrichienne se fait-il sans difficulté ?",
-      "a": "Les deux pays font partie de l'espace Schengen. Il n'y a aucun contrôle frontalier systématique à Mikulov–Drasenhofen. Tous les véhicules Prestigo disposent de la vignette autoroutière autrichienne et le chauffeur détient une licence de chauffeur internationale valable en Autriche."
+      "a": "Les deux pays font partie de l'espace Schengen. Il n'y a aucun contrôle frontalier systématique à Mikulov–Drasenhofen. Tous les véhicules Prestigo disposent de la vignette autoroutière autrichienne."
     },
     {
       "q": "Un siège enfant est-il disponible ?",
@@ -213,7 +213,7 @@
     {
       "slug": "prague-salzburg",
       "city": "Salzbourg",
-      "distance": "385 km",
+      "distance": "375 km",
       "duration": "4 h"
     }
   ],

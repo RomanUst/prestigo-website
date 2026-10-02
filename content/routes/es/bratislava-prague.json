@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Bratislava → Praga",
+    "headlineLine1": "De Bratislava a Praga,",
+    "headlineItalic": "de capital a capital.",
+    "intro": "De Bratislava a Praga con chófer privado son 330 km de traslado puerta a puerta hacia el norte por la D2 y la D1, pasando por Brno, unas 3 h 30 min de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con las viñetas eslovaca y checa incluidas. Recogida en cualquier dirección de Bratislava o en el aeropuerto de Bratislava (BTS) y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Bratislava a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Bratislava a Praga recorre 330 km: hacia el norte por la autopista D2 hasta la frontera checa de Brodské–Lanžhot, pasando por Břeclav hasta Brno, y después la D1 a través de las Tierras Altas de Bohemia y Moravia hasta Praga. Dura aproximadamente 3,5 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel del casco antiguo, en una oficina junto al Danubio, en la estación central de Bratislava o en el aeropuerto de Bratislava, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "La tarifa se acuerda antes del viaje y no cambia. El combustible, los peajes, las viñetas de autopista eslovaca y checa, el agua embotellada, el wifi y las sillas infantiles a petición están incluidos. Un solo coche de puerta a puerta y ningún segundo taxi que buscar en Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Bratislava a Praga",
+    "headingItalic": "en tres horas y media.",
+    "paragraphs": [
+      "Desde una recogida en Staré Mesto, a los pies del castillo, en el nuevo barrio junto al río o en el aeropuerto de Bratislava, su chófer sale de la ciudad hacia el norte por la D2. La autopista cruza la llanura de Záhorie, cubierta de pinares, a lo largo del valle del Morava hasta la frontera checa de Brodské–Lanžhot. Ambos países están en Schengen, así que no hay paradas; y siendo el checo y el eslovaco tan parecidos, ni siquiera las señales de tráfico cambian mucho.",
+      "En el lado checo, la D2 pasa por Břeclav y los viñedos de Moravia del Sur hasta Brno, donde enlaza con la D1 para los últimos 205 km hasta Praga a través de las tierras altas de Vysočina. La distancia total es de aproximadamente 330 kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Los viernes por la tarde, la entrada a Praga puede añadir entre 20 y 30 minutos.",
+      "Su chófer consulta el estado de la D1 antes de salir. Si hay obras o un accidente entre Brno y Jihlava, toma la alternativa sin preguntar. Llega a Praga con tiempo para registrarse en el hotel, cambiarse y salir a cenar dando un paseo."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Bratislava hasta la llegada a Praga: el coche, el chófer, el combustible, las viñetas eslovaca y checa y todos los peajes del camino. Un viaje de negocios entre las dos capitales o un fin de semana en Praga: en cualquier caso, llega sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos, que se entiende sin problema en eslovaco. Alemán a petición.",
+    "Combustible, todos los peajes, la viñeta de autopista eslovaca y la viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Bratislava, en la estación central de Bratislava o dentro de la sala de llegadas del aeropuerto de Bratislava (BTS), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Sillas infantiles a petición: portabebés a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Paradas en el camino —Lednice, Brno o Telč— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Bratislava a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Bratislava",
+      "note": "Recogida en su hotel, oficina, la estación central de Bratislava o el aeropuerto de Bratislava (BTS). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Lednice (opcional)",
+      "note": "Un breve desvío desde Břeclav hasta el paisaje cultural de Lednice–Valtice, con su castillo neogótico y su parque.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Brno (opcional)",
+      "note": "La capital de Moravia está en la ruta, donde la D2 se une a la D1. Pare para comer o para una reunión.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "¿Una bodega, un mirador, un restaurante del que ha oído hablar? Díganoslo al reservar. La ruta es suya.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen eslovaco-checa en Brodské–Lanžhot. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "Las viñetas de autopista eslovaca y checa y todos los peajes están incluidos en el precio indicado."
+    },
+    {
+      "label": "Recogida en el aeropuerto",
+      "value": "Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en el aeropuerto de Bratislava y ajusta la hora de recogida automáticamente. 60 minutos de espera gratuitos."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Regresa a Bratislava más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Tres horas y media,",
+    "headingItalic": "con tiempo para mirar.",
+    "intro": "La carretera de Bratislava a Praga atraviesa Moravia del Sur y las tierras altas checas. Tres paradas cubren la mayoría de lo que nos piden los viajeros por el camino.",
+    "configurations": [
+      {
+        "title": "Castillo y parque de Lednice",
+        "body": "Salida de Bratislava a las 9:00 y desvío en Břeclav hacia Lednice, parte del paisaje cultural de Lednice–Valtice, Patrimonio de la UNESCO. Una hora para los jardines del castillo y el invernadero, y llegada a Praga a media tarde.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Comida en Brno",
+        "body": "Brno está a una hora y media de Bratislava. Pare para comer en el centro o para una visita reservada con antelación a la Villa Tugendhat de Mies van der Rohe, Patrimonio de la UNESCO, y después dos horas por la D1 hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Telč, la plaza renacentista",
+        "body": "Un desvío de la D1 cerca de Jihlava le lleva a Telč: una plaza Patrimonio de la UNESCO de casas renacentistas de colores pastel junto a un castillo tranquilo. Una hora a pie y después rumbo a Praga, donde llega al anochecer.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se presupuestan según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmaremos un presupuesto firme antes de reservar. Una breve pausa para el café o para descansar en la autopista siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer le recibe en la entrada de su hotel u oficina de Bratislava, a la hora acordada. En el aeropuerto de Bratislava le espera dentro de la sala de llegadas con un cartel con su nombre y le ayuda con el equipaje hasta el coche.",
+    "El trayecto dura unas tres horas y media, y cómo aprovecharlo depende de usted. Responda correos, prepare una reunión o descanse. Si visita Praga por primera vez, su chófer puede decirle en qué distrito está su hotel, cuándo está más tranquila la Ciudad Vieja y cómo llegar al Castillo.",
+    "El agua, un cargador y el wifi ya están en la cabina. Si le apetece un café cerca de Brno o prefiere la cabina más fresca, solo tiene que decirlo. En Praga, su chófer lleva las maletas hasta la recepción del hotel, no solo hasta la acera."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Bratislava a Praga.",
+    "items": [
+      {
+        "title": "El precio es fijo",
+        "body": "El combustible, los peajes, las viñetas eslovaca y checa y el tiempo del chófer están incluidos en la tarifa que reserva. No se añade nada al llegar a Praga."
+      },
+      {
+        "title": "De puerta a puerta, un solo coche",
+        "body": "Sin desplazarse a la estación, sin cambios de tren, sin colas de taxis en Praha hlavní nádraží. Su equipaje entra en el maletero en Bratislava y sale en su dirección de Praga."
+      },
+      {
+        "title": "De Praga, y la conocemos bien",
+        "body": "Prestigo es una empresa de Praga con su propia flota Mercedes. Su chófer conoce la ciudad a la que se dirige: las entradas de los hoteles, las zonas peatonales y el acceso más rápido a su dirección."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Bratislava a Praga?",
+      "a": "Aproximadamente 3 horas y 30 minutos de puerta a puerta: la D2 hacia el norte hasta la frontera de Brodské–Lanžhot, pasando por Břeclav hasta Brno, y después la D1 hasta Praga. El tráfico del viernes por la tarde con destino a Praga puede añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Bratislava a Praga?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye el combustible, todos los peajes, las viñetas eslovaca y checa y el tiempo del chófer; es por coche, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Bratislava y llevarme directamente a Praga?",
+      "a": "Sí. Envíenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto de Bratislava (BTS) con su nombre y le lleva directamente a su dirección en Praga. Hasta 60 minutos de espera en el aeropuerto son gratuitos."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren de Bratislava a Praga?",
+      "a": "El tren directo tarda unas cuatro horas de estación a estación, sin contar el desplazamiento a la estación central de Bratislava ni el taxi al llegar a Praga. Un coche privado es de puerta a puerta, sale cuando usted quiere y cuesta lo mismo para uno que para tres pasajeros. Para quien viaja solo y con poco equipaje, el tren es la opción más económica."
+    },
+    {
+      "q": "¿Podemos hacer paradas en el camino de Bratislava a Praga?",
+      "a": "Sí. Lednice, Brno y Telč son las paradas más solicitadas. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para el café o para descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Eslovaquia y la República Checa?",
+      "a": "Ambos países forman parte del espacio Schengen desde 2007, por lo que no hay control fronterizo rutinario en Brodské–Lanžhot. Lleve de todos modos su pasaporte o documento de identidad de la UE: se hacen controles aleatorios, y los viajeros de fuera de la UE deben llevar consigo su documentación."
+    }
+  ],
+  "relatedRoutesIntro": "El trayecto de Bratislava a Praga suele ser una etapa de un viaje más largo por Europa Central. Los viajeros que llegan desde Viena, Budapest, Brno o Graz reservan del mismo modo: un solo coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Otras formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "vienna-prague",
+      "city": "Viena",
+      "label": "Viena → Praga",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    },
+    {
+      "slug": "budapest-prague",
+      "city": "Budapest",
+      "label": "Budapest → Praga",
+      "distance": "535 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "brno-prague",
+      "city": "Brno",
+      "label": "Brno → Praga",
+      "distance": "205 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "graz-prague",
+      "city": "Graz",
+      "label": "Graz → Praga",
+      "distance": "450 km",
+      "duration": "4 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "330 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~3,5 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Bratislava a Praga.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Bratislava a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Bratislava a Praga: 330 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Bratislava o en BTS. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Bratislava a Praga — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Bratislava a Praga: 330 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Bratislava o en BTS. Precio fijo desde {ePrice} €."
+  }
+}

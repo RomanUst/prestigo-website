@@ -38,10 +38,17 @@
     "cardLabels": {
       "distance": "Distance",
       "duration": "Durée",
-      "price": "Prix"
+      "price": "Prix à partir de"
     },
     "bookButton": "Réserver Prague → {city}",
     "routeDetails": "Détails du trajet"
+  },
+  "inbound": {
+    "label": "Transferts vers Prague",
+    "headingLine1": "Vous venez à Prague ?",
+    "headingItalic": " La même voiture, dans l’autre sens.",
+    "intro": "Chaque itinéraire fonctionne dans les deux sens au même tarif fixe. Prise en charge à votre hôtel, bureau ou aéroport dans l’une de ces villes, dépose à n’importe quelle adresse de Prague ou à l’aéroport Václav-Havel.",
+    "toPragueLabel": "De {city} à Prague"
   },
   "destinationNames": {
     "prague-kutna-hora": "Kutná Hora",

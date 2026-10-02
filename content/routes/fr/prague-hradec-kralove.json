@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un transfert privé de Prague à Hradec Králové représente 115 km par l'autoroute D11 et demande environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Poděbrady ou Chlumec nad Cidlinou — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur consulte l'état du trafic avant chaque départ et modifie l'itinéraire sans qu'il soit nécessaire de le demander en cas de retard.",
-    "Ce n'est pas une navette partagée. Ni une application de taxi. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas entre la réservation et l'arrivée."
+    "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas entre la réservation et l'arrivée."
   ],
   "routeNarrative": {
     "headingLine1": "De Prague à Hradec Králové",
@@ -185,7 +185,7 @@
     {
       "slug": "prague-kutna-hora",
       "city": "Kutná Hora",
-      "distance": "80 km",
+      "distance": "70 km",
       "duration": "1 h"
     },
     {

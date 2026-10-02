@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Salzburgo → Praga",
+    "headlineLine1": "De Salzburgo a Praga,",
+    "headlineItalic": "un coche, una tarifa.",
+    "intro": "De Salzburgo a Praga con chófer privado son 375 km de traslado puerta a puerta: hacia el este por la A1 hasta Linz y después hacia el norte por Bohemia del Sur, unas 4 h de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con las viñetas austriaca y checa incluidas. Recogida en cualquier dirección de Salzburgo o en el aeropuerto de Salzburgo (SZG) y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Salzburgo a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Salzburgo a Praga recorre 375 km: hacia el este por la A1 Westautobahn hasta Linz, hacia el norte por la S10 a través del Mühlviertel hasta la frontera checa de Wullowitz–Dolní Dvořiště, y después por České Budějovice y la autopista D3 hasta Praga. Dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel del Altstadt, en una residencia del festival, en la Salzburg Hauptbahnhof o en el aeropuerto de Salzburgo, y le deja en la puerta de su hotel, apartamento u oficina en Praga.",
+    "La tarifa queda fijada antes de salir de Salzburgo. El combustible, los peajes, las viñetas austriaca y checa, el agua embotellada, el wifi y las sillas infantiles a petición están incluidos. Sin cambiar de tren en Linz, sin maletas en un andén, nada que resolver al llegar a Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Salzburgo a Praga",
+    "headingItalic": "en unas cuatro horas.",
+    "paragraphs": [
+      "Desde una recogida en cualquiera de las orillas del Salzach —el Altstadt, los hoteles junto a Mirabell o el aeropuerto, en el extremo oeste de la ciudad—, su chófer toma la A1 en dirección este. La autopista bordea el Salzkammergut pasando junto a Mondsee y atraviesa después las tierras de cultivo de la Alta Austria hacia Wels y Linz, a orillas del Danubio.",
+      "En Linz la ruta gira hacia el norte por la vía rápida S10 del Mühlviertel y asciende por un paisaje de colinas onduladas y boscosas hasta la frontera checa de Wullowitz–Dolní Dvořiště. Es un paso Schengen: sin garita y sin paradas en condiciones normales. En el lado checo la carretera continúa por Kaplice hasta České Budějovice, donde la autopista D3 toma el relevo hacia el norte, por Tábor, hasta Praga. La distancia total es de aproximadamente 375 kilómetros; el tiempo de conducción es de unas cuatro horas con tráfico normal.",
+      "Su chófer consulta el estado de la carretera antes de salir. Durante el Festival de Salzburgo, a finales de julio y en agosto, y los fines de semana de invierno, cuando el tráfico de esquiadores llena la A1, el tramo hacia Linz puede ir lento; si es así, ajusta la hora de salida o la ruta sin preguntar. Llega a Praga a tiempo para registrarse en el hotel y aún le queda la tarde para la Ciudad Vieja."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo el trayecto, desde la recogida en Salzburgo hasta su puerta en Praga: el coche, el chófer, el combustible, las viñetas austriaca y checa y todos los peajes. Tanto si sale después del festival, de una semana de esquí o de una visita de negocios, llega a Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Alemán a petición, útil para la entrega en el hotel de Salzburgo.",
+    "Combustible, todos los peajes, la viñeta de autopista austriaca y la viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Salzburgo, en la Salzburg Hauptbahnhof o dentro de la sala de llegadas del aeropuerto de Salzburgo (SZG), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Sillas infantiles a petición: portabebés a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Paradas en el camino —Linz, Český Krumlov o České Budějovice— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Van Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Salzburgo a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Salzburgo",
+      "note": "Recogida en su hotel, residencia, la Salzburg Hauptbahnhof o el aeropuerto de Salzburgo (SZG). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Linz (opcional)",
+      "note": "La capital de la Alta Austria, a orillas del Danubio, donde la ruta gira hacia el norte: el lugar natural para un café o un breve paseo junto al río.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Český Krumlov (opcional)",
+      "note": "Un breve desvío desde Kaplice hasta la ciudad del castillo a orillas del Moldava, la primera gran visita en el lado checo.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "¿Un café junto a un lago, un castillo, una cervecería en České Budějovice? Díganoslo al reservar. La ruta es suya.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Frontera Schengen austro-checa en Wullowitz–Dolní Dvořiště. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+    },
+    {
+      "label": "Peajes",
+      "value": "Las viñetas de autopista austriaca y checa y todos los peajes están incluidos en el precio indicado."
+    },
+    {
+      "label": "Temporada de festival",
+      "value": "El Festival de Salzburgo se celebra desde finales de julio hasta agosto. Las salidas tras las últimas funciones se agotan pronto: reserve su fecha con antelación."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Regresa a Salzburgo más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Haga una pausa",
+    "headingItalic": "en Bohemia del Sur.",
+    "intro": "La carretera de Salzburgo a Praga pasa por algunas de las mejores pequeñas ciudades de Austria y la República Checa. Estas tres paradas son las que más piden los viajeros.",
+    "configurations": [
+      {
+        "title": "Linz, a orillas del Danubio",
+        "body": "Salida de Salzburgo a las 9:00 y parada en Linz una hora y cuarto después. Un paseo por la Hauptplatz, una visita al Ars Electronica Center o un café junto al río, y después rumbo norte hacia Praga, con llegada a última hora de la tarde.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Comida en Český Krumlov",
+        "body": "Un breve desvío tras la frontera le lleva a Český Krumlov, ciudad Patrimonio de la UNESCO abrazada por un meandro del Moldava. Noventa minutos para los patios del castillo y una comida junto al río, y después dos horas y media hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "České Budějovice y Hluboká",
+        "body": "Pare en la plaza mayor porticada de České Budějovice, cuna de la cervecería Budweiser Budvar, o en el castillo blanco de estilo neogótico Tudor de Hluboká, a pocos minutos al norte. Basta con una hora, y la D3 le lleva directamente a Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se presupuestan según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmaremos un presupuesto firme antes de reservar. Una breve pausa para el café o para descansar en el camino siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer llega a la entrada de su hotel de Salzburgo, no al final de una calle peatonal del Altstadt. En el aeropuerto de Salzburgo le espera dentro de la sala de llegadas con un cartel con su nombre, sigue su vuelo y lleva el equipaje del carrito al maletero.",
+    "La cabina es suya durante unas cuatro horas. Trabaje, descanse o atienda llamadas: su chófer se adapta a usted. Si quiere saber más sobre su destino, pregunte: qué puente cruzar primero a pie, dónde queda su hotel de Praga respecto al Castillo, cuánto se tarda andando hasta la Plaza de la Ciudad Vieja.",
+    "El agua, un cargador y el wifi están listos cuando sube al coche. Dígale a su chófer si quiere una pausa cerca de Linz o una temperatura concreta en la parte trasera. En Praga lleva sus maletas hasta la recepción y le deja sin nada pendiente que organizar."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Salzburgo a Praga.",
+    "items": [
+      {
+        "title": "Un precio, acordado de antemano",
+        "body": "El combustible, los peajes, las viñetas austriaca y checa y el tiempo del chófer están incluidos en la tarifa que reserva. El tráfico cerca de Linz no la cambia, y no se añade nada al llegar a Praga."
+      },
+      {
+        "title": "Sin trasbordo en Linz",
+        "body": "Viajar en tren de Salzburgo a Praga suele implicar un cambio de tren por el camino. En coche, su equipaje se carga una sola vez en su puerta de Salzburgo y se descarga en su puerta de Praga."
+      },
+      {
+        "title": "Con sede en Praga",
+        "body": "Prestigo es una empresa de Praga con su propia flota Mercedes. Su chófer recorre estas calles a diario y conoce las entradas de los hoteles, las zonas peatonales y el camino más rápido a su dirección."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Salzburgo a Praga?",
+      "a": "Aproximadamente 4 horas de puerta a puerta: la A1 hacia el este hasta Linz, la S10 hacia el norte hasta la frontera de Wullowitz–Dolní Dvořiště y después České Budějovice y la D3 hasta Praga. Los fines de semana del festival y el tráfico de esquiadores en invierno en la A1 pueden alargar el trayecto."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Salzburgo a Praga?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El precio incluye el combustible, todos los peajes, las viñetas austriaca y checa y el tiempo del chófer; es por coche, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Salzburgo y llevarme directamente a Praga?",
+      "a": "Sí. Envíenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto de Salzburgo (SZG) con su nombre y le lleva directamente a su dirección en Praga. Hasta 60 minutos de espera en el aeropuerto son gratuitos."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren de Salzburgo a Praga?",
+      "a": "Las conexiones ferroviarias entre Salzburgo y Praga suelen requerir un trasbordo, a menudo en Linz, y tardan más que el coche si se suma el desplazamiento a la estación y el taxi en Praga. Un coche privado es de puerta a puerta y cuesta lo mismo para uno que para tres pasajeros. Para quien viaja solo y con poco equipaje, el tren es la opción más económica."
+    },
+    {
+      "q": "¿Podemos hacer paradas en el camino de Salzburgo a Praga?",
+      "a": "Sí. Linz, Český Krumlov y České Budějovice son las paradas más solicitadas. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para el café o para descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Necesito el pasaporte entre Austria y la República Checa?",
+      "a": "Ambos países pertenecen al espacio Schengen, por lo que no hay control fronterizo rutinario en Wullowitz–Dolní Dvořiště. Lleve de todos modos su pasaporte o documento de identidad de la UE: se hacen controles aleatorios, y los viajeros de fuera de la UE deben llevar consigo su documentación."
+    }
+  ],
+  "relatedRoutesIntro": "Salzburgo suele ser una parada de un viaje más largo por Austria, Baviera y Bohemia. Los viajeros que llegan desde Linz, Múnich, Passau o Viena reservan del mismo modo: un solo coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Otras formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "linz-prague",
+      "city": "Linz",
+      "label": "Linz → Praga",
+      "distance": "235 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "munich-prague",
+      "city": "Múnich",
+      "label": "Múnich → Praga",
+      "distance": "385 km",
+      "duration": "4 h"
+    },
+    {
+      "slug": "passau-prague",
+      "city": "Passau",
+      "label": "Passau → Praga",
+      "distance": "220 km",
+      "duration": "2 h 30 min"
+    },
+    {
+      "slug": "vienna-prague",
+      "city": "Viena",
+      "label": "Viena → Praga",
+      "distance": "330 km",
+      "duration": "3 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "375 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Van Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Salzburgo a Praga.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Salzburgo a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Salzburgo a Praga: 375 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Salzburgo o en SZG. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Salzburgo a Praga — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Salzburgo a Praga: 375 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Salzburgo o en SZG. Precio fijo desde {ePrice} €."
+  }
+}

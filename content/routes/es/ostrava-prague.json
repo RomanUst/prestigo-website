@@ -1,0 +1,258 @@
+{
+  "hero": {
+    "label": "Ostrava → Praga",
+    "headlineLine1": "De Ostrava a Praga,",
+    "headlineItalic": "de puerta a puerta.",
+    "intro": "De Ostrava a Praga con chófer privado son 370 km de traslado puerta a puerta por la D1, unas 4 horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con el combustible y la viñeta de autopista checa incluidos. Recogida en cualquier dirección de Ostrava, en la estación central de Ostrava o en el aeropuerto Leoš Janáček (OSR), y llegada a cualquier punto de Praga.",
+    "imageAlt": "Traslado con chófer privado de Ostrava a Praga en un Mercedes"
+  },
+  "openingParagraphs": [
+    "Un traslado privado de Ostrava a Praga recorre 370 km por la D1: hacia el suroeste desde Moravia-Silesia, a través de Moravia central hasta Brno, y después hacia el oeste por las Tierras Altas de Bohemia y Moravia hasta Praga. Dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel u oficina de Ostrava, en Ostrava hlavní nádraží o en Ostrava-Svinov, o dentro de la sala de llegadas del aeropuerto Leoš Janáček, y le deja en su puerta de Praga.",
+    "El precio se fija al reservar: el combustible, la viñeta de autopista checa, el agua embotellada, el wifi y las sillas infantiles a petición están incluidos. Un solo coche todo el camino: sin conexiones, sin equipaje en un andén, nada que organizar al llegar a Praga."
+  ],
+  "routeNarrative": {
+    "headingLine1": "De Ostrava a Praga",
+    "headingItalic": "en cuatro horas.",
+    "paragraphs": [
+      "Desde una recogida cerca de Stodolní, en Dolní Vítkovice o en una de las estaciones de la ciudad, su chófer toma la D1 en el lado suroeste de Ostrava. El aeropuerto Leoš Janáček, en Mošnov, está junto a este tramo, así que una recogida en el aeropuerto no exige un desvío hacia la ciudad. En esta ruta no hay frontera: aunque Ostrava está cerca de Polonia y de Eslovaquia, el trayecto a Praga transcurre íntegramente dentro de la República Checa.",
+      "La autopista avanza hacia el suroeste por la Puerta de Moravia, pasando por Hranice, y cruza después la abierta llanura de Haná, junto a Přerov y Kroměříž, hasta Vyškov y Brno. Desde Brno comienza el largo tramo hacia el oeste a través de la Vysočina —Velké Meziříčí, Jihlava, Humpolec— y el descenso hacia Bohemia Central. La distancia total es de aproximadamente 370 kilómetros; el tiempo de conducción es de cuatro horas con tráfico normal.",
+      "Su chófer consulta el estado de la D1 antes de salir de Ostrava. Si hay obras o un accidente en las tierras altas, los rodea por las carreteras paralelas sin preguntar. En un trayecto de cuatro horas, una pausa como es debido forma parte del plan, y los viernes por la tarde o los domingos por la noche la entrada a Praga puede añadir entre 20 y 30 minutos."
+    ]
+  },
+  "includedLabel": "Qué incluye",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Ostrava hasta la llegada a Praga: el coche, el chófer, el combustible y la viñeta de autopista checa. Tanto si vuelve de una visita de negocios, de un fin de semana de festival o llega en avión a Ostrava, alcanza Praga sin nada más que organizar.",
+  "inclusions": [
+    "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos con menos de tres años.",
+    "Un chófer profesional, con inglés y checo fluidos. Polaco a petición.",
+    "Combustible y viñeta de autopista checa. No se cobra nada aparte.",
+    "Recogida en cualquier dirección de Ostrava, en la estación central de Ostrava o en Ostrava-Svinov, o dentro de la sala de llegadas del aeropuerto Leoš Janáček (OSR), con seguimiento del vuelo.",
+    "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
+    "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
+    "Sillas infantiles a petición: portabebés a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
+    "Paradas en el camino —Štramberk, Olomouc o Brno— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
+  ],
+  "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
+  "vehicles": [
+    {
+      "name": "Mercedes-Benz E-Class",
+      "category": "Clase Business",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {ePrice} €",
+      "photo": "/vehicles/e-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz S-Class",
+      "category": "Clase Ejecutiva",
+      "capacity": "1–3 pasajeros",
+      "bags": "2 maletas",
+      "price": "Desde {sPrice} €",
+      "photo": "/vehicles/s-class.avif"
+    },
+    {
+      "name": "Mercedes-Benz V-Class",
+      "category": "Monovolumen Business",
+      "capacity": "1–6 pasajeros",
+      "bags": "6 maletas",
+      "price": "Desde {vPrice} €",
+      "photo": "/vehicles/v-class.avif"
+    }
+  ],
+  "journeyHeading": {
+    "line1": "De Ostrava a Praga,",
+    "italic": "la ruta."
+  },
+  "journeyStops": [
+    {
+      "city": "Ostrava",
+      "note": "Recogida en su hotel, oficina, la estación central de Ostrava, Ostrava-Svinov o el aeropuerto Leoš Janáček (OSR). En el aeropuerto, su chófer le espera dentro de la sala de llegadas con su nombre.",
+      "anchor": true,
+      "custom": false
+    },
+    {
+      "city": "Olomouc (opcional)",
+      "note": "Un breve desvío de la D1 hasta la capital histórica de Moravia: la Plaza Alta y la Columna de la Santísima Trinidad.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Brno (opcional)",
+      "note": "La capital de Moravia, justo en la ruta y un punto natural a mitad de camino para comer o para una reunión.",
+      "anchor": false,
+      "custom": false
+    },
+    {
+      "city": "Donde usted prefiera",
+      "note": "¿Un castillo, un mirador, un restaurante del que ha oído hablar? Díganoslo al reservar y lo añadimos a la ruta.",
+      "anchor": false,
+      "custom": true
+    },
+    {
+      "city": "Praga",
+      "note": "Llegada a cualquier dirección de Praga, a la estación central de Praga o al aeropuerto Václav Havel (PRG) para un vuelo de conexión.",
+      "anchor": true,
+      "custom": false
+    }
+  ],
+  "goodToKnow": [
+    {
+      "label": "Paso de frontera",
+      "value": "Sin paso de frontera: la ruta a Praga transcurre íntegramente dentro de la República Checa."
+    },
+    {
+      "label": "Peajes",
+      "value": "La viñeta de autopista checa está incluida en el precio indicado."
+    },
+    {
+      "label": "Recogida en el aeropuerto",
+      "value": "¿Llega en avión a Ostrava? Indíquenos su número de vuelo. Su chófer sigue el aterrizaje en Mošnov y espera hasta 60 minutos sin coste."
+    },
+    {
+      "label": "Traslado de vuelta",
+      "value": "¿Regresa a Ostrava más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
+    }
+  ],
+  "dayTripLabel": "Paradas en el camino",
+  "dayTrip": {
+    "headingLine1": "Cuatro horas,",
+    "headingItalic": "a su ritmo.",
+    "intro": "Un trayecto de cuatro horas se lleva mejor con una pausa de verdad. Estas tres paradas están en la carretera de Ostrava a Praga o muy cerca de ella.",
+    "configurations": [
+      {
+        "title": "Štramberk, a los pies de la torre Trúba",
+        "body": "A unos 40 minutos del centro de Ostrava, el pueblo de Štramberk, en lo alto de una colina, tiene casas de madera, la torre del castillo Trúba y una breve subida con vistas a las estribaciones de los Beskides. Cuarenta y cinco minutos allí y después a la D1 en dirección a Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Olomouc, la Plaza Alta",
+        "body": "Un breve desvío de la D1 le lleva a Olomouc. Una hora para la Columna de la Santísima Trinidad, las fuentes barrocas y un café en la plaza, y después hacia el sur, a Brno, y de allí a Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      },
+      {
+        "title": "Comida en Brno",
+        "body": "Brno aparece al cabo de una hora y media, cerca de la mitad del camino. Comida en el centro o una visita reservada con antelación a la Villa Tugendhat, y después dos horas y media por la D1 hasta Praga.",
+        "price": "Añada una parada al reservar: contáctenos para un presupuesto."
+      }
+    ],
+    "footnote": "Las paradas se planifican al reservar y se presupuestan según el tiempo y la distancia adicionales: díganos dónde le gustaría parar y le confirmaremos un presupuesto firme antes de reservar. Una breve pausa para el café o para descansar en la autopista siempre está incluida."
+  },
+  "chauffeurNarrative": [
+    "Su chófer está en su dirección de Ostrava cuando usted está listo para salir, o dentro de la sala de llegadas del aeropuerto Leoš Janáček con un cartel con su nombre. Desde Mošnov la D1 está a pocos minutos, así que enseguida está en la carretera hacia Praga.",
+    "Cuatro horas son una tarde de trabajo. Su chófer mantiene la cabina en silencio y deja que usted marque el tono. Si quiere saber algo de Praga —en qué distrito está su hotel, cuánto tiempo prever para el aeropuerto, dónde se forma el tráfico por la tarde—, solo tiene que preguntar.",
+    "El agua, un cargador y el wifi están listos en la cabina trasera. Hacia la mitad del camino hay una pausa incluida, para un café y unos minutos fuera del coche. En Praga, el coche se detiene en su entrada y sus maletas entran con usted."
+  ],
+  "whyBook": {
+    "headingLine1": "Por qué reservar con Prestigo",
+    "headingItalic": "de Ostrava a Praga.",
+    "items": [
+      {
+        "title": "Tarifa fija para 370 km",
+        "body": "El combustible, la viñeta checa y el tiempo del chófer están incluidos en el precio. El tráfico de la D1 no lo cambia, y no se añade nada en Praga."
+      },
+      {
+        "title": "Un solo coche, de principio a fin",
+        "body": "Sin desplazarse a Svinov o a la estación central, sin buscar su vagón, sin colas de taxis en Praga. Sus maletas entran en el maletero una vez en Ostrava y salen en su puerta de Praga."
+      },
+      {
+        "title": "Una empresa con sede en Praga",
+        "body": "Prestigo opera su propia flota Mercedes desde Praga. Su chófer conoce la ciudad a la que llega: los accesos en coche a los hoteles, las calles cerradas de la Ciudad Vieja, el tiempo real de trayecto hasta el aeropuerto."
+      }
+    ]
+  },
+  "faqsHeading": "Preguntas frecuentes",
+  "faqs": [
+    {
+      "q": "¿Cuánto dura un traslado privado de Ostrava a Praga?",
+      "a": "Aproximadamente 4 horas de puerta a puerta, casi todo por la D1, pasando por Brno y la Vysočina. El tráfico del viernes por la tarde o del domingo por la noche con destino a Praga puede añadir entre 20 y 30 minutos."
+    },
+    {
+      "q": "¿Cuánto cuesta un taxi o un chófer de Ostrava a Praga?",
+      "a": "Una tarifa fija desde {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros, {vPrice} € en el V-Class para hasta 6, o {sPrice} € en el S-Class. El combustible, la viñeta de autopista checa y el tiempo del chófer están incluidos. El precio es por coche, no por persona."
+    },
+    {
+      "q": "¿Pueden recogerme en el aeropuerto de Ostrava y llevarme directamente a Praga?",
+      "a": "Sí. Indíquenos su número de vuelo al reservar. Su chófer sigue el aterrizaje, le espera dentro de la sala de llegadas del aeropuerto Leoš Janáček con su nombre y dispone de 60 minutos de espera gratuita. El aeropuerto está junto a la D1, así que va directamente hacia Praga sin entrar en Ostrava."
+    },
+    {
+      "q": "¿Es mejor un traslado privado que el tren de Ostrava a Praga?",
+      "a": "El tren directo tarda algo más de tres horas de estación a estación y es la opción más económica para una persona con poco equipaje. Un traslado privado tarda unas cuatro horas, pero va de su puerta a su dirección en Praga, sale cuando usted quiere, lleva todo su equipaje y cuesta lo mismo para uno que para tres pasajeros: la opción más adecuada para familias, grupos y equipaje pesado."
+    },
+    {
+      "q": "¿Podemos hacer paradas en el camino de Ostrava a Praga?",
+      "a": "Sí. Štramberk, Olomouc y Brno son las peticiones habituales. Díganoslo al reservar e incluiremos la parada en un presupuesto fijo. Una breve pausa para el café o para descansar siempre está incluida sin coste adicional."
+    },
+    {
+      "q": "¿Pueden recogernos en Dolní Vítkovice después de un evento o de Colours of Ostrava?",
+      "a": "Sí. Indíquenos el evento y la hora a la que quiere salir. Durante los días del festival, las calles alrededor de Dolní Vítkovice están muy concurridas, así que acordamos con usted un punto de recogida exacto con antelación y su chófer le espera allí."
+    }
+  ],
+  "relatedRoutesIntro": "Ostrava es una de las varias formas de llegar a Praga desde el este. Los clientes que vienen de Olomouc, Zlín, Cracovia o Breslavia reservan del mismo modo: un solo coche, una tarifa fija y llegada a la puerta en Praga.",
+  "relatedHeading": {
+    "line1": "Más formas",
+    "italic": "de llegar a Praga."
+  },
+  "relatedRoutes": [
+    {
+      "slug": "olomouc-prague",
+      "city": "Olomouc",
+      "label": "Olomouc → Praga",
+      "distance": "280 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "krakow-prague",
+      "city": "Cracovia",
+      "label": "Cracovia → Praga",
+      "distance": "530 km",
+      "duration": "5 h 30 min"
+    },
+    {
+      "slug": "wroclaw-prague",
+      "city": "Breslavia",
+      "label": "Breslavia → Praga",
+      "distance": "285 km",
+      "duration": "3 h"
+    },
+    {
+      "slug": "zlin-prague",
+      "city": "Zlín",
+      "label": "Zlín → Praga",
+      "distance": "310 km",
+      "duration": "3 h 30 min"
+    }
+  ],
+  "highlights": [
+    {
+      "label": "Distancia",
+      "value": "~370 km"
+    },
+    {
+      "label": "Duración",
+      "value": "~4 horas"
+    },
+    {
+      "label": "Vehículos",
+      "value": [
+        "Clase Business",
+        "Primera Clase",
+        "Monovolumen Business"
+      ]
+    },
+    {
+      "label": "Precio desde",
+      "value": "{ePrice} €",
+      "copper": true
+    }
+  ],
+  "cta": {
+    "headingLine1": "De Ostrava a Praga.",
+    "headingItalic": "Desde {ePrice} €, tarifa fija."
+  },
+  "metadata": {
+    "title": "Chófer de Ostrava a Praga — Desde {ePrice} €",
+    "description": "Traslado privado de Ostrava a Praga: 370 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Ostrava o en el aeropuerto OSR. Precio fijo desde {ePrice} €.",
+    "ogTitle": "Traslado privado con chófer de Ostrava a Praga — Desde {ePrice} €",
+    "ogDescription": "Traslado privado de Ostrava a Praga: 370 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Ostrava o en el aeropuerto OSR. Precio fijo desde {ePrice} €."
+  }
+}
