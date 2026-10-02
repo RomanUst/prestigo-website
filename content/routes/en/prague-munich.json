@@ -7,8 +7,8 @@
     "imageAlt": "Munich — private chauffeur transfer from Prague to Munich"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Munich covers 385 km via the D5 and A93 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Munich covers 385 km via the D5 and A93 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Munich",
@@ -24,7 +24,7 @@
   "inclusions": [
     "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
     "A professional chauffeur — fluent English and Czech. German on request.",
-    "Fuel, all tolls, and the German toll vignette. Nothing is charged on top.",
+    "Fuel, the Czech motorway vignette, and any tolls — German motorways are toll-free for cars. Nothing is charged on top.",
     "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
     "Bottled water, phone charger, and WiFi in the rear cabin.",
     "Waiting time at pickup — 15 minutes free at any address.",
@@ -46,7 +46,7 @@
   ],
   "goodToKnow": [
     { "label": "Border crossing", "value": "Czech-German Schengen border at Rozvadov/Waidhaus. No passport check for EU citizens." },
-    { "label": "Tolls", "value": "Czech motorway vignette and German motorway toll both included in the quoted price." },
+    { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
     { "label": "Airport service", "value": "Full airport meet-and-greet at Munich Airport (MUC). Flight tracking and flexible wait times included." }
   ],
@@ -71,7 +71,7 @@
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "for Prague to Munich.",
     "items": [
-      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, the German toll, driver time. Nothing added at drop-off in Munich." },
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, any tolls, driver time. Nothing added at drop-off in Munich." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the long Bavaria run." },
       { "title": "Anticipatory service", "body": "If the A93 has a closure near Regensburg, your chauffeur reroutes via Bayreuth without asking. If your flight into MUC is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job." }
     ]
@@ -79,19 +79,19 @@
   "faqsHeading": "Frequently asked questions",
   "faqs": [
     { "q": "How long does a private transfer from Prague to Munich take?", "a": "Approximately 4 hours door-to-door via the D5 motorway through Plzeň, the Czech-German border at Rozvadov/Waidhaus, then the A6 west, the A93 south past Regensburg, and the A9 into central Munich. Friday afternoon traffic on the A99 ring around Munich can add 20–30 minutes." },
-    { "q": "How much does a chauffeur from Prague to Munich cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges." },
+    { "q": "How much does a chauffeur from Prague to Munich cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Munich?", "a": "Yes, though it is a long day. A round trip is roughly 8 hours of driving, so most clients depart Prague at 6:00 to give themselves four to six hours on the ground in Munich before the return. A same-day return receives a 10% discount. If you need the chauffeur to move around with you, add hourly city rental." },
-    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The Czech-German border at Rozvadov/Waidhaus has no routine checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Bavaria." },
+    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The Czech-German border at Rozvadov/Waidhaus has no routine checks. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request — useful for Bavarian hotel concierges, Oktoberfest pickups, or business meetings in Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
   "relatedRoutesIntro": "Munich anchors the Bavarian corridor between Prague and the Alps. Many clients combine the Munich run with Nuremberg, Regensburg, or extend into Austria. Every Prestigo route has the same fixed-fare model, the same fleet, and the same chauffeurs.",
   "relatedHeading": { "line1": "Continue across", "italic": "Bavaria and beyond." },
   "relatedRoutes": [
-    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "290 km", "duration": "3h" },
+    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "295 km", "duration": "3h" },
     { "slug": "prague-regensburg", "city": "Regensburg", "distance": "290 km", "duration": "3h 15min" },
     { "slug": "prague-passau", "city": "Passau", "distance": "230 km", "duration": "2h 45min" },
-    { "slug": "prague-salzburg", "city": "Salzburg", "distance": "470 km", "duration": "4h 45min" }
+    { "slug": "prague-salzburg", "city": "Salzburg", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
     { "label": "Distance", "value": "~385 km" },

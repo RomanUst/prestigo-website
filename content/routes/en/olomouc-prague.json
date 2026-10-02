@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Slavkov u Brna, Brno or Kutná Hora — agreed at booking."
+    "Stops on the way — Slavkov u Brna, Brno or Kutná Hora — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "No border crossing — the whole route is inside the Czech Republic." },
     { "label": "Tolls", "value": "The Czech motorway vignette is included in the quoted price." },
     { "label": "Old town pickup", "value": "Upper and Lower Square are largely pedestrian. Your chauffeur agrees a pickup point at the edge of the old town or at your hotel entrance." },
-    { "label": "Return transfer", "value": "Travelling back to Olomouc later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Olomouc later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {

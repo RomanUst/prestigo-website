@@ -3,19 +3,19 @@
     "label": "Salzburg → Prague",
     "headlineLine1": "Salzburg to Prague,",
     "headlineItalic": "one car, one fare.",
-    "intro": "Salzburg to Prague by private chauffeur is a 305 km door-to-door transfer east on the A1 to Linz, then north through South Bohemia, around 3h 30min drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Austrian and Czech vignettes included. Pickup from any Salzburg address or Salzburg Airport (SZG), drop-off anywhere in Prague.",
+    "intro": "Salzburg to Prague by private chauffeur is a 375 km door-to-door transfer east on the A1 to Linz, then north through South Bohemia, around 4 hours drive time. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Austrian and Czech vignettes included. Pickup from any Salzburg address or Salzburg Airport (SZG), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Salzburg to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Salzburg to Prague covers 305 km — east on the A1 Westautobahn to Linz, north on the S10 through the Mühlviertel to the Czech border at Wullowitz–Dolní Dvořiště, then through České Budějovice and up the D3 motorway to Prague — and takes approximately 3.5 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel in the Altstadt, a festival residence, Salzburg Hauptbahnhof or Salzburg Airport, and brings you to the door of your Prague hotel, apartment or office.",
+    "A private transfer from Salzburg to Prague covers 375 km — east on the A1 Westautobahn to Linz, north on the S10 through the Mühlviertel to the Czech border at Wullowitz–Dolní Dvořiště, then through České Budějovice and up the D3 motorway via Tábor to Prague — and takes approximately 4 hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you at your hotel in the Altstadt, a festival residence, Salzburg Hauptbahnhof or Salzburg Airport, and brings you to the door of your Prague hotel, apartment or office.",
     "The fare is fixed before you leave Salzburg. Fuel, tolls, the Austrian and Czech vignettes, bottled water, Wi-Fi and child seats on request are part of it. No change of trains in Linz, no suitcases on a platform, nothing to sort out when you reach Prague."
   ],
   "routeNarrative": {
     "headingLine1": "Salzburg to Prague",
-    "headingItalic": "in three and a half hours.",
+    "headingItalic": "in about four hours.",
     "paragraphs": [
       "From a pickup on either bank of the Salzach — the Altstadt, the hotels near Mirabell or the airport on the western edge of the city — your chauffeur joins the A1 heading east. The motorway runs along the edge of the Salzkammergut past Mondsee, then out across the Upper Austrian farmland toward Wels and Linz on the Danube.",
-      "At Linz the route turns north onto the S10 Mühlviertel expressway, climbing into rolling, wooded hill country to the Czech border at Wullowitz–Dolní Dvořiště. It is a Schengen crossing: no booth, no stop in normal conditions. On the Czech side the road continues past Kaplice to České Budějovice, where the D3 motorway takes over for the run north through Tábor to Prague. Total distance is approximately 305 kilometres.",
+      "At Linz the route turns north onto the S10 Mühlviertel expressway, climbing into rolling, wooded hill country to the Czech border at Wullowitz–Dolní Dvořiště. It is a Schengen crossing: no booth, no stop in normal conditions. On the Czech side the road continues past Kaplice to České Budějovice, where the D3 motorway takes over for the run north through Tábor to Prague. Total distance is approximately 375 kilometres; driving time is about four hours in normal traffic.",
       "Your chauffeur checks the road before departure. During the Salzburg Festival in late July and August, and on winter weekends when ski traffic fills the A1, the stretch toward Linz can be slow — if it is, they adjust the departure time or the route without asking. You reach Prague in time to check in and still have the evening for the Old Town."
     ]
   },
@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Linz, Český Krumlov or České Budějovice — agreed at booking."
+    "Stops on the way — Linz, Český Krumlov or České Budějovice — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "Austrian–Czech Schengen border at Wullowitz–Dolní Dvořiště. No routine passport check — non-EU passengers should still carry their passport and visa." },
     { "label": "Tolls", "value": "Austrian and Czech motorway vignettes and all tolls are included in the quoted price." },
     { "label": "Festival season", "value": "The Salzburg Festival runs from late July through August. Departures after the final performances book up early — reserve your date in advance." },
-    { "label": "Return transfer", "value": "Travelling back to Salzburg later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Salzburg later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {
@@ -65,7 +66,7 @@
   },
   "chauffeurNarrative": [
     "Your chauffeur arrives at the entrance of your Salzburg hotel, not at the end of a pedestrian lane in the Altstadt. At Salzburg Airport they wait inside the Arrivals hall with a name board, track your flight, and take the luggage from the trolley to the boot.",
-    "The cabin is yours for three and a half hours. Work, rest or take calls — your chauffeur follows your lead. If you would like to know more about where you are heading, ask: which bridge to cross on foot first, where your Prague hotel sits in relation to the Castle, how long the walk is to the Old Town Square.",
+    "The cabin is yours for about four hours. Work, rest or take calls — your chauffeur follows your lead. If you would like to know more about where you are heading, ask: which bridge to cross on foot first, where your Prague hotel sits in relation to the Castle, how long the walk is to the Old Town Square.",
     "Water, a charger and Wi-Fi are ready when you get in. Tell your chauffeur if you want a break near Linz or a particular temperature in the back. In Prague they carry your bags to the reception desk and leave you with nothing left to organise."
   ],
   "whyBook": {
@@ -79,7 +80,7 @@
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Salzburg to Prague take?", "a": "Approximately 3 hours 30 minutes door to door: the A1 east to Linz, the S10 north to the Wullowitz–Dolní Dvořiště border, then České Budějovice and the D3 to Prague. Festival weekends and winter ski traffic on the A1 can add time." },
+    { "q": "How long does a private transfer from Salzburg to Prague take?", "a": "Approximately 4 hours door to door: the A1 east to Linz, the S10 north to the Wullowitz–Dolní Dvořiště border, then České Budějovice and the D3 via Tábor to Prague. Festival weekends and winter ski traffic on the A1 can add time." },
     { "q": "How much is a taxi or chauffeur from Salzburg to Prague?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price includes fuel, all tolls, the Austrian and Czech vignettes and driver time — it is per car, not per person." },
     { "q": "Can you pick me up at Salzburg Airport and drive me straight to Prague?", "a": "Yes. Send us your flight number when you book. Your chauffeur tracks the landing, waits inside Arrivals at Salzburg Airport (SZG) with your name, and drives you directly to your Prague address. Up to 60 minutes of waiting at the airport is free." },
     { "q": "Is a private transfer better than the train from Salzburg to Prague?", "a": "Rail connections between Salzburg and Prague usually involve a change, often in Linz, and take longer than the drive once you add getting to the station and a taxi in Prague. A private car is door to door and costs the same for one passenger or three. For a solo traveller with light luggage, the train is the cheaper option." },
@@ -89,14 +90,14 @@
   "relatedRoutesIntro": "Salzburg is often one stop on a longer trip through Austria, Bavaria and Bohemia. Travellers coming from Linz, Munich, Passau or Vienna book the same way — one car, one fixed fare, drop-off at the door in Prague.",
   "relatedHeading": { "line1": "Other ways", "italic": "into Prague." },
   "relatedRoutes": [
-    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "195 km", "duration": "2h 30min" },
+    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "235 km", "duration": "2h 30min" },
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" },
     { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
     { "slug": "vienna-prague", "city": "Vienna", "label": "Vienna → Prague", "distance": "330 km", "duration": "3h 30min" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "305 km" },
-    { "label": "Duration", "value": "~3.5 hours" },
+    { "label": "Distance", "value": "375 km" },
+    { "label": "Duration", "value": "~4 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
   ],
@@ -106,8 +107,8 @@
   },
   "metadata": {
     "title": "Salzburg to Prague Chauffeur — From €{ePrice}",
-    "description": "Private Salzburg to Prague transfer — 305 km door to door in a Mercedes E, S or V-Class. Pickup at any Salzburg address or SZG. Fixed price from €{ePrice}.",
+    "description": "Private Salzburg to Prague transfer — 375 km door to door in a Mercedes E, S or V-Class. Pickup at any Salzburg address or SZG. Fixed price from €{ePrice}.",
     "ogTitle": "Salzburg to Prague Private Chauffeur Transfer — From €{ePrice}",
-    "ogDescription": "Private Salzburg to Prague transfer — 305 km door to door in a Mercedes E, S or V-Class. Pickup at any Salzburg address or SZG. Fixed price from €{ePrice}."
+    "ogDescription": "Private Salzburg to Prague transfer — 375 km door to door in a Mercedes E, S or V-Class. Pickup at any Salzburg address or SZG. Fixed price from €{ePrice}."
   }
 }

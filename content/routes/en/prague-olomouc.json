@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "A private transfer from Prague to Olomouc covers 280 km via the D1 and D46 motorways and takes approximately 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Brno or Vyškov — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change between booking and drop-off."
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change between booking and drop-off."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Olomouc",
@@ -87,7 +87,7 @@
     { "slug": "prague-brno", "city": "Brno", "distance": "210 km", "duration": "2h 15min" },
     { "slug": "prague-ostrava", "city": "Ostrava", "distance": "370 km", "duration": "3h 45min" },
     { "slug": "prague-zlin", "city": "Zlín", "distance": "300 km", "duration": "3h 15min" },
-    { "slug": "prague-krakow", "city": "Kraków", "distance": "540 km", "duration": "5h 30min" }
+    { "slug": "prague-krakow", "city": "Kraków", "distance": "530 km", "duration": "5h 30min" }
   ],
   "highlights": [
     { "label": "Distance", "value": "~280 km" },

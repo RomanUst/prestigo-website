@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Lednice, Brno or Telč — agreed at booking."
+    "Stops on the way — Lednice, Brno or Telč — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "Slovak–Czech Schengen border at Brodské–Lanžhot. No routine passport check — non-EU passengers should still carry their passport and visa." },
     { "label": "Tolls", "value": "Slovak and Czech motorway vignettes and all tolls are included in the quoted price." },
     { "label": "Airport pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Bratislava Airport and adjusts the pickup time automatically. 60 minutes of waiting is free." },
-    { "label": "Return transfer", "value": "Travelling back to Bratislava later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Bratislava later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {

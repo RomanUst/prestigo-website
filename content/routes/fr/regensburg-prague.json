@@ -29,7 +29,8 @@
     "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
     "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
-    "Arrêts en route — le Walhalla, Pilsen ou le château de Karlštejn — convenus à la réservation."
+    "Arrêts en route — le Walhalla, Pilsen ou le château de Karlštejn — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
   ],
   "fleetNote": "Tous les véhicules sont des Mercedes-Benz récentes, entretenues selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Passage de frontière", "value": "Frontière Schengen germano-tchèque à Waidhaus–Rozvadov. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
     { "label": "Péages", "value": "La vignette autoroutière tchèque et tous les péages sont inclus. Les autoroutes allemandes sont gratuites pour les voitures." },
     { "label": "Aéroports les plus proches", "value": "Ratisbonne n'a pas d'aéroport. Si vous arrivez par avion à Munich ou à Nuremberg, nous pouvons venir vous y chercher et vous conduire directement à Prague." },
-    { "label": "Transfert retour", "value": "Vous rentrez à Ratisbonne plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+    { "label": "Transfert retour", "value": "Vous rentrez à Ratisbonne plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
   ],
   "dayTripLabel": "Arrêts en route",
   "dayTrip": {
@@ -89,7 +90,7 @@
   "relatedRoutesIntro": "Le trajet de Ratisbonne à Prague s'inscrit souvent dans un voyage plus long à travers la Bavière et la Bohême. Les clients qui partent de Nuremberg, de Munich ou de Passau, ou qui font étape à Pilsen, réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
   "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
   "relatedRoutes": [
-    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "360 km", "duration": "3 h 30" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3 h" },
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4 h" },
     { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2 h 30" },
     { "slug": "plzen-prague", "city": "Pilsen", "label": "Pilsen → Prague", "distance": "90 km", "duration": "1 h" }

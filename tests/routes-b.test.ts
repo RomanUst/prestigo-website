@@ -57,7 +57,7 @@ describe("Group B route content (71-03)", () => {
   it("prague-krakow: byte-parity spot-check", () => {
     assertRouteParity("prague-krakow", {
       "hero.intro":
-        "385 km northeast to Poland's cultural capital. Wawel Castle, the Rynek market square, Jewish Kazimierz, and salt mines at Wieliczka — four hours, one fixed price.",
+        "530 km east to Poland's cultural capital. Wawel Castle, the Rynek market square, Jewish Kazimierz, and salt mines at Wieliczka — about five and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -74,7 +74,7 @@ describe("Group B route content (71-03)", () => {
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, tolls, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. This is the lowest fare of any route in the Prestigo Green tier. Prices include fuel, the Czech motorway vignette, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Kutná Hora Chauffeur — From €485",
     });
@@ -83,7 +83,7 @@ describe("Group B route content (71-03)", () => {
   it("prague-leipzig: byte-parity spot-check", () => {
     assertRouteParity("prague-leipzig", {
       "hero.intro":
-        "North into Saxony to the city of Bach and Schiller, the Gewandhaus, and one of Germany's great trade fair centres. Two hours, one fixed price, door to door.",
+        "North into Saxony to the city of Bach and Schiller, the Gewandhaus, and one of Germany's great trade fair centres. About three hours, one fixed price, door to door.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -115,7 +115,7 @@ describe("Group B route content (71-03)", () => {
   it("prague-linz: byte-parity spot-check", () => {
     assertRouteParity("prague-linz", {
       "hero.intro":
-        "195 km south to Upper Austria's capital on the Danube. Ars Electronica, Lentos Museum, and a city that has reinvented itself as a creative hub — two and a half hours, one fixed price.",
+        "235 km south to Upper Austria's capital on the Danube. Ars Electronica, Lentos Museum, and a city that has reinvented itself as a creative hub — two and a half hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
@@ -151,7 +151,7 @@ describe("Group B route content (71-03)", () => {
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Munich Chauffeur — From €485",
     });
@@ -160,11 +160,11 @@ describe("Group B route content (71-03)", () => {
   it("prague-nuremberg: byte-parity spot-check", () => {
     assertRouteParity("prague-nuremberg", {
       "hero.intro":
-        "360 km southwest on the D5 into Bavaria. Three and a half hours door-to-door. Fixed fare from €485. Your chauffeur is already waiting.",
+        "295 km southwest on the D5 into Bavaria. About three hours door-to-door. Fixed fare from €485. Your chauffeur is already waiting.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Nuremberg Chauffeur — From €485",
     });

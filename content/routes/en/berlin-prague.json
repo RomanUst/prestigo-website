@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — the Spreewald, Dresden or Saxon Switzerland — agreed at booking."
+    "Stops on the way — the Spreewald, Dresden or Saxon Switzerland — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -97,7 +98,7 @@
   "goodToKnow": [
     {
       "label": "Border crossing",
-      "value": "German–Czech Schengen border on the A17/D8 motorway south of Dresden. No routine passport check — non-EU passengers should still carry their passport and visa."
+      "value": "German–Czech Schengen border on the A17/D8 motorway south of Dresden, at Breitenau–Petrovice. No routine passport check — non-EU passengers should still carry their passport and visa."
     },
     {
       "label": "Tolls",
@@ -109,7 +110,7 @@
     },
     {
       "label": "Return transfer",
-      "value": "Going back to Berlin later? Book both directions together for a reduced rate."
+      "value": "Going back to Berlin later? Book both directions together for the same day and the return leg is 10% off."
     }
   ],
   "dayTripLabel": "Stops on the Way",
@@ -204,7 +205,7 @@
       "city": "Leipzig",
       "label": "Leipzig → Prague",
       "distance": "260 km",
-      "duration": "2h 45min"
+      "duration": "3h"
     },
     {
       "slug": "wroclaw-prague",
@@ -217,8 +218,8 @@
       "slug": "nuremberg-prague",
       "city": "Nuremberg",
       "label": "Nuremberg → Prague",
-      "distance": "360 km",
-      "duration": "3h 30min"
+      "distance": "295 km",
+      "duration": "3h"
     }
   ],
   "highlights": [

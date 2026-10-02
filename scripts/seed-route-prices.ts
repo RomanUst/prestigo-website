@@ -38,7 +38,7 @@ const ROUTES: RouteSeed[] = [
   { slug: 'prague-passau',            from_label: 'Prague', to_label: 'Passau',            distance_km: 220, e_class_eur: 340,  s_class_eur: 560,  v_class_eur: 375,  display_order: 17, place_ids: [] },
   { slug: 'prague-erfurt',            from_label: 'Prague', to_label: 'Erfurt',            distance_km: 250, e_class_eur: 390,  s_class_eur: 640,  v_class_eur: 430,  display_order: 18, place_ids: [] },
   { slug: 'prague-regensburg',        from_label: 'Prague', to_label: 'Regensburg',        distance_km: 285, e_class_eur: 440,  s_class_eur: 725,  v_class_eur: 485,  display_order: 19, place_ids: [] },
-  { slug: 'prague-nuremberg',         from_label: 'Prague', to_label: 'Nuremberg',         distance_km: 360, e_class_eur: 560,  s_class_eur: 920,  v_class_eur: 615,  display_order: 20, place_ids: [] },
+  { slug: 'prague-nuremberg',         from_label: 'Prague', to_label: 'Nuremberg',         distance_km: 295, e_class_eur: 455,  s_class_eur: 750,  v_class_eur: 505,  display_order: 20, place_ids: [] },
   { slug: 'prague-augsburg',          from_label: 'Prague', to_label: 'Augsburg',          distance_km: 430, e_class_eur: 665,  s_class_eur: 1095, v_class_eur: 735,  display_order: 21, place_ids: [] },
   { slug: 'prague-munich',            from_label: 'Prague', to_label: 'Munich',            distance_km: 385, e_class_eur: 595,  s_class_eur: 980,  v_class_eur: 660,  display_order: 22, place_ids: [] },
   { slug: 'prague-frankfurt',         from_label: 'Prague', to_label: 'Frankfurt',         distance_km: 455, e_class_eur: 705,  s_class_eur: 1160, v_class_eur: 780,  display_order: 23, place_ids: [] },
@@ -48,9 +48,9 @@ const ROUTES: RouteSeed[] = [
   { slug: 'prague-berlin',            from_label: 'Prague', to_label: 'Berlin',            distance_km: 350, e_class_eur: 545,  s_class_eur: 895,  v_class_eur: 600,  display_order: 27, place_ids: [] },
   { slug: 'prague-hamburg',           from_label: 'Prague', to_label: 'Hamburg',           distance_km: 680, e_class_eur: 1055, s_class_eur: 1735, v_class_eur: 1165, display_order: 28, place_ids: [] },
   // Austria
-  { slug: 'prague-linz',              from_label: 'Prague', to_label: 'Linz',              distance_km: 195, e_class_eur: 300,  s_class_eur: 495,  v_class_eur: 335,  display_order: 29, place_ids: [] },
+  { slug: 'prague-linz',              from_label: 'Prague', to_label: 'Linz',              distance_km: 235, e_class_eur: 365,  s_class_eur: 600,  v_class_eur: 400,  display_order: 29, place_ids: [] },
   { slug: 'prague-vienna',            from_label: 'Prague', to_label: 'Vienna',            distance_km: 295, e_class_eur: 455,  s_class_eur: 750,  v_class_eur: 505,  display_order: 30, place_ids: [] },
-  { slug: 'prague-salzburg',          from_label: 'Prague', to_label: 'Salzburg',          distance_km: 305, e_class_eur: 475,  s_class_eur: 780,  v_class_eur: 520,  display_order: 31, place_ids: [] },
+  { slug: 'prague-salzburg',          from_label: 'Prague', to_label: 'Salzburg',          distance_km: 375, e_class_eur: 580,  s_class_eur: 955,  v_class_eur: 640,  display_order: 31, place_ids: [] },
   { slug: 'prague-graz',              from_label: 'Prague', to_label: 'Graz',              distance_km: 450, e_class_eur: 700,  s_class_eur: 1150, v_class_eur: 770,  display_order: 32, place_ids: [] },
   { slug: 'prague-innsbruck',         from_label: 'Prague', to_label: 'Innsbruck',         distance_km: 545, e_class_eur: 845,  s_class_eur: 1390, v_class_eur: 930,  display_order: 33, place_ids: [] },
   // Slovakia
@@ -60,7 +60,7 @@ const ROUTES: RouteSeed[] = [
   { slug: 'prague-budapest',          from_label: 'Prague', to_label: 'Budapest',          distance_km: 535, e_class_eur: 830,  s_class_eur: 1365, v_class_eur: 915,  display_order: 36, place_ids: [] },
   // Poland
   { slug: 'prague-wroclaw',           from_label: 'Prague', to_label: 'Wrocław',           distance_km: 285, e_class_eur: 440,  s_class_eur: 725,  v_class_eur: 485,  display_order: 37, place_ids: [] },
-  { slug: 'prague-krakow',            from_label: 'Prague', to_label: 'Kraków',            distance_km: 385, e_class_eur: 595,  s_class_eur: 980,  v_class_eur: 660,  display_order: 38, place_ids: [] },
+  { slug: 'prague-krakow',            from_label: 'Prague', to_label: 'Kraków',            distance_km: 530, e_class_eur: 820,  s_class_eur: 1350,  v_class_eur: 905,  display_order: 38, place_ids: [] },
   { slug: 'prague-warsaw',            from_label: 'Prague', to_label: 'Warsaw',            distance_km: 660, e_class_eur: 1025, s_class_eur: 1685, v_class_eur: 1130, display_order: 39, place_ids: [] },
   // Switzerland
   { slug: 'prague-basel',             from_label: 'Prague', to_label: 'Basel',             distance_km: 680, e_class_eur: 1055, s_class_eur: 1735, v_class_eur: 1165, display_order: 40, place_ids: [] },

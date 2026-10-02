@@ -3,19 +3,19 @@
     "label": "Leipzig → Praga",
     "headlineLine1": "De Leipzig a Praga,",
     "headlineItalic": "de puerta a puerta.",
-    "intro": "De Leipzig a Praga con chófer privado son 260 km de traslado puerta a puerta pasando por Dresde, por la A14, la A17 y la D8, unas dos horas y tres cuartos de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta de autopista checa incluida. Recogida en cualquier dirección de Leipzig, en Leipzig Hauptbahnhof o en el aeropuerto de Leipzig/Halle (LEJ) y llegada a cualquier punto de Praga.",
+    "intro": "De Leipzig a Praga con chófer privado son 260 km de traslado puerta a puerta pasando por Dresde, por la A14, la A17 y la D8, unas tres horas de trayecto. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta de autopista checa incluida. Recogida en cualquier dirección de Leipzig, en Leipzig Hauptbahnhof o en el aeropuerto de Leipzig/Halle (LEJ) y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Leipzig a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Leipzig a Praga cubre unos 260 km —hacia el sureste a través de Sajonia en dirección a Dresde, hacia el sur por la A17 cruzando los Montes Metálicos y después por la autopista checa D8 hasta Praga— y dura unas dos horas y tres cuartos de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel cerca del Markt, en la Messe, en Leipzig Hauptbahnhof o en la sala de llegadas del aeropuerto de Leipzig/Halle, y le deja en la puerta en Praga.",
+    "Un traslado privado de Leipzig a Praga cubre unos 260 km —hacia el sureste a través de Sajonia en dirección a Dresde, hacia el sur por la A17 cruzando los Montes Metálicos y después por la autopista checa D8 hasta Praga— y dura unas tres horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Su chófer le recoge en su hotel cerca del Markt, en la Messe, en Leipzig Hauptbahnhof o en la sala de llegadas del aeropuerto de Leipzig/Halle, y le deja en la puerta en Praga.",
     "La tarifa se fija al reservar: el combustible, la viñeta de autopista checa, el agua embotellada, el Wi-Fi y las sillas infantiles bajo petición están incluidos. Sin transbordo de tren en Dresde, sin cargar maletas entre andenes y sin buscar taxi al llegar a Praga."
   ],
   "routeNarrative": {
     "headingLine1": "De Leipzig a Praga",
-    "headingItalic": "en menos de tres horas.",
+    "headingItalic": "en unas tres horas.",
     "paragraphs": [
       "Desde la recogida en el centro, en la Neue Messe o en el aeropuerto de Leipzig/Halle, su chófer se dirige hacia el sureste por la A14 entre campos abiertos de Sajonia y enlaza con la A4 hasta Dresde. Las autopistas alemanas no tienen peaje para turismos. Meissen queda justo al lado de este tramo, y Dresde aparece más o menos a mitad de camino: un buen lugar para hacer una pausa.",
-      "Al sur de Dresde, la A17 sube hacia los Montes Metálicos orientales y entra en la República Checa por la propia autopista, dentro del espacio Schengen: sin control rutinario, sin colas. La carretera pasa a ser la D8, baja pasando por Ústí nad Labem y Lovosice y cruza la llanura bohemia hasta Praga. La distancia total es de unos 260 kilómetros; el tiempo de conducción es de unas dos horas y tres cuartos con tráfico normal.",
+      "Al sur de Dresde, la A17 sube hacia los Montes Metálicos orientales y entra en la República Checa por la propia autopista, dentro del espacio Schengen: sin control rutinario, sin colas. La carretera pasa a ser la D8, baja pasando por Ústí nad Labem y Lovosice y cruza la llanura bohemia hasta Praga. La distancia total es de unos 260 kilómetros; el tiempo de conducción es de unas tres horas con tráfico normal.",
       "Su chófer revisa la A14, la A17 y la D8 antes de salir. Si hay obras o un accidente que cierra un tramo, cambia la ruta sin necesidad de preguntar. Llega a Praga con la tarde o la noche todavía por delante: tiempo para registrarse, pasear hasta la Plaza de la Ciudad Vieja y sentarse a cenar."
     ]
   },
@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: la entrada del hotel, la puerta del apartamento, la oficina o el aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y Wi-Fi en la cabina trasera.",
     "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
-    "Paradas por el camino —Meissen, Dresde o Terezín—, acordadas al reservar."
+    "Paradas por el camino —Meissen, Dresde o Terezín—, acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
   "vehicles": [
@@ -97,7 +98,7 @@
   "goodToKnow": [
     {
       "label": "Paso de frontera",
-      "value": "Frontera Schengen germano-checa en la autopista A17/D8, al sur de Dresde. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+      "value": "Frontera Schengen germano-checa en la autopista A17/D8, paso de Breitenau–Petrovice, al sur de Dresde. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
     },
     {
       "label": "Peajes",
@@ -109,7 +110,7 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Regresa a Leipzig más adelante? Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Regresa a Leipzig más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",
@@ -138,7 +139,7 @@
   },
   "chauffeurNarrative": [
     "Su chófer le recibe en el vestíbulo del hotel o en la entrada de la Messe que usted indique, no en algún rincón del aparcamiento. En el aeropuerto de Leipzig/Halle le espera dentro de la sala de llegadas con un cartel con su nombre y se encarga del equipaje desde allí.",
-    "Casi tres horas son tiempo útil. Termine las notas de la feria, atienda sus llamadas o duerma: su chófer no llenará el silencio. Si quiere unas palabras sobre Praga antes de llegar, la conoce bien: los barrios, los hoteles, el camino más corto por la Ciudad Vieja.",
+    "Tres horas son tiempo útil. Termine las notas de la feria, atienda sus llamadas o duerma: su chófer no llenará el silencio. Si quiere unas palabras sobre Praga antes de llegar, la conoce bien: los barrios, los hoteles, el camino más corto por la Ciudad Vieja.",
     "El agua, el cargador y el Wi-Fi están en la cabina. Si le apetece un café en Dresde o una ruta más tranquila por los Montes Metálicos, dígalo. En Praga, su equipaje va con usted hasta la recepción."
   ],
   "whyBook": {
@@ -163,7 +164,7 @@
   "faqs": [
     {
       "q": "¿Cuánto dura un traslado privado de Leipzig a Praga?",
-      "a": "Unas dos horas y tres cuartos de puerta a puerta, pasando por Dresde por la A14, la A4 y la A17, y después por la D8 desde la frontera hasta Praga. El tráfico de los viernes por la tarde puede añadir 15–20 minutos."
+      "a": "Unas tres horas de puerta a puerta, pasando por Dresde por la A14, la A4 y la A17, y después por la D8 desde la frontera hasta Praga. El tráfico de los viernes por la tarde puede añadir 15–20 minutos."
     },
     {
       "q": "¿Cuánto cuesta un taxi o un chófer de Leipzig a Praga?",
@@ -210,8 +211,8 @@
       "slug": "nuremberg-prague",
       "city": "Núremberg",
       "label": "Núremberg → Praga",
-      "distance": "360 km",
-      "duration": "3 h 30 min"
+      "distance": "295 km",
+      "duration": "3 h"
     },
     {
       "slug": "karlovy-vary-prague",
@@ -228,7 +229,7 @@
     },
     {
       "label": "Duración",
-      "value": "~2 h 45 min"
+      "value": "~3 h"
     },
     {
       "label": "Vehículos",

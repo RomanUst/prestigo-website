@@ -3,19 +3,19 @@
     "label": "Núremberg → Praga",
     "headlineLine1": "De Núremberg a Praga,",
     "headlineItalic": "de Franconia a Bohemia.",
-    "intro": "El traslado de Núremberg a Praga con chófer privado es un trayecto puerta a puerta de 360 km hacia el este por la A6 y la D5, con unas 3 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Núremberg, en la Nürnberg Hauptbahnhof o en el aeropuerto de Núremberg (NUE), y llegada a cualquier punto de Praga.",
+    "intro": "El traslado de Núremberg a Praga con chófer privado es un trayecto puerta a puerta de 295 km hacia el este por la A6 y la D5, con unas 3 h de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con la viñeta checa y todos los peajes incluidos. Recogida en cualquier dirección de Núremberg, en la Nürnberg Hauptbahnhof o en el aeropuerto de Núremberg (NUE), y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Núremberg a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Núremberg a Praga cubre 360 km —hacia el este por la A6 a través del Alto Palatinado pasando por Amberg, paso de la frontera checa en Waidhaus–Rozvadov y, por último, la autopista D5 pasando por Pilsen y Beroun hasta Praga— y dura aproximadamente 3,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Núremberg, en una oficina, en la Nürnberg Hauptbahnhof o en la sala de llegadas del aeropuerto de Núremberg, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Núremberg a Praga cubre 295 km —hacia el este por la A6 a través del Alto Palatinado pasando por Amberg, paso de la frontera checa en Waidhaus–Rozvadov y, por último, la autopista D5 pasando por Pilsen y Beroun hasta Praga— y dura aproximadamente 3 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Núremberg, en una oficina, en la Nürnberg Hauptbahnhof o en la sala de llegadas del aeropuerto de Núremberg, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "El precio se fija antes de salir: combustible, viñeta de autopista checa, todos los peajes, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Sin transbordos de tren, sin arrastrar maletas entre andenes, sin buscar taxi al llegar a Praga."
   ],
   "routeNarrative": {
     "headingLine1": "De Núremberg a Praga",
-    "headingItalic": "en tres horas y media.",
+    "headingItalic": "en unas tres horas.",
     "paragraphs": [
       "Desde la recogida al pie del Kaiserburg, cerca del Hauptmarkt o en el recinto ferial, su chófer se incorpora a la A6 y sale de Franconia en dirección este. La autopista atraviesa el Alto Palatinado —colinas boscosas, pequeñas villas con mercado, Amberg un poco al norte— y pasa el enlace con la A93 antes de ascender suavemente hacia la frontera checa.",
-      "El paso de Waidhaus–Rozvadov está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. En el lado checo, la D5 le lleva a través de Bohemia Occidental, pasando por Stříbro y bordeando Pilsen, y después por Rokycany y Beroun hasta el extremo suroeste de Praga. La distancia total es de aproximadamente 360 kilómetros; el tiempo de conducción es de tres horas y media con tráfico normal. Un viernes por la tarde, cuente con 20–30 minutos más para la entrada en la ciudad.",
+      "El paso de Waidhaus–Rozvadov está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. En el lado checo, la D5 le lleva a través de Bohemia Occidental, pasando por Stříbro y bordeando Pilsen, y después por Rokycany y Beroun hasta el extremo suroeste de Praga. La distancia total es de aproximadamente 295 kilómetros; el tiempo de conducción es de unas tres horas con tráfico normal. Un viernes por la tarde, cuente con 20–30 minutos más para la entrada en la ciudad.",
       "Su chófer comprueba la A6 y la D5 antes de salir. Las obras y el tráfico de vacaciones cambian de una semana a otra, y si hay un atasco ajusta la ruta sin necesidad de preguntar. Llegará a Praga con la tarde o la noche todavía por delante: tiempo para hacer el check-in y salir a cenar a pie por la Ciudad Vieja."
     ]
   },
@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
-    "Paradas en el camino —Amberg, Kladruby o Pilsen— acordadas al reservar."
+    "Paradas en el camino —Amberg, Kladruby o Pilsen— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
   "vehicles": [
@@ -109,14 +110,14 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Regresa a Núremberg más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Regresa a Núremberg más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",
   "dayTrip": {
     "headingLine1": "Haga del trayecto",
     "headingItalic": "parte del viaje.",
-    "intro": "Tres horas y media dan para una parada que merezca la pena recordar. Estas tres están cerca de la carretera entre Núremberg y Praga.",
+    "intro": "Tres horas dan para una parada que merezca la pena recordar. Estas tres están cerca de la carretera entre Núremberg y Praga.",
     "configurations": [
       {
         "title": "Amberg y la Stadtbrille",
@@ -163,7 +164,7 @@
   "faqs": [
     {
       "q": "¿Cuánto dura un traslado privado de Núremberg a Praga?",
-      "a": "Aproximadamente 3 horas y 30 minutos puerta a puerta: la A6 hacia el este pasando por Amberg hasta la frontera de Waidhaus–Rozvadov, y después la D5 pasando por Pilsen hasta Praga. El tráfico de entrada a Praga los viernes por la tarde puede añadir 20–30 minutos."
+      "a": "Aproximadamente 3 horas puerta a puerta: la A6 hacia el este pasando por Amberg hasta la frontera de Waidhaus–Rozvadov, y después la D5 pasando por Pilsen hasta Praga. El tráfico de entrada a Praga los viernes por la tarde puede añadir 20–30 minutos."
     },
     {
       "q": "¿Cuánto cuesta un taxi o un chófer de Núremberg a Praga?",
@@ -224,11 +225,11 @@
   "highlights": [
     {
       "label": "Distancia",
-      "value": "360 km"
+      "value": "295 km"
     },
     {
       "label": "Duración",
-      "value": "~3,5 horas"
+      "value": "~3 horas"
     },
     {
       "label": "Vehículos",
@@ -250,8 +251,8 @@
   },
   "metadata": {
     "title": "Chófer de Núremberg a Praga — desde {ePrice} €",
-    "description": "Traslado privado de Núremberg a Praga: 360 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o en NUE. Desde {ePrice} €.",
+    "description": "Traslado privado de Núremberg a Praga: 295 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o en NUE. Desde {ePrice} €.",
     "ogTitle": "Traslado privado con chófer de Núremberg a Praga: desde {ePrice} €",
-    "ogDescription": "Traslado privado de Núremberg a Praga: 360 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o en NUE. Desde {ePrice} €."
+    "ogDescription": "Traslado privado de Núremberg a Praga: 295 km puerta a puerta en Mercedes E, S o V-Class. Recogida en cualquier dirección o en NUE. Desde {ePrice} €."
   }
 }

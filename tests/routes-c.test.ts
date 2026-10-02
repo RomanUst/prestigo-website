@@ -85,7 +85,7 @@ describe("Group C route content (71-04)", () => {
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all tolls, the German vignette, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Passau Chauffeur — From €485",
     });
@@ -122,7 +122,7 @@ describe("Group C route content (71-04)", () => {
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, the German toll vignette, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Regensburg Chauffeur — From €485",
     });
@@ -136,7 +136,7 @@ describe("Group C route content (71-04)", () => {
   it("prague-salzburg: byte-parity spot-check", () => {
     assertRouteParity("prague-salzburg", {
       "hero.intro":
-        "305 km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. Three and a half hours, one fixed price.",
+        "375 km south through Bohemia and Austria to the Salzach, the Hohensalzburg fortress, and the birthplace of Mozart. About four hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":

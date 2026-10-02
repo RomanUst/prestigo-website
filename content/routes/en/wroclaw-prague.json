@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Kłodzko, Náchod or Hradec Králové — agreed at booking."
+    "Stops on the way — Kłodzko, Náchod or Hradec Králové — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Return transfer",
-      "value": "Heading back to Wrocław later? Book both directions together for a reduced rate."
+      "value": "Heading back to Wrocław later? Book both directions together for the same day and the return leg is 10% off."
     }
   ],
   "dayTripLabel": "Stops on the Way",
@@ -196,8 +197,8 @@
       "slug": "krakow-prague",
       "city": "Kraków",
       "label": "Kraków → Prague",
-      "distance": "385 km",
-      "duration": "4h"
+      "distance": "530 km",
+      "duration": "5h 30min"
     },
     {
       "slug": "warsaw-prague",

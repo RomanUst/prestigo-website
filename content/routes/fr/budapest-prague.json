@@ -29,7 +29,8 @@
     "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
     "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
-    "Arrêts en route — Győr, Bratislava ou Brno — convenus à la réservation."
+    "Arrêts en route — Győr, Bratislava ou Brno — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
   ],
   "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Passages de frontière", "value": "Hongrie–Slovaquie à Rajka–Čunovo et Slovaquie–République tchèque à Brodské–Lanžhot. Tous deux au sein de l'espace Schengen, sans contrôle de passeport systématique — les passagers hors UE doivent se munir de leur passeport et de leur visa." },
     { "label": "Péages", "value": "Les vignettes autoroutières hongroise, slovaque et tchèque ainsi que tous les péages sont inclus dans le prix indiqué." },
     { "label": "Prise en charge à l'aéroport", "value": "Indiquez-nous votre numéro de vol. Votre chauffeur suit l'atterrissage à l'aéroport de Budapest et ajuste automatiquement l'heure de prise en charge. 60 minutes d'attente sont offertes." },
-    { "label": "Transfert retour", "value": "Vous rentrez à Budapest plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+    { "label": "Transfert retour", "value": "Vous rentrez à Budapest plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
   ],
   "dayTripLabel": "Arrêts en route",
   "dayTrip": {
@@ -92,7 +93,7 @@
     { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3 h 30" },
     { "slug": "vienna-prague", "city": "Vienne", "label": "Vienne → Prague", "distance": "330 km", "duration": "3 h 30" },
     { "slug": "brno-prague", "city": "Brno", "label": "Brno → Prague", "distance": "205 km", "duration": "2 h 30" },
-    { "slug": "krakow-prague", "city": "Cracovie", "label": "Cracovie → Prague", "distance": "385 km", "duration": "4 h" }
+    { "slug": "krakow-prague", "city": "Cracovie", "label": "Cracovie → Prague", "distance": "530 km", "duration": "5 h 30" }
   ],
   "highlights": [
     { "label": "Distance", "value": "535 km" },

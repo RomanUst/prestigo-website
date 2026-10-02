@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — the Bavarian Forest, Prachatice or Příbram — agreed at booking."
+    "Stops on the way — the Bavarian Forest, Prachatice or Příbram — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "German–Czech Schengen border at Philippsreut–Strážný. No routine passport check — non-EU passengers should still carry their passport and visa." },
     { "label": "Tolls", "value": "The Czech motorway vignette and all tolls are included. There is no car toll on the German side of this route." },
     { "label": "Cruise pickups", "value": "Give us your ship name and disembarkation day. Your chauffeur meets you at the landing and loads the luggage, however many cases a week on the river needed." },
-    { "label": "Return transfer", "value": "Joining a cruise in Passau later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Joining a cruise in Passau later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {
@@ -89,7 +90,7 @@
   "relatedRoutesIntro": "Passau to Prague is often the last leg of a Danube cruise or a tour through Bavaria and Austria. Clients starting in Linz, Regensburg or Munich book the same way — one car, one fixed fare, drop-off at the door in Prague.",
   "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
   "relatedRoutes": [
-    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "195 km", "duration": "2h 30min" },
+    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "235 km", "duration": "2h 30min" },
     { "slug": "cesky-krumlov-prague", "city": "Český Krumlov", "label": "Český Krumlov → Prague", "distance": "175 km", "duration": "2h 30min" },
     { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" },
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" }

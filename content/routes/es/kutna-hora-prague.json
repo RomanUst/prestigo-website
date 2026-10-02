@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
-    "Paradas en el camino — Kolín, Poděbrady o el palacio de Kačina — acordadas al reservar."
+    "Paradas en el camino — Kolín, Poděbrady o el palacio de Kačina — acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Paso de frontera", "value": "Sin paso de frontera: Kutná Hora y Praga están ambas en la República Checa." },
     { "label": "Peajes", "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado." },
     { "label": "Puntos de recogida", "value": "Hoteles del casco antiguo, el aparcamiento del Osario de Sedlec o la estación principal de Kutná Hora. Indíquenos la dirección exacta y su chófer le esperará allí." },
-    { "label": "Traslado de vuelta", "value": "¿Viaja Praga–Kutná Hora–Praga? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida." }
+    { "label": "Traslado de vuelta", "value": "¿Viaja Praga–Kutná Hora–Praga? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta." }
   ],
   "dayTripLabel": "Paradas en el camino",
   "dayTrip": {

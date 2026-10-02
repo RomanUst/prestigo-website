@@ -7,14 +7,14 @@
     "imageAlt": "Dresden — private chauffeur transfer from Prague to Dresden"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Dresden covers 150 km via the D8 and A17 motorways and takes approximately 1.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ústí nad Labem or the Elbe valley viewpoint — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Dresden covers approximately 150 km via the D8 and A17 motorways and takes about 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ústí nad Labem or the Elbe valley viewpoint — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Dresden",
     "headingItalic": "in two hours.",
     "paragraphs": [
-      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D8 motorway north through Ústí nad Labem. The Czech–German border crossing at Schönwald is invisible inside the Schengen Area — no stops, no document checks. Once in Germany, the road becomes the A17 and drops into Dresden through the Weißer Hirsch hills, arriving at your hotel or meeting point in central Dresden.",
+      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or the airport, your chauffeur takes the D8 motorway north through Ústí nad Labem. The Czech–German motorway crossing at Petrovice–Breitenau is invisible inside the Schengen Area — no stops, no document checks. Once in Germany, the road becomes the A17 and drops into Dresden through the Weißer Hirsch hills, arriving at your hotel or meeting point in central Dresden.",
       "Total distance is approximately 150 kilometres. Driving time is two hours in normal conditions. Add 15–20 minutes during Friday afternoon rush hour out of Prague.",
       "Your chauffeur watches traffic on the D8 before every departure. If there is a construction delay near Lovosice — as there has been on and off since 2024 — they reroute via the R63 without asking. You are not paying for traffic; you are paying for time."
     ]
@@ -24,7 +24,7 @@
   "inclusions": [
     "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
     "A professional chauffeur — fluent English and Czech. German on request.",
-    "Fuel, all tolls, and the German toll vignette. Nothing is charged on top.",
+    "Fuel, the Czech motorway vignette, and any tolls — German motorways are toll-free for cars. Nothing is charged on top.",
     "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
     "Bottled water, phone charger, and WiFi in the rear cabin.",
     "Waiting time at pickup — 15 minutes free at any address.",
@@ -45,8 +45,8 @@
     { "city": "Dresden", "note": "Drop-off at any Dresden address, your hotel, the Frauenkirche, or the Zwinger Palace.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
-    { "label": "Border crossing", "value": "Czech–German Schengen border at Hřensko/Bad Schandau. No passport check for EU citizens — carry travel documents for non-EU passengers." },
-    { "label": "Tolls", "value": "Czech motorway vignette and German motorway toll included in the quoted price." },
+    { "label": "Border crossing", "value": "Czech–German Schengen border at Petrovice/Breitenau on the D8/A17. No passport check for EU citizens — carry travel documents for non-EU passengers." },
+    { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
     { "label": "Onward routing", "value": "Dresden connects directly to Leipzig, Berlin, and other German cities. Prestigo can extend your transfer as a single booking." }
   ],
@@ -71,7 +71,7 @@
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "for Prague to Dresden.",
     "items": [
-      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off." },
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, any tolls, driver time. Nothing added at drop-off." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel." },
       { "title": "Anticipatory service", "body": "If the D8 has a closure, your chauffeur reroutes without asking. If your flight into Prague is delayed, the pickup is shifted without a phone call. You should not have to manage the trip — that is the job." }
     ]
@@ -81,7 +81,7 @@
     { "q": "How long does a private transfer from Prague to Dresden take?", "a": "Approximately 2 hours door-to-door via the D8 motorway through Ústí nad Labem and the A17 after the German border. Traffic around Prague during rush hour can add 15–20 minutes." },
     { "q": "How much does a chauffeur from Prague to Dresden cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Dresden?", "a": "Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Dresden with you during the visit, add hourly city rental to the booking. Most clients book a 6–8 hour round trip to cover the Old Masters Gallery, Frauenkirche, and lunch along the Elbe." },
-    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany." },
+    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -91,7 +91,7 @@
     { "slug": "prague-leipzig", "city": "Leipzig", "distance": "165 km", "duration": "2h 15min" },
     { "slug": "prague-berlin", "city": "Berlin", "distance": "350 km", "duration": "3h 45min" },
     { "slug": "prague-karlovy-vary", "city": "Karlovy Vary", "distance": "130 km", "duration": "1h 30min" },
-    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "360 km", "duration": "4h" }
+    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "295 km", "duration": "3h" }
   ],
   "highlights": [
     { "label": "Distance", "value": "~150 km" },

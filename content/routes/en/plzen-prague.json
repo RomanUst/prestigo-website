@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Karlštejn, the Koněprusy Caves or Křivoklát — agreed at booking."
+    "Stops on the way — Karlštejn, the Koněprusy Caves or Křivoklát — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "No border crossing — Plzeň and Prague are both in the Czech Republic." },
     { "label": "Tolls", "value": "The Czech motorway vignette and any tolls are included in the quoted price." },
     { "label": "Airport drop-off", "value": "The D5 enters Prague on the airport side of the city. Tell us your flight time and we plan the pickup in Plzeň with a comfortable margin." },
-    { "label": "Return transfer", "value": "Travelling back to Plzeň later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Plzeň later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {
@@ -91,7 +92,7 @@
   "relatedRoutes": [
     { "slug": "karlovy-vary-prague", "city": "Karlovy Vary", "label": "Karlovy Vary → Prague", "distance": "130 km", "duration": "1h 30min" },
     { "slug": "marianske-lazne-prague", "city": "Mariánské Lázně", "label": "Mariánské Lázně → Prague", "distance": "165 km", "duration": "2h" },
-    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "360 km", "duration": "3h 30min" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3h" },
     { "slug": "regensburg-prague", "city": "Regensburg", "label": "Regensburg → Prague", "distance": "285 km", "duration": "3h" }
   ],
   "highlights": [

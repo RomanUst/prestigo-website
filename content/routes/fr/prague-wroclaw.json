@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un transfert privé de Prague à Wrocław couvre 285 km et demande environ 3 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour un maximum de 3 passagers ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement d'affaires ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne varie pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en chemin — Liberec ou Jelenia Góra — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
-    "Ce n'est ni une navette partagée, ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+    "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
     "headingLine1": "De Prague à Wrocław",
@@ -153,7 +153,7 @@
     },
     {
       "q": "Le passage de la frontière tchéco-polonaise se fait-il sans difficulté ?",
-      "a": "Les deux pays font partie de l'espace Schengen. Le passage à Náchod/Kudowa-Zdrój est invisible : pas de contrôles de routine, pas de contrôle des passeports. Tous les véhicules Prestigo disposent de la vignette tchèque et des péages polonais prépayés, et le chauffeur détient une licence internationale de chauffeur reconnue dans toute l'UE."
+      "a": "Les deux pays font partie de l'espace Schengen. Le passage à Náchod/Kudowa-Zdrój est invisible : pas de contrôles de routine, pas de contrôle des passeports. Tous les véhicules Prestigo disposent de la vignette tchèque et des péages polonais prépayés."
     },
     {
       "q": "Un siège enfant est-il disponible ?",
@@ -185,7 +185,7 @@
     {
       "slug": "prague-krakow",
       "city": "Cracovie",
-      "distance": "535 km",
+      "distance": "530 km",
       "duration": "5 h 30"
     },
     {

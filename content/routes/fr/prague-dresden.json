@@ -7,24 +7,24 @@
     "imageAlt": "Dresde — transfert en chauffeur privé de Prague à Dresde"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Dresde couvre 150 km par les autoroutes D8 et A17 et prend environ 1 h 30 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et allemande, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Ústí nad Labem ou le belvédère de la vallée de l'Elbe — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à vous solliciter en cas de retard.",
-    "Il ne s'agit pas d'une navette partagée. Ni d'une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
+    "Un transfert privé de Prague à Dresde couvre 150 km par les autoroutes D8 et A17 et prend environ 2 heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes allant jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, la vignette autoroutière tchèque (les autoroutes allemandes sont gratuites pour les voitures), l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quels que soient la circulation ou le temps d'attente à destination. Les arrêts en route — Ústí nad Labem ou le belvédère de la vallée de l'Elbe — sont possibles au tarif fixe lorsqu'ils sont convenus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à vous solliciter en cas de retard.",
+    "Il ne s'agit pas d'une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne bouge pas."
   ],
   "routeNarrative": {
     "headingLine1": "De Prague à Dresde",
     "headingItalic": "en deux heures.",
     "paragraphs": [
-      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou l'aéroport —, votre chauffeur emprunte l'autoroute D8 vers le nord en passant par Ústí nad Labem. Le passage de la frontière tchéco-allemande à Schönwald est invisible au sein de l'espace Schengen : aucun arrêt, aucun contrôle de documents. Une fois en Allemagne, la route devient l'A17 et descend vers Dresde à travers les collines de Weißer Hirsch, jusqu'à votre hôtel ou votre point de rendez-vous au centre de Dresde.",
+      "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou l'aéroport —, votre chauffeur emprunte l'autoroute D8 vers le nord en passant par Ústí nad Labem. Le passage de la frontière tchéco-allemande à Petrovice–Breitenau est invisible au sein de l'espace Schengen : aucun arrêt, aucun contrôle de documents. Une fois en Allemagne, la route devient l'A17 et descend vers Dresde à travers les collines de Weißer Hirsch, jusqu'à votre hôtel ou votre point de rendez-vous au centre de Dresde.",
       "La distance totale est d'environ 150 kilomètres. Le temps de conduite est de deux heures en conditions normales. Comptez 15 à 20 minutes supplémentaires aux heures de pointe du vendredi après-midi à la sortie de Prague.",
       "Votre chauffeur surveille la circulation sur la D8 avant chaque départ. En cas de ralentissement lié à un chantier près de Lovosice — comme c'est le cas par intermittence depuis 2024 —, il emprunte la R63 sans avoir à vous solliciter. Vous ne payez pas la circulation ; vous payez le temps."
     ]
   },
   "includedLabel": "Ce qui est inclus",
-  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Dresde. La voiture, le chauffeur, le carburant, les péages, la vignette. Visite d'affaires, journée au musée ou week-end en Saxe — votre chauffeur s'occupe de l'itinéraire pendant que vous vous consacrez à votre destination.",
+  "includedIntro": "Le prix fixe couvre tout, de la prise en charge à Prague à la dépose à Dresde. La voiture, le chauffeur, le carburant, la vignette tchèque — les autoroutes allemandes sont gratuites pour les voitures. Visite d'affaires, journée au musée ou week-end en Saxe — votre chauffeur s'occupe de l'itinéraire pendant que vous vous consacrez à votre destination.",
   "inclusions": [
     "Une Mercedes noire — E-Class, S-Class ou V-Class selon la taille du groupe et vos préférences. Chaque véhicule a moins de trois ans.",
     "Un chauffeur professionnel — anglais et tchèque courants. Allemand sur demande.",
-    "Carburant, tous les péages et la vignette autoroutière allemande. Aucun supplément facturé.",
+    "Carburant, vignette autoroutière tchèque et tous les éventuels péages. Les autoroutes allemandes sont gratuites pour les voitures. Aucun supplément facturé.",
     "Service de porte à porte — prise en charge et dépose à l'adresse exacte que vous indiquez, pas sur un parking.",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi à l'arrière.",
     "Temps d'attente à la prise en charge — 15 minutes offertes à toute adresse.",
@@ -91,11 +91,11 @@
   "goodToKnow": [
     {
       "label": "Passage de la frontière",
-      "value": "Frontière Schengen tchéco-allemande à Hřensko/Bad Schandau. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent se munir de leurs documents de voyage."
+      "value": "Frontière Schengen tchéco-allemande à Petrovice–Breitenau. Aucun contrôle de passeport pour les citoyens de l'UE — les passagers hors UE doivent se munir de leurs documents de voyage."
     },
     {
       "label": "Péages",
-      "value": "Vignette autoroutière tchèque et péage autoroutier allemand inclus dans le prix indiqué."
+      "value": "Vignette autoroutière tchèque et éventuels péages inclus dans le prix indiqué. Les autoroutes allemandes sont gratuites pour les voitures."
     },
     {
       "label": "Transfert retour",
@@ -141,7 +141,7 @@
     "items": [
       {
         "title": "Tarif fixe, aucune surprise",
-        "body": "Le prix annoncé est le prix payé. Carburant, péages, vignette allemande, temps du chauffeur. Rien n'est ajouté à l'arrivée."
+        "body": "Le prix annoncé est le prix payé. Carburant, vignette tchèque, éventuels péages, temps du chauffeur. Rien n'est ajouté à l'arrivée."
       },
       {
         "title": "Flotte en propre, chauffeurs sélectionnés",
@@ -161,7 +161,7 @@
     },
     {
       "q": "Combien coûte un chauffeur de Prague à Dresde ?",
-      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, tous les péages et le temps du chauffeur. Aucun frais caché."
+      "a": "Tarif fixe à partir de {ePrice} € en Mercedes E-Class (jusqu'à 3 passagers), {vPrice} € en V-Class (jusqu'à 6 passagers) ou {sPrice} € en S-Class. Les prix comprennent le carburant, la vignette tchèque, les éventuels péages et le temps du chauffeur — les autoroutes allemandes sont gratuites pour les voitures. Aucun frais caché."
     },
     {
       "q": "Puis-je réserver un aller-retour dans la journée de Prague à Dresde ?",
@@ -169,7 +169,7 @@
     },
     {
       "q": "Le passage de la frontière allemande se fait-il sans difficulté ?",
-      "a": "Les deux pays font partie de l'espace Schengen. Il n'y a pas de contrôles frontaliers systématiques. Tous les véhicules Prestigo disposent de la vignette autoroutière allemande et le chauffeur détient une licence internationale de chauffeur valable et reconnue en Allemagne."
+      "a": "Les deux pays font partie de l'espace Schengen. Il n'y a pas de contrôles frontaliers systématiques au passage autoroutier de Petrovice–Breitenau. La vignette autoroutière tchèque est déjà sur la voiture, et les autoroutes allemandes n'en exigent aucune."
     },
     {
       "q": "Un siège enfant est-il disponible ?",
@@ -189,8 +189,8 @@
     {
       "slug": "prague-leipzig",
       "city": "Leipzig",
-      "distance": "165 km",
-      "duration": "2 h 15"
+      "distance": "260 km",
+      "duration": "3 h"
     },
     {
       "slug": "prague-berlin",
@@ -207,8 +207,8 @@
     {
       "slug": "prague-nuremberg",
       "city": "Nuremberg",
-      "distance": "360 km",
-      "duration": "4 h"
+      "distance": "295 km",
+      "duration": "3 h"
     }
   ],
   "highlights": [

@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "A private transfer from Prague to České Budějovice covers 155 km and takes approximately 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Tábor or a Budvar brewery visit — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to České Budějovice",
@@ -84,7 +84,7 @@
   "relatedHeading": { "line1": "Continue across", "italic": "South Bohemia." },
   "relatedRoutes": [
     { "slug": "prague-cesky-krumlov", "city": "Český Krumlov", "distance": "170 km", "duration": "2h 15min" },
-    { "slug": "prague-linz", "city": "Linz", "distance": "235 km", "duration": "2h 45min" },
+    { "slug": "prague-linz", "city": "Linz", "distance": "235 km", "duration": "2h 30min" },
     { "slug": "prague-passau", "city": "Passau", "distance": "240 km", "duration": "2h 45min" },
     { "slug": "prague-plzen", "city": "Plzeň", "distance": "95 km", "duration": "1h 15min" }
   ],

@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Loket, the Lidice Memorial or a coffee break on the D6 — agreed at booking."
+    "Stops on the way — Loket, the Lidice Memorial or a coffee break on the D6 — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "None. Karlovy Vary to Prague is entirely inside the Czech Republic." },
     { "label": "Tolls", "value": "The Czech motorway vignette is included in the quoted price." },
     { "label": "Airport drop-off", "value": "The D6 ends close to Václav Havel Airport. Give us your flight time and we plan the departure from Karlovy Vary around it." },
-    { "label": "Return transfer", "value": "Coming back to Karlovy Vary later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Coming back to Karlovy Vary later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {

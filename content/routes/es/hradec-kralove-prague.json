@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
-    "Paradas en el camino — Chlumec nad Cidlinou, Poděbrady o Nymburk — acordadas al reservar."
+    "Paradas en el camino — Chlumec nad Cidlinou, Poděbrady o Nymburk — acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Paso de frontera", "value": "Sin paso de frontera: Hradec Králové y Praga están ambas en la República Checa." },
     { "label": "Peajes", "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado." },
     { "label": "Ciudades gemelas", "value": "Pardubice está al lado. Podemos recoger pasajeros en ambas ciudades de camino a Praga: solicítelo al reservar." },
-    { "label": "Traslado de vuelta", "value": "¿Regresa a Hradec Králové más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida." }
+    { "label": "Traslado de vuelta", "value": "¿Regresa a Hradec Králové más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta." }
   ],
   "dayTripLabel": "Paradas en el camino",
   "dayTrip": {

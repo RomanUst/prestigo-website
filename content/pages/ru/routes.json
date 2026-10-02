@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "Расстояние",
       "duration": "Время в пути",
-      "price": "Цена"
+      "price": "Цена от"
     },
     "bookButton": "Забронировать Прага → {city}",
     "routeDetails": "Подробнее о маршруте"

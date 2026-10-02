@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
-    "Paradas en el camino — Karlštejn, las cuevas de Koněprusy o Křivoklát — acordadas al reservar."
+    "Paradas en el camino — Karlštejn, las cuevas de Koněprusy o Křivoklát — acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Paso de frontera", "value": "Sin paso de frontera: Pilsen y Praga están ambas en la República Checa." },
     { "label": "Peajes", "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado." },
     { "label": "Llegada al aeropuerto", "value": "La D5 entra en Praga por el lado del aeropuerto. Indíquenos la hora de su vuelo y planificaremos la recogida en Pilsen con un margen cómodo." },
-    { "label": "Traslado de vuelta", "value": "¿Regresa a Pilsen más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida." }
+    { "label": "Traslado de vuelta", "value": "¿Regresa a Pilsen más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta." }
   ],
   "dayTripLabel": "Paradas en el camino",
   "dayTrip": {
@@ -91,7 +92,7 @@
   "relatedRoutes": [
     { "slug": "karlovy-vary-prague", "city": "Karlovy Vary", "label": "Karlovy Vary → Praga", "distance": "130 km", "duration": "1 h 30 min" },
     { "slug": "marianske-lazne-prague", "city": "Mariánské Lázně", "label": "Mariánské Lázně → Praga", "distance": "165 km", "duration": "2 h" },
-    { "slug": "nuremberg-prague", "city": "Núremberg", "label": "Núremberg → Praga", "distance": "360 km", "duration": "3 h 30 min" },
+    { "slug": "nuremberg-prague", "city": "Núremberg", "label": "Núremberg → Praga", "distance": "295 km", "duration": "3 h" },
     { "slug": "regensburg-prague", "city": "Ratisbona", "label": "Ratisbona → Praga", "distance": "285 km", "duration": "3 h" }
   ],
   "highlights": [

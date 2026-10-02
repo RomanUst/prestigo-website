@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "Distance",
       "duration": "Duration",
-      "price": "Price"
+      "price": "Price from"
     },
     "bookButton": "Book Prague → {city}",
     "routeDetails": "Route Details"

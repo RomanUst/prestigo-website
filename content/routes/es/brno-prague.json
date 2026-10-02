@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
     "Sillas infantiles a petición: portabebés a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
-    "Paradas en el camino —Žďár nad Sázavou, Telč o Kutná Hora— acordadas al reservar."
+    "Paradas en el camino —Žďár nad Sázavou, Telč o Kutná Hora— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste alguno.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Regresa a Brno más adelante? Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Regresa a Brno más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",

@@ -3,28 +3,28 @@
     "label": "Prague → Nuremberg",
     "headlineLine1": "Prague to Nuremberg,",
     "headlineItalic": "Franconian city.",
-    "intro": "360 km southwest on the D5 into Bavaria. Three and a half hours door-to-door. Fixed fare from €{ePrice}. Your chauffeur is already waiting.",
+    "intro": "295 km southwest on the D5 into Bavaria. About three hours door-to-door. Fixed fare from €{ePrice}. Your chauffeur is already waiting.",
     "imageAlt": "Nuremberg — private chauffeur transfer from Prague to Nuremberg"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Nuremberg covers 360 km via the D5 and A93 motorways and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Nuremberg covers approximately 295 km via the D5 and A6 motorways and takes about 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Plzeň or Regensburg — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Nuremberg",
-    "headingItalic": "in three and a half hours.",
+    "headingItalic": "in about three hours.",
     "paragraphs": [
       "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D5 motorway southwest through the Bohemian countryside toward Plzeň. After the brewery city the D5 climbs into the forested Bohemian Forest and reaches the Czech–German Schengen border at Rozvadov and Waidhaus — invisible inside the Schengen Area, no stops, no document checks. Once in Germany, the road becomes the A6 and runs west through the rolling Upper Palatinate countryside into Bavaria, arriving in Nuremberg from the east.",
-      "Total distance is approximately 360 kilometres. Driving time is three and a half hours in normal conditions. The route delivers you directly to the Altstadt with its Kaiserburg on the sandstone ridge above the Pegnitz, the Hauptmarkt where the Christkindlesmarkt fills the square every December, Albrecht Dürer's house below the castle, and the Documentation Centre at the former Nazi Party Rally Grounds south of the centre.",
+      "Total distance is approximately 295 kilometres. Driving time is about three hours in normal conditions. The route delivers you directly to the Altstadt with its Kaiserburg on the sandstone ridge above the Pegnitz, the Hauptmarkt where the Christkindlesmarkt fills the square every December, Albrecht Dürer's house below the castle, and the Documentation Centre at the former Nazi Party Rally Grounds south of the centre.",
       "Your chauffeur watches traffic on the A6 before every departure. If a summer holiday weekend has stacked traffic near Amberg, or if the A6 widening works are active, they reroute without asking. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
-  "includedIntro": "The fixed price covers everything from Prague pickup to Nuremberg drop-off. The car, the chauffeur, the fuel, the Czech vignette, the German toll. Trade fair at NürnbergMesse, a museum day in the Altstadt, or a Christmas market weekend — your driver handles the route while you focus on the destination.",
+  "includedIntro": "The fixed price covers everything from Prague pickup to Nuremberg drop-off. The car, the chauffeur, the fuel, the Czech vignette, any tolls. Trade fair at NürnbergMesse, a museum day in the Altstadt, or a Christmas market weekend — your driver handles the route while you focus on the destination.",
   "inclusions": [
     "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
     "A professional chauffeur — fluent English and Czech. German on request.",
-    "Fuel, all tolls, and the German toll vignette. Nothing is charged on top.",
+    "Fuel, the Czech motorway vignette, and any tolls — German motorways are toll-free for cars. Nothing is charged on top.",
     "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
     "Bottled water, phone charger, and WiFi in the rear cabin.",
     "Waiting time at pickup — 15 minutes free at any address.",
@@ -46,7 +46,7 @@
   ],
   "goodToKnow": [
     { "label": "Border crossing", "value": "Czech-German Schengen border at Rozvadov/Waidhaus. No passport check for EU citizens." },
-    { "label": "Tolls", "value": "Czech motorway vignette and German motorway toll both included in the quoted price." },
+    { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
     { "label": "Onward routing", "value": "Munich is 160 km south. Prestigo can extend your journey from Nuremberg to Munich as a single booking." }
   ],
@@ -54,9 +54,9 @@
   "dayTrip": {
     "headingLine1": "Popular day-trip",
     "headingItalic": "configurations.",
-    "intro": "At three and a half hours each way, Nuremberg makes a comfortable day trip from Prague. Three configurations cover the majority of requests.",
+    "intro": "At about three hours each way, Nuremberg makes a comfortable day trip from Prague. Three configurations cover the majority of requests.",
     "configurations": [
-      { "title": "The Imperial Castle and Old Town", "body": "Pickup at 7:30, arrive Nuremberg around 11:00. Four to five hours in the Altstadt — the Kaiserburg with its panoramic terrace, Albrecht Dürer's house on Tiergärtnertorplatz, a lunch of Nürnberger Rostbratwürste at a Hauptmarkt terrace, and the Schöner Brunnen. Return to Prague by evening.", "price": "Round-trip package — contact us for a quote" },
+      { "title": "The Imperial Castle and Old Town", "body": "Pickup at 7:30, arrive Nuremberg around 10:30. Four to five hours in the Altstadt — the Kaiserburg with its panoramic terrace, Albrecht Dürer's house on Tiergärtnertorplatz, a lunch of Nürnberger Rostbratwürste at a Hauptmarkt terrace, and the Schöner Brunnen. Return to Prague by evening.", "price": "Round-trip package — contact us for a quote" },
       { "title": "The Christkindlesmarkt Day", "body": "December only. Pickup at 8:00 to beat the coach traffic into Nuremberg. Four hours walking the Christkindlesmarkt on Hauptmarkt — Lebkuchen, mulled wine, the wooden stalls that have defined German Christmas markets since 1628. A warm cabin waits for the drive home.", "price": "Round-trip package — contact us for a quote" },
       { "title": "The Documentation Centre half-day", "body": "For visitors focused on twentieth-century history. Three hours at the Documentation Centre at the former Nazi Party Rally Grounds and a walk across the Zeppelinfeld, with an optional stop at Courtroom 600 in the Palace of Justice where the Nuremberg Trials were held.", "price": "Round-trip package — contact us for a quote" }
     ],
@@ -64,24 +64,24 @@
   },
   "chauffeurNarrative": [
     "Your chauffeur will meet you in front of your pickup address — not in a parking lot across the street, not at an airport meeting point a ten-minute walk away. If you are at Václav Havel Airport, they are inside the arrivals hall with a Prestigo tablet displaying your name. A central Prague pickup from Old Town, Vinohrady, or Malá Strana is the same: the car is at the door, the luggage is loaded, and the drive begins.",
-    "Conversation is a choice. If you want a quiet cabin for three and a half hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Nuremberg — the city that hosted imperial diets of the Holy Roman Empire, the birthplace of Albrecht Dürer, the stage of the Nazi Party rallies and the post-war trials that established the Nuremberg Code in medical ethics, the place where the German Christmas market tradition was written in 1628 — your chauffeur knows it.",
+    "Conversation is a choice. If you want a quiet cabin for three hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Nuremberg — the city that hosted imperial diets of the Holy Roman Empire, the birthplace of Albrecht Dürer, the stage of the Nazi Party rallies and the post-war trials that established the Nuremberg Code in medical ethics, the place where the German Christmas market tradition was written in 1628 — your chauffeur knows it.",
     "Phone charger, bottled water, and WiFi are already in the cabin. If you forgot a European adapter, ask. If you need a specific temperature in the rear cabin, say so. If you want to stop for coffee at the Rozvadov rest area a kilometre before the German border, or at one of the A6 services between Waidhaus and Nuremberg, that is included."
   ],
   "whyBook": {
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "for Prague to Nuremberg.",
     "items": [
-      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off in Nuremberg." },
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, any tolls, driver time. Nothing added at drop-off in Nuremberg." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel into Bavaria." },
       { "title": "Anticipatory service", "body": "If the A6 has a closure near Amberg, your chauffeur reroutes via Bayreuth without asking. If you are visiting in December for the Christkindlesmarkt, the chauffeur knows where to park so you reach the Hauptmarkt without a long walk in the cold." }
     ]
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Prague to Nuremberg take?", "a": "Approximately 3.5 hours door-to-door via the D5 motorway southwest through Plzeň, then across the Czech–German Schengen border at Rozvadov/Waidhaus and west along the A6 into Bavaria. Friday afternoon traffic leaving Prague can add 20–30 minutes." },
-    { "q": "How much does a chauffeur from Prague to Nuremberg cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, the German toll, and driver time. No hidden charges." },
-    { "q": "Can I book a same-day round trip from Prague to Nuremberg?", "a": "Yes, and it is a workable day at 3.5 hours each way. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most day-trip clients book between 4 and 6 hours on site." },
-    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The Rozvadov/Waidhaus crossing is invisible — no routine border checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany." },
+    { "q": "How long does a private transfer from Prague to Nuremberg take?", "a": "Approximately 3 hours door-to-door for about 295 km via the D5 motorway southwest through Plzeň, then across the Czech–German Schengen border at Rozvadov/Waidhaus and west along the A6 into Bavaria. Friday afternoon traffic leaving Prague can add 20–30 minutes." },
+    { "q": "How much does a chauffeur from Prague to Nuremberg cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges." },
+    { "q": "Can I book a same-day round trip from Prague to Nuremberg?", "a": "Yes, and it is a workable day at about 3 hours each way. A return on the same day receives a 10% discount. If you need the chauffeur to move around with you during the visit, add hourly city rental. Most day-trip clients book between 4 and 6 hours on site." },
+    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The Rozvadov/Waidhaus crossing is invisible — no routine border checks. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request, useful in Nuremberg where English is less universal than in Berlin or Munich. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -94,8 +94,8 @@
     { "slug": "prague-plzen", "city": "Plzeň", "distance": "90 km", "duration": "1h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~360 km" },
-    { "label": "Duration", "value": "~3.5 hours" },
+    { "label": "Distance", "value": "~295 km" },
+    { "label": "Duration", "value": "~3 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
   ],
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Nuremberg Chauffeur — From €{ePrice}",
-    "description": "Book a private chauffeur from Prague to Nuremberg. 360 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Franconia's medieval city.",
+    "description": "Book a private chauffeur from Prague to Nuremberg. 295 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Franconia's medieval city.",
     "ogTitle": "Prague to Nuremberg Private Transfer — From €{ePrice}",
-    "ogDescription": "Book a private chauffeur from Prague to Nuremberg. 360 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Franconia's medieval city."
+    "ogDescription": "Book a private chauffeur from Prague to Nuremberg. 295 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Franconia's medieval city."
   }
 }

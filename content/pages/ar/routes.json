@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "المسافة",
       "duration": "مدة الرحلة",
-      "price": "السعر"
+      "price": "السعر ابتداءً من"
     },
     "bookButton": "احجز براغ → {city}",
     "routeDetails": "تفاصيل الرحلة"

@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "距离",
       "duration": "车程",
-      "price": "价格"
+      "price": "价格起自"
     },
     "bookButton": "预订 布拉格 → {city}",
     "routeDetails": "线路详情"

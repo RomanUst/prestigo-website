@@ -48,7 +48,7 @@ describe("Group A route content (71-02)", () => {
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, all tolls, the German vignette, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Berlin Chauffeur — From €485",
     });
@@ -164,11 +164,11 @@ describe("Group A route content (71-02)", () => {
   it("prague-graz: byte-parity spot-check", () => {
     assertRouteParity("prague-graz", {
       "hero.intro":
-        "450 km south through Bohemia and Austria to the City of Design. Schlossberg, the Kunsthaus, and the Styrian mountains behind — four and a half hours, one fixed price.",
+        "450 km south through Bohemia and Austria to the City of Design. Schlossberg, the Kunsthaus, and the Styrian mountains behind — four and a half to five hours, one fixed price.",
       "inclusions.0":
         "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
       "faqs.1.a":
-        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, the Austrian motorway vignette, Styrian tunnel tolls, and driver time. No hidden charges.",
+        "Fixed fare from €485 in Mercedes E-Class (up to 3 passengers), €590 in V-Class (up to 6 passengers), or €650 in S-Class. Prices include fuel, the Czech motorway vignette, the Austrian motorway vignette, the A9 Pyhrn tunnel tolls, and driver time. No hidden charges.",
       "cta.headingItalic": "From €485, fixed.",
       "metadata.title": "Prague to Graz Chauffeur — From €485",
     });

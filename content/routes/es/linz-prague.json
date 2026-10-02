@@ -3,11 +3,11 @@
     "label": "Linz → Praga",
     "headlineLine1": "De Linz a Praga,",
     "headlineItalic": "a través del Mühlviertel.",
-    "intro": "El traslado de Linz a Praga con chófer privado es un trayecto puerta a puerta de 195 km hacia el norte por la S10 y la D3, con unas 2 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con peajes y viñetas austriaca y checa incluidos. Recogida en cualquier dirección de Linz, en la Linz Hauptbahnhof o en el aeropuerto de Linz (LNZ), y llegada a cualquier punto de Praga.",
+    "intro": "El traslado de Linz a Praga con chófer privado es un trayecto puerta a puerta de 235 km hacia el norte por la S10 y la D3, con unas 2 h 30 min de conducción. La tarifa fija de Prestigo parte de {ePrice} € en un Mercedes-Benz E-Class, con peajes y viñetas austriaca y checa incluidos. Recogida en cualquier dirección de Linz, en la Linz Hauptbahnhof o en el aeropuerto de Linz (LNZ), y llegada a cualquier punto de Praga.",
     "imageAlt": "Traslado con chófer privado de Linz a Praga en un Mercedes"
   },
   "openingParagraphs": [
-    "Un traslado privado de Linz a Praga cubre 195 km —salida de la ciudad por la A7, hacia el norte sobre el Mühlviertel por la autovía S10, paso de la frontera checa en Wullowitz–Dolní Dvořiště y, después, České Budějovice y la D3 pasando por Tábor hasta Praga— y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Linz, en una oficina de la Landstraße, en la Linz Hauptbahnhof o en el aeropuerto de Linz, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
+    "Un traslado privado de Linz a Praga cubre 235 km —salida de la ciudad por la A7, hacia el norte sobre el Mühlviertel por la autovía S10, paso de la frontera checa en Wullowitz–Dolní Dvořiště y, después, České Budějovice y la D3 pasando por Tábor hasta Praga— y dura aproximadamente 2,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Su chófer le recoge en su hotel de Linz, en una oficina de la Landstraße, en la Linz Hauptbahnhof o en el aeropuerto de Linz, y le deja en la puerta de su hotel, apartamento o reunión en Praga.",
     "La tarifa se fija antes del viaje: combustible, peajes, las viñetas de autopista austriaca y checa, agua embotellada, wifi y sillitas infantiles previa solicitud están incluidos. Sin cambio de tren en České Budějovice, sin cola de taxis en la estación central de Praga, nada que resolver al llegar."
   ],
   "routeNarrative": {
@@ -15,7 +15,7 @@
     "headingItalic": "en dos horas y media.",
     "paragraphs": [
       "Desde la recogida en la Hauptplatz, junto al Danubio a la altura del Lentos o en su hotel del barrio de la Landstraße, su chófer toma la A7 hacia el norte para salir de Linz y se incorpora a la autovía S10 del Mühlviertel en Unterweitersdorf. La S10 asciende por una serie de túneles hasta las tierras de cultivo altas y onduladas del Mühlviertel y pasa junto a Freistadt, la ciudad medieval amurallada que marca el último tramo de Austria.",
-      "La frontera de Wullowitz–Dolní Dvořiště está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. En el lado checo, la carretera avanza hacia el norte por Bohemia del Sur hasta České Budějovice y, desde allí, la autopista D3 le lleva más allá de Tábor en dirección a Praga. La distancia total es de aproximadamente 195 kilómetros; el tiempo de conducción es de dos horas y media con tráfico normal, con 15–20 minutos más un viernes por la tarde, cuando el último tramo de la D1 se llena de tráfico hacia Praga.",
+      "La frontera de Wullowitz–Dolní Dvořiště está dentro del espacio Schengen: sin paradas ni controles en condiciones normales. En el lado checo, la carretera avanza hacia el norte por Bohemia del Sur hasta České Budějovice y, desde allí, la autopista D3 le lleva más allá de Tábor en dirección a Praga. La distancia total es de aproximadamente 235 kilómetros; el tiempo de conducción es de dos horas y media con tráfico normal, con 15–20 minutos más un viernes por la tarde, cuando el último tramo de la D1 se llena de tráfico hacia Praga.",
       "En invierno, la meseta del Mühlviertel puede tener nieve cuando en Linz solo llueve, y su chófer comprueba el estado de la S10 y de la carretera fronteriza antes de salir. Llegará a Praga con tiempo de sobra para una reunión por la tarde, un almuerzo tardío en Vinohrady o el check-in en un hotel de la Ciudad Vieja."
     ]
   },
@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
-    "Paradas en el camino —Freistadt, Český Krumlov o České Budějovice— acordadas al reservar."
+    "Paradas en el camino —Freistadt, Český Krumlov o České Budějovice— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Regresa a Linz más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Regresa a Linz más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",
@@ -217,14 +218,14 @@
       "slug": "salzburg-prague",
       "city": "Salzburgo",
       "label": "Salzburgo → Praga",
-      "distance": "305 km",
-      "duration": "3 h 30 min"
+      "distance": "375 km",
+      "duration": "4 h"
     }
   ],
   "highlights": [
     {
       "label": "Distancia",
-      "value": "195 km"
+      "value": "235 km"
     },
     {
       "label": "Duración",
@@ -250,8 +251,8 @@
   },
   "metadata": {
     "title": "Chófer de Linz a Praga: desde {ePrice} €",
-    "description": "Traslado privado de Linz a Praga: 195 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Linz o en el aeropuerto LNZ. Precio fijo desde {ePrice} €.",
+    "description": "Traslado privado de Linz a Praga: 235 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Linz o en el aeropuerto LNZ. Precio fijo desde {ePrice} €.",
     "ogTitle": "Traslado privado con chófer de Linz a Praga: desde {ePrice} €",
-    "ogDescription": "Traslado privado de Linz a Praga: 195 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Linz o en el aeropuerto LNZ. Precio fijo desde {ePrice} €."
+    "ogDescription": "Traslado privado de Linz a Praga: 235 km puerta a puerta en Mercedes E, S o V-Class. Recogida en Linz o en el aeropuerto LNZ. Precio fijo desde {ePrice} €."
   }
 }

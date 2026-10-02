@@ -3,19 +3,19 @@
     "label": "Prague → Leipzig",
     "headlineLine1": "Prague to Leipzig,",
     "headlineItalic": "Bach's city.",
-    "intro": "North into Saxony to the city of Bach and Schiller, the Gewandhaus, and one of Germany's great trade fair centres. Two hours, one fixed price, door to door.",
+    "intro": "North into Saxony to the city of Bach and Schiller, the Gewandhaus, and one of Germany's great trade fair centres. About three hours, one fixed price, door to door.",
     "imageAlt": "Leipzig — private chauffeur transfer from Prague to Leipzig"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Leipzig covers 260 km via the D8 and A14 motorways and takes approximately 2 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Meissen — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Leipzig covers approximately 260 km via the D8, A17 and A14 motorways and takes about 3 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Meissen — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Leipzig,",
     "headingItalic": "three motorways north.",
     "paragraphs": [
-      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D8 motorway north through Ústí nad Labem. The Czech–German Schengen border in the Schönwald/Hřensko area is invisible — no stops, no document checks, just a seam of asphalt between two countries. In Germany the road becomes the A17, which loops around Dresden on its southern edge, before the A14 peels off northwest across rolling Saxon farmland to Leipzig.",
-      "Dresden is the natural midpoint of the drive. Many clients pause there for a coffee, an hour in the Altstadt, or a full half-day before continuing on to Leipzig. The A14 then delivers you to the Markt, St. Thomas Church with Bach's tomb in the chancel, the Neue Messe exhibition grounds north of the city, the Spinnerei art quarter in Plagwitz, or the Völkerschlachtdenkmal on the southern edge. Total distance is roughly 260 kilometres; driving time is two hours forty-five in normal conditions.",
+      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D8 motorway north through Ústí nad Labem. The Czech–German Schengen border at Petrovice–Breitenau is invisible — no stops, no document checks, just a seam of asphalt between two countries. In Germany the road becomes the A17, which loops around Dresden on its southern edge, before the A14 peels off northwest across rolling Saxon farmland to Leipzig.",
+      "Dresden is the natural midpoint of the drive. Many clients pause there for a coffee, an hour in the Altstadt, or a full half-day before continuing on to Leipzig. The A14 then delivers you to the Markt, St. Thomas Church with Bach's tomb in the chancel, the Neue Messe exhibition grounds north of the city, the Spinnerei art quarter in Plagwitz, or the Völkerschlachtdenkmal on the southern edge. Total distance is roughly 260 kilometres; driving time is about three hours in normal conditions.",
       "Your chauffeur watches traffic on the A14 corridor before every departure — the Grimma stretch has been prone to lane closures during recent resurfacing, and the workaround via the B6 adds fifteen minutes rather than an hour of standstill. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -24,7 +24,7 @@
   "inclusions": [
     "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
     "A professional chauffeur — fluent English and Czech. German on request.",
-    "Fuel, all tolls, and the German toll vignette. Nothing is charged on top.",
+    "Fuel, the Czech motorway vignette, and any tolls — German motorways are toll-free for cars. Nothing is charged on top.",
     "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
     "Bottled water, phone charger, and WiFi in the rear cabin.",
     "Waiting time at pickup — 15 minutes free at any address.",
@@ -45,8 +45,8 @@
     { "city": "Leipzig", "note": "Drop-off at any Leipzig address, your hotel, Messe Leipzig, the Markt, or St. Thomas Church.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
-    { "label": "Border crossing", "value": "Czech–German Schengen border in the Schönwald/Hřensko area. No passport check for EU citizens — non-EU passengers should carry travel documents." },
-    { "label": "Tolls", "value": "Czech motorway vignette and German motorway toll included in the quoted price." },
+    { "label": "Border crossing", "value": "Czech–German Schengen border at Petrovice/Breitenau on the D8/A17. No passport check for EU citizens — non-EU passengers should carry travel documents." },
+    { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
     { "label": "Onward routing", "value": "Leipzig connects to Berlin, Frankfurt, and Hamburg. Prestigo can extend your transfer onward from Leipzig." }
   ],
@@ -54,7 +54,7 @@
   "dayTrip": {
     "headingLine1": "Popular day-trip",
     "headingItalic": "configurations.",
-    "intro": "At two and a half to three hours each way, Leipzig sits inside the comfortable limit for a same-day return from Prague — and many clients pair it with a half-day in Dresden on the drive back. Three configurations cover most requests.",
+    "intro": "At about three hours each way, Leipzig sits inside the comfortable limit for a same-day return from Prague — and many clients pair it with a half-day in Dresden on the drive back. Three configurations cover most requests.",
     "configurations": [
       { "title": "The Bach and Thomaskirche Day", "body": "Pickup at 7:30, arrive Leipzig around 10:30. Morning at St. Thomas Church — Bach's tomb in the chancel, the Bach Museum across the square, and if the timing lines up, a Motette service with the Thomanerchor. Lunch on the Markt before the return.", "price": "Round-trip package — contact us for a quote" },
       { "title": "The Spinnerei and Museums Afternoon", "body": "Later pickup at 9:00. Arrive for an afternoon at the Leipziger Baumwollspinnerei — the former cotton mill turned contemporary art quarter — with time for the Museum der bildenden Künste or the Grassi Museum before dinner near the Marktplatz.", "price": "Round-trip package — contact us for a quote" },
@@ -71,17 +71,17 @@
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "for Prague to Leipzig.",
     "items": [
-      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off." },
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, any tolls, driver time. Nothing added at drop-off." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for international travel." },
       { "title": "Anticipatory service", "body": "If the A14 has a closure near Grimma, your chauffeur reroutes via the B6 without asking. If you want to combine Leipzig with Dresden in the same day, that is included in the planning, not an upsell." }
     ]
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Prague to Leipzig take?", "a": "Approximately 2 hours 45 minutes to 3 hours door-to-door via the D8 motorway north from Prague through Ústí nad Labem, the A17 around Dresden, and the A14 northwest to Leipzig. Friday rush hour out of Prague or construction on the A14 corridor can add 20 minutes." },
+    { "q": "How long does a private transfer from Prague to Leipzig take?", "a": "Approximately 3 hours door-to-door via the D8 motorway north from Prague through Ústí nad Labem, the A17 around Dresden, and the A14 northwest to Leipzig. Friday rush hour out of Prague or construction on the A14 corridor can add 20 minutes." },
     { "q": "How much does a chauffeur from Prague to Leipzig cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, all tolls, and driver time. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Leipzig?", "a": "Yes — and it is the most common booking pattern on this route. A return on the same day receives a 10% discount. Many clients combine Leipzig with a half-day in Dresden, which sits directly en route. If you need the chauffeur to move around with you during the visit, add hourly city rental." },
-    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The crossing at Schönwald/Hřensko is invisible — no stops, no document checks. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany." },
+    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. The crossing at Petrovice/Breitenau is invisible — no stops, no document checks. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -90,12 +90,12 @@
   "relatedRoutes": [
     { "slug": "prague-dresden", "city": "Dresden", "distance": "150 km", "duration": "2h" },
     { "slug": "prague-berlin", "city": "Berlin", "distance": "350 km", "duration": "3h 45min" },
-    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "360 km", "duration": "4h" },
+    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "295 km", "duration": "3h" },
     { "slug": "prague-munich", "city": "Munich", "distance": "385 km", "duration": "4h 15min" }
   ],
   "highlights": [
     { "label": "Distance", "value": "~260 km" },
-    { "label": "Duration", "value": "~2h 45min" },
+    { "label": "Duration", "value": "~3h" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
   ],

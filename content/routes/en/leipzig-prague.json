@@ -3,19 +3,19 @@
     "label": "Leipzig → Prague",
     "headlineLine1": "Leipzig to Prague,",
     "headlineItalic": "door to door.",
-    "intro": "Leipzig to Prague by private chauffeur is a 260 km door-to-door transfer via Dresden on the A14, A17 and D8, around two hours forty-five minutes of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Leipzig address, Leipzig Hauptbahnhof or Leipzig/Halle Airport (LEJ), drop-off anywhere in Prague.",
+    "intro": "Leipzig to Prague by private chauffeur is a 260 km door-to-door transfer via Dresden on the A14, A17 and D8, around three hours of driving. Prestigo’s fixed fare starts at €{ePrice} in a Mercedes-Benz E-Class, Czech motorway vignette included. Pickup from any Leipzig address, Leipzig Hauptbahnhof or Leipzig/Halle Airport (LEJ), drop-off anywhere in Prague.",
     "imageAlt": "Private chauffeur transfer from Leipzig to Prague in a Mercedes"
   },
   "openingParagraphs": [
-    "A private transfer from Leipzig to Prague covers about 260 km — southeast across Saxony toward Dresden, south on the A17 over the Ore Mountains, then the Czech D8 motorway into Prague — and takes around two hours forty-five minutes door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel near the Markt, from the Messe, from Leipzig Hauptbahnhof or from Arrivals at Leipzig/Halle Airport, and drops you at the door in Prague.",
+    "A private transfer from Leipzig to Prague covers about 260 km — southeast across Saxony toward Dresden, south on the A17 over the Ore Mountains, then the Czech D8 motorway into Prague — and takes around three hours door to door. The fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Your chauffeur collects you from your hotel near the Markt, from the Messe, from Leipzig Hauptbahnhof or from Arrivals at Leipzig/Halle Airport, and drops you at the door in Prague.",
     "The fare is fixed when you book: fuel, the Czech motorway vignette, bottled water, Wi-Fi and child seats on request are included. There is no change of train in Dresden, no luggage to lift between platforms and no taxi to find when you reach Prague."
   ],
   "routeNarrative": {
     "headingLine1": "Leipzig to Prague",
-    "headingItalic": "in under three hours.",
+    "headingItalic": "in about three hours.",
     "paragraphs": [
       "From a pickup in the centre, at the Neue Messe or at Leipzig/Halle Airport, your chauffeur heads southeast on the A14 across open Saxon farmland, joining the A4 for the run into Dresden. German motorways carry no toll for cars. Meissen sits just off this stretch, and Dresden comes up at roughly the halfway mark — an easy place to pause.",
-      "South of Dresden the A17 climbs into the eastern Ore Mountains and crosses into the Czech Republic on the motorway, inside the Schengen Area: no routine check, no queue. The road becomes the D8, runs down past Ústí nad Labem and Lovosice and across the Bohemian plain into Prague. Total distance is approximately 260 kilometres; driving time is about two hours forty-five minutes in normal traffic.",
+      "South of Dresden the A17 climbs into the eastern Ore Mountains and crosses into the Czech Republic on the motorway, inside the Schengen Area: no routine check, no queue. The road becomes the D8, runs down past Ústí nad Labem and Lovosice and across the Bohemian plain into Prague. Total distance is approximately 260 kilometres; driving time is about three hours in normal traffic.",
       "Your chauffeur checks the A14, the A17 and the D8 before departure. If roadworks or an accident close a section, they reroute without asking. You arrive in Prague with the afternoon or evening still yours — time to check in, walk to the Old Town Square, and sit down to dinner."
     ]
   },
@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Meissen, Dresden or Terezín — agreed at booking."
+    "Stops on the way — Meissen, Dresden or Terezín — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -97,7 +98,7 @@
   "goodToKnow": [
     {
       "label": "Border crossing",
-      "value": "German–Czech Schengen border on the A17/D8 motorway south of Dresden. No routine passport check — non-EU passengers should still carry their passport and visa."
+      "value": "German–Czech Schengen border on the A17/D8 motorway south of Dresden, at Breitenau–Petrovice. No routine passport check — non-EU passengers should still carry their passport and visa."
     },
     {
       "label": "Tolls",
@@ -109,7 +110,7 @@
     },
     {
       "label": "Return transfer",
-      "value": "Travelling back to Leipzig later? Book both directions together for a reduced rate."
+      "value": "Travelling back to Leipzig later? Book both directions together for the same day and the return leg is 10% off."
     }
   ],
   "dayTripLabel": "Stops on the Way",
@@ -163,7 +164,7 @@
   "faqs": [
     {
       "q": "How long does a private transfer from Leipzig to Prague take?",
-      "a": "About two hours forty-five minutes door to door, via Dresden on the A14, A4 and A17, then the D8 from the border into Prague. Friday afternoon traffic can add 15–20 minutes."
+      "a": "About three hours door to door, via Dresden on the A14, A4 and A17, then the D8 from the border into Prague. Friday afternoon traffic can add 15–20 minutes."
     },
     {
       "q": "How much is a taxi or chauffeur from Leipzig to Prague?",
@@ -210,8 +211,8 @@
       "slug": "nuremberg-prague",
       "city": "Nuremberg",
       "label": "Nuremberg → Prague",
-      "distance": "360 km",
-      "duration": "3h 30min"
+      "distance": "295 km",
+      "duration": "3h"
     },
     {
       "slug": "karlovy-vary-prague",
@@ -228,7 +229,7 @@
     },
     {
       "label": "Duration",
-      "value": "~2h 45min"
+      "value": "~3 hours"
     },
     {
       "label": "Vehicles",

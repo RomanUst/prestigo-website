@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: la entrada del hotel, la puerta del apartamento, la oficina o el aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y Wi-Fi en la cabina trasera.",
     "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
-    "Paradas por el camino —Holašovice, České Budějovice o Tábor—, acordadas al reservar."
+    "Paradas por el camino —Holašovice, České Budějovice o Tábor—, acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Regresa a Český Krumlov más adelante? Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Regresa a Český Krumlov más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",
@@ -203,7 +204,7 @@
       "slug": "linz-prague",
       "city": "Linz",
       "label": "Linz → Praga",
-      "distance": "195 km",
+      "distance": "235 km",
       "duration": "2 h 30 min"
     },
     {
@@ -217,8 +218,8 @@
       "slug": "salzburg-prague",
       "city": "Salzburgo",
       "label": "Salzburgo → Praga",
-      "distance": "305 km",
-      "duration": "3 h 30 min"
+      "distance": "375 km",
+      "duration": "4 h"
     }
   ],
   "highlights": [

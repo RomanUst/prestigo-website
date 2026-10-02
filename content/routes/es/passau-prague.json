@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillitas infantiles previa solicitud: capazo en sentido contrario a la marcha, silla para niños pequeños o alzador. Sin cargo adicional.",
-    "Paradas en el camino —el Bosque Bávaro, Prachatice o Příbram— acordadas al reservar."
+    "Paradas en el camino —el Bosque Bávaro, Prachatice o Příbram— acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillitas infantiles disponibles previa solicitud sin cargo.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Embarca más adelante en un crucero en Passau? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Embarca más adelante en un crucero en Passau? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",
@@ -196,7 +197,7 @@
       "slug": "linz-prague",
       "city": "Linz",
       "label": "Linz → Praga",
-      "distance": "195 km",
+      "distance": "235 km",
       "duration": "2 h 30 min"
     },
     {

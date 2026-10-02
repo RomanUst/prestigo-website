@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "Distance",
       "duration": "Durée",
-      "price": "Prix"
+      "price": "Prix à partir de"
     },
     "bookButton": "Réserver Prague → {city}",
     "routeDetails": "Détails du trajet"

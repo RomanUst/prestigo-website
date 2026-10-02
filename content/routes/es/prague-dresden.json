@@ -7,14 +7,14 @@
     "imageAlt": "Dresde — traslado en chófer privado desde Praga a Dresde"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Dresde cubre 150 km por las autopistas D8 y A17 y dura aproximadamente 1,5 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, las viñetas de autopista checa y alemana, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Ústí nad Labem o el mirador del valle del Elba— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
-    "No es un servicio compartido. No es una aplicación de transporte. Un Mercedes privado, un chófer y una tarifa que no cambia."
+    "Un traslado privado de Praga a Dresde cubre 150 km por las autopistas D8 y A17 y dura aproximadamente 2 horas puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del conductor, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de teléfono y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar. La tarifa se acuerda antes de la salida y no cambia, independientemente del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Ústí nad Labem o el mirador del valle del Elba— están disponibles con la misma tarifa fija si se concretan en el momento de la reserva. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
+    "No es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Dresde",
     "headingItalic": "en dos horas.",
     "paragraphs": [
-      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la autopista D8 hacia el norte pasando por Ústí nad Labem. El paso de la frontera checo-alemana en Schönwald resulta imperceptible dentro del espacio Schengen: sin paradas ni controles de documentos. Ya en Alemania, la vía se convierte en la A17 y desciende hacia Dresde a través de las colinas de Weißer Hirsch, hasta llegar a su hotel o punto de encuentro en el centro de Dresde.",
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto—, su chófer toma la autopista D8 hacia el norte pasando por Ústí nad Labem. El paso de la frontera checo-alemana en Petrovice–Breitenau resulta imperceptible dentro del espacio Schengen: sin paradas ni controles de documentos. Ya en Alemania, la vía se convierte en la A17 y desciende hacia Dresde a través de las colinas de Weißer Hirsch, hasta llegar a su hotel o punto de encuentro en el centro de Dresde.",
       "La distancia total es de aproximadamente 150 kilómetros. El tiempo de conducción es de dos horas en condiciones normales. Añada entre 15 y 20 minutos durante la hora punta del viernes por la tarde a la salida de Praga.",
       "Su chófer consulta el tráfico de la D8 antes de cada salida. Si hay retenciones por obras cerca de Lovosice —como ha ocurrido de forma intermitente desde 2024—, modifica la ruta por la R63 sin necesidad de preguntar. Usted no paga el tráfico; paga el tiempo."
     ]
@@ -24,7 +24,7 @@
   "inclusions": [
     "Un Mercedes negro: E-Class, S-Class o V-Class según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
     "Un chófer profesional, con inglés y checo fluidos. Alemán bajo petición.",
-    "Combustible, todos los peajes y la viñeta alemana. No se cobra nada aparte.",
+    "Combustible, la viñeta de autopista checa y cualquier peaje; las autopistas alemanas no tienen peaje para turismos. No se cobra nada aparte.",
     "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
     "Agua embotellada, cargador de teléfono y wifi en la cabina trasera.",
     "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
@@ -91,11 +91,11 @@
   "goodToKnow": [
     {
       "label": "Paso de frontera",
-      "value": "Frontera Schengen checo-alemana en Hřensko/Bad Schandau. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar sus documentos de viaje."
+      "value": "Frontera Schengen checo-alemana en Petrovice/Breitenau. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar sus documentos de viaje."
     },
     {
       "label": "Peajes",
-      "value": "Viñeta de autopista checa y peaje de autopista alemán incluidos en el precio indicado."
+      "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado. Las autopistas alemanas no tienen peaje para turismos."
     },
     {
       "label": "Traslado de vuelta",
@@ -141,7 +141,7 @@
     "items": [
       {
         "title": "Tarifa fija, sin sorpresas",
-        "body": "El precio que ve es el precio que paga. Combustible, peajes, la viñeta alemana y el tiempo del conductor. Nada añadido al llegar."
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, peajes y el tiempo del conductor. Nada añadido al llegar."
       },
       {
         "title": "Flota propia, chóferes verificados",
@@ -169,7 +169,7 @@
     },
     {
       "q": "¿Cruzan la frontera alemana sin problemas?",
-      "a": "Ambos países se encuentran dentro del espacio Schengen. No hay controles fronterizos rutinarios. Todos los vehículos de Prestigo llevan la viñeta de peaje alemana y el chófer dispone de una licencia internacional de chófer válida y reconocida en Alemania."
+      "a": "Ambos países se encuentran dentro del espacio Schengen. No hay controles fronterizos rutinarios. La viñeta checa ya va en el coche y las autopistas alemanas no necesitan ninguna."
     },
     {
       "q": "¿Hay sillas infantiles disponibles?",
@@ -189,8 +189,8 @@
     {
       "slug": "prague-leipzig",
       "city": "Leipzig",
-      "distance": "165 km",
-      "duration": "2 h 15 min"
+      "distance": "260 km",
+      "duration": "3 h"
     },
     {
       "slug": "prague-berlin",
@@ -207,8 +207,8 @@
     {
       "slug": "prague-nuremberg",
       "city": "Núremberg",
-      "distance": "360 km",
-      "duration": "4 h"
+      "distance": "295 km",
+      "duration": "3 h"
     }
   ],
   "highlights": [

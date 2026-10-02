@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: entrada del hotel, puerta del apartamento, oficina o aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Sillas infantiles a petición — capazo a contramarcha, silla para niños pequeños o elevador. Sin coste adicional.",
-    "Paradas en el camino — Loket, el Memorial de Lidice o una pausa para el café en la D6 — acordadas al reservar."
+    "Paradas en el camino — Loket, el Memorial de Lidice o una pausa para el café en la D6 — acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles a petición sin coste.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Paso de frontera", "value": "Ninguno. El trayecto de Karlovy Vary a Praga transcurre íntegramente dentro de la República Checa." },
     { "label": "Peajes", "value": "La viñeta de autopista checa está incluida en el precio indicado." },
     { "label": "Llegada al aeropuerto", "value": "La D6 termina cerca del aeropuerto Václav Havel. Indíquenos la hora de su vuelo y planificaremos la salida desde Karlovy Vary en función de ella." },
-    { "label": "Traslado de vuelta", "value": "¿Regresa a Karlovy Vary más adelante? Reserve ambos sentidos conjuntamente y obtenga una tarifa reducida." }
+    { "label": "Traslado de vuelta", "value": "¿Regresa a Karlovy Vary más adelante? Reserve ambos sentidos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta." }
   ],
   "dayTripLabel": "Paradas en el camino",
   "dayTrip": {

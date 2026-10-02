@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "A private transfer from Prague to Vienna covers 330 km via the D1 and D52 motorways, continuing on the A5 into Vienna, and takes approximately 3.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and Austrian motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. Stops en route — Brno, Bratislava, or a vineyard in South Moravia — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Vienna",
@@ -82,7 +82,7 @@
     { "q": "How long does a private transfer from Prague to Vienna take?", "a": "Approximately 3 hours 30 minutes door-to-door via the D1 motorway through Brno, then the D52 to the Mikulov–Drasenhofen border, joining the Austrian A5 into Vienna. Friday afternoon traffic out of Prague can add 20–30 minutes." },
     { "q": "How much does a chauffeur from Prague to Vienna cost?", "a": "A fixed fare from €{ePrice} in a Mercedes E-Class for up to 3 passengers, €{vPrice} in the V-Class for up to 6, or €{sPrice} in the S-Class. The price covers fuel, all tolls, the Czech and Austrian vignettes, and driver time. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Vienna?", "a": "Yes. You can book the journey there and back with a 10% same-day return discount. If you need the chauffeur to move around Vienna with you during the visit, add hourly city rental to the booking. Most clients book a 9–10 hour round trip to cover Schönbrunn, the Innere Stadt, and lunch on the Ringstraße." },
-    { "q": "Do you cross the Austrian border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette and the chauffeur holds a valid international chauffeur licence recognised in Austria." },
+    { "q": "Do you cross the Austrian border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks at Mikulov–Drasenhofen. All Prestigo vehicles carry the Austrian motorway vignette." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request — useful for Vienna concierge handoffs or business meetings on arrival. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -92,7 +92,7 @@
     { "slug": "prague-bratislava", "city": "Bratislava", "distance": "330 km", "duration": "3h 30min" },
     { "slug": "prague-brno", "city": "Brno", "distance": "210 km", "duration": "2h 15min" },
     { "slug": "prague-budapest", "city": "Budapest", "distance": "530 km", "duration": "5h 30min" },
-    { "slug": "prague-salzburg", "city": "Salzburg", "distance": "385 km", "duration": "4h" }
+    { "slug": "prague-salzburg", "city": "Salzburg", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
     { "label": "Distance", "value": "330 km" },

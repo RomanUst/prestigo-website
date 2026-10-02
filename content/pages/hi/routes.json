@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "दूरी",
       "duration": "अवधि",
-      "price": "मूल्य"
+      "price": "मूल्य आरंभ"
     },
     "bookButton": "बुक करें प्राग → {city}",
     "routeDetails": "रूट विवरण"

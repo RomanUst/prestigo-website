@@ -29,7 +29,8 @@
     "Llegada a la dirección exacta de Praga que nos indique: la entrada del hotel, la puerta del apartamento, la oficina o el aeropuerto Václav Havel (PRG).",
     "Agua embotellada, cargador de móvil y Wi-Fi en la cabina trasera.",
     "Sillas infantiles bajo petición: capazo a contramarcha, silla a favor de la marcha o alzador. Sin coste adicional.",
-    "Paradas por el camino —el Spreewald, Dresde o la Suiza sajona—, acordadas al reservar."
+    "Paradas por el camino —el Spreewald, Dresde o la Suiza sajona—, acordadas al reservar.",
+    "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección y 60 minutos en el aeropuerto."
   ],
   "fleetNote": "Todos los vehículos son Mercedes-Benz de última generación, mantenidos según los estándares del fabricante. Sillas infantiles disponibles bajo petición sin coste alguno.",
   "vehicles": [
@@ -97,7 +98,7 @@
   "goodToKnow": [
     {
       "label": "Paso de frontera",
-      "value": "Frontera Schengen germano-checa en la autopista A17/D8, al sur de Dresde. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
+      "value": "Frontera Schengen germano-checa en la autopista A17/D8, paso de Breitenau–Petrovice, al sur de Dresde. Sin control rutinario de pasaportes; los pasajeros de fuera de la UE deben llevar igualmente su pasaporte y visado."
     },
     {
       "label": "Peajes",
@@ -109,7 +110,7 @@
     },
     {
       "label": "Traslado de vuelta",
-      "value": "¿Regresa a Berlín más adelante? Reserve ambos trayectos conjuntamente y obtenga una tarifa reducida."
+      "value": "¿Regresa a Berlín más adelante? Reserve ambos trayectos conjuntamente para el mismo día y obtenga un 10 % de descuento en el trayecto de vuelta."
     }
   ],
   "dayTripLabel": "Paradas en el camino",
@@ -204,7 +205,7 @@
       "city": "Leipzig",
       "label": "Leipzig → Praga",
       "distance": "260 km",
-      "duration": "2 h 45 min"
+      "duration": "3 h"
     },
     {
       "slug": "wroclaw-prague",
@@ -217,8 +218,8 @@
       "slug": "nuremberg-prague",
       "city": "Núremberg",
       "label": "Núremberg → Praga",
-      "distance": "360 km",
-      "duration": "3 h 30 min"
+      "distance": "295 km",
+      "duration": "3 h"
     }
   ],
   "highlights": [

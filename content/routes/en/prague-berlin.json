@@ -7,24 +7,24 @@
     "imageAlt": "Berlin — private chauffeur transfer from Prague to Berlin"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Berlin covers 350 km via the D8 and A17 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech and German motorway vignettes, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Cottbus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, and a fare that does not change."
+    "A private transfer from Prague to Berlin covers 350 km via the D8 and A17 motorways and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, the Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Dresden or Cottbus — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Berlin",
     "headingItalic": "in four hours.",
     "paragraphs": [
-      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D8 motorway north through Ústí nad Labem and toward the Czech–German border. The crossing at Hřensko and Schönwald is invisible inside the Schengen Area — no stops, no document checks, just a quiet transition from Bohemian forest into the Saxon foothills. The road becomes the A17, sweeps around Dresden, and joins the A13 for the long northbound leg through Brandenburg into Berlin.",
+      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D8 motorway north through Ústí nad Labem and toward the Czech–German border. The motorway crossing at Petrovice and Breitenau is invisible inside the Schengen Area — no stops, no document checks, just a quiet transition from Bohemian forest into the Saxon foothills. The road becomes the A17, sweeps around Dresden, and joins the A13 for the long northbound leg through Brandenburg into Berlin.",
       "Total distance is approximately 350 kilometres. Driving time is four hours in normal conditions, with a single coffee stop included if you want one. Drop-off can be anywhere in the city — Mitte for the cultural core, Charlottenburg for the elegant west, or directly at Berlin Brandenburg Airport (BER) for an onward flight. Tegel is closed and has been since 2020; we mention it because clients still ask.",
       "Your chauffeur watches traffic on the D8 and the A13 before every departure. There has been recurring construction on the A13 between Dresden and Cottbus over the past two years; if a closure is flagged, the route diverts via the A4 and the A15 without asking. You are not paying for traffic; you are paying for time."
     ]
   },
   "includedLabel": "What's Included",
-  "includedIntro": "The fixed price covers everything from Prague pickup to Berlin drop-off. The car, the chauffeur, the fuel, the tolls, the German vignette. Business meeting, museum weekend, or a flight out of BER — your driver handles the route while you focus on the destination.",
+  "includedIntro": "The fixed price covers everything from Prague pickup to Berlin drop-off. The car, the chauffeur, the fuel, the Czech vignette, any tolls. Business meeting, museum weekend, or a flight out of BER — your driver handles the route while you focus on the destination.",
   "inclusions": [
     "A black Mercedes — E-Class, S-Class, or V-Class depending on group size and preference. Every vehicle under three years old.",
     "A professional chauffeur — fluent English and Czech. German on request.",
-    "Fuel, all tolls, and the German toll vignette. Nothing is charged on top.",
+    "Fuel, the Czech motorway vignette, and any tolls — German motorways are toll-free for cars. Nothing is charged on top.",
     "Door-to-door service — pickup and drop-off at the exact address you specify, not a parking lot.",
     "Bottled water, phone charger, and WiFi in the rear cabin.",
     "Waiting time at pickup — 15 minutes free at any address.",
@@ -45,8 +45,8 @@
     { "city": "Berlin", "note": "Drop-off at any Berlin address, your hotel, Berlin Brandenburg Airport (BER), or Brandenburger Tor.", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
-    { "label": "Border crossing", "value": "Czech-German Schengen border at Hřensko/Bad Schandau. No passport check for EU citizens." },
-    { "label": "Tolls", "value": "Czech motorway vignette and German motorway toll both included in the quoted price." },
+    { "label": "Border crossing", "value": "Czech-German Schengen border at Petrovice/Breitenau on the D8/A17. No passport check for EU citizens." },
+    { "label": "Tolls", "value": "Czech motorway vignette and any tolls included in the quoted price. German motorways are toll-free for cars." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate." },
     { "label": "Airport service", "value": "Prestigo serves Berlin Brandenburg Airport (BER). Driver meets at arrivals with name board." }
   ],
@@ -71,7 +71,7 @@
     "headingLine1": "Why book with Prestigo",
     "headingItalic": "for Prague to Berlin.",
     "items": [
-      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, tolls, the German vignette, driver time. Nothing added at drop-off in Berlin." },
+      { "title": "Fixed fare, no surprises", "body": "The price you see is the price you pay. Fuel, the Czech vignette, any tolls, driver time. Nothing added at drop-off in Berlin." },
       { "title": "Owned fleet, vetted chauffeurs", "body": "Prestigo operates its own Mercedes fleet. Every vehicle under three years old. Every chauffeur background-checked, bilingual, trained for the long international run to Berlin and back." },
       { "title": "Anticipatory service", "body": "If the A13 has a closure outside Dresden, your chauffeur reroutes via Cottbus without asking. If your flight into BER is delayed by an hour, the return pickup is shifted without a phone call. You should not have to manage the trip — that is the job." }
     ]
@@ -79,9 +79,9 @@
   "faqsHeading": "Frequently asked questions",
   "faqs": [
     { "q": "How long does a private transfer from Prague to Berlin take?", "a": "Approximately 4 hours door-to-door via the D8 motorway north through Ústí nad Labem, the A17 around Dresden, and the A13 north to Berlin. Friday afternoon rush hour out of Prague or construction near Lovosice can add 20–30 minutes." },
-    { "q": "How much does a chauffeur from Prague to Berlin cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, all tolls, the German vignette, and driver time. No hidden charges." },
+    { "q": "How much does a chauffeur from Prague to Berlin cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, any tolls, and driver time — German motorways are toll-free for cars. No hidden charges." },
     { "q": "Can I book a same-day round trip from Prague to Berlin?", "a": "Yes, but most clients prefer an overnight. A same-day round trip means roughly eight hours on the road plus your time in Berlin — possible, but heavy. If you do book it, the return leg receives a 10% discount. If you need the chauffeur to move around with you, add hourly city rental. We are happy to advise based on your meeting schedule." },
-    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks at Hřensko/Schönwald. All Prestigo vehicles carry the German toll vignette and the chauffeur holds a valid international chauffeur licence recognised in Germany." },
+    { "q": "Do you cross the German border without problems?", "a": "Both countries are inside the Schengen Area. There are no routine border checks at Petrovice/Breitenau. The Czech motorway vignette is already on the car, and German motorways need none — they are toll-free for cars." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak German?", "a": "A German-speaking chauffeur is available on request and recommended for the Berlin route. Every Prestigo chauffeur speaks fluent English and Czech as standard." }
   ],
@@ -90,7 +90,7 @@
   "relatedRoutes": [
     { "slug": "prague-dresden", "city": "Dresden", "distance": "150 km", "duration": "2h" },
     { "slug": "prague-leipzig", "city": "Leipzig", "distance": "165 km", "duration": "2h 15min" },
-    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "360 km", "duration": "4h" },
+    { "slug": "prague-nuremberg", "city": "Nuremberg", "distance": "295 km", "duration": "3h" },
     { "slug": "prague-munich", "city": "Munich", "distance": "385 km", "duration": "4h 30min" }
   ],
   "highlights": [

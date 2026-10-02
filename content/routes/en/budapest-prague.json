@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Győr, Bratislava or Brno — agreed at booking."
+    "Stops on the way — Győr, Bratislava or Brno — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossings", "value": "Hungarian–Slovak at Rajka–Čunovo and Slovak–Czech at Brodské–Lanžhot. Both inside Schengen, no routine passport check — non-EU passengers should carry their passport and visa." },
     { "label": "Tolls", "value": "Hungarian, Slovak and Czech motorway vignettes and all tolls are included in the quoted price." },
     { "label": "Airport pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Budapest Airport and adjusts the pickup time automatically. 60 minutes of waiting is free." },
-    { "label": "Return transfer", "value": "Travelling back to Budapest later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Budapest later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {
@@ -92,7 +93,7 @@
     { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3h 30min" },
     { "slug": "vienna-prague", "city": "Vienna", "label": "Vienna → Prague", "distance": "330 km", "duration": "3h 30min" },
     { "slug": "brno-prague", "city": "Brno", "label": "Brno → Prague", "distance": "205 km", "duration": "2h 30min" },
-    { "slug": "krakow-prague", "city": "Kraków", "label": "Kraków → Prague", "distance": "385 km", "duration": "4h" }
+    { "slug": "krakow-prague", "city": "Kraków", "label": "Kraków → Prague", "distance": "530 km", "duration": "5h 30min" }
   ],
   "highlights": [
     { "label": "Distance", "value": "535 km" },

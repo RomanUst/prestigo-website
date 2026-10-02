@@ -3,12 +3,12 @@
     "label": "Prague → Linz",
     "headlineLine1": "De Prague à Linz,",
     "headlineItalic": "la Haute-Autriche en direct.",
-    "intro": "195 km vers le sud jusqu'à la capitale de la Haute-Autriche, sur le Danube. Ars Electronica, le musée Lentos et une ville qui s'est réinventée en pôle créatif — deux heures et demie, un prix fixe.",
+    "intro": "235 km vers le sud jusqu'à la capitale de la Haute-Autriche, sur le Danube. Ars Electronica, le musée Lentos et une ville qui s'est réinventée en pôle créatif — deux heures et demie, un prix fixe.",
     "imageAlt": "Linz — transfert en chauffeur privé de Prague à Linz"
   },
   "openingParagraphs": [
-    "Un transfert privé de Prague à Linz couvre 195 km et demande environ 2 h 30 de porte à porte. Tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quelles que soient la circulation ou l'attente à destination. Les arrêts en route — České Budějovice ou Freistadt — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
-    "Ce n'est pas une navette partagée. Ni une application de VTC. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
+    "Un transfert privé de Prague à Linz couvre environ 235 km et demande environ 2 h 30 de porte à porte. Tarif fixe à partir de {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est disponible à partir de {sPrice} € pour les déplacements de direction ou VIP. Chaque réservation comprend le temps du chauffeur, le carburant, les vignettes autoroutières tchèque et autrichienne, l'eau en bouteille, le Wi-Fi à bord, un chargeur de téléphone et les sièges enfant sur demande, sans supplément. Rien n'est ajouté à l'arrivée. Le tarif est convenu avant le départ et ne change pas, quelles que soient la circulation ou l'attente à destination. Les arrêts en route — České Budějovice ou Freistadt — sont possibles au tarif fixe lorsqu'ils sont prévus à la réservation. Votre chauffeur surveille la circulation avant chaque départ et modifie l'itinéraire sans avoir à demander en cas de retard.",
+    "Ce n'est pas une navette partagée. Une Mercedes privée, un chauffeur, et un tarif qui ne change pas."
   ],
   "routeNarrative": {
     "headingLine1": "De Prague à Linz",
@@ -16,7 +16,7 @@
     "paragraphs": [
       "Depuis une prise en charge à Prague — Vieille Ville, Vinohrady, Malá Strana ou aéroport Václav Havel — votre chauffeur emprunte l'autoroute D3 / E55 vers le sud, via Tábor et České Budějovice. La D3 n'est que partiellement achevée : la section centrale, de Mezno à Tábor jusqu'au contournement de České Budějovice, est aux normes autoroutières, tandis que l'approche sud vers la frontière redescend sur la route 3 puis la route 39 jusqu'à l'achèvement des derniers kilomètres. C'est un axe bien roulant que les chauffeurs Prestigo connaissent par cœur.",
       "La frontière tchéco-autrichienne de Wullowitz/Dolní Dvořiště est invisible au sein de l'espace Schengen : aucun arrêt, aucun contrôle de documents. Côté autrichien, la route devient la voie express S10 du Mühlviertel, achevée en 2015 comme porte d'entrée moderne de la Bohême vers la Haute-Autriche. La S10 traverse huit tunnels jusqu'à Unterweitersdorf, où elle rejoint l'A7 pour la descente finale vers Linz, sur le Danube. La dépose se fait sur la Hauptplatz, au musée d'art Lentos sur la rive sud, au Ars Electronica Center qui lui fait face, ou à la basilique du Pöstlingberg au-dessus de la ville.",
-      "La distance totale est d'environ 195 kilomètres. Le temps de conduite est de deux heures et demie en conditions normales. En hiver, le plateau du Mühlviertel autour de Freistadt peut être enneigé alors que Prague est encore au sec ; votre chauffeur vérifie les conditions avant chaque départ. Vous ne payez pas la circulation, vous payez le temps."
+      "La distance totale est d'environ 235 kilomètres. Le temps de conduite est de deux heures et demie en conditions normales. En hiver, le plateau du Mühlviertel autour de Freistadt peut être enneigé alors que Prague est encore au sec ; votre chauffeur vérifie les conditions avant chaque départ. Vous ne payez pas la circulation, vous payez le temps."
     ]
   },
   "includedLabel": "Ce qui est inclus",
@@ -163,7 +163,7 @@
     },
     {
       "q": "Le passage de la frontière autrichienne se fait-il sans difficulté ?",
-      "a": "Les deux pays font partie de l'espace Schengen. Le passage de Wullowitz/Dolní Dvořiště, en Bohême du Sud, est invisible : aucun arrêt, aucun contrôle de documents pour les citoyens de l'UE. Tous les véhicules Prestigo disposent des vignettes autoroutières tchèque et autrichienne, et le chauffeur détient une licence internationale de chauffeur valide, reconnue en Autriche."
+      "a": "Les deux pays font partie de l'espace Schengen. Le passage de Wullowitz/Dolní Dvořiště, en Bohême du Sud, est invisible : aucun arrêt, aucun contrôle de documents pour les citoyens de l'UE. Tous les véhicules Prestigo disposent des vignettes autoroutières tchèque et autrichienne."
     },
     {
       "q": "Un siège enfant est-il disponible ?",
@@ -189,13 +189,13 @@
     {
       "slug": "prague-passau",
       "city": "Passau",
-      "distance": "215 km",
+      "distance": "220 km",
       "duration": "2 h 45"
     },
     {
       "slug": "prague-salzburg",
       "city": "Salzbourg",
-      "distance": "330 km",
+      "distance": "375 km",
       "duration": "4 h"
     },
     {
@@ -208,7 +208,7 @@
   "highlights": [
     {
       "label": "Distance",
-      "value": "~195 km"
+      "value": "~235 km"
     },
     {
       "label": "Durée",
@@ -234,8 +234,8 @@
   },
   "metadata": {
     "title": "Chauffeur Prague – Linz — à partir de {ePrice} €",
-    "description": "Réservez un chauffeur privé de Prague à Linz. 195 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Haute-Autriche.",
+    "description": "Réservez un chauffeur privé de Prague à Linz. 235 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Haute-Autriche.",
     "ogTitle": "Transfert privé Prague – Linz — à partir de {ePrice} €",
-    "ogDescription": "Réservez un chauffeur privé de Prague à Linz. 195 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Haute-Autriche."
+    "ogDescription": "Réservez un chauffeur privé de Prague à Linz. 235 km de porte à porte en Mercedes-Benz. Prix fixe à partir de {ePrice} €, capitale de la Haute-Autriche."
   }
 }

@@ -3,19 +3,19 @@
     "label": "Prague → Kraków",
     "headlineLine1": "Prague to Kraków,",
     "headlineItalic": "Poland's royal city.",
-    "intro": "385 km northeast to Poland's cultural capital. Wawel Castle, the Rynek market square, Jewish Kazimierz, and salt mines at Wieliczka — four hours, one fixed price.",
+    "intro": "530 km east to Poland's cultural capital. Wawel Castle, the Rynek market square, Jewish Kazimierz, and salt mines at Wieliczka — about five and a half hours, one fixed price.",
     "imageAlt": "Kraków — private chauffeur transfer from Prague to Kraków"
   },
   "openingParagraphs": [
-    "A private transfer from Prague to Kraków covers 385 km and takes approximately 4 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ostrava or Katowice — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
-    "This is not a shared shuttle. Not a ride-hail app. A private Mercedes, one chauffeur, one border crossing handled for you, and a fare that does not change."
+    "A private transfer from Prague to Kraków covers approximately 530 km and takes about 5.5 hours door to door. Fixed fare starts at €{ePrice} in a Mercedes E-Class for up to 3 passengers; groups of up to 6 travel in the V-Class from €{vPrice}; the S-Class is available from €{sPrice} for executive or VIP travel. Every booking includes the driver's time, fuel, Czech motorway vignette, bottled water, onboard Wi-Fi, phone charger, and child seats on request at no extra cost. Nothing is added at drop-off. The fare is agreed before departure and does not change regardless of traffic or waiting time at your destination. Stops en route — Ostrava or Katowice — are available at the fixed fare when arranged at booking. Your chauffeur monitors traffic before every departure and reroutes without asking if there is a delay.",
+    "This is not a shared shuttle. A private Mercedes, one chauffeur, one border crossing handled for you, and a fare that does not change."
   ],
   "routeNarrative": {
     "headingLine1": "Prague to Kraków",
-    "headingItalic": "in four hours.",
+    "headingItalic": "in five and a half hours.",
     "paragraphs": [
-      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east past Brno, then continues northeast on the D1 and D48 toward Ostrava. The Czech–Polish Schengen border is crossed at Český Těšín on the Czech side and Cieszyn on the Polish side — invisible, no stops, no document checks. From there, the Polish A1 joins the A4 heading east through Katowice and on to Kraków, arriving at your hotel or meeting point in central Małopolska.",
-      "Total distance is approximately 385 kilometres. Driving time is four hours in normal conditions, four and a half during Friday afternoon traffic out of Prague. If the chauffeur prefers a slightly different line on a given day — through Olomouc on the D35 and then onto the D48 — that option is on the table too. Both routes reach Kraków in roughly the same time, and the choice is made on the morning of the drive based on live traffic.",
+      "From a Prague pickup in Old Town, Vinohrady, Malá Strana, or Václav Havel Airport, your chauffeur takes the D1 motorway east past Brno and on to Ostrava. The Czech–Polish Schengen border is crossed at Věřňovice on the Czech side and Gorzyczki on the Polish side — invisible, no stops, no document checks. From there, the Polish A1 runs north to Gliwice, where the A4 heads east through Katowice and on to Kraków — the Katowice–Kraków section is tolled — arriving at your hotel or meeting point in central Małopolska.",
+      "Total distance is approximately 530 kilometres. Driving time is about five and a half hours in normal conditions, closer to six during Friday afternoon traffic out of Prague. If the chauffeur prefers a slightly different line on a given day — through Olomouc on the D35 and then onto the D1 toward Ostrava — that option is on the table too. Both routes reach Kraków in roughly the same time, and the choice is made on the morning of the drive based on live traffic.",
       "In Kraków the drop-off can be anywhere: Stare Miasto and the Main Market Square, Wawel Castle above the Vistula, Kazimierz — the former Jewish quarter — or the socialist-realist plan of Nowa Huta on the eastern edge of the city. Your chauffeur watches traffic on the D1 and the Polish A4 before every departure. The A4 is a toll motorway and that cost is already inside your fare; if there is an incident near Katowice, they reroute without asking. You are not paying for traffic; you are paying for time."
     ]
   },
@@ -45,26 +45,26 @@
     { "city": "Kraków", "note": "Drop-off at any Kraków address, Wawel Castle, the Rynek Główny, or Kraków Airport (KRK).", "anchor": true, "custom": false }
   ],
   "goodToKnow": [
-    { "label": "Border crossing", "value": "Czech–Polish Schengen border at Český Těšín/Cieszyn. No passport check for EU citizens — carry travel documents for non-EU passengers." },
+    { "label": "Border crossing", "value": "Czech–Polish Schengen border at Věřňovice/Gorzyczki. No passport check for EU citizens — carry travel documents for non-EU passengers." },
     { "label": "Tolls", "value": "Czech motorway vignette and Polish toll motorway sections including the A4 all included in the quoted price." },
     { "label": "Return transfer", "value": "Book both directions together for a reduced rate. Most clients overnight in Kraków and return the following day." },
     { "label": "Auschwitz-Birkenau", "value": "70 km west of Kraków. Prestigo can incorporate a respectful memorial visit into the transfer itinerary on request." }
   ],
-  "dayTripLabel": "Day Trips from Prague",
+  "dayTripLabel": "Overnight Trips from Prague",
   "dayTrip": {
-    "headingLine1": "Popular day-trip",
+    "headingLine1": "Popular two-day",
     "headingItalic": "configurations.",
-    "intro": "Kraków at four to four and a half hours each way is a stretchy day trip. Most clients prefer an overnight. For those who want to see the city and be back in Prague by bedtime, three configurations cover the common requests.",
+    "intro": "Kraków at about five and a half hours each way is not a realistic day trip from Prague. Plan it as an overnight or a two-day visit — three configurations cover the common requests.",
     "configurations": [
-      { "title": "The Wawel Castle and Old Town Day", "body": "Pickup at 6:30, arrive Kraków around 11:00. Five hours on foot: Wawel Castle and Cathedral, the Rynek Główny and Cloth Hall, lunch at a restaurant off the main square, the Jagiellonian University quarter. Return to Prague late evening.", "price": "Round-trip package — contact us for a quote" },
-      { "title": "The Auschwitz-Birkenau Memorial Day", "body": "Pickup at 6:00. Your chauffeur drives directly to the Auschwitz-Birkenau State Museum in Oświęcim, 70 km west of Kraków. Four hours at the memorial with a booked, timed-entry guided tour. A quiet return drive to Prague. Handled with discretion.", "price": "Round-trip package — contact us for a quote" },
-      { "title": "Wieliczka Salt Mine and Old Town", "body": "Pickup at 6:30, arrive Wieliczka around 11:00 for a two-hour underground tour of the UNESCO salt mine. Then into central Kraków for four hours at Rynek Główny and Kazimierz, the former Jewish quarter, before the return leg to Prague.", "price": "Round-trip package — contact us for a quote" }
+      { "title": "The Wawel Castle and Old Town Day", "body": "Day one: pickup at 7:00, arrive Kraków around 12:30 and check in. Afternoon at Wawel Castle and Cathedral, evening on the Rynek Główny. Day two: the Cloth Hall, lunch at a restaurant off the main square, the Jagiellonian University quarter, then the drive back to Prague.", "price": "Round-trip package — contact us for a quote" },
+      { "title": "The Auschwitz-Birkenau Memorial Day", "body": "Day one: the drive to Kraków and a night in the city. Day two: your chauffeur drives to the Auschwitz-Birkenau State Museum in Oświęcim, 70 km west of Kraków. Four hours at the memorial with a booked, timed-entry guided tour, then a quiet return drive to Prague. Handled with discretion.", "price": "Round-trip package — contact us for a quote" },
+      { "title": "Wieliczka Salt Mine and Old Town", "body": "Day one: pickup at 7:00, arrive Wieliczka around 12:30 for a two-hour underground tour of the UNESCO salt mine, then check in in central Kraków. Day two: four hours at Rynek Główny and Kazimierz, the former Jewish quarter, before the return leg to Prague.", "price": "Round-trip package — contact us for a quote" }
     ],
-    "footnote": "Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back with a 10% same-day return discount, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book."
+    "footnote": "Indicative prices based on the scenarios above. The final fare depends on the actual time spent on site. You can book the journey there and back together, or add hourly city rental if you need the chauffeur to move around the city with you. Tell us your plan and we confirm a firm quote before you book."
   },
   "chauffeurNarrative": [
     "Your chauffeur will meet you in front of your pickup address in central Prague — Old Town, Malá Strana, Vinohrady — or inside the arrivals hall at Václav Havel Airport, holding a Prestigo tablet with your name. Not across a parking lot. Not at a meeting point ten minutes away. Where you are, at the time you booked.",
-    "Conversation is a choice. If you want a quiet cabin for four hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Kraków — its centuries as the seat of the Polish royal court, the UNESCO-listed Old Town, the Jagiellonian University founded in 1364, the weight of Holocaust memory in Kazimierz and at the Auschwitz-Birkenau memorial, the post-1989 transformation of the city — your chauffeur has it.",
+    "Conversation is a choice. If you want a quiet cabin for five and a half hours of work or rest, the chauffeur will read that signal and let you be. If you want context on Kraków — its centuries as the seat of the Polish royal court, the UNESCO-listed Old Town, the Jagiellonian University founded in 1364, the weight of Holocaust memory in Kazimierz and at the Auschwitz-Birkenau memorial, the post-1989 transformation of the city — your chauffeur has it.",
     "Phone charger, bottled water, and WiFi are already in the cabin. If you need a specific cabin temperature, say so. If you want to stop at the OMV rest area on the D1 near Brno for a coffee and a proper lunch, that is included — most Prague–Kraków drives take a twenty-minute break there."
   ],
   "whyBook": {
@@ -78,10 +78,10 @@
   },
   "faqsHeading": "Frequently asked questions",
   "faqs": [
-    { "q": "How long does a private transfer from Prague to Kraków take?", "a": "Approximately 4 to 4.5 hours door-to-door. The route runs east on the D1 through Brno, then northeast toward Ostrava on the D1/D48, across the Schengen border at Český Těšín/Cieszyn, and east on the Polish A1 and A4 into Kraków. Friday afternoon departures out of Prague can add 20 minutes." },
+    { "q": "How long does a private transfer from Prague to Kraków take?", "a": "Approximately 5.5 hours door-to-door for about 530 km. The route runs east on the D1 through Brno to Ostrava, across the Schengen border at Věřňovice/Gorzyczki, north on the Polish A1 to Gliwice, and east on the A4 — tolled between Katowice and Kraków — into the city. Friday afternoon departures out of Prague can add 20 to 30 minutes." },
     { "q": "How much does a chauffeur from Prague to Kraków cost?", "a": "Fixed fare from €{ePrice} in Mercedes E-Class (up to 3 passengers), €{vPrice} in V-Class (up to 6 passengers), or €{sPrice} in S-Class. Prices include fuel, the Czech vignette, and all Polish toll sections including the A4. No hidden charges." },
-    { "q": "Is a same-day round trip from Prague to Kraków possible?", "a": "Technically yes, but the driving alone is 8 to 9 hours round trip. Most Prestigo clients overnight in Kraków and book the return for the following day. If you need the chauffeur to move around the city with you, add hourly city rental." },
-    { "q": "Do you cross the Polish border without problems?", "a": "Both countries are inside the Schengen Area. The Czech–Polish border is crossed at Český Těšín on the Czech side and Cieszyn on the Polish side — no routine checks. All Prestigo vehicles are registered for international travel and the chauffeur holds a valid international chauffeur licence recognised in Poland." },
+    { "q": "Is a same-day round trip from Prague to Kraków possible?", "a": "Not realistically — the driving alone is around 11 hours round trip. Most Prestigo clients overnight in Kraków or plan a two-day visit and book the return for the following day. If you need the chauffeur to move around the city with you, add hourly city rental." },
+    { "q": "Do you cross the Polish border without problems?", "a": "Both countries are inside the Schengen Area. The Czech–Polish border is crossed at Věřňovice on the Czech side and Gorzyczki on the Polish side — no routine checks. All Prestigo vehicles are registered for international travel." },
     { "q": "Is a child seat available?", "a": "Yes. Rear-facing infant seats, forward-facing toddler seats, and booster seats are available at no extra cost. Please specify your child's age at booking so the correct seat is installed before pickup." },
     { "q": "Can the chauffeur speak Polish?", "a": "Polish is available on request — mention it at booking and Prestigo will assign a chauffeur with working Polish. Every Prestigo chauffeur speaks fluent English and Czech as standard, which is more than enough for the drive itself and for most interactions in Kraków." }
   ],
@@ -94,8 +94,8 @@
     { "slug": "prague-brno", "city": "Brno", "distance": "200 km", "duration": "2h" }
   ],
   "highlights": [
-    { "label": "Distance", "value": "~385 km" },
-    { "label": "Duration", "value": "~4 hours" },
+    { "label": "Distance", "value": "~530 km" },
+    { "label": "Duration", "value": "~5.5 hours" },
     { "label": "Vehicles", "value": ["Business Class", "First Class", "Business Van"] },
     { "label": "Price from", "value": "€{ePrice}", "copper": true }
   ],
@@ -105,8 +105,8 @@
   },
   "metadata": {
     "title": "Prague to Kraków Chauffeur — From €{ePrice}",
-    "description": "Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Poland's royal capital.",
+    "description": "Book a private chauffeur from Prague to Kraków. 530 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Poland's royal capital.",
     "ogTitle": "Prague to Kraków Private Transfer — From €{ePrice}",
-    "ogDescription": "Book a private chauffeur from Prague to Kraków. 385 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Poland's royal capital."
+    "ogDescription": "Book a private chauffeur from Prague to Kraków. 530 km door-to-door in a Mercedes-Benz. Fixed price from €{ePrice}, Poland's royal capital."
   }
 }

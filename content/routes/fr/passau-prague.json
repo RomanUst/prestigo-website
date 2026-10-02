@@ -29,7 +29,8 @@
     "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
     "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
-    "Arrêts en route — la forêt bavaroise, Prachatice ou Příbram — convenus à la réservation."
+    "Arrêts en route — la forêt bavaroise, Prachatice ou Příbram — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
   ],
   "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Passage de frontière", "value": "Frontière Schengen germano-tchèque à Philippsreut–Strážný. Aucun contrôle de passeport systématique — les passagers hors UE doivent toutefois se munir de leur passeport et de leur visa." },
     { "label": "Péages", "value": "La vignette autoroutière tchèque et tous les péages sont inclus. Côté allemand, cet itinéraire n'est soumis à aucun péage pour les voitures." },
     { "label": "Prises en charge après une croisière", "value": "Indiquez-nous le nom de votre bateau et le jour du débarquement. Votre chauffeur vous accueille au débarcadère et charge les bagages, quel que soit le nombre de valises qu'a demandé une semaine sur le fleuve." },
-    { "label": "Transfert retour", "value": "Vous embarquez plus tard pour une croisière à Passau ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+    { "label": "Transfert retour", "value": "Vous embarquez plus tard pour une croisière à Passau ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
   ],
   "dayTripLabel": "Arrêts en route",
   "dayTrip": {
@@ -89,7 +90,7 @@
   "relatedRoutesIntro": "Le trajet de Passau à Prague est souvent la dernière étape d'une croisière sur le Danube ou d'un circuit à travers la Bavière et l'Autriche. Les clients qui partent de Linz, de Ratisbonne ou de Munich réservent de la même façon — une seule voiture, un tarif fixe, dépose devant la porte à Prague.",
   "relatedHeading": { "line1": "D'autres façons", "italic": "de rejoindre Prague." },
   "relatedRoutes": [
-    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "195 km", "duration": "2 h 30" },
+    { "slug": "linz-prague", "city": "Linz", "label": "Linz → Prague", "distance": "235 km", "duration": "2 h 30" },
     { "slug": "cesky-krumlov-prague", "city": "Český Krumlov", "label": "Český Krumlov → Prague", "distance": "175 km", "duration": "2 h 30" },
     { "slug": "regensburg-prague", "city": "Ratisbonne", "label": "Ratisbonne → Prague", "distance": "285 km", "duration": "3 h" },
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4 h" }

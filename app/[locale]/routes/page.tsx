@@ -135,6 +135,9 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
 
   const dbRoutes = await getAllRoutes('display_order')
   const top10 = dbRoutes.slice(0, 10)
+  // Country cards show the live route_prices fare; lib/routes.ts prices are
+  // a static snapshot and only serve as the fallback when the DB is absent.
+  const liveFrom: Record<string, number> = Object.fromEntries(dbRoutes.map((r) => [r.slug, r.eClassEur]))
 
   return (
     <main id="main-content">
@@ -300,7 +303,7 @@ export default async function RoutesPage({ params }: { params: Promise<{ locale:
                       </div>
                       <div>
                         <p className="font-body font-light text-[9px] tracking-[0.2em] uppercase mb-1" style={{ color: 'var(--copper)' }}>{content.countries.cardLabels.price}</p>
-                        <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>{r.priceFrom}</p>
+                        <p className="font-body font-light text-[13px]" style={{ color: 'var(--copper-light)' }}>€<bdi>{liveFrom[r.slug] ?? r.prices.eClass}</bdi></p>
                       </div>
                     </div>
                     {r.notes.length > 0 && (

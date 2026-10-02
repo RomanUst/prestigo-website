@@ -7,24 +7,24 @@
     "imageAlt": "Berlín — traslado en chófer privado desde Praga a Berlín"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Berlín recorre 350 km por las autopistas D8 y A17 y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en la V-Class desde {vPrice} €; la S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y alemana, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar a destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Cottbus— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna incidencia.",
-    "Esto no es una lanzadera compartida. Ni una aplicación de transporte. Es un Mercedes privado, un chófer y una tarifa que no cambia."
+    "Un traslado privado de Praga a Berlín recorre 350 km por las autopistas D8 y A17 y dura aproximadamente 4 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en la V-Class desde {vPrice} €; la S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar a destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Cottbus— están disponibles dentro de la tarifa fija si se acuerdan en el momento de la reserva. Su chófer consulta el tráfico antes de cada salida y modifica el itinerario sin necesidad de preguntar si hay alguna incidencia.",
+    "Esto no es una lanzadera compartida. Es un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Berlín",
     "headingItalic": "en cuatro horas.",
     "paragraphs": [
-      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el Aeropuerto Václav Havel—, su chófer toma la autopista D8 en dirección norte, pasando por Ústí nad Labem y hacia la frontera checo-alemana. El paso por Hřensko y Schönwald resulta imperceptible dentro del Espacio Schengen: sin paradas, sin controles de documentación, solo una transición silenciosa del bosque bohemio a las estribaciones sajonas. La carretera se convierte en la A17, rodea Dresde y enlaza con la A13 para el largo tramo hacia el norte a través de Brandeburgo hasta Berlín.",
+      "Desde la recogida en Praga —en la Ciudad Vieja, Vinohrady, Malá Strana o el Aeropuerto Václav Havel—, su chófer toma la autopista D8 en dirección norte, pasando por Ústí nad Labem y hacia la frontera checo-alemana. El paso por Petrovice y Breitenau resulta imperceptible dentro del Espacio Schengen: sin paradas, sin controles de documentación, solo una transición silenciosa del bosque bohemio a las estribaciones sajonas. La carretera se convierte en la A17, rodea Dresde y enlaza con la A13 para el largo tramo hacia el norte a través de Brandeburgo hasta Berlín.",
       "La distancia total es de aproximadamente 350 kilómetros. El tiempo de conducción es de cuatro horas en condiciones normales, con una única parada para un café incluida si así lo desea. La llegada puede ser en cualquier punto de la ciudad: Mitte para el núcleo cultural, Charlottenburg para el elegante oeste, o directamente en el Aeropuerto de Berlín-Brandeburgo (BER) para un vuelo de conexión. Tegel está cerrado desde 2020; lo mencionamos porque los clientes siguen preguntándolo.",
       "Su chófer revisa el tráfico en la D8 y en la A13 antes de cada salida. En los dos últimos años ha habido obras recurrentes en la A13 entre Dresde y Cottbus; si se señaliza un corte, la ruta se desvía por la A4 y la A15 sin necesidad de consultarlo. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
   "includedLabel": "Qué incluye",
-  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Berlín. El coche, el chófer, el combustible, los peajes y la viñeta alemana. Reunión de negocios, fin de semana de museos o un vuelo desde BER: su chófer se ocupa de la ruta mientras usted se concentra en el destino.",
+  "includedIntro": "El precio fijo cubre todo, desde la recogida en Praga hasta la llegada a Berlín. El coche, el chófer, el combustible, la viñeta checa y cualquier peaje. Reunión de negocios, fin de semana de museos o un vuelo desde BER: su chófer se ocupa de la ruta mientras usted se concentra en el destino.",
   "inclusions": [
     "Un Mercedes negro: E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
     "Un chófer profesional, con dominio del inglés y del checo. Alemán bajo petición.",
-    "Combustible, todos los peajes y la viñeta alemana. No se cobra nada aparte.",
+    "Combustible, la viñeta de autopista checa y cualquier peaje; las autopistas alemanas no tienen peaje para turismos. No se cobra nada aparte.",
     "Servicio puerta a puerta: recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Tiempo de espera en la recogida: 15 minutos gratuitos en cualquier dirección.",
@@ -91,11 +91,11 @@
   "goodToKnow": [
     {
       "label": "Paso fronterizo",
-      "value": "Frontera Schengen checo-alemana en Hřensko/Bad Schandau. Sin control de pasaportes para los ciudadanos de la UE."
+      "value": "Frontera Schengen checo-alemana en Petrovice/Breitenau. Sin control de pasaportes para los ciudadanos de la UE."
     },
     {
       "label": "Peajes",
-      "value": "La viñeta de autopista checa y el peaje de autopista alemán están incluidos en el precio indicado."
+      "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado. Las autopistas alemanas no tienen peaje para turismos."
     },
     {
       "label": "Traslado de vuelta",
@@ -141,7 +141,7 @@
     "items": [
       {
         "title": "Tarifa fija, sin sorpresas",
-        "body": "El precio que ve es el precio que paga. Combustible, peajes, viñeta alemana y tiempo del chófer. No se añade nada a la llegada a Berlín."
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, peajes y tiempo del chófer. No se añade nada a la llegada a Berlín."
       },
       {
         "title": "Flota propia, chóferes seleccionados",
@@ -161,7 +161,7 @@
     },
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Berlín?",
-      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen el combustible, todos los peajes, la viñeta alemana y el tiempo del chófer. Sin cargos ocultos."
+      "a": "Tarifa fija desde {ePrice} € en Mercedes E-Class (hasta 3 pasajeros), {vPrice} € en V-Class (hasta 6 pasajeros) o {sPrice} € en S-Class. Los precios incluyen el combustible, la viñeta checa, cualquier peaje y el tiempo del chófer; las autopistas alemanas no tienen peaje para turismos. Sin cargos ocultos."
     },
     {
       "q": "¿Puedo reservar una ida y vuelta a Berlín en el mismo día?",
@@ -169,7 +169,7 @@
     },
     {
       "q": "¿Se cruza la frontera alemana sin problemas?",
-      "a": "Ambos países pertenecen al Espacio Schengen. No hay controles fronterizos rutinarios en Hřensko/Schönwald. Todos los vehículos de Prestigo llevan la viñeta de peaje alemana y el chófer dispone de un permiso internacional de chófer reconocido en Alemania."
+      "a": "Ambos países pertenecen al Espacio Schengen. No hay controles fronterizos rutinarios en Petrovice/Breitenau. La viñeta checa ya va en el coche y las autopistas alemanas no necesitan ninguna."
     },
     {
       "q": "¿Hay sillas infantiles disponibles?",
@@ -195,14 +195,14 @@
     {
       "slug": "prague-leipzig",
       "city": "Leipzig",
-      "distance": "165 km",
-      "duration": "2 h 15 min"
+      "distance": "260 km",
+      "duration": "3 h"
     },
     {
       "slug": "prague-nuremberg",
       "city": "Núremberg",
-      "distance": "360 km",
-      "duration": "4 h"
+      "distance": "295 km",
+      "duration": "3 h"
     },
     {
       "slug": "prague-munich",

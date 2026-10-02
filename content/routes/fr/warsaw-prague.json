@@ -29,7 +29,8 @@
     "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
     "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
-    "Arrêts en chemin — Częstochowa, Olomouc ou Wrocław — convenus à la réservation."
+    "Arrêts en chemin — Częstochowa, Olomouc ou Wrocław — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
   ],
   "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Transfert retour",
-      "value": "Vous revenez à Varsovie plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+      "value": "Vous revenez à Varsovie plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
     }
   ],
   "dayTripLabel": "Arrêts en chemin",
@@ -196,8 +197,8 @@
       "slug": "krakow-prague",
       "city": "Cracovie",
       "label": "Cracovie → Prague",
-      "distance": "385 km",
-      "duration": "4 h"
+      "distance": "530 km",
+      "duration": "5 h 30 min"
     },
     {
       "slug": "wroclaw-prague",

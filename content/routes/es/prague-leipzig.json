@@ -3,19 +3,19 @@
     "label": "Praga → Leipzig",
     "headlineLine1": "De Praga a Leipzig,",
     "headlineItalic": "la ciudad de Bach.",
-    "intro": "Hacia el norte, rumbo a Sajonia, a la ciudad de Bach y Schiller, la Gewandhaus y uno de los grandes centros feriales de Alemania. Dos horas, un precio fijo, de puerta a puerta.",
+    "intro": "Hacia el norte, rumbo a Sajonia, a la ciudad de Bach y Schiller, la Gewandhaus y uno de los grandes centros feriales de Alemania. Unas tres horas, un precio fijo, de puerta a puerta.",
     "imageAlt": "Leipzig — traslado en chófer privado desde Praga a Leipzig"
   },
   "openingParagraphs": [
-    "Un traslado privado de Praga a Leipzig recorre 260 km por las autopistas D8 y A14 y dura aproximadamente 2 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, las viñetas de autopista checa y alemana, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar al destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Meissen— están disponibles dentro de la tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
-    "Esto no es un servicio compartido. No es una aplicación de transporte. Un Mercedes privado, un chófer y una tarifa que no cambia."
+    "Un traslado privado de Praga a Leipzig recorre 260 km por las autopistas D8, A17 y A14 y dura aproximadamente 3 horas de puerta a puerta. La tarifa fija parte de {ePrice} € en un Mercedes E-Class para hasta 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para viajes ejecutivos o VIP. Cada reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, wifi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada al llegar al destino. La tarifa se acuerda antes de la salida y no varía, con independencia del tráfico o del tiempo de espera en su destino. Las paradas en ruta —Dresde o Meissen— están disponibles dentro de la tarifa fija si se acuerdan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay retrasos.",
+    "Esto no es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a Leipzig,",
     "headingItalic": "tres autopistas hacia el norte.",
     "paragraphs": [
-      "Desde una recogida en Praga en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel, su chófer toma la autopista D8 en dirección norte, atravesando Ústí nad Labem. La frontera Schengen checo-alemana, en la zona de Schönwald/Hřensko, es invisible: sin paradas, sin controles de documentación, solo una costura de asfalto entre dos países. En Alemania la vía se convierte en la A17, que bordea Dresde por su extremo sur, antes de que la A14 se desvíe hacia el noroeste, cruzando los suaves campos sajones hasta Leipzig.",
-      "Dresde es el punto intermedio natural del trayecto. Muchos clientes hacen allí una pausa para tomar un café, pasar una hora en la Altstadt o dedicarle media jornada antes de continuar hacia Leipzig. La A14 le lleva después hasta el Markt, la iglesia de Santo Tomás con la tumba de Bach en el presbiterio, el recinto ferial Neue Messe al norte de la ciudad, el barrio artístico de la Spinnerei en Plagwitz o el Völkerschlachtdenkmal en el extremo sur. La distancia total es de unos 260 kilómetros; el tiempo de conducción, dos horas y cuarenta y cinco minutos en condiciones normales.",
+      "Desde una recogida en Praga en la Ciudad Vieja, Vinohrady, Malá Strana o el aeropuerto Václav Havel, su chófer toma la autopista D8 en dirección norte, atravesando Ústí nad Labem. La frontera Schengen checo-alemana, en la zona de Petrovice/Breitenau, es invisible: sin paradas, sin controles de documentación, solo una costura de asfalto entre dos países. En Alemania la vía se convierte en la A17, que bordea Dresde por su extremo sur, antes de que la A14 se desvíe hacia el noroeste, cruzando los suaves campos sajones hasta Leipzig.",
+      "Dresde es el punto intermedio natural del trayecto. Muchos clientes hacen allí una pausa para tomar un café, pasar una hora en la Altstadt o dedicarle media jornada antes de continuar hacia Leipzig. La A14 le lleva después hasta el Markt, la iglesia de Santo Tomás con la tumba de Bach en el presbiterio, el recinto ferial Neue Messe al norte de la ciudad, el barrio artístico de la Spinnerei en Plagwitz o el Völkerschlachtdenkmal en el extremo sur. La distancia total es de unos 260 kilómetros; el tiempo de conducción, unas tres horas en condiciones normales.",
       "Su chófer vigila el tráfico en el corredor de la A14 antes de cada salida: el tramo de Grimma ha sufrido cierres de carril durante las recientes obras de repavimentación, y la alternativa por la B6 añade quince minutos en lugar de una hora de atasco. Usted no paga por el tráfico; paga por el tiempo."
     ]
   },
@@ -24,7 +24,7 @@
   "inclusions": [
     "Un Mercedes negro — E-Class, S-Class o V-Class, según el tamaño del grupo y sus preferencias. Todos los vehículos tienen menos de tres años.",
     "Un chófer profesional — inglés y checo fluidos. Alemán bajo petición.",
-    "Combustible, todos los peajes y la viñeta alemana. No se cobra nada adicional.",
+    "Combustible, la viñeta de autopista checa y cualquier peaje; las autopistas alemanas no tienen peaje para turismos. No se cobra nada adicional.",
     "Servicio de puerta a puerta — recogida y llegada en la dirección exacta que usted indique, no en un aparcamiento.",
     "Agua embotellada, cargador de móvil y wifi en la cabina trasera.",
     "Tiempo de espera en la recogida — 15 minutos gratuitos en cualquier dirección.",
@@ -91,11 +91,11 @@
   "goodToKnow": [
     {
       "label": "Cruce fronterizo",
-      "value": "Frontera Schengen checo-alemana en la zona de Schönwald/Hřensko. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar su documentación de viaje."
+      "value": "Frontera Schengen checo-alemana en la zona de Petrovice/Breitenau. Sin control de pasaportes para ciudadanos de la UE; los pasajeros de fuera de la UE deben llevar su documentación de viaje."
     },
     {
       "label": "Peajes",
-      "value": "Viñeta de autopista checa y peaje de autopista alemán incluidos en el precio indicado."
+      "value": "La viñeta de autopista checa y cualquier peaje están incluidos en el precio indicado. Las autopistas alemanas no tienen peaje para turismos."
     },
     {
       "label": "Traslado de vuelta",
@@ -110,7 +110,7 @@
   "dayTrip": {
     "headingLine1": "Configuraciones habituales",
     "headingItalic": "de excursión de un día.",
-    "intro": "Con dos horas y media a tres horas por trayecto, Leipzig se sitúa dentro del límite cómodo para una ida y vuelta en el mismo día desde Praga, y muchos clientes la combinan con media jornada en Dresde durante el regreso. Tres configuraciones cubren la mayoría de las peticiones.",
+    "intro": "Con unas tres horas por trayecto, Leipzig se sitúa dentro del límite cómodo para una ida y vuelta en el mismo día desde Praga, y muchos clientes la combinan con media jornada en Dresde durante el regreso. Tres configuraciones cubren la mayoría de las peticiones.",
     "configurations": [
       {
         "title": "La jornada de Bach y la Thomaskirche",
@@ -141,7 +141,7 @@
     "items": [
       {
         "title": "Tarifa fija, sin sorpresas",
-        "body": "El precio que ve es el precio que paga. Combustible, peajes, la viñeta alemana y el tiempo del chófer. Nada añadido a la llegada."
+        "body": "El precio que ve es el precio que paga. Combustible, viñeta checa, peajes y el tiempo del chófer. Nada añadido a la llegada."
       },
       {
         "title": "Flota propia, chóferes seleccionados",
@@ -157,7 +157,7 @@
   "faqs": [
     {
       "q": "¿Cuánto dura un traslado privado de Praga a Leipzig?",
-      "a": "Aproximadamente entre 2 horas y 45 minutos y 3 horas de puerta a puerta por la autopista D8 hacia el norte desde Praga, pasando por Ústí nad Labem, la A17 alrededor de Dresde y la A14 hacia el noroeste hasta Leipzig. La hora punta del viernes a la salida de Praga o las obras en el corredor de la A14 pueden añadir 20 minutos."
+      "a": "Aproximadamente 3 horas de puerta a puerta por la autopista D8 hacia el norte desde Praga, pasando por Ústí nad Labem, la A17 alrededor de Dresde y la A14 hacia el noroeste hasta Leipzig. La hora punta del viernes a la salida de Praga o las obras en el corredor de la A14 pueden añadir 20 minutos."
     },
     {
       "q": "¿Cuánto cuesta un chófer de Praga a Leipzig?",
@@ -169,7 +169,7 @@
     },
     {
       "q": "¿Se cruza la frontera alemana sin problemas?",
-      "a": "Ambos países pertenecen al espacio Schengen. El paso por Schönwald/Hřensko es invisible: sin paradas ni controles de documentación. Todos los vehículos de Prestigo llevan la viñeta de peaje alemana y el chófer dispone de una licencia internacional de conducción profesional válida y reconocida en Alemania."
+      "a": "Ambos países pertenecen al espacio Schengen. El paso por Petrovice/Breitenau es invisible: sin paradas ni controles de documentación. La viñeta checa ya va en el coche y las autopistas alemanas no necesitan ninguna."
     },
     {
       "q": "¿Hay sillas infantiles disponibles?",
@@ -201,8 +201,8 @@
     {
       "slug": "prague-nuremberg",
       "city": "Núremberg",
-      "distance": "360 km",
-      "duration": "4 h"
+      "distance": "295 km",
+      "duration": "3 h"
     },
     {
       "slug": "prague-munich",
@@ -218,7 +218,7 @@
     },
     {
       "label": "Duración",
-      "value": "~2 h 45 min"
+      "value": "~3 h"
     },
     {
       "label": "Vehículos",

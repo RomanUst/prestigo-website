@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Walhalla, Plzeň or Karlštejn Castle — agreed at booking."
+    "Stops on the way — Walhalla, Plzeň or Karlštejn Castle — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "German–Czech Schengen border at Waidhaus–Rozvadov. No routine passport check — non-EU passengers should still carry their passport and visa." },
     { "label": "Tolls", "value": "The Czech motorway vignette and all tolls are included. German motorways are toll-free for cars." },
     { "label": "Nearest airports", "value": "Regensburg has no airport of its own. If you fly into Munich or Nuremberg, we can collect you there and drive straight to Prague." },
-    { "label": "Return transfer", "value": "Travelling back to Regensburg later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Regensburg later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {
@@ -89,7 +90,7 @@
   "relatedRoutesIntro": "Regensburg to Prague is often part of a longer trip through Bavaria and Bohemia. Clients starting in Nuremberg, Munich or Passau, or stopping in Plzeň, book the same way — one car, one fixed fare, drop-off at the door in Prague.",
   "relatedHeading": { "line1": "More ways", "italic": "into Prague." },
   "relatedRoutes": [
-    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "360 km", "duration": "3h 30min" },
+    { "slug": "nuremberg-prague", "city": "Nuremberg", "label": "Nuremberg → Prague", "distance": "295 km", "duration": "3h" },
     { "slug": "munich-prague", "city": "Munich", "label": "Munich → Prague", "distance": "385 km", "duration": "4h" },
     { "slug": "passau-prague", "city": "Passau", "label": "Passau → Prague", "distance": "220 km", "duration": "2h 30min" },
     { "slug": "plzen-prague", "city": "Plzeň", "label": "Plzeň → Prague", "distance": "90 km", "duration": "1h" }

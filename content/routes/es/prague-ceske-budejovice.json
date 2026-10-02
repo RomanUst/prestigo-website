@@ -8,7 +8,7 @@
   },
   "openingParagraphs": [
     "Un traslado privado de Praga a České Budějovice cubre 155 km y dura aproximadamente 2 horas de puerta a puerta. La tarifa fija arranca en {ePrice} € en un Mercedes E-Class para un máximo de 3 pasajeros; los grupos de hasta 6 personas viajan en el V-Class desde {vPrice} €; el S-Class está disponible desde {sPrice} € para desplazamientos ejecutivos o VIP. Toda reserva incluye el tiempo del chófer, el combustible, la viñeta de autopista checa, agua embotellada, Wi-Fi a bordo, cargador de móvil y sillas infantiles bajo petición sin coste adicional. No se añade nada a la llegada. La tarifa se acuerda antes de la salida y no cambia, con independencia del tráfico o del tiempo de espera en su destino. Las paradas por el camino —Tábor o una visita a la fábrica de cerveza Budvar— están disponibles dentro de la tarifa fija si se solicitan al reservar. Su chófer consulta el estado del tráfico antes de cada salida y modifica la ruta sin necesidad de preguntar si hay alguna demora.",
-    "No es un servicio compartido. Tampoco una aplicación de transporte con conductor. Un Mercedes privado, un chófer y una tarifa que no cambia."
+    "No es un servicio compartido. Un Mercedes privado, un chófer y una tarifa que no cambia."
   ],
   "routeNarrative": {
     "headingLine1": "De Praga a České Budějovice",
@@ -174,7 +174,7 @@
       "slug": "prague-linz",
       "city": "Linz",
       "distance": "235 km",
-      "duration": "2 h 45 min"
+      "duration": "2 h 30 min"
     },
     {
       "slug": "prague-passau",

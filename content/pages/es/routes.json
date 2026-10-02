@@ -38,7 +38,7 @@
     "cardLabels": {
       "distance": "Distancia",
       "duration": "Duración",
-      "price": "Precio"
+      "price": "Precio desde"
     },
     "bookButton": "Reservar Praga → {city}",
     "routeDetails": "Detalles de la ruta"

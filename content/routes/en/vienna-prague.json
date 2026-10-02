@@ -29,7 +29,8 @@
     "Drop-off at the exact Prague address you give us — hotel entrance, apartment door, office or Václav Havel Airport (PRG).",
     "Bottled water, phone charger and Wi-Fi in the rear cabin.",
     "Child seats on request — rear-facing infant, forward-facing toddler or booster. No additional charge.",
-    "Stops on the way — Mikulov, Brno or a coffee break on the D1 — agreed at booking."
+    "Stops on the way — Mikulov, Brno or a coffee break on the D1 — agreed at booking.",
+    "Waiting time at pickup — 15 minutes free at any address, 60 minutes at the airport."
   ],
   "fleetNote": "All vehicles are late-model Mercedes-Benz, maintained to manufacturer standard. Child seats available on request at no charge.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Border crossing", "value": "Austrian–Czech Schengen border at Drasenhofen–Mikulov. No routine passport check — non-EU passengers should still carry their passport and visa." },
     { "label": "Tolls", "value": "Austrian and Czech motorway vignettes and all tolls are included in the quoted price." },
     { "label": "Airport pickup", "value": "Give us your flight number. Your chauffeur tracks the landing at Vienna Schwechat and adjusts the pickup time automatically." },
-    { "label": "Return transfer", "value": "Travelling back to Vienna later? Book both directions together for a reduced rate." }
+    { "label": "Return transfer", "value": "Travelling back to Vienna later? Book both directions together for the same day and the return leg is 10% off." }
   ],
   "dayTripLabel": "Stops on the Way",
   "dayTrip": {
@@ -92,7 +93,7 @@
     { "slug": "bratislava-prague", "city": "Bratislava", "label": "Bratislava → Prague", "distance": "330 km", "duration": "3h 30min" },
     { "slug": "budapest-prague", "city": "Budapest", "label": "Budapest → Prague", "distance": "530 km", "duration": "5h 30min" },
     { "slug": "brno-prague", "city": "Brno", "label": "Brno → Prague", "distance": "205 km", "duration": "2h 30min" },
-    { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "305 km", "duration": "3h 30min" }
+    { "slug": "salzburg-prague", "city": "Salzburg", "label": "Salzburg → Prague", "distance": "375 km", "duration": "4h" }
   ],
   "highlights": [
     { "label": "Distance", "value": "330 km" },

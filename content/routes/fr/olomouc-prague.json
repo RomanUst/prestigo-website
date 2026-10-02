@@ -29,7 +29,8 @@
     "Dépose à l'adresse exacte que vous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi dans l'habitacle arrière.",
     "Sièges enfant sur demande — coque dos à la route, siège face à la route ou réhausseur. Sans supplément.",
-    "Arrêts en route — Slavkov u Brna, Brno ou Kutná Hora — convenus à la réservation."
+    "Arrêts en route — Slavkov u Brna, Brno ou Kutná Hora — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
   ],
   "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les standards du constructeur. Sièges enfant disponibles sur demande, sans frais.",
   "vehicles": [
@@ -49,7 +50,7 @@
     { "label": "Passage de frontière", "value": "Aucune frontière — tout l'itinéraire se trouve en République tchèque." },
     { "label": "Péages", "value": "La vignette autoroutière tchèque est incluse dans le prix indiqué." },
     { "label": "Prise en charge en vieille ville", "value": "La Place Haute et la Place Basse sont en grande partie piétonnes. Votre chauffeur convient d'un point de prise en charge en bordure de la vieille ville ou devant l'entrée de votre hôtel." },
-    { "label": "Transfert retour", "value": "Vous rentrez à Olomouc plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit." }
+    { "label": "Transfert retour", "value": "Vous rentrez à Olomouc plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour." }
   ],
   "dayTripLabel": "Arrêts en route",
   "dayTrip": {

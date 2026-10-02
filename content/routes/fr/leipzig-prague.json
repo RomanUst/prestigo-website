@@ -3,19 +3,19 @@
     "label": "Leipzig → Prague",
     "headlineLine1": "De Leipzig à Prague,",
     "headlineItalic": "de porte à porte.",
-    "intro": "De Leipzig à Prague avec chauffeur privé, c'est un transfert de porte à porte de 260 km via Dresde par l'A14, l'A17 et la D8, soit environ 2 h 45 de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Leipzig, à Leipzig Hauptbahnhof ou à l'aéroport de Leipzig/Halle (LEJ), dépose partout dans Prague.",
+    "intro": "De Leipzig à Prague avec chauffeur privé, c'est un transfert de porte à porte de 260 km via Dresde par l'A14, l'A17 et la D8, soit environ trois heures de route. Le tarif fixe Prestigo débute à {ePrice} € en Mercedes-Benz E-Class, vignette autoroutière tchèque incluse. Prise en charge à toute adresse de Leipzig, à Leipzig Hauptbahnhof ou à l'aéroport de Leipzig/Halle (LEJ), dépose partout dans Prague.",
     "imageAlt": "Transfert en chauffeur privé de Leipzig à Prague en Mercedes"
   },
   "openingParagraphs": [
-    "Un transfert privé de Leipzig à Prague couvre environ 260 km — vers le sud-est à travers la Saxe en direction de Dresde, vers le sud par l'A17 à travers les monts Métallifères, puis l'autoroute tchèque D8 jusqu'à Prague — et demande environ 2 h 45 de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel près du Markt, à la Messe, à Leipzig Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Leipzig/Halle, et vous dépose devant la porte à Prague.",
+    "Un transfert privé de Leipzig à Prague couvre environ 260 km — vers le sud-est à travers la Saxe en direction de Dresde, vers le sud par l'A17 à travers les monts Métallifères, puis l'autoroute tchèque D8 jusqu'à Prague — et demande environ trois heures de porte à porte. Le tarif fixe débute à {ePrice} € en Mercedes E-Class pour 3 passagers au maximum ; les groupes jusqu'à 6 personnes voyagent en V-Class à partir de {vPrice} € ; la S-Class est proposée à partir de {sPrice} € pour un déplacement de direction ou VIP. Votre chauffeur vous prend en charge à votre hôtel près du Markt, à la Messe, à Leipzig Hauptbahnhof ou dans le hall des arrivées de l'aéroport de Leipzig/Halle, et vous dépose devant la porte à Prague.",
     "Le tarif est fixé à la réservation : carburant, vignette autoroutière tchèque, eau en bouteille, Wi-Fi et sièges enfant sur demande sont inclus. Pas de changement de train à Dresde, pas de valises à porter d'un quai à l'autre et pas de taxi à chercher à l'arrivée à Prague."
   ],
   "routeNarrative": {
     "headingLine1": "De Leipzig à Prague",
-    "headingItalic": "en moins de trois heures.",
+    "headingItalic": "en trois heures environ.",
     "paragraphs": [
       "Après une prise en charge dans le centre, à la Neue Messe ou à l'aéroport de Leipzig/Halle, votre chauffeur part vers le sud-est par l'A14 à travers les grandes plaines agricoles de Saxe, puis rejoint l'A4 jusqu'à Dresde. Les autoroutes allemandes sont gratuites pour les voitures. Meissen se trouve juste à côté de ce tronçon, et Dresde arrive à peu près à mi-parcours — un endroit idéal pour une pause.",
-      "Au sud de Dresde, l'A17 grimpe dans l'est des monts Métallifères et franchit la frontière tchèque sur l'autoroute, au sein de l'espace Schengen : pas de contrôle systématique, pas de file. La route devient la D8, descend au-delà d'Ústí nad Labem et de Lovosice et traverse la plaine de Bohême jusqu'à Prague. La distance totale est d'environ 260 kilomètres ; le temps de conduite est d'environ 2 h 45 en circulation normale.",
+      "Au sud de Dresde, l'A17 grimpe dans l'est des monts Métallifères et franchit la frontière tchèque sur l'autoroute, au sein de l'espace Schengen : pas de contrôle systématique, pas de file. La route devient la D8, descend au-delà d'Ústí nad Labem et de Lovosice et traverse la plaine de Bohême jusqu'à Prague. La distance totale est d'environ 260 kilomètres ; le temps de conduite est d'environ trois heures en circulation normale.",
       "Votre chauffeur vérifie l'A14, l'A17 et la D8 avant le départ. Si des travaux ou un accident ferment un tronçon, il change d'itinéraire sans avoir à demander. Vous arrivez à Prague avec l'après-midi ou la soirée devant vous — le temps de vous installer, de marcher jusqu'à la place de la Vieille-Ville et de passer à table."
     ]
   },
@@ -29,7 +29,8 @@
     "Dépose à l'adresse exacte que vous nous indiquez à Prague — entrée de l'hôtel, porte de l'appartement, bureau ou aéroport Václav Havel (PRG).",
     "Eau en bouteille, chargeur de téléphone et Wi-Fi dans la cabine arrière.",
     "Sièges enfant sur demande — coque dos à la route, siège face à la route ou rehausseur. Sans supplément.",
-    "Arrêts en chemin — Meissen, Dresde ou Terezín — convenus à la réservation."
+    "Arrêts en chemin — Meissen, Dresde ou Terezín — convenus à la réservation.",
+    "Temps d'attente à la prise en charge — 15 minutes offertes à n'importe quelle adresse, 60 minutes à l'aéroport."
   ],
   "fleetNote": "Tous les véhicules sont des Mercedes-Benz de dernière génération, entretenus selon les normes du constructeur. Sièges enfant disponibles sur demande, sans supplément.",
   "vehicles": [
@@ -109,7 +110,7 @@
     },
     {
       "label": "Transfert retour",
-      "value": "Vous revenez à Leipzig plus tard ? Réservez les deux trajets ensemble pour bénéficier d'un tarif réduit."
+      "value": "Vous revenez à Leipzig plus tard ? Réservez l'aller et le retour ensemble pour le même jour et bénéficiez de 10 % de réduction sur le trajet retour."
     }
   ],
   "dayTripLabel": "Arrêts en chemin",
@@ -163,7 +164,7 @@
   "faqs": [
     {
       "q": "Combien de temps dure un transfert privé de Leipzig à Prague ?",
-      "a": "Environ 2 h 45 de porte à porte, via Dresde par l'A14, l'A4 et l'A17, puis la D8 de la frontière jusqu'à Prague. Le vendredi après-midi, la circulation peut ajouter 15 à 20 minutes."
+      "a": "Environ trois heures de porte à porte, via Dresde par l'A14, l'A4 et l'A17, puis la D8 de la frontière jusqu'à Prague. Le vendredi après-midi, la circulation peut ajouter 15 à 20 minutes."
     },
     {
       "q": "Combien coûte un taxi ou un chauffeur de Leipzig à Prague ?",
@@ -210,8 +211,8 @@
       "slug": "nuremberg-prague",
       "city": "Nuremberg",
       "label": "Nuremberg → Prague",
-      "distance": "360 km",
-      "duration": "3 h 30 min"
+      "distance": "295 km",
+      "duration": "3 h"
     },
     {
       "slug": "karlovy-vary-prague",
@@ -228,7 +229,7 @@
     },
     {
       "label": "Durée",
-      "value": "~2 h 45"
+      "value": "~3 heures"
     },
     {
       "label": "Véhicules",
