@@ -54,8 +54,8 @@ function buildCsp(nonce: string): string {
     process.env.NODE_ENV === 'development'
       ? `script-src 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' 'self' https:`
       : `script-src 'nonce-${nonce}' 'strict-dynamic' https:`,
-    "frame-src https://js.stripe.com https://hooks.stripe.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     // GA4 Enhanced Measurement may load tracking pixels from google-analytics.com.
     // Meta Pixel fires image beacons to www.facebook.com/tr/ and privacy_sandbox endpoints.
     "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms",
@@ -103,8 +103,8 @@ function buildCspStatic(): string {
     process.env.NODE_ENV === 'development'
       ? "script-src 'unsafe-inline' 'unsafe-eval' 'self' https: https://chat.rideprestigo.com"
       : "script-src 'unsafe-inline' https: https://chat.rideprestigo.com",
-    "frame-src https://js.stripe.com https://hooks.stripe.com https://chat.rideprestigo.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com https://chat.rideprestigo.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
     "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms https://chat.rideprestigo.com",
     "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com https://chat.rideprestigo.com wss://chat.rideprestigo.com",

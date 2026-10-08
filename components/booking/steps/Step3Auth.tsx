@@ -485,7 +485,15 @@ export default function Step3Auth() {
 
       {/* 2. Continue with Google */}
       <div style={{ marginTop: 10 }}>
-        <OAuthButtons returnTo="/book" />
+        <OAuthButtons
+          returnTo="/book"
+          oneTap
+          onSignedIn={() => {
+            sessionStorage.removeItem('booking_deeplink')
+            setGuestMode(false)
+            nextStep()
+          }}
+        />
       </div>
 
       {/* 3. Sign in with email — opens the login modal */}

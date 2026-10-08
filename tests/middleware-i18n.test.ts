@@ -372,8 +372,9 @@ describe('middleware.ts — composed next-intl + CSP + Supabase chain (I18N-01, 
         [
           "default-src 'self'",
           "script-src 'unsafe-inline' https:",
-          'frame-src https://js.stripe.com https://hooks.stripe.com',
-          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+          // accounts.google.com: Google Identity Services sign-in button / One Tap
+          'frame-src https://js.stripe.com https://hooks.stripe.com https://accounts.google.com',
+          "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://accounts.google.com/gsi/style",
           "img-src 'self' data: blob: https://images.unsplash.com https://maps.gstatic.com https://maps.googleapis.com https://*.ggpht.com https://*.google-analytics.com https://*.googletagmanager.com https://www.facebook.com https://*.clarity.ms",
           "font-src 'self' https://fonts.gstatic.com",
           "connect-src 'self' https://api.stripe.com https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com https://*.supabase.co https://routes.googleapis.com https://maps.googleapis.com https://places.googleapis.com https://www.facebook.com https://*.clarity.ms https://accounts.google.com https://appleid.apple.com",

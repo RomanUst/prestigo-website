@@ -5,12 +5,19 @@ import { useLocale, useTranslations } from 'next-intl'
 import { createBrowserClient } from '@supabase/ssr'
 import { getPathname } from '@/i18n/routing'
 import type { AppLocale } from '@/i18n/locales'
+import { safeReturnTo } from '@/app/[locale]/login/auth-helpers'
+import GoogleIdButton from './GoogleIdButton'
 
 interface OAuthButtonsProps {
   returnTo?: string
+  /** Called after an in-page Google sign-in. Default: navigate to returnTo. */
+  onSignedIn?: () => void
+  /** Show Google One Tap alongside the button. */
+  oneTap?: boolean
+  googleTheme?: 'outline' | 'filled_black'
 }
 
-export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
+export default function OAuthButtons({ returnTo, onSignedIn, oneTap, googleTheme }: OAuthButtonsProps) {
   const t = useTranslations('Auth.oauth')
   const locale = useLocale()
   // Memoize so the browser client isn't re-instantiated on every render.
@@ -61,8 +68,8 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
     transition: 'border-color 0.15s ease, color 0.15s ease',
   }
 
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+  // Redirect-flow button: fallback when Google Identity Services can't load.
+  const redirectGoogleButton = (
       <button
         type="button"
         aria-label={t('googleLabel')}
@@ -113,6 +120,21 @@ export default function OAuthButtons({ returnTo }: OAuthButtonsProps) {
         </svg>
         {t('continueWithGoogle')}
       </button>
+  )
+
+  const afterGoogleSignIn =
+    onSignedIn ??
+    (() => window.location.assign(safeReturnTo(returnTo ?? null, getPathname({ locale: locale as AppLocale, href: '/account' }))))
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      <GoogleIdButton
+        supabase={supabase}
+        onSignedIn={afterGoogleSignIn}
+        fallback={redirectGoogleButton}
+        oneTap={oneTap}
+        theme={googleTheme}
+      />
 
     </div>
   )
