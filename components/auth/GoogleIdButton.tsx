@@ -7,12 +7,11 @@
 // Supabase project domain the redirect flow shows. Google returns an ID token,
 // which Supabase verifies via signInWithIdToken — no /auth/callback round-trip.
 //
-// If GIS can't load (blocked script, missing client ID, origin not registered
-// in Google Cloud), the caller's `fallback` (the classic redirect button) is
-// rendered instead, so sign-in never disappears.
+// If GIS can't load (blocked script, missing client ID) the button is simply
+// not rendered — email sign-in and guest checkout remain available.
 
-import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { useLocale } from 'next-intl'
+import { useEffect, useRef, useState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 // Public OAuth web client ID (the same one Supabase's Google provider uses).
@@ -74,14 +73,14 @@ async function sha256Hex(input: string): Promise<string> {
 interface GoogleIdButtonProps {
   supabase: SupabaseClient
   onSignedIn: () => void
-  fallback: ReactNode
   /** Also show the One Tap prompt in the corner. */
   oneTap?: boolean
   theme?: 'outline' | 'filled_black'
 }
 
-export default function GoogleIdButton({ supabase, onSignedIn, fallback, oneTap = false, theme = 'outline' }: GoogleIdButtonProps) {
+export default function GoogleIdButton({ supabase, onSignedIn, oneTap = false, theme = 'outline' }: GoogleIdButtonProps) {
   const locale = useLocale()
+  const tErr = useTranslations('Errors')
   const containerRef = useRef<HTMLDivElement>(null)
   const [failed, setFailed] = useState(false)
   const [error, setError] = useState(false)
@@ -153,12 +152,14 @@ export default function GoogleIdButton({ supabase, onSignedIn, fallback, oneTap 
     }
   }, [supabase, oneTap, theme, locale])
 
-  if (failed) return <>{fallback}</>
+  if (failed) return null
 
   return (
     <div>
       <div ref={containerRef} style={{ width: '100%', minHeight: 44, display: 'flex', justifyContent: 'center' }} />
-      {error && <div style={{ marginTop: 8 }}>{fallback}</div>}
+      {error && (
+        <p role="alert" style={{ color: '#e74c3c', fontSize: '12px', marginTop: 6 }}>{tErr('genericRetry')}</p>
+      )}
     </div>
   )
 }
