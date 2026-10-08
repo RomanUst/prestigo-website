@@ -753,6 +753,7 @@
       "continueWithGoogle": "Continue with Google"
     },
     "inWizard": {
+      "close": "Close",
       "sendCode": "Send code",
       "verifyCode": "Verify code",
       "enterCodeLabel": "Enter code",

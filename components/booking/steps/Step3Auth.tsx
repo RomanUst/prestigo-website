@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useLocale, useTranslations } from 'next-intl'
 import { createBrowserClient } from '@supabase/ssr'
 import { useBookingStore } from '@/lib/booking-store'
@@ -108,6 +109,7 @@ export default function Step3Auth() {
   const locale = useLocale() as AppLocale
   const { nextStep, prevStep, setGuestMode } = useBookingStore()
 
+  const [loginOpen, setLoginOpen] = useState(false)
   const [topTab, setTopTab] = useState<TopTab>('signin')
   const [signInMethod, setSignInMethod] = useState<SignInMethod>('otp')
 
@@ -156,6 +158,19 @@ export default function Step3Auth() {
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Login modal: close on Escape, lock page scroll while open.
+  useEffect(() => {
+    if (!loginOpen) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setLoginOpen(false) }
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => {
+      document.body.style.overflow = prevOverflow
+      window.removeEventListener('keydown', onKey)
+    }
+  }, [loginOpen])
 
   // ---------------------------------------------------------------------------
   // OTP handlers
@@ -271,38 +286,6 @@ export default function Step3Auth() {
   }
 
   // ---------------------------------------------------------------------------
-  // Divider
-  // ---------------------------------------------------------------------------
-
-  const divider = (
-    <div
-      style={{
-        position: 'relative',
-        margin: '20px 0',
-        borderTop: '1px solid var(--anthracite-light)',
-        textAlign: 'center',
-      }}
-    >
-      <span
-        style={{
-          position: 'relative',
-          top: '-9px',
-          display: 'inline-block',
-          backgroundColor: 'var(--anthracite)',
-          padding: '0 12px',
-          fontSize: '11px',
-          color: 'var(--warmgrey)',
-          letterSpacing: '0.18em',
-          textTransform: 'uppercase',
-          fontFamily: 'var(--font-montserrat)',
-        }}
-      >
-        {tLogin('divider')}
-      </span>
-    </div>
-  )
-
-  // ---------------------------------------------------------------------------
   // Submit button
   // ---------------------------------------------------------------------------
 
@@ -336,9 +319,10 @@ export default function Step3Auth() {
   // Register — success state
   // ---------------------------------------------------------------------------
 
+  function renderAuthPanel() {
   if (topTab === 'register' && regDone) {
     return (
-      <div style={{ maxWidth: 400 }}>
+      <div>
         {topTabs}
         <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: '14px', color: 'var(--warmgrey)', lineHeight: 1.75 }}>
           {t('registerSuccess')}
@@ -357,7 +341,7 @@ export default function Step3Auth() {
 
   if (topTab === 'signin' && signInMethod === 'otp' && otpSent) {
     return (
-      <div style={{ maxWidth: 400 }}>
+      <div>
         {topTabs}
         <p style={{ fontFamily: 'var(--font-montserrat)', fontSize: '12px', color: 'var(--warmgrey)', lineHeight: 1.6, marginBottom: 20 }}>
           {t.rich('codeSentTo', {
@@ -394,25 +378,13 @@ export default function Step3Auth() {
         >
           {t('useDifferentEmail')}
         </button>
-        <button
-          type="button"
-          style={{ ...ghostButtonStyle, marginTop: 8 }}
-          onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--copper)'; e.currentTarget.style.color = 'var(--offwhite)' }}
-          onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--anthracite-light)'; e.currentTarget.style.color = 'var(--warmgrey)' }}
-          onClick={prevStep}
-        >
-          {t('backToVehicle')}
-        </button>
       </div>
     )
   }
 
-  // ---------------------------------------------------------------------------
   // Main form
-  // ---------------------------------------------------------------------------
-
   return (
-    <div style={{ maxWidth: 400 }}>
+    <div>
       {topTabs}
 
       {/* Sign in */}
@@ -484,17 +456,24 @@ export default function Step3Auth() {
         </form>
       )}
 
-      {divider}
-      <OAuthButtons returnTo="/book" />
+    </div>
+  )
+  }
 
-      {/* Continue as guest */}
+  // ---------------------------------------------------------------------------
+  // Step view: guest is the primary path, sign-in opens a modal
+  // ---------------------------------------------------------------------------
+
+  const hoverOn = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = 'var(--copper)'; e.currentTarget.style.color = 'var(--offwhite)' }
+  const hoverOff = (e: React.MouseEvent<HTMLButtonElement>) => { e.currentTarget.style.borderColor = 'var(--anthracite-light)'; e.currentTarget.style.color = 'var(--warmgrey)' }
+
+  return (
+    <div style={{ maxWidth: 400 }}>
+      {/* 1. Continue as guest — primary */}
       <button
         type="button"
-        style={{ ...ghostButtonStyle, marginTop: 8 }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--copper)'; e.currentTarget.style.color = 'var(--offwhite)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--anthracite-light)'; e.currentTarget.style.color = 'var(--warmgrey)' }}
-        onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.97)' }}
-        onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
+        className="btn-primary"
+        style={{ width: '100%' }}
         onClick={() => {
           setGuestMode(true)
           sessionStorage.removeItem('booking_deeplink')
@@ -504,18 +483,93 @@ export default function Step3Auth() {
         {t('continueAsGuest')}
       </button>
 
-      {/* Back — same visual style as OAuth buttons */}
+      {/* 2. Continue with Google */}
+      <div style={{ marginTop: 10 }}>
+        <OAuthButtons returnTo="/book" />
+      </div>
+
+      {/* 3. Sign in with email — opens the login modal */}
       <button
         type="button"
-        style={{ ...ghostButtonStyle, marginTop: 8 }}
-        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--copper)'; e.currentTarget.style.color = 'var(--offwhite)' }}
-        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--anthracite-light)'; e.currentTarget.style.color = 'var(--warmgrey)' }}
-        onMouseDown={e => { e.currentTarget.style.transform = 'scale(0.97)' }}
-        onMouseUp={e => { e.currentTarget.style.transform = 'scale(1)' }}
+        style={{ ...ghostButtonStyle, marginTop: 10 }}
+        onMouseEnter={hoverOn}
+        onMouseLeave={hoverOff}
+        onClick={() => setLoginOpen(true)}
+        aria-haspopup="dialog"
+      >
+        {tLogin('signInButton')}
+      </button>
+
+      {/* Back */}
+      <button
+        type="button"
+        style={{ ...ghostButtonStyle, marginTop: 10, border: '1px solid transparent' }}
+        onMouseEnter={e => { e.currentTarget.style.color = 'var(--offwhite)' }}
+        onMouseLeave={e => { e.currentTarget.style.color = 'var(--warmgrey)' }}
         onClick={prevStep}
       >
         {t('backToVehicle')}
       </button>
+
+      {/* Portal: the wizard's step-enter animation uses transform, which would
+          trap position:fixed inside the step box. */}
+      {loginOpen && createPortal(
+        <div
+          onClick={() => setLoginOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 1000,
+            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={tLogin('signInButton')}
+            onClick={e => e.stopPropagation()}
+            style={{
+              position: 'relative',
+              width: '100%',
+              maxWidth: 420,
+              maxHeight: 'calc(100vh - 32px)',
+              overflowY: 'auto',
+              backgroundColor: 'var(--anthracite)',
+              border: '1px solid var(--anthracite-light)',
+              borderRadius: 6,
+              padding: '44px 24px 24px',
+              boxSizing: 'border-box',
+            }}
+          >
+            <button
+              type="button"
+              aria-label={t('close')}
+              onClick={() => setLoginOpen(false)}
+              style={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                width: 36,
+                height: 36,
+                background: 'none',
+                border: 'none',
+                color: 'var(--warmgrey)',
+                fontSize: 24,
+                lineHeight: 1,
+                cursor: 'pointer',
+              }}
+            >
+              ×
+            </button>
+            {renderAuthPanel()}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

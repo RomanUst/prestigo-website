@@ -803,6 +803,7 @@
       "continueWithGoogle": "Google के साथ जारी रखें"
     },
     "inWizard": {
+      "close": "बंद करें",
       "sendCode": "कोड भेजें",
       "verifyCode": "कोड सत्यापित करें",
       "enterCodeLabel": "कोड दर्ज करें",

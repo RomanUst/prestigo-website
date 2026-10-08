@@ -46,6 +46,11 @@ vi.mock('@/components/auth/OAuthButtons', () => ({
 
 import Step3Auth from '@/components/booking/steps/Step3Auth'
 
+// Sign-in forms live in a modal opened by the second button (aria-haspopup="dialog").
+function openLogin() {
+  fireEvent.click(document.querySelector('button[aria-haspopup="dialog"]') as HTMLButtonElement)
+}
+
 describe('Step3Auth — in-wizard auth (Auth.inWizard) smoke', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -60,6 +65,16 @@ describe('Step3Auth — in-wizard auth (Auth.inWizard) smoke', () => {
     // "Continue as guest" is an Auth.inWizard-only label (t('continueAsGuest')).
     expect(screen.getByText('Continue as guest')).toBeInTheDocument()
   })
+
+  it('shows only guest + sign-in on the step; sign-in opens a modal that closes on ×', () => {
+    render(<Step3Auth />)
+    expect(document.querySelector('#otp-email')).toBeNull()
+    openLogin()
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(document.querySelector('#otp-email')).not.toBeNull()
+    fireEvent.click(screen.getByLabelText('Close'))
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
 })
 
 describe('D-07: Step3Auth magic-link return-to keeps the site locale', () => {
@@ -72,6 +87,7 @@ describe('D-07: Step3Auth magic-link return-to keeps the site locale', () => {
 
   it('locale "ru" -> signInWithOtp emailRedirectTo return-to is /ru/book', async () => {
     render(<Step3Auth />, { locale: 'ru', messages: ruMessages })
+    openLogin()
 
     const emailInput = document.querySelector('#otp-email') as HTMLInputElement
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
@@ -87,6 +103,7 @@ describe('D-07: Step3Auth magic-link return-to keeps the site locale', () => {
 
   it('locale "en" -> signInWithOtp emailRedirectTo return-to is /book (no locale prefix)', async () => {
     render(<Step3Auth />, { locale: 'en' })
+    openLogin()
 
     const emailInput = document.querySelector('#otp-email') as HTMLInputElement
     fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
@@ -115,6 +132,7 @@ describe('D-07: Step3Auth register error is translated via authErrorKey, never t
     })
 
     render(<Step3Auth />, { locale: 'ru', messages: ruMessages })
+    openLogin()
 
     // Switch to the "Create account" tab (only occurrence before the form renders).
     fireEvent.click(screen.getByText('Создать учётную запись'))
