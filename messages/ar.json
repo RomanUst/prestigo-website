@@ -803,6 +803,7 @@
       "continueWithGoogle": "المتابعة باستخدام Google"
     },
     "inWizard": {
+      "close": "إغلاق",
       "sendCode": "إرسال الرمز",
       "verifyCode": "التحقّق من الرمز",
       "enterCodeLabel": "أدخل الرمز",

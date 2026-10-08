@@ -317,8 +317,9 @@ export default function BookingWizard() {
         {currentStep !== 2 ? (
           <div className="mb-8">
             <p className="label mb-6">{t('stepOf', { step: currentStep })}</p>
-            <span className="copper-line mb-6 block" />
-            <h2
+            <span className={`copper-line ${currentStep === 3 ? 'mb-0' : 'mb-6'} block`} />
+            {/* Step 3 has no heading — guest / Google / sign-in buttons speak for themselves */}
+            {currentStep !== 3 && <h2
               style={{
                 fontFamily: 'var(--font-cormorant)',
                 fontWeight: 300,
@@ -329,14 +330,12 @@ export default function BookingWizard() {
             >
               {currentStep === 1
                 ? t('planJourney')
-                : currentStep === 3
-                ? t('signIn')
                 : currentStep === 4
                 ? t('addExtras')
                 : currentStep === 5
                 ? t('passengerDetails')
                 : t('payment')}
-            </h2>
+            </h2>}
           </div>
         ) : (
           <div className="mb-6">

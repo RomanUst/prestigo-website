@@ -803,6 +803,7 @@
       "continueWithGoogle": "Continuar con Google"
     },
     "inWizard": {
+      "close": "Cerrar",
       "sendCode": "Enviar código",
       "verifyCode": "Verificar código",
       "enterCodeLabel": "Introduzca el código",

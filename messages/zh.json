@@ -803,6 +803,7 @@
       "continueWithGoogle": "使用 Google 继续"
     },
     "inWizard": {
+      "close": "关闭",
       "sendCode": "发送验证码",
       "verifyCode": "验证代码",
       "enterCodeLabel": "输入验证码",
