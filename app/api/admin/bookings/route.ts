@@ -917,6 +917,10 @@ const manualBookingSchema = z.object({
   // explicit choice for a no-link (cash/invoice) booking — default 'confirmed'.
   collect_payment:     z.boolean().optional(),
   status:              z.enum(['confirmed', 'pending']).optional(),
+  // When true and the row lands as 'confirmed' (no payment link), the client
+  // gets the standard booking-confirmed email right after the insert. An
+  // explicit operator choice, so it is not gated by notification_flags.
+  send_confirmation:   z.boolean().optional(),
 })
 
 // ADMIN_PRICE_TOLERANCE_CZK is declared once, near the top of the file
@@ -1113,6 +1117,21 @@ export async function POST(request: Request) {
     .single()
 
   if (dbError) return NextResponse.json({ error: 'DB insert failed' }, { status: 500 })
+
+  // A no-link manual booking saved as 'confirmed' otherwise sends nothing —
+  // client emails only fire on PATCH status transitions.
+  if (d.send_confirmation === true && data.status === 'confirmed') {
+    const shouldSend = await logEmail({
+      bookingId: data.id,
+      emailType: 'booking_confirmed',
+      recipient: d.client_email,
+    })
+    if (shouldSend) {
+      after(() => sendStatusConfirmedEmail(data).catch(err =>
+        console.error('[admin/bookings.POST] confirmation email:', err)
+      ))
+    }
+  }
 
   // Phase 64 ANEW-02/03: generate the Stripe Payment Link + persist + email
   // AFTER the booking row is committed — the booking insert and the
