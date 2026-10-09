@@ -8,7 +8,7 @@ import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPageContent } from '@/lib/page-content'
 import { getPathname } from '@/i18n/routing'
 
-export const revalidate = 120
+export const revalidate = 3600
 
 type FleetContent = {
   metadata: { title: string; description: string; ogTitle: string; ogDescription: string }

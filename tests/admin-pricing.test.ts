@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 
 // vi.hoisted ensures stubs are available inside vi.mock factories (hoisted before imports)
-const { supabaseAuthStub, supabaseServiceStub, revalidateTagMock } = vi.hoisted(() => {
+const { supabaseAuthStub, supabaseServiceStub, revalidateTagMock, revalidatePathMock } = vi.hoisted(() => {
   const supabaseAuthStub = {
     auth: {
       getUser: vi.fn(),
@@ -14,7 +14,8 @@ const { supabaseAuthStub, supabaseServiceStub, revalidateTagMock } = vi.hoisted(
 
   const revalidateTagMock = vi.fn()
 
-  return { supabaseAuthStub, supabaseServiceStub, revalidateTagMock }
+  const revalidatePathMock = vi.fn()
+  return { supabaseAuthStub, supabaseServiceStub, revalidateTagMock, revalidatePathMock }
 })
 
 // Mock @/lib/supabase/server — createClient returns supabaseAuthStub
@@ -30,6 +31,7 @@ vi.mock('@/lib/supabase', () => ({
 // Mock next/cache — revalidateTag as vi.fn()
 vi.mock('next/cache', () => ({
   revalidateTag: revalidateTagMock,
+  revalidatePath: revalidatePathMock,
   unstable_cache: vi.fn((fn: () => unknown) => fn),
 }))
 
@@ -187,6 +189,7 @@ describe('/api/admin/pricing', () => {
 
       await PUT(makeRequest('PUT', validPutBody))
       expect(revalidateTagMock).toHaveBeenCalledWith('pricing-config', {})
+      expect(revalidatePathMock).toHaveBeenCalledWith('/[locale]', 'layout')
     })
 
     it('returns 500 when DB upsert returns error', async () => {

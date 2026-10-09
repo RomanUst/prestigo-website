@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-export const revalidate = 120
+export const revalidate = 3600
 
 import { getLocale } from 'next-intl/server'
 import { getCachedAggregateRating } from '@/lib/google-reviews'
