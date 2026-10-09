@@ -172,9 +172,7 @@ describe('/api/admin/promo', () => {
     const json = await res.json()
     expect(json).toHaveProperty('ok', true)
 
-    expect(revalidatePathMock).toHaveBeenCalledTimes(3)
-    expect(revalidatePathMock).toHaveBeenCalledWith('/services/airport-transfer')
-    expect(revalidatePathMock).toHaveBeenCalledWith('/')
-    expect(revalidatePathMock).toHaveBeenCalledWith('/services')
+    expect(revalidatePathMock).toHaveBeenCalledTimes(1)
+    expect(revalidatePathMock).toHaveBeenCalledWith('/[locale]', 'layout')
   })
 })

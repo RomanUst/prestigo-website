@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-export const revalidate = 120
+export const revalidate = 3600
 
 import Image from 'next/image'
 import Nav from '@/components/Nav'
