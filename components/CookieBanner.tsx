@@ -25,6 +25,8 @@ import { detectSuggestedLocale } from '@/i18n/suggest-locale'
  *   analytics  → analytics_storage
  *   marketing  → ad_storage, ad_user_data, ad_personalization
  *
+ * ChatLauncher listens for 'prestigo:consent-answered' (fired on every answer)
+ * to show its greeting card once the modal is gone.
  * MetaPixel listens for the 'prestigo:consent-granted' CustomEvent (fired only
  * when marketing is granted) to initialise fbevents.js in-place without reload.
  *
@@ -142,6 +144,10 @@ export default function CookieBanner() {
         new CustomEvent('prestigo:consent-granted', { detail: state }),
       )
     }
+
+    // Fired for every answer (incl. necessary-only): the modal is gone, so
+    // ChatLauncher may show its greeting card. Carries no tracking.
+    window.dispatchEvent(new CustomEvent('prestigo:consent-answered'))
   }
 
   const handleAcceptAll = () => applyConsent({ analytics: true, marketing: true })

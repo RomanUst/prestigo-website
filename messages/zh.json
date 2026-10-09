@@ -749,6 +749,12 @@
     "widget": {
       "welcomeTitle": "您好,这里是 Prestigo",
       "welcomeDescription": "请咨询接送服务、报价或您的预订。我们会在此处及通过电子邮件回复您。"
+    },
+    "greeting": {
+      "message": "您好！需要布拉格市内接送或前往其他城市？给我们留言，我们很乐意为您服务。",
+      "inputPlaceholder": "输入消息…",
+      "closeAria": "关闭欢迎消息",
+      "regionAria": "来自 Prestigo 的消息"
     }
   },
   "Errors": {

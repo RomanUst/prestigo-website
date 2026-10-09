@@ -699,6 +699,12 @@
     "widget": {
       "welcomeTitle": "Hello from Prestigo",
       "welcomeDescription": "Ask about a transfer, a quote or your booking. We reply here and by email."
+    },
+    "greeting": {
+      "message": "Hello! Need a transfer in Prague or a ride to another city? Write to us — we are happy to help.",
+      "inputPlaceholder": "Write a message…",
+      "closeAria": "Close greeting",
+      "regionAria": "Message from Prestigo"
     }
   },
   "Errors": {

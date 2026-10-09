@@ -703,7 +703,7 @@ describe('ChatLauncher — keyboard and focus (UI-SPEC)', () => {
 })
 
 describe('ChatLauncher — placement (RTL, /book)', () => {
-  const container = () => launcherButton().parentElement as HTMLElement
+  const container = () => launcherButton().closest('.fixed') as HTMLElement
 
   it('uses the standard offset on ordinary pages and the raised mobile offset under /book', () => {
     pathnameRef.current = '/routes/prague-vienna'
@@ -731,6 +731,76 @@ describe('ChatLauncher — placement (RTL, /book)', () => {
     const menu = document.getElementById('chat-launcher-menu') as HTMLElement
     expect(menu.className).toMatch(/max-w-\[calc\(100vw-32px\)\]/)
     expect(menu.innerHTML).not.toMatch(/truncate|whitespace-nowrap|overflow-hidden/)
+  })
+})
+
+describe('ChatLauncher — greeting card after the cookie modal', () => {
+  const CONSENT = JSON.stringify({ analytics: false, marketing: false })
+
+  beforeEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+  afterEach(() => {
+    localStorage.clear()
+    sessionStorage.clear()
+  })
+
+  const card = () => screen.queryByRole('region', { name: 'Message from Prestigo' })
+
+  it('stays hidden while the cookie modal is unanswered', () => {
+    renderWithIntl(<ChatLauncher />)
+    expect(card()).toBeNull()
+  })
+
+  it('appears when the modal is answered (any choice) and loads nothing third-party', () => {
+    const fetchMock = wireFetchToIdentityRoute()
+    renderWithIntl(<ChatLauncher />)
+    act(() => {
+      localStorage.setItem('prestigo_consent_v2', CONSENT)
+      window.dispatchEvent(new CustomEvent('prestigo:consent-answered'))
+    })
+    expect(card()).toBeTruthy()
+    expect(card()).toHaveTextContent(enMessages.ChatLauncher.greeting.message)
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(document.querySelector('script[src$="/packs/js/sdk.js"]')).toBeNull()
+  })
+
+  it('shows on load when consent was answered earlier, once per visit', () => {
+    localStorage.setItem('prestigo_consent_v2', CONSENT)
+    renderWithIntl(<ChatLauncher />)
+    expect(card()).toBeTruthy()
+    cleanup()
+    renderWithIntl(<ChatLauncher />)
+    expect(card()).toBeNull()
+  })
+
+  it('never shows on /book', () => {
+    pathnameRef.current = '/book'
+    localStorage.setItem('prestigo_consent_v2', CONSENT)
+    renderWithIntl(<ChatLauncher />)
+    expect(card()).toBeNull()
+  })
+
+  it('closes with its X button and when the launcher menu opens', () => {
+    localStorage.setItem('prestigo_consent_v2', CONSENT)
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(screen.getByRole('button', { name: 'Close greeting' }))
+    expect(card()).toBeNull()
+
+    cleanup()
+    sessionStorage.clear()
+    renderWithIntl(<ChatLauncher />)
+    fireEvent.click(launcherButton())
+    expect(card()).toBeNull()
+  })
+
+  it('offers WhatsApp and Telegram links alongside the chat field', () => {
+    localStorage.setItem('prestigo_consent_v2', CONSENT)
+    renderWithIntl(<ChatLauncher />)
+    const links = card()!.querySelectorAll('a')
+    expect(Array.from(links).map((a) => a.getAttribute('href'))).toEqual([WHATSAPP_CHAT_URL, TELEGRAM_CHAT_URL])
+    expect(screen.getByRole('button', { name: /write a message/i })).toBeTruthy()
   })
 })
 
