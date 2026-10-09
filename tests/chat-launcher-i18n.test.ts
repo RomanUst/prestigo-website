@@ -74,6 +74,10 @@ describe('ChatLauncher key tree is identical across all 7 locales', () => {
         'widgetError',
         'widget.welcomeTitle',
         'widget.welcomeDescription',
+        'greeting.message',
+        'greeting.inputPlaceholder',
+        'greeting.closeAria',
+        'greeting.regionAria',
       ].sort()
     )
   })

@@ -749,6 +749,12 @@
     "widget": {
       "welcomeTitle": "Hola, somos Prestigo",
       "welcomeDescription": "Pregúntenos sobre un traslado, un presupuesto o su reserva. Respondemos aquí y por correo electrónico."
+    },
+    "greeting": {
+      "message": "¡Hola! ¿Necesita un traslado en Praga o un viaje a otra ciudad? Escríbanos, estaremos encantados de ayudarle.",
+      "inputPlaceholder": "Escriba un mensaje…",
+      "closeAria": "Cerrar saludo",
+      "regionAria": "Mensaje de Prestigo"
     }
   },
   "Errors": {

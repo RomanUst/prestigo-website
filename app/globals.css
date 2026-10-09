@@ -771,3 +771,19 @@ input[type='date']::-webkit-date-and-time-value {
     animation: none !important;
   }
 }
+
+/* ChatLauncher greeting card: slides up when shown after the cookie modal. */
+@keyframes chatGreetingEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.chat-greeting-enter {
+  animation: chatGreetingEnter 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.3s backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-greeting-enter {
+    animation: none !important;
+  }
+}
