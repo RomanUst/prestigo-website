@@ -7,7 +7,17 @@
       "enable_email_collect": true,
       "csat_survey_enabled": false,
       "enable_auto_assignment": false,
-      "working_hours_enabled": false
+      "working_hours_enabled": true,
+      "timezone": "Europe/Prague",
+      "working_hours": [
+        { "day_of_week": 0, "open_all_day": true, "closed_all_day": false },
+        { "day_of_week": 1, "open_all_day": true, "closed_all_day": false },
+        { "day_of_week": 2, "open_all_day": true, "closed_all_day": false },
+        { "day_of_week": 3, "open_all_day": true, "closed_all_day": false },
+        { "day_of_week": 4, "open_all_day": true, "closed_all_day": false },
+        { "day_of_week": 5, "open_all_day": true, "closed_all_day": false },
+        { "day_of_week": 6, "open_all_day": true, "closed_all_day": false }
+      ]
     },
     "channel": {
       "type": "web_widget",
