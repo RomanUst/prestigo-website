@@ -376,6 +376,8 @@ describe('infra/chatwoot/inboxes.json (D-04/D-07/D-08)', () => {
       settings: {
         greeting_enabled: boolean
         working_hours_enabled: boolean
+        timezone: string
+        working_hours: { day_of_week: number; open_all_day: boolean; closed_all_day: boolean }[]
       }
       channel: {
         widget_color: string
@@ -407,7 +409,13 @@ describe('infra/chatwoot/inboxes.json (D-04/D-07/D-08)', () => {
     expect(data.website.channel.reply_time).toBe('in_a_few_minutes')
     expect(data.website.channel.hmac_mandatory).toBe(true)
     expect(data.website.channel.continuity_via_email).toBe(true)
-    expect(data.website.settings.working_hours_enabled).toBe(false)
+    // Owner 2026-10-09: show the widget as online 24/7 for now (open all day, every day).
+    expect(data.website.settings.working_hours_enabled).toBe(true)
+    expect(data.website.settings.timezone).toBe('Europe/Prague')
+    expect(data.website.settings.working_hours).toHaveLength(7)
+    for (const day of data.website.settings.working_hours) {
+      expect(day).toMatchObject({ open_all_day: true, closed_all_day: false })
+    }
     expect(data.website.settings.greeting_enabled).toBe(false)
   })
 

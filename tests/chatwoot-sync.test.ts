@@ -557,7 +557,7 @@ describe('runSync inboxes', () => {
     expect(site.reply_time).toBe('in_a_few_minutes')
     expect(site.hmac_mandatory).toBe(true)
     expect(site.continuity_via_email).toBe(true)
-    expect(site.working_hours_enabled).toBe(false)
+    expect(site.working_hours_enabled).toBe(true)
     expect(site.pre_chat_form_options.pre_chat_fields.find((f: any) => f.name === 'emailAddress').required).toBe(true)
     for (const [k, v] of Object.entries(web.settings)) expect(site[k]).toEqual(v)
     expect(fake.state.avatarUploads).toBe(1)
