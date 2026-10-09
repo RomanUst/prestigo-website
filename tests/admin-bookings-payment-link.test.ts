@@ -7,9 +7,10 @@ const { supabaseAuthStub, supabaseServiceStub } = vi.hoisted(() => {
   return { supabaseAuthStub, supabaseServiceStub }
 })
 
-const { stubCreateBookingPaymentLink, stubSendPaymentRequestEmail, stubLogEmail } = vi.hoisted(() => ({
+const { stubCreateBookingPaymentLink, stubSendPaymentRequestEmail, stubSendStatusConfirmedEmail, stubLogEmail } = vi.hoisted(() => ({
   stubCreateBookingPaymentLink: vi.fn(),
   stubSendPaymentRequestEmail: vi.fn(),
+  stubSendStatusConfirmedEmail: vi.fn(),
   stubLogEmail: vi.fn(),
 }))
 
@@ -41,6 +42,7 @@ vi.mock('@/lib/email-log', () => ({
 
 vi.mock('@/lib/email', () => ({
   sendPaymentRequestEmail: stubSendPaymentRequestEmail,
+  sendStatusConfirmedEmail: stubSendStatusConfirmedEmail,
 }))
 
 vi.mock('@/lib/stripe-payment-links', () => ({
@@ -461,6 +463,87 @@ describe('POST /api/admin/bookings — ANEW-05 no-link invariant', () => {
     expect(insertFn.mock.calls[0][0][0]).not.toHaveProperty('payment_link_url')
     expect(stubCreateBookingPaymentLink).not.toHaveBeenCalled()
     expect(stubSendPaymentRequestEmail).not.toHaveBeenCalled()
+    expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
     expect(supabaseServiceStub.from).toHaveBeenCalledTimes(1)
+  })
+})
+
+// A manual no-link booking saved as 'confirmed' only emails the client when
+// the operator ticks "Send confirmation email" (send_confirmation: true).
+describe('POST /api/admin/bookings — send_confirmation', () => {
+  const basePayload = {
+    trip_type: 'transfer',
+    pickup_date: '2026-06-10',
+    pickup_time: '11:00',
+    origin_address: 'Prague Airport Terminal 1',
+    destination_address: 'Hotel Four Seasons Prague',
+    vehicle_class: 'business',
+    passengers: 2,
+    luggage: 1,
+    amount_czk: 1500,
+    distance_km: 20,
+    client_first_name: 'Petr',
+    client_last_name: 'Svoboda',
+    client_email: 'petr@example.com',
+    client_phone: '+420600111222',
+  }
+
+  function stubInsert(status: string) {
+    const row = { id: 'confirm-id', booking_reference: 'PRG-20260601-NOLINK', status, client_email: 'petr@example.com' }
+    const singleFn = vi.fn().mockResolvedValue({ data: row, error: null })
+    const selectFn = vi.fn().mockReturnValue({ single: singleFn })
+    const insertFn = vi.fn().mockReturnValue({ select: selectFn })
+    const updateEqFn = vi.fn().mockResolvedValue({ error: null })
+    supabaseServiceStub.from.mockReturnValue({ insert: insertFn, update: vi.fn().mockReturnValue({ eq: updateEqFn }) })
+    return row
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    supabaseAuthStub.auth.getUser.mockResolvedValue({
+      data: { user: { id: 'admin-1', app_metadata: { is_admin: true } } },
+      error: null,
+    })
+    stubLogEmail.mockResolvedValue(true)
+    stubSendStatusConfirmedEmail.mockResolvedValue(undefined)
+  })
+
+  it('sends the confirmed email once when send_confirmation is true and status is confirmed', async () => {
+    const row = stubInsert('confirmed')
+    const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, status: 'confirmed', send_confirmation: true }))
+    expect(res.status).toBe(201)
+    expect(stubLogEmail).toHaveBeenCalledWith({ bookingId: 'confirm-id', emailType: 'booking_confirmed', recipient: 'petr@example.com' })
+    expect(stubSendStatusConfirmedEmail).toHaveBeenCalledTimes(1)
+    expect(stubSendStatusConfirmedEmail).toHaveBeenCalledWith(row)
+  })
+
+  it('does not send when send_confirmation is omitted', async () => {
+    stubInsert('confirmed')
+    const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, status: 'confirmed' }))
+    expect(res.status).toBe(201)
+    expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
+  })
+
+  it('does not send for a pending booking even with send_confirmation true', async () => {
+    stubInsert('pending')
+    const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, status: 'pending', send_confirmation: true }))
+    expect(res.status).toBe(201)
+    expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
+  })
+
+  it('does not send when the dedup gate suppresses it', async () => {
+    stubInsert('confirmed')
+    stubLogEmail.mockResolvedValue(false)
+    const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, status: 'confirmed', send_confirmation: true }))
+    expect(res.status).toBe(201)
+    expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
+  })
+
+  it('does not send the confirmed email on the collect_payment path', async () => {
+    stubInsert('unpaid')
+    stubCreateBookingPaymentLink.mockResolvedValue({ url: 'https://buy.stripe.com/x', id: 'plink_x' })
+    const res = await ADMIN_BOOKINGS_POST(makeAdminBookingsPostRequest({ ...basePayload, collect_payment: true, send_confirmation: true }))
+    expect(res.status).toBe(201)
+    expect(stubSendStatusConfirmedEmail).not.toHaveBeenCalled()
   })
 })

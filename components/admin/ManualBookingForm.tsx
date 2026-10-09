@@ -132,6 +132,7 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
   // D-01/D-02/D-03: Payment section state
   const [collectPayment, setCollectPayment] = useState(false)
   const [bookingStatus, setBookingStatus] = useState<'confirmed' | 'pending'>('confirmed')
+  const [sendConfirmation, setSendConfirmation] = useState(true)
   const [createdBookingId, setCreatedBookingId] = useState<string | null>(null)
   const [paymentLinkUrl, setPaymentLinkUrl] = useState<string | null>(null)
   const [linkGenerationFailed, setLinkGenerationFailed] = useState(false)
@@ -300,7 +301,10 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
       // the operator's explicit status choice applies (default 'confirmed').
       collect_payment: collectPayment,
     }
-    if (!collectPayment) payload.status = bookingStatus
+    if (!collectPayment) {
+      payload.status = bookingStatus
+      if (bookingStatus === 'confirmed') payload.send_confirmation = sendConfirmation
+    }
 
     if (accountUserId) payload.user_id = accountUserId
     if (destinationPlace?.address) payload.destination_address = destinationPlace.address
@@ -980,6 +984,36 @@ export function ManualBookingForm({ open, onClose, onCreated, accountUserId, acc
                       </span>
                     </label>
                   </div>
+                </div>
+              )}
+
+              {!collectPayment && bookingStatus === 'confirmed' && (
+                <div>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                    <input
+                      type="checkbox"
+                      checked={sendConfirmation}
+                      onChange={(e) => setSendConfirmation(e.target.checked)}
+                    />
+                    <span style={{
+                      fontSize: '13px',
+                      fontFamily: 'var(--font-montserrat)',
+                      fontWeight: 300,
+                      color: 'var(--offwhite)',
+                    }}>
+                      Send confirmation email to client
+                    </span>
+                  </label>
+                  <span style={{
+                    fontSize: '11px',
+                    fontFamily: 'var(--font-montserrat)',
+                    fontWeight: 300,
+                    color: 'var(--warmgrey)',
+                    marginTop: '8px',
+                    display: 'block',
+                  }}>
+                    Emails the standard booking confirmation as soon as the booking is created.
+                  </span>
                 </div>
               )}
             </div>
