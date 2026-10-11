@@ -253,7 +253,22 @@ Plans:
   4. Sales mail (sales@ or roman@) is connected to EspoCRM only; sent and received emails attach to the matching Account/Contact/Opportunity.
   5. Roles/ACL for 2-3 future operators exist in both Chatwoot (agent/admin, team assignment) and EspoCRM (role-based ACL), documented in a runbook.
 
-**Plans**: TBD
+**Plans:** 13 plans
+
+Plans:
+- [ ] 80-01-PLAN.md — Service identities (D-17), hardened EspoCRM client + config sync engine, settings (EUR, Europe/Prague) live
+- [ ] 80-02-PLAN.md — Site admin `?search=` deep link with horizon all (D-18)
+- [ ] 80-03-PLAN.md — Pure transforms: booking row -> CRM payload (D-07..D-10, D-21) and account candidates (D-14)
+- [ ] 80-04-PLAN.md — CBooking entity, fields, Contact/Account links and booking panels (D-06, D-09, D-10)
+- [ ] 80-05-PLAN.md — Opportunity stages + Account types via merge-safe enum sync (D-01, D-02, D-20)
+- [ ] 80-06-PLAN.md — Account commercial terms + CPartnerRate child entity (D-03, D-04)
+- [ ] 80-07-PLAN.md — Roles/ACL as code (Dispatcher, Sales manager, Sync writer) + live ACL probe (D-15, D-16, D-22)
+- [ ] 80-08-PLAN.md — Unique index on CBooking.supabaseBookingId via owner-approved metadata overlay (D-19)
+- [ ] 80-09-PLAN.md — Idempotent booking backfill, Supabase MCP export, dry run + owner approval (D-06, D-21)
+- [ ] 80-10-PLAN.md — roman@ Personal Email Account, reminders, inspect tool, mail UAT (D-05, D-11..D-13, D-24)
+- [ ] 80-11-PLAN.md — CRM operator runbook pinned to roles.json, Chatwoot role mirror (D-23, CRM-05)
+- [ ] 80-12-PLAN.md — Live backfill (one, then all, audit) + account candidate scan + owner confirmation (D-14)
+- [ ] 80-13-PLAN.md — Seed confirmed Accounts, link Contacts, relink bookings, PII cleanup, phase walk-through
 
 ### Phase 81: Lead Capture (Site Forms → Supabase + EspoCRM)
 
