@@ -48,7 +48,8 @@ export async function PUT(request: Request, { params }: { params: Promise<{ slug
   if (dbError) return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   if (!data || data.length === 0) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-  revalidatePath('/routes/' + slug)
-  revalidatePath('/routes')
+  // Public pages live under app/[locale]; a plain '/routes/x' path never
+  // matches them, so purge the whole locale tree (admin edits are rare).
+  revalidatePath('/[locale]', 'layout')
   return NextResponse.json({ ok: true, slug })
 }

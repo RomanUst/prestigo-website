@@ -7,7 +7,7 @@ import { interpolate } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { findLandingPage, getLandingPrices, landingPagesFor, type LandingContent } from '@/lib/landing-pages'
 
-export const revalidate = 120
+export const revalidate = 3600
 // Only the configured landing slugs (lib/landing-pages.ts) are served here;
 // the existing static /services/* folders take precedence over this segment.
 export const dynamicParams = false

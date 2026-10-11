@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 import { NextResponse } from 'next/server'
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { z } from 'zod'
 import { enforceMaxBody } from '@/lib/request-guards'
 
@@ -99,5 +99,8 @@ export async function PUT(request: Request) {
   }
 
   revalidateTag('pricing-config', {})
+  // Public pages live under app/[locale]; a plain '/routes/x' path never
+  // matches them, so purge the whole locale tree (admin edits are rare).
+  revalidatePath('/[locale]', 'layout')
   return NextResponse.json({ ok: true })
 }

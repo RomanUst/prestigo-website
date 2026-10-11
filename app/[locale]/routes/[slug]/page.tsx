@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 
-export const revalidate = 120
+export const revalidate = 3600
 // Only the inbound mirror slugs are served here; the 30 outbound routes keep
 // their own static folders (which take precedence over this segment).
 export const dynamicParams = false

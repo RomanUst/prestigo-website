@@ -82,9 +82,9 @@ export async function PUT(request: Request) {
     return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
   }
 
-  revalidatePath('/services/airport-transfer')
-  revalidatePath('/')
-  revalidatePath('/services')
+  // Public pages live under app/[locale]; a plain '/routes/x' path never
+  // matches them, so purge the whole locale tree (admin edits are rare).
+  revalidatePath('/[locale]', 'layout')
 
   return NextResponse.json({ ok: true })
 }

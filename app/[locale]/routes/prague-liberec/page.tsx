@@ -8,7 +8,7 @@ import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
 
-export const revalidate = 120
+export const revalidate = 3600
 
 
 import Image from 'next/image'
