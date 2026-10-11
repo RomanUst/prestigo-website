@@ -16,6 +16,7 @@ import { getPageContent } from "@/lib/page-content";
 
 vi.mock("next-intl/server", () => ({
   getLocale: vi.fn(async () => "en"),
+  setRequestLocale: vi.fn(),
 }));
 
 vi.mock("next/image", () => ({
@@ -56,6 +57,9 @@ vi.mock("@/app/[locale]/corporate/CorporateForm", () => ({
 vi.mock("@/components/BlogCard", () => ({ default: () => null }));
 
 beforeEach(() => {
+  // Pages read the locale from params now; drop any unconsumed
+  // mockResolvedValueOnce values so they cannot leak into later tests.
+  vi.mocked(getLocale).mockReset().mockImplementation(async () => "en");
   // jsdom does not implement IntersectionObserver — Reveal (mocked above,
   // but some pages import it directly without going through the mock path
   // in every build) can still construct one; a minimal stub covers it.
@@ -90,7 +94,7 @@ describe("AirportTransferPage — locale-aware links + content-driven hero alt (
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await AirportTransferPage();
+    const PageElement = await AirportTransferPage({ params: Promise.resolve({ locale: "en" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 
@@ -120,7 +124,7 @@ describe("AirportTransferPage — locale-aware links + content-driven hero alt (
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await AirportTransferPage();
+    const PageElement = await AirportTransferPage({ params: Promise.resolve({ locale: "ru" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 
@@ -253,7 +257,7 @@ describe("ServicesPage (hub) and AboutPage — locale:'en' hrefs stay unchanged 
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await ServicesPage();
+    const PageElement = await ServicesPage({ params: Promise.resolve({ locale: "en" }) });
     const { container } = render(PageElement);
     const hrefs = collectSingleSlashHrefs(container.innerHTML);
     expect(hrefs.length).toBeGreaterThan(0);
@@ -299,12 +303,12 @@ type PageUnderTest = {
 };
 
 const PAGES_UNDER_TEST: PageUnderTest[] = [
-  { name: "services hub", importPath: "@/app/[locale]/services/page", usesParams: false },
-  { name: "city-rides", importPath: "@/app/[locale]/services/city-rides/page", usesParams: false },
-  { name: "concierge", importPath: "@/app/[locale]/services/concierge/page", usesParams: false },
+  { name: "services hub", importPath: "@/app/[locale]/services/page", usesParams: true },
+  { name: "city-rides", importPath: "@/app/[locale]/services/city-rides/page", usesParams: true },
+  { name: "concierge", importPath: "@/app/[locale]/services/concierge/page", usesParams: true },
   { name: "corporate-accounts", importPath: "@/app/[locale]/services/corporate-accounts/page", usesParams: true },
   { name: "group-transfers", importPath: "@/app/[locale]/services/group-transfers/page", usesParams: true },
-  { name: "intercity-routes", importPath: "@/app/[locale]/services/intercity-routes/page", usesParams: false },
+  { name: "intercity-routes", importPath: "@/app/[locale]/services/intercity-routes/page", usesParams: true },
   { name: "vip-events", importPath: "@/app/[locale]/services/vip-events/page", usesParams: true },
   { name: "about", importPath: "@/app/[locale]/about/page", usesParams: true },
   { name: "terms", importPath: "@/app/[locale]/terms/page", usesParams: true },

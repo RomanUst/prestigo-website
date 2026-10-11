@@ -8,7 +8,7 @@ import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
@@ -17,8 +17,9 @@ import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
 import { getPathname } from '@/i18n/routing'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getRouteContent('prague-vienna', locale)
   const route = await getRoutePrice('prague-vienna')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
@@ -42,8 +43,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function PragueViennaPage() {
-  const locale = await getLocale()
+export default async function PragueViennaPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getRouteContent('prague-vienna', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-vienna')

@@ -34,6 +34,7 @@ function getNamespace(namespace: string): Record<string, unknown> {
 
 vi.mock("next-intl/server", () => ({
   getLocale: vi.fn(async () => "en"),
+  setRequestLocale: vi.fn(),
   getTranslations: vi.fn(async (namespace: string) => {
     const ns = getNamespace(namespace);
     const t = (key: string): string => {
@@ -91,6 +92,9 @@ vi.mock("@/lib/route-prices", () => ({
 }));
 
 beforeEach(() => {
+  // Pages read the locale from params now; drop any unconsumed
+  // mockResolvedValueOnce values so they cannot leak into later tests.
+  vi.mocked(getLocale).mockReset().mockImplementation(async () => "en");
   // jsdom does not implement IntersectionObserver — Reveal (used throughout
   // the page) creates one in a useEffect. A minimal stub is enough here.
   class MockIntersectionObserver {
@@ -111,7 +115,7 @@ describe("PragueViennaPage — generateMetadata() locale-aware canonical/og:url 
     const { generateMetadata } = await import(
       "@/app/[locale]/routes/prague-vienna/page"
     );
-    const metadata = await generateMetadata();
+    const metadata = await generateMetadata({ params: Promise.resolve({ locale: "ru" }) });
 
     expect(metadata.alternates?.canonical).toBe(
       "https://rideprestigo.com/ru/routes/prague-vienna"
@@ -126,7 +130,7 @@ describe("PragueViennaPage — generateMetadata() locale-aware canonical/og:url 
     const { generateMetadata } = await import(
       "@/app/[locale]/routes/prague-vienna/page"
     );
-    const metadata = await generateMetadata();
+    const metadata = await generateMetadata({ params: Promise.resolve({ locale: "en" }) });
 
     expect(metadata.alternates?.canonical).toBe("/routes/prague-vienna");
     expect(metadata.openGraph?.url).toBe(
@@ -142,7 +146,7 @@ describe("PragueViennaPage — render byte-parity proof", () => {
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await PragueViennaPage();
+    const PageElement = await PragueViennaPage({ params: Promise.resolve({ locale: "en" }) });
     const { container } = render(PageElement);
 
     // `priceValidUntil` is a dynamic today+365 value (lib/jsonld.ts
@@ -175,7 +179,7 @@ describe("PragueBerlinPage — /ar DNT price bidi-isolation (CR-02 backstop)", (
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await PragueBerlinPage();
+    const PageElement = await PragueBerlinPage({ params: Promise.resolve({ locale: "ar" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 
@@ -229,7 +233,7 @@ describe("PragueViennaPage — /ar openingParagraphs/faqs bidi isolation + JSON-
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await PragueViennaPage();
+    const PageElement = await PragueViennaPage({ params: Promise.resolve({ locale: "ar" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 
@@ -274,7 +278,7 @@ describe("PragueBerlinPage — /ar openingParagraphs/faqs bidi isolation (73-14 
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await PragueBerlinPage();
+    const PageElement = await PragueBerlinPage({ params: Promise.resolve({ locale: "ar" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 

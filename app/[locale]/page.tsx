@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const revalidate = 3600
 
-import { getLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getCachedAggregateRating } from '@/lib/google-reviews'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
@@ -33,8 +33,9 @@ type HomeContent = {
   schema: { name: string; description: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('home', locale) as HomeContent
   const alternates = getAlternates('/', {
     indexable: true,
@@ -204,8 +205,9 @@ const DEV_PRICING_FALLBACK = {
   minFare: {} as Record<string, number>,
 }
 
-export default async function Home() {
-  const locale = await getLocale()
+export default async function Home({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('home', locale) as HomeContent
   const [aggregateRating, config, allRoutes] = await Promise.all([
     getCachedAggregateRating().catch(() => null),

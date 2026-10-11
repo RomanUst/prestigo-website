@@ -5,7 +5,7 @@ export const revalidate = 3600
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Reveal from '@/components/Reveal'
-import { getLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { getAllRoutes } from '@/lib/route-prices'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
@@ -42,8 +42,9 @@ type ServicesHubContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; buttonText: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services', locale) as ServicesHubContent
   const alternates = getAlternates('/services', {
     indexable: true,
@@ -72,8 +73,9 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function ServicesPage() {
-  const locale = await getLocale()
+export default async function ServicesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services', locale) as ServicesHubContent
   const { globals, hourlyRate } = await getPricingConfig()
   const routes = await getAllRoutes('display_order')

@@ -26,6 +26,7 @@ function getNamespace(namespace: string): Record<string, unknown> {
 
 vi.mock("next-intl/server", () => ({
   getLocale: vi.fn(async () => "en"),
+  setRequestLocale: vi.fn(),
   getTranslations: vi.fn(async (namespace: string) => {
     const ns = getNamespace(namespace);
     const t = (key: string): string => {
@@ -83,6 +84,9 @@ vi.mock("@/lib/route-prices", () => ({
 }));
 
 beforeEach(() => {
+  // Pages read the locale from params now; drop any unconsumed
+  // mockResolvedValueOnce values so they cannot leak into later tests.
+  vi.mocked(getLocale).mockReset().mockImplementation(async () => "en");
   // jsdom does not implement IntersectionObserver — Reveal (used throughout
   // the page) creates one in a useEffect. A minimal stub is enough here.
   class MockIntersectionObserver {
@@ -110,7 +114,7 @@ describe("PragueViennaPage — locale-aware links + content-driven hero alt (75-
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await PragueViennaPage();
+    const PageElement = await PragueViennaPage({ params: Promise.resolve({ locale: "en" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 
@@ -137,7 +141,7 @@ describe("PragueViennaPage — locale-aware links + content-driven hero alt (75-
     );
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await PragueViennaPage();
+    const PageElement = await PragueViennaPage({ params: Promise.resolve({ locale: "ru" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 
@@ -201,7 +205,7 @@ describe("All 30 route pages — locale:'ar' renders every single-slash href pre
     const pageModule = await import(`@/app/[locale]/routes/${slug}/page.tsx`);
     const { render } = await import("@testing-library/react");
 
-    const PageElement = await pageModule.default();
+    const PageElement = await pageModule.default({ params: Promise.resolve({ locale: "ar" }) });
     const { container } = render(PageElement);
     const html = container.innerHTML;
 

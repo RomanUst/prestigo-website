@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { getRoutePrice } from '@/lib/route-prices'
 import { buildRouteJsonLd } from '@/lib/jsonld'
 import { ROUTE_FALLBACK } from '@/lib/price-fallbacks'
-import { getLocale, getTranslations } from 'next-intl/server'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { getRouteContent } from '@/lib/route-content'
 import { interpolate, interpolateBidi } from '@/lib/content-interpolate'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -18,8 +18,9 @@ import Reveal from '@/components/Reveal'
 import Divider from '@/components/Divider'
 import ReverseRouteLink from '@/components/ReverseRouteLink'
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getRouteContent('prague-ceske-budejovice', locale)
   const route = await getRoutePrice('prague-ceske-budejovice')
   const ePrice = route?.eClassEur ?? ROUTE_FALLBACK.eClassEur
@@ -43,8 +44,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 
-export default async function PragueCeskeBudejovicePage() {
-  const locale = await getLocale()
+export default async function PragueCeskeBudejovicePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getRouteContent('prague-ceske-budejovice', locale)
   const t = await getTranslations('RoutePage')
   const route = await getRoutePrice('prague-ceske-budejovice')

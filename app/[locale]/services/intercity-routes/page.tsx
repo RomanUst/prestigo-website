@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
-import { getLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getAllRoutes } from '@/lib/route-prices'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
@@ -31,8 +31,9 @@ type IntercityRoutesContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; ctaPrimary: string; ctaSecondary: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/intercity-routes', locale) as IntercityRoutesContent
   return {
     title: content.metadata.title,
@@ -67,8 +68,9 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function IntercityRoutesPage() {
-  const locale = await getLocale()
+export default async function IntercityRoutesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/intercity-routes', locale) as IntercityRoutesContent
   const allRoutes = await getAllRoutes('display_order')
   const popularRoutes = allRoutes.slice(0, 6)
