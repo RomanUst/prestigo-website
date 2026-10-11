@@ -7,7 +7,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import BookingSection from '@/components/BookingSection'
-import { getLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
 import { getAlternates, toAbsoluteUrl } from '@/lib/seo'
@@ -31,8 +31,9 @@ type ConciergeContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; primaryButton: string; secondaryButton: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/concierge', locale) as ConciergeContent
   const alternates = getAlternates('/services/concierge', {
     indexable: true,
@@ -62,8 +63,9 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function ConciergePage() {
-  const locale = await getLocale()
+export default async function ConciergePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/concierge', locale) as ConciergeContent
 
   const handles = content.handles

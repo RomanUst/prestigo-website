@@ -7,7 +7,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import BookingSection from '@/components/BookingSection'
-import { getLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { buildAirportTransferJsonLd } from '@/lib/jsonld'
 import { AIRPORT_FALLBACK } from '@/lib/price-fallbacks'
@@ -45,8 +45,9 @@ type AirportTransferContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; buttonText: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/airport-transfer', locale) as AirportTransferContent
   const { globals } = await getPricingConfig()
   const businessPrice = globals.airportPromoActive
@@ -71,8 +72,9 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function AirportTransferPage() {
-  const locale = await getLocale()
+export default async function AirportTransferPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/airport-transfer', locale) as AirportTransferContent
   const { globals } = await getPricingConfig()
   const sClassAirport = AIRPORT_FALLBACK.sClass

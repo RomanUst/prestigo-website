@@ -7,7 +7,7 @@ import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import Divider from '@/components/Divider'
 import HourlyBookingSection from '@/components/HourlyBookingSection'
-import { getLocale } from 'next-intl/server'
+import { setRequestLocale } from 'next-intl/server'
 import { getPricingConfig } from '@/lib/pricing-config'
 import { businessNodeDoc } from '@/lib/jsonld'
 import { getPageContent } from '@/lib/page-content'
@@ -28,8 +28,9 @@ type CityRidesContent = {
   cta: { label: string; headingLine1: string; headingItalic: string; buttonText: string }
 }
 
-export async function generateMetadata(): Promise<Metadata> {
-  const locale = await getLocale()
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/city-rides', locale) as CityRidesContent
   const { hourlyRate } = await getPricingConfig()
   const from = hourlyRate['business'] ?? 49
@@ -62,8 +63,9 @@ const breadcrumbSchema = {
   ],
 }
 
-export default async function CityRidesPage() {
-  const locale = await getLocale()
+export default async function CityRidesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
   const content = getPageContent('services/city-rides', locale) as CityRidesContent
   const { hourlyRate } = await getPricingConfig()
   const businessHourly = hourlyRate['business'] ?? 49
