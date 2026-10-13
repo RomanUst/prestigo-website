@@ -50,6 +50,46 @@
       ]
     },
     {
+      "scope": "CPartnerRate",
+      "name": "list",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true, "customLabel": "Route" },
+        { "name": "vehicleClass" },
+        { "name": "price" },
+        { "name": "validFrom" },
+        { "name": "validTo" },
+        { "name": "account" }
+      ]
+    },
+    {
+      "scope": "CPartnerRate",
+      "name": "listSmall",
+      "mode": "replace",
+      "layout": [
+        { "name": "name", "link": true, "customLabel": "Route" },
+        { "name": "vehicleClass" },
+        { "name": "price" },
+        { "name": "validTo" }
+      ]
+    },
+    {
+      "scope": "CPartnerRate",
+      "name": "detail",
+      "mode": "replace",
+      "layout": [
+        {
+          "label": "Partner rate",
+          "rows": [
+            [{ "name": "name", "customLabel": "Route" }, { "name": "vehicleClass" }],
+            [{ "name": "price" }, { "name": "account" }],
+            [{ "name": "validFrom" }, { "name": "validTo" }],
+            [{ "name": "note" }]
+          ]
+        }
+      ]
+    },
+    {
       "scope": "Contact",
       "name": "bottomPanelsDetail",
       "mode": "append",
@@ -62,7 +102,8 @@
       "name": "bottomPanelsDetail",
       "mode": "append",
       "layout": {
-        "cBookings": { "index": 5.5 }
+        "cBookings": { "index": 5.5 },
+        "cPartnerRates": { "index": 5.6 }
       }
     }
   ]

@@ -128,6 +128,28 @@ export function stockEspoMetadata(): Record<string, any> {
       url: {
         params: p('required', 'default', 'maxLength', 'strip', 'protocolRequired', 'copyToClipboard', 'audited', 'readOnly', 'readOnlyAfterCreate'),
       },
+      // Types added for plan 80-06 (read-only probe of the live 10.0.8 instance).
+      date: {
+        params: p('required', 'default', 'after', 'before', 'afterOrEqual', 'useNumericFormat', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+      float: {
+        params: p('required', 'default', 'min', 'max', 'decimalPlaces', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+      int: {
+        params: p('required', 'default', 'min', 'max', 'disableFormatting', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+      bool: {
+        params: p('default', 'audited', 'readOnly', 'readOnlyAfterCreate'),
+      },
+      file: {
+        params: p('required', 'sourceList', 'maxFileSize', 'accept', 'readOnly', 'readOnlyAfterCreate', 'audited'),
+      },
+      text: {
+        params: p('required', 'default', 'maxLength', 'seeMoreDisabled', 'rows', 'rowsMin', 'cutHeight', 'displayRawText', 'preview', 'attachmentField', 'readOnly', 'readOnlyAfterCreate', 'audited'),
+      },
+      link: {
+        params: p('required', 'audited', 'readOnly', 'readOnlyAfterCreate', 'default', 'createButton', 'autocompleteOnEmpty'),
+      },
     },
   }
 }

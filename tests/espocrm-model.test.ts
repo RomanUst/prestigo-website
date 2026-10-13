@@ -7,7 +7,7 @@
  * No test here makes a network call or reads a real credential.
  */
 import { describe, expect, it } from 'vitest'
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs'
+import { mkdtempSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -273,7 +273,7 @@ describe('shipped config files (tracer)', () => {
 
   it('entities.json declares the Booking entity (stream off) and a manyToOne contact link', () => {
     const cfg = read('entities.json')
-    expect(cfg.entities).toEqual([BOOKING_ENTITY])
+    expect(cfg.entities).toContainEqual(BOOKING_ENTITY)
     expect(cfg.links).toContainEqual(CONTACT_LINK)
   })
 
@@ -390,16 +390,18 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
         }),
       )
     }
-    expect(read('entities.json').entities).toHaveLength(1)
+    expect(read('entities.json').entities).toHaveLength(2) // CBooking + CPartnerRate (80-06)
   })
 
   it('applies to the fake: all fields and both links on the first run, nothing on the second', async () => {
     const fake = fresh()
     const dir = join(REPO_ROOT, 'infra/espocrm')
     const first = await sync(fake, dir, { only })
-    expect(first).toContain('entities: create=1 update=0 unchanged=0 skipped=0 removed=0')
-    expect(first).toContain('links: create=2 update=0 unchanged=0 skipped=0 removed=0')
-    expect(first).toContain('fields: create=15 update=0 unchanged=0 skipped=0 removed=0')
+    // CBooking (80-04) + CPartnerRate (80-06): 2 entities, 3 links, 15 + 5 created fields and the
+    // required flag on CPartnerRate.account (one update on a link field the link already created).
+    expect(first).toContain('entities: create=2 update=0 unchanged=0 skipped=0 removed=0')
+    expect(first).toContain('links: create=3 update=0 unchanged=0 skipped=0 removed=0')
+    expect(first).toContain('fields: create=20 update=1 unchanged=0 skipped=0 removed=0')
 
     const md = fake.state.metadata
     expect(md.entityDefs.Contact.links.cBookings).toMatchObject({ entity: 'CBooking', foreign: 'contact' })
@@ -409,9 +411,9 @@ describe('CBooking config invariants (D-09, D-10, 80-03 contract)', () => {
     expect(fake.state.i18n['CBooking.vehicleClass'].translatedOptions.first_class).toBe('S-Class')
 
     const second = await sync(fake, dir, { only })
-    expect(second).toContain('entities: create=0 update=0 unchanged=1 skipped=0 removed=0')
-    expect(second).toContain('links: create=0 update=0 unchanged=2 skipped=0 removed=0')
-    expect(second).toContain('fields: create=0 update=0 unchanged=15 skipped=0 removed=0')
+    expect(second).toContain('entities: create=0 update=0 unchanged=2 skipped=0 removed=0')
+    expect(second).toContain('links: create=0 update=0 unchanged=3 skipped=0 removed=0')
+    expect(second).toContain('fields: create=0 update=0 unchanged=21 skipped=0 removed=0')
   })
 })
 
@@ -601,14 +603,14 @@ describe('shipped layouts.json (D-10)', () => {
     return []
   }
 
-  it('has five entries: three CBooking layouts (replace) and the Contact and Account panels (append)', () => {
-    expect(layouts).toHaveLength(5)
+  it('keeps the three CBooking layouts (replace) and the Contact and Account booking panels (append)', () => {
     for (const name of ['list', 'listSmall', 'detail']) expect(find('CBooking', name)?.mode, name).toBe('replace')
-    for (const scope of ['Contact', 'Account']) {
-      const entry = find(scope, 'bottomPanelsDetail')
-      expect(entry?.mode, scope).toBe('append')
-      expect(Object.keys(entry.layout)).toEqual(['cBookings'])
-    }
+    const contact = find('Contact', 'bottomPanelsDetail')
+    expect(contact?.mode).toBe('append')
+    expect(Object.keys(contact.layout)).toEqual(['cBookings'])
+    const account = find('Account', 'bottomPanelsDetail')
+    expect(account?.mode).toBe('append')
+    expect(Object.keys(account.layout)).toContain('cBookings') // 80-06 adds cPartnerRates next to it
   })
 
   it('every field named in a CBooking layout is declared (or built in / a link)', () => {
@@ -644,5 +646,135 @@ describe('shipped layouts.json (D-10)', () => {
     expect(fake.state.layouts['Contact/bottomPanelsDetail'].opportunities).toEqual({ name: 'opportunities', index: 5 })
     expect(fake.state.layouts['Contact/bottomPanelsDetail'].cBookings).toBeDefined()
     expect(fake.state.layouts['Account/bottomPanelsDetail'].cBookings).toBeDefined()
+  })
+})
+
+describe('CPartnerRate config invariants (D-04, plan 80-06)', () => {
+  const read = (file: string) => JSON.parse(readFileSync(join(REPO_ROOT, 'infra/espocrm', file), 'utf8'))
+  const specs: any[] = read('fields.json').fields.CPartnerRate
+  const byName = (name: string) => specs.find((f) => f.name === name)
+  const layouts: any[] = read('layouts.json').layouts
+  const find = (scope: string, name: string) => layouts.find((l) => l.scope === scope && l.name === name)
+
+  it('entities.json declares PartnerRate (Base, stream off) and the manyToOne account link with linkForeign partnerRates', () => {
+    const cfg = read('entities.json')
+    expect(cfg.entities).toContainEqual({
+      name: 'PartnerRate',
+      type: 'Base',
+      labelSingular: 'Partner rate',
+      labelPlural: 'Partner rates',
+      stream: false,
+    })
+    expect(cfg.links).toContainEqual({
+      entity: 'CPartnerRate',
+      link: 'account',
+      linkType: 'manyToOne',
+      entityForeign: 'Account',
+      linkForeign: 'partnerRates',
+      label: 'Account',
+      labelForeign: 'Partner rates',
+    })
+  })
+
+  it('declares exactly vehicleClass, price, validFrom, validTo, note and the required account link (name is built in)', () => {
+    expect(specs.map((f) => f.name).sort()).toEqual(['account', 'note', 'price', 'validFrom', 'validTo', 'vehicleClass'])
+    expect(byName('note')?.type).toBe('text')
+  })
+
+  it('vehicleClass reuses the CBooking stored values (VEHICLE_CLASS_VALUES), labelled E/S/V-Class, required', () => {
+    const f = byName('vehicleClass')
+    expect(f.type).toBe('enum')
+    expect(f.options).toEqual(VEHICLE_CLASS_VALUES)
+    expect(f.translatedOptions).toEqual({ business: 'E-Class', first_class: 'S-Class', business_van: 'V-Class' })
+    expect(f.required).toBe(true)
+    const booking = read('fields.json').fields.CBooking.find((x: any) => x.name === 'vehicleClass')
+    expect(f.options).toEqual(booking.options)
+  })
+
+  it('price is a required EUR-only currency field', () => {
+    expect(byName('price')).toMatchObject({ type: 'currency', onlyDefaultCurrency: true, required: true })
+  })
+
+  it('validFrom and validTo are dates and validTo may not precede validFrom', () => {
+    expect(byName('validFrom')?.type).toBe('date')
+    expect(byName('validTo')).toMatchObject({ type: 'date', afterOrEqual: 'validFrom' })
+  })
+
+  it('the account link is required', () => {
+    expect(byName('account')).toMatchObject({ type: 'link', required: true })
+  })
+
+  it('layouts: list, listSmall and detail replace; every named field is declared, built in or a link', () => {
+    const known = new Set<string>([...specs.map((f) => f.name), 'name'])
+    const namesIn = (node: any): string[] => {
+      if (Array.isArray(node)) return node.flatMap(namesIn)
+      if (node && typeof node === 'object') return [...(typeof node.name === 'string' ? [node.name] : []), ...Object.values(node).flatMap(namesIn)]
+      return []
+    }
+    for (const name of ['list', 'listSmall', 'detail']) {
+      const entry = find('CPartnerRate', name)
+      expect(entry?.mode, name).toBe('replace')
+      for (const used of namesIn(entry.layout)) expect(known.has(used), `${name}: ${used}`).toBe(true)
+    }
+    expect(namesIn(find('CPartnerRate', 'list').layout)).toEqual(['name', 'vehicleClass', 'price', 'validFrom', 'validTo', 'account'])
+    expect(namesIn(find('CPartnerRate', 'listSmall').layout)).toEqual(['name', 'vehicleClass', 'price', 'validTo'])
+    const detail = find('CPartnerRate', 'detail').layout
+    expect(detail).toHaveLength(1)
+    expect(namesIn(detail[0].rows)).toEqual(['name', 'vehicleClass', 'price', 'account', 'validFrom', 'validTo', 'note'])
+  })
+
+  it('the Route label is carried by the layouts (the built-in name field keeps its own label)', () => {
+    expect(find('CPartnerRate', 'detail').layout[0].rows[0][0]).toMatchObject({ name: 'name', customLabel: 'Route' })
+    expect(find('CPartnerRate', 'list').layout[0]).toMatchObject({ name: 'name', link: true, customLabel: 'Route' })
+  })
+
+  it('Account gets the Partner rates panel next to the Bookings panel, append only', () => {
+    const entry = find('Account', 'bottomPanelsDetail')
+    expect(entry.mode).toBe('append')
+    expect(Object.keys(entry.layout)).toEqual(['cBookings', 'cPartnerRates'])
+  })
+
+  it('prohibition: no site code (app, components, lib) reads PartnerRate (D-04, CRM-FUT-01 deferred)', () => {
+    const hits: string[] = []
+    const walk = (dir: string) => {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (/\.(?:ts|tsx|js|jsx|mjs)$/.test(entry.name) && /PartnerRate|partnerRates/.test(readFileSync(full, 'utf8'))) hits.push(full)
+      }
+    }
+    for (const top of ['app', 'components', 'lib']) walk(join(REPO_ROOT, top))
+    expect(hits).toEqual([])
+  })
+
+  it('applies to the fake: entity, link, 5 fields and the required flag, then a second run is a no-op', async () => {
+    const fake = fresh()
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir, { only })
+    const md = fake.state.metadata
+    expect(md.entityDefs.CPartnerRate.fields.vehicleClass.options).toEqual(VEHICLE_CLASS_VALUES)
+    expect(md.entityDefs.CPartnerRate.fields.price).toMatchObject({ type: 'currency', onlyDefaultCurrency: true, required: true })
+    expect(md.entityDefs.CPartnerRate.fields.validTo.afterOrEqual).toBe('validFrom')
+    expect(md.entityDefs.CPartnerRate.fields.account.required).toBe(true)
+    expect(md.entityDefs.Account.links.cPartnerRates).toMatchObject({ entity: 'CPartnerRate', foreign: 'account' })
+    const before = mutations(fake).length
+    const again = await sync(fake, dir, { only })
+    for (const resource of only) expect(again.find((l) => l.startsWith(`${resource}:`))).toMatch(/create=0 update=0 /)
+    expect(mutations(fake)).toHaveLength(before)
+  })
+
+  it('the Account bottom panels layout gains cBookings and cPartnerRates after a full run, owner panels kept', async () => {
+    const fake = createFakeEspoCRM({
+      metadata: stockEspoMetadata(),
+      layouts: { 'Account/bottomPanelsDetail': { contacts: { index: 3 }, ownerPanel: { index: 9 } } },
+    })
+    const dir = join(REPO_ROOT, 'infra/espocrm')
+    await sync(fake, dir)
+    const panels = fake.state.layouts['Account/bottomPanelsDetail']
+    expect(Object.keys(panels)).toEqual(['contacts', 'ownerPanel', 'cBookings', 'cPartnerRates'])
+    expect(panels.contacts).toEqual({ index: 3 })
+    const again = await sync(fake, dir)
+    for (const line of again.filter((l) => /^[a-z]+: create=/.test(l))) expect(line).toMatch(/create=0 update=0 /)
   })
 })

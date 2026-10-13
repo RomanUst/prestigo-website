@@ -116,6 +116,48 @@
         "type": "url",
         "label": "Admin link"
       }
+    ],
+    "CPartnerRate": [
+      {
+        "name": "vehicleClass",
+        "type": "enum",
+        "options": ["business", "first_class", "business_van"],
+        "translatedOptions": {
+          "business": "E-Class",
+          "first_class": "S-Class",
+          "business_van": "V-Class"
+        },
+        "required": true,
+        "label": "Vehicle class"
+      },
+      {
+        "name": "price",
+        "type": "currency",
+        "onlyDefaultCurrency": true,
+        "required": true,
+        "label": "Price"
+      },
+      {
+        "name": "validFrom",
+        "type": "date",
+        "label": "Valid from"
+      },
+      {
+        "name": "validTo",
+        "type": "date",
+        "afterOrEqual": "validFrom",
+        "label": "Valid to"
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "label": "Note"
+      },
+      {
+        "name": "account",
+        "type": "link",
+        "required": true
+      }
     ]
   }
 }
