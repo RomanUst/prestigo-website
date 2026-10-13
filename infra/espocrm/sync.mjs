@@ -9,8 +9,8 @@
  *
  *   node infra/espocrm/sync.mjs [--dry-run] [--only settings,...]
  *
- * Resource order: settings, entities, links, fields, layouts. (Later plans insert
- * enums between fields and layouts, then roles and mail after layouts.)
+ * Resource order: settings, entities, links, fields, enums, layouts. (Later plans add
+ * roles and mail after layouts.)
  *
  * Handler contract: `async function syncX(ctx) -> { create, update, unchanged,
  * skipped, removed }`, where
@@ -34,10 +34,11 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEspoClient, loadEspoConfig, EspoApiError, EspoConfigError } from './lib/client.mjs'
+import { mergeDefault, mergeEnumOptions, mergeValueMap } from './lib/enum-merge.mjs'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 
-export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'layouts']
+export const RESOURCE_ORDER = ['settings', 'entities', 'links', 'fields', 'enums', 'layouts']
 
 // ---------------------------------------------------------------------------
 // Pure helpers
@@ -355,6 +356,120 @@ async function syncFields(ctx) {
 }
 
 // ---------------------------------------------------------------------------
+// enums (merge-safe: the owner may add values and rename labels in the UI)
+// ---------------------------------------------------------------------------
+
+/** Number-of-records probe: does any record of `scope` carry `value` in `field` (admin sees all records, canary included)? */
+async function isValueInUse(ctx, scope, field, value) {
+  const params = new URLSearchParams({ select: 'id', maxSize: '1' })
+  params.set('where[0][type]', value === '' ? 'isEmpty' : 'equals')
+  params.set('where[0][attribute]', field)
+  if (value !== '') params.set('where[0][value]', value)
+  const result = await ctx.get(`/${scope}?${params.toString()}`)
+  return Number(result?.total ?? 0) > 0 || (Array.isArray(result?.list) && result.list.length > 0)
+}
+
+function validateEnumEntry(def) {
+  requireKeys('enums', def, ['scope', 'field'])
+  const label = `${def.scope}.${def.field}`
+  if (!Array.isArray(def.values) || def.values.length === 0) {
+    throw new EspoConfigError(`enums: ${label} needs a non-empty values list`)
+  }
+  for (const v of def.values) {
+    if (typeof v?.value !== 'string' || !v.value || typeof v.label !== 'string' || !v.label) {
+      throw new EspoConfigError(`enums: ${label} has a value without value or label: ${JSON.stringify(v)}`)
+    }
+  }
+  const wanted = def.values.map((v) => v.value)
+  if (new Set(wanted).size !== wanted.length) throw new EspoConfigError(`enums: ${label} declares a value twice`)
+  const retire = def.retire ?? []
+  if (!Array.isArray(retire) || retire.some((v) => typeof v !== 'string')) {
+    throw new EspoConfigError(`enums: ${label} retire must be a list of strings`)
+  }
+  const overlap = retire.filter((v) => wanted.includes(v))
+  if (overlap.length) throw new EspoConfigError(`enums: ${label} retires values it also declares: ${overlap.join(', ')}`)
+  if (def.default !== undefined && !wanted.includes(def.default)) {
+    throw new EspoConfigError(`enums: ${label} default "${def.default}" is not a declared value`)
+  }
+}
+
+/**
+ * enums.json: { "enums": [ { scope, field, values: [{value,label}], retire?, default?,
+ * probabilityMap?, style? } ] }. Per entry: read options/labels/in-use counts, merge with
+ * mergeEnumOptions and PUT the whole merged definition only when it differs. Owner-added
+ * values, renamed labels and edited probabilities/styles are never overwritten; the only
+ * removals are retire-listed stock values that no record uses.
+ */
+async function syncEnums(ctx) {
+  const counts = emptyCounts()
+  const { enums = [] } = ctx.readConfig('enums.json')
+  for (const def of enums) validateEnumEntry(def)
+
+  let i18n
+  const readLabels = async (scope, field) => {
+    i18n ??= (await ctx.get('/I18n')) ?? {}
+    return i18n?.[scope]?.options?.[field] ?? {}
+  }
+
+  for (const def of enums) {
+    const { scope, field } = def
+    const key = `${scope}.${field}`
+    const have = await readMetadata(ctx, `entityDefs.${scope}.fields.${field}`)
+    if (!have) {
+      if (ctx.dryRun) {
+        counts.skipped++
+        continue
+      }
+      throw new EspoConfigError(`enums: field ${key} does not exist`)
+    }
+    if (have.type !== 'enum') throw new EspoConfigError(`enums: ${key} is a ${have.type} field, not an enum`)
+
+    const current = Array.isArray(have.options) ? have.options : []
+    const currentLabels = await readLabels(scope, field)
+    const retire = def.retire ?? []
+    const wanted = new Set(def.values.map((v) => v.value))
+
+    const inUse = new Set()
+    for (const value of retire) {
+      if (!current.includes(value) || wanted.has(value)) continue
+      if (await isValueInUse(ctx, scope, field, value)) inUse.add(value)
+    }
+
+    const merged = mergeEnumOptions({ desired: def.values, current, currentLabels, retire, inUse })
+    const next = {
+      options: merged.options,
+      translatedOptions: merged.translatedOptions,
+    }
+    const nextDefault = mergeDefault({ desired: def.default, current: have.default, retire })
+    if (nextDefault !== undefined) next.default = nextDefault
+    if (def.probabilityMap) {
+      next.probabilityMap = mergeValueMap({ desired: def.probabilityMap, current: have.probabilityMap, removed: merged.removed })
+    }
+    if (def.style) {
+      next.style = mergeValueMap({ desired: def.style, current: have.style, removed: merged.removed })
+    }
+
+    const unchanged =
+      sameJson(next.options, current) &&
+      sameJson(next.translatedOptions, currentLabels) &&
+      (next.default === undefined || next.default === have.default) &&
+      (next.probabilityMap === undefined || sameJson(next.probabilityMap, have.probabilityMap ?? {})) &&
+      (next.style === undefined || sameJson(next.style, have.style ?? {}))
+    if (unchanged) {
+      counts.unchanged++
+      continue
+    }
+
+    const body = { type: 'enum', ...next }
+    if (Array.isArray(have.fieldManagerAdditionalParamList)) body.fieldManagerAdditionalParamList = have.fieldManagerAdditionalParamList
+    await ctx.mutate('PUT', `/Admin/fieldManager/${scope}/${field}`, body, key)
+    counts.update++
+    counts.removed += merged.removed.length
+  }
+  return counts
+}
+
+// ---------------------------------------------------------------------------
 // layouts
 // ---------------------------------------------------------------------------
 
@@ -464,6 +579,7 @@ const HANDLERS = {
   entities: syncEntities,
   links: syncLinks,
   fields: syncFields,
+  enums: syncEnums,
   layouts: syncLayouts,
 }
 
